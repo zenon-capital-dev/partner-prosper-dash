@@ -655,39 +655,40 @@ export default function Dashboard() {
         </div>
 
         {/* Donut por categoria */}
-        <div className="lg:col-span-3 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Por Categoria
-            </p>
+        <div className="lg:col-span-3 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden" style={{ animationDelay: "60ms" }}>
+          <div className="flex items-start justify-between mb-4 relative">
+            <p className="vx-eyebrow vx-eyebrow-dot">Por Categoria</p>
             <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
           </div>
           {aggregated.categories.length > 0 ? (
             <>
-              <div className="h-40 relative">
+              <div className="h-44 relative">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="size-24 rounded-full bg-primary/10 blur-2xl" />
+                </div>
                 <ResponsiveContainer>
                   <PieChart>
-                    <Pie data={aggregated.categories} dataKey="value" innerRadius={48} outerRadius={70} paddingAngle={2} stroke="hsl(var(--card))" strokeWidth={2} animationDuration={600}>
+                    <Pie data={aggregated.categories} dataKey="value" innerRadius={52} outerRadius={76} paddingAngle={3} stroke="hsl(var(--card))" strokeWidth={3} animationDuration={700}>
                       {aggregated.categories.map((c, i) => <Cell key={i} fill={c.color} />)}
                     </Pie>
                     <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatBRL(v)} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Total</span>
-                  <span className="font-display text-[16px] font-bold tabular-nums">{formatBRL(totalCat)}</span>
+                  <span className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Total</span>
+                  <span className="vx-numeral text-[17px] mt-1 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">{formatBRL(totalCat)}</span>
                 </div>
               </div>
               <div className="space-y-2 mt-4">
                 {aggregated.categories.slice(0, 4).map((c) => {
                   const pct = totalCat ? ((c.value / totalCat) * 100).toFixed(1) : "0";
                   return (
-                    <div key={c.name} className="flex items-center justify-between gap-2">
+                    <div key={c.name} className="flex items-center justify-between gap-2 group/cat">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="size-2 rounded-full shrink-0" style={{ background: c.color }} />
+                        <span className="size-2.5 rounded-[5px] shrink-0 ring-1 ring-inset ring-white/10" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}55` }} />
                         <span className="text-[12px] font-semibold truncate">{c.name}</span>
                       </div>
-                      <span className="text-[12px] font-bold tabular-nums">{pct}%</span>
+                      <span className="text-[12px] font-bold tabular-nums text-muted-foreground group-hover/cat:text-foreground transition-colors">{pct}%</span>
                     </div>
                   );
                 })}
@@ -701,24 +702,31 @@ export default function Dashboard() {
         </div>
 
         {/* Meta radial */}
-        <div className="lg:col-span-2 vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] to-transparent pointer-events-none" />
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3 relative">
-            Meta do Período
-          </p>
+        <div className="lg:col-span-2 vx-card vx-card-hover vx-card-accent p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
+          <div className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/[0.10] blur-3xl pointer-events-none" />
+          <div className="flex items-center gap-2 mb-3 relative">
+            <p className="vx-eyebrow vx-eyebrow-dot">Meta do Período</p>
+          </div>
           <div className="h-32 relative">
             <ResponsiveContainer>
-              <RadialBarChart cx="50%" cy="50%" innerRadius="68%" outerRadius="100%" barSize={9} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={10} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
+                <defs>
+                  <linearGradient id="grad-meta" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={C.primary} />
+                    <stop offset="100%" stopColor={C.c5} />
+                  </linearGradient>
+                </defs>
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={20} animationDuration={800} />
+                <RadialBar background={{ fill: "hsl(var(--muted) / 0.55)" }} dataKey="value" cornerRadius={20} fill="url(#grad-meta)" animationDuration={900} />
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="font-display text-[24px] font-bold tabular-nums tracking-tight">{goalPct}%</span>
-              <span className="text-[10px] text-muted-foreground font-semibold">atingido</span>
+              <span className="vx-numeral text-[26px] bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] bg-clip-text text-transparent">{goalPct}%</span>
+              <span className="text-[10px] text-muted-foreground font-semibold mt-0.5">atingido</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-border space-y-1.5 relative">
+          <div className="mt-3 pt-3 vx-divider-soft relative" />
+          <div className="space-y-1.5 mt-3 relative">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground">Meta</span>
               <span className="text-[12px] font-bold tabular-nums">{formatBRL(goal)}</span>
@@ -734,7 +742,7 @@ export default function Dashboard() {
       {/* ===== ROW: TOP PRODUTOS + ATIVIDADES + RESUMO ===== */}
       <section key={`row2-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Top Produtos */}
-        <div className="lg:col-span-5 vx-card vx-card-hover p-5 vx-animate-in">
+        <div className="lg:col-span-5 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
