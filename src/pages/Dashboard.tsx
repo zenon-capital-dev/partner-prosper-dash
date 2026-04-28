@@ -14,10 +14,7 @@ import {
   FileUp,
   FileSignature,
   FolderKanban,
-  Calendar,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
+  Calendar as CalendarIcon,
   Bell,
   Sparkles,
   Target,
@@ -25,11 +22,13 @@ import {
   TrendingUp,
   Package,
   Trophy,
-  Filter,
   Plus,
-  Activity as ActivityIcon,
   CalendarDays,
+  Clock,
+  ChevronDown,
 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { formatBRL, timeAgo, initials } from "@/lib/format";
 import {
   ResponsiveContainer,
@@ -42,15 +41,15 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
   RadialBarChart,
   RadialBar,
   PolarAngleAxis,
 } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 const C = {
   primary: "hsl(var(--primary))",
@@ -71,10 +70,6 @@ const tooltipStyle = {
   boxShadow: "0 8px 24px -8px hsl(var(--foreground) / 0.16)",
 };
 
-const PT_MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const PT_MONTHS_FULL = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-const PT_DOW = ["D", "S", "T", "Q", "Q", "S", "S"];
-
 const activityMeta: Record<string, { icon: any; tone: string }> = {
   cliente: { icon: UserPlus, tone: "bg-primary/10 text-primary" },
   contrato: { icon: FileSignature, tone: "bg-success/10 text-success" },
@@ -90,65 +85,94 @@ const sparkData = (seed: number) =>
     y: 22 + Math.abs(Math.sin(i * 0.6 + seed) * 28) + ((i * seed) % 7),
   }));
 
+type RangeKey = "today" | "7d" | "30d" | "month" | "custom";
+
+function makeRange(key: RangeKey, custom?: { from?: Date; to?: Date }): { from: Date; to: Date; label: string } {
+  const now = new Date();
+  const startOfDay = (d: Date) => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+  const endOfDay   = (d: Date) => { const x = new Date(d); x.setHours(23,59,59,999); return x; };
+
+  switch (key) {
+    case "today":
+      return { from: startOfDay(now), to: endOfDay(now), label: "Hoje" };
+    case "7d": {
+      const f = new Date(now); f.setDate(f.getDate() - 6);
+      return { from: startOfDay(f), to: endOfDay(now), label: "Últimos 7 dias" };
+    }
+    case "30d": {
+      const f = new Date(now); f.setDate(f.getDate() - 29);
+      return { from: startOfDay(f), to: endOfDay(now), label: "Últimos 30 dias" };
+    }
+    case "custom": {
+      const f = custom?.from ? startOfDay(custom.from) : startOfDay(now);
+      const t = custom?.to   ? endOfDay(custom.to)     : endOfDay(now);
+      const sameDay = f.toDateString() === t.toDateString();
+      const lab = sameDay
+        ? format(f, "dd 'de' MMM", { locale: ptBR })
+        : `${format(f, "dd MMM", { locale: ptBR })} – ${format(t, "dd MMM", { locale: ptBR })}`;
+      return { from: f, to: t, label: lab };
+    }
+    case "month":
+    default: {
+      const f = new Date(now.getFullYear(), now.getMonth(), 1);
+      const t = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      return { from: f, to: t, label: format(now, "MMMM 'de' yyyy", { locale: ptBR }) };
+    }
+  }
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
 
-  // ===== State: month + selected day =====
-  const today = new Date();
-  const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [viewYear, setViewYear] = useState(today.getFullYear());
-  const [selectedDay, setSelectedDay] = useState<number | null>(null); // null = full month
+  const [rangeKey, setRangeKey] = useState<RangeKey>("month");
+  const [customFrom, setCustomFrom] = useState<Date | undefined>();
+  const [customTo, setCustomTo] = useState<Date | undefined>();
 
-  const daysInMonth = useMemo(() => new Date(viewYear, viewMonth + 1, 0).getDate(), [viewMonth, viewYear]);
+  const range = useMemo(
+    () => makeRange(rangeKey, { from: customFrom, to: customTo }),
+    [rangeKey, customFrom, customTo]
+  );
 
-  const monthLabel = `${PT_MONTHS_FULL[viewMonth]} ${viewYear}`;
-  const monthStart = useMemo(() => new Date(viewYear, viewMonth, 1), [viewMonth, viewYear]);
-  const monthEnd = useMemo(() => new Date(viewYear, viewMonth + 1, 0, 23, 59, 59), [viewMonth, viewYear]);
-  const monthStartIso = monthStart.toISOString().slice(0, 10);
-  const monthEndIso = monthEnd.toISOString().slice(0, 10);
+  const fromIso = range.from.toISOString();
+  const toIso = range.to.toISOString();
+  const fromDate = range.from.toISOString().slice(0, 10);
+  const toDate = range.to.toISOString().slice(0, 10);
 
-  function inSelectedRange(d: Date) {
-    if (selectedDay) {
-      return d.getFullYear() === viewYear && d.getMonth() === viewMonth && d.getDate() === selectedDay;
-    }
-    return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
-  }
-
-  // ===== queries — all month-bound =====
-  const { data: monthSales } = useQuery({
-    queryKey: ["dash-month-sales", viewYear, viewMonth],
+  // ===== queries =====
+  const { data: rangeSales } = useQuery({
+    queryKey: ["dash-r-sales", fromDate, toDate],
     queryFn: async () => {
       const { data } = await supabase
         .from("sales")
         .select("amount, sale_date, status, partner_id, products(name, product_categories(name, color))")
-        .gte("sale_date", monthStartIso)
-        .lte("sale_date", monthEndIso);
+        .gte("sale_date", fromDate)
+        .lte("sale_date", toDate);
       return data ?? [];
     },
   });
 
-  const { data: monthCommissions } = useQuery({
-    queryKey: ["dash-month-comms", viewYear, viewMonth],
+  const { data: rangeCommissions } = useQuery({
+    queryKey: ["dash-r-comms", fromDate, toDate],
     queryFn: async () => {
       const { data } = await supabase
         .from("commissions")
         .select("amount, status, paid_at, partner_id, partners(full_name, active)");
       return (data ?? []).filter((c: any) => {
         if (!c.paid_at) return false;
-        const d = new Date(c.paid_at);
-        return d.getFullYear() === viewYear && d.getMonth() === viewMonth;
+        const d = new Date(c.paid_at).getTime();
+        return d >= range.from.getTime() && d <= range.to.getTime();
       });
     },
   });
 
-  const { data: monthClients } = useQuery({
-    queryKey: ["dash-month-clients", viewYear, viewMonth],
+  const { data: rangeClients } = useQuery({
+    queryKey: ["dash-r-clients", fromIso, toIso],
     queryFn: async () => {
       const { data } = await supabase
         .from("clients")
         .select("id, full_name, company, status, created_at")
-        .gte("created_at", monthStart.toISOString())
-        .lte("created_at", monthEnd.toISOString())
+        .gte("created_at", fromIso)
+        .lte("created_at", toIso)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -162,68 +186,34 @@ export default function Dashboard() {
     },
   });
 
-  const { data: monthActivities } = useQuery({
-    queryKey: ["dash-month-activities", viewYear, viewMonth],
+  const { data: rangeActivities } = useQuery({
+    queryKey: ["dash-r-activities", fromIso, toIso],
     queryFn: async () => {
       const { data } = await supabase
         .from("activities")
         .select("id, action, description, created_at, entity_type")
-        .gte("created_at", monthStart.toISOString())
-        .lte("created_at", monthEnd.toISOString())
+        .gte("created_at", fromIso)
+        .lte("created_at", toIso)
         .order("created_at", { ascending: false })
         .limit(40);
       return data ?? [];
     },
   });
 
-  // ===== Per-day buckets for the month =====
-  const perDay = useMemo(() => {
-    const out = Array.from({ length: daysInMonth }).map((_, i) => ({
-      day: i + 1,
-      label: String(i + 1).padStart(2, "0"),
-      faturamento: 0,
-      comissoes: 0,
-      clientes: 0,
-      vendas: 0,
-    }));
-    (monthSales ?? []).forEach((s: any) => {
-      const d = new Date(s.sale_date);
-      const idx = d.getDate() - 1;
-      if (out[idx]) {
-        out[idx].faturamento += Number(s.amount);
-        out[idx].vendas += 1;
-      }
-    });
-    (monthCommissions ?? []).forEach((c: any) => {
-      const d = new Date(c.paid_at);
-      const idx = d.getDate() - 1;
-      if (out[idx]) out[idx].comissoes += Number(c.amount);
-    });
-    (monthClients ?? []).forEach((c: any) => {
-      const d = new Date(c.created_at);
-      const idx = d.getDate() - 1;
-      if (out[idx]) out[idx].clientes += 1;
-    });
-    return out;
-  }, [monthSales, monthCommissions, monthClients, daysInMonth]);
-
-  const maxDayRev = Math.max(1, ...perDay.map((d) => d.faturamento));
-
-  // ===== Filtered KPIs (by selectedDay) =====
-  const filtered = useMemo(() => {
-    const sales = (monthSales ?? []).filter((s: any) => inSelectedRange(new Date(s.sale_date)));
-    const comms = (monthCommissions ?? []).filter((c: any) => inSelectedRange(new Date(c.paid_at)));
-    const clients = (monthClients ?? []).filter((c: any) => inSelectedRange(new Date(c.created_at)));
-    const activities = (monthActivities ?? []).filter((a: any) => inSelectedRange(new Date(a.created_at)));
+  // ===== Aggregations =====
+  const aggregated = useMemo(() => {
+    const sales = rangeSales ?? [];
+    const comms = rangeCommissions ?? [];
+    const clients = rangeClients ?? [];
+    const activities = rangeActivities ?? [];
 
     const totalRevenue = sales.reduce((s, x: any) => s + Number(x.amount), 0);
     const paid = comms.reduce((s, x: any) => s + Number(x.amount), 0);
     const newClients = clients.length;
     const concluidas = sales.filter((s: any) => s.status === "concluida").length;
 
-    // top categories
-    const catMap = new Map<string, { name: string; value: number; color: string }>();
     const palette = [C.primary, C.success, C.warning, C.info, C.c5, C.c6];
+    const catMap = new Map<string, { name: string; value: number; color: string }>();
     let i = 0;
     sales.forEach((s: any) => {
       const cat = s.products?.product_categories;
@@ -234,7 +224,6 @@ export default function Dashboard() {
       catMap.set(key, cur);
     });
 
-    // top products
     const prodMap = new Map<string, { name: string; total: number; count: number }>();
     sales.forEach((s: any) => {
       const n = s.products?.name;
@@ -245,7 +234,6 @@ export default function Dashboard() {
       prodMap.set(n, cur);
     });
 
-    // top partners
     const partMap = new Map<string, { name: string; total: number; count: number; active: boolean }>();
     comms.forEach((c: any) => {
       if (!c.partners) return;
@@ -254,6 +242,47 @@ export default function Dashboard() {
       cur.count += 1;
       partMap.set(c.partner_id, cur);
     });
+
+    // Buckets pra área (Hoje = por hora; demais = por dia)
+    const isToday = rangeKey === "today";
+    const buckets: { key: string; label: string; faturamento: number; comissoes: number }[] = [];
+    if (isToday) {
+      for (let h = 0; h < 24; h += 2) {
+        buckets.push({ key: `${h}`, label: `${String(h).padStart(2, "0")}h`, faturamento: 0, comissoes: 0 });
+      }
+      sales.forEach((s: any) => {
+        const d = new Date(s.sale_date);
+        const idx = Math.floor(d.getHours() / 2);
+        if (buckets[idx]) buckets[idx].faturamento += Number(s.amount);
+      });
+      comms.forEach((c: any) => {
+        const d = new Date(c.paid_at);
+        const idx = Math.floor(d.getHours() / 2);
+        if (buckets[idx]) buckets[idx].comissoes += Number(c.amount);
+      });
+    } else {
+      const days = Math.max(1, Math.ceil((range.to.getTime() - range.from.getTime()) / 86400000));
+      for (let i = 0; i < days; i++) {
+        const d = new Date(range.from);
+        d.setDate(d.getDate() + i);
+        buckets.push({
+          key: d.toISOString().slice(0, 10),
+          label: format(d, days > 14 ? "dd" : "dd/MM", { locale: ptBR }),
+          faturamento: 0,
+          comissoes: 0,
+        });
+      }
+      sales.forEach((s: any) => {
+        const k = String(s.sale_date).slice(0, 10);
+        const b = buckets.find((b) => b.key === k);
+        if (b) b.faturamento += Number(s.amount);
+      });
+      comms.forEach((c: any) => {
+        const k = new Date(c.paid_at).toISOString().slice(0, 10);
+        const b = buckets.find((b) => b.key === k);
+        if (b) b.comissoes += Number(c.amount);
+      });
+    }
 
     return {
       sales,
@@ -264,24 +293,28 @@ export default function Dashboard() {
       clients,
       activities,
       categories: Array.from(catMap.values()),
-      topProducts: Array.from(prodMap.values()).sort((a, b) => b.total - a.total).slice(0, 4),
+      topProducts: Array.from(prodMap.values()).sort((a, b) => b.total - a.total).slice(0, 5),
       topPartners: Array.from(partMap.values()).sort((a, b) => b.total - a.total).slice(0, 5),
+      buckets,
     };
-  }, [monthSales, monthCommissions, monthClients, monthActivities, selectedDay, viewYear, viewMonth]);
+  }, [rangeSales, rangeCommissions, rangeClients, rangeActivities, rangeKey, range.from, range.to]);
 
-  const totalRevenue = filtered.totalRevenue;
-  const paid = filtered.paid;
+  const totalRevenue = aggregated.totalRevenue;
+  const paid = aggregated.paid;
   const taxes = totalRevenue * 0.022;
   const net = totalRevenue - paid - taxes;
   const margin = totalRevenue > 0 ? (net / totalRevenue) * 100 : 0;
 
-  const goal = 500_000;
+  // Goal scales with the range type
+  const goal = rangeKey === "today" ? 25_000 : rangeKey === "7d" ? 120_000 : 500_000;
   const goalPct = Math.min(100, Math.round((totalRevenue / goal) * 100));
-  const totalCat = filtered.categories.reduce((s, x) => s + x.value, 0);
+  const totalCat = aggregated.categories.reduce((s, x) => s + x.value, 0);
+
+  const labelSuffix = range.label;
 
   const kpis = [
     {
-      label: selectedDay ? "Faturamento do Dia" : "Faturamento do Mês",
+      label: `Faturamento · ${labelSuffix}`,
       value: formatBRL(totalRevenue),
       delta: "+18.2%",
       positive: true,
@@ -291,8 +324,8 @@ export default function Dashboard() {
       seed: 1,
     },
     {
-      label: selectedDay ? "Novos Clientes" : "Clientes do Mês",
-      value: String(filtered.newClients),
+      label: `Novos Clientes`,
+      value: String(aggregated.newClients),
       delta: "+12.5%",
       positive: true,
       icon: Users,
@@ -322,18 +355,14 @@ export default function Dashboard() {
     },
   ];
 
-  // Animation key to retrigger when day changes
-  const animKey = `${viewYear}-${viewMonth}-${selectedDay ?? "all"}`;
+  const animKey = `${rangeKey}-${fromDate}-${toDate}`;
 
-  function shiftMonth(delta: number) {
-    let m = viewMonth + delta;
-    let y = viewYear;
-    if (m < 0) { m = 11; y--; }
-    if (m > 11) { m = 0; y++; }
-    setViewMonth(m);
-    setViewYear(y);
-    setSelectedDay(null);
-  }
+  const presets: { key: RangeKey; label: string; icon: any }[] = [
+    { key: "today", label: "Hoje", icon: Clock },
+    { key: "7d", label: "7 dias", icon: TrendingUp },
+    { key: "30d", label: "30 dias", icon: CalendarDays },
+    { key: "month", label: "Este mês", icon: CalendarIcon },
+  ];
 
   return (
     <div className="page-shell space-y-6">
@@ -348,108 +377,91 @@ export default function Dashboard() {
               <Sparkles className="size-3" /> IA Insights
             </span>
             <span className="vx-pill vx-pill-primary">
-              <CalendarDays className="size-3" /> {selectedDay ? `Dia ${String(selectedDay).padStart(2, "0")}/${String(viewMonth + 1).padStart(2, "0")}` : "Mês inteiro"}
+              <CalendarDays className="size-3" /> {range.label}
             </span>
           </div>
           <h1 className="font-display text-[34px] font-bold tracking-[-0.02em] leading-none">
             Dashboard
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
-            Bem-vindo de volta, <span className="font-semibold text-foreground">{user?.email?.split("@")[0] ?? "Admin"}</span>! Aqui está o resumo do seu negócio.
+            Bem-vindo de volta, <span className="font-semibold text-foreground">{user?.email?.split("@")[0] ?? "Admin"}</span>! Resumo do período selecionado.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Day filter dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border border-border bg-card text-[13px] font-medium hover:bg-muted/50 transition-colors">
-                <CalendarDays className="size-4 text-muted-foreground" />
-                <span className="tabular-nums">
-                  {selectedDay ? `Dia ${String(selectedDay).padStart(2, "0")}` : "Mês inteiro"}
-                </span>
-                <ChevronDown className="size-3.5 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 p-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Period segmented control */}
+          <div className="vx-segment !p-0.5">
+            {presets.map((p) => {
+              const Icon = p.icon;
+              const active = rangeKey === p.key;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => setRangeKey(p.key)}
+                  data-active={active}
+                  className="vx-segment-item !flex items-center gap-1.5"
+                >
+                  <Icon className="size-3.5" />
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Custom range picker */}
+          <Popover>
+            <PopoverTrigger asChild>
               <button
-                onClick={() => setSelectedDay(null)}
+                data-active={rangeKey === "custom"}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-[13px] font-medium mb-1 flex items-center justify-between",
-                  selectedDay === null ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  "inline-flex items-center gap-2 h-9 px-3 rounded-lg border text-[13px] font-semibold transition-colors",
+                  rangeKey === "custom"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card text-foreground hover:bg-muted/50"
                 )}
               >
-                <span>Mês inteiro</span>
-                <span className="text-[11px] opacity-70 tabular-nums">{formatBRL(perDay.reduce((s, d) => s + d.faturamento, 0))}</span>
+                <CalendarIcon className="size-3.5" />
+                {rangeKey === "custom" && customFrom
+                  ? customTo && customTo.toDateString() !== customFrom.toDateString()
+                    ? `${format(customFrom, "dd/MM")} – ${format(customTo, "dd/MM")}`
+                    : format(customFrom, "dd 'de' MMM", { locale: ptBR })
+                  : "Personalizado"}
+                <ChevronDown className="size-3.5 opacity-70" />
               </button>
-              {today.getMonth() === viewMonth && today.getFullYear() === viewYear && (
-                <button
-                  onClick={() => setSelectedDay(today.getDate())}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-[13px] font-medium mb-1 flex items-center justify-between",
-                    selectedDay === today.getDate() ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                  )}
-                >
-                  <span>Hoje · dia {today.getDate()}</span>
-                  <span className="text-[11px] opacity-70 tabular-nums">{formatBRL(perDay[today.getDate() - 1]?.faturamento ?? 0)}</span>
-                </button>
-              )}
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-2 pt-2 pb-1">Selecione um dia</div>
-              <div className="grid grid-cols-7 gap-1 p-1 max-h-[220px] overflow-y-auto">
-                {perDay.map((d) => {
-                  const isActive = selectedDay === d.day;
-                  const isToday = d.day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
-                  const hasData = d.faturamento > 0;
-                  return (
-                    <button
-                      key={d.day}
-                      onClick={() => setSelectedDay(d.day)}
-                      className={cn(
-                        "relative h-9 rounded-md text-[12px] font-semibold tabular-nums transition-colors flex items-center justify-center",
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : hasData
-                            ? "bg-primary/10 text-foreground hover:bg-primary/20"
-                            : "text-muted-foreground hover:bg-muted",
-                        isToday && !isActive && "ring-1 ring-primary/40"
-                      )}
-                      title={`Dia ${d.label} — ${formatBRL(d.faturamento)} · ${d.vendas} vendas`}
-                    >
-                      {d.label}
-                      {hasData && !isActive && (
-                        <span className="absolute bottom-1 size-1 rounded-full bg-primary" />
-                      )}
-                    </button>
-                  );
-                })}
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-auto p-0">
+              <Calendar
+                mode="range"
+                selected={{ from: customFrom, to: customTo }}
+                onSelect={(r: any) => {
+                  setCustomFrom(r?.from);
+                  setCustomTo(r?.to);
+                  if (r?.from) setRangeKey("custom");
+                }}
+                numberOfMonths={2}
+                locale={ptBR}
+                className="p-3 pointer-events-auto"
+              />
+              <div className="flex items-center justify-end gap-2 p-2 border-t border-border">
+                <Button variant="ghost" size="sm" onClick={() => { setCustomFrom(undefined); setCustomTo(undefined); setRangeKey("month"); }}>
+                  Limpar
+                </Button>
               </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </PopoverContent>
+          </Popover>
 
-          <div className="inline-flex items-center h-10 rounded-lg border border-border bg-card overflow-hidden">
-            <button onClick={() => shiftMonth(-1)} className="size-10 inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-              <ChevronLeft className="size-4" />
-            </button>
-            <div className="px-3 inline-flex items-center gap-2 text-[13px] font-semibold tabular-nums">
-              <Calendar className="size-4 text-muted-foreground" />
-              {monthLabel}
-            </div>
-            <button onClick={() => shiftMonth(1)} className="size-10 inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
-          <button className="relative size-10 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/50 transition-colors">
+          <button className="relative size-9 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/50 transition-colors">
             <Bell className="size-4 text-muted-foreground" />
             <span className="absolute -top-1 -right-1 size-4 rounded-full bg-destructive text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-background">
               3
             </span>
           </button>
-          <button className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors">
+          <button className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors">
             <Plus className="size-4" /> Novo
           </button>
         </div>
       </header>
 
-      {/* ===== KPI CARDS (animated when day changes) ===== */}
+      {/* ===== KPI CARDS ===== */}
       <section key={`kpi-${animKey}`} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {kpis.map((k, idx) => {
           const Icon = k.icon;
@@ -466,7 +478,7 @@ export default function Dashboard() {
                   <Icon className="size-5" strokeWidth={2.25} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                  <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground truncate">
                     {k.label}
                   </p>
                   <p className="font-display text-[26px] font-bold tabular-nums tracking-[-0.025em] mt-1.5 truncate">
@@ -501,14 +513,14 @@ export default function Dashboard() {
         })}
       </section>
 
-      {/* ===== ROW: PER-DAY CHART + DONUT + META ===== */}
+      {/* ===== ROW: AREA + DONUT + META ===== */}
       <section key={`row1-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Per-day faturamento */}
+        {/* Faturamento ao longo do período */}
         <div className="lg:col-span-7 vx-card vx-card-hover p-5 vx-animate-in">
           <div className="flex items-start justify-between mb-3 flex-wrap gap-3">
             <div>
               <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Faturamento Diário · {monthLabel}
+                Receita · {range.label}
               </p>
               <p className="font-display text-[28px] font-bold tabular-nums tracking-[-0.025em] mt-1">
                 {formatBRL(totalRevenue)}
@@ -528,28 +540,34 @@ export default function Dashboard() {
           </div>
           <div className="h-72">
             <ResponsiveContainer>
-              <AreaChart data={perDay} margin={{ left: -8, right: 8, top: 8, bottom: 0 }}>
+              <AreaChart data={aggregated.buckets} margin={{ left: -8, right: 8, top: 8, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="grad-fat-day" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="grad-fat" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={C.primary} stopOpacity={0.32} />
                     <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="grad-com-day" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="grad-com" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={C.destructive} stopOpacity={0.18} />
                     <stop offset="100%" stopColor={C.destructive} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} interval={2} />
+                <XAxis
+                  dataKey="label"
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={aggregated.buckets.length > 14 ? 2 : 0}
+                />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(v: number) => formatBRL(v)}
-                  labelFormatter={(l) => `Dia ${l}`}
                   cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3" }}
                 />
-                <Area type="monotone" dataKey="faturamento" stroke={C.primary} strokeWidth={2.5} fill="url(#grad-fat-day)" dot={{ r: 2.5, fill: C.primary, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--card))" }} isAnimationActive={true} animationDuration={700} />
-                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com-day)" dot={false} isAnimationActive={true} animationDuration={700} />
+                <Area type="monotone" dataKey="faturamento" stroke={C.primary} strokeWidth={2.5} fill="url(#grad-fat)" dot={{ r: 2.5, fill: C.primary, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--card))" }} animationDuration={700} />
+                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com)" dot={false} animationDuration={700} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -563,13 +581,13 @@ export default function Dashboard() {
             </p>
             <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
           </div>
-          {filtered.categories.length > 0 ? (
+          {aggregated.categories.length > 0 ? (
             <>
               <div className="h-40 relative">
                 <ResponsiveContainer>
                   <PieChart>
-                    <Pie data={filtered.categories} dataKey="value" innerRadius={48} outerRadius={70} paddingAngle={2} stroke="hsl(var(--card))" strokeWidth={2} isAnimationActive={true} animationDuration={600}>
-                      {filtered.categories.map((c, i) => <Cell key={i} fill={c.color} />)}
+                    <Pie data={aggregated.categories} dataKey="value" innerRadius={48} outerRadius={70} paddingAngle={2} stroke="hsl(var(--card))" strokeWidth={2} animationDuration={600}>
+                      {aggregated.categories.map((c, i) => <Cell key={i} fill={c.color} />)}
                     </Pie>
                     <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatBRL(v)} />
                   </PieChart>
@@ -580,7 +598,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="space-y-2 mt-4">
-                {filtered.categories.slice(0, 4).map((c) => {
+                {aggregated.categories.slice(0, 4).map((c) => {
                   const pct = totalCat ? ((c.value / totalCat) * 100).toFixed(1) : "0";
                   return (
                     <div key={c.name} className="flex items-center justify-between gap-2">
@@ -605,13 +623,13 @@ export default function Dashboard() {
         <div className="lg:col-span-2 vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
           <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] to-transparent pointer-events-none" />
           <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3 relative">
-            Meta do Mês
+            Meta do Período
           </p>
           <div className="h-32 relative">
             <ResponsiveContainer>
               <RadialBarChart cx="50%" cy="50%" innerRadius="68%" outerRadius="100%" barSize={9} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={20} isAnimationActive={true} animationDuration={800} />
+                <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={20} animationDuration={800} />
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -632,58 +650,32 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* ===== ROW: PER-DAY BARS + TOP PRODUTOS + ATIVIDADES ===== */}
+      {/* ===== ROW: TOP PRODUTOS + ATIVIDADES + RESUMO ===== */}
       <section key={`row2-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Top Produtos */}
         <div className="lg:col-span-5 vx-card vx-card-hover p-5 vx-animate-in">
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Vendas por Dia
+                Top Produtos
               </p>
-              <p className="font-display text-[20px] font-bold tabular-nums tracking-tight mt-1">
-                {formatBRL(net)} <span className="text-[12px] font-normal text-muted-foreground">líquido</span>
+              <p className="font-display text-[18px] font-bold tabular-nums tracking-tight mt-1">
+                {aggregated.topProducts.length} produtos vendidos
               </p>
             </div>
-            <span className="vx-pill vx-pill-success">
-              <TrendingUp className="size-3" /> +22.4%
-            </span>
-          </div>
-          <div className="h-56">
-            <ResponsiveContainer>
-              <BarChart data={perDay} margin={{ left: -8, right: 4, top: 8, bottom: 0 }} barGap={2}>
-                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} interval={2} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatBRL(v)} labelFormatter={(l) => `Dia ${l}`} cursor={{ fill: "hsl(var(--muted) / 0.5)" }} />
-                <Bar dataKey="faturamento" radius={[4, 4, 0, 0]} maxBarSize={14} isAnimationActive={true} animationDuration={700}>
-                  {perDay.map((d) => (
-                    <Cell key={d.day} fill={selectedDay === d.day ? C.primary : `hsl(var(--primary) / ${0.45 + (d.faturamento / maxDayRev) * 0.55})`} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Top Produtos */}
-        <div className="lg:col-span-4 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Top Produtos
-            </p>
             <button className="text-[11px] font-semibold text-primary hover:underline">Ver todos</button>
           </div>
           <div className="space-y-3.5">
-            {filtered.topProducts.length === 0 ? (
-              <div className="py-8 text-center">
+            {aggregated.topProducts.length === 0 ? (
+              <div className="py-10 text-center">
                 <Package className="size-8 mx-auto text-muted-foreground/40 mb-2" />
                 <p className="text-sm text-muted-foreground">Sem produtos no período</p>
               </div>
             ) : (
-              filtered.topProducts.map((p, i) => {
-                const max = Math.max(...filtered.topProducts.map((x) => x.total));
+              aggregated.topProducts.map((p, i) => {
+                const max = Math.max(...aggregated.topProducts.map((x) => x.total));
                 const w = max ? (p.total / max) * 100 : 0;
-                const colors = [C.primary, C.success, C.warning, C.info];
+                const colors = [C.primary, C.success, C.warning, C.info, C.c5];
                 return (
                   <div key={p.name}>
                     <div className="flex items-center justify-between mb-1.5">
@@ -707,20 +699,20 @@ export default function Dashboard() {
         </div>
 
         {/* Atividades */}
-        <div className="lg:col-span-3 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "120ms" }}>
+        <div className="lg:col-span-4 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
           <div className="flex items-center justify-between mb-4">
             <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Atividades
+              Atividades · {range.label}
             </p>
             <span className="vx-pill vx-pill-primary">
               <Zap className="size-2.5" /> Live
             </span>
           </div>
-          <div className="space-y-3.5 max-h-[280px] overflow-y-auto pr-1">
-            {filtered.activities.length === 0 ? (
+          <div className="space-y-3.5 max-h-[320px] overflow-y-auto pr-1">
+            {aggregated.activities.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">Nenhuma atividade no período.</p>
             ) : (
-              filtered.activities.slice(0, 8).map((a: any) => {
+              aggregated.activities.slice(0, 10).map((a: any) => {
                 const meta = activityMeta[a.entity_type as string] || activityMeta.cliente;
                 const Icon = meta.icon;
                 return (
@@ -738,120 +730,6 @@ export default function Dashboard() {
               })
             )}
           </div>
-        </div>
-      </section>
-
-      {/* ===== ROW: TABELAS + RESUMO FINANCEIRO ===== */}
-      <section key={`row3-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Clientes (no período) */}
-        <div className="lg:col-span-5 vx-card vx-card-hover overflow-hidden vx-animate-in">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              {selectedDay ? `Clientes do dia ${selectedDay}` : "Clientes do mês"}
-            </p>
-            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
-          </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
-                <th className="px-5 py-2.5 text-left font-bold">Cliente</th>
-                <th className="px-3 py-2.5 text-left font-bold">Empresa</th>
-                <th className="px-3 py-2.5 text-left font-bold">Status</th>
-                <th className="px-5 py-2.5 text-right font-bold">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.clients.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-5 py-12 text-center text-muted-foreground text-sm">
-                    Nenhum cliente no período
-                  </td>
-                </tr>
-              ) : (
-                filtered.clients.slice(0, 6).map((c: any) => (
-                  <tr key={c.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="size-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary flex items-center justify-center text-[11px] font-bold">
-                          {initials(c.full_name)}
-                        </div>
-                        <span className="font-semibold text-[13px]">{c.full_name}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3.5 text-muted-foreground text-[13px]">{c.company ?? "—"}</td>
-                    <td className="px-3 py-3.5">
-                      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-                        c.status === "ativo" && "bg-success/15 text-success",
-                        c.status === "prospecto" && "bg-warning/15 text-warning",
-                        c.status !== "ativo" && c.status !== "prospecto" && "bg-muted text-muted-foreground")}>
-                        <span className="size-1.5 rounded-full bg-current" />
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <button className="size-7 rounded-md hover:bg-muted inline-flex items-center justify-center text-muted-foreground">
-                        <MoreHorizontal className="size-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Top parceiros */}
-        <div className="lg:col-span-4 vx-card vx-card-hover overflow-hidden vx-animate-in" style={{ animationDelay: "60ms" }}>
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Top Parceiros
-            </p>
-            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
-          </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
-                <th className="px-5 py-2.5 text-left font-bold">Parceiro</th>
-                <th className="px-3 py-2.5 text-right font-bold">Comissões</th>
-                <th className="px-5 py-2.5 text-right font-bold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.topPartners.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground text-sm">
-                    Sem comissões no período
-                  </td>
-                </tr>
-              ) : (
-                filtered.topPartners.map((p, i) => {
-                  const trophyColor = ["text-warning", "text-muted-foreground", "text-[#CD7F32]"][i] || "text-muted-foreground";
-                  return (
-                    <tr key={p.name + i} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          {i < 3 ? (
-                            <Trophy className={cn("size-4", trophyColor)} />
-                          ) : (
-                            <span className="size-5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center tabular-nums">
-                              {i + 1}
-                            </span>
-                          )}
-                          <span className="font-semibold text-[13px]">{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-3.5 text-right tabular-nums font-bold text-[13px]">{formatBRL(p.total)}</td>
-                      <td className="px-5 py-3.5 text-right">
-                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold", p.active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground")}>
-                          {p.active ? "Ativo" : "Inativo"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
         </div>
 
         {/* Resumo Financeiro */}
@@ -892,6 +770,118 @@ export default function Dashboard() {
               <p className="text-[10.5px] text-muted-foreground mt-2 tabular-nums">Margem {margin.toFixed(1)}%</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ===== ROW: CLIENTES + TOP PARCEIROS ===== */}
+      <section key={`row3-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Clientes (no período) */}
+        <div className="lg:col-span-7 vx-card vx-card-hover overflow-hidden vx-animate-in">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Novos clientes · {range.label}
+            </p>
+            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
+                <th className="px-5 py-2.5 text-left font-bold">Cliente</th>
+                <th className="px-3 py-2.5 text-left font-bold">Empresa</th>
+                <th className="px-3 py-2.5 text-left font-bold">Status</th>
+                <th className="px-5 py-2.5 text-right font-bold">Cadastrado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {aggregated.clients.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-12 text-center text-muted-foreground text-sm">
+                    Nenhum cliente cadastrado no período
+                  </td>
+                </tr>
+              ) : (
+                aggregated.clients.slice(0, 7).map((c: any) => (
+                  <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="size-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary flex items-center justify-center text-[11px] font-bold">
+                          {initials(c.full_name)}
+                        </div>
+                        <span className="font-semibold text-[13px]">{c.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3.5 text-muted-foreground text-[13px]">{c.company ?? "—"}</td>
+                    <td className="px-3 py-3.5">
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+                        c.status === "ativo" && "bg-success/15 text-success",
+                        c.status === "prospecto" && "bg-warning/15 text-warning",
+                        c.status !== "ativo" && c.status !== "prospecto" && "bg-muted text-muted-foreground")}>
+                        <span className="size-1.5 rounded-full bg-current" />
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-muted-foreground text-[12px] tabular-nums">
+                      {timeAgo(c.created_at)}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Top parceiros */}
+        <div className="lg:col-span-5 vx-card vx-card-hover overflow-hidden vx-animate-in" style={{ animationDelay: "60ms" }}>
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Top Parceiros · {range.label}
+            </p>
+            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
+                <th className="px-5 py-2.5 text-left font-bold">Parceiro</th>
+                <th className="px-3 py-2.5 text-right font-bold">Comissões</th>
+                <th className="px-5 py-2.5 text-right font-bold">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {aggregated.topPartners.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground text-sm">
+                    Sem comissões no período
+                  </td>
+                </tr>
+              ) : (
+                aggregated.topPartners.map((p, i) => {
+                  const trophyColor = ["text-warning", "text-muted-foreground", "text-[#CD7F32]"][i] || "text-muted-foreground";
+                  return (
+                    <tr key={p.name + i} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          {i < 3 ? (
+                            <Trophy className={cn("size-4", trophyColor)} />
+                          ) : (
+                            <span className="size-5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center tabular-nums">
+                              {i + 1}
+                            </span>
+                          )}
+                          <span className="font-semibold text-[13px]">{p.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3.5 text-right tabular-nums font-bold text-[13px]">{formatBRL(p.total)}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold", p.active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground")}>
+                          {p.active ? "Ativo" : "Inativo"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
