@@ -50,6 +50,7 @@ import {
 } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const C = {
   primary: "hsl(var(--primary))",
