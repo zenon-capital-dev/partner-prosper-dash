@@ -5,13 +5,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
+  useTheme(); // ensure theme class is applied
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
         <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
@@ -21,10 +23,14 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-[100dvh] flex w-full bg-background relative">
+        {/* Ambient backdrop + grid */}
+        <div className="ambient-backdrop fixed inset-0 -z-20" />
+        <div className="ambient-grid fixed inset-0 -z-10" />
+
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-30 flex items-center px-4 gap-3 no-print">
+          <header className="h-14 border-b border-border/60 bg-background/95 sticky top-0 z-30 flex items-center px-5 gap-3 no-print">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
             <GlobalSearch />
             <ThemeToggle />
