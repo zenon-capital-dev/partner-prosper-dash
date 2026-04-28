@@ -1,166 +1,225 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ==========================================
-   VENDX CRM — Design System
-   Tema claro corporativo com sidebar escura
+   VENDX — Billion-Dollar SaaS Flat Professional
+   Inspired by Linear / Stripe / Vercel / Mercury
    ========================================== */
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Light mode — off-white quente, nunca branco puro */
+    --background: 40 20% 97%;
+    --foreground: 220 15% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 15% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 15% 12%;
 
-    /* Brand: Indigo profundo */
-    --primary: 243 75% 59%;
+    /* Primary = emerald (ações financeiras sérias) */
+    --primary: 152 76% 38%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 243 75% 96%;
-    --primary-glow: 243 75% 70%;
+    --primary-muted: 152 60% 94%;
+    --primary-glow: 152 76% 50%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 220 14% 95%;
+    --secondary-foreground: 220 15% 12%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 8% 42%;
 
-    --accent: 243 75% 96%;
-    --accent-foreground: 243 75% 40%;
+    --accent: 152 60% 94%;
+    --accent-foreground: 152 76% 30%;
 
-    --success: 152 76% 40%;
+    --success: 152 76% 38%;
     --success-foreground: 0 0% 100%;
-    --success-muted: 152 76% 95%;
+    --success-muted: 152 60% 94%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 92% 48%;
     --warning-foreground: 0 0% 100%;
-    --warning-muted: 38 92% 95%;
+    --warning-muted: 38 92% 94%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 84% 96%;
+    --destructive-muted: 0 72% 95%;
 
-    --info: 199 89% 48%;
-    --info-muted: 199 89% 95%;
+    --info: 210 90% 50%;
+    --info-foreground: 0 0% 100%;
+    --info-muted: 210 90% 95%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 243 75% 59%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 152 76% 38%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
-    /* Sidebar dark */
-    --sidebar-background: 222 47% 9%;
-    --sidebar-foreground: 220 14% 75%;
-    --sidebar-primary: 243 75% 65%;
+    /* Sidebar — flat dark navy/charcoal */
+    --sidebar-background: 220 12% 8%;
+    --sidebar-foreground: 220 6% 65%;
+    --sidebar-primary: 152 76% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 47% 16%;
-    --sidebar-ring: 243 75% 65%;
-    --sidebar-muted: 220 14% 50%;
+    --sidebar-accent: 220 10% 13%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 10% 14%;
+    --sidebar-ring: 152 76% 44%;
+    --sidebar-muted: 220 6% 45%;
 
-    /* Chart palette */
-    --chart-1: 243 75% 59%;
-    --chart-2: 152 76% 40%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 199 89% 48%;
-    --chart-5: 280 65% 60%;
-    --chart-6: 340 75% 55%;
-
-    /* Gradients & shadows */
-    --gradient-primary: linear-gradient(135deg, hsl(243 75% 59%), hsl(260 75% 65%));
-    --gradient-success: linear-gradient(135deg, hsl(152 76% 40%), hsl(170 76% 45%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 99%));
-    --gradient-sidebar: linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 7%));
-
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.04);
-    --shadow-md: 0 4px 12px -2px hsl(222 47% 11% / 0.06), 0 2px 4px -2px hsl(222 47% 11% / 0.04);
-    --shadow-lg: 0 12px 32px -8px hsl(222 47% 11% / 0.08), 0 4px 12px -4px hsl(222 47% 11% / 0.06);
-    --shadow-glow: 0 0 0 4px hsl(243 75% 59% / 0.12);
+    /* Chart palette — solid, financial */
+    --chart-1: 152 76% 44%;
+    --chart-2: 210 90% 56%;
+    --chart-3: 38 92% 55%;
+    --chart-4: 0 72% 55%;
+    --chart-5: 260 60% 60%;
+    --chart-6: 180 60% 45%;
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 220 14% 92%;
-    --card: 222 47% 9%;
-    --card-foreground: 220 14% 92%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 220 14% 92%;
-    --primary: 243 75% 65%;
-    --primary-foreground: 0 0% 100%;
-    --primary-muted: 243 60% 18%;
-    --primary-glow: 243 75% 75%;
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 220 14% 92%;
-    --muted: 222 47% 14%;
-    --muted-foreground: 220 9% 60%;
-    --accent: 222 47% 14%;
-    --accent-foreground: 220 14% 92%;
-    --success: 152 60% 45%;
-    --success-foreground: 0 0% 100%;
-    --success-muted: 152 50% 16%;
-    --warning: 38 90% 55%;
-    --warning-foreground: 0 0% 100%;
-    --warning-muted: 38 50% 18%;
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 50% 18%;
-    --info: 199 80% 55%;
-    --info-muted: 199 50% 18%;
-    --border: 222 47% 16%;
-    --input: 222 47% 16%;
-    --ring: 243 75% 65%;
-    --gradient-card: linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 8%));
+    /* Dark mode (padrão recomendado) */
+    --background: 220 10% 6%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 9% 9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 9% 9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 152 76% 44%;
+    --primary-foreground: 220 10% 6%;
+    --primary-muted: 152 60% 14%;
+    --primary-glow: 152 76% 55%;
+
+    --secondary: 220 9% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 220 9% 12%;
+    --muted-foreground: 220 6% 60%;
+
+    --accent: 220 9% 12%;
+    --accent-foreground: 0 0% 98%;
+
+    --success: 152 76% 44%;
+    --success-foreground: 220 10% 6%;
+    --success-muted: 152 50% 14%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 220 10% 6%;
+    --warning-muted: 38 60% 14%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --destructive-muted: 0 50% 16%;
+
+    --info: 210 90% 56%;
+    --info-foreground: 220 10% 6%;
+    --info-muted: 210 50% 16%;
+
+    --border: 220 8% 16%;
+    --input: 220 8% 16%;
+    --ring: 152 76% 44%;
+
+    --sidebar-background: 220 12% 5%;
+    --sidebar-foreground: 220 6% 65%;
+    --sidebar-primary: 152 76% 44%;
+    --sidebar-primary-foreground: 220 10% 6%;
+    --sidebar-accent: 220 10% 11%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 220 10% 12%;
+    --sidebar-ring: 152 76% 44%;
+    --sidebar-muted: 220 6% 45%;
   }
 }
 
 @layer base {
-  * { @apply border-border; }
+  * {
+    @apply border-border;
+  }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
   }
-  h1, h2, h3, h4, h5 {
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  h1, h2, h3, h4, h5,
+  .font-display {
+    font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
     @apply tracking-tight;
+  }
+  .tabular-nums,
+  .vx-mono {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'ss01', 'cv11', 'tnum';
   }
 }
 
 @layer components {
+  /* Ambient background — gradiente tonal sutil + grid discreto */
+  .ambient-backdrop {
+    background: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--secondary) / 0.4));
+  }
+  .ambient-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.4) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  /* Section divider */
+  .section-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-border/60 to-transparent;
+  }
+
+  /* Page shell */
+  .page-shell {
+    @apply mx-auto max-w-[1480px] px-5 sm:px-8 py-8;
+  }
+
+  /* Cards — flat, sharp 1px borders */
   .vx-card {
-    @apply bg-card border border-border rounded-xl shadow-sm;
-  }
-  .vx-stat-card {
-    @apply bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow;
-  }
-  .vx-mono { font-variant-numeric: tabular-nums; }
-
-  /* Skeleton loader */
-  .vx-skeleton {
-    @apply animate-pulse bg-muted rounded-md;
+    @apply rounded-2xl border border-border/60 bg-card shadow-sm;
   }
 
-  /* Tag chips para clientes */
-  .vx-tag {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide;
+  /* Pills / badges */
+  .vx-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/75 px-3 py-1 text-[11px] font-semibold;
   }
-  .vx-tag-vip { @apply bg-warning-muted text-warning; }
-  .vx-tag-risco { @apply bg-destructive-muted text-destructive; }
-  .vx-tag-novo { @apply bg-info-muted text-info; }
-  .vx-tag-priority { @apply bg-primary-muted text-primary; }
-  .vx-tag-default { @apply bg-muted text-muted-foreground; }
+  .vx-pill-success { @apply border-transparent bg-success/15 text-success; }
+  .vx-pill-info    { @apply border-transparent bg-info/15 text-info; }
+  .vx-pill-warning { @apply border-transparent bg-warning/15 text-warning; }
+  .vx-pill-danger  { @apply border-transparent bg-destructive/15 text-destructive; }
+  .vx-pill-muted   { @apply border-transparent bg-muted text-muted-foreground; }
+
+  /* Icon button — flat, ring */
+  .vx-icon-btn {
+    @apply h-8 w-8 inline-flex items-center justify-center rounded-full ring-1 ring-border/60 text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors;
+  }
+
+  /* Segment control */
+  .vx-segment {
+    @apply inline-flex items-center p-[3px] bg-muted/40 rounded-full;
+  }
+  .vx-segment-item {
+    @apply px-3 py-1 text-[12px] font-semibold rounded-full text-muted-foreground transition-colors;
+  }
+  .vx-segment-item[data-active="true"] {
+    @apply bg-success/15 text-success;
+  }
+
+  /* KPI label */
+  .vx-kpi-label {
+    @apply text-[10.5px] font-black uppercase tracking-[0.22em] text-muted-foreground;
+  }
+  .vx-kpi-value {
+    @apply font-display text-[44px] font-black tracking-[-0.06em] tabular-nums leading-none;
+  }
 }
 
-/* Print-friendly para gerar contratos */
 @media print {
   body { background: white !important; }
   .no-print { display: none !important; }
@@ -168,5 +227,9 @@
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 8px; border: 2px solid hsl(var(--background)); }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 8px;
+  border: 2px solid hsl(var(--background));
+}
 ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.3); }
