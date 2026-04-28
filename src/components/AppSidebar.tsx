@@ -199,8 +199,8 @@ export function AppSidebar() {
         { data: weekSales },
       ] = await Promise.all([
         supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo"),
-        supabase.from("sales").select("amount").in("status", ["pendente", "previsto"]),
-        supabase.from("commissions").select("amount").in("status", ["pendente", "a_pagar"]),
+        supabase.from("sales").select("amount").in("status", ["pendente", "em_andamento"]),
+        supabase.from("commissions").select("amount").eq("status", "pendente"),
         supabase.from("documents").select("id", { count: "exact", head: true }).eq("status", "solicitado"),
         supabase.from("sales").select("amount, sale_date").gte("sale_date", sevenIso),
       ]);
