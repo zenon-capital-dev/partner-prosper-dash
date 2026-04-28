@@ -13,14 +13,22 @@ export function VendxLogo({ className, size = 28 }: Props) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect x="1" y="1" width="30" height="30" rx="8" fill="hsl(var(--sidebar-primary))" />
       <path
-        d="M8 10 L16 23 L24 10"
-        stroke="hsl(var(--sidebar-primary-foreground))"
-        strokeWidth="2.6"
+        d="M5 6 L16 26 L27 6"
+        stroke="#F5C518"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
+      />
+      <path
+        d="M11 6 L16 15 L21 6"
+        stroke="#F5C518"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        opacity="0.55"
       />
     </svg>
   );
