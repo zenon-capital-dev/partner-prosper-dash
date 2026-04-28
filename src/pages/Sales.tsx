@@ -96,7 +96,7 @@ export default function Sales() {
     else { const next: Record<string, boolean> = {}; filtered.forEach((s: any) => { next[s.id] = true; }); setSelected(next); }
   };
 
-  const updateStatus = async (ids: string[], newStatus: string, label: string) => {
+  const updateStatus = async (ids: string[], newStatus: "pendente" | "em_andamento" | "concluida" | "cancelada", label: string) => {
     const { error } = await supabase.from("sales").update({ status: newStatus }).in("id", ids);
     if (error) return toast.error(error.message);
     toast.success(`${ids.length} venda(s) ${label}`);
