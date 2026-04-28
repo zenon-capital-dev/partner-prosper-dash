@@ -501,7 +501,7 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2.5 w-full rounded-xl p-2 hover:bg-white/[0.05] transition-colors group">
                 <div className="relative shrink-0">
-                  <div className="size-10 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-[hsl(var(--chart-5))] text-white flex items-center justify-center text-[12px] font-extrabold shadow-lg shadow-primary/30">
+                  <div className="size-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[12px] font-extrabold">
                     {initials(user?.email)}
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-success ring-2 ring-sidebar" />
