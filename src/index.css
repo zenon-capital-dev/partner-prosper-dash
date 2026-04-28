@@ -11,70 +11,70 @@
 
 @layer base {
   :root {
-    /* Light mode — off-white quente, nunca branco puro */
-    --background: 40 20% 97%;
-    --foreground: 220 15% 12%;
+    /* Light mode — cinza muito claro como Stripe/Linear */
+    --background: 220 20% 97%;
+    --foreground: 222 22% 13%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 12%;
+    --card-foreground: 222 22% 13%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 12%;
+    --popover-foreground: 222 22% 13%;
 
-    /* Primary = emerald (ações financeiras sérias) */
-    --primary: 152 76% 38%;
+    /* Primary = roxo/indigo suave (como na ref) */
+    --primary: 252 70% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 152 60% 94%;
-    --primary-glow: 152 76% 50%;
+    --primary-muted: 252 70% 96%;
+    --primary-glow: 252 70% 70%;
 
-    --secondary: 220 14% 95%;
-    --secondary-foreground: 220 15% 12%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 22% 13%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 8% 42%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 152 60% 94%;
-    --accent-foreground: 152 76% 30%;
+    --accent: 252 70% 96%;
+    --accent-foreground: 252 70% 40%;
 
-    --success: 152 76% 38%;
+    --success: 152 60% 42%;
     --success-foreground: 0 0% 100%;
     --success-muted: 152 60% 94%;
 
-    --warning: 38 92% 48%;
+    --warning: 32 95% 55%;
     --warning-foreground: 0 0% 100%;
-    --warning-muted: 38 92% 94%;
+    --warning-muted: 32 95% 95%;
 
-    --destructive: 0 72% 50%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 72% 95%;
+    --destructive-muted: 0 72% 96%;
 
-    --info: 210 90% 50%;
+    --info: 210 90% 56%;
     --info-foreground: 0 0% 100%;
-    --info-muted: 210 90% 95%;
+    --info-muted: 210 90% 96%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
-    --ring: 152 76% 38%;
+    --border: 220 14% 91%;
+    --input: 220 14% 91%;
+    --ring: 252 70% 60%;
 
-    --radius: 0.875rem;
+    --radius: 0.75rem;
 
-    /* Sidebar — flat dark navy/charcoal */
-    --sidebar-background: 220 12% 8%;
-    --sidebar-foreground: 220 6% 65%;
-    --sidebar-primary: 152 76% 44%;
+    /* Sidebar — dark navy puro como na referência */
+    --sidebar-background: 222 35% 11%;
+    --sidebar-foreground: 220 12% 70%;
+    --sidebar-primary: 252 70% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 13%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 220 10% 14%;
-    --sidebar-ring: 152 76% 44%;
-    --sidebar-muted: 220 6% 45%;
+    --sidebar-accent: 252 70% 60%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 222 30% 16%;
+    --sidebar-ring: 252 70% 65%;
+    --sidebar-muted: 220 10% 50%;
 
-    /* Chart palette — solid, financial */
-    --chart-1: 152 76% 44%;
-    --chart-2: 210 90% 56%;
-    --chart-3: 38 92% 55%;
-    --chart-4: 0 72% 55%;
-    --chart-5: 260 60% 60%;
+    /* Chart palette — paleta da ref (roxo/verde/laranja/azul) */
+    --chart-1: 252 70% 60%;
+    --chart-2: 152 60% 48%;
+    --chart-3: 32 95% 58%;
+    --chart-4: 210 90% 56%;
+    --chart-5: 340 75% 60%;
     --chart-6: 180 60% 45%;
   }
 
@@ -157,32 +157,19 @@
 }
 
 @layer components {
-  /* Ambient background — gradiente tonal sutil + grid discreto */
-  .ambient-backdrop {
-    background: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--secondary) / 0.4));
-  }
-  .ambient-grid {
-    background-image:
-      linear-gradient(hsl(var(--border) / 0.4) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border) / 0.4) 1px, transparent 1px);
-    background-size: 32px 32px;
-    opacity: 0.08;
-    pointer-events: none;
-  }
-
   /* Section divider */
   .section-divider {
-    @apply h-px bg-gradient-to-r from-transparent via-border/60 to-transparent;
+    @apply h-px bg-border;
   }
 
   /* Page shell */
   .page-shell {
-    @apply mx-auto max-w-[1480px] px-5 sm:px-8 py-8;
+    @apply mx-auto max-w-[1480px] px-6 sm:px-8 py-7;
   }
 
   /* Cards — flat, sharp 1px borders */
   .vx-card {
-    @apply rounded-2xl border border-border/60 bg-card shadow-sm;
+    @apply rounded-xl border border-border bg-card;
   }
 
   /* Pills / badges */
