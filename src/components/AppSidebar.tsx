@@ -363,9 +363,8 @@ export function AppSidebar() {
                             {!collapsed && (
                               <>
                                 <span className="truncate">{item.title}</span>
-                                {item.badge && <span className="vx-nav-badge">{item.badge}</span>}
                                 {counter !== null && (
-                                  <span className="ml-auto text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-md bg-white/[0.06] text-white/80 group-hover:bg-white/[0.1]">
+                                  <span className="ml-auto text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-md bg-white/[0.07] text-white/85 group-hover:bg-white/[0.12] transition-colors">
                                     {counter}
                                   </span>
                                 )}
