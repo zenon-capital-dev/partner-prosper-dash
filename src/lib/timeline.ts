@@ -21,14 +21,16 @@ export async function logTimeline(
   metadata?: Record<string, unknown>,
 ) {
   const { data: userData } = await supabase.auth.getUser();
-  await supabase.from("client_timeline").insert({
-    client_id: clientId,
-    user_id: userData.user?.id,
-    event_type: eventType,
-    title,
-    description,
-    metadata: metadata ?? {},
-  });
+  await supabase.from("client_timeline").insert([
+    {
+      client_id: clientId,
+      user_id: userData.user?.id,
+      event_type: eventType,
+      title,
+      description,
+      metadata: (metadata ?? {}) as any,
+    },
+  ]);
 }
 
 export async function notifyAdmins(title: string, message: string, link?: string) {
