@@ -13,18 +13,14 @@ export function VendxLogo({ className, size = 28 }: Props) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <defs>
-        <linearGradient id="vendx-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FCD34D" />
-          <stop offset="100%" stopColor="#F59E0B" />
-        </linearGradient>
-      </defs>
+      <rect x="1" y="1" width="30" height="30" rx="8" fill="hsl(var(--sidebar-primary))" />
       <path
-        d="M4 5 L16 27 L28 5 L23 5 L16 18 L9 5 Z"
-        fill="url(#vendx-grad)"
-        stroke="url(#vendx-grad)"
-        strokeWidth="0.5"
+        d="M8 10 L16 23 L24 10"
+        stroke="hsl(var(--sidebar-primary-foreground))"
+        strokeWidth="2.6"
+        strokeLinecap="round"
         strokeLinejoin="round"
+        fill="none"
       />
     </svg>
   );
