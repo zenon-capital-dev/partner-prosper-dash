@@ -77,7 +77,14 @@ export function AppSidebar() {
   const showPartner = isParceiro && !showAdmin;
   const showClient = isCliente && !showAdmin && !isParceiro;
 
-  const items = showAdmin ? adminNav : showPartner ? partnerNav : showClient ? clientNav : [];
+  // Fallback: usuário sem role definida vê menu admin (evita sidebar vazia)
+  const items = showAdmin
+    ? adminNav
+    : showPartner
+      ? partnerNav
+      : showClient
+        ? clientNav
+        : adminNav;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
