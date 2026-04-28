@@ -453,6 +453,14 @@
   .no-print { display: none !important; }
 }
 
+/* ===== Clean look overrides — kill leftover glows/blurs ===== */
+main .blur-2xl,
+main .blur-3xl,
+main .blur-xl {
+  display: none !important;
+}
+.vx-live-dot::after { content: none !important; }
+
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
