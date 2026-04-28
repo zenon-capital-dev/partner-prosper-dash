@@ -213,11 +213,12 @@ export default function Dashboard() {
   const { data: rangeSales } = useQuery({
     queryKey: ["dash-r-sales", fromDate, toDate],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("sales")
         .select("amount, sale_date, status, partner_id, products(name, product_categories(name, color))")
         .gte("sale_date", fromDate)
         .lte("sale_date", toDate);
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -225,9 +226,10 @@ export default function Dashboard() {
   const { data: rangeCommissions } = useQuery({
     queryKey: ["dash-r-comms", fromDate, toDate],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("commissions")
         .select("amount, status, paid_at, partner_id, partners(full_name, active)");
+      if (error) throw error;
       return (data ?? []).filter((c: any) => {
         if (!c.paid_at) return false;
         const d = new Date(c.paid_at).getTime();
@@ -239,12 +241,13 @@ export default function Dashboard() {
   const { data: rangeClients } = useQuery({
     queryKey: ["dash-r-clients", fromIso, toIso],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("clients")
         .select("id, full_name, company, status, created_at")
         .gte("created_at", fromIso)
         .lte("created_at", toIso)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -252,7 +255,8 @@ export default function Dashboard() {
   const { data: allTimePartners } = useQuery({
     queryKey: ["dash-partners-active"],
     queryFn: async () => {
-      const { count } = await supabase.from("partners").select("id", { count: "exact", head: true }).eq("active", true);
+      const { count, error } = await supabase.from("partners").select("id", { count: "exact", head: true }).eq("active", true);
+      if (error) throw error;
       return count ?? 0;
     },
   });
@@ -260,16 +264,20 @@ export default function Dashboard() {
   const { data: rangeActivities } = useQuery({
     queryKey: ["dash-r-activities", fromIso, toIso],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("activities")
         .select("id, action, description, created_at, entity_type")
         .gte("created_at", fromIso)
         .lte("created_at", toIso)
         .order("created_at", { ascending: false })
         .limit(40);
+      if (error) throw error;
       return data ?? [];
     },
   });
+
+  const demo = useMemo(() => makeDemoDashboard(range, rangeKey), [range, rangeKey]);
+  const useDemoData = !rangeSales?.length || !rangeClients?.length || !rangeActivities?.length;
 
   // ===== Aggregations =====
   const aggregated = useMemo(() => {
