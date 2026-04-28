@@ -47,6 +47,47 @@ export type Database = {
         }
         Relationships: []
       }
+      client_timeline: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_timeline_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -63,6 +104,7 @@ export type Database = {
           phone: string | null
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
+          tags: string[] | null
           updated_at: string
           user_id: string | null
         }
@@ -81,6 +123,7 @@ export type Database = {
           phone?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          tags?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -99,6 +142,7 @@ export type Database = {
           phone?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          tags?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -232,6 +276,69 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          expense_date: string
+          id: string
+        }
+        Insert: {
+          amount: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          expense_date?: string
+          id?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          expense_date?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string | null
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           active: boolean
@@ -307,6 +414,7 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          allow_partner: boolean
           base_price: number | null
           category_id: string | null
           created_at: string
@@ -314,10 +422,12 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          recurring: boolean
           updated_at: string
         }
         Insert: {
           active?: boolean
+          allow_partner?: boolean
           base_price?: number | null
           category_id?: string | null
           created_at?: string
@@ -325,10 +435,12 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          recurring?: boolean
           updated_at?: string
         }
         Update: {
           active?: boolean
+          allow_partner?: boolean
           base_price?: number | null
           category_id?: string | null
           created_at?: string
@@ -336,6 +448,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          recurring?: boolean
           updated_at?: string
         }
         Relationships: [
