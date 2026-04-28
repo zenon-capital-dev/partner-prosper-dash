@@ -349,6 +349,7 @@ export type Database = {
           full_name: string
           id: string
           notes: string | null
+          partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string | null
           pix_key: string | null
           updated_at: string
@@ -363,6 +364,7 @@ export type Database = {
           full_name: string
           id?: string
           notes?: string | null
+          partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
           updated_at?: string
@@ -377,6 +379,7 @@ export type Database = {
           full_name?: string
           id?: string
           notes?: string | null
+          partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
           updated_at?: string
@@ -491,6 +494,57 @@ export type Database = {
         }
         Relationships: []
       }
+      projects: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          partner_id: string | null
+          product_id: string | null
+          progress: number
+          start_date: string
+          status: Database["public"]["Enums"]["project_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          partner_id?: string | null
+          product_id?: string | null
+          progress?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          partner_id?: string | null
+          product_id?: string | null
+          progress?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["project_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           amount: number
@@ -598,6 +652,13 @@ export type Database = {
       client_status: "ativo" | "inativo" | "prospecto"
       commission_status: "pendente" | "pago" | "cancelado"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
+      partner_type: "parceiro" | "indicador"
+      project_status:
+        | "previsto"
+        | "ativo"
+        | "em_andamento"
+        | "concluido"
+        | "cancelado"
       sale_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
     }
     CompositeTypes: {
@@ -730,6 +791,14 @@ export const Constants = {
       client_status: ["ativo", "inativo", "prospecto"],
       commission_status: ["pendente", "pago", "cancelado"],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
+      partner_type: ["parceiro", "indicador"],
+      project_status: [
+        "previsto",
+        "ativo",
+        "em_andamento",
+        "concluido",
+        "cancelado",
+      ],
       sale_status: ["pendente", "em_andamento", "concluida", "cancelada"],
     },
   },
