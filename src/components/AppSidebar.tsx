@@ -293,19 +293,19 @@ export function AppSidebar() {
     <>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
         {/* ========== HEADER ========== */}
-        <SidebarHeader className="bg-sidebar px-3 pt-4 pb-3">
+        <SidebarHeader className="bg-sidebar px-4 pt-5 pb-4">
           <div className={collapsed ? "flex flex-col items-center gap-2" : "flex items-center gap-3 px-1"}>
             <div className="relative shrink-0">
-              <VendxLogo size={collapsed ? 30 : 38} />
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-sidebar animate-pulse" />
+              <VendxLogo size={collapsed ? 32 : 42} />
+              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-sidebar" />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-display font-black tracking-[0.14em] text-white text-[21px] leading-none">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display font-black tracking-[0.14em] text-white text-[24px] leading-none">
                     VENDX
                   </span>
-                  <span className="text-[8.5px] font-bold tracking-wider text-white bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] rounded px-1.5 py-0.5 leading-none shadow-[0_2px_8px_-2px_hsl(var(--sidebar-primary)/0.6)]">
+                  <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
                     PRO
                   </span>
                 </div>
@@ -314,7 +314,7 @@ export function AppSidebar() {
             {!collapsed && (
               <button
                 onClick={toggleSidebar}
-                className="size-7 rounded-lg hover:bg-white/[0.05] flex items-center justify-center text-sidebar-muted hover:text-white transition-colors"
+                className="size-8 rounded-lg hover:bg-white/[0.05] flex items-center justify-center text-sidebar-muted hover:text-white transition-colors"
                 title="Recolher"
               >
                 <PanelLeftClose className="size-4" />
@@ -325,11 +325,11 @@ export function AppSidebar() {
           {!collapsed ? (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-4 w-full h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] hover:border-white/[0.1] flex items-center gap-2.5 px-3 text-[12.5px] text-sidebar-muted transition-all group"
+              className="mt-5 w-full h-11 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] flex items-center gap-2.5 px-3.5 text-[13.5px] text-sidebar-muted transition-colors group"
             >
               <Search className="size-4 group-hover:text-white transition-colors" />
               <span className="flex-1 text-left">Buscar comandos…</span>
-              <kbd className="text-[10px] font-mono bg-white/[0.07] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5">
+              <kbd className="text-[10.5px] font-mono bg-white/[0.07] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5">
                 <Command className="size-2.5" />K
               </kbd>
             </button>
