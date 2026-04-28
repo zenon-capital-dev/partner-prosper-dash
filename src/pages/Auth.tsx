@@ -92,22 +92,10 @@ export default function AuthPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-[hsl(222_45%_6%)] via-transparent to-transparent" />
 
         <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="size-5" />
-            </div>
-            <div>
-              <div className="font-display font-bold text-xl tracking-wide">PAINEL DOUGLAS</div>
-              <div className="text-[10px] uppercase tracking-widest text-white/60">CRM Suite</div>
-            </div>
-          </div>
+          <div className="font-display font-bold text-xl tracking-wide">PAINEL DOUGLAS</div>
         </div>
 
         <div className="relative space-y-6 max-w-md">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider backdrop-blur-sm">
-            <span className="size-1.5 rounded-full bg-success" />
-            Powered by AI
-          </div>
           <h1 className="font-display text-5xl font-bold leading-[1.05] drop-shadow-lg">
             Sua operação de vendas, no piloto automático.
           </h1>
