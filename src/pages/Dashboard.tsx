@@ -745,16 +745,14 @@ export default function Dashboard() {
         <div className="lg:col-span-5 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Top Produtos
-              </p>
-              <p className="font-display text-[18px] font-bold tabular-nums tracking-tight mt-1">
-                {aggregated.topProducts.length} produtos vendidos
+              <p className="vx-eyebrow vx-eyebrow-dot">Top Produtos</p>
+              <p className="vx-numeral text-[18px] mt-2">
+                {aggregated.topProducts.length} <span className="text-muted-foreground font-semibold text-[13px] tracking-normal">produtos vendidos</span>
               </p>
             </div>
-            <button className="text-[11px] font-semibold text-primary hover:underline">Ver todos</button>
+            <button className="text-[11px] font-semibold text-primary hover:underline">Ver todos →</button>
           </div>
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             {aggregated.topProducts.length === 0 ? (
               <div className="py-10 text-center">
                 <Package className="size-8 mx-auto text-muted-foreground/40 mb-2" />
@@ -765,21 +763,30 @@ export default function Dashboard() {
                 const max = Math.max(...aggregated.topProducts.map((x) => x.total));
                 const w = max ? (p.total / max) * 100 : 0;
                 const colors = [C.primary, C.success, C.warning, C.info, C.c5];
+                const rankClass = i === 0 ? "vx-rank vx-rank-1" : i === 1 ? "vx-rank vx-rank-2" : i === 2 ? "vx-rank vx-rank-3" : "vx-rank";
                 return (
-                  <div key={p.name}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="size-5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center tabular-nums">
-                          {i + 1}
-                        </span>
-                        <span className="text-[13px] font-semibold truncate">{p.name}</span>
+                  <div key={p.name} className="group/row">
+                    <div className="flex items-center justify-between mb-2 gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className={rankClass}>{i + 1}</span>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold truncate leading-tight">{p.name}</p>
+                          <p className="text-[10.5px] text-muted-foreground tabular-nums mt-0.5">{p.count} vendas</p>
+                        </div>
                       </div>
-                      <span className="text-[12px] font-bold tabular-nums">{formatBRL(p.total)}</span>
+                      <span className="text-[13px] font-bold tabular-nums">{formatBRL(p.total)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${w}%`, background: colors[i] }} />
+                    <div className="vx-track">
+                      <div
+                        className="vx-track-fill"
+                        style={{
+                          width: `${w}%`,
+                          background: `linear-gradient(90deg, ${colors[i]}, ${colors[i]}cc)`,
+                          color: colors[i],
+                          boxShadow: `0 0 10px ${colors[i]}66`,
+                        }}
+                      />
                     </div>
-                    <p className="text-[10.5px] text-muted-foreground mt-1 tabular-nums">{p.count} vendas</p>
                   </div>
                 );
               })
@@ -788,16 +795,14 @@ export default function Dashboard() {
         </div>
 
         {/* Atividades */}
-        <div className="lg:col-span-4 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
+        <div className="lg:col-span-4 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Atividades · {range.label}
-            </p>
-            <span className="vx-pill vx-pill-primary">
-              <Zap className="size-2.5" /> Live
+            <p className="vx-eyebrow vx-eyebrow-dot">Atividades · {range.label}</p>
+            <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-success">
+              <span className="vx-live-dot" /> Live
             </span>
           </div>
-          <div className="space-y-3.5 max-h-[320px] overflow-y-auto pr-1">
+          <div className="vx-timeline space-y-3.5 max-h-[340px] overflow-y-auto pr-1 -mr-1 pl-0.5">
             {aggregated.activities.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">Nenhuma atividade no período.</p>
             ) : (
@@ -805,14 +810,14 @@ export default function Dashboard() {
                 const meta = activityMeta[a.entity_type as string] || activityMeta.cliente;
                 const Icon = meta.icon;
                 return (
-                  <div key={a.id} className="flex items-start gap-2.5">
-                    <div className={cn("size-8 rounded-full flex items-center justify-center shrink-0", meta.tone)}>
-                      <Icon className="size-3.5" />
+                  <div key={a.id} className="flex items-start gap-3 relative">
+                    <div className={cn("size-8 rounded-full flex items-center justify-center shrink-0 ring-4 ring-card relative z-10", meta.tone)}>
+                      <Icon className="size-3.5" strokeWidth={2.25} />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pt-0.5">
                       <p className="text-[12.5px] font-semibold leading-tight truncate">{a.action}</p>
                       <p className="text-[11px] text-muted-foreground truncate mt-0.5">{a.description ?? "—"}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{timeAgo(a.created_at)}</p>
+                      <p className="text-[10px] text-muted-foreground/80 mt-1 tabular-nums">{timeAgo(a.created_at)}</p>
                     </div>
                   </div>
                 );
@@ -822,41 +827,49 @@ export default function Dashboard() {
         </div>
 
         {/* Resumo Financeiro */}
-        <div className="lg:col-span-3 vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
-          <div className="absolute -top-12 -right-12 size-32 rounded-full bg-primary/[0.06] blur-2xl pointer-events-none" />
+        <div className="lg:col-span-3 vx-card vx-card-hover vx-card-accent p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
+          <div className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/[0.10] blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 size-40 rounded-full bg-[hsl(var(--chart-5))]/[0.06] blur-3xl pointer-events-none" />
           <div className="flex items-center gap-2 mb-5 relative">
-            <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Target className="size-3.5" />
+            <div className="vx-tile size-7">
+              <Target className="size-3.5 relative z-10 text-primary" />
             </div>
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Resumo Financeiro
-            </p>
+            <p className="vx-eyebrow">Resumo Financeiro</p>
           </div>
-          <div className="space-y-3.5 relative">
+          <div className="space-y-3 relative">
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-muted-foreground">Faturamento Bruto</span>
+              <span className="text-[12.5px] text-muted-foreground">Faturamento Bruto</span>
               <span className="text-[13px] font-bold tabular-nums">{formatBRL(totalRevenue)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-muted-foreground">Comissões</span>
+              <span className="text-[12.5px] text-muted-foreground">Comissões</span>
               <span className="text-[13px] font-bold tabular-nums text-destructive">−{formatBRL(paid)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-muted-foreground">Taxas (2,2%)</span>
+              <span className="text-[12.5px] text-muted-foreground">Taxas (2,2%)</span>
               <span className="text-[13px] font-bold tabular-nums text-destructive">−{formatBRL(taxes)}</span>
             </div>
-            <div className="section-divider" />
-            <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/[0.04] border border-primary/15 p-3.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-primary">Líquido</span>
-                <span className="font-display text-[18px] font-bold tabular-nums text-primary tracking-tight">
+            <div className="vx-divider-soft my-1" />
+            <div className="rounded-2xl bg-gradient-to-br from-primary/[0.14] via-primary/[0.06] to-[hsl(var(--chart-5))]/[0.08] border border-primary/20 p-4 relative overflow-hidden">
+              <div className="absolute -top-10 -right-10 size-24 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
+              <div className="flex items-center justify-between relative">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">Líquido</span>
+                <span className="vx-numeral text-[20px] bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] bg-clip-text text-transparent">
                   {formatBRL(net)}
                 </span>
               </div>
-              <div className="h-1 rounded-full bg-primary/15 mt-2.5 overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${Math.min(100, margin)}%` }} />
+              <div className="vx-track mt-3 relative" style={{ background: "hsl(var(--primary) / 0.18)" }}>
+                <div
+                  className="vx-track-fill"
+                  style={{
+                    width: `${Math.min(100, margin)}%`,
+                    background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--chart-5)))`,
+                  }}
+                />
               </div>
-              <p className="text-[10.5px] text-muted-foreground mt-2 tabular-nums">Margem {margin.toFixed(1)}%</p>
+              <p className="text-[10.5px] text-muted-foreground mt-2 tabular-nums relative">
+                Margem <span className="font-bold text-foreground">{margin.toFixed(1)}%</span>
+              </p>
             </div>
           </div>
         </div>
