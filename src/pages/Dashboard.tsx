@@ -591,42 +591,47 @@ export default function Dashboard() {
       {/* ===== ROW: AREA + DONUT + META ===== */}
       <section key={`row1-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Faturamento ao longo do período */}
-        <div className="lg:col-span-7 vx-card vx-card-hover p-5 vx-animate-in">
-          <div className="flex items-start justify-between mb-3 flex-wrap gap-3">
+        <div className="lg:col-span-7 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-primary/[0.05] blur-3xl pointer-events-none" />
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-3 relative">
             <div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Receita · {range.label}
-              </p>
-              <p className="font-display text-[28px] font-bold tabular-nums tracking-[-0.025em] mt-1">
-                {formatBRL(totalRevenue)}
-              </p>
-              <div className="flex items-center gap-4 mt-2">
+              <p className="vx-eyebrow vx-eyebrow-dot">Receita · {range.label}</p>
+              <p className="vx-numeral text-[32px] mt-2">{formatBRL(totalRevenue)}</p>
+              <div className="flex items-center gap-3 mt-2.5">
+                <span className="vx-chip vx-chip-up">
+                  <ArrowUpRight className="size-3" /> +18.2%
+                </span>
                 <div className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-primary" />
+                  <span className="size-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
                   <span className="text-[11px] text-muted-foreground font-medium">Faturamento</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-destructive" />
+                  <span className="size-2 rounded-full bg-destructive/80" />
                   <span className="text-[11px] text-muted-foreground font-medium">Comissões</span>
                 </div>
               </div>
             </div>
             <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
           </div>
-          <div className="h-72">
+          <div className="h-72 relative">
             <ResponsiveContainer>
               <AreaChart data={aggregated.buckets} margin={{ left: -8, right: 8, top: 8, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-fat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.32} />
+                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.42} />
+                    <stop offset="60%" stopColor={C.primary} stopOpacity={0.10} />
                     <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="grad-com" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.destructive} stopOpacity={0.18} />
+                    <stop offset="0%" stopColor={C.destructive} stopOpacity={0.22} />
                     <stop offset="100%" stopColor={C.destructive} stopOpacity={0} />
                   </linearGradient>
+                  <linearGradient id="line-fat" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.85} />
+                    <stop offset="100%" stopColor={C.c5} stopOpacity={1} />
+                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border) / 0.7)" />
                 <XAxis
                   dataKey="label"
                   stroke="hsl(var(--muted-foreground))"
@@ -634,15 +639,16 @@ export default function Dashboard() {
                   tickLine={false}
                   axisLine={false}
                   interval={aggregated.buckets.length > 14 ? 2 : 0}
+                  dy={4}
                 />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={50} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(v: number) => formatBRL(v)}
                   cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3" }}
                 />
-                <Area type="monotone" dataKey="faturamento" stroke={C.primary} strokeWidth={2.5} fill="url(#grad-fat)" dot={{ r: 2.5, fill: C.primary, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--card))" }} animationDuration={700} />
-                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com)" dot={false} animationDuration={700} />
+                <Area type="monotone" dataKey="faturamento" stroke="url(#line-fat)" strokeWidth={2.75} fill="url(#grad-fat)" dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--card))", fill: C.primary }} animationDuration={800} />
+                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com)" dot={false} animationDuration={800} strokeDasharray="4 4" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
