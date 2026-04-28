@@ -293,19 +293,19 @@ export function AppSidebar() {
     <>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
         {/* ========== HEADER ========== */}
-        <SidebarHeader className="bg-sidebar px-3 pt-4 pb-3">
+        <SidebarHeader className="bg-sidebar px-4 pt-5 pb-4">
           <div className={collapsed ? "flex flex-col items-center gap-2" : "flex items-center gap-3 px-1"}>
             <div className="relative shrink-0">
-              <VendxLogo size={collapsed ? 30 : 38} />
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-sidebar animate-pulse" />
+              <VendxLogo size={collapsed ? 32 : 42} />
+              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-sidebar" />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-display font-black tracking-[0.14em] text-white text-[21px] leading-none">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display font-black tracking-[0.14em] text-white text-[24px] leading-none">
                     VENDX
                   </span>
-                  <span className="text-[8.5px] font-bold tracking-wider text-white bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] rounded px-1.5 py-0.5 leading-none shadow-[0_2px_8px_-2px_hsl(var(--sidebar-primary)/0.6)]">
+                  <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
                     PRO
                   </span>
                 </div>
@@ -314,7 +314,7 @@ export function AppSidebar() {
             {!collapsed && (
               <button
                 onClick={toggleSidebar}
-                className="size-7 rounded-lg hover:bg-white/[0.05] flex items-center justify-center text-sidebar-muted hover:text-white transition-colors"
+                className="size-8 rounded-lg hover:bg-white/[0.05] flex items-center justify-center text-sidebar-muted hover:text-white transition-colors"
                 title="Recolher"
               >
                 <PanelLeftClose className="size-4" />
@@ -325,11 +325,11 @@ export function AppSidebar() {
           {!collapsed ? (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-4 w-full h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] hover:border-white/[0.1] flex items-center gap-2.5 px-3 text-[12.5px] text-sidebar-muted transition-all group"
+              className="mt-5 w-full h-11 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] flex items-center gap-2.5 px-3.5 text-[13.5px] text-sidebar-muted transition-colors group"
             >
               <Search className="size-4 group-hover:text-white transition-colors" />
               <span className="flex-1 text-left">Buscar comandos…</span>
-              <kbd className="text-[10px] font-mono bg-white/[0.07] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5">
+              <kbd className="text-[10.5px] font-mono bg-white/[0.07] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5">
                 <Command className="size-2.5" />K
               </kbd>
             </button>
@@ -345,7 +345,7 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ========== NAV ========== */}
-        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll vx-sidebar-bg">
+        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll">
           {sections.map((section) => {
             const SectionIcon = section.icon;
             return (
@@ -353,7 +353,7 @@ export function AppSidebar() {
                 {!collapsed && (
                   <div className="vx-nav-section">
                     <span className="vx-nav-section-icon">
-                      <SectionIcon className="size-3" strokeWidth={2.5} />
+                      <SectionIcon className="size-3.5" strokeWidth={2.25} />
                     </span>
                     <span className="vx-nav-section-label">{section.label}</span>
                     <span className="vx-nav-section-line" />
@@ -384,9 +384,9 @@ export function AppSidebar() {
                           >
                             <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
                               <span className="vx-nav-icon-wrap">
-                                <Icon className="size-4" strokeWidth={active ? 2.25 : 1.85} />
+                                <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.9} />
                                 {collapsed && counter && (
-                                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar shadow-[0_0_6px_hsl(var(--sidebar-primary))]" />
+                                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar" />
                                 )}
                               </span>
                               {!collapsed && (
@@ -411,58 +411,47 @@ export function AppSidebar() {
           })}
 
           {!collapsed && showAdmin && (
-            <>
-              {/* Live overview card — premium */}
-              <div className="mx-1 mt-5 mb-2 rounded-2xl p-4 border border-white/[0.07] bg-gradient-to-br from-white/[0.05] via-white/[0.02] to-transparent relative overflow-hidden backdrop-blur-sm">
-                <div className="absolute -top-10 -right-10 size-28 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-12 -left-8 size-24 rounded-full bg-[hsl(var(--chart-5))]/15 blur-3xl pointer-events-none" />
-                <div className="flex items-center justify-between mb-2.5 relative">
-                  <span className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-sidebar-muted flex items-center gap-1.5">
-                    <Zap className="size-2.5 text-success" />
-                    Receita · 7 dias
-                  </span>
-                  <span className="text-[10px] font-bold tabular-nums text-success flex items-center gap-1">
-                    <ArrowUpRight className="size-2.5" />
-                    +18.2%
-                  </span>
+            <div className="mx-1 mt-6 mb-2 rounded-xl p-4 border border-white/[0.07] bg-white/[0.03]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-sidebar-muted flex items-center gap-1.5">
+                  <Zap className="size-3 text-success" />
+                  Receita · 7 dias
+                </span>
+                <span className="text-[11px] font-semibold tabular-nums text-success flex items-center gap-0.5">
+                  <ArrowUpRight className="size-3" />
+                  +18.2%
+                </span>
+              </div>
+              <p className="font-display text-white text-[22px] font-bold tabular-nums tracking-[-0.02em] leading-none">
+                {formatBRL(liveData.monthRev)}
+              </p>
+              <div className="mt-3 h-9">
+                <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="sb-spark" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {sparkPath && (
+                    <>
+                      <path d={`${sparkPath} L100,28 L0,28 Z`} fill="url(#sb-spark)" />
+                      <path d={sparkPath} fill="none" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    </>
+                  )}
+                </svg>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-muted font-semibold">A receber</p>
+                  <p className="text-[13px] font-bold text-white tabular-nums mt-1">{formatBRL(liveData.pendingFinTotal)}</p>
                 </div>
-                <div className="relative">
-                  <p className="font-display text-white text-[20px] font-bold tabular-nums tracking-[-0.02em] leading-none">
-                    {formatBRL(liveData.monthRev)}
-                  </p>
-                  <div className="mt-2.5 h-8">
-                    <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
-                      <defs>
-                        <linearGradient id="sb-spark" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0.55" />
-                          <stop offset="100%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0" />
-                        </linearGradient>
-                        <linearGradient id="sb-spark-line" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" />
-                          <stop offset="100%" stopColor="hsl(var(--chart-5))" />
-                        </linearGradient>
-                      </defs>
-                      {sparkPath && (
-                        <>
-                          <path d={`${sparkPath} L100,28 L0,28 Z`} fill="url(#sb-spark)" />
-                          <path d={sparkPath} fill="none" stroke="url(#sb-spark-line)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-                        </>
-                      )}
-                    </svg>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/[0.06] relative">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A receber</p>
-                    <p className="text-[12px] font-bold text-white tabular-nums mt-0.5">{formatBRL(liveData.pendingFinTotal)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A pagar</p>
-                    <p className="text-[12px] font-bold text-warning tabular-nums mt-0.5">{formatBRL(liveData.pendingComTotal)}</p>
-                  </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-muted font-semibold">A pagar</p>
+                  <p className="text-[13px] font-bold text-warning tabular-nums mt-1">{formatBRL(liveData.pendingComTotal)}</p>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </SidebarContent>
 
@@ -512,7 +501,7 @@ export function AppSidebar() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2.5 w-full rounded-xl p-2 hover:bg-white/[0.05] transition-colors group">
                 <div className="relative shrink-0">
-                  <div className="size-10 rounded-xl bg-gradient-to-br from-primary via-primary/90 to-[hsl(var(--chart-5))] text-white flex items-center justify-center text-[12px] font-extrabold shadow-lg shadow-primary/30">
+                  <div className="size-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[12px] font-extrabold">
                     {initials(user?.email)}
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-success ring-2 ring-sidebar" />
@@ -532,7 +521,7 @@ export function AppSidebar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-64">
               <DropdownMenuLabel className="flex items-center gap-2.5">
-                <div className="size-9 rounded-lg bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] text-white flex items-center justify-center text-[11px] font-bold">
+                <div className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold">
                   {initials(user?.email)}
                 </div>
                 <div className="min-w-0">
