@@ -521,7 +521,7 @@ export function AppSidebar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-64">
               <DropdownMenuLabel className="flex items-center gap-2.5">
-                <div className="size-9 rounded-lg bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] text-white flex items-center justify-center text-[11px] font-bold">
+                <div className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold">
                   {initials(user?.email)}
                 </div>
                 <div className="min-w-0">
