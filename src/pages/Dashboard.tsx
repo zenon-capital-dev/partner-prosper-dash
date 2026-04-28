@@ -85,6 +85,77 @@ const sparkData = (seed: number) =>
     y: 22 + Math.abs(Math.sin(i * 0.6 + seed) * 28) + ((i * seed) % 7),
   }));
 
+const demoProducts = [
+  { name: "CRM Enterprise", category: "Software", color: C.primary, avg: 42800 },
+  { name: "Implantação Premium", category: "Serviços", color: C.success, avg: 28600 },
+  { name: "Treinamento Comercial", category: "Educação", color: C.warning, avg: 18400 },
+  { name: "Automação Financeira", category: "Operações", color: C.info, avg: 35200 },
+  { name: "Suporte Platinum", category: "Recorrência", color: C.c5, avg: 22900 },
+];
+
+const demoPartners = ["Marina Costa", "Rafael Almeida", "Bruno Nogueira", "Camila Torres", "Felipe Duarte"];
+const demoClients = [
+  ["Helena Martins", "Atlas Energia"],
+  ["João Ribeiro", "Nexa Foods"],
+  ["Bianca Lopes", "Vértice Capital"],
+  ["Caio Fernandes", "Orion Log"],
+  ["Larissa Cunha", "BluePeak Tech"],
+  ["Diego Ramos", "Prisma Health"],
+  ["Sofia Barros", "Lumina Retail"],
+];
+
+function makeDemoDashboard(range: { from: Date; to: Date }, rangeKey: RangeKey) {
+  const days = Math.max(1, Math.ceil((range.to.getTime() - range.from.getTime()) / 86400000));
+  const count = rangeKey === "today" ? 7 : rangeKey === "7d" ? 18 : 34;
+  const sales = Array.from({ length: count }).map((_, i) => {
+    const product = demoProducts[i % demoProducts.length];
+    const date = new Date(range.from);
+    date.setDate(date.getDate() + (i % days));
+    date.setHours(9 + (i % 9), (i * 13) % 60, 0, 0);
+    return {
+      amount: Math.round(product.avg * (0.72 + ((i % 6) * 0.11))),
+      sale_date: date.toISOString().slice(0, 10),
+      status: i % 9 === 0 ? "pendente" : i % 7 === 0 ? "em_andamento" : "concluida",
+      partner_id: `demo-partner-${i % demoPartners.length}`,
+      products: {
+        name: product.name,
+        product_categories: { name: product.category, color: product.color },
+      },
+    };
+  });
+
+  const commissions = sales
+    .filter((s) => s.status === "concluida")
+    .map((s, i) => ({
+      amount: Math.round(Number(s.amount) * 0.12),
+      status: "paga",
+      paid_at: new Date(new Date(s.sale_date).getTime() + 86400000).toISOString(),
+      partner_id: s.partner_id,
+      partners: { full_name: demoPartners[i % demoPartners.length], active: true },
+    }));
+
+  const clients = demoClients.slice(0, Math.min(demoClients.length, rangeKey === "today" ? 3 : 7)).map(([full_name, company], i) => {
+    const created = new Date(range.to);
+    created.setDate(created.getDate() - i);
+    return { id: `demo-client-${i}`, full_name, company, status: i % 3 === 0 ? "prospecto" : "ativo", created_at: created.toISOString() };
+  });
+
+  const activities = [
+    ["Venda concluída", "CRM Enterprise vendido para Atlas Energia", "contrato"],
+    ["Novo cliente", "Nexa Foods entrou no funil comercial", "cliente"],
+    ["Comissão paga", "Repasse liberado para Marina Costa", "comissao"],
+    ["Documento enviado", "Contrato assinado anexado ao cliente", "documento"],
+    ["Parceiro ativado", "Rafael Almeida começou nova campanha", "parceiro"],
+    ["Projeto iniciado", "Implantação Premium em andamento", "projeto"],
+  ].map(([action, description, entity_type], i) => {
+    const created = new Date(range.to);
+    created.setHours(created.getHours() - i * 4);
+    return { id: `demo-activity-${i}`, action, description, entity_type, created_at: created.toISOString() };
+  });
+
+  return { sales, commissions, clients, activities, activePartners: 11 };
+}
+
 type RangeKey = "today" | "7d" | "30d" | "month" | "custom";
 
 function makeRange(key: RangeKey, custom?: { from?: Date; to?: Date }): { from: Date; to: Date; label: string } {
