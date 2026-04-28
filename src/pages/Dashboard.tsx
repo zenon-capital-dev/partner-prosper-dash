@@ -18,7 +18,7 @@ import {
   Bell,
   Sparkles,
   Target,
-  Zap,
+  
   TrendingUp,
   Package,
   Trophy,
