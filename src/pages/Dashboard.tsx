@@ -388,6 +388,11 @@ export default function Dashboard() {
   const goal = rangeKey === "today" ? 25_000 : rangeKey === "7d" ? 120_000 : 500_000;
   const goalPct = Math.min(100, Math.round((totalRevenue / goal) * 100));
   const totalCat = aggregated.categories.reduce((s, x) => s + x.value, 0);
+  const ticketMedio = aggregated.sales.length ? totalRevenue / aggregated.sales.length : 0;
+  const peakBucket = aggregated.buckets.reduce((a, b) => (b.faturamento > a.faturamento ? b : a), aggregated.buckets[0] ?? { label: "—", faturamento: 0, comissoes: 0, key: "" });
+  const topCategory = [...aggregated.categories].sort((a, b) => b.value - a.value)[0];
+  const goalRemaining = Math.max(0, goal - totalRevenue);
+  const onTrack = goalPct >= 90;
 
   const labelSuffix = range.label;
 
