@@ -9,8 +9,12 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  ChevronsLeftRight,
-  Sparkles,
+  ShoppingCart,
+  FileSignature,
+  Banknote,
+  UserCog,
+  LifeBuoy,
+  ChevronDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -18,7 +22,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -27,19 +30,22 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { initials } from "@/lib/format";
+import { VendxLogo } from "@/components/VendxLogo";
 
 const adminNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Parceiros", url: "/parceiros", icon: Handshake },
   { title: "Produtos", url: "/produtos", icon: Package },
-];
-
-const adminFinance = [
-  { title: "Vendas", url: "/vendas", icon: ChevronsLeftRight },
+  { title: "Parceiros", url: "/parceiros", icon: Handshake },
+  { title: "Vendas", url: "/vendas", icon: ShoppingCart },
   { title: "Comissões", url: "/comissoes", icon: Wallet },
+  { title: "Contratos", url: "/contratos", icon: FileSignature },
   { title: "Documentos", url: "/documentos", icon: FileText },
+  { title: "Financeiro", url: "/financeiro", icon: Banknote },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+  { title: "Configurações", url: "/configuracoes", icon: Settings },
+  { title: "Usuários", url: "/usuarios", icon: UserCog },
+  { title: "Suporte", url: "/suporte", icon: LifeBuoy },
 ];
 
 const partnerNav = [
@@ -66,164 +72,65 @@ export function AppSidebar() {
   const showPartner = isParceiro && !showAdmin;
   const showClient = isCliente && !showAdmin && !isParceiro;
 
+  const items = showAdmin ? adminNav : showPartner ? partnerNav : showClient ? clientNav : [];
+
   return (
     <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarHeader className="border-b border-sidebar-border bg-sidebar">
-        <div className="flex items-center gap-3 px-2 py-3">
-          <div className="size-9 rounded-lg bg-gradient-primary flex items-center justify-center shrink-0 shadow-vx-glow">
-            <Sparkles className="size-4 text-white" />
-          </div>
+      <SidebarHeader className="bg-sidebar px-4 pt-5 pb-4">
+        <div className="flex items-center gap-2.5">
+          <VendxLogo size={collapsed ? 24 : 28} />
           {!collapsed && (
-            <div className="min-w-0">
-              <div className="font-display font-bold text-white text-base leading-tight">VENDX</div>
-              <div className="text-[10px] uppercase tracking-widest text-sidebar-muted">CRM Suite</div>
-            </div>
+            <span className="font-display font-extrabold tracking-tight text-white text-[22px] leading-none">
+              VENDX
+            </span>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-sidebar">
-        {showAdmin && (
-          <>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-muted text-[10px] uppercase tracking-widest font-semibold">
-                Operação
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminNav.map((item) => (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive(item.url)}
-                        className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground h-10"
-                      >
-                        <NavLink to={item.url}>
-                          <item.icon className="size-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-muted text-[10px] uppercase tracking-widest font-semibold">
-                Financeiro
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminFinance.map((item) => (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive(item.url)}
-                        className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground h-10"
-                      >
-                        <NavLink to={item.url}>
-                          <item.icon className="size-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-
-            {isAdmin && (
-              <SidebarGroup>
-                <SidebarGroupLabel className="text-sidebar-muted text-[10px] uppercase tracking-widest font-semibold">
-                  Sistema
-                </SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive("/configuracoes")}
-                        className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground hover:bg-sidebar-accent text-sidebar-foreground h-10"
-                      >
-                        <NavLink to="/configuracoes">
-                          <Settings className="size-4" />
-                          {!collapsed && <span>Configurações</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            )}
-          </>
-        )}
-
-        {showPartner && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-muted text-[10px] uppercase tracking-widest font-semibold">
-              Parceiro
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {partnerNav.map((item) => (
+      <SidebarContent className="bg-sidebar px-2">
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-0.5">
+              {items.map((item) => {
+                const active = isActive(item.url);
+                return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
-                      isActive={isActive(item.url)}
-                      className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground hover:bg-sidebar-accent text-sidebar-foreground h-10"
+                      isActive={active}
+                      tooltip={collapsed ? item.title : undefined}
+                      className={[
+                        "h-10 rounded-lg px-3 transition-all",
+                        "text-sidebar-foreground hover:bg-sidebar-accent hover:text-white",
+                        "data-[active=true]:bg-sidebar-primary/15 data-[active=true]:text-white data-[active=true]:font-semibold",
+                        "data-[active=true]:shadow-[inset_3px_0_0_0_hsl(var(--sidebar-primary))]",
+                      ].join(" ")}
                     >
-                      <NavLink to={item.url}>
-                        <item.icon className="size-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                      <NavLink to={item.url} end={item.url === "/"}>
+                        <item.icon className="size-[18px] shrink-0" strokeWidth={active ? 2.25 : 1.75} />
+                        {!collapsed && <span className="text-sm">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {showClient && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-muted text-[10px] uppercase tracking-widest font-semibold">
-              Cliente
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {clientNav.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(item.url)}
-                      className="data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground hover:bg-sidebar-accent text-sidebar-foreground h-10"
-                    >
-                      <NavLink to={item.url}>
-                        <item.icon className="size-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-3">
+      <SidebarFooter className="bg-sidebar border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-full bg-gradient-primary text-white flex items-center justify-center text-xs font-semibold shrink-0">
+          <div className="size-9 rounded-full bg-gradient-to-br from-primary to-primary-glow text-white flex items-center justify-center text-[11px] font-bold shrink-0 ring-2 ring-sidebar-border">
             {initials(user?.email)}
           </div>
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white truncate">{user?.email}</p>
-                <p className="text-[10px] text-sidebar-muted uppercase tracking-wider">
-                  {isAdmin ? "Admin" : isVendedor ? "Vendedor" : isParceiro ? "Parceiro" : "Cliente"}
+                <p className="text-[13px] font-semibold text-white truncate leading-tight">
+                  {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isParceiro ? "Parceiro" : "Cliente"}
                 </p>
+                <p className="text-[11px] text-sidebar-muted truncate">{user?.email}</p>
               </div>
               <button
                 onClick={signOut}

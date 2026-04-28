@@ -17,6 +17,10 @@ import Commissions from "./pages/Commissions";
 import Documents from "./pages/Documents";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Contracts from "./pages/Contracts";
+import Finance from "./pages/Finance";
+import UsersPage from "./pages/UsersPage";
+import Support from "./pages/Support";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
 import NotFound from "./pages/NotFound.tsx";
@@ -42,8 +46,12 @@ const App = () => (
               <Route path="/vendas" element={<Sales />} />
               <Route path="/comissoes" element={<Commissions />} />
               <Route path="/documentos" element={<Documents />} />
+              <Route path="/contratos" element={<Contracts />} />
+              <Route path="/financeiro" element={<Finance />} />
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/configuracoes" element={<Settings />} />
+              <Route path="/usuarios" element={<UsersPage />} />
+              <Route path="/suporte" element={<Support />} />
               <Route path="/parceiro" element={<PartnerPanel />} />
               <Route path="/parceiro/clientes" element={<PartnerPanel />} />
               <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
