@@ -388,6 +388,11 @@ export default function Dashboard() {
   const goal = rangeKey === "today" ? 25_000 : rangeKey === "7d" ? 120_000 : 500_000;
   const goalPct = Math.min(100, Math.round((totalRevenue / goal) * 100));
   const totalCat = aggregated.categories.reduce((s, x) => s + x.value, 0);
+  const ticketMedio = aggregated.sales.length ? totalRevenue / aggregated.sales.length : 0;
+  const peakBucket = aggregated.buckets.reduce((a, b) => (b.faturamento > a.faturamento ? b : a), aggregated.buckets[0] ?? { label: "—", faturamento: 0, comissoes: 0, key: "" });
+  const topCategory = [...aggregated.categories].sort((a, b) => b.value - a.value)[0];
+  const goalRemaining = Math.max(0, goal - totalRevenue);
+  const onTrack = goalPct >= 90;
 
   const labelSuffix = range.label;
 
@@ -592,15 +597,22 @@ export default function Dashboard() {
       <section key={`row1-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Faturamento ao longo do período */}
         <div className="lg:col-span-7 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden">
-          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-primary/[0.05] blur-3xl pointer-events-none" />
-          <div className="flex items-start justify-between mb-4 flex-wrap gap-3 relative">
+          <div className="absolute -top-32 -left-24 w-80 h-80 rounded-full bg-primary/[0.07] blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -right-12 w-64 h-64 rounded-full bg-[hsl(var(--chart-5))]/[0.06] blur-3xl pointer-events-none" />
+
+          {/* Header com mini-stats */}
+          <div className="flex items-start justify-between mb-5 flex-wrap gap-4 relative">
             <div>
               <p className="vx-eyebrow vx-eyebrow-dot">Receita · {range.label}</p>
-              <p className="vx-numeral text-[32px] mt-2">{formatBRL(totalRevenue)}</p>
-              <div className="flex items-center gap-3 mt-2.5">
+              <div className="flex items-baseline gap-2.5 mt-2">
+                <p className="vx-numeral text-[34px] bg-gradient-to-br from-foreground via-foreground to-foreground/60 bg-clip-text text-transparent">
+                  {formatBRL(totalRevenue)}
+                </p>
                 <span className="vx-chip vx-chip-up">
                   <ArrowUpRight className="size-3" /> +18.2%
                 </span>
+              </div>
+              <div className="flex items-center gap-3 mt-2.5">
                 <div className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
                   <span className="text-[11px] text-muted-foreground font-medium">Faturamento</span>
@@ -611,15 +623,37 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
+
+            {/* Mini-stats grid */}
+            <div className="flex items-stretch gap-2">
+              {[
+                { label: "Ticket médio", value: formatBRL(ticketMedio), icon: Coins, color: C.warning },
+                { label: "Pico", value: peakBucket?.label ?? "—", sub: formatBRL(peakBucket?.faturamento ?? 0), icon: TrendingUp, color: C.success },
+                { label: "Vendas", value: String(aggregated.sales.length), icon: Package, color: C.info },
+              ].map((s) => {
+                const Icon = s.icon;
+                return (
+                  <div key={s.label} className="rounded-xl border border-border/70 bg-background/40 backdrop-blur-sm px-3 py-2 min-w-[88px] hover:border-border transition-colors">
+                    <div className="flex items-center gap-1.5">
+                      <Icon className="size-3" style={{ color: s.color }} strokeWidth={2.5} />
+                      <span className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{s.label}</span>
+                    </div>
+                    <p className="vx-numeral text-[14px] mt-1">{s.value}</p>
+                    {s.sub && <p className="text-[9.5px] text-muted-foreground tabular-nums mt-0.5">{s.sub}</p>}
+                  </div>
+                );
+              })}
+              <button className="vx-icon-btn self-start"><MoreHorizontal className="size-4" /></button>
+            </div>
           </div>
+
           <div className="h-72 relative">
             <ResponsiveContainer>
               <AreaChart data={aggregated.buckets} margin={{ left: -8, right: 8, top: 8, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-fat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.42} />
-                    <stop offset="60%" stopColor={C.primary} stopOpacity={0.10} />
+                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.55} />
+                    <stop offset="50%" stopColor={C.primary} stopOpacity={0.18} />
                     <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="grad-com" x1="0" y1="0" x2="0" y2="1">
@@ -630,8 +664,15 @@ export default function Dashboard() {
                     <stop offset="0%" stopColor={C.primary} stopOpacity={0.85} />
                     <stop offset="100%" stopColor={C.c5} stopOpacity={1} />
                   </linearGradient>
+                  <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
                 </defs>
-                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border) / 0.7)" />
+                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border) / 0.6)" />
                 <XAxis
                   dataKey="label"
                   stroke="hsl(var(--muted-foreground))"
@@ -639,56 +680,115 @@ export default function Dashboard() {
                   tickLine={false}
                   axisLine={false}
                   interval={aggregated.buckets.length > 14 ? 2 : 0}
-                  dy={4}
+                  dy={6}
                 />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={50} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10.5} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(v: number) => formatBRL(v)}
-                  cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3" }}
+                  cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1.25, strokeDasharray: "4 4" }}
                 />
-                <Area type="monotone" dataKey="faturamento" stroke="url(#line-fat)" strokeWidth={2.75} fill="url(#grad-fat)" dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--card))", fill: C.primary }} animationDuration={800} />
-                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com)" dot={false} animationDuration={800} strokeDasharray="4 4" />
+                <Area
+                  type="monotone"
+                  dataKey="faturamento"
+                  stroke="url(#line-fat)"
+                  strokeWidth={3}
+                  fill="url(#grad-fat)"
+                  dot={false}
+                  activeDot={{ r: 6, strokeWidth: 2.5, stroke: "hsl(var(--card))", fill: C.primary }}
+                  animationDuration={900}
+                  filter="url(#glow-line)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="comissoes"
+                  stroke={C.destructive}
+                  strokeWidth={1.75}
+                  fill="url(#grad-com)"
+                  dot={false}
+                  animationDuration={900}
+                  strokeDasharray="5 5"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Donut por categoria */}
-        <div className="lg:col-span-3 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden" style={{ animationDelay: "60ms" }}>
-          <div className="flex items-start justify-between mb-4 relative">
-            <p className="vx-eyebrow vx-eyebrow-dot">Por Categoria</p>
+        <div className="lg:col-span-3 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden flex flex-col" style={{ animationDelay: "60ms" }}>
+          <div className="absolute -top-20 -right-20 size-40 rounded-full bg-primary/[0.08] blur-3xl pointer-events-none" />
+          <div className="flex items-start justify-between mb-3 relative">
+            <div>
+              <p className="vx-eyebrow vx-eyebrow-dot">Por Categoria</p>
+              {topCategory && (
+                <p className="text-[11px] text-muted-foreground mt-1.5">
+                  Líder: <span className="font-bold text-foreground">{topCategory.name}</span>
+                </p>
+              )}
+            </div>
             <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
           </div>
           {aggregated.categories.length > 0 ? (
             <>
-              <div className="h-44 relative">
+              <div className="h-48 relative">
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="size-24 rounded-full bg-primary/10 blur-2xl" />
+                  <div className="size-28 rounded-full" style={{ background: `radial-gradient(circle, ${topCategory?.color ?? C.primary}33, transparent 70%)` }} />
                 </div>
                 <ResponsiveContainer>
                   <PieChart>
-                    <Pie data={aggregated.categories} dataKey="value" innerRadius={52} outerRadius={76} paddingAngle={3} stroke="hsl(var(--card))" strokeWidth={3} animationDuration={700}>
-                      {aggregated.categories.map((c, i) => <Cell key={i} fill={c.color} />)}
+                    <defs>
+                      {aggregated.categories.map((c, i) => (
+                        <linearGradient key={i} id={`pie-${i}`} x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor={c.color} stopOpacity={1} />
+                          <stop offset="100%" stopColor={c.color} stopOpacity={0.7} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    {/* Track ring */}
+                    <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={82} outerRadius={86} fill="hsl(var(--muted) / 0.4)" stroke="none" isAnimationActive={false} />
+                    <Pie
+                      data={aggregated.categories}
+                      dataKey="value"
+                      innerRadius={56}
+                      outerRadius={78}
+                      paddingAngle={3}
+                      stroke="hsl(var(--card))"
+                      strokeWidth={3}
+                      animationDuration={800}
+                      cornerRadius={4}
+                    >
+                      {aggregated.categories.map((_, i) => <Cell key={i} fill={`url(#pie-${i})`} />)}
                     </Pie>
                     <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatBRL(v)} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Total</span>
-                  <span className="vx-numeral text-[17px] mt-1 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">{formatBRL(totalCat)}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Total</span>
+                  <span className="vx-numeral text-[18px] mt-1 bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">{formatBRL(totalCat)}</span>
+                  <span className="text-[10px] text-muted-foreground mt-1 tabular-nums">{aggregated.categories.length} categorias</span>
                 </div>
               </div>
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2.5 mt-2">
                 {aggregated.categories.slice(0, 4).map((c) => {
-                  const pct = totalCat ? ((c.value / totalCat) * 100).toFixed(1) : "0";
+                  const pct = totalCat ? (c.value / totalCat) * 100 : 0;
                   return (
-                    <div key={c.name} className="flex items-center justify-between gap-2 group/cat">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="size-2.5 rounded-[5px] shrink-0 ring-1 ring-inset ring-white/10" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}55` }} />
-                        <span className="text-[12px] font-semibold truncate">{c.name}</span>
+                    <div key={c.name} className="group/cat">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="size-2.5 rounded-[5px] shrink-0 ring-1 ring-inset ring-white/10"
+                            style={{ background: c.color, boxShadow: `0 0 8px ${c.color}66` }}
+                          />
+                          <span className="text-[12px] font-semibold truncate">{c.name}</span>
+                        </div>
+                        <span className="text-[11.5px] font-bold tabular-nums">{pct.toFixed(1)}%</span>
                       </div>
-                      <span className="text-[12px] font-bold tabular-nums text-muted-foreground group-hover/cat:text-foreground transition-colors">{pct}%</span>
+                      <div className="h-1 rounded-full overflow-hidden" style={{ background: `${c.color}1f` }}>
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${c.color}, ${c.color}aa)`, boxShadow: `0 0 6px ${c.color}99` }}
+                        />
+                      </div>
                     </div>
                   );
                 })}
@@ -702,38 +802,72 @@ export default function Dashboard() {
         </div>
 
         {/* Meta radial */}
-        <div className="lg:col-span-2 vx-card vx-card-hover vx-card-accent p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
-          <div className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/[0.10] blur-3xl pointer-events-none" />
-          <div className="flex items-center gap-2 mb-3 relative">
-            <p className="vx-eyebrow vx-eyebrow-dot">Meta do Período</p>
+        <div className="lg:col-span-2 vx-card vx-card-hover vx-card-accent p-5 relative overflow-hidden vx-animate-in flex flex-col" style={{ animationDelay: "120ms" }}>
+          <div className="absolute -top-20 -right-20 size-44 rounded-full bg-primary/[0.14] blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-16 size-40 rounded-full bg-[hsl(var(--chart-5))]/[0.10] blur-3xl pointer-events-none" />
+
+          <div className="flex items-center justify-between mb-2 relative">
+            <p className="vx-eyebrow vx-eyebrow-dot">Meta</p>
+            <span className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[9px] font-bold uppercase tracking-wider ring-1 ring-inset",
+              onTrack
+                ? "bg-success/10 text-success ring-success/25"
+                : "bg-warning/10 text-warning ring-warning/25"
+            )}>
+              <span className="size-1 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
+              {onTrack ? "No ritmo" : "Atenção"}
+            </span>
           </div>
-          <div className="h-32 relative">
+
+          <div className="h-40 relative">
+            {/* Decorative outer ring */}
+            <div className="absolute inset-2 rounded-full border border-dashed border-border/60 pointer-events-none" />
             <ResponsiveContainer>
-              <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={10} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius="68%" outerRadius="98%" barSize={11} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
                 <defs>
                   <linearGradient id="grad-meta" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%" stopColor={C.primary} />
                     <stop offset="100%" stopColor={C.c5} />
                   </linearGradient>
+                  <filter id="glow-meta" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2.5" result="b" />
+                    <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  </filter>
                 </defs>
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar background={{ fill: "hsl(var(--muted) / 0.55)" }} dataKey="value" cornerRadius={20} fill="url(#grad-meta)" animationDuration={900} />
+                <RadialBar
+                  background={{ fill: "hsl(var(--muted) / 0.5)" }}
+                  dataKey="value"
+                  cornerRadius={20}
+                  fill="url(#grad-meta)"
+                  animationDuration={1100}
+                  filter="url(#glow-meta)"
+                />
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="vx-numeral text-[26px] bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] bg-clip-text text-transparent">{goalPct}%</span>
-              <span className="text-[10px] text-muted-foreground font-semibold mt-0.5">atingido</span>
+              <span className="vx-numeral text-[30px] bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] bg-clip-text text-transparent">
+                {goalPct}<span className="text-[16px] opacity-70">%</span>
+              </span>
+              <span className="text-[9.5px] text-muted-foreground font-bold uppercase tracking-[0.14em] mt-0.5">atingido</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 vx-divider-soft relative" />
-          <div className="space-y-1.5 mt-3 relative">
+
+          <div className="mt-3 vx-divider-soft relative" />
+          <div className="space-y-2 mt-3 relative">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground">Meta</span>
               <span className="text-[12px] font-bold tabular-nums">{formatBRL(goal)}</span>
             </div>
             <div className="flex items-center justify-between">
+              <span className="text-[11px] text-muted-foreground">Realizado</span>
+              <span className="text-[12px] font-bold tabular-nums text-primary">{formatBRL(totalRevenue)}</span>
+            </div>
+            <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground">Faltam</span>
-              <span className="text-[12px] font-bold tabular-nums text-warning">{formatBRL(Math.max(0, goal - totalRevenue))}</span>
+              <span className={cn("text-[12px] font-bold tabular-nums", goalRemaining > 0 ? "text-warning" : "text-success")}>
+                {formatBRL(goalRemaining)}
+              </span>
             </div>
           </div>
         </div>
