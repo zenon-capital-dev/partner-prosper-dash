@@ -878,23 +878,26 @@ export default function Dashboard() {
       {/* ===== ROW: CLIENTES + TOP PARCEIROS ===== */}
       <section key={`row3-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Clientes (no período) */}
-        <div className="lg:col-span-7 vx-card vx-card-hover overflow-hidden vx-animate-in">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Novos clientes · {range.label}
-            </p>
-            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
+        <div className="lg:col-span-7 vx-card vx-card-hover vx-card-accent overflow-hidden vx-animate-in">
+          <div className="px-5 py-4 border-b border-border/70 flex items-center justify-between bg-gradient-to-r from-card via-card to-muted/20">
+            <div>
+              <p className="vx-eyebrow vx-eyebrow-dot">Novos clientes · {range.label}</p>
+              <p className="text-[12px] text-muted-foreground mt-1.5 tabular-nums">
+                <span className="font-bold text-foreground">{aggregated.clients.length}</span> cadastrados
+              </p>
+            </div>
+            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos →</button>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
+              <tr className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground bg-muted/25">
                 <th className="px-5 py-2.5 text-left font-bold">Cliente</th>
                 <th className="px-3 py-2.5 text-left font-bold">Empresa</th>
                 <th className="px-3 py-2.5 text-left font-bold">Status</th>
                 <th className="px-5 py-2.5 text-right font-bold">Cadastrado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {aggregated.clients.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-5 py-12 text-center text-muted-foreground text-sm">
@@ -903,22 +906,27 @@ export default function Dashboard() {
                 </tr>
               ) : (
                 aggregated.clients.slice(0, 7).map((c: any) => (
-                  <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={c.id} className="hover:bg-muted/25 transition-colors group/row">
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="size-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary flex items-center justify-center text-[11px] font-bold">
+                      <div className="flex items-center gap-3">
+                        <div className="vx-avatar size-9">
                           {initials(c.full_name)}
                         </div>
-                        <span className="font-semibold text-[13px]">{c.full_name}</span>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[13px] leading-tight truncate">{c.full_name}</p>
+                          <p className="text-[10.5px] text-muted-foreground tabular-nums mt-0.5 group-hover/row:text-foreground/70 transition-colors">
+                            #{String(c.id).slice(-6).toUpperCase()}
+                          </p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-3 py-3.5 text-muted-foreground text-[13px]">{c.company ?? "—"}</td>
+                    <td className="px-3 py-3.5 text-foreground/80 text-[13px] font-medium">{c.company ?? "—"}</td>
                     <td className="px-3 py-3.5">
-                      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-                        c.status === "ativo" && "bg-success/15 text-success",
-                        c.status === "prospecto" && "bg-warning/15 text-warning",
-                        c.status !== "ativo" && c.status !== "prospecto" && "bg-muted text-muted-foreground")}>
-                        <span className="size-1.5 rounded-full bg-current" />
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset",
+                        c.status === "ativo" && "bg-success/12 text-success ring-success/20",
+                        c.status === "prospecto" && "bg-warning/12 text-warning ring-warning/25",
+                        c.status !== "ativo" && c.status !== "prospecto" && "bg-muted text-muted-foreground ring-border")}>
+                        <span className="size-1.5 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
                         {c.status}
                       </span>
                     </td>
@@ -933,22 +941,25 @@ export default function Dashboard() {
         </div>
 
         {/* Top parceiros */}
-        <div className="lg:col-span-5 vx-card vx-card-hover overflow-hidden vx-animate-in" style={{ animationDelay: "60ms" }}>
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Top Parceiros · {range.label}
-            </p>
-            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
+        <div className="lg:col-span-5 vx-card vx-card-hover vx-card-accent overflow-hidden vx-animate-in" style={{ animationDelay: "60ms" }}>
+          <div className="px-5 py-4 border-b border-border/70 flex items-center justify-between bg-gradient-to-r from-card via-card to-muted/20">
+            <div>
+              <p className="vx-eyebrow vx-eyebrow-dot">Top Parceiros · {range.label}</p>
+              <p className="text-[12px] text-muted-foreground mt-1.5">
+                Ranking por volume de comissões
+              </p>
+            </div>
+            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos →</button>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
+              <tr className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground bg-muted/25">
                 <th className="px-5 py-2.5 text-left font-bold">Parceiro</th>
                 <th className="px-3 py-2.5 text-right font-bold">Comissões</th>
                 <th className="px-5 py-2.5 text-right font-bold">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {aggregated.topPartners.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground text-sm">
@@ -957,24 +968,28 @@ export default function Dashboard() {
                 </tr>
               ) : (
                 aggregated.topPartners.map((p, i) => {
-                  const trophyColor = ["text-warning", "text-muted-foreground", "text-[#CD7F32]"][i] || "text-muted-foreground";
+                  const rankClass = i === 0 ? "vx-rank vx-rank-1" : i === 1 ? "vx-rank vx-rank-2" : i === 2 ? "vx-rank vx-rank-3" : "vx-rank";
                   return (
-                    <tr key={p.name + i} className="hover:bg-muted/30 transition-colors">
+                    <tr key={p.name + i} className="hover:bg-muted/25 transition-colors group/row">
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-3">
                           {i < 3 ? (
-                            <Trophy className={cn("size-4", trophyColor)} />
-                          ) : (
-                            <span className="size-5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center tabular-nums">
-                              {i + 1}
+                            <span className={rankClass}>
+                              <Trophy className="size-3" />
                             </span>
+                          ) : (
+                            <span className={rankClass}>{i + 1}</span>
                           )}
-                          <span className="font-semibold text-[13px]">{p.name}</span>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-[13px] leading-tight truncate">{p.name}</p>
+                            <p className="text-[10.5px] text-muted-foreground tabular-nums mt-0.5">{p.count} repasses</p>
+                          </div>
                         </div>
                       </td>
                       <td className="px-3 py-3.5 text-right tabular-nums font-bold text-[13px]">{formatBRL(p.total)}</td>
                       <td className="px-5 py-3.5 text-right">
-                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold", p.active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground")}>
+                        <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset", p.active ? "bg-success/12 text-success ring-success/20" : "bg-muted text-muted-foreground ring-border")}>
+                          <span className="size-1.5 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
                           {p.active ? "Ativo" : "Inativo"}
                         </span>
                       </td>
