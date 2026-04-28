@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sparkles, ArrowRight, ShieldCheck, BarChart3, Users } from "lucide-react";
 import { z } from "zod";
+import authHero from "@/assets/auth-hero.jpg";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -77,29 +78,40 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left – Hero */}
-      <div className="hidden lg:flex flex-col justify-between bg-gradient-sidebar text-white p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: "radial-gradient(circle at 20% 20%, hsl(var(--primary)) 0%, transparent 40%), radial-gradient(circle at 80% 80%, hsl(var(--chart-5)) 0%, transparent 40%)"
-        }} />
+    <div className="min-h-screen grid lg:grid-cols-2 bg-[hsl(222_35%_8%)]">
+      {/* Left – Hero with AI image */}
+      <div className="hidden lg:flex flex-col justify-between text-white p-12 relative overflow-hidden">
+        {/* Background image */}
+        <img
+          src={authHero}
+          alt="Assistente de IA segurando um smartphone com gráficos holográficos"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark gradient overlay for legibility */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(222_45%_8%)]/95 via-[hsl(252_50%_15%)]/70 to-[hsl(252_70%_45%)]/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[hsl(222_45%_6%)] via-transparent to-transparent" />
+
         <div className="relative">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-vx-glow">
+            <div className="size-10 rounded-lg bg-primary flex items-center justify-center">
               <Sparkles className="size-5" />
             </div>
             <div>
-              <div className="font-display font-bold text-xl">VENDX</div>
-              <div className="text-[10px] uppercase tracking-widest text-sidebar-muted">CRM Suite</div>
+              <div className="font-display font-bold text-xl tracking-wide">PAINEL DOUGLAS</div>
+              <div className="text-[10px] uppercase tracking-widest text-white/60">CRM Suite</div>
             </div>
           </div>
         </div>
 
         <div className="relative space-y-6 max-w-md">
-          <h1 className="font-display text-5xl font-bold leading-[1.05]">
-            Gestão completa para vendas multi-produto.
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider backdrop-blur-sm">
+            <span className="size-1.5 rounded-full bg-success" />
+            Powered by AI
+          </div>
+          <h1 className="font-display text-5xl font-bold leading-[1.05] drop-shadow-lg">
+            Sua operação de vendas, no piloto automático.
           </h1>
-          <p className="text-base text-white/60 leading-relaxed">
+          <p className="text-base text-white/75 leading-relaxed">
             Controle clientes, parceiros, comissões e documentos em um único painel construído para crescer com sua operação.
           </p>
           <div className="grid grid-cols-3 gap-4 pt-4">
@@ -109,28 +121,28 @@ export default function AuthPage() {
               { icon: ShieldCheck, label: "Dados seguros" },
             ].map((f) => (
               <div key={f.label} className="space-y-2">
-                <div className="size-8 rounded-md bg-white/10 flex items-center justify-center">
+                <div className="size-9 rounded-lg bg-white/10 border border-white/15 backdrop-blur-sm flex items-center justify-center">
                   <f.icon className="size-4" />
                 </div>
-                <p className="text-xs text-white/70 leading-tight">{f.label}</p>
+                <p className="text-xs text-white/80 leading-tight font-medium">{f.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative text-xs text-white/40">
-          © {new Date().getFullYear()} VENDX. Todos os direitos reservados.
+        <div className="relative text-xs text-white/50">
+          © {new Date().getFullYear()} PAINEL DOUGLAS. Todos os direitos reservados.
         </div>
       </div>
 
       {/* Right – Form */}
-      <div className="flex items-center justify-center p-6 sm:p-12">
+      <div className="flex items-center justify-center p-6 sm:p-12 bg-background relative">
         <div className="w-full max-w-md space-y-8">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="size-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <Sparkles className="size-5 text-white" />
+            <div className="size-10 rounded-lg bg-primary flex items-center justify-center">
+              <Sparkles className="size-5 text-primary-foreground" />
             </div>
-            <div className="font-display font-bold text-xl">VENDX</div>
+            <div className="font-display font-bold text-xl">PAINEL DOUGLAS</div>
           </div>
 
           <div>
