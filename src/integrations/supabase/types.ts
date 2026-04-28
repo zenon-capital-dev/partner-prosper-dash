@@ -339,6 +339,57 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_products: {
+        Row: {
+          active: boolean
+          commission_percent: number
+          created_at: string
+          custom_price: number | null
+          id: string
+          notes: string | null
+          partner_id: string
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          commission_percent?: number
+          created_at?: string
+          custom_price?: number | null
+          id?: string
+          notes?: string | null
+          partner_id: string
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          commission_percent?: number
+          created_at?: string
+          custom_price?: number | null
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_products_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           active: boolean
