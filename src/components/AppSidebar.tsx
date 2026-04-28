@@ -413,7 +413,7 @@ export function AppSidebar() {
                 </div>
                 <div className="relative">
                   <p className="font-display text-white text-[20px] font-bold tabular-nums tracking-[-0.02em] leading-none">
-                    {formatBRL(live?.monthRev ?? 0)}
+                    {formatBRL(liveData.monthRev)}
                   </p>
                   <div className="mt-2.5 h-8">
                     <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
@@ -439,11 +439,11 @@ export function AppSidebar() {
                 <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/[0.06] relative">
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A receber</p>
-                    <p className="text-[12px] font-bold text-white tabular-nums mt-0.5">{formatBRL(live?.pendingFinTotal ?? 0)}</p>
+                    <p className="text-[12px] font-bold text-white tabular-nums mt-0.5">{formatBRL(liveData.pendingFinTotal)}</p>
                   </div>
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A pagar</p>
-                    <p className="text-[12px] font-bold text-warning tabular-nums mt-0.5">{formatBRL(live?.pendingComTotal ?? 0)}</p>
+                    <p className="text-[12px] font-bold text-warning tabular-nums mt-0.5">{formatBRL(liveData.pendingComTotal)}</p>
                   </div>
                 </div>
               </div>
