@@ -197,49 +197,45 @@ export function AppSidebar() {
 
       {/* ========== NAV ========== */}
       <SidebarContent className="bg-sidebar px-3 pb-2">
-        {sections.map((section) => {
-          const SectionIcon = section.icon;
-          return (
-            <SidebarGroup key={section.label} className="py-0">
-              {!collapsed && (
-                <div className="vx-nav-section">
-                  <SectionIcon className="size-3" />
-                  <span>{section.label}</span>
-                </div>
-              )}
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
-                  {section.items.map((item) => {
-                    const active = isActive(item.url);
-                    const Icon = item.icon;
-                    return (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={active}
-                          tooltip={collapsed ? item.title : undefined}
-                          className="!h-auto !p-0 hover:!bg-transparent data-[active=true]:!bg-transparent"
-                        >
-                          <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
-                            <span className="vx-nav-icon-wrap">
-                              <Icon className="size-[17px]" strokeWidth={active ? 2.4 : 1.85} />
-                            </span>
-                            {!collapsed && (
-                              <>
-                                <span className="truncate">{item.title}</span>
-                                {item.badge && <span className="vx-nav-badge">{item.badge}</span>}
-                              </>
-                            )}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          );
-        })}
+        {sections.map((section) => (
+          <SidebarGroup key={section.label} className="py-0">
+            {!collapsed && (
+              <div className="vx-nav-section">
+                <span>{section.label}</span>
+              </div>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {section.items.map((item) => {
+                  const active = isActive(item.url);
+                  const Icon = item.icon;
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={collapsed ? item.title : undefined}
+                        className="!h-auto !p-0 hover:!bg-transparent data-[active=true]:!bg-transparent"
+                      >
+                        <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
+                          <span className="vx-nav-icon-wrap">
+                            <Icon className="size-4" strokeWidth={active ? 2.25 : 1.75} />
+                          </span>
+                          {!collapsed && (
+                            <>
+                              <span className="truncate">{item.title}</span>
+                              {item.badge && <span className="vx-nav-badge">{item.badge}</span>}
+                            </>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
         {!collapsed && (
           <>

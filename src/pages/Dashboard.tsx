@@ -50,6 +50,7 @@ import {
 } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const C = {
   primary: "hsl(var(--primary))",
@@ -347,7 +348,7 @@ export default function Dashboard() {
               <Sparkles className="size-3" /> IA Insights
             </span>
             <span className="vx-pill vx-pill-primary">
-              <CalendarDays className="size-3" /> {selectedDay ? `Dia ${selectedDay}` : "Mês inteiro"}
+              <CalendarDays className="size-3" /> {selectedDay ? `Dia ${String(selectedDay).padStart(2, "0")}/${String(viewMonth + 1).padStart(2, "0")}` : "Mês inteiro"}
             </span>
           </div>
           <h1 className="font-display text-[34px] font-bold tracking-[-0.02em] leading-none">
@@ -358,10 +359,72 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border border-border bg-card text-[13px] font-medium hover:bg-muted/50 transition-colors">
-            <Filter className="size-4 text-muted-foreground" />
-            <span>Filtros</span>
-          </button>
+          {/* Day filter dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="inline-flex items-center gap-2 h-10 px-3.5 rounded-lg border border-border bg-card text-[13px] font-medium hover:bg-muted/50 transition-colors">
+                <CalendarDays className="size-4 text-muted-foreground" />
+                <span className="tabular-nums">
+                  {selectedDay ? `Dia ${String(selectedDay).padStart(2, "0")}` : "Mês inteiro"}
+                </span>
+                <ChevronDown className="size-3.5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 p-2">
+              <button
+                onClick={() => setSelectedDay(null)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-[13px] font-medium mb-1 flex items-center justify-between",
+                  selectedDay === null ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                )}
+              >
+                <span>Mês inteiro</span>
+                <span className="text-[11px] opacity-70 tabular-nums">{formatBRL(perDay.reduce((s, d) => s + d.faturamento, 0))}</span>
+              </button>
+              {today.getMonth() === viewMonth && today.getFullYear() === viewYear && (
+                <button
+                  onClick={() => setSelectedDay(today.getDate())}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-[13px] font-medium mb-1 flex items-center justify-between",
+                    selectedDay === today.getDate() ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                  )}
+                >
+                  <span>Hoje · dia {today.getDate()}</span>
+                  <span className="text-[11px] opacity-70 tabular-nums">{formatBRL(perDay[today.getDate() - 1]?.faturamento ?? 0)}</span>
+                </button>
+              )}
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold px-2 pt-2 pb-1">Selecione um dia</div>
+              <div className="grid grid-cols-7 gap-1 p-1 max-h-[220px] overflow-y-auto">
+                {perDay.map((d) => {
+                  const isActive = selectedDay === d.day;
+                  const isToday = d.day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
+                  const hasData = d.faturamento > 0;
+                  return (
+                    <button
+                      key={d.day}
+                      onClick={() => setSelectedDay(d.day)}
+                      className={cn(
+                        "relative h-9 rounded-md text-[12px] font-semibold tabular-nums transition-colors flex items-center justify-center",
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : hasData
+                            ? "bg-primary/10 text-foreground hover:bg-primary/20"
+                            : "text-muted-foreground hover:bg-muted",
+                        isToday && !isActive && "ring-1 ring-primary/40"
+                      )}
+                      title={`Dia ${d.label} — ${formatBRL(d.faturamento)} · ${d.vendas} vendas`}
+                    >
+                      {d.label}
+                      {hasData && !isActive && (
+                        <span className="absolute bottom-1 size-1 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="inline-flex items-center h-10 rounded-lg border border-border bg-card overflow-hidden">
             <button onClick={() => shiftMonth(-1)} className="size-10 inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
               <ChevronLeft className="size-4" />
@@ -385,71 +448,6 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
-
-      {/* ===== DAY SELECTOR STRIP ===== */}
-      <section className="vx-card p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <ActivityIcon className="size-4 text-primary" />
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Movimentações em {monthLabel}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSelectedDay(null)}
-              className={cn(
-                "h-8 px-3 rounded-lg text-[12px] font-semibold transition-all",
-                selectedDay === null
-                  ? "bg-foreground text-background"
-                  : "border border-border bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Mês inteiro
-            </button>
-            <button
-              onClick={() => setSelectedDay(today.getDate())}
-              className="h-8 px-3 rounded-lg text-[12px] font-semibold border border-border bg-card text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Hoje
-            </button>
-          </div>
-        </div>
-        <div className="overflow-x-auto -mx-1 px-1 pb-1">
-          <div className="flex gap-2 min-w-max">
-            {perDay.map((d) => {
-              const isActive = selectedDay === d.day;
-              const isToday = d.day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
-              const date = new Date(viewYear, viewMonth, d.day);
-              const dow = PT_DOW[date.getDay()];
-              const intensity = d.faturamento / maxDayRev;
-              return (
-                <button
-                  key={d.day}
-                  onClick={() => setSelectedDay(isActive ? null : d.day)}
-                  data-active={isActive}
-                  data-today={isToday}
-                  className="vx-day-pill"
-                  title={`${d.label} — ${formatBRL(d.faturamento)} · ${d.vendas} vendas`}
-                >
-                  <span className={cn("text-[9.5px] font-bold uppercase tracking-wider", isActive ? "text-white/80" : "text-muted-foreground")}>
-                    {dow}
-                  </span>
-                  <span className={cn("font-display text-[18px] font-bold tabular-nums leading-none mt-0.5", isActive ? "text-white" : "text-foreground")}>
-                    {d.label}
-                  </span>
-                  <span className={cn("text-[9px] font-semibold tabular-nums mt-0.5", isActive ? "text-white/80" : "text-muted-foreground")}>
-                    {d.vendas > 0 ? `${d.vendas}v` : "—"}
-                  </span>
-                  {!isActive && d.faturamento > 0 && (
-                    <span className="vx-day-bar" style={{ opacity: 0.35 + intensity * 0.65 }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* ===== KPI CARDS (animated when day changes) ===== */}
       <section key={`kpi-${animKey}`} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
