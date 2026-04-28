@@ -281,10 +281,10 @@ export default function Dashboard() {
 
   // ===== Aggregations =====
   const aggregated = useMemo(() => {
-    const sales = rangeSales ?? [];
-    const comms = rangeCommissions ?? [];
-    const clients = rangeClients ?? [];
-    const activities = rangeActivities ?? [];
+    const sales = useDemoData ? demo.sales : rangeSales ?? [];
+    const comms = useDemoData ? demo.commissions : rangeCommissions ?? [];
+    const clients = useDemoData ? demo.clients : rangeClients ?? [];
+    const activities = useDemoData ? demo.activities : rangeActivities ?? [];
 
     const totalRevenue = sales.reduce((s, x: any) => s + Number(x.amount), 0);
     const paid = comms.reduce((s, x: any) => s + Number(x.amount), 0);
@@ -376,7 +376,7 @@ export default function Dashboard() {
       topPartners: Array.from(partMap.values()).sort((a, b) => b.total - a.total).slice(0, 5),
       buckets,
     };
-  }, [rangeSales, rangeCommissions, rangeClients, rangeActivities, rangeKey, range.from, range.to]);
+  }, [rangeSales, rangeCommissions, rangeClients, rangeActivities, rangeKey, range.from, range.to, useDemoData, demo]);
 
   const totalRevenue = aggregated.totalRevenue;
   const paid = aggregated.paid;
@@ -414,7 +414,7 @@ export default function Dashboard() {
     },
     {
       label: "Parceiros Ativos",
-      value: String(allTimePartners ?? 0),
+      value: String(useDemoData ? demo.activePartners : allTimePartners ?? 0),
       delta: "+8.1%",
       positive: true,
       icon: Handshake,
