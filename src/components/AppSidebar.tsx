@@ -2,14 +2,17 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
+  Package,
   Handshake,
-  UserCheck,
-  FolderKanban,
-  Banknote,
   Wallet,
-  BarChart3,
+  FileSignature,
   FileText,
+  Banknote,
+  BarChart3,
   Settings,
+  UserCog,
+  LifeBuoy,
+  ChevronDown,
   LogOut,
 } from "lucide-react";
 import {
@@ -27,18 +30,27 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { initials } from "@/lib/format";
 import { VendxLogo } from "@/components/VendxLogo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const adminNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Clientes", url: "/clientes", icon: Users },
+  { title: "Produtos", url: "/produtos", icon: Package },
   { title: "Parceiros", url: "/parceiros", icon: Handshake },
-  { title: "Indicadores", url: "/indicadores", icon: UserCheck },
-  { title: "Projetos", url: "/projetos", icon: FolderKanban },
-  { title: "Financeiro", url: "/financeiro", icon: Banknote },
   { title: "Comissões", url: "/comissoes", icon: Wallet },
-  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+  { title: "Contratos", url: "/contratos", icon: FileSignature },
   { title: "Documentos", url: "/documentos", icon: FileText },
+  { title: "Financeiro", url: "/financeiro", icon: Banknote },
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
+  { title: "Usuários", url: "/usuarios", icon: UserCog },
+  { title: "Suporte", url: "/suporte", icon: LifeBuoy },
 ];
 
 const partnerNav = [
@@ -69,26 +81,21 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="bg-sidebar px-4 pt-5 pb-4 border-b border-sidebar-border">
+      <SidebarHeader className="bg-sidebar px-5 pt-5 pb-5">
         <div className="flex items-center gap-2.5">
-          <VendxLogo size={collapsed ? 24 : 28} />
+          <VendxLogo size={collapsed ? 26 : 30} />
           {!collapsed && (
-            <div className="min-w-0">
-              <div className="font-display font-extrabold tracking-tight text-sidebar-accent-foreground text-[20px] leading-none">
-                VENDX
-              </div>
-              <div className="text-[9px] uppercase tracking-[0.22em] text-sidebar-muted mt-1 font-bold">
-                CRM Suite
-              </div>
-            </div>
+            <span className="font-display font-black tracking-[0.18em] text-white text-[20px] leading-none">
+              VENDX
+            </span>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-sidebar px-2 py-3">
+      <SidebarContent className="bg-sidebar px-3 py-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
+            <SidebarMenu className="gap-1">
               {items.map((item) => {
                 const active = isActive(item.url);
                 return (
@@ -98,18 +105,14 @@ export function AppSidebar() {
                       isActive={active}
                       tooltip={collapsed ? item.title : undefined}
                       className={[
-                        "h-9 rounded-lg px-3 transition-colors duration-200",
-                        "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                        "h-10 rounded-lg px-3 transition-colors",
+                        "text-sidebar-foreground hover:bg-white/5 hover:text-white",
                         "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:font-semibold",
-                        "relative",
                       ].join(" ")}
                     >
                       <NavLink to={item.url} end={item.url === "/"}>
-                        {active && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2.5px] rounded-r-full bg-sidebar-primary" />
-                        )}
-                        <item.icon className="size-[17px] shrink-0" strokeWidth={active ? 2.25 : 1.75} />
-                        {!collapsed && <span className="text-[13px]">{item.title}</span>}
+                        <item.icon className="size-[18px] shrink-0" strokeWidth={active ? 2.25 : 1.75} />
+                        {!collapsed && <span className="text-[14px]">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -121,28 +124,35 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="bg-sidebar border-t border-sidebar-border p-3">
-        <div className="flex items-center gap-2.5">
-          <div className="size-9 rounded-full bg-sidebar-primary text-sidebar-primary-foreground flex items-center justify-center text-[11px] font-extrabold shrink-0">
-            {initials(user?.email)}
-          </div>
-          {!collapsed && (
-            <>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-bold text-sidebar-accent-foreground truncate leading-tight">
-                  {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isParceiro ? "Parceiro" : "Cliente"}
-                </p>
-                <p className="text-[10.5px] text-sidebar-muted truncate">{user?.email}</p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2.5 w-full rounded-lg p-2 hover:bg-white/5 transition-colors">
+              <div className="size-9 rounded-full bg-sidebar-accent text-white flex items-center justify-center text-[11px] font-extrabold shrink-0">
+                {initials(user?.email)}
               </div>
-              <button
-                onClick={signOut}
-                className="size-8 rounded-md hover:bg-sidebar-accent flex items-center justify-center text-sidebar-muted hover:text-sidebar-accent-foreground transition-colors"
-                title="Sair"
-              >
-                <LogOut className="size-4" />
-              </button>
-            </>
-          )}
-        </div>
+              {!collapsed && (
+                <>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-[13px] font-bold text-white truncate leading-tight">
+                      {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isParceiro ? "Parceiro" : "Cliente"}
+                    </p>
+                    <p className="text-[11px] text-sidebar-muted truncate">{user?.email}</p>
+                  </div>
+                  <ChevronDown className="size-4 text-sidebar-muted" />
+                </>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-56">
+            <DropdownMenuItem asChild>
+              <NavLink to="/configuracoes">Configurações</NavLink>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOut} className="text-destructive">
+              <LogOut className="size-4 mr-2" /> Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );

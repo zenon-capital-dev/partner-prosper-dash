@@ -4,9 +4,9 @@ type Theme = "light" | "dark";
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark";
+    if (typeof window === "undefined") return "light";
     const saved = localStorage.getItem("vendx-theme") as Theme | null;
-    return saved ?? "dark";
+    return saved ?? "light";
   });
 
   useEffect(() => {
