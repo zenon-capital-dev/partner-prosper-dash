@@ -66,6 +66,17 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+const demoSidebarLive = {
+  clients: 65,
+  pendingFinCount: 18,
+  pendingComCount: 22,
+  newDocs: 7,
+  pendingFinTotal: 248_900,
+  pendingComTotal: 73_940,
+  sparkline: [52_000, 78_500, 64_300, 112_800, 96_400, 138_700, 168_900].map((v, i) => ({ d: `demo-${i}`, v })),
+  monthRev: 1_351_923.39,
+};
+
 type NavItem = {
   title: string;
   url: string;
@@ -205,6 +216,8 @@ export function AppSidebar() {
         supabase.from("sales").select("amount, sale_date").gte("sale_date", sevenIso),
       ]);
 
+      if (!clients && !salesPending?.length && !weekSales?.length) return demoSidebarLive;
+
       const pendingFinTotal = (salesPending ?? []).reduce((s, x: any) => s + Number(x.amount), 0);
       const pendingComTotal = (comsPending ?? []).reduce((s, x: any) => s + Number(x.amount), 0);
 
@@ -242,16 +255,18 @@ export function AppSidebar() {
     refetchInterval: 60_000,
   });
 
+  const liveData = live ?? demoSidebarLive;
+
   // command palette index
   const cmdItems = useMemo(() => sections.flatMap((s) => s.items.map((i) => ({ ...i, group: s.label }))), [sections]);
 
   function counterFor(key?: NavItem["counterKey"]) {
-    if (!key || !live) return null;
+    if (!key) return null;
     const map: Record<string, number> = {
-      clients: live.clients,
-      pendingFin: live.pendingFinCount,
-      pendingCom: live.pendingComCount,
-      newDocs: live.newDocs,
+      clients: liveData.clients,
+      pendingFin: liveData.pendingFinCount,
+      pendingCom: liveData.pendingComCount,
+      newDocs: liveData.newDocs,
     };
     const v = map[key];
     return v && v > 0 ? v : null;
@@ -259,19 +274,19 @@ export function AppSidebar() {
 
   // sparkline path
   const sparkPath = useMemo(() => {
-    if (!live?.sparkline) return "";
-    const max = Math.max(1, ...live.sparkline.map((b) => b.v));
+    if (!liveData?.sparkline) return "";
+    const max = Math.max(1, ...liveData.sparkline.map((b) => b.v));
     const w = 100;
     const h = 28;
-    const step = w / (live.sparkline.length - 1 || 1);
-    return live.sparkline
+    const step = w / (liveData.sparkline.length - 1 || 1);
+    return liveData.sparkline
       .map((b, i) => {
         const x = i * step;
         const y = h - (b.v / max) * h;
         return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
       })
       .join(" ");
-  }, [live?.sparkline]);
+  }, [liveData?.sparkline]);
 
   return (
     <>
@@ -398,7 +413,7 @@ export function AppSidebar() {
                 </div>
                 <div className="relative">
                   <p className="font-display text-white text-[20px] font-bold tabular-nums tracking-[-0.02em] leading-none">
-                    {formatBRL(live?.monthRev ?? 0)}
+                    {formatBRL(liveData.monthRev)}
                   </p>
                   <div className="mt-2.5 h-8">
                     <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
@@ -424,11 +439,11 @@ export function AppSidebar() {
                 <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/[0.06] relative">
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A receber</p>
-                    <p className="text-[12px] font-bold text-white tabular-nums mt-0.5">{formatBRL(live?.pendingFinTotal ?? 0)}</p>
+                    <p className="text-[12px] font-bold text-white tabular-nums mt-0.5">{formatBRL(liveData.pendingFinTotal)}</p>
                   </div>
                   <div>
                     <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A pagar</p>
-                    <p className="text-[12px] font-bold text-warning tabular-nums mt-0.5">{formatBRL(live?.pendingComTotal ?? 0)}</p>
+                    <p className="text-[12px] font-bold text-warning tabular-nums mt-0.5">{formatBRL(liveData.pendingComTotal)}</p>
                   </div>
                 </div>
               </div>
