@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -141,70 +141,109 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4, h5,
   .font-display {
-    font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Geist', 'Inter', sans-serif;
     @apply tracking-tight;
+    font-feature-settings: 'ss01', 'ss03', 'cv11';
   }
-  .tabular-nums,
-  .vx-mono {
+  .font-mono, .vx-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-feature-settings: 'ss01', 'ss02';
+  }
+  .tabular-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: 'ss01', 'cv11', 'tnum';
+    font-feature-settings: 'tnum', 'ss01', 'cv11';
   }
 }
 
 @layer components {
-  /* Section divider */
-  .section-divider {
-    @apply h-px bg-border;
-  }
+  .section-divider { @apply h-px bg-border; }
 
-  /* Page shell */
   .page-shell {
     @apply mx-auto max-w-[1480px] px-6 sm:px-8 py-7;
   }
 
-  /* Cards — flat, sharp 1px borders */
   .vx-card {
     @apply rounded-xl border border-border bg-card;
+    box-shadow: 0 1px 0 0 hsl(var(--foreground) / 0.02), 0 1px 2px -1px hsl(var(--foreground) / 0.04);
+  }
+  .vx-card-hover { @apply transition-[border-color,box-shadow] duration-200; }
+  .vx-card-hover:hover {
+    box-shadow: 0 1px 0 0 hsl(var(--foreground) / 0.03), 0 8px 24px -10px hsl(var(--foreground) / 0.10);
   }
 
-  /* Pills / badges */
   .vx-pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/75 px-3 py-1 text-[11px] font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/75 px-2.5 py-0.5 text-[11px] font-semibold;
   }
-  .vx-pill-success { @apply border-transparent bg-success/15 text-success; }
-  .vx-pill-info    { @apply border-transparent bg-info/15 text-info; }
+  .vx-pill-success { @apply border-transparent bg-success/10 text-success; }
+  .vx-pill-info    { @apply border-transparent bg-info/10 text-info; }
   .vx-pill-warning { @apply border-transparent bg-warning/15 text-warning; }
-  .vx-pill-danger  { @apply border-transparent bg-destructive/15 text-destructive; }
+  .vx-pill-danger  { @apply border-transparent bg-destructive/10 text-destructive; }
   .vx-pill-muted   { @apply border-transparent bg-muted text-muted-foreground; }
+  .vx-pill-primary { @apply border-transparent bg-primary/10 text-primary; }
 
-  /* Icon button — flat, ring */
   .vx-icon-btn {
-    @apply h-8 w-8 inline-flex items-center justify-center rounded-full ring-1 ring-border/60 text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors;
+    @apply h-8 w-8 inline-flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors;
   }
 
-  /* Segment control */
   .vx-segment {
-    @apply inline-flex items-center p-[3px] bg-muted/40 rounded-full;
+    @apply inline-flex items-center p-1 bg-muted/60 rounded-lg border border-border;
   }
   .vx-segment-item {
-    @apply px-3 py-1 text-[12px] font-semibold rounded-full text-muted-foreground transition-colors;
+    @apply px-3 py-1 text-[12px] font-semibold rounded-md text-muted-foreground transition-colors;
   }
   .vx-segment-item[data-active="true"] {
-    @apply bg-success/15 text-success;
+    @apply bg-card text-foreground;
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.08);
   }
 
-  /* KPI label */
   .vx-kpi-label {
-    @apply text-[10.5px] font-black uppercase tracking-[0.22em] text-muted-foreground;
+    @apply text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground;
   }
   .vx-kpi-value {
-    @apply font-display text-[44px] font-black tracking-[-0.06em] tabular-nums leading-none;
+    @apply font-display text-[28px] font-bold tracking-[-0.025em] tabular-nums leading-none;
   }
+
+  /* Sidebar nav item — premium */
+  .vx-nav-item {
+    @apply relative flex items-center gap-3 h-11 px-3 rounded-xl text-[13.5px] font-medium text-sidebar-foreground transition-all duration-150;
+  }
+  .vx-nav-item:hover {
+    background: hsl(0 0% 100% / 0.04);
+    @apply text-white;
+  }
+  .vx-nav-item[data-active="true"] {
+    background: linear-gradient(90deg, hsl(var(--sidebar-accent) / 0.95), hsl(var(--sidebar-accent) / 0.65));
+    @apply text-white font-semibold;
+    box-shadow: 0 8px 20px -8px hsl(var(--sidebar-accent) / 0.55), inset 0 1px 0 hsl(0 0% 100% / 0.08);
+  }
+  .vx-nav-item[data-active="true"]::before {
+    content: "";
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 22px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: hsl(var(--sidebar-primary));
+    box-shadow: 0 0 12px hsl(var(--sidebar-primary) / 0.6);
+  }
+  .vx-nav-section {
+    @apply px-3 pt-5 pb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-sidebar-muted;
+  }
+  .vx-nav-badge {
+    @apply ml-auto text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-md bg-white/10 text-white/90;
+  }
+
+  .vx-dot { @apply inline-block size-1.5 rounded-full; }
 }
 
 @media print {
