@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import {
   DollarSign,
   Users,
@@ -16,6 +15,7 @@ import {
   Coins,
   FileUp,
   Sparkles,
+  Download,
 } from "lucide-react";
 import { formatBRL, timeAgo, initials } from "@/lib/format";
 import {
@@ -29,87 +29,25 @@ import {
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
 } from "recharts";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
-const palette = ["#6366F1", "#10B981", "#F59E0B", "#3B82F6", "#A855F7", "#EC4899"];
+const palette = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+  "hsl(var(--chart-6))",
+];
 
-// ---------- KPI Card with sparkline ----------
-function KpiCard({
-  label,
-  value,
-  delta,
-  positive = true,
-  icon: Icon,
-  tone,
-  series,
-}: {
-  label: string;
-  value: string;
-  delta: string;
-  positive?: boolean;
-  icon: any;
-  tone: "violet" | "emerald" | "amber" | "sky";
-  series: number[];
-}) {
-  const tones: Record<string, { bg: string; fg: string; line: string }> = {
-    violet: { bg: "bg-[#EEF2FF]", fg: "text-[#6366F1]", line: "#6366F1" },
-    emerald: { bg: "bg-[#ECFDF5]", fg: "text-[#10B981]", line: "#10B981" },
-    amber: { bg: "bg-[#FEF3C7]", fg: "text-[#D97706]", line: "#F59E0B" },
-    sky: { bg: "bg-[#E0F2FE]", fg: "text-[#0284C7]", line: "#3B82F6" },
-  };
-  const t = tones[tone];
-  const data = series.map((v, i) => ({ i, v }));
-
-  return (
-    <div className="bg-card rounded-2xl border border-border p-5 shadow-vx-sm hover:shadow-vx-md transition-shadow">
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`size-10 rounded-xl ${t.bg} ${t.fg} flex items-center justify-center`}>
-          <Icon className="size-[18px]" />
-        </div>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-      </div>
-      <p className="font-display text-[26px] font-extrabold vx-mono leading-tight">{value}</p>
-      <div className="flex items-end justify-between mt-3">
-        <div>
-          <div
-            className={`inline-flex items-center gap-1 text-xs font-semibold ${
-              positive ? "text-[#10B981]" : "text-destructive"
-            }`}
-          >
-            {positive ? <ArrowUpRight className="size-3.5" /> : <ArrowDownRight className="size-3.5" />}
-            {delta}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-0.5">vs. período anterior</p>
-        </div>
-        <div className="w-24 h-10">
-          <ResponsiveContainer>
-            <LineChart data={data}>
-              <Line
-                type="monotone"
-                dataKey="v"
-                stroke={t.line}
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------- Activity icon helper ----------
-const activityMeta: Record<string, { icon: any; bg: string; fg: string }> = {
-  cliente: { icon: UserPlus, bg: "bg-[#EEF2FF]", fg: "text-[#6366F1]" },
-  contrato: { icon: FileSignature, bg: "bg-[#ECFDF5]", fg: "text-[#10B981]" },
-  comissao: { icon: Coins, bg: "bg-[#FEF3C7]", fg: "text-[#D97706]" },
-  documento: { icon: FileUp, bg: "bg-[#E0F2FE]", fg: "text-[#0284C7]" },
-  parceiro: { icon: Handshake, bg: "bg-[#F3E8FF]", fg: "text-[#A855F7]" },
+const activityMeta: Record<string, { icon: any; tone: string }> = {
+  cliente: { icon: UserPlus, tone: "text-success bg-success/15" },
+  contrato: { icon: FileSignature, tone: "text-info bg-info/15" },
+  comissao: { icon: Coins, tone: "text-warning bg-warning/15" },
+  documento: { icon: FileUp, tone: "text-info bg-info/15" },
+  parceiro: { icon: Handshake, tone: "text-primary bg-primary/15" },
 };
 
 export default function Dashboard() {
@@ -122,7 +60,7 @@ export default function Dashboard() {
       const [clients, partners, sales, commissions] = await Promise.all([
         supabase.from("clients").select("id, status"),
         supabase.from("partners").select("id").eq("active", true),
-        supabase.from("sales").select("amount, sale_date, status, product_id"),
+        supabase.from("sales").select("amount, sale_date, status"),
         supabase.from("commissions").select("amount, status, paid_at"),
       ]);
 
@@ -177,7 +115,6 @@ export default function Dashboard() {
         map.set(cat.name, cur);
       });
       const arr = Array.from(map.values());
-      // assign palette colors if missing
       return arr.map((c, i) => ({ ...c, color: c.color || palette[i % palette.length] }));
     },
   });
@@ -188,18 +125,6 @@ export default function Dashboard() {
       const { data } = await supabase
         .from("clients")
         .select("id, full_name, company, status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return data ?? [];
-    },
-  });
-
-  const { data: lastSales } = useQuery({
-    queryKey: ["last-sales"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("sales")
-        .select("id, amount, status, created_at, clients(full_name, company), products(name, product_categories(name))")
         .order("created_at", { ascending: false })
         .limit(5);
       return data ?? [];
@@ -220,7 +145,9 @@ export default function Dashboard() {
         cur.count += 1;
         map.set(c.partner_id, cur);
       });
-      return Array.from(map.values()).sort((a, b) => b.total - a.total).slice(0, 5);
+      return Array.from(map.values())
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
     },
   });
 
@@ -236,102 +163,127 @@ export default function Dashboard() {
     },
   });
 
-  // mock sparklines until we compute real per-KPI series
-  const spark = (seed: number) =>
-    Array.from({ length: 12 }, (_, i) => Math.round(50 + Math.sin((i + seed) * 0.7) * 18 + i * 2));
-
   const totalRevenue = stats?.totalRevenue ?? 0;
   const paid = stats?.paidCommissions ?? 0;
-  const taxes = totalRevenue * 0.022; // simple display only
+  const taxes = totalRevenue * 0.022;
   const net = totalRevenue - paid - taxes;
 
+  const kpis = [
+    { label: "Faturamento Total", value: formatBRL(totalRevenue), delta: "+18.2%", positive: true, icon: DollarSign, rail: "bg-success" },
+    { label: "Clientes Ativos", value: String(stats?.activeClients ?? 0), delta: "+12.5%", positive: true, icon: Users, rail: "bg-info" },
+    { label: "Parceiros Ativos", value: String(stats?.partnersCount ?? 0), delta: "+8.1%", positive: true, icon: Handshake, rail: "bg-warning" },
+    { label: "Comissões Pagas", value: formatBRL(paid), delta: "+15.3%", positive: true, icon: Wallet, rail: "bg-destructive" },
+  ];
+
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+    <div className="page-shell space-y-10">
+      {/* Hero */}
+      <section className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bem-vindo de volta, {user?.email?.split("@")[0]}! Aqui está o resumo do seu negócio.
+          <div className="flex items-center gap-2 mb-3">
+            <span className="vx-pill vx-pill-success">
+              <span className="size-1.5 rounded-full bg-success" />
+              Live
+            </span>
+            <span className="vx-pill vx-pill-muted">{period === "month" ? "Mensal" : period === "quarter" ? "Trimestral" : "Anual"}</span>
+          </div>
+          <h1 className="font-display text-[40px] sm:text-[56px] font-black tracking-[-0.04em] leading-[0.95]">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Bem-vindo de volta, {user?.email?.split("@")[0]}. Resumo da operação.
           </p>
         </div>
+
+        <div className="flex flex-col items-start lg:items-end gap-2">
+          <p className="vx-kpi-label">Faturamento {period === "month" ? "do mês" : period}</p>
+          <p className="font-display text-[64px] sm:text-[78px] font-black tracking-[-0.06em] tabular-nums leading-none">
+            {formatBRL(totalRevenue)}
+          </p>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="vx-pill vx-pill-success">
+              <ArrowUpRight className="size-3" /> +18.2%
+            </span>
+            <span className="text-xs text-muted-foreground">vs. período anterior</span>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" />
+
+      {/* KPI Strip with color rails */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 border-y border-border/70 lg:divide-x lg:divide-border/70 -mx-5 sm:-mx-8">
+        {kpis.map((k) => {
+          const Icon = k.icon;
+          return (
+            <div
+              key={k.label}
+              className="relative px-6 py-7 hover:bg-muted/25 transition-colors duration-[220ms]"
+            >
+              <span className={cn("absolute left-0 top-7 h-9 w-[3px] rounded-r-full", k.rail)} />
+              <div className="flex items-center justify-between mb-4">
+                <p className="vx-kpi-label">{k.label}</p>
+                <Icon className="size-4 text-muted-foreground" />
+              </div>
+              <p className="vx-kpi-value">{k.value}</p>
+              <div className="flex items-center gap-2 mt-3">
+                <span className={cn("inline-flex items-center gap-0.5 text-xs font-bold tabular-nums", k.positive ? "text-success" : "text-destructive")}>
+                  {k.positive ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+                  {k.delta}
+                </span>
+                <span className="text-[11px] text-muted-foreground">vs. anterior</span>
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="vx-segment">
+          {(["month", "quarter", "year"] as const).map((p) => (
+            <button key={p} className="vx-segment-item" data-active={period === p} onClick={() => setPeriod(p)}>
+              {p === "month" ? "Mensal" : p === "quarter" ? "Trimestral" : "Anual"}
+            </button>
+          ))}
+        </div>
         <div className="flex items-center gap-2">
-          <button className="h-10 px-4 inline-flex items-center gap-2 rounded-lg border border-border bg-card text-sm font-medium hover:bg-muted/50 transition-colors">
-            <Calendar className="size-4 text-muted-foreground" />
-            <span className="vx-mono">01/05/2026 — 31/05/2026</span>
+          <button className="vx-pill">
+            <Calendar className="size-3.5" /> 01/05 — 31/05
+          </button>
+          <button className="vx-pill hover:bg-muted/50 transition-colors">
+            <Download className="size-3.5" /> Exportar
           </button>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          label="Faturamento Total"
-          value={formatBRL(totalRevenue)}
-          delta="+18.2%"
-          positive
-          icon={DollarSign}
-          tone="violet"
-          series={spark(1)}
-        />
-        <KpiCard
-          label="Clientes Ativos"
-          value={String(stats?.activeClients ?? 0)}
-          delta="+12.5%"
-          positive
-          icon={Users}
-          tone="emerald"
-          series={spark(3)}
-        />
-        <KpiCard
-          label="Parceiros Ativos"
-          value={String(stats?.partnersCount ?? 0)}
-          delta="+8.1%"
-          positive
-          icon={Handshake}
-          tone="amber"
-          series={spark(5)}
-        />
-        <KpiCard
-          label="Comissões Pagas"
-          value={formatBRL(paid)}
-          delta="+15.3%"
-          positive
-          icon={Wallet}
-          tone="sky"
-          series={spark(7)}
-        />
-      </div>
-
-      {/* Middle row: chart + donut + activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Faturamento area chart */}
-        <div className="lg:col-span-5 bg-card rounded-2xl border border-border p-6 shadow-vx-sm">
-          <div className="flex items-start justify-between mb-4">
+      {/* Charts row */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Faturamento area */}
+        <div className="lg:col-span-8 vx-card p-6">
+          <div className="flex items-start justify-between mb-6">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Faturamento</p>
-              <p className="font-display text-2xl font-extrabold vx-mono mt-1">{formatBRL(totalRevenue)}</p>
+              <p className="vx-kpi-label">Faturamento</p>
+              <p className="font-display text-[28px] font-black tabular-nums tracking-[-0.04em] mt-1">
+                {formatBRL(totalRevenue)}
+              </p>
             </div>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value as any)}
-              className="text-xs border border-border rounded-lg px-3 h-8 bg-background font-medium"
-            >
-              <option value="month">Mensal</option>
-              <option value="quarter">Trimestral</option>
-              <option value="year">Anual</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <span className="vx-pill vx-pill-success">
+                <ArrowUpRight className="size-3" /> +18.2%
+              </span>
+            </div>
           </div>
-          <div className="h-64">
+          <div className="h-72">
             <ResponsiveContainer>
               <AreaChart data={salesByMonth ?? []} margin={{ left: -10, right: 8, top: 8, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-rev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366F1" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#6366F1" stopOpacity={0} />
+                    <stop offset="0%" stopColor="hsl(var(--success))" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis
                   stroke="hsl(var(--muted-foreground))"
@@ -343,49 +295,48 @@ export default function Dashboard() {
                 <Tooltip
                   contentStyle={{
                     background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
+                    border: "1px solid hsl(var(--border) / 0.6)",
                     borderRadius: "10px",
                     fontSize: "12px",
-                    boxShadow: "var(--shadow-md)",
                   }}
                   formatter={(v: number) => formatBRL(v)}
+                  cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1 }}
                 />
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#6366F1"
-                  strokeWidth={2.5}
+                  stroke="hsl(var(--success))"
+                  strokeWidth={2}
                   fill="url(#grad-rev)"
-                  activeDot={{ r: 5, strokeWidth: 2, stroke: "#fff" }}
+                  isAnimationActive={false}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Donut por categoria */}
-        <div className="lg:col-span-4 bg-card rounded-2xl border border-border p-6 shadow-vx-sm">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Faturamento por Produto
-            </p>
-            <select className="text-xs border border-border rounded-lg px-3 h-8 bg-background font-medium">
-              <option>Todos</option>
-            </select>
+        {/* Por categoria */}
+        <div className="lg:col-span-4 vx-card p-6">
+          <div className="flex items-center justify-between mb-5">
+            <p className="vx-kpi-label">Por Produto</p>
+            <button className="vx-icon-btn">
+              <MoreHorizontal className="size-4" />
+            </button>
           </div>
           {byCategory && byCategory.length > 0 ? (
-            <div className="flex items-center gap-4">
-              <div className="size-40 shrink-0">
+            <>
+              <div className="h-40">
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie
                       data={byCategory}
                       dataKey="value"
-                      innerRadius={42}
+                      innerRadius={48}
                       outerRadius={72}
-                      paddingAngle={3}
+                      paddingAngle={2}
                       stroke="hsl(var(--card))"
-                      strokeWidth={3}
+                      strokeWidth={2}
+                      isAnimationActive={false}
                     >
                       {byCategory.map((c, i) => (
                         <Cell key={i} fill={c.color} />
@@ -395,7 +346,7 @@ export default function Dashboard() {
                       formatter={(v: number) => formatBRL(v)}
                       contentStyle={{
                         background: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
+                        border: "1px solid hsl(var(--border) / 0.6)",
                         borderRadius: "10px",
                         fontSize: "12px",
                       }}
@@ -403,217 +354,197 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex-1 space-y-2.5 min-w-0">
+              <div className="space-y-2.5 mt-4">
                 {byCategory.map((c) => {
                   const total = byCategory.reduce((s, x) => s + x.value, 0);
                   const pct = total ? ((c.value / total) * 100).toFixed(1) : "0";
                   return (
                     <div key={c.name} className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="size-2.5 rounded-full shrink-0" style={{ background: c.color }} />
-                        <span className="text-sm font-medium truncate">{c.name}</span>
+                        <span className="size-2 rounded-full shrink-0" style={{ background: c.color }} />
+                        <span className="text-[13px] font-medium truncate">{c.name}</span>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold">{pct}%</p>
-                        <p className="text-[11px] text-muted-foreground vx-mono">{formatBRL(c.value)}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-muted-foreground tabular-nums">{formatBRL(c.value)}</span>
+                        <span className="text-[12px] font-bold tabular-nums w-12 text-right">{pct}%</span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </>
           ) : (
-            <div className="h-48 flex flex-col items-center justify-center text-center text-muted-foreground">
-              <Sparkles className="size-8 mb-2 opacity-40" />
+            <div className="h-56 flex flex-col items-center justify-center text-center text-muted-foreground">
+              <Sparkles className="size-7 mb-2 opacity-40" />
               <p className="text-sm">Sem vendas ainda</p>
               <p className="text-xs mt-1">Cadastre vendas para ver a distribuição.</p>
             </div>
           )}
         </div>
+      </section>
 
-        {/* Atividades recentes */}
-        <div className="lg:col-span-3 bg-card rounded-2xl border border-border p-6 shadow-vx-sm">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Atividades Recentes
-            </p>
-            <button className="text-muted-foreground hover:text-foreground">
-              <MoreHorizontal className="size-4" />
-            </button>
+      {/* Bottom: clientes / parceiros / financeiro */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Últimos clientes */}
+        <div className="lg:col-span-5 vx-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-border/60 flex items-center justify-between">
+            <p className="vx-kpi-label">Últimos Clientes</p>
+            <button className="text-[11px] font-bold text-success hover:underline">Ver todos →</button>
           </div>
-          <div className="space-y-4">
-            {(activities ?? []).length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-8">Nenhuma atividade ainda.</p>
-            ) : (
-              activities?.map((a: any) => {
-                const type = (a.entity_type as string) || "cliente";
-                const meta = activityMeta[type] || activityMeta.cliente;
-                const Icon = meta.icon;
-                return (
-                  <div key={a.id} className="flex items-start gap-3">
-                    <div className={`size-9 rounded-full ${meta.bg} ${meta.fg} flex items-center justify-center shrink-0`}>
-                      <Icon className="size-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-medium leading-tight truncate">{a.action}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{a.description ?? "—"}</p>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">{timeAgo(a.created_at)}</span>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom row: ultimos clientes + top parceiros + resumo financeiro */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Ultimos clientes */}
-        <div className="lg:col-span-5 bg-card rounded-2xl border border-border shadow-vx-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Últimos Clientes</p>
-            <Button variant="ghost" size="sm" className="text-xs h-7 text-primary hover:text-primary">
-              Ver todos
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-6 py-2.5 text-left font-semibold">Cliente</th>
-                  <th className="px-4 py-2.5 text-left font-semibold">Empresa</th>
-                  <th className="px-4 py-2.5 text-left font-semibold">Status</th>
-                  <th className="px-6 py-2.5 text-right font-semibold">Cadastro</th>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <th className="px-5 py-2.5 text-left font-bold">Cliente</th>
+                <th className="px-3 py-2.5 text-left font-bold">Empresa</th>
+                <th className="px-3 py-2.5 text-left font-bold">Status</th>
+                <th className="px-5 py-2.5 text-right font-bold">Cadastro</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {(recentClients ?? []).length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-5 py-12 text-center text-muted-foreground text-sm">
+                    Nenhum cliente cadastrado ainda
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {(recentClients ?? []).length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground text-sm">
-                      Nenhum cliente cadastrado ainda
+              ) : (
+                recentClients?.map((c) => (
+                  <tr key={c.id} className="group hover:bg-muted/20 transition-colors">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="size-8 rounded-full bg-muted text-foreground flex items-center justify-center text-[11px] font-bold">
+                          {initials(c.full_name)}
+                        </div>
+                        <span className="font-semibold text-[13px]">{c.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground text-[13px]">{c.company ?? "—"}</td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={cn(
+                          "vx-pill",
+                          c.status === "ativo" && "vx-pill-success",
+                          c.status === "prospecto" && "vx-pill-warning",
+                          c.status !== "ativo" && c.status !== "prospecto" && "vx-pill-muted",
+                        )}
+                      >
+                        <span className="size-1.5 rounded-full bg-current" />
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right text-muted-foreground text-xs tabular-nums">
+                      {timeAgo(c.created_at)}
                     </td>
                   </tr>
-                ) : (
-                  recentClients?.map((c) => (
-                    <tr key={c.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 text-primary flex items-center justify-center text-[11px] font-bold">
-                            {initials(c.full_name)}
-                          </div>
-                          <span className="font-semibold text-[13px]">{c.full_name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground text-[13px]">{c.company ?? "—"}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                            c.status === "ativo"
-                              ? "bg-[#ECFDF5] text-[#10B981]"
-                              : c.status === "prospecto"
-                              ? "bg-[#FEF3C7] text-[#D97706]"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          <span className="size-1.5 rounded-full bg-current" />
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-right text-muted-foreground text-xs">
-                        {timeAgo(c.created_at)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Top parceiros */}
-        <div className="lg:col-span-4 bg-card rounded-2xl border border-border shadow-vx-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Top Parceiros</p>
-            <Button variant="ghost" size="sm" className="text-xs h-7 text-primary hover:text-primary">
-              Ver todos
-            </Button>
+        <div className="lg:col-span-4 vx-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-border/60 flex items-center justify-between">
+            <p className="vx-kpi-label">Top Parceiros</p>
+            <button className="text-[11px] font-bold text-success hover:underline">Ver todos →</button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-6 py-2.5 text-left font-semibold">Parceiro</th>
-                  <th className="px-4 py-2.5 text-right font-semibold">Comissões</th>
-                  <th className="px-6 py-2.5 text-right font-semibold">Indicações</th>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                <th className="px-5 py-2.5 text-left font-bold">Parceiro</th>
+                <th className="px-3 py-2.5 text-right font-bold">Comissões</th>
+                <th className="px-5 py-2.5 text-right font-bold">Indic.</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {(topPartners ?? []).length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground text-sm">
+                    Sem parceiros com comissão
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {(topPartners ?? []).length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground text-sm">
-                      Nenhum parceiro com comissão ainda
+              ) : (
+                topPartners?.map((p, i) => (
+                  <tr key={p.name} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <span className="size-6 rounded-full ring-1 ring-border/60 text-[10px] font-black flex items-center justify-center tabular-nums text-muted-foreground">
+                          {i + 1}
+                        </span>
+                        <span className="font-semibold text-[13px]">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 text-right tabular-nums font-bold text-[13px]">
+                      {formatBRL(p.total)}
+                    </td>
+                    <td className="px-5 py-3 text-right text-muted-foreground text-[13px] tabular-nums">
+                      {p.count}
                     </td>
                   </tr>
-                ) : (
-                  topPartners?.map((p, i) => (
-                    <tr key={p.name} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`size-7 rounded-lg text-[11px] font-extrabold flex items-center justify-center ${
-                              i === 0
-                                ? "bg-amber-100 text-amber-700"
-                                : i === 1
-                                ? "bg-slate-200 text-slate-700"
-                                : i === 2
-                                ? "bg-orange-100 text-orange-700"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            {i + 1}
-                          </span>
-                          <span className="font-semibold text-[13px]">{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right vx-mono font-semibold text-[13px]">
-                        {formatBRL(p.total)}
-                      </td>
-                      <td className="px-6 py-3 text-right text-muted-foreground text-[13px]">{p.count}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Resumo financeiro */}
-        <div className="lg:col-span-3 bg-card rounded-2xl border border-border shadow-vx-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-border">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Resumo Financeiro</p>
-          </div>
-          <div className="p-6 space-y-4">
+        <div className="lg:col-span-3 vx-card p-5 border-t-2 border-t-success">
+          <p className="vx-kpi-label mb-5">Resumo Financeiro</p>
+          <div className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Faturamento Bruto</span>
-              <span className="text-sm font-semibold vx-mono">{formatBRL(totalRevenue)}</span>
+              <span className="text-[13px] text-muted-foreground">Bruto</span>
+              <span className="text-[13px] font-bold tabular-nums">{formatBRL(totalRevenue)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Comissões</span>
-              <span className="text-sm font-semibold vx-mono text-destructive">- {formatBRL(paid)}</span>
+              <span className="text-[13px] text-muted-foreground">Comissões</span>
+              <span className="text-[13px] font-bold tabular-nums text-destructive">−{formatBRL(paid)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Taxas</span>
-              <span className="text-sm font-semibold vx-mono text-destructive">- {formatBRL(taxes)}</span>
+              <span className="text-[13px] text-muted-foreground">Taxas</span>
+              <span className="text-[13px] font-bold tabular-nums text-destructive">−{formatBRL(taxes)}</span>
             </div>
-            <div className="h-px bg-border" />
-            <div className="bg-primary-muted rounded-xl p-4 flex items-center justify-between">
-              <span className="text-sm font-bold text-primary">Faturamento Líquido</span>
-              <span className="text-base font-extrabold vx-mono text-primary">{formatBRL(net)}</span>
+            <div className="section-divider !my-4" />
+            <div>
+              <p className="vx-kpi-label">Líquido</p>
+              <p className="font-display text-[28px] font-black tabular-nums tracking-[-0.04em] text-success mt-1">
+                {formatBRL(net)}
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Atividades recentes */}
+      <section className="vx-card p-5">
+        <div className="flex items-center justify-between mb-5">
+          <p className="vx-kpi-label">Atividades Recentes</p>
+          <button className="text-[11px] font-bold text-success hover:underline">Ver todas →</button>
+        </div>
+        {(activities ?? []).length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">Nenhuma atividade ainda.</p>
+        ) : (
+          <div className="divide-y divide-border/60">
+            {activities?.map((a: any) => {
+              const meta = activityMeta[a.entity_type as string] || activityMeta.cliente;
+              const Icon = meta.icon;
+              return (
+                <div key={a.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+                  <div className={cn("size-9 rounded-full flex items-center justify-center shrink-0", meta.tone)}>
+                    <Icon className="size-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold truncate">{a.action}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{a.description ?? "—"}</p>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground whitespace-nowrap tabular-nums">
+                    {timeAgo(a.created_at)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
