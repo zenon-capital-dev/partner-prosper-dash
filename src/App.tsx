@@ -3,7 +3,21 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
+import { AuthProvider } from "@/hooks/useAuth";
+import AppLayout from "@/components/AppLayout";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import Clients from "./pages/Clients";
+import ClientDetail from "./pages/ClientDetail";
+import Partners from "./pages/Partners";
+import Products from "./pages/Products";
+import Sales from "./pages/Sales";
+import Commissions from "./pages/Commissions";
+import Documents from "./pages/Documents";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import PartnerPanel from "./pages/PartnerPanel";
+import ClientPanel from "./pages/ClientPanel";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -14,11 +28,29 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/clientes" element={<Clients />} />
+              <Route path="/clientes/:id" element={<ClientDetail />} />
+              <Route path="/parceiros" element={<Partners />} />
+              <Route path="/produtos" element={<Products />} />
+              <Route path="/vendas" element={<Sales />} />
+              <Route path="/comissoes" element={<Commissions />} />
+              <Route path="/documentos" element={<Documents />} />
+              <Route path="/relatorios" element={<Reports />} />
+              <Route path="/configuracoes" element={<Settings />} />
+              <Route path="/parceiro" element={<PartnerPanel />} />
+              <Route path="/parceiro/clientes" element={<PartnerPanel />} />
+              <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
+              <Route path="/cliente" element={<ClientPanel />} />
+              <Route path="/cliente/documentos" element={<ClientPanel />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
