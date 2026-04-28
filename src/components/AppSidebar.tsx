@@ -353,7 +353,7 @@ export function AppSidebar() {
                 {!collapsed && (
                   <div className="vx-nav-section">
                     <span className="vx-nav-section-icon">
-                      <SectionIcon className="size-3" strokeWidth={2.5} />
+                      <SectionIcon className="size-3.5" strokeWidth={2.25} />
                     </span>
                     <span className="vx-nav-section-label">{section.label}</span>
                     <span className="vx-nav-section-line" />
