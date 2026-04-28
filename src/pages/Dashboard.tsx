@@ -18,7 +18,7 @@ import {
   Bell,
   Sparkles,
   Target,
-  Zap,
+  
   TrendingUp,
   Package,
   Trophy,
@@ -544,41 +544,41 @@ export default function Dashboard() {
           return (
             <div
               key={k.label}
-              className="vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in"
+              className="vx-card vx-card-hover vx-card-accent vx-card-glow p-5 relative overflow-hidden vx-animate-in group"
               style={{ animationDelay: `${idx * 60}ms` }}
             >
-              <div className="absolute top-0 right-0 w-28 h-28 opacity-[0.04] pointer-events-none" style={{ background: `radial-gradient(circle at 70% 30%, ${k.stroke}, transparent 70%)` }} />
+              {/* Ambient color wash */}
+              <div
+                className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-[0.10] pointer-events-none blur-2xl transition-opacity duration-300 group-hover:opacity-[0.16]"
+                style={{ background: `radial-gradient(circle, ${k.stroke}, transparent 65%)` }}
+              />
               <div className="flex items-start gap-4 relative">
-                <div className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0", k.tone)}>
-                  <Icon className="size-5" strokeWidth={2.25} />
+                <div className="vx-tile size-12">
+                  <Icon className="size-[18px] relative z-10" strokeWidth={2.25} style={{ color: k.stroke }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground truncate">
-                    {k.label}
-                  </p>
-                  <p className="font-display text-[26px] font-bold tabular-nums tracking-[-0.025em] mt-1.5 truncate">
-                    {k.value}
-                  </p>
+                  <p className="vx-eyebrow truncate">{k.label}</p>
+                  <p className="vx-numeral text-[28px] mt-2 truncate">{k.value}</p>
                 </div>
               </div>
-              <div className="flex items-end justify-between mt-3 gap-3 relative">
-                <div>
-                  <span className={cn("inline-flex items-center gap-0.5 text-[12px] font-bold tabular-nums", k.positive ? "text-success" : "text-destructive")}>
+              <div className="flex items-end justify-between mt-4 gap-3 relative">
+                <div className="flex flex-col gap-1.5">
+                  <span className={cn("vx-chip", k.positive ? "vx-chip-up" : "vx-chip-down")}>
                     {k.positive ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
                     {k.delta}
                   </span>
-                  <p className="text-[10.5px] text-muted-foreground mt-0.5">vs. período anterior</p>
+                  <p className="text-[10.5px] text-muted-foreground">vs. período anterior</p>
                 </div>
-                <div className="h-10 w-28">
+                <div className="h-12 w-32">
                   <ResponsiveContainer>
                     <AreaChart data={data}>
                       <defs>
                         <linearGradient id={`spark-${k.seed}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={k.stroke} stopOpacity={0.35} />
+                          <stop offset="0%" stopColor={k.stroke} stopOpacity={0.45} />
                           <stop offset="100%" stopColor={k.stroke} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <Area type="monotone" dataKey="y" stroke={k.stroke} strokeWidth={1.75} fill={`url(#spark-${k.seed})`} isAnimationActive={false} />
+                      <Area type="monotone" dataKey="y" stroke={k.stroke} strokeWidth={2} fill={`url(#spark-${k.seed})`} isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -591,42 +591,47 @@ export default function Dashboard() {
       {/* ===== ROW: AREA + DONUT + META ===== */}
       <section key={`row1-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Faturamento ao longo do período */}
-        <div className="lg:col-span-7 vx-card vx-card-hover p-5 vx-animate-in">
-          <div className="flex items-start justify-between mb-3 flex-wrap gap-3">
+        <div className="lg:col-span-7 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-primary/[0.05] blur-3xl pointer-events-none" />
+          <div className="flex items-start justify-between mb-4 flex-wrap gap-3 relative">
             <div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Receita · {range.label}
-              </p>
-              <p className="font-display text-[28px] font-bold tabular-nums tracking-[-0.025em] mt-1">
-                {formatBRL(totalRevenue)}
-              </p>
-              <div className="flex items-center gap-4 mt-2">
+              <p className="vx-eyebrow vx-eyebrow-dot">Receita · {range.label}</p>
+              <p className="vx-numeral text-[32px] mt-2">{formatBRL(totalRevenue)}</p>
+              <div className="flex items-center gap-3 mt-2.5">
+                <span className="vx-chip vx-chip-up">
+                  <ArrowUpRight className="size-3" /> +18.2%
+                </span>
                 <div className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-primary" />
+                  <span className="size-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
                   <span className="text-[11px] text-muted-foreground font-medium">Faturamento</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-destructive" />
+                  <span className="size-2 rounded-full bg-destructive/80" />
                   <span className="text-[11px] text-muted-foreground font-medium">Comissões</span>
                 </div>
               </div>
             </div>
             <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
           </div>
-          <div className="h-72">
+          <div className="h-72 relative">
             <ResponsiveContainer>
               <AreaChart data={aggregated.buckets} margin={{ left: -8, right: 8, top: 8, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-fat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.32} />
+                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.42} />
+                    <stop offset="60%" stopColor={C.primary} stopOpacity={0.10} />
                     <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="grad-com" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.destructive} stopOpacity={0.18} />
+                    <stop offset="0%" stopColor={C.destructive} stopOpacity={0.22} />
                     <stop offset="100%" stopColor={C.destructive} stopOpacity={0} />
                   </linearGradient>
+                  <linearGradient id="line-fat" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={C.primary} stopOpacity={0.85} />
+                    <stop offset="100%" stopColor={C.c5} stopOpacity={1} />
+                  </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="hsl(var(--border) / 0.7)" />
                 <XAxis
                   dataKey="label"
                   stroke="hsl(var(--muted-foreground))"
@@ -634,54 +639,56 @@ export default function Dashboard() {
                   tickLine={false}
                   axisLine={false}
                   interval={aggregated.buckets.length > 14 ? 2 : 0}
+                  dy={4}
                 />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={50} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(v: number) => formatBRL(v)}
                   cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "3 3" }}
                 />
-                <Area type="monotone" dataKey="faturamento" stroke={C.primary} strokeWidth={2.5} fill="url(#grad-fat)" dot={{ r: 2.5, fill: C.primary, strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--card))" }} animationDuration={700} />
-                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com)" dot={false} animationDuration={700} />
+                <Area type="monotone" dataKey="faturamento" stroke="url(#line-fat)" strokeWidth={2.75} fill="url(#grad-fat)" dot={false} activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--card))", fill: C.primary }} animationDuration={800} />
+                <Area type="monotone" dataKey="comissoes" stroke={C.destructive} strokeWidth={1.75} fill="url(#grad-com)" dot={false} animationDuration={800} strokeDasharray="4 4" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Donut por categoria */}
-        <div className="lg:col-span-3 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
-          <div className="flex items-start justify-between mb-4">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Por Categoria
-            </p>
+        <div className="lg:col-span-3 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in relative overflow-hidden" style={{ animationDelay: "60ms" }}>
+          <div className="flex items-start justify-between mb-4 relative">
+            <p className="vx-eyebrow vx-eyebrow-dot">Por Categoria</p>
             <button className="vx-icon-btn"><MoreHorizontal className="size-4" /></button>
           </div>
           {aggregated.categories.length > 0 ? (
             <>
-              <div className="h-40 relative">
+              <div className="h-44 relative">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="size-24 rounded-full bg-primary/10 blur-2xl" />
+                </div>
                 <ResponsiveContainer>
                   <PieChart>
-                    <Pie data={aggregated.categories} dataKey="value" innerRadius={48} outerRadius={70} paddingAngle={2} stroke="hsl(var(--card))" strokeWidth={2} animationDuration={600}>
+                    <Pie data={aggregated.categories} dataKey="value" innerRadius={52} outerRadius={76} paddingAngle={3} stroke="hsl(var(--card))" strokeWidth={3} animationDuration={700}>
                       {aggregated.categories.map((c, i) => <Cell key={i} fill={c.color} />)}
                     </Pie>
                     <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatBRL(v)} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">Total</span>
-                  <span className="font-display text-[16px] font-bold tabular-nums">{formatBRL(totalCat)}</span>
+                  <span className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Total</span>
+                  <span className="vx-numeral text-[17px] mt-1 bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">{formatBRL(totalCat)}</span>
                 </div>
               </div>
               <div className="space-y-2 mt-4">
                 {aggregated.categories.slice(0, 4).map((c) => {
                   const pct = totalCat ? ((c.value / totalCat) * 100).toFixed(1) : "0";
                   return (
-                    <div key={c.name} className="flex items-center justify-between gap-2">
+                    <div key={c.name} className="flex items-center justify-between gap-2 group/cat">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="size-2 rounded-full shrink-0" style={{ background: c.color }} />
+                        <span className="size-2.5 rounded-[5px] shrink-0 ring-1 ring-inset ring-white/10" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}55` }} />
                         <span className="text-[12px] font-semibold truncate">{c.name}</span>
                       </div>
-                      <span className="text-[12px] font-bold tabular-nums">{pct}%</span>
+                      <span className="text-[12px] font-bold tabular-nums text-muted-foreground group-hover/cat:text-foreground transition-colors">{pct}%</span>
                     </div>
                   );
                 })}
@@ -695,24 +702,31 @@ export default function Dashboard() {
         </div>
 
         {/* Meta radial */}
-        <div className="lg:col-span-2 vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] to-transparent pointer-events-none" />
-          <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3 relative">
-            Meta do Período
-          </p>
+        <div className="lg:col-span-2 vx-card vx-card-hover vx-card-accent p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
+          <div className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/[0.10] blur-3xl pointer-events-none" />
+          <div className="flex items-center gap-2 mb-3 relative">
+            <p className="vx-eyebrow vx-eyebrow-dot">Meta do Período</p>
+          </div>
           <div className="h-32 relative">
             <ResponsiveContainer>
-              <RadialBarChart cx="50%" cy="50%" innerRadius="68%" outerRadius="100%" barSize={9} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={10} data={[{ name: "meta", value: goalPct, fill: C.primary }]} startAngle={90} endAngle={-270}>
+                <defs>
+                  <linearGradient id="grad-meta" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={C.primary} />
+                    <stop offset="100%" stopColor={C.c5} />
+                  </linearGradient>
+                </defs>
                 <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                <RadialBar background={{ fill: "hsl(var(--muted))" }} dataKey="value" cornerRadius={20} animationDuration={800} />
+                <RadialBar background={{ fill: "hsl(var(--muted) / 0.55)" }} dataKey="value" cornerRadius={20} fill="url(#grad-meta)" animationDuration={900} />
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="font-display text-[24px] font-bold tabular-nums tracking-tight">{goalPct}%</span>
-              <span className="text-[10px] text-muted-foreground font-semibold">atingido</span>
+              <span className="vx-numeral text-[26px] bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] bg-clip-text text-transparent">{goalPct}%</span>
+              <span className="text-[10px] text-muted-foreground font-semibold mt-0.5">atingido</span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-border space-y-1.5 relative">
+          <div className="mt-3 pt-3 vx-divider-soft relative" />
+          <div className="space-y-1.5 mt-3 relative">
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground">Meta</span>
               <span className="text-[12px] font-bold tabular-nums">{formatBRL(goal)}</span>
@@ -728,19 +742,17 @@ export default function Dashboard() {
       {/* ===== ROW: TOP PRODUTOS + ATIVIDADES + RESUMO ===== */}
       <section key={`row2-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Top Produtos */}
-        <div className="lg:col-span-5 vx-card vx-card-hover p-5 vx-animate-in">
+        <div className="lg:col-span-5 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Top Produtos
-              </p>
-              <p className="font-display text-[18px] font-bold tabular-nums tracking-tight mt-1">
-                {aggregated.topProducts.length} produtos vendidos
+              <p className="vx-eyebrow vx-eyebrow-dot">Top Produtos</p>
+              <p className="vx-numeral text-[18px] mt-2">
+                {aggregated.topProducts.length} <span className="text-muted-foreground font-semibold text-[13px] tracking-normal">produtos vendidos</span>
               </p>
             </div>
-            <button className="text-[11px] font-semibold text-primary hover:underline">Ver todos</button>
+            <button className="text-[11px] font-semibold text-primary hover:underline">Ver todos →</button>
           </div>
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             {aggregated.topProducts.length === 0 ? (
               <div className="py-10 text-center">
                 <Package className="size-8 mx-auto text-muted-foreground/40 mb-2" />
@@ -751,21 +763,30 @@ export default function Dashboard() {
                 const max = Math.max(...aggregated.topProducts.map((x) => x.total));
                 const w = max ? (p.total / max) * 100 : 0;
                 const colors = [C.primary, C.success, C.warning, C.info, C.c5];
+                const rankClass = i === 0 ? "vx-rank vx-rank-1" : i === 1 ? "vx-rank vx-rank-2" : i === 2 ? "vx-rank vx-rank-3" : "vx-rank";
                 return (
-                  <div key={p.name}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="size-5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center tabular-nums">
-                          {i + 1}
-                        </span>
-                        <span className="text-[13px] font-semibold truncate">{p.name}</span>
+                  <div key={p.name} className="group/row">
+                    <div className="flex items-center justify-between mb-2 gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className={rankClass}>{i + 1}</span>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold truncate leading-tight">{p.name}</p>
+                          <p className="text-[10.5px] text-muted-foreground tabular-nums mt-0.5">{p.count} vendas</p>
+                        </div>
                       </div>
-                      <span className="text-[12px] font-bold tabular-nums">{formatBRL(p.total)}</span>
+                      <span className="text-[13px] font-bold tabular-nums">{formatBRL(p.total)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${w}%`, background: colors[i] }} />
+                    <div className="vx-track">
+                      <div
+                        className="vx-track-fill"
+                        style={{
+                          width: `${w}%`,
+                          background: `linear-gradient(90deg, ${colors[i]}, ${colors[i]}cc)`,
+                          color: colors[i],
+                          boxShadow: `0 0 10px ${colors[i]}66`,
+                        }}
+                      />
                     </div>
-                    <p className="text-[10.5px] text-muted-foreground mt-1 tabular-nums">{p.count} vendas</p>
                   </div>
                 );
               })
@@ -774,16 +795,14 @@ export default function Dashboard() {
         </div>
 
         {/* Atividades */}
-        <div className="lg:col-span-4 vx-card vx-card-hover p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
+        <div className="lg:col-span-4 vx-card vx-card-hover vx-card-accent p-5 vx-animate-in" style={{ animationDelay: "60ms" }}>
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Atividades · {range.label}
-            </p>
-            <span className="vx-pill vx-pill-primary">
-              <Zap className="size-2.5" /> Live
+            <p className="vx-eyebrow vx-eyebrow-dot">Atividades · {range.label}</p>
+            <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-success">
+              <span className="vx-live-dot" /> Live
             </span>
           </div>
-          <div className="space-y-3.5 max-h-[320px] overflow-y-auto pr-1">
+          <div className="vx-timeline space-y-3.5 max-h-[340px] overflow-y-auto pr-1 -mr-1 pl-0.5">
             {aggregated.activities.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">Nenhuma atividade no período.</p>
             ) : (
@@ -791,14 +810,14 @@ export default function Dashboard() {
                 const meta = activityMeta[a.entity_type as string] || activityMeta.cliente;
                 const Icon = meta.icon;
                 return (
-                  <div key={a.id} className="flex items-start gap-2.5">
-                    <div className={cn("size-8 rounded-full flex items-center justify-center shrink-0", meta.tone)}>
-                      <Icon className="size-3.5" />
+                  <div key={a.id} className="flex items-start gap-3 relative">
+                    <div className={cn("size-8 rounded-full flex items-center justify-center shrink-0 ring-4 ring-card relative z-10", meta.tone)}>
+                      <Icon className="size-3.5" strokeWidth={2.25} />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pt-0.5">
                       <p className="text-[12.5px] font-semibold leading-tight truncate">{a.action}</p>
                       <p className="text-[11px] text-muted-foreground truncate mt-0.5">{a.description ?? "—"}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{timeAgo(a.created_at)}</p>
+                      <p className="text-[10px] text-muted-foreground/80 mt-1 tabular-nums">{timeAgo(a.created_at)}</p>
                     </div>
                   </div>
                 );
@@ -808,41 +827,49 @@ export default function Dashboard() {
         </div>
 
         {/* Resumo Financeiro */}
-        <div className="lg:col-span-3 vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
-          <div className="absolute -top-12 -right-12 size-32 rounded-full bg-primary/[0.06] blur-2xl pointer-events-none" />
+        <div className="lg:col-span-3 vx-card vx-card-hover vx-card-accent p-5 relative overflow-hidden vx-animate-in" style={{ animationDelay: "120ms" }}>
+          <div className="absolute -top-16 -right-16 size-40 rounded-full bg-primary/[0.10] blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 size-40 rounded-full bg-[hsl(var(--chart-5))]/[0.06] blur-3xl pointer-events-none" />
           <div className="flex items-center gap-2 mb-5 relative">
-            <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <Target className="size-3.5" />
+            <div className="vx-tile size-7">
+              <Target className="size-3.5 relative z-10 text-primary" />
             </div>
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Resumo Financeiro
-            </p>
+            <p className="vx-eyebrow">Resumo Financeiro</p>
           </div>
-          <div className="space-y-3.5 relative">
+          <div className="space-y-3 relative">
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-muted-foreground">Faturamento Bruto</span>
+              <span className="text-[12.5px] text-muted-foreground">Faturamento Bruto</span>
               <span className="text-[13px] font-bold tabular-nums">{formatBRL(totalRevenue)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-muted-foreground">Comissões</span>
+              <span className="text-[12.5px] text-muted-foreground">Comissões</span>
               <span className="text-[13px] font-bold tabular-nums text-destructive">−{formatBRL(paid)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-muted-foreground">Taxas (2,2%)</span>
+              <span className="text-[12.5px] text-muted-foreground">Taxas (2,2%)</span>
               <span className="text-[13px] font-bold tabular-nums text-destructive">−{formatBRL(taxes)}</span>
             </div>
-            <div className="section-divider" />
-            <div className="rounded-xl bg-gradient-to-br from-primary/10 to-primary/[0.04] border border-primary/15 p-3.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-primary">Líquido</span>
-                <span className="font-display text-[18px] font-bold tabular-nums text-primary tracking-tight">
+            <div className="vx-divider-soft my-1" />
+            <div className="rounded-2xl bg-gradient-to-br from-primary/[0.14] via-primary/[0.06] to-[hsl(var(--chart-5))]/[0.08] border border-primary/20 p-4 relative overflow-hidden">
+              <div className="absolute -top-10 -right-10 size-24 rounded-full bg-primary/15 blur-2xl pointer-events-none" />
+              <div className="flex items-center justify-between relative">
+                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">Líquido</span>
+                <span className="vx-numeral text-[20px] bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] bg-clip-text text-transparent">
                   {formatBRL(net)}
                 </span>
               </div>
-              <div className="h-1 rounded-full bg-primary/15 mt-2.5 overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-700" style={{ width: `${Math.min(100, margin)}%` }} />
+              <div className="vx-track mt-3 relative" style={{ background: "hsl(var(--primary) / 0.18)" }}>
+                <div
+                  className="vx-track-fill"
+                  style={{
+                    width: `${Math.min(100, margin)}%`,
+                    background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--chart-5)))`,
+                  }}
+                />
               </div>
-              <p className="text-[10.5px] text-muted-foreground mt-2 tabular-nums">Margem {margin.toFixed(1)}%</p>
+              <p className="text-[10.5px] text-muted-foreground mt-2 tabular-nums relative">
+                Margem <span className="font-bold text-foreground">{margin.toFixed(1)}%</span>
+              </p>
             </div>
           </div>
         </div>
@@ -851,23 +878,26 @@ export default function Dashboard() {
       {/* ===== ROW: CLIENTES + TOP PARCEIROS ===== */}
       <section key={`row3-${animKey}`} className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Clientes (no período) */}
-        <div className="lg:col-span-7 vx-card vx-card-hover overflow-hidden vx-animate-in">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Novos clientes · {range.label}
-            </p>
-            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
+        <div className="lg:col-span-7 vx-card vx-card-hover vx-card-accent overflow-hidden vx-animate-in">
+          <div className="px-5 py-4 border-b border-border/70 flex items-center justify-between bg-gradient-to-r from-card via-card to-muted/20">
+            <div>
+              <p className="vx-eyebrow vx-eyebrow-dot">Novos clientes · {range.label}</p>
+              <p className="text-[12px] text-muted-foreground mt-1.5 tabular-nums">
+                <span className="font-bold text-foreground">{aggregated.clients.length}</span> cadastrados
+              </p>
+            </div>
+            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos →</button>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
+              <tr className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground bg-muted/25">
                 <th className="px-5 py-2.5 text-left font-bold">Cliente</th>
                 <th className="px-3 py-2.5 text-left font-bold">Empresa</th>
                 <th className="px-3 py-2.5 text-left font-bold">Status</th>
                 <th className="px-5 py-2.5 text-right font-bold">Cadastrado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {aggregated.clients.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-5 py-12 text-center text-muted-foreground text-sm">
@@ -876,22 +906,27 @@ export default function Dashboard() {
                 </tr>
               ) : (
                 aggregated.clients.slice(0, 7).map((c: any) => (
-                  <tr key={c.id} className="hover:bg-muted/30 transition-colors">
+                  <tr key={c.id} className="hover:bg-muted/25 transition-colors group/row">
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="size-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 text-primary flex items-center justify-center text-[11px] font-bold">
+                      <div className="flex items-center gap-3">
+                        <div className="vx-avatar size-9">
                           {initials(c.full_name)}
                         </div>
-                        <span className="font-semibold text-[13px]">{c.full_name}</span>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[13px] leading-tight truncate">{c.full_name}</p>
+                          <p className="text-[10.5px] text-muted-foreground tabular-nums mt-0.5 group-hover/row:text-foreground/70 transition-colors">
+                            #{String(c.id).slice(-6).toUpperCase()}
+                          </p>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-3 py-3.5 text-muted-foreground text-[13px]">{c.company ?? "—"}</td>
+                    <td className="px-3 py-3.5 text-foreground/80 text-[13px] font-medium">{c.company ?? "—"}</td>
                     <td className="px-3 py-3.5">
-                      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
-                        c.status === "ativo" && "bg-success/15 text-success",
-                        c.status === "prospecto" && "bg-warning/15 text-warning",
-                        c.status !== "ativo" && c.status !== "prospecto" && "bg-muted text-muted-foreground")}>
-                        <span className="size-1.5 rounded-full bg-current" />
+                      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset",
+                        c.status === "ativo" && "bg-success/12 text-success ring-success/20",
+                        c.status === "prospecto" && "bg-warning/12 text-warning ring-warning/25",
+                        c.status !== "ativo" && c.status !== "prospecto" && "bg-muted text-muted-foreground ring-border")}>
+                        <span className="size-1.5 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
                         {c.status}
                       </span>
                     </td>
@@ -906,22 +941,25 @@ export default function Dashboard() {
         </div>
 
         {/* Top parceiros */}
-        <div className="lg:col-span-5 vx-card vx-card-hover overflow-hidden vx-animate-in" style={{ animationDelay: "60ms" }}>
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-              Top Parceiros · {range.label}
-            </p>
-            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos</button>
+        <div className="lg:col-span-5 vx-card vx-card-hover vx-card-accent overflow-hidden vx-animate-in" style={{ animationDelay: "60ms" }}>
+          <div className="px-5 py-4 border-b border-border/70 flex items-center justify-between bg-gradient-to-r from-card via-card to-muted/20">
+            <div>
+              <p className="vx-eyebrow vx-eyebrow-dot">Top Parceiros · {range.label}</p>
+              <p className="text-[12px] text-muted-foreground mt-1.5">
+                Ranking por volume de comissões
+              </p>
+            </div>
+            <button className="text-[12px] font-semibold text-primary hover:underline">Ver todos →</button>
           </div>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground bg-muted/30">
+              <tr className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground bg-muted/25">
                 <th className="px-5 py-2.5 text-left font-bold">Parceiro</th>
                 <th className="px-3 py-2.5 text-right font-bold">Comissões</th>
                 <th className="px-5 py-2.5 text-right font-bold">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {aggregated.topPartners.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground text-sm">
@@ -930,24 +968,28 @@ export default function Dashboard() {
                 </tr>
               ) : (
                 aggregated.topPartners.map((p, i) => {
-                  const trophyColor = ["text-warning", "text-muted-foreground", "text-[#CD7F32]"][i] || "text-muted-foreground";
+                  const rankClass = i === 0 ? "vx-rank vx-rank-1" : i === 1 ? "vx-rank vx-rank-2" : i === 2 ? "vx-rank vx-rank-3" : "vx-rank";
                   return (
-                    <tr key={p.name + i} className="hover:bg-muted/30 transition-colors">
+                    <tr key={p.name + i} className="hover:bg-muted/25 transition-colors group/row">
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-3">
                           {i < 3 ? (
-                            <Trophy className={cn("size-4", trophyColor)} />
-                          ) : (
-                            <span className="size-5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex items-center justify-center tabular-nums">
-                              {i + 1}
+                            <span className={rankClass}>
+                              <Trophy className="size-3" />
                             </span>
+                          ) : (
+                            <span className={rankClass}>{i + 1}</span>
                           )}
-                          <span className="font-semibold text-[13px]">{p.name}</span>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-[13px] leading-tight truncate">{p.name}</p>
+                            <p className="text-[10.5px] text-muted-foreground tabular-nums mt-0.5">{p.count} repasses</p>
+                          </div>
                         </div>
                       </td>
                       <td className="px-3 py-3.5 text-right tabular-nums font-bold text-[13px]">{formatBRL(p.total)}</td>
                       <td className="px-5 py-3.5 text-right">
-                        <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold", p.active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground")}>
+                        <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset", p.active ? "bg-success/12 text-success ring-success/20" : "bg-muted text-muted-foreground ring-border")}>
+                          <span className="size-1.5 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
                           {p.active ? "Ativo" : "Inativo"}
                         </span>
                       </td>
