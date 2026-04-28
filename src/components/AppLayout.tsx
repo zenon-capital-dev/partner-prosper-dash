@@ -22,7 +22,7 @@ export default function AppLayout() {
   if (!user) return <Navigate to="/auth" replace />;
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ "--sidebar-width": "20rem" } as React.CSSProperties}>
       <div className="min-h-[100dvh] flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
