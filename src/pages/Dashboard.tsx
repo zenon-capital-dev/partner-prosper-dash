@@ -367,25 +367,21 @@ export default function Dashboard() {
   return (
     <div className="page-shell space-y-6">
       {/* ===== HEADER ===== */}
-      <header className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-2.5">
-            <span className="vx-pill vx-pill-success">
-              <span className="vx-dot bg-success animate-pulse" /> Live
-            </span>
-            <span className="vx-pill vx-pill-muted">
-              <Sparkles className="size-3" /> IA Insights
-            </span>
-            <span className="vx-pill vx-pill-primary">
-              <CalendarDays className="size-3" /> {range.label}
-            </span>
-          </div>
-          <h1 className="font-display text-[34px] font-bold tracking-[-0.02em] leading-none">
+      <header className="flex items-end justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="font-display text-[38px] font-bold tracking-[-0.03em] leading-none bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Bem-vindo de volta, <span className="font-semibold text-foreground">{user?.email?.split("@")[0] ?? "Admin"}</span>! Resumo do período selecionado.
-          </p>
+          <div className="flex items-center gap-2 mt-3">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+              <CalendarDays className="size-3.5 text-primary" />
+              {range.label}
+            </span>
+            <span className="size-1 rounded-full bg-muted-foreground/40" />
+            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
+              {aggregated.sales.length} vendas no período
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Period segmented control */}
