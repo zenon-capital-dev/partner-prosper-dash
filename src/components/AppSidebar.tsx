@@ -411,58 +411,47 @@ export function AppSidebar() {
           })}
 
           {!collapsed && showAdmin && (
-            <>
-              {/* Live overview card — premium */}
-              <div className="mx-1 mt-5 mb-2 rounded-2xl p-4 border border-white/[0.07] bg-gradient-to-br from-white/[0.05] via-white/[0.02] to-transparent relative overflow-hidden backdrop-blur-sm">
-                <div className="absolute -top-10 -right-10 size-28 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
-                <div className="absolute -bottom-12 -left-8 size-24 rounded-full bg-[hsl(var(--chart-5))]/15 blur-3xl pointer-events-none" />
-                <div className="flex items-center justify-between mb-2.5 relative">
-                  <span className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-sidebar-muted flex items-center gap-1.5">
-                    <Zap className="size-2.5 text-success" />
-                    Receita · 7 dias
-                  </span>
-                  <span className="text-[10px] font-bold tabular-nums text-success flex items-center gap-1">
-                    <ArrowUpRight className="size-2.5" />
-                    +18.2%
-                  </span>
+            <div className="mx-1 mt-6 mb-2 rounded-xl p-4 border border-white/[0.07] bg-white/[0.03]">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-sidebar-muted flex items-center gap-1.5">
+                  <Zap className="size-3 text-success" />
+                  Receita · 7 dias
+                </span>
+                <span className="text-[11px] font-semibold tabular-nums text-success flex items-center gap-0.5">
+                  <ArrowUpRight className="size-3" />
+                  +18.2%
+                </span>
+              </div>
+              <p className="font-display text-white text-[22px] font-bold tabular-nums tracking-[-0.02em] leading-none">
+                {formatBRL(liveData.monthRev)}
+              </p>
+              <div className="mt-3 h-9">
+                <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
+                  <defs>
+                    <linearGradient id="sb-spark" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {sparkPath && (
+                    <>
+                      <path d={`${sparkPath} L100,28 L0,28 Z`} fill="url(#sb-spark)" />
+                      <path d={sparkPath} fill="none" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    </>
+                  )}
+                </svg>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-muted font-semibold">A receber</p>
+                  <p className="text-[13px] font-bold text-white tabular-nums mt-1">{formatBRL(liveData.pendingFinTotal)}</p>
                 </div>
-                <div className="relative">
-                  <p className="font-display text-white text-[20px] font-bold tabular-nums tracking-[-0.02em] leading-none">
-                    {formatBRL(liveData.monthRev)}
-                  </p>
-                  <div className="mt-2.5 h-8">
-                    <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
-                      <defs>
-                        <linearGradient id="sb-spark" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0.55" />
-                          <stop offset="100%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0" />
-                        </linearGradient>
-                        <linearGradient id="sb-spark-line" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" />
-                          <stop offset="100%" stopColor="hsl(var(--chart-5))" />
-                        </linearGradient>
-                      </defs>
-                      {sparkPath && (
-                        <>
-                          <path d={`${sparkPath} L100,28 L0,28 Z`} fill="url(#sb-spark)" />
-                          <path d={sparkPath} fill="none" stroke="url(#sb-spark-line)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-                        </>
-                      )}
-                    </svg>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/[0.06] relative">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A receber</p>
-                    <p className="text-[12px] font-bold text-white tabular-nums mt-0.5">{formatBRL(liveData.pendingFinTotal)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase tracking-[0.14em] text-sidebar-muted font-bold">A pagar</p>
-                    <p className="text-[12px] font-bold text-warning tabular-nums mt-0.5">{formatBRL(liveData.pendingComTotal)}</p>
-                  </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-muted font-semibold">A pagar</p>
+                  <p className="text-[13px] font-bold text-warning tabular-nums mt-1">{formatBRL(liveData.pendingComTotal)}</p>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </SidebarContent>
 
