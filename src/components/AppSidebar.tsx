@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const demoSidebarLive = {
   clients: 65,
@@ -344,56 +345,70 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ========== NAV ========== */}
-        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll">
-          {sections.map((section) => (
-            <SidebarGroup key={section.label} className="py-0">
-              {!collapsed && (
-                <div className="vx-nav-section">
-                  <span>{section.label}</span>
-                  <span className="flex-1 h-px bg-white/[0.04] ml-2" />
-                </div>
-              )}
-              {collapsed && <div className="h-px bg-white/[0.04] mx-2 my-1.5" />}
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-0.5">
-                  {section.items.map((item) => {
-                    const active = isActive(item.url);
-                    const Icon = item.icon;
-                    const counter = counterFor(item.counterKey);
-                    return (
-                      <SidebarMenuItem key={item.url}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={active}
-                          tooltip={collapsed ? item.title : undefined}
-                          className="!h-auto !p-0 hover:!bg-transparent data-[active=true]:!bg-transparent"
-                        >
-                          <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
-                            <span className="vx-nav-icon-wrap">
-                              <Icon className="size-4" strokeWidth={active ? 2.25 : 1.75} />
-                              {collapsed && counter && (
-                                <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar" />
-                              )}
-                            </span>
-                            {!collapsed && (
-                              <>
-                                <span className="truncate">{item.title}</span>
-                                {counter !== null && (
-                                  <span className="ml-auto text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-md bg-white/[0.07] text-white/85 group-hover:bg-white/[0.12] transition-colors">
-                                    {counter}
-                                  </span>
+        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll vx-sidebar-bg">
+          {sections.map((section) => {
+            const SectionIcon = section.icon;
+            return (
+              <SidebarGroup key={section.label} className="py-0">
+                {!collapsed && (
+                  <div className="vx-nav-section">
+                    <span className="vx-nav-section-icon">
+                      <SectionIcon className="size-3" strokeWidth={2.5} />
+                    </span>
+                    <span className="vx-nav-section-label">{section.label}</span>
+                    <span className="vx-nav-section-line" />
+                  </div>
+                )}
+                {collapsed && <div className="h-px bg-white/[0.05] mx-2 my-2" />}
+                <SidebarGroupContent>
+                  <SidebarMenu className="gap-0.5">
+                    {section.items.map((item) => {
+                      const active = isActive(item.url);
+                      const Icon = item.icon;
+                      const counter = counterFor(item.counterKey);
+                      const counterTone =
+                        item.counterKey === "pendingFin" || item.counterKey === "pendingCom"
+                          ? "vx-nav-counter-warning"
+                          : item.counterKey === "newDocs"
+                            ? "vx-nav-counter-info"
+                            : item.counterKey === "clients"
+                              ? "vx-nav-counter-primary"
+                              : "";
+                      return (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={active}
+                            tooltip={collapsed ? item.title : undefined}
+                            className="!h-auto !p-0 hover:!bg-transparent data-[active=true]:!bg-transparent"
+                          >
+                            <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
+                              <span className="vx-nav-icon-wrap">
+                                <Icon className="size-4" strokeWidth={active ? 2.25 : 1.85} />
+                                {collapsed && counter && (
+                                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar shadow-[0_0_6px_hsl(var(--sidebar-primary))]" />
                                 )}
-                              </>
-                            )}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))}
+                              </span>
+                              {!collapsed && (
+                                <>
+                                  <span className="truncate">{item.title}</span>
+                                  {counter !== null && (
+                                    <span className={cn("vx-nav-counter", counterTone)}>
+                                      {counter}
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          })}
 
           {!collapsed && showAdmin && (
             <>
