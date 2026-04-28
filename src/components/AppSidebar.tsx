@@ -345,7 +345,7 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ========== NAV ========== */}
-        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll vx-sidebar-bg">
+        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll">
           {sections.map((section) => {
             const SectionIcon = section.icon;
             return (
