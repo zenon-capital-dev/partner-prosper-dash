@@ -384,9 +384,9 @@ export function AppSidebar() {
                           >
                             <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
                               <span className="vx-nav-icon-wrap">
-                                <Icon className="size-4" strokeWidth={active ? 2.25 : 1.85} />
+                                <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.9} />
                                 {collapsed && counter && (
-                                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar shadow-[0_0_6px_hsl(var(--sidebar-primary))]" />
+                                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar" />
                                 )}
                               </span>
                               {!collapsed && (
