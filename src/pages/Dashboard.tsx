@@ -544,41 +544,41 @@ export default function Dashboard() {
           return (
             <div
               key={k.label}
-              className="vx-card vx-card-hover p-5 relative overflow-hidden vx-animate-in"
+              className="vx-card vx-card-hover vx-card-accent vx-card-glow p-5 relative overflow-hidden vx-animate-in group"
               style={{ animationDelay: `${idx * 60}ms` }}
             >
-              <div className="absolute top-0 right-0 w-28 h-28 opacity-[0.04] pointer-events-none" style={{ background: `radial-gradient(circle at 70% 30%, ${k.stroke}, transparent 70%)` }} />
+              {/* Ambient color wash */}
+              <div
+                className="absolute -top-16 -right-16 w-48 h-48 rounded-full opacity-[0.10] pointer-events-none blur-2xl transition-opacity duration-300 group-hover:opacity-[0.16]"
+                style={{ background: `radial-gradient(circle, ${k.stroke}, transparent 65%)` }}
+              />
               <div className="flex items-start gap-4 relative">
-                <div className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0", k.tone)}>
-                  <Icon className="size-5" strokeWidth={2.25} />
+                <div className="vx-tile size-12">
+                  <Icon className="size-[18px] relative z-10" strokeWidth={2.25} style={{ color: k.stroke }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground truncate">
-                    {k.label}
-                  </p>
-                  <p className="font-display text-[26px] font-bold tabular-nums tracking-[-0.025em] mt-1.5 truncate">
-                    {k.value}
-                  </p>
+                  <p className="vx-eyebrow truncate">{k.label}</p>
+                  <p className="vx-numeral text-[28px] mt-2 truncate">{k.value}</p>
                 </div>
               </div>
-              <div className="flex items-end justify-between mt-3 gap-3 relative">
-                <div>
-                  <span className={cn("inline-flex items-center gap-0.5 text-[12px] font-bold tabular-nums", k.positive ? "text-success" : "text-destructive")}>
+              <div className="flex items-end justify-between mt-4 gap-3 relative">
+                <div className="flex flex-col gap-1.5">
+                  <span className={cn("vx-chip", k.positive ? "vx-chip-up" : "vx-chip-down")}>
                     {k.positive ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
                     {k.delta}
                   </span>
-                  <p className="text-[10.5px] text-muted-foreground mt-0.5">vs. período anterior</p>
+                  <p className="text-[10.5px] text-muted-foreground">vs. período anterior</p>
                 </div>
-                <div className="h-10 w-28">
+                <div className="h-12 w-32">
                   <ResponsiveContainer>
                     <AreaChart data={data}>
                       <defs>
                         <linearGradient id={`spark-${k.seed}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={k.stroke} stopOpacity={0.35} />
+                          <stop offset="0%" stopColor={k.stroke} stopOpacity={0.45} />
                           <stop offset="100%" stopColor={k.stroke} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <Area type="monotone" dataKey="y" stroke={k.stroke} strokeWidth={1.75} fill={`url(#spark-${k.seed})`} isAnimationActive={false} />
+                      <Area type="monotone" dataKey="y" stroke={k.stroke} strokeWidth={2} fill={`url(#spark-${k.seed})`} isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
