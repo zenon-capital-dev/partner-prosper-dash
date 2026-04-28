@@ -303,7 +303,7 @@ export function AppSidebar() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="font-display font-black tracking-[0.14em] text-white text-[24px] leading-none">
-                    VENDX
+                    PAINEL DOUGLAS
                   </span>
                   <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
                     PRO
