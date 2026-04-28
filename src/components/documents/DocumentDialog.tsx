@@ -29,7 +29,7 @@ export function DocumentDialog({ open, onOpenChange, onCreated, clientId }: Prop
     let file_path: string | null = null;
     let file_size: number | null = null;
     let mime_type: string | null = null;
-    let status: string = "solicitado";
+    let status: "solicitado" | "enviado" | "aprovado" | "rejeitado" = "solicitado";
 
     const file = fileRef.current?.files?.[0];
     if (file) {
