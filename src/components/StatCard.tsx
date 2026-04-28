@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -7,6 +8,7 @@ interface Props {
   delta?: { value: string; positive?: boolean };
   icon: LucideIcon;
   iconColor?: "primary" | "success" | "warning" | "info" | "destructive";
+  hint?: string;
 }
 
 const colorMap = {
@@ -17,19 +19,23 @@ const colorMap = {
   destructive: "bg-destructive-muted text-destructive",
 };
 
-export function StatCard({ label, value, delta, icon: Icon, iconColor = "primary" }: Props) {
+export const StatCard = forwardRef<HTMLDivElement, Props>(function StatCard(
+  { label, value, delta, icon: Icon, iconColor = "primary", hint },
+  ref,
+) {
   return (
-    <div className="vx-stat-card group">
+    <div ref={ref} className="vx-stat-card group">
       <div className="flex items-start justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-          <p className="font-display text-2xl font-bold mt-3 vx-mono">{value}</p>
+          <p className="font-display text-2xl font-bold mt-3 vx-mono truncate">{value}</p>
           {delta && (
             <div className={cn("flex items-center gap-1 mt-2 text-xs font-medium", delta.positive ? "text-success" : "text-destructive")}>
               <span>{delta.positive ? "↑" : "↓"} {delta.value}</span>
               <span className="text-muted-foreground font-normal">vs. período anterior</span>
             </div>
           )}
+          {hint && !delta && <p className="text-[11px] text-muted-foreground mt-2">{hint}</p>}
         </div>
         <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105", colorMap[iconColor])}>
           <Icon className="size-5" />
@@ -37,4 +43,4 @@ export function StatCard({ label, value, delta, icon: Icon, iconColor = "primary
       </div>
     </div>
   );
-}
+});

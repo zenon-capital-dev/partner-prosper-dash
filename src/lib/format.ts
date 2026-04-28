@@ -43,3 +43,19 @@ export const timeAgo = (date: string | Date) => {
   if (days < 7) return `${days}d atrás`;
   return new Date(date).toLocaleDateString("pt-BR");
 };
+
+export const formatDoc = (doc?: string | null) => {
+  if (!doc) return "—";
+  const d = doc.replace(/\D/g, "");
+  if (d.length === 11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  if (d.length === 14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  return doc;
+};
+
+export const formatPhone = (phone?: string | null) => {
+  if (!phone) return "—";
+  const p = phone.replace(/\D/g, "");
+  if (p.length === 11) return p.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+  if (p.length === 10) return p.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+  return phone;
+};
