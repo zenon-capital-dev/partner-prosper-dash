@@ -21,6 +21,8 @@ import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
 import Support from "./pages/Support";
+import Indicators from "./pages/Indicators";
+import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
 import NotFound from "./pages/NotFound.tsx";
@@ -43,6 +45,8 @@ const App = () => (
               <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="/parceiros" element={<Partners />} />
               <Route path="/produtos" element={<Products />} />
+              <Route path="/indicadores" element={<Indicators />} />
+              <Route path="/projetos" element={<Projects />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/comissoes" element={<Commissions />} />
               <Route path="/documentos" element={<Documents />} />
