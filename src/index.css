@@ -88,7 +88,7 @@
   }
 
   .dark {
-    --background: 222 47% 7%;
+    --background: 222 47% 6%;
     --foreground: 220 14% 92%;
     --card: 222 47% 9%;
     --card-foreground: 220 14% 92%;
@@ -96,15 +96,29 @@
     --popover-foreground: 220 14% 92%;
     --primary: 243 75% 65%;
     --primary-foreground: 0 0% 100%;
+    --primary-muted: 243 60% 18%;
+    --primary-glow: 243 75% 75%;
     --secondary: 222 47% 14%;
     --secondary-foreground: 220 14% 92%;
     --muted: 222 47% 14%;
     --muted-foreground: 220 9% 60%;
     --accent: 222 47% 14%;
     --accent-foreground: 220 14% 92%;
+    --success: 152 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 152 50% 16%;
+    --warning: 38 90% 55%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 38 50% 18%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 0 50% 18%;
+    --info: 199 80% 55%;
+    --info-muted: 199 50% 18%;
     --border: 222 47% 16%;
     --input: 222 47% 16%;
     --ring: 243 75% 65%;
+    --gradient-card: linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 8%));
   }
 }
 
@@ -129,6 +143,27 @@
     @apply bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow;
   }
   .vx-mono { font-variant-numeric: tabular-nums; }
+
+  /* Skeleton loader */
+  .vx-skeleton {
+    @apply animate-pulse bg-muted rounded-md;
+  }
+
+  /* Tag chips para clientes */
+  .vx-tag {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide;
+  }
+  .vx-tag-vip { @apply bg-warning-muted text-warning; }
+  .vx-tag-risco { @apply bg-destructive-muted text-destructive; }
+  .vx-tag-novo { @apply bg-info-muted text-info; }
+  .vx-tag-priority { @apply bg-primary-muted text-primary; }
+  .vx-tag-default { @apply bg-muted text-muted-foreground; }
+}
+
+/* Print-friendly para gerar contratos */
+@media print {
+  body { background: white !important; }
+  .no-print { display: none !important; }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

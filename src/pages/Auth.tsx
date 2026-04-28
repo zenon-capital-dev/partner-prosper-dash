@@ -159,6 +159,19 @@ export default function AuthPage() {
                 <Button type="submit" className="w-full h-11 bg-gradient-primary hover:opacity-90 transition-opacity" disabled={submitting}>
                   {submitting ? "Entrando..." : <>Entrar <ArrowRight className="size-4 ml-1" /></>}
                 </Button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const email = (document.getElementById("login-email") as HTMLInputElement)?.value;
+                    if (!email) { toast.error("Digite seu email primeiro"); return; }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+                    if (error) toast.error(error.message);
+                    else toast.success("Email de recuperação enviado!");
+                  }}
+                  className="w-full text-xs text-muted-foreground hover:text-primary mt-2 text-center"
+                >
+                  Esqueci minha senha
+                </button>
               </form>
             </TabsContent>
 

@@ -53,6 +53,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       status: form.status,
       partner_id: form.partner_id || null,
       notes: form.notes || null,
+      tags: form.tags ?? [],
       created_by: user?.id,
     };
     const { error } = client?.id
@@ -129,7 +130,16 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="col-span-2 space-y-2">
-            <Label>Observações</Label>
+            <Label>Tags (separadas por vírgula)</Label>
+            <Input
+              placeholder="VIP, risco, novo, prioridade"
+              value={(form.tags ?? []).join(", ")}
+              onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map((t: string) => t.trim()).filter(Boolean) })}
+            />
+            <p className="text-[10px] text-muted-foreground">Sugestões: VIP, risco, novo, prioridade</p>
+          </div>
+          <div className="col-span-2 space-y-2">
+            <Label>Observações internas</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
         </div>
