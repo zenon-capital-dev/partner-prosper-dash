@@ -286,15 +286,12 @@ export function AppSidebar() {
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-display font-black tracking-[0.14em] text-white text-[20px] leading-none">
+                  <span className="font-display font-black tracking-[0.14em] text-white text-[21px] leading-none">
                     VENDX
                   </span>
-                  <span className="text-[8.5px] font-bold tracking-wider text-primary bg-primary/15 border border-primary/25 rounded px-1 py-0.5 leading-none">
+                  <span className="text-[8.5px] font-bold tracking-wider text-white bg-gradient-to-br from-primary to-[hsl(var(--chart-5))] rounded px-1.5 py-0.5 leading-none shadow-[0_2px_8px_-2px_hsl(var(--sidebar-primary)/0.6)]">
                     PRO
                   </span>
-                </div>
-                <div className="text-[9.5px] uppercase tracking-[0.22em] text-sidebar-muted mt-1.5 font-bold">
-                  CRM Suite · v2.4
                 </div>
               </div>
             )}
