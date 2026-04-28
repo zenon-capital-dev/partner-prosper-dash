@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sparkles, ArrowRight, ShieldCheck, BarChart3, Users } from "lucide-react";
 import { z } from "zod";
+import authHero from "@/assets/auth-hero.jpg";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
