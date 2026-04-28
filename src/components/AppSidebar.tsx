@@ -65,6 +65,7 @@ import {
 } from "@/components/ui/command";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const demoSidebarLive = {
   clients: 65,
