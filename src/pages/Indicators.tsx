@@ -40,14 +40,14 @@ export default function Indicators() {
 
   const enriched = useMemo(() => {
     return (referrers ?? []).map((r: any) => {
-      const splits = (r.commission_splits ?? []).filter((s: any) => true);
-      const total = splits.reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
-      const paid = splits.filter((s: any) => s.status === "pago").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
-      const pending = splits.filter((s: any) => s.status === "pendente").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
+      const mySplits = splits.filter((s: any) => s.beneficiary_id === r.id);
+      const total = mySplits.reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
+      const paid = mySplits.filter((s: any) => s.status === "pago").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
+      const pending = mySplits.filter((s: any) => s.status === "pendente").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
       const clients = clientsByReferrer.filter((c: any) => c.referrer_id === r.id).length;
       return { ...r, _total: total, _paid: paid, _pending: pending, _clients: clients };
     }).filter((r: any) => !search || r.full_name?.toLowerCase().includes(search.toLowerCase()) || r.email?.toLowerCase().includes(search.toLowerCase()));
-  }, [referrers, clientsByReferrer, search]);
+  }, [referrers, splits, clientsByReferrer, search]);
 
   const totals = useMemo(() => ({
     count: enriched.length,
