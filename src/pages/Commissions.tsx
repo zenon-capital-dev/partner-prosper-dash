@@ -107,13 +107,12 @@ export default function Commissions() {
   }, [commissions, statusFilter, partnerFilter, dateFrom, dateTo, search]);
 
   const totals = useMemo(() => {
-    const acc = { paid: 0, pending: 0, cancelled: 0, total: 0, count: filtered.length };
+    const acc = { paid: 0, pending: 0, total: 0, count: filtered.length };
     filtered.forEach((c: any) => {
       const v = Number(c.amount || 0);
       acc.total += v;
-      if (c.status === "pago") acc.paid += v;
-      else if (c.status === "pendente") acc.pending += v;
-      else if (c.status === "cancelado") acc.cancelled += v;
+      if (c.status === "paga") acc.paid += v;
+      else if (["gerada", "em_analise", "aprovada"].includes(c.status)) acc.pending += v;
     });
     return acc;
   }, [filtered]);
