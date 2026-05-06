@@ -321,8 +321,8 @@ export function AppSidebar() {
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display font-black tracking-[0.14em] text-white text-[24px] leading-none">
-                    PAINEL DOUGLAS
+                  <span className="font-display font-black tracking-[0.14em] text-white text-[22px] leading-none uppercase">
+                    Advisory CRM
                   </span>
                   <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
                     PRO
