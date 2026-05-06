@@ -297,6 +297,10 @@ export default function ClientDetail() {
           <TabsTrigger value="timeline" className="gap-1.5"><ActivityIcon className="size-3.5" /> Timeline</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="doc-requests" className="mt-4">
+          <DocRequestList clientId={id!} />
+        </TabsContent>
+
         {/* ============ VISÃO GERAL ============ */}
         <TabsContent value="overview" className="mt-4 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
