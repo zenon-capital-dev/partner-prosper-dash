@@ -25,6 +25,11 @@ import Indicators from "./pages/Indicators";
 import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
+import Leads from "./pages/Leads";
+import Collaborators from "./pages/Collaborators";
+import Providers from "./pages/Providers";
+import Tasks from "./pages/Tasks";
+import AuditLog from "./pages/AuditLog";
 import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 
@@ -49,12 +54,17 @@ const App = () => (
               <Route path="/produtos" element={<Products />} />
               <Route path="/indicadores" element={<Indicators />} />
               <Route path="/projetos" element={<Projects />} />
+              <Route path="/leads" element={<Leads />} />
+              <Route path="/colaboradores" element={<Collaborators />} />
+              <Route path="/prestadores" element={<Providers />} />
+              <Route path="/tarefas" element={<Tasks />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/comissoes" element={<Commissions />} />
               <Route path="/documentos" element={<Documents />} />
               <Route path="/contratos" element={<Contracts />} />
               <Route path="/financeiro" element={<Finance />} />
               <Route path="/relatorios" element={<Reports />} />
+              <Route path="/auditoria" element={<AuditLog />} />
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Support />} />
