@@ -169,6 +169,12 @@ export default function ClientPanel() {
           <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
             <Receipt className="size-4" /> Financeiro
           </TabsTrigger>
+          <TabsTrigger value="tarefas" className="h-9 gap-2 text-[13px] font-semibold">
+            <ListTodo className="size-4" /> Pendências
+          </TabsTrigger>
+          <TabsTrigger value="historico" className="h-9 gap-2 text-[13px] font-semibold">
+            <History className="size-4" /> Histórico
+          </TabsTrigger>
         </TabsList>
 
         {/* ===== MEUS PRODUTOS ===== */}
