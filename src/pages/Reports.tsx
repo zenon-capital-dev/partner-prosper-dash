@@ -140,14 +140,18 @@ export default function Reports() {
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="sales">Vendas</SelectItem>
-              <SelectItem value="partners">Performance de parceiros</SelectItem>
-              <SelectItem value="categories">Por categoria</SelectItem>
+              <SelectItem value="partners">Parceiros e Comissões</SelectItem>
+              <SelectItem value="products">Produtos Vendidos</SelectItem>
+              <SelectItem value="leads">Origem de Leads</SelectItem>
+              <SelectItem value="tasks">Tarefas e Pendências</SelectItem>
+              <SelectItem value="docs">Documentos e Contratos</SelectItem>
+              <SelectItem value="team">Colaboradores e Prestadores</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="flex gap-2">
           <Button onClick={exportSalesPDF} className="gap-2 flex-1 bg-gradient-primary hover:opacity-90"><FileDown className="size-4" /> PDF</Button>
-          <Button onClick={exportSalesExcel} variant="outline" className="gap-2 flex-1"><FileSpreadsheet className="size-4" /> Excel</Button>
+          <Button onClick={exportSalesExcel} variant="outline" className="gap-2 flex-1"><FileSpreadsheet className="size-4" /> CSV / Excel</Button>
         </div>
       </div>
 

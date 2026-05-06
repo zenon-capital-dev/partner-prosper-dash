@@ -30,6 +30,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import ClientPanel from "./ClientPanel";
+import PartnerPanel from "./PartnerPanel";
 
 const C = {
   primary: "hsl(var(--primary))",
@@ -67,7 +69,7 @@ function makeRange(key: RangeKey): { from: Date; to: Date; label: string } {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const [rangeKey, setRangeKey] = useState<RangeKey>("month");
   const range = useMemo(() => makeRange(rangeKey), [rangeKey]);
 
@@ -147,8 +149,11 @@ export default function Dashboard() {
     { key: "month", label: "Mês", icon: CalendarIcon },
   ];
 
+  if (roles.includes("cliente")) return <ClientPanel />;
+  if (roles.includes("parceiro")) return <PartnerPanel />;
+
   return (
-    <div className="page-shell space-y-7 animate-in fade-in duration-500">
+    <div className="page-shell space-y-7 animate-in fade-in duration-500 pb-20">
       <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
         <div className="min-w-0 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">

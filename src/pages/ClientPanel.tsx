@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
-  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone,
+  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -168,6 +168,12 @@ export default function ClientPanel() {
           </TabsTrigger>
           <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
             <Receipt className="size-4" /> Financeiro
+          </TabsTrigger>
+          <TabsTrigger value="tarefas" className="h-9 gap-2 text-[13px] font-semibold">
+            <ListTodo className="size-4" /> Pendências
+          </TabsTrigger>
+          <TabsTrigger value="historico" className="h-9 gap-2 text-[13px] font-semibold">
+            <History className="size-4" /> Histórico
           </TabsTrigger>
         </TabsList>
 
@@ -381,6 +387,44 @@ export default function ClientPanel() {
               </table>
             </div>
           )}
+        </TabsContent>
+        
+        {/* ===== PENDÊNCIAS (TAREFAS) ===== */}
+        <TabsContent value="tarefas" className="space-y-4">
+          <div className="vx-card divide-y divide-border">
+            <div className="p-4 flex items-center gap-3">
+               <AlertCircle className="size-5 text-warning" />
+               <p className="text-sm font-semibold">Suas próximas pendências</p>
+            </div>
+            <div className="p-8 text-center">
+               <ListTodo className="size-10 text-muted-foreground/30 mx-auto mb-3" />
+               <p className="text-sm font-medium">Nenhuma tarefa crítica pendente no momento.</p>
+               <p className="text-xs text-muted-foreground mt-1">Quando houver algo que exija sua atenção, aparecerá aqui.</p>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* ===== HISTÓRICO ===== */}
+        <TabsContent value="historico" className="space-y-4">
+          <div className="vx-card divide-y divide-border">
+            <div className="p-4 flex items-center gap-3">
+               <History className="size-5 text-primary" />
+               <p className="text-sm font-semibold">Histórico de Atendimento</p>
+            </div>
+            <div className="p-6 space-y-6">
+              {[
+                { date: new Date().toISOString(), title: 'Contrato Assinado', desc: 'Gestão Financeira' },
+                { date: client.created_at, title: 'Cadastro Realizado', desc: 'Sua conta foi criada no sistema.' }
+              ].map((h, i) => (
+                <div key={i} className="relative pl-6 border-l-2 border-primary/20 last:border-0 pb-6">
+                  <div className="absolute left-[-9px] top-0 size-4 rounded-full bg-primary border-4 border-white shadow-sm" />
+                  <p className="text-xs font-bold text-muted-foreground">{formatDate(h.date)}</p>
+                  <p className="text-sm font-bold mt-1">{h.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{h.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
