@@ -295,11 +295,17 @@ export default function ClientPanel() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-[14px] truncate">{d.name}</p>
                       {d.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{d.description}</p>}
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex flex-wrap items-center gap-3 mt-2">
                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold ${statusMeta.tone}`}>
                           <StatusIcon className="size-3" /> {statusMeta.label}
                         </span>
+                        {(d.status === "reprovado" || d.status === "pendente_correcao") && d.rejection_reason && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold text-destructive bg-destructive/5">
+                            <AlertCircle className="size-3" /> Motivo: {d.rejection_reason}
+                          </span>
+                        )}
                         <span className="text-[11px] text-muted-foreground">Solicitado em {formatDate(d.created_at)}</span>
+                        {d.due_date && <span className="text-[11px] text-orange-600 font-medium">Prazo: {formatDate(d.due_date)}</span>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
