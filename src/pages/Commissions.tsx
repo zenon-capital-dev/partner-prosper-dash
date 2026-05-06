@@ -340,9 +340,12 @@ export default function Commissions() {
         <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
           <TabsList className="h-10">
             <TabsTrigger value="all">Todas <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
-            <TabsTrigger value="pendente" className="data-[state=active]:text-warning">A pagar</TabsTrigger>
-            <TabsTrigger value="pago" className="data-[state=active]:text-success">Pagas</TabsTrigger>
-            <TabsTrigger value="cancelado" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
+            <TabsTrigger value="gerada" className="data-[state=active]:text-blue-500">Geradas</TabsTrigger>
+            <TabsTrigger value="em_analise" className="data-[state=active]:text-indigo-500">Em análise</TabsTrigger>
+            <TabsTrigger value="aprovada" className="data-[state=active]:text-emerald-500">Aprovadas</TabsTrigger>
+            <TabsTrigger value="paga" className="data-[state=active]:text-emerald-700">Pagas</TabsTrigger>
+            <TabsTrigger value="cancelada" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
+            <TabsTrigger value="bloqueada" className="data-[state=active]:text-muted-foreground">Bloqueadas</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
