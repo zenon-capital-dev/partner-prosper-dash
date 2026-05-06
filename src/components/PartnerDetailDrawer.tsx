@@ -180,11 +180,27 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-4 gap-2 mt-4">
-                <MiniStat label="Comissões" value={formatBRL(stats.total)} tone="primary" />
-                <MiniStat label="Pagas" value={formatBRL(stats.paid)} tone="success" />
-                <MiniStat label="Pendentes" value={formatBRL(stats.pending)} tone="warning" />
+              <div className="grid grid-cols-5 gap-2 mt-4 px-1">
+                <MiniStat label="Total Ganho" value={formatBRL(stats.total)} tone="primary" />
+                <MiniStat label="Aprovado" value={formatBRL(stats.approved)} tone="success" />
+                <MiniStat label="Pendente" value={formatBRL(stats.pending)} tone="warning" />
+                <MiniStat label="PAGO" value={formatBRL(stats.paid)} tone="success" />
                 <MiniStat label="Clientes" value={stats.clientsCount} tone="muted" />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 mt-2 px-1">
+                <div className="rounded-md border border-border bg-card p-2 flex items-center justify-between">
+                  <span className="text-[9px] uppercase font-bold text-muted-foreground">Conversão</span>
+                  <span className="text-xs font-bold text-primary">{stats.clientsCount ? Math.round((stats.convertedClients / stats.clientsCount) * 100) : 0}%</span>
+                </div>
+                <div className="rounded-md border border-border bg-card p-2 flex items-center justify-between">
+                  <span className="text-[9px] uppercase font-bold text-muted-foreground">Mês</span>
+                  <span className="text-xs font-bold text-primary">+{stats.monthClients}</span>
+                </div>
+                <div className="rounded-md border border-border bg-card p-2 flex items-center justify-between">
+                  <span className="text-[9px] uppercase font-bold text-muted-foreground">Produtos</span>
+                  <span className="text-xs font-bold text-primary">{stats.productsCount}</span>
+                </div>
               </div>
             </SheetHeader>
 
