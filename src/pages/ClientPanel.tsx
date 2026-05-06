@@ -379,6 +379,80 @@ export default function ClientPanel() {
   );
 }
 
+function ClientRequestsView({ requests, client }: { requests: any[]; client: any }) {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [activeReqId, setActiveReqId] = useState<string | null>(null);
+
+  const onUpload = async (reqId: string, file: File) => {
+    setActiveReqId(reqId);
+    const path = `client-requests/${client.id}/${reqId}-${Date.now()}-${file.name}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
+    if (upErr) { setActiveReqId(null); return toast.error(upErr.message); }
+
+    const { data: publicData } = supabase.storage.from("documents").getPublicUrl(path);
+    const { error: dbErr } = await supabase.from("document_requests").update({
+      file_url: publicData.publicUrl,
+      status: "submitted",
+      updated_at: new Date().toISOString(),
+    }).eq("id", reqId);
+
+    setActiveReqId(null);
+    if (dbErr) return toast.error(dbErr.message);
+    toast.success("Documento enviado com sucesso!");
+    qc.invalidateQueries({ queryKey: ["client-panel"] });
+  };
+
+  return (
+    <div className="space-y-4">
+      {requests.length === 0 ? (
+        <Empty icon={Upload} title="Sem solicitações" desc="Seu consultor ainda não solicitou nenhum documento específico." />
+      ) : (
+        <div className="vx-card divide-y divide-border">
+          {requests.map((r) => (
+            <div key={r.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+              <div>
+                <p className="text-sm font-bold">{r.request_title}</p>
+                <p className="text-xs text-muted-foreground mt-1">{r.description || "Por favor, anexe o arquivo solicitado."}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className={r.status === "pending" ? "text-warning border-warning/20 bg-warning/5" : "text-success border-success/20 bg-success/5"}>
+                    {r.status === "pending" ? "Pendente" : "Enviado"}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">Solicitado em {formatDate(r.requested_at)}</span>
+                </div>
+              </div>
+              <div>
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileRef}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f && activeReqId) onUpload(activeReqId, f);
+                  }}
+                />
+                <Button
+                  size="sm"
+                  variant={r.status === "pending" ? "default" : "outline"}
+                  disabled={activeReqId === r.id}
+                  onClick={() => {
+                    setActiveReqId(r.id);
+                    fileRef.current?.click();
+                  }}
+                  className="gap-2"
+                >
+                  <Upload className="size-4" />
+                  {activeReqId === r.id ? "Enviando..." : r.status === "pending" ? "Enviar agora" : "Reenviar"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Stat({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" }) {
   return (
     <div>
