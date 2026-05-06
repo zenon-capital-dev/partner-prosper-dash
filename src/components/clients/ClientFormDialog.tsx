@@ -29,8 +29,19 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   const { data: partners } = useQuery({
     queryKey: ["partners-select"],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
+  const { data: referrers } = useQuery({
+    queryKey: ["referrers-select"],
+    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
+  const { data: collaborators } = useQuery({
+    queryKey: ["collaborators-select"],
     queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name");
+      const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["vendedor", "admin"]);
+      const ids = (roles ?? []).map((r) => r.user_id);
+      if (!ids.length) return [];
+      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
       return data ?? [];
     },
   });
@@ -52,6 +63,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       state: form.state || null,
       status: form.status,
       partner_id: form.partner_id || null,
+      referrer_id: form.referrer_id || null,
+      collaborator_id: form.collaborator_id || null,
       notes: form.notes || null,
       tags: form.tags ?? [],
       created_by: user?.id,
@@ -109,12 +122,32 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Input value={form.state ?? ""} onChange={(e) => setForm({ ...form, state: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Parceiro indicador</Label>
+            <Label>Parceiro</Label>
             <Select value={form.partner_id ?? "none"} onValueChange={(v) => setForm({ ...form, partner_id: v === "none" ? null : v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Sem indicação</SelectItem>
+                <SelectItem value="none">Sem parceiro</SelectItem>
                 {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Indicador</Label>
+            <Select value={form.referrer_id ?? "none"} onValueChange={(v) => setForm({ ...form, referrer_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem indicador</SelectItem>
+                {referrers?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Colaborador responsável</Label>
+            <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem colaborador</SelectItem>
+                {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
