@@ -21,6 +21,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { formatBRL, formatPercent, formatDoc, formatPhone, initials, formatDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type Props = {
