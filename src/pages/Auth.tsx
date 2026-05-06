@@ -5,7 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// ... keep existing imports
+import { ShieldCheck, TrendingUp, Users, CheckCircle2, Lock, Mail, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
+import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowRight,
