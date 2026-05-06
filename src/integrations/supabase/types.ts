@@ -87,34 +87,67 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string | null
+          current_steps: Json | null
           custom_product_name: string | null
+          custom_value: number | null
+          deadline: string | null
+          discount: number | null
+          employee_commission: number | null
           end_date: string | null
           id: string
+          notes: string | null
+          partner_commission: number | null
           product_id: string | null
+          required_documents: Json | null
+          responsible_employee_id: string | null
+          responsible_provider_id: string | null
           start_date: string | null
           status: string | null
+          updated_at: string | null
           value: number | null
         }
         Insert: {
           client_id: string
           created_at?: string | null
+          current_steps?: Json | null
           custom_product_name?: string | null
+          custom_value?: number | null
+          deadline?: string | null
+          discount?: number | null
+          employee_commission?: number | null
           end_date?: string | null
           id?: string
+          notes?: string | null
+          partner_commission?: number | null
           product_id?: string | null
+          required_documents?: Json | null
+          responsible_employee_id?: string | null
+          responsible_provider_id?: string | null
           start_date?: string | null
           status?: string | null
+          updated_at?: string | null
           value?: number | null
         }
         Update: {
           client_id?: string
           created_at?: string | null
+          current_steps?: Json | null
           custom_product_name?: string | null
+          custom_value?: number | null
+          deadline?: string | null
+          discount?: number | null
+          employee_commission?: number | null
           end_date?: string | null
           id?: string
+          notes?: string | null
+          partner_commission?: number | null
           product_id?: string | null
+          required_documents?: Json | null
+          responsible_employee_id?: string | null
+          responsible_provider_id?: string | null
           start_date?: string | null
           status?: string | null
+          updated_at?: string | null
           value?: number | null
         }
         Relationships: [
@@ -130,6 +163,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_products_responsible_provider_id_fkey"
+            columns: ["responsible_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -863,40 +903,58 @@ export type Database = {
         Row: {
           active: boolean
           allow_partner: boolean
+          avg_delivery_time: number | null
           base_price: number | null
+          billing_type: string | null
           category_id: string | null
           created_at: string
           default_commission_percent: number | null
+          default_employee_commission: number | null
+          default_provider_value: number | null
           description: string | null
           id: string
           name: string
           recurring: boolean
+          required_documents: Json | null
+          standard_steps: Json | null
           updated_at: string
         }
         Insert: {
           active?: boolean
           allow_partner?: boolean
+          avg_delivery_time?: number | null
           base_price?: number | null
+          billing_type?: string | null
           category_id?: string | null
           created_at?: string
           default_commission_percent?: number | null
+          default_employee_commission?: number | null
+          default_provider_value?: number | null
           description?: string | null
           id?: string
           name: string
           recurring?: boolean
+          required_documents?: Json | null
+          standard_steps?: Json | null
           updated_at?: string
         }
         Update: {
           active?: boolean
           allow_partner?: boolean
+          avg_delivery_time?: number | null
           base_price?: number | null
+          billing_type?: string | null
           category_id?: string | null
           created_at?: string
           default_commission_percent?: number | null
+          default_employee_commission?: number | null
+          default_provider_value?: number | null
           description?: string | null
           id?: string
           name?: string
           recurring?: boolean
+          required_documents?: Json | null
+          standard_steps?: Json | null
           updated_at?: string
         }
         Relationships: [

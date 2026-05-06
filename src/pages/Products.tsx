@@ -35,6 +35,12 @@ type Product = {
   category_id: string | null;
   base_price: number | null;
   default_commission_percent: number | null;
+  default_employee_commission: number | null;
+  default_provider_value: number | null;
+  billing_type: string;
+  required_documents: string[] | null;
+  standard_steps: { label: string; completed: boolean }[] | null;
+  avg_delivery_time: number | null;
   active: boolean;
   recurring: boolean;
   allow_partner: boolean;
@@ -52,6 +58,12 @@ const emptyForm = {
   category_id: "",
   base_price: 0,
   default_commission_percent: 10,
+  default_employee_commission: 0,
+  default_provider_value: 0,
+  billing_type: "unico",
+  required_documents: "",
+  standard_steps: "",
+  avg_delivery_time: "",
   active: true,
   recurring: false,
   allow_partner: true,
@@ -94,14 +106,25 @@ export default function Products() {
     queryKey: ["product-usage"],
     queryFn: async () => {
       const { data: sales } = await supabase.from("sales").select("product_id, amount");
+      const { data: clientProds } = await supabase.from("client_products").select("product_id, custom_value");
       const { data: links } = await supabase.from("partner_products").select("product_id");
+      
       const map: Record<string, { sales: number; revenue: number; partners: number }> = {};
+      
       (sales ?? []).forEach((s: any) => {
         if (!s.product_id) return;
         map[s.product_id] = map[s.product_id] || { sales: 0, revenue: 0, partners: 0 };
         map[s.product_id].sales += 1;
         map[s.product_id].revenue += Number(s.amount || 0);
       });
+
+      (clientProds ?? []).forEach((cp: any) => {
+        if (!cp.product_id) return;
+        map[cp.product_id] = map[cp.product_id] || { sales: 0, revenue: 0, partners: 0 };
+        // We only add revenue if it wasn't already counted in sales (assuming sales is for invoices and clientProds is for contracts)
+        // For simplicity, let's just count them as "contracts"
+      });
+
       (links ?? []).forEach((l: any) => {
         map[l.product_id] = map[l.product_id] || { sales: 0, revenue: 0, partners: 0 };
         map[l.product_id].partners += 1;
@@ -145,6 +168,12 @@ export default function Products() {
       category_id: p.category_id ?? "",
       base_price: p.base_price ?? 0,
       default_commission_percent: p.default_commission_percent ?? 10,
+      default_employee_commission: p.default_employee_commission ?? 0,
+      default_provider_value: p.default_provider_value ?? 0,
+      billing_type: p.billing_type || "unico",
+      required_documents: Array.isArray(p.required_documents) ? p.required_documents.join(", ") : "",
+      standard_steps: Array.isArray(p.standard_steps) ? p.standard_steps.map((s: any) => s.label).join(", ") : "",
+      avg_delivery_time: p.avg_delivery_time ?? "",
       active: p.active,
       recurring: p.recurring,
       allow_partner: p.allow_partner,
@@ -162,6 +191,12 @@ export default function Products() {
       category_id: form.category_id,
       base_price: Number(form.base_price ?? 0),
       default_commission_percent: Number(form.default_commission_percent ?? 0),
+      default_employee_commission: Number(form.default_employee_commission ?? 0),
+      default_provider_value: Number(form.default_provider_value ?? 0),
+      billing_type: form.billing_type,
+      required_documents: form.required_documents ? form.required_documents.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+      standard_steps: form.standard_steps ? form.standard_steps.split(",").map((s: string) => ({ label: s.trim(), completed: false })).filter((s: any) => s.label) : [],
+      avg_delivery_time: form.avg_delivery_time ? Number(form.avg_delivery_time) : null,
       active: !!form.active,
       recurring: !!form.recurring,
       allow_partner: !!form.allow_partner,
@@ -431,10 +466,10 @@ export default function Products() {
             <DialogTitle className="font-display text-xl">{editing ? "Editar produto" : "Novo produto"}</DialogTitle>
             <DialogDescription>Configure preço, comissão e disponibilidade para parceiros.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-2 gap-4 py-2 max-h-[60vh] overflow-y-auto px-1">
             <div className="col-span-2 space-y-1.5">
               <Label>Nome do produto *</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Plano Enterprise" />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Gestão Financeira Completa" />
             </div>
             <div className="space-y-1.5">
               <Label>Categoria *</Label>
@@ -453,38 +488,70 @@ export default function Products() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Preço base (R$)</Label>
+              <Label>Tipo de cobrança</Label>
+              <Select value={form.billing_type} onValueChange={(v) => setForm({ ...form, billing_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unico">Pagamento único</SelectItem>
+                  <SelectItem value="mensal">Mensalidade</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Valor padrão (R$)</Label>
               <Input type="number" step="0.01" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Prazo médio (dias)</Label>
+              <Input type="number" value={form.avg_delivery_time} onChange={(e) => setForm({ ...form, avg_delivery_time: e.target.value })} placeholder="Ex: 30" />
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label>Descrição</Label>
-              <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detalhes, escopo, entregáveis..." />
+              <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detalhes, escopo, entregáveis..." />
             </div>
+            
             <div className="space-y-1.5">
-              <Label>% Comissão padrão</Label>
+              <Label>Comissão Parceiro (%)</Label>
               <Input type="number" step="0.01" value={form.default_commission_percent} onChange={(e) => setForm({ ...form, default_commission_percent: e.target.value })} />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Comissão Colaborador (%)</Label>
+              <Input type="number" step="0.01" value={form.default_employee_commission} onChange={(e) => setForm({ ...form, default_employee_commission: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Valor Prestador (R$)</Label>
+              <Input type="number" step="0.01" value={form.default_provider_value} onChange={(e) => setForm({ ...form, default_provider_value: e.target.value })} />
+            </div>
+            
+            <div className="col-span-2 space-y-1.5">
+              <Label>Documentos necessários (separados por vírgula)</Label>
+              <Input value={form.required_documents} onChange={(e) => setForm({ ...form, required_documents: e.target.value })} placeholder="Ex: RG, CPF, Comprovante de Residência" />
+            </div>
+
+            <div className="col-span-2 space-y-1.5">
+              <Label>Etapas padrão do processo (separadas por vírgula)</Label>
+              <Input value={form.standard_steps} onChange={(e) => setForm({ ...form, standard_steps: e.target.value })} placeholder="Ex: Triagem, Análise, Entrega" />
+            </div>
+
+            <div className="col-span-2 space-y-3">
               <Label>Configurações</Label>
-              <div className="space-y-2 p-3 rounded-md border border-border bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Ativo</p>
-                    <p className="text-[11px] text-muted-foreground">Disponível para venda</p>
+              <div className="grid grid-cols-3 gap-3 p-3 rounded-md border border-border bg-muted/30">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium">Ativo</p>
                   </div>
                   <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Recorrente</p>
-                    <p className="text-[11px] text-muted-foreground">Cobrança mensal</p>
+                <div className="flex items-center justify-between gap-2 border-l pl-3">
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium">Recorrente</p>
                   </div>
                   <Switch checked={form.recurring} onCheckedChange={(v) => setForm({ ...form, recurring: v })} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Permitir parceiros</p>
-                    <p className="text-[11px] text-muted-foreground">Vendável por indicadores</p>
+                <div className="flex items-center justify-between gap-2 border-l pl-3">
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium">Parceiros</p>
                   </div>
                   <Switch checked={form.allow_partner} onCheckedChange={(v) => setForm({ ...form, allow_partner: v })} />
                 </div>

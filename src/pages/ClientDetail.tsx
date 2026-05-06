@@ -8,6 +8,7 @@ import {
   Pencil, Wallet, FolderKanban, Activity as ActivityIcon, TrendingUp, Tag,
   Hash, IdCard, Calendar, Sparkles, ArrowUpRight, CircleDollarSign, Receipt,
   CheckCircle2, Clock3, AlertTriangle, MessageSquarePlus, Users2, FileUp, Eye,
+  UserCheck, Truck, ClipboardList,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +25,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { Repeat, Trash2 } from "lucide-react";
+import { Repeat, Trash2, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
 const statusBadge: Record<string, string> = {
@@ -87,7 +94,13 @@ export default function ClientDetail() {
   const [docOpen, setDocOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
-  const [subForm, setSubForm] = useState<any>({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
+  const [subForm, setSubForm] = useState<any>({ 
+    status: "pendente", 
+    custom_value: 0, 
+    discount: 0,
+    required_documents: [],
+    current_steps: [],
+  });
   const [note, setNote] = useState({ title: "", description: "", event_type: "nota" });
 
   const { data: client } = useQuery({
@@ -144,18 +157,49 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
-  const { data: subscriptions = [] } = useQuery({
-    queryKey: ["client-subscriptions", id],
+  const { data: clientProducts = [] } = useQuery({
+    queryKey: ["client-products", id],
     queryFn: async () => {
-      const { data } = await supabase.from("client_subscriptions").select("*, products(name, base_price)").eq("client_id", id!).order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("client_products")
+        .select(`
+          *, 
+          products(name, base_price, required_documents, standard_steps),
+          service_providers(name),
+          profiles:responsible_employee_id(full_name)
+        `)
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!id,
   });
 
+  const { data: employees = [] } = useQuery({
+    queryKey: ["employees"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .order("full_name");
+      return data ?? [];
+    },
+  });
+
+  const { data: providers = [] } = useQuery({
+    queryKey: ["providers"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_providers")
+        .select("id, name")
+        .order("name");
+      return data ?? [];
+    },
+  });
+
   const { data: availableProducts = [] } = useQuery({
     queryKey: ["available-products"],
-    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("*").eq("active", true).order("name")).data ?? [],
   });
 
   const saleIds = sales.map((s: any) => s.id);
@@ -214,39 +258,43 @@ export default function ClientDetail() {
     qc.invalidateQueries({ queryKey: ["client-timeline", id] });
   };
 
-  const submitSubscription = async () => {
-    if (!subForm.amount || (!subForm.product_id && !subForm.custom_name)) {
-      toast.error("Informe produto (ou nome) e valor");
+  const submitProduct = async () => {
+    if (!subForm.product_id) {
+      toast.error("Selecione um produto");
       return;
     }
-    const { data: auth } = await supabase.auth.getUser();
+    
     const payload = {
       client_id: id!,
-      product_id: subForm.product_id || null,
-      custom_name: subForm.custom_name || null,
-      amount: Number(subForm.amount),
-      billing_cycle: subForm.billing_cycle,
-      status: subForm.status,
-      start_date: subForm.start_date,
-      next_billing_date: subForm.next_billing_date || null,
-      end_date: subForm.end_date || null,
+      product_id: subForm.product_id,
+      custom_value: Number(subForm.custom_value || 0),
+      discount: Number(subForm.discount || 0),
+      partner_commission: Number(subForm.partner_commission || 0),
+      employee_commission: Number(subForm.employee_commission || 0),
+      responsible_employee_id: subForm.responsible_employee_id || null,
+      responsible_provider_id: subForm.responsible_provider_id || null,
+      deadline: subForm.deadline || null,
+      status: subForm.status || "pendente",
       notes: subForm.notes || null,
-      created_by: auth.user?.id,
+      required_documents: subForm.required_documents || [],
+      current_steps: subForm.current_steps || [],
     };
-    const { error } = await supabase.from("client_subscriptions").insert(payload);
+
+    const { error } = await supabase.from("client_products").insert(payload);
     if (error) { toast.error(error.message); return; }
+    
     toast.success("Produto vinculado ao cliente");
     setSubOpen(false);
-    setSubForm({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
-    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+    setSubForm({ status: "pendente" });
+    qc.invalidateQueries({ queryKey: ["client-products", id] });
   };
 
-  const removeSubscription = async (sid: string) => {
+  const removeProduct = async (pid: string) => {
     if (!confirm("Remover este produto do cliente?")) return;
-    const { error } = await supabase.from("client_subscriptions").delete().eq("id", sid);
+    const { error } = await supabase.from("client_products").delete().eq("id", pid);
     if (error) return toast.error(error.message);
     toast.success("Removido");
-    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+    qc.invalidateQueries({ queryKey: ["client-products", id] });
   };
 
   if (!client) {
@@ -329,7 +377,7 @@ export default function ClientDetail() {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview" className="gap-1.5"><Sparkles className="size-3.5" /> Visão geral</TabsTrigger>
           <TabsTrigger value="sales" className="gap-1.5"><ShoppingBag className="size-3.5" /> Vendas <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.salesCount}</Badge></TabsTrigger>
-          <TabsTrigger value="subscriptions" className="gap-1.5"><Repeat className="size-3.5" /> Produtos ativos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{subscriptions.length}</Badge></TabsTrigger>
+          <TabsTrigger value="products" className="gap-1.5"><Repeat className="size-3.5" /> Produtos contratados <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{clientProducts.length}</Badge></TabsTrigger>
           <TabsTrigger value="projects" className="gap-1.5"><FolderKanban className="size-3.5" /> Projetos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.projectsCount}</Badge></TabsTrigger>
           <TabsTrigger value="commissions" className="gap-1.5"><Wallet className="size-3.5" /> Comissões <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
           <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{docs.length}</Badge></TabsTrigger>
@@ -462,47 +510,98 @@ export default function ClientDetail() {
           </div>
         </TabsContent>
 
-        {/* ============ PRODUTOS ATIVOS ============ */}
-        <TabsContent value="subscriptions" className="mt-4">
+        {/* ============ PRODUTOS CONTRATADOS ============ */}
+        <TabsContent value="products" className="mt-4">
           <div className="vx-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold">Produtos contratados pelo cliente</p>
-                <p className="text-[11px] text-muted-foreground">Renovação e ciclo de cobrança de cada produto ativo</p>
+                <p className="text-[11px] text-muted-foreground">Gestão operacional de cada serviço</p>
               </div>
-              <Button size="sm" onClick={() => setSubOpen(true)} className="gap-2"><Plus className="size-4" /> Vincular produto</Button>
+              <Button size="sm" onClick={() => setSubOpen(true)} className="gap-2 bg-gradient-primary shadow-vx-sm"><Plus className="size-4" /> Contratar produto</Button>
             </div>
-            {subscriptions.length === 0 ? (
+            {clientProducts.length === 0 ? (
               <EmptyState icon={Repeat} text="Nenhum produto vinculado ainda." />
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th className="px-6 py-3 text-left font-semibold">Produto</th>
-                    <th className="px-6 py-3 text-left font-semibold">Ciclo</th>
-                    <th className="px-6 py-3 text-right font-semibold">Valor</th>
-                    <th className="px-6 py-3 text-left font-semibold">Início</th>
-                    <th className="px-6 py-3 text-left font-semibold">Próx. cobrança</th>
-                    <th className="px-6 py-3 text-left font-semibold">Status</th>
-                    <th className="px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {subscriptions.map((s: any) => (
-                    <tr key={s.id} className="hover:bg-muted/30">
-                      <td className="px-6 py-3 font-medium">{s.products?.name ?? s.custom_name ?? "—"}</td>
-                      <td className="px-6 py-3 capitalize text-xs">{s.billing_cycle}</td>
-                      <td className="px-6 py-3 text-right vx-mono font-semibold">{formatBRL(s.amount)}</td>
-                      <td className="px-6 py-3 text-xs text-muted-foreground">{formatDate(s.start_date)}</td>
-                      <td className="px-6 py-3 text-xs">{s.next_billing_date ? formatDate(s.next_billing_date) : "—"}</td>
-                      <td className="px-6 py-3"><Badge variant="secondary" className="text-[10px] uppercase">{s.status}</Badge></td>
-                      <td className="px-6 py-3 text-right">
-                        <Button variant="ghost" size="icon" className="size-8" onClick={() => removeSubscription(s.id)}><Trash2 className="size-4 text-destructive" /></Button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                      <th className="px-6 py-3 text-left font-semibold">Status</th>
+                      <th className="px-6 py-3 text-left font-semibold">Responsável</th>
+                      <th className="px-6 py-3 text-left font-semibold">Prestador</th>
+                      <th className="px-6 py-3 text-right font-semibold">Valor</th>
+                      <th className="px-6 py-3 text-left font-semibold">Prazo</th>
+                      <th className="px-6 py-3 text-left font-semibold">Progresso</th>
+                      <th className="px-6 py-3"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {clientProducts.map((p: any) => {
+                      const completed = (p.current_steps || []).filter((s: any) => s.completed).length;
+                      const total = (p.current_steps || []).length;
+                      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+                      
+                      return (
+                        <tr key={p.id} className="hover:bg-muted/30 group">
+                          <td className="px-6 py-3">
+                            <p className="font-medium">{p.products?.name ?? "—"}</p>
+                            {p.notes && <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{p.notes}</p>}
+                          </td>
+                          <td className="px-6 py-3">
+                            <Badge variant="secondary" className={cn("text-[9px] uppercase", statusBadge[p.status])}>
+                              {statusLabel[p.status] || p.status}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <UserCheck className="size-3 text-primary" /> {p.profiles?.full_name ?? "Não definido"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Truck className="size-3" /> {p.service_providers?.name ?? "Nenhum"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <p className="vx-mono font-semibold">{formatBRL(p.custom_value || p.products?.base_price)}</p>
+                            {p.discount > 0 && <p className="text-[10px] text-destructive">- {formatBRL(p.discount)}</p>}
+                          </td>
+                          <td className="px-6 py-3 text-xs">
+                            {p.deadline ? (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="size-3" /> {formatDate(p.deadline)}
+                              </div>
+                            ) : "—"}
+                          </td>
+                          <td className="px-6 py-3 min-w-[120px]">
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-[9px]">
+                                <span>{progress}%</span>
+                                <span>{completed}/{total} etapas</span>
+                              </div>
+                              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="size-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => removeProduct(p.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Remover</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </TabsContent>
@@ -693,77 +792,120 @@ export default function ClientDetail() {
       </Dialog>
 
       <Dialog open={subOpen} onOpenChange={setSubOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Vincular produto ao cliente</DialogTitle>
-            <DialogDescription>Adicione um produto que o cliente já possui ou contratou.</DialogDescription>
+            <DialogDescription>Personalize as condições da venda e atribua responsáveis.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-2 gap-4 py-2 max-h-[65vh] overflow-y-auto px-1">
             <div className="col-span-2 space-y-2">
-              <Label>Produto</Label>
-              <Select value={subForm.product_id ?? "custom"} onValueChange={(v) => {
-                if (v === "custom") return setSubForm({ ...subForm, product_id: null });
+              <Label>Produto *</Label>
+              <Select value={subForm.product_id ?? ""} onValueChange={(v) => {
                 const p = availableProducts.find((x: any) => x.id === v);
-                setSubForm({ ...subForm, product_id: v, amount: subForm.amount ?? p?.base_price });
+                setSubForm({ 
+                  ...subForm, 
+                  product_id: v, 
+                  custom_value: p?.base_price ?? 0,
+                  partner_commission: p?.default_commission_percent ?? 0,
+                  employee_commission: p?.default_employee_commission ?? 0,
+                  required_documents: p?.required_documents ?? [],
+                  current_steps: p?.standard_steps ?? [],
+                });
               }}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione um produto" /></SelectTrigger>
                 <SelectContent>
                   {availableProducts.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                  <SelectItem value="custom">— Outro (digitar nome) —</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {!subForm.product_id && (
-              <div className="col-span-2 space-y-2">
-                <Label>Nome do produto</Label>
-                <Input value={subForm.custom_name ?? ""} onChange={(e) => setSubForm({ ...subForm, custom_name: e.target.value })} />
-              </div>
-            )}
+            
             <div className="space-y-2">
-              <Label>Valor (R$) *</Label>
-              <Input type="number" step="0.01" value={subForm.amount ?? ""} onChange={(e) => setSubForm({ ...subForm, amount: e.target.value })} />
+              <Label>Valor da venda (R$) *</Label>
+              <Input type="number" step="0.01" value={subForm.custom_value ?? ""} onChange={(e) => setSubForm({ ...subForm, custom_value: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Ciclo</Label>
-              <Select value={subForm.billing_cycle} onValueChange={(v) => setSubForm({ ...subForm, billing_cycle: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Desconto (R$)</Label>
+              <Input type="number" step="0.01" value={subForm.discount ?? ""} onChange={(e) => setSubForm({ ...subForm, discount: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Comissão Parceiro (%)</Label>
+              <Input type="number" step="0.01" value={subForm.partner_commission ?? ""} onChange={(e) => setSubForm({ ...subForm, partner_commission: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Comissão Colaborador (%)</Label>
+              <Input type="number" step="0.01" value={subForm.employee_commission ?? ""} onChange={(e) => setSubForm({ ...subForm, employee_commission: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Colaborador Responsável</Label>
+              <Select value={subForm.responsible_employee_id ?? "none"} onValueChange={(v) => setSubForm({ ...subForm, responsible_employee_id: v === "none" ? null : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mensal">Mensal</SelectItem>
-                  <SelectItem value="trimestral">Trimestral</SelectItem>
-                  <SelectItem value="semestral">Semestral</SelectItem>
-                  <SelectItem value="anual">Anual</SelectItem>
-                  <SelectItem value="unico">Pagamento único</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>Prestador de Serviço</Label>
+              <Select value={subForm.responsible_provider_id ?? "none"} onValueChange={(v) => setSubForm({ ...subForm, responsible_provider_id: v === "none" ? null : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {providers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Prazo / Deadline</Label>
+              <Input type="date" value={subForm.deadline ?? ""} onChange={(e) => setSubForm({ ...subForm, deadline: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Status inicial</Label>
               <Select value={subForm.status} onValueChange={(v) => setSubForm({ ...subForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ativa">Ativa</SelectItem>
-                  <SelectItem value="pausada">Pausada</SelectItem>
-                  <SelectItem value="cancelada">Cancelada</SelectItem>
-                  <SelectItem value="encerrada">Encerrada</SelectItem>
+                  {Object.keys(statusLabel).map((k) => <SelectItem key={k} value={k}>{statusLabel[k]}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Início</Label>
-              <Input type="date" value={subForm.start_date} onChange={(e) => setSubForm({ ...subForm, start_date: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Próxima cobrança</Label>
-              <Input type="date" value={subForm.next_billing_date ?? ""} onChange={(e) => setSubForm({ ...subForm, next_billing_date: e.target.value })} />
-            </div>
+
             <div className="col-span-2 space-y-2">
-              <Label>Observações</Label>
-              <Textarea value={subForm.notes ?? ""} onChange={(e) => setSubForm({ ...subForm, notes: e.target.value })} />
+              <Label>Observações da venda</Label>
+              <Textarea value={subForm.notes ?? ""} onChange={(e) => setSubForm({ ...subForm, notes: e.target.value })} placeholder="Detalhes específicos deste contrato..." />
             </div>
+
+            {subForm.required_documents?.length > 0 && (
+              <div className="col-span-2 p-3 rounded-md bg-muted/30 border border-border">
+                <p className="text-xs font-semibold mb-2 flex items-center gap-1.5"><FileText className="size-3" /> Documentos solicitados:</p>
+                <div className="flex flex-wrap gap-2">
+                  {subForm.required_documents.map((doc: string, i: number) => (
+                    <Badge key={i} variant="outline" className="text-[10px]">{doc}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {subForm.current_steps?.length > 0 && (
+              <div className="col-span-2 p-3 rounded-md bg-muted/30 border border-border">
+                <p className="text-xs font-semibold mb-2 flex items-center gap-1.5"><ClipboardList className="size-3" /> Etapas do processo:</p>
+                <div className="space-y-1">
+                  {subForm.current_steps.map((step: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <div className="size-1.5 rounded-full bg-primary" /> {step.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSubOpen(false)}>Cancelar</Button>
-            <Button onClick={submitSubscription} className="gap-2"><Repeat className="size-4" /> Vincular</Button>
+            <Button onClick={submitProduct} className="gap-2 bg-gradient-primary shadow-vx-sm">
+              <ShoppingBag className="size-4" /> Finalizar contratação
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
