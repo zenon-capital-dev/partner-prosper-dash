@@ -416,6 +416,51 @@ export default function ClientDetail() {
           </div>
         </TabsContent>
 
+        {/* ============ PRODUTOS ATIVOS ============ */}
+        <TabsContent value="subscriptions" className="mt-4">
+          <div className="vx-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">Produtos contratados pelo cliente</p>
+                <p className="text-[11px] text-muted-foreground">Renovação e ciclo de cobrança de cada produto ativo</p>
+              </div>
+              <Button size="sm" onClick={() => setSubOpen(true)} className="gap-2"><Plus className="size-4" /> Vincular produto</Button>
+            </div>
+            {subscriptions.length === 0 ? (
+              <EmptyState icon={Repeat} text="Nenhum produto vinculado ainda." />
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                    <th className="px-6 py-3 text-left font-semibold">Ciclo</th>
+                    <th className="px-6 py-3 text-right font-semibold">Valor</th>
+                    <th className="px-6 py-3 text-left font-semibold">Início</th>
+                    <th className="px-6 py-3 text-left font-semibold">Próx. cobrança</th>
+                    <th className="px-6 py-3 text-left font-semibold">Status</th>
+                    <th className="px-6 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {subscriptions.map((s: any) => (
+                    <tr key={s.id} className="hover:bg-muted/30">
+                      <td className="px-6 py-3 font-medium">{s.products?.name ?? s.custom_name ?? "—"}</td>
+                      <td className="px-6 py-3 capitalize text-xs">{s.billing_cycle}</td>
+                      <td className="px-6 py-3 text-right vx-mono font-semibold">{formatBRL(s.amount)}</td>
+                      <td className="px-6 py-3 text-xs text-muted-foreground">{formatDate(s.start_date)}</td>
+                      <td className="px-6 py-3 text-xs">{s.next_billing_date ? formatDate(s.next_billing_date) : "—"}</td>
+                      <td className="px-6 py-3"><Badge variant="secondary" className="text-[10px] uppercase">{s.status}</Badge></td>
+                      <td className="px-6 py-3 text-right">
+                        <Button variant="ghost" size="icon" className="size-8" onClick={() => removeSubscription(s.id)}><Trash2 className="size-4 text-destructive" /></Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </TabsContent>
+
         {/* ============ PROJETOS ============ */}
         <TabsContent value="projects" className="mt-4">
           <div className="vx-card overflow-hidden">
