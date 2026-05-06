@@ -1146,6 +1146,8 @@ export type Database = {
         | "cliente"
         | "colaborador"
         | "prestador"
+        | "admin_secondary"
+        | "lead"
       beneficiary_type: "partner" | "referrer" | "collaborator"
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status: "ativo" | "inativo" | "prospecto"
@@ -1295,6 +1297,8 @@ export const Constants = {
         "cliente",
         "colaborador",
         "prestador",
+        "admin_secondary",
+        "lead",
       ],
       beneficiary_type: ["partner", "referrer", "collaborator"],
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
