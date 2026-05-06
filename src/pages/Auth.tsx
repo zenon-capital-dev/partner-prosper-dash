@@ -60,18 +60,22 @@ export default function AuthPage() {
       <div className="hidden lg:flex flex-col justify-between p-14 relative overflow-hidden text-white bg-slate-950">
         {/* Animated gradients and effects */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,#1e293b_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,#0f172a_0%,transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,#0f172a_0%,transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,#1e293b_0%,transparent_50%)]" />
           <div 
-            className="absolute inset-0 opacity-[0.03]" 
-            style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+            className="absolute inset-0 opacity-[0.05]" 
+            style={{ 
+              backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
+              maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 10%, transparent 100%)'
+            }}
           />
         </div>
 
         {/* HEADER */}
         <header className="relative flex items-center gap-3 z-10">
-          <div className="size-11 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
-            <Sparkles className="size-5 text-white" strokeWidth={1.8} />
+          <div className="size-11 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
+            <Sparkles className="size-5 text-blue-400" strokeWidth={1.8} />
           </div>
           <div>
             <div className="font-display font-bold text-[15px] tracking-[0.2em] uppercase leading-none">
