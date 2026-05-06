@@ -112,8 +112,8 @@ export default function AuthPage() {
               "Relatórios analíticos de performance",
             ].map((t) => (
               <li key={t} className="flex items-center gap-3 text-[14px] text-white/70">
-                <div className="size-5 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
-                  <CheckCircle2 className="size-3 text-white/80" />
+          <div className="size-5 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
+                  <CheckCircle2 className="size-3 text-blue-400" />
                 </div>
                 <span>{t}</span>
               </li>
@@ -127,7 +127,7 @@ export default function AuthPage() {
               { icon: ShieldCheck, label: "Segurança", value: "SSL" },
             ].map((m) => (
               <div key={m.label} className="space-y-1">
-                <m.icon className="size-4 text-white/30" />
+                <m.icon className="size-4 text-blue-400/50" />
                 <div className="text-[18px] font-bold text-white/90">{m.value}</div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">{m.label}</div>
               </div>
