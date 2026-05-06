@@ -303,9 +303,9 @@ export default function Commissions() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KpiCard icon={CircleDollarSign} label="Total filtrado" value={formatBRL(totals.total)} sub={`${totals.count} registros`} tone="primary" />
-        <KpiCard icon={Clock} label="A pagar" value={formatBRL(totals.pending)} tone="warning" />
+        <KpiCard icon={Clock} label="Pendente/Em Análise" value={formatBRL(totals.pending)} tone="warning" />
         <KpiCard icon={CheckCircle2} label="Pagas" value={formatBRL(totals.paid)} tone="success" />
-        <KpiCard icon={XCircle} label="Canceladas" value={formatBRL(totals.cancelled)} tone="destructive" />
+        <KpiCard icon={TrendingUp} label="Taxa Conversão" value={`${totals.total ? Math.round((totals.paid / totals.total) * 100) : 0}%`} tone="info" />
       </div>
 
       {/* Toolbar */}
