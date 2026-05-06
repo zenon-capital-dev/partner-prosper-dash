@@ -1,0 +1,1 @@
+ALTER FUNCTION public.update_client_products_updated_at() SET search_path = public;
