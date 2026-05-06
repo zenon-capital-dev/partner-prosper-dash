@@ -811,6 +811,80 @@ function RecentList({ title, items, empty }: any) {
   );
 }
 
+function DocRequestList({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+
+  const { data: requests = [] } = useQuery({
+    queryKey: ["doc-requests", clientId],
+    queryFn: async () => (await supabase.from("document_requests").select("*").eq("client_id", clientId).order("requested_at", { ascending: false })).data ?? [],
+  });
+
+  const submit = async () => {
+    if (!title) return toast.error("Título obrigatório");
+    const { error } = await supabase.from("document_requests").insert({
+      client_id: clientId,
+      request_title: title,
+      description: desc,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Solicitação criada");
+    setOpen(false);
+    setTitle("");
+    setDesc("");
+    qc.invalidateQueries({ queryKey: ["doc-requests", clientId] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display font-bold">Solicitações de Documentos</h3>
+        <Button size="sm" onClick={() => setOpen(true)} className="gap-2"><Plus className="size-4" /> Nova Solicitação</Button>
+      </div>
+
+      <div className="vx-card divide-y divide-border">
+        {requests.length === 0 ? (
+          <EmptyState icon={FileUp} text="Nenhuma solicitação pendente." />
+        ) : requests.map((r: any) => (
+          <div key={r.id} className="p-4 flex items-center justify-between hover:bg-muted/30">
+            <div>
+              <p className="text-sm font-semibold">{r.request_title}</p>
+              <p className="text-xs text-muted-foreground">{r.description || "Sem descrição"}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="outline" className={cn("text-[9px] uppercase", r.status === "pending" ? "text-warning border-warning/20" : "text-success border-success/20")}>
+                  {r.status === "pending" ? "Pendente" : "Enviado"}
+                </Badge>
+                <span className="text-[10px] text-muted-foreground">{formatDate(r.requested_at)}</span>
+              </div>
+            </div>
+            {r.file_url && (
+              <Button size="sm" variant="outline" onClick={() => window.open(r.file_url)} className="gap-2">
+                <Eye className="size-4" /> Ver Arquivo
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Solicitar Documento</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2"><Label>Título do Documento</Label><Input placeholder="Ex: RG, CPF, Foto do Rosto" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Instruções para o cliente</Label><Textarea placeholder="Explique como o cliente deve enviar este arquivo..." value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={submit}>Criar Solicitação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 function EmptyState({ icon: Icon, text }: any) {
   return (
     <div className="p-12 text-center">
