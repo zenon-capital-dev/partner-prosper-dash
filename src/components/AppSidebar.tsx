@@ -199,7 +199,7 @@ export function AppSidebar() {
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
-  const showAdmin = isAdmin || isVendedor || isColaborador;
+  const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
   const showPrestador = isPrestador && !showAdmin && !showPartner;
   const showClient = isCliente && !showAdmin && !showPartner && !showPrestador;
@@ -529,7 +529,7 @@ export function AppSidebar() {
                   <>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-[13px] font-bold text-white truncate leading-tight">
-                        {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : "Cliente"}
+                        {isAdmin ? "Admin Principal" : isAdminSecondary ? "Admin Secundário" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : isLead ? "Lead" : "Cliente"}
                       </p>
                       <p className="text-[11px] text-sidebar-muted truncate">{user?.email}</p>
                     </div>
@@ -546,7 +546,7 @@ export function AppSidebar() {
                 <div className="min-w-0">
                   <p className="text-[12px] font-bold truncate">{user?.email}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">
-                    {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : "Cliente"}
+                    {isAdmin ? "Admin Principal" : isAdminSecondary ? "Admin Secundário" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : isLead ? "Lead" : "Cliente"}
                   </p>
                 </div>
               </DropdownMenuLabel>
