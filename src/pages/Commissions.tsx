@@ -37,6 +37,14 @@ const statusBadge: Record<string, string> = {
   bloqueada: "bg-muted text-muted-foreground border-border",
 };
 
+const commissionTypes = [
+  { value: "percentual", label: "Percentual" },
+  { value: "valor_fixo", label: "Valor Fixo" },
+  { value: "recorrente", label: "Recorrente" },
+  { value: "unica", label: "Única" },
+  { value: "personalizada", label: "Personalizada" },
+];
+
 export default function Commissions() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -64,7 +72,8 @@ export default function Commissions() {
     sale_id: "",
     amount: 0,
     percent: 10,
-    status: "pendente",
+    commission_type: "percentual",
+    status: "gerada",
     notes: "",
   });
 
@@ -142,8 +151,10 @@ export default function Commissions() {
       sale_id: createForm.sale_id || null,
       amount: Number(createForm.amount),
       percent: Number(createForm.percent || 0),
+      commission_type: createForm.commission_type,
       status: createForm.status,
       notes: createForm.notes || null,
+      created_at: new Date().toISOString(),
     };
     const { error } = await supabase.from("commissions").insert(payload);
     if (error) { toast.error(error.message); return; }
@@ -158,10 +169,12 @@ export default function Commissions() {
     setEditForm({
       amount: c.amount,
       percent: c.percent,
+      commission_type: c.commission_type || "percentual",
       status: c.status,
       notes: c.notes ?? "",
       payment_method: c.payment_method ?? "",
       paid_at: c.paid_at ? c.paid_at.slice(0, 10) : "",
+      approval_date: c.approval_date ? c.approval_date.slice(0, 10) : "",
     });
     setEditOpen(true);
   };
@@ -171,10 +184,12 @@ export default function Commissions() {
     const payload: any = {
       amount: Number(editForm.amount),
       percent: Number(editForm.percent),
+      commission_type: editForm.commission_type,
       status: editForm.status,
       notes: editForm.notes || null,
       payment_method: editForm.payment_method || null,
-      paid_at: editForm.status === "pago" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : null,
+      approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
+      paid_at: editForm.status === "paga" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : (editing.paid_at || null),
     };
     const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }

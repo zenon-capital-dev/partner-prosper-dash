@@ -519,6 +519,7 @@ export type Database = {
           approval_date: string | null
           approved_by: string | null
           client_id: string | null
+          commission_type: string | null
           created_at: string
           id: string
           is_recurring: boolean | null
@@ -531,6 +532,7 @@ export type Database = {
           product_id: string | null
           reason: string | null
           rule_type: string | null
+          rule_value: number | null
           sale_id: string
           status: string
           updated_at: string
@@ -540,6 +542,7 @@ export type Database = {
           approval_date?: string | null
           approved_by?: string | null
           client_id?: string | null
+          commission_type?: string | null
           created_at?: string
           id?: string
           is_recurring?: boolean | null
@@ -552,6 +555,7 @@ export type Database = {
           product_id?: string | null
           reason?: string | null
           rule_type?: string | null
+          rule_value?: number | null
           sale_id: string
           status?: string
           updated_at?: string
@@ -561,6 +565,7 @@ export type Database = {
           approval_date?: string | null
           approved_by?: string | null
           client_id?: string | null
+          commission_type?: string | null
           created_at?: string
           id?: string
           is_recurring?: boolean | null
@@ -573,6 +578,7 @@ export type Database = {
           product_id?: string | null
           reason?: string | null
           rule_type?: string | null
+          rule_value?: number | null
           sale_id?: string
           status?: string
           updated_at?: string
@@ -1718,6 +1724,8 @@ export type Database = {
           due_date: string | null
           id: string
           priority: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
           related_to_id: string | null
           related_to_type: string | null
           status: string | null
@@ -1731,6 +1739,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
           related_to_id?: string | null
           related_to_type?: string | null
           status?: string | null
@@ -1744,6 +1754,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
           related_to_id?: string | null
           related_to_type?: string | null
           status?: string | null
