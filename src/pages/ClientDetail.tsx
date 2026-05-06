@@ -792,77 +792,120 @@ export default function ClientDetail() {
       </Dialog>
 
       <Dialog open={subOpen} onOpenChange={setSubOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Vincular produto ao cliente</DialogTitle>
-            <DialogDescription>Adicione um produto que o cliente já possui ou contratou.</DialogDescription>
+            <DialogDescription>Personalize as condições da venda e atribua responsáveis.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-2 gap-4 py-2 max-h-[65vh] overflow-y-auto px-1">
             <div className="col-span-2 space-y-2">
-              <Label>Produto</Label>
-              <Select value={subForm.product_id ?? "custom"} onValueChange={(v) => {
-                if (v === "custom") return setSubForm({ ...subForm, product_id: null });
+              <Label>Produto *</Label>
+              <Select value={subForm.product_id ?? ""} onValueChange={(v) => {
                 const p = availableProducts.find((x: any) => x.id === v);
-                setSubForm({ ...subForm, product_id: v, amount: subForm.amount ?? p?.base_price });
+                setSubForm({ 
+                  ...subForm, 
+                  product_id: v, 
+                  custom_value: p?.base_price ?? 0,
+                  partner_commission: p?.default_commission_percent ?? 0,
+                  employee_commission: p?.default_employee_commission ?? 0,
+                  required_documents: p?.required_documents ?? [],
+                  current_steps: p?.standard_steps ?? [],
+                });
               }}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione um produto" /></SelectTrigger>
                 <SelectContent>
                   {availableProducts.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                  <SelectItem value="custom">— Outro (digitar nome) —</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {!subForm.product_id && (
-              <div className="col-span-2 space-y-2">
-                <Label>Nome do produto</Label>
-                <Input value={subForm.custom_name ?? ""} onChange={(e) => setSubForm({ ...subForm, custom_name: e.target.value })} />
-              </div>
-            )}
+            
             <div className="space-y-2">
-              <Label>Valor (R$) *</Label>
-              <Input type="number" step="0.01" value={subForm.amount ?? ""} onChange={(e) => setSubForm({ ...subForm, amount: e.target.value })} />
+              <Label>Valor da venda (R$) *</Label>
+              <Input type="number" step="0.01" value={subForm.custom_value ?? ""} onChange={(e) => setSubForm({ ...subForm, custom_value: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Ciclo</Label>
-              <Select value={subForm.billing_cycle} onValueChange={(v) => setSubForm({ ...subForm, billing_cycle: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Label>Desconto (R$)</Label>
+              <Input type="number" step="0.01" value={subForm.discount ?? ""} onChange={(e) => setSubForm({ ...form, discount: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Comissão Parceiro (%)</Label>
+              <Input type="number" step="0.01" value={subForm.partner_commission ?? ""} onChange={(e) => setSubForm({ ...subForm, partner_commission: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Comissão Colaborador (%)</Label>
+              <Input type="number" step="0.01" value={subForm.employee_commission ?? ""} onChange={(e) => setSubForm({ ...subForm, employee_commission: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Colaborador Responsável</Label>
+              <Select value={subForm.responsible_employee_id ?? "none"} onValueChange={(v) => setSubForm({ ...subForm, responsible_employee_id: v === "none" ? null : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="mensal">Mensal</SelectItem>
-                  <SelectItem value="trimestral">Trimestral</SelectItem>
-                  <SelectItem value="semestral">Semestral</SelectItem>
-                  <SelectItem value="anual">Anual</SelectItem>
-                  <SelectItem value="unico">Pagamento único</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>Prestador de Serviço</Label>
+              <Select value={subForm.responsible_provider_id ?? "none"} onValueChange={(v) => setSubForm({ ...subForm, responsible_provider_id: v === "none" ? null : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {providers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Prazo / Deadline</Label>
+              <Input type="date" value={subForm.deadline ?? ""} onChange={(e) => setSubForm({ ...subForm, deadline: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Status inicial</Label>
               <Select value={subForm.status} onValueChange={(v) => setSubForm({ ...subForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ativa">Ativa</SelectItem>
-                  <SelectItem value="pausada">Pausada</SelectItem>
-                  <SelectItem value="cancelada">Cancelada</SelectItem>
-                  <SelectItem value="encerrada">Encerrada</SelectItem>
+                  {Object.keys(statusLabel).map((k) => <SelectItem key={k} value={k}>{statusLabel[k]}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Início</Label>
-              <Input type="date" value={subForm.start_date} onChange={(e) => setSubForm({ ...subForm, start_date: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Próxima cobrança</Label>
-              <Input type="date" value={subForm.next_billing_date ?? ""} onChange={(e) => setSubForm({ ...subForm, next_billing_date: e.target.value })} />
-            </div>
+
             <div className="col-span-2 space-y-2">
-              <Label>Observações</Label>
-              <Textarea value={subForm.notes ?? ""} onChange={(e) => setSubForm({ ...subForm, notes: e.target.value })} />
+              <Label>Observações da venda</Label>
+              <Textarea value={subForm.notes ?? ""} onChange={(e) => setSubForm({ ...subForm, notes: e.target.value })} placeholder="Detalhes específicos deste contrato..." />
             </div>
+
+            {subForm.required_documents?.length > 0 && (
+              <div className="col-span-2 p-3 rounded-md bg-muted/30 border border-border">
+                <p className="text-xs font-semibold mb-2 flex items-center gap-1.5"><FileText className="size-3" /> Documentos solicitados:</p>
+                <div className="flex flex-wrap gap-2">
+                  {subForm.required_documents.map((doc: string, i: number) => (
+                    <Badge key={i} variant="outline" className="text-[10px]">{doc}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {subForm.current_steps?.length > 0 && (
+              <div className="col-span-2 p-3 rounded-md bg-muted/30 border border-border">
+                <p className="text-xs font-semibold mb-2 flex items-center gap-1.5"><ClipboardList className="size-3" /> Etapas do processo:</p>
+                <div className="space-y-1">
+                  {subForm.current_steps.map((step: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <div className="size-1.5 rounded-full bg-primary" /> {step.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSubOpen(false)}>Cancelar</Button>
-            <Button onClick={submitSubscription} className="gap-2"><Repeat className="size-4" /> Vincular</Button>
+            <Button onClick={submitProduct} className="gap-2 bg-gradient-primary shadow-vx-sm">
+              <ShoppingBag className="size-4" /> Finalizar contratação
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
