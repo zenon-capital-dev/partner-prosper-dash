@@ -160,7 +160,10 @@ export default function ClientPanel() {
             <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{availableCatalog.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="docs" className="h-9 gap-2 text-[13px] font-semibold">
-            <FileText className="size-4" /> Documentos
+            <FileText className="size-4" /> Meus Arquivos
+          </TabsTrigger>
+          <TabsTrigger value="solicitacoes" className="h-9 gap-2 text-[13px] font-semibold">
+            <Upload className="size-4" /> Solicitações
             {pendingDocs > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingDocs}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
