@@ -151,7 +151,7 @@ export default function Reports() {
         </div>
         <div className="flex gap-2">
           <Button onClick={exportSalesPDF} className="gap-2 flex-1 bg-gradient-primary hover:opacity-90"><FileDown className="size-4" /> PDF</Button>
-          <Button onClick={exportSalesExcel} variant="outline" className="gap-2 flex-1"><FileSpreadsheet className="size-4" /> Excel</Button>
+          <Button onClick={exportSalesExcel} variant="outline" className="gap-2 flex-1"><FileSpreadsheet className="size-4" /> CSV / Excel</Button>
         </div>
       </div>
 
