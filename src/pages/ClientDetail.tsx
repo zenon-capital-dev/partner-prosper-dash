@@ -246,39 +246,43 @@ export default function ClientDetail() {
     qc.invalidateQueries({ queryKey: ["client-timeline", id] });
   };
 
-  const submitSubscription = async () => {
-    if (!subForm.amount || (!subForm.product_id && !subForm.custom_name)) {
-      toast.error("Informe produto (ou nome) e valor");
+  const submitProduct = async () => {
+    if (!subForm.product_id) {
+      toast.error("Selecione um produto");
       return;
     }
-    const { data: auth } = await supabase.auth.getUser();
+    
     const payload = {
       client_id: id!,
-      product_id: subForm.product_id || null,
-      custom_name: subForm.custom_name || null,
-      amount: Number(subForm.amount),
-      billing_cycle: subForm.billing_cycle,
-      status: subForm.status,
-      start_date: subForm.start_date,
-      next_billing_date: subForm.next_billing_date || null,
-      end_date: subForm.end_date || null,
+      product_id: subForm.product_id,
+      custom_value: Number(subForm.custom_value || 0),
+      discount: Number(subForm.discount || 0),
+      partner_commission: Number(subForm.partner_commission || 0),
+      employee_commission: Number(subForm.employee_commission || 0),
+      responsible_employee_id: subForm.responsible_employee_id || null,
+      responsible_provider_id: subForm.responsible_provider_id || null,
+      deadline: subForm.deadline || null,
+      status: subForm.status || "pendente",
       notes: subForm.notes || null,
-      created_by: auth.user?.id,
+      required_documents: subForm.required_documents || [],
+      current_steps: subForm.current_steps || [],
     };
-    const { error } = await supabase.from("client_subscriptions").insert(payload);
+
+    const { error } = await supabase.from("client_products").insert(payload);
     if (error) { toast.error(error.message); return; }
+    
     toast.success("Produto vinculado ao cliente");
     setSubOpen(false);
-    setSubForm({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
-    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+    setSubForm({ status: "pendente" });
+    qc.invalidateQueries({ queryKey: ["client-products", id] });
   };
 
-  const removeSubscription = async (sid: string) => {
+  const removeProduct = async (pid: string) => {
     if (!confirm("Remover este produto do cliente?")) return;
-    const { error } = await supabase.from("client_subscriptions").delete().eq("id", sid);
+    const { error } = await supabase.from("client_products").delete().eq("id", pid);
     if (error) return toast.error(error.message);
     toast.success("Removido");
-    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+    qc.invalidateQueries({ queryKey: ["client-products", id] });
   };
 
   if (!client) {
