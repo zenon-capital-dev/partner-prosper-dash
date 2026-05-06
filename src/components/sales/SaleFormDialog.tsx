@@ -139,9 +139,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
             <Input type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Parceiro indicador</Label>
+            <Label>Parceiro</Label>
             <Select value={form.partner_id ?? "none"} onValueChange={handlePartnerChange}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sem parceiro</SelectItem>
                 {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
@@ -149,8 +149,39 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>% Comissão</Label>
-            <Input type="number" step="0.01" value={form.commission_percent} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
+            <Label>% Parceiro</Label>
+            <Input type="number" step="0.01" value={form.commission_percent ?? 0} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Indicador</Label>
+            <Select value={form.referrer_id ?? "none"} onValueChange={(v) => {
+              const r = referrers?.find((x: any) => x.id === v);
+              setForm({ ...form, referrer_id: v === "none" ? null : v, referrer_percent: r?.commission_percent ?? form.referrer_percent ?? 0 });
+            }}>
+              <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem indicador</SelectItem>
+                {referrers?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>% Indicador</Label>
+            <Input type="number" step="0.01" value={form.referrer_percent ?? 0} onChange={(e) => setForm({ ...form, referrer_percent: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Colaborador</Label>
+            <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem colaborador</SelectItem>
+                {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>% Colaborador</Label>
+            <Input type="number" step="0.01" value={form.collaborator_percent ?? 0} onChange={(e) => setForm({ ...form, collaborator_percent: e.target.value })} />
           </div>
           <div className="col-span-2 space-y-2">
             <Label>Status</Label>
