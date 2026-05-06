@@ -434,7 +434,7 @@ export default function Commissions() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {c.status === "pendente" && (
+                      {["gerada", "em_analise", "aprovada"].includes(c.status) && (
                         <Button size="sm" variant="outline" onClick={() => openPaySingle(c)} className="h-7 gap-1 text-xs">
                           <Check className="size-3" /> Pagar
                         </Button>
