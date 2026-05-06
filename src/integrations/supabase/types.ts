@@ -157,6 +157,11 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_street: string | null
+          address_zip_code: string | null
           city: string | null
           collaborator_id: string | null
           company: string | null
@@ -169,6 +174,7 @@ export type Database = {
           notes: string | null
           partner_id: string | null
           phone: string | null
+          referral_id: string | null
           referrer_id: string | null
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
@@ -178,6 +184,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           city?: string | null
           collaborator_id?: string | null
           company?: string | null
@@ -190,6 +201,7 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
+          referral_id?: string | null
           referrer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -199,6 +211,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           city?: string | null
           collaborator_id?: string | null
           company?: string | null
@@ -211,6 +228,7 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
+          referral_id?: string | null
           referrer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -224,6 +242,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -341,6 +366,47 @@ export type Database = {
             columns: ["sale_id"]
             isOneToOne: false
             referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_requests: {
+        Row: {
+          client_id: string
+          description: string | null
+          file_url: string | null
+          id: string
+          request_title: string
+          requested_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          request_title: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          request_title?: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -649,33 +715,65 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
           phone: string | null
+          referral_id: string | null
           updated_at: string
         }
         Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
+          referral_id?: string | null
           updated_at?: string
         }
         Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          referral_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {

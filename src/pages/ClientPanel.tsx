@@ -32,7 +32,7 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [subs, sales, docs, catalog] = await Promise.all([
+      const [subs, sales, docs, catalog, requests] = await Promise.all([
         supabase
           .from("client_subscriptions")
           .select("*, products(name, description, product_categories(name, color))")
@@ -52,6 +52,11 @@ export default function ClientPanel() {
           .from("products")
           .select("id, name, description, base_price, recurring, product_categories(name, color)")
           .eq("active", true),
+        supabase
+          .from("document_requests")
+          .select("*")
+          .eq("client_id", client.id)
+          .order("requested_at", { ascending: false }),
       ]);
 
       return {
@@ -60,6 +65,7 @@ export default function ClientPanel() {
         sales: sales.data ?? [],
         docs: docs.data ?? [],
         catalog: catalog.data ?? [],
+        requests: requests.data ?? [],
       };
     },
     enabled: !!user,
@@ -109,12 +115,12 @@ export default function ClientPanel() {
     );
   }
 
-  const { client, subscriptions, sales, docs, catalog } = data;
+  const { client, subscriptions, sales, docs, catalog, requests } = data;
   const activeSubs = subscriptions.filter((s: any) => s.status === "ativa");
   const monthlyTotal = activeSubs
     .filter((s: any) => s.billing_cycle === "mensal")
     .reduce((sum: number, s: any) => sum + Number(s.amount), 0);
-  const pendingDocs = docs.filter((d: any) => d.status === "solicitado").length;
+  const pendingDocs = requests.filter((r: any) => r.status === "pending").length;
   const ownedProductIds = new Set(subscriptions.map((s: any) => s.product_id).filter(Boolean));
   const availableCatalog = catalog.filter((p: any) => !ownedProductIds.has(p.id));
 
@@ -154,7 +160,10 @@ export default function ClientPanel() {
             <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{availableCatalog.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="docs" className="h-9 gap-2 text-[13px] font-semibold">
-            <FileText className="size-4" /> Documentos
+            <FileText className="size-4" /> Meus Arquivos
+          </TabsTrigger>
+          <TabsTrigger value="solicitacoes" className="h-9 gap-2 text-[13px] font-semibold">
+            <Upload className="size-4" /> Solicitações
             {pendingDocs > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingDocs}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
@@ -330,6 +339,10 @@ export default function ClientPanel() {
           )}
         </TabsContent>
 
+        <TabsContent value="solicitacoes" className="space-y-4">
+          <ClientRequestsView requests={requests} client={client} />
+        </TabsContent>
+
         {/* ===== FINANCEIRO ===== */}
         <TabsContent value="financeiro" className="space-y-3">
           {sales.length === 0 ? (
@@ -362,6 +375,80 @@ export default function ClientPanel() {
           )}
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function ClientRequestsView({ requests, client }: { requests: any[]; client: any }) {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [activeReqId, setActiveReqId] = useState<string | null>(null);
+
+  const onUpload = async (reqId: string, file: File) => {
+    setActiveReqId(reqId);
+    const path = `client-requests/${client.id}/${reqId}-${Date.now()}-${file.name}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
+    if (upErr) { setActiveReqId(null); return toast.error(upErr.message); }
+
+    const { data: publicData } = supabase.storage.from("documents").getPublicUrl(path);
+    const { error: dbErr } = await supabase.from("document_requests").update({
+      file_url: publicData.publicUrl,
+      status: "submitted",
+      updated_at: new Date().toISOString(),
+    }).eq("id", reqId);
+
+    setActiveReqId(null);
+    if (dbErr) return toast.error(dbErr.message);
+    toast.success("Documento enviado com sucesso!");
+    qc.invalidateQueries({ queryKey: ["client-panel"] });
+  };
+
+  return (
+    <div className="space-y-4">
+      {requests.length === 0 ? (
+        <Empty icon={Upload} title="Sem solicitações" desc="Seu consultor ainda não solicitou nenhum documento específico." />
+      ) : (
+        <div className="vx-card divide-y divide-border">
+          {requests.map((r) => (
+            <div key={r.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+              <div>
+                <p className="text-sm font-bold">{r.request_title}</p>
+                <p className="text-xs text-muted-foreground mt-1">{r.description || "Por favor, anexe o arquivo solicitado."}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className={r.status === "pending" ? "text-warning border-warning/20 bg-warning/5" : "text-success border-success/20 bg-success/5"}>
+                    {r.status === "pending" ? "Pendente" : "Enviado"}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">Solicitado em {formatDate(r.requested_at)}</span>
+                </div>
+              </div>
+              <div>
+                <input
+                  type="file"
+                  className="hidden"
+                  ref={fileRef}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f && activeReqId) onUpload(activeReqId, f);
+                  }}
+                />
+                <Button
+                  size="sm"
+                  variant={r.status === "pending" ? "default" : "outline"}
+                  disabled={activeReqId === r.id}
+                  onClick={() => {
+                    setActiveReqId(r.id);
+                    fileRef.current?.click();
+                  }}
+                  className="gap-2"
+                >
+                  <Upload className="size-4" />
+                  {activeReqId === r.id ? "Enviando..." : r.status === "pending" ? "Enviar agora" : "Reenviar"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

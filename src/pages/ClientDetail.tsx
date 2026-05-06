@@ -7,7 +7,7 @@ import {
   ArrowLeft, Mail, Phone, Building2, MapPin, Plus, FileText, ShoppingBag,
   Pencil, Wallet, FolderKanban, Activity as ActivityIcon, TrendingUp, Tag,
   Hash, IdCard, Calendar, Sparkles, ArrowUpRight, CircleDollarSign, Receipt,
-  CheckCircle2, Clock3, AlertTriangle, MessageSquarePlus, Users2,
+  CheckCircle2, Clock3, AlertTriangle, MessageSquarePlus, Users2, FileUp, Eye,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Repeat, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const statusBadge: Record<string, string> = {
   ativo: "bg-success-muted text-success",
@@ -270,6 +271,7 @@ export default function ClientDetail() {
             <ContactItem icon={Phone} label="Telefone" value={formatPhone(client.phone)} />
             <ContactItem icon={IdCard} label="CPF/CNPJ" value={formatDoc(client.document)} mono />
             <ContactItem icon={MapPin} label="Cidade/UF" value={[client.city, client.state].filter(Boolean).join("/") || "—"} />
+            <ContactItem icon={MapPin} label="Endereço" value={client.address_street ? `${client.address_street}, ${client.address_number}` : client.address || "—"} />
           </div>
         </div>
       </div>
@@ -291,9 +293,14 @@ export default function ClientDetail() {
           <TabsTrigger value="subscriptions" className="gap-1.5"><Repeat className="size-3.5" /> Produtos ativos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{subscriptions.length}</Badge></TabsTrigger>
           <TabsTrigger value="projects" className="gap-1.5"><FolderKanban className="size-3.5" /> Projetos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.projectsCount}</Badge></TabsTrigger>
           <TabsTrigger value="commissions" className="gap-1.5"><Wallet className="size-3.5" /> Comissões <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
-          <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.docsCount}</Badge></TabsTrigger>
+          <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{docs.length}</Badge></TabsTrigger>
+          <TabsTrigger value="doc-requests" className="gap-1.5"><FileUp className="size-3.5" /> Solicitar Docs</TabsTrigger>
           <TabsTrigger value="timeline" className="gap-1.5"><ActivityIcon className="size-3.5" /> Timeline</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="doc-requests" className="mt-4">
+          <DocRequestList clientId={id!} />
+        </TabsContent>
 
         {/* ============ VISÃO GERAL ============ */}
         <TabsContent value="overview" className="mt-4 space-y-4">
@@ -801,6 +808,80 @@ function RecentList({ title, items, empty }: any) {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function DocRequestList({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+
+  const { data: requests = [] } = useQuery({
+    queryKey: ["doc-requests", clientId],
+    queryFn: async () => (await supabase.from("document_requests").select("*").eq("client_id", clientId).order("requested_at", { ascending: false })).data ?? [],
+  });
+
+  const submit = async () => {
+    if (!title) return toast.error("Título obrigatório");
+    const { error } = await supabase.from("document_requests").insert({
+      client_id: clientId,
+      request_title: title,
+      description: desc,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Solicitação criada");
+    setOpen(false);
+    setTitle("");
+    setDesc("");
+    qc.invalidateQueries({ queryKey: ["doc-requests", clientId] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-display font-bold">Solicitações de Documentos</h3>
+        <Button size="sm" onClick={() => setOpen(true)} className="gap-2"><Plus className="size-4" /> Nova Solicitação</Button>
+      </div>
+
+      <div className="vx-card divide-y divide-border">
+        {requests.length === 0 ? (
+          <EmptyState icon={FileUp} text="Nenhuma solicitação pendente." />
+        ) : requests.map((r: any) => (
+          <div key={r.id} className="p-4 flex items-center justify-between hover:bg-muted/30">
+            <div>
+              <p className="text-sm font-semibold">{r.request_title}</p>
+              <p className="text-xs text-muted-foreground">{r.description || "Sem descrição"}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="outline" className={cn("text-[9px] uppercase", r.status === "pending" ? "text-warning border-warning/20" : "text-success border-success/20")}>
+                  {r.status === "pending" ? "Pendente" : "Enviado"}
+                </Badge>
+                <span className="text-[10px] text-muted-foreground">{formatDate(r.requested_at)}</span>
+              </div>
+            </div>
+            {r.file_url && (
+              <Button size="sm" variant="outline" onClick={() => window.open(r.file_url)} className="gap-2">
+                <Eye className="size-4" /> Ver Arquivo
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Solicitar Documento</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2"><Label>Título do Documento</Label><Input placeholder="Ex: RG, CPF, Foto do Rosto" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Instruções para o cliente</Label><Textarea placeholder="Explique como o cliente deve enviar este arquivo..." value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={submit}>Criar Solicitação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
