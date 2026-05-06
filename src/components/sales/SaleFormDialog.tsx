@@ -38,6 +38,38 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
     queryKey: ["partners-select"],
     queryFn: async () => (await supabase.from("partners").select("id, full_name, commission_percent").eq("active", true).order("full_name")).data ?? [],
   });
+  const { data: referrers } = useQuery({
+    queryKey: ["referrers-select"],
+    queryFn: async () => (await supabase.from("referrers").select("id, full_name, commission_percent").eq("active", true).order("full_name")).data ?? [],
+  });
+  const { data: collaborators } = useQuery({
+    queryKey: ["collaborators-select"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["vendedor", "admin"]);
+      const ids = (roles ?? []).map((r) => r.user_id);
+      if (!ids.length) return [];
+      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
+      return data ?? [];
+    },
+  });
+
+  // Auto-fill from selected client
+  useQuery({
+    queryKey: ["sale-client-prefill", form.client_id],
+    enabled: !!form.client_id,
+    queryFn: async () => {
+      const { data } = await supabase.from("clients").select("partner_id, referrer_id, collaborator_id").eq("id", form.client_id).maybeSingle();
+      if (data) {
+        setForm((f: any) => ({
+          ...f,
+          partner_id: f.partner_id ?? data.partner_id ?? null,
+          referrer_id: f.referrer_id ?? data.referrer_id ?? null,
+          collaborator_id: f.collaborator_id ?? data.collaborator_id ?? null,
+        }));
+      }
+      return data;
+    },
+  });
 
   const handleProductChange = (productId: string) => {
     const p = products?.find((x: any) => x.id === productId);
@@ -59,8 +91,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
       client_id: form.client_id,
       product_id: form.product_id,
       partner_id: form.partner_id || null,
+      referrer_id: form.referrer_id || null,
+      collaborator_id: form.collaborator_id || null,
       amount: Number(form.amount),
-      commission_percent: Number(form.commission_percent),
+      commission_percent: Number(form.commission_percent || 0),
+      referrer_percent: Number(form.referrer_percent || 0),
+      collaborator_percent: Number(form.collaborator_percent || 0),
       status: form.status,
       sale_date: form.sale_date,
       notes: form.notes || null,
@@ -68,7 +104,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
-    toast.success("Venda registrada — comissão calculada automaticamente");
+    toast.success("Venda registrada — comissões geradas automaticamente");
     onCreated?.();
     onOpenChange(false);
   };
@@ -103,9 +139,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
             <Input type="date" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Parceiro indicador</Label>
+            <Label>Parceiro</Label>
             <Select value={form.partner_id ?? "none"} onValueChange={handlePartnerChange}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sem parceiro</SelectItem>
                 {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
@@ -113,8 +149,39 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>% Comissão</Label>
-            <Input type="number" step="0.01" value={form.commission_percent} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
+            <Label>% Parceiro</Label>
+            <Input type="number" step="0.01" value={form.commission_percent ?? 0} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Indicador</Label>
+            <Select value={form.referrer_id ?? "none"} onValueChange={(v) => {
+              const r = referrers?.find((x: any) => x.id === v);
+              setForm({ ...form, referrer_id: v === "none" ? null : v, referrer_percent: r?.commission_percent ?? form.referrer_percent ?? 0 });
+            }}>
+              <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem indicador</SelectItem>
+                {referrers?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>% Indicador</Label>
+            <Input type="number" step="0.01" value={form.referrer_percent ?? 0} onChange={(e) => setForm({ ...form, referrer_percent: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Colaborador</Label>
+            <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem colaborador</SelectItem>
+                {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>% Colaborador</Label>
+            <Input type="number" step="0.01" value={form.collaborator_percent ?? 0} onChange={(e) => setForm({ ...form, collaborator_percent: e.target.value })} />
           </div>
           <div className="col-span-2 space-y-2">
             <Label>Status</Label>

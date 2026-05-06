@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { Repeat, Trash2 } from "lucide-react";
 
 const statusBadge: Record<string, string> = {
   ativo: "bg-success-muted text-success",
@@ -46,6 +47,8 @@ export default function ClientDetail() {
   const [saleOpen, setSaleOpen] = useState(false);
   const [docOpen, setDocOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [subOpen, setSubOpen] = useState(false);
+  const [subForm, setSubForm] = useState<any>({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
   const [note, setNote] = useState({ title: "", description: "", event_type: "nota" });
 
   const { data: client } = useQuery({
@@ -102,6 +105,20 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
+  const { data: subscriptions = [] } = useQuery({
+    queryKey: ["client-subscriptions", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("client_subscriptions").select("*, products(name, base_price)").eq("client_id", id!).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: availableProducts = [] } = useQuery({
+    queryKey: ["available-products"],
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+  });
+
   const saleIds = sales.map((s: any) => s.id);
   const { data: commissions = [] } = useQuery({
     queryKey: ["client-commissions", id, saleIds.join(",")],
@@ -156,6 +173,41 @@ export default function ClientDetail() {
     setNote({ title: "", description: "", event_type: "nota" });
     setNoteOpen(false);
     qc.invalidateQueries({ queryKey: ["client-timeline", id] });
+  };
+
+  const submitSubscription = async () => {
+    if (!subForm.amount || (!subForm.product_id && !subForm.custom_name)) {
+      toast.error("Informe produto (ou nome) e valor");
+      return;
+    }
+    const { data: auth } = await supabase.auth.getUser();
+    const payload = {
+      client_id: id!,
+      product_id: subForm.product_id || null,
+      custom_name: subForm.custom_name || null,
+      amount: Number(subForm.amount),
+      billing_cycle: subForm.billing_cycle,
+      status: subForm.status,
+      start_date: subForm.start_date,
+      next_billing_date: subForm.next_billing_date || null,
+      end_date: subForm.end_date || null,
+      notes: subForm.notes || null,
+      created_by: auth.user?.id,
+    };
+    const { error } = await supabase.from("client_subscriptions").insert(payload);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Produto vinculado ao cliente");
+    setSubOpen(false);
+    setSubForm({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
+    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+  };
+
+  const removeSubscription = async (sid: string) => {
+    if (!confirm("Remover este produto do cliente?")) return;
+    const { error } = await supabase.from("client_subscriptions").delete().eq("id", sid);
+    if (error) return toast.error(error.message);
+    toast.success("Removido");
+    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
   };
 
   if (!client) {
@@ -236,6 +288,7 @@ export default function ClientDetail() {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview" className="gap-1.5"><Sparkles className="size-3.5" /> Visão geral</TabsTrigger>
           <TabsTrigger value="sales" className="gap-1.5"><ShoppingBag className="size-3.5" /> Vendas <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.salesCount}</Badge></TabsTrigger>
+          <TabsTrigger value="subscriptions" className="gap-1.5"><Repeat className="size-3.5" /> Produtos ativos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{subscriptions.length}</Badge></TabsTrigger>
           <TabsTrigger value="projects" className="gap-1.5"><FolderKanban className="size-3.5" /> Projetos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.projectsCount}</Badge></TabsTrigger>
           <TabsTrigger value="commissions" className="gap-1.5"><Wallet className="size-3.5" /> Comissões <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
           <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.docsCount}</Badge></TabsTrigger>
@@ -355,6 +408,51 @@ export default function ClientDetail() {
                         </span>
                       </td>
                       <td className="px-6 py-3 text-xs text-muted-foreground">{formatDate(s.sale_date)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* ============ PRODUTOS ATIVOS ============ */}
+        <TabsContent value="subscriptions" className="mt-4">
+          <div className="vx-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">Produtos contratados pelo cliente</p>
+                <p className="text-[11px] text-muted-foreground">Renovação e ciclo de cobrança de cada produto ativo</p>
+              </div>
+              <Button size="sm" onClick={() => setSubOpen(true)} className="gap-2"><Plus className="size-4" /> Vincular produto</Button>
+            </div>
+            {subscriptions.length === 0 ? (
+              <EmptyState icon={Repeat} text="Nenhum produto vinculado ainda." />
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                    <th className="px-6 py-3 text-left font-semibold">Ciclo</th>
+                    <th className="px-6 py-3 text-right font-semibold">Valor</th>
+                    <th className="px-6 py-3 text-left font-semibold">Início</th>
+                    <th className="px-6 py-3 text-left font-semibold">Próx. cobrança</th>
+                    <th className="px-6 py-3 text-left font-semibold">Status</th>
+                    <th className="px-6 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {subscriptions.map((s: any) => (
+                    <tr key={s.id} className="hover:bg-muted/30">
+                      <td className="px-6 py-3 font-medium">{s.products?.name ?? s.custom_name ?? "—"}</td>
+                      <td className="px-6 py-3 capitalize text-xs">{s.billing_cycle}</td>
+                      <td className="px-6 py-3 text-right vx-mono font-semibold">{formatBRL(s.amount)}</td>
+                      <td className="px-6 py-3 text-xs text-muted-foreground">{formatDate(s.start_date)}</td>
+                      <td className="px-6 py-3 text-xs">{s.next_billing_date ? formatDate(s.next_billing_date) : "—"}</td>
+                      <td className="px-6 py-3"><Badge variant="secondary" className="text-[10px] uppercase">{s.status}</Badge></td>
+                      <td className="px-6 py-3 text-right">
+                        <Button variant="ghost" size="icon" className="size-8" onClick={() => removeSubscription(s.id)}><Trash2 className="size-4 text-destructive" /></Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -544,6 +642,82 @@ export default function ClientDetail() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNoteOpen(false)}>Cancelar</Button>
             <Button onClick={submitNote} className="bg-gradient-primary gap-2"><MessageSquarePlus className="size-4" /> Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={subOpen} onOpenChange={setSubOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Vincular produto ao cliente</DialogTitle>
+            <DialogDescription>Adicione um produto que o cliente já possui ou contratou.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="col-span-2 space-y-2">
+              <Label>Produto</Label>
+              <Select value={subForm.product_id ?? "custom"} onValueChange={(v) => {
+                if (v === "custom") return setSubForm({ ...subForm, product_id: null });
+                const p = availableProducts.find((x: any) => x.id === v);
+                setSubForm({ ...subForm, product_id: v, amount: subForm.amount ?? p?.base_price });
+              }}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {availableProducts.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  <SelectItem value="custom">— Outro (digitar nome) —</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {!subForm.product_id && (
+              <div className="col-span-2 space-y-2">
+                <Label>Nome do produto</Label>
+                <Input value={subForm.custom_name ?? ""} onChange={(e) => setSubForm({ ...subForm, custom_name: e.target.value })} />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Valor (R$) *</Label>
+              <Input type="number" step="0.01" value={subForm.amount ?? ""} onChange={(e) => setSubForm({ ...subForm, amount: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciclo</Label>
+              <Select value={subForm.billing_cycle} onValueChange={(v) => setSubForm({ ...subForm, billing_cycle: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                  <SelectItem value="unico">Pagamento único</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={subForm.status} onValueChange={(v) => setSubForm({ ...subForm, status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativa">Ativa</SelectItem>
+                  <SelectItem value="pausada">Pausada</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="encerrada">Encerrada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Início</Label>
+              <Input type="date" value={subForm.start_date} onChange={(e) => setSubForm({ ...subForm, start_date: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Próxima cobrança</Label>
+              <Input type="date" value={subForm.next_billing_date ?? ""} onChange={(e) => setSubForm({ ...subForm, next_billing_date: e.target.value })} />
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>Observações</Label>
+              <Textarea value={subForm.notes ?? ""} onChange={(e) => setSubForm({ ...subForm, notes: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubOpen(false)}>Cancelar</Button>
+            <Button onClick={submitSubscription} className="gap-2"><Repeat className="size-4" /> Vincular</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
