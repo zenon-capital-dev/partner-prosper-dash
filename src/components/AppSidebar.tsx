@@ -153,7 +153,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, isVendedor, isParceiro, isCliente, signOut } = useAuth();
+  const { user, isAdmin, isVendedor, isParceiro, isCliente, isColaborador, isPrestador, signOut } = useAuth();
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -183,16 +183,19 @@ export function AppSidebar() {
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
-  const showAdmin = isAdmin || isVendedor;
+  const showAdmin = isAdmin || isVendedor || isColaborador;
   const showPartner = isParceiro && !showAdmin;
-  const showClient = isCliente && !showAdmin && !isParceiro;
+  const showPrestador = isPrestador && !showAdmin && !showPartner;
+  const showClient = isCliente && !showAdmin && !showPartner && !showPrestador;
   const sections = showAdmin
     ? adminSections
     : showPartner
       ? partnerSections
-      : showClient
-        ? clientSections
-        : adminSections;
+      : showPrestador
+        ? [] // We can add provider specific sections later
+        : showClient
+          ? clientSections
+          : adminSections;
 
   // ===== Live counters & sparkline (admin/vendedor) =====
   const { data: live } = useQuery({
@@ -510,7 +513,7 @@ export function AppSidebar() {
                   <>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-[13px] font-bold text-white truncate leading-tight">
-                        {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isParceiro ? "Parceiro" : "Cliente"}
+                        {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : "Cliente"}
                       </p>
                       <p className="text-[11px] text-sidebar-muted truncate">{user?.email}</p>
                     </div>
@@ -527,7 +530,7 @@ export function AppSidebar() {
                 <div className="min-w-0">
                   <p className="text-[12px] font-bold truncate">{user?.email}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">
-                    {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isParceiro ? "Parceiro" : "Cliente"}
+                    {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : "Cliente"}
                   </p>
                 </div>
               </DropdownMenuLabel>
