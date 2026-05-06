@@ -191,15 +191,15 @@ export default function Commissions() {
   };
 
   const cancelOne = async (c: any) => {
-    const { error } = await supabase.from("commissions").update({ status: "cancelado", paid_at: null }).eq("id", c.id);
+    const { error } = await supabase.from("commissions").update({ status: "cancelada", paid_at: null }).eq("id", c.id);
     if (error) toast.error(error.message);
     else { toast.success("Comissão cancelada"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
 
   const reopenOne = async (c: any) => {
-    const { error } = await supabase.from("commissions").update({ status: "pendente", paid_at: null }).eq("id", c.id);
+    const { error } = await supabase.from("commissions").update({ status: "gerada", paid_at: null }).eq("id", c.id);
     if (error) toast.error(error.message);
-    else { toast.success("Comissão reaberta"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
+    else { toast.success("Comissão redefinida para Gerada"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
 
   const openPaySingle = (c: any) => { setPayTarget({ ids: [c.id] }); setPayOpen(true); };
