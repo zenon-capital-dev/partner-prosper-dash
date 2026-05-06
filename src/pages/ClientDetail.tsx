@@ -145,13 +145,44 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
-  const { data: subscriptions = [] } = useQuery({
-    queryKey: ["client-subscriptions", id],
+  const { data: clientProducts = [] } = useQuery({
+    queryKey: ["client-products", id],
     queryFn: async () => {
-      const { data } = await supabase.from("client_subscriptions").select("*, products(name, base_price)").eq("client_id", id!).order("created_at", { ascending: false });
+      const { data } = await supabase
+        .from("client_products")
+        .select(`
+          *, 
+          products(name, base_price, required_documents, standard_steps),
+          service_providers(name),
+          profiles:responsible_employee_id(full_name)
+        `)
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!id,
+  });
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ["employees"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .order("full_name");
+      return data ?? [];
+    },
+  });
+
+  const { data: providers = [] } = useQuery({
+    queryKey: ["providers"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_providers")
+        .select("id, name")
+        .order("name");
+      return data ?? [];
+    },
   });
 
   const { data: availableProducts = [] } = useQuery({
