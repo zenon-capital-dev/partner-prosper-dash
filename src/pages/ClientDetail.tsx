@@ -307,7 +307,7 @@ export default function ClientDetail() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
             <ContactItem icon={Mail} label="E-mail" value={client.email ?? "—"} />
             <ContactItem icon={Phone} label="WhatsApp / Celular" value={formatPhone(client.whatsapp || client.phone)} />
-            <ContactItem icon={IdCard} label={client.document_type || "CPF/CNPJ"} value={formatDoc(client.document_number || client.document)} mono />
+            <ContactItem icon={IdCard} label={client.document_type || "CPF/CNPJ"} value={formatDoc(client.document_number)} mono />
             <ContactItem icon={MapPin} label="Origem" value={client.source?.replace("_", " ") || "—"} />
             <ContactItem icon={MapPin} label="Cidade/UF" value={[client.address_city, client.address_state].filter(Boolean).join("/") || "—"} />
             <ContactItem icon={MapPin} label="Endereço" value={client.address_street ? `${client.address_street}, ${client.address_number}` : client.address || "—"} />

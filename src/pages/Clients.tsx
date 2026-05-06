@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Plus, Search, MoreHorizontal, Eye, Trash2, Users, UserCheck, UserPlus,
   TrendingUp, LayoutGrid, List, SlidersHorizontal, Download, Mail, Phone,
-  Building2, Tag, Sparkles, ArrowUpRight, Crown, X,
+  Building2, Tag, Sparkles, ArrowUpRight, Crown, X, Pencil, FileUp,
 } from "lucide-react";
 import { formatDate, formatBRL, initials, formatPhone, timeAgo } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
