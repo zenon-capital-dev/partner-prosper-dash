@@ -60,18 +60,22 @@ export default function AuthPage() {
       <div className="hidden lg:flex flex-col justify-between p-14 relative overflow-hidden text-white bg-slate-950">
         {/* Animated gradients and effects */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,#1e293b_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,#0f172a_0%,transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,#0f172a_0%,transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,#1e293b_0%,transparent_50%)]" />
           <div 
-            className="absolute inset-0 opacity-[0.03]" 
-            style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+            className="absolute inset-0 opacity-[0.05]" 
+            style={{ 
+              backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
+              maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 10%, transparent 100%)'
+            }}
           />
         </div>
 
         {/* HEADER */}
         <header className="relative flex items-center gap-3 z-10">
-          <div className="size-11 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
-            <Sparkles className="size-5 text-white" strokeWidth={1.8} />
+          <div className="size-11 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
+            <Sparkles className="size-5 text-blue-400" strokeWidth={1.8} />
           </div>
           <div>
             <div className="font-display font-bold text-[15px] tracking-[0.2em] uppercase leading-none">
@@ -108,8 +112,8 @@ export default function AuthPage() {
               "Relatórios analíticos de performance",
             ].map((t) => (
               <li key={t} className="flex items-center gap-3 text-[14px] text-white/70">
-                <div className="size-5 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
-                  <CheckCircle2 className="size-3 text-white/80" />
+          <div className="size-5 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
+                  <CheckCircle2 className="size-3 text-blue-400" />
                 </div>
                 <span>{t}</span>
               </li>
@@ -123,7 +127,7 @@ export default function AuthPage() {
               { icon: ShieldCheck, label: "Segurança", value: "SSL" },
             ].map((m) => (
               <div key={m.label} className="space-y-1">
-                <m.icon className="size-4 text-white/30" />
+                <m.icon className="size-4 text-blue-400/50" />
                 <div className="text-[18px] font-bold text-white/90">{m.value}</div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">{m.label}</div>
               </div>
