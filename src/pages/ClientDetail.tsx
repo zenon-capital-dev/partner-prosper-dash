@@ -105,6 +105,20 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
+  const { data: subscriptions = [] } = useQuery({
+    queryKey: ["client-subscriptions", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("client_subscriptions").select("*, products(name, base_price)").eq("client_id", id!).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: availableProducts = [] } = useQuery({
+    queryKey: ["available-products"],
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+  });
+
   const saleIds = sales.map((s: any) => s.id);
   const { data: commissions = [] } = useQuery({
     queryKey: ["client-commissions", id, saleIds.join(",")],
