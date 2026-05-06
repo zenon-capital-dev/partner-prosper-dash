@@ -109,9 +109,23 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label>Empresa</Label>
             <Input value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
           </div>
-          <div className="col-span-2 space-y-2">
-            <Label>Endereço</Label>
-            <Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <div className="col-span-2 grid grid-cols-4 gap-4">
+            <div className="col-span-3 space-y-2">
+              <Label>Logradouro</Label>
+              <Input value={form.address_street ?? ""} onChange={(e) => setForm({ ...form, address_street: e.target.value })} placeholder="Ex: Av. Paulista" />
+            </div>
+            <div className="space-y-2">
+              <Label>Nº</Label>
+              <Input value={form.address_number ?? ""} onChange={(e) => setForm({ ...form, address_number: e.target.value })} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Bairro</Label>
+            <Input value={form.address_neighborhood ?? ""} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>CEP</Label>
+            <Input value={form.address_zip_code ?? ""} onChange={(e) => setForm({ ...form, address_zip_code: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label>Cidade</Label>
