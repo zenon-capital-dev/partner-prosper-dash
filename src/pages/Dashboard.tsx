@@ -69,7 +69,7 @@ function makeRange(key: RangeKey): { from: Date; to: Date; label: string } {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
   const [rangeKey, setRangeKey] = useState<RangeKey>("month");
   const range = useMemo(() => makeRange(rangeKey), [rangeKey]);
 
