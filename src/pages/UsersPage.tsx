@@ -14,23 +14,25 @@ import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
-type Role = "admin" | "vendedor" | "parceiro" | "colaborador" | "prestador" | "cliente" | "none";
+type Role = "admin" | "admin_secondary" | "colaborador" | "parceiro" | "prestador" | "cliente" | "lead" | "none";
 
 const roleLabel: Record<string, string> = {
-  admin: "Administrador",
-  vendedor: "Vendedor",
-  parceiro: "Parceiro",
+  admin: "Admin Principal",
+  admin_secondary: "Admin Secundário",
   colaborador: "Colaborador",
+  parceiro: "Parceiro",
   prestador: "Prestador",
   cliente: "Cliente",
+  lead: "Lead / Convidado",
 };
 const roleClass: Record<string, string> = {
-  admin: "bg-primary-muted text-primary",
-  vendedor: "bg-info-muted text-info",
-  parceiro: "bg-warning-muted text-warning",
-  colaborador: "bg-emerald-100 text-emerald-700",
-  prestador: "bg-slate-200 text-slate-800",
-  cliente: "bg-muted text-foreground",
+  admin: "bg-slate-900 text-white",
+  admin_secondary: "bg-slate-700 text-white",
+  colaborador: "bg-blue-100 text-blue-700",
+  parceiro: "bg-amber-100 text-amber-700",
+  prestador: "bg-emerald-100 text-emerald-700",
+  cliente: "bg-slate-100 text-slate-700",
+  lead: "bg-purple-100 text-purple-700",
 };
 
 export default function UsersPage() {
@@ -38,7 +40,7 @@ export default function UsersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<any>({ role: "vendedor", send_invite: true, active: true });
+  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, active: true });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
 
   const { data: users = [] } = useQuery({
@@ -102,7 +104,7 @@ export default function UsersPage() {
     if ((data as any)?.error) return toast.error((data as any).error);
     toast.success("Usuário criado");
     setCreatedInfo({ email: form.email, password: (data as any)?.temp_password });
-    setForm({ role: "vendedor", send_invite: true, active: true });
+    setForm({ role: "colaborador", send_invite: true, active: true });
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["users-with-roles"] });
   };
@@ -169,12 +171,13 @@ export default function UsersPage() {
                       <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Sem papel</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="vendedor">Vendedor</SelectItem>
+                        <SelectItem value="admin">Admin Principal</SelectItem>
+                        <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
                         <SelectItem value="colaborador">Colaborador</SelectItem>
                         <SelectItem value="parceiro">Parceiro</SelectItem>
                         <SelectItem value="prestador">Prestador</SelectItem>
                         <SelectItem value="cliente">Cliente</SelectItem>
+                        <SelectItem value="lead">Lead / Convidado</SelectItem>
                       </SelectContent>
                     </Select>
                     <DropdownMenu>
@@ -215,12 +218,13 @@ export default function UsersPage() {
               <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="vendedor">Vendedor</SelectItem>
+                  <SelectItem value="admin">Admin Principal</SelectItem>
+                  <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
                   <SelectItem value="colaborador">Colaborador</SelectItem>
                   <SelectItem value="parceiro">Parceiro</SelectItem>
                   <SelectItem value="prestador">Prestador</SelectItem>
                   <SelectItem value="cliente">Cliente</SelectItem>
+                  <SelectItem value="lead">Lead / Convidado</SelectItem>
                 </SelectContent>
               </Select>
             </div>

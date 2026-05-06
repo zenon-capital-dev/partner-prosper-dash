@@ -30,6 +30,12 @@ import {
   ArrowUpRight,
   Plus,
   Zap,
+  Target,
+  ClipboardList,
+  History,
+  UserCircle,
+  Truck,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -92,36 +98,46 @@ const adminSections: NavSection[] = [
     label: "Visão Geral",
     icon: LayoutDashboard,
     items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard },
+      { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "Histórico / Auditoria", url: "/auditoria", icon: History },
     ],
   },
   {
-    label: "Operação",
+    label: "Comercial",
     icon: Briefcase,
     items: [
       { title: "Clientes", url: "/clientes", icon: Users, counterKey: "clients" },
-      { title: "Produtos", url: "/produtos", icon: Package },
+      { title: "Leads / Convidados", url: "/leads", icon: Target },
+      { title: "Produtos / Serviços", url: "/produtos", icon: Package },
       { title: "Parceiros", url: "/parceiros", icon: Handshake },
-      { title: "Contratos", url: "/contratos", icon: FileSignature },
+    ],
+  },
+  {
+    label: "Operacional",
+    icon: ClipboardList,
+    items: [
+      { title: "Tarefas / Pendências", url: "/tarefas", icon: ClipboardList },
       { title: "Documentos", url: "/documentos", icon: FileText, counterKey: "newDocs" },
+      { title: "Contratos", url: "/contratos", icon: FileSignature },
+      { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
+      { title: "Prestadores", url: "/prestadores", icon: Truck },
     ],
   },
   {
     label: "Financeiro",
     icon: CircleDollarSign,
     items: [
-      { title: "Comissões", url: "/comissoes", icon: Wallet, counterKey: "pendingCom" },
       { title: "Financeiro", url: "/financeiro", icon: Banknote, counterKey: "pendingFin" },
+      { title: "Comissões", url: "/comissoes", icon: Wallet, counterKey: "pendingCom" },
     ],
   },
   {
     label: "Sistema",
     icon: Cog,
     items: [
-      { title: "Usuários", url: "/usuarios", icon: UserCog },
+      { title: "Usuários e Acessos", url: "/usuarios", icon: UserCog },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
-      { title: "Suporte", url: "/suporte", icon: LifeBuoy },
     ],
   },
 ];
@@ -153,7 +169,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, isVendedor, isParceiro, isCliente, isColaborador, isPrestador, signOut } = useAuth();
+  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, signOut } = useAuth();
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -183,7 +199,7 @@ export function AppSidebar() {
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
-  const showAdmin = isAdmin || isVendedor || isColaborador;
+  const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
   const showPrestador = isPrestador && !showAdmin && !showPartner;
   const showClient = isCliente && !showAdmin && !showPartner && !showPrestador;
@@ -305,8 +321,8 @@ export function AppSidebar() {
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
-                  <span className="font-display font-black tracking-[0.14em] text-white text-[24px] leading-none">
-                    PAINEL DOUGLAS
+                  <span className="font-display font-black tracking-[0.14em] text-white text-[22px] leading-none uppercase">
+                    Advisory CRM
                   </span>
                   <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
                     PRO
@@ -513,7 +529,7 @@ export function AppSidebar() {
                   <>
                     <div className="flex-1 min-w-0 text-left">
                       <p className="text-[13px] font-bold text-white truncate leading-tight">
-                        {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : "Cliente"}
+                        {isAdmin ? "Admin Principal" : isAdminSecondary ? "Admin Secundário" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : isLead ? "Lead" : "Cliente"}
                       </p>
                       <p className="text-[11px] text-sidebar-muted truncate">{user?.email}</p>
                     </div>
@@ -530,7 +546,7 @@ export function AppSidebar() {
                 <div className="min-w-0">
                   <p className="text-[12px] font-bold truncate">{user?.email}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">
-                    {isAdmin ? "Administrador" : isVendedor ? "Vendedor" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : "Cliente"}
+                    {isAdmin ? "Admin Principal" : isAdminSecondary ? "Admin Secundário" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : isLead ? "Lead" : "Cliente"}
                   </p>
                 </div>
               </DropdownMenuLabel>
