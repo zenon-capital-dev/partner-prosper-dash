@@ -339,8 +339,10 @@ function ListView({ clients, onOpen, onDelete }: any) {
                 </td>
                 <td className="px-6 py-3.5">
                   <p className="text-sm truncate">{c.company ?? "—"}</p>
-                  {(c.city || c.state) && (
-                    <p className="text-[11px] text-muted-foreground">{[c.city, c.state].filter(Boolean).join("/")}</p>
+                  {(c.address_city || c.address_state) ? (
+                    <p className="text-[11px] text-muted-foreground truncate">{[c.address_city, c.address_state].filter(Boolean).join("/")}</p>
+                  ) : (c.city || c.state) && (
+                    <p className="text-[11px] text-muted-foreground truncate">{[c.city, c.state].filter(Boolean).join("/")}</p>
                   )}
                 </td>
                 <td className="px-6 py-3.5">
