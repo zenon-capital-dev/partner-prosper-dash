@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { UserCog, UserPlus, Search, Mail, Copy, Shield, MoreHorizontal } from "lucide-react";
+import { UserCog, UserPlus, Search, Mail, Copy, Shield, MoreHorizontal, UserCheck, UserX, Lock, Key, Settings } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -40,14 +40,16 @@ export default function UsersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, active: true });
+  const [permissionOpen, setPermissionOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, has_system_access: true });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ["users-with-roles"],
     queryFn: async () => {
       const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email, phone, created_at, active").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, full_name, email, phone, created_at, active, has_system_access").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
       ]);
       return (profiles ?? []).map((p) => ({
@@ -74,10 +76,10 @@ export default function UsersPage() {
     qc.invalidateQueries({ queryKey: ["users-with-roles"] });
   };
 
-  const toggleStatus = async (userId: string, currentStatus: boolean) => {
-    const { error } = await supabase.from("profiles").update({ active: !currentStatus }).eq("id", userId);
+  const toggleStatus = async (userId: string, currentStatus: boolean, field: 'active' | 'has_system_access' = 'active') => {
+    const { error } = await supabase.from("profiles").update({ [field]: !currentStatus }).eq("id", userId);
     if (error) return toast.error(error.message);
-    toast.success(`Usuário ${!currentStatus ? 'ativado' : 'desativado'}`);
+    toast.success(`Usuário atualizado`);
     qc.invalidateQueries({ queryKey: ["users-with-roles"] });
   };
 
@@ -161,9 +163,14 @@ export default function UsersPage() {
                   ))}
                 </td>
                 <td className="px-4 py-3">
-                  <Badge variant={u.active ? "outline" : "destructive"} className="text-[10px]">
-                    {u.active ? "Ativo" : "Inativo"}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant={u.active ? "outline" : "destructive"} className="text-[10px] w-fit">
+                      {u.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                    <Badge variant={u.has_system_access ? "secondary" : "outline"} className="text-[10px] w-fit">
+                      {u.has_system_access ? "Com acesso" : "Sem acesso"}
+                    </Badge>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -188,10 +195,16 @@ export default function UsersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => toggleStatus(u.id, u.active)}>
-                          {u.active ? "Desativar acesso" : "Ativar acesso"}
+                          {u.active ? <><UserX className="size-4 mr-2" /> Desativar</> : <><UserCheck className="size-4 mr-2" /> Ativar</>}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toggleStatus(u.id, u.has_system_access, 'has_system_access')}>
+                          {u.has_system_access ? <><Lock className="size-4 mr-2" /> Bloquear Login</> : <><Key className="size-4 mr-2" /> Liberar Login</>}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setSelectedUser(u); setPermissionOpen(true); }}>
+                          <Settings className="size-4 mr-2" /> Permissões
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => resetPassword(u.email)}>
-                          Resetar senha
+                          <Mail className="size-4 mr-2" /> Resetar senha
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -257,6 +270,40 @@ export default function UsersPage() {
             )}
             {!createdInfo?.password && <p className="text-xs text-muted-foreground">Email de convite enviado.</p>}
           </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={permissionOpen} onOpenChange={setPermissionOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Settings className="size-5" /> Permissões: {selectedUser?.full_name}</DialogTitle>
+            <DialogDescription>Ajuste o que este usuário pode ver ou fazer.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+             <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                   <p className="text-sm font-bold">Acesso ao Financeiro</p>
+                   <p className="text-xs text-muted-foreground">Ver faturamento e comissões gerais</p>
+                </div>
+                <Button variant="outline" size="sm">Negado</Button>
+             </div>
+             <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                   <p className="text-sm font-bold">Gestão de Clientes</p>
+                   <p className="text-xs text-muted-foreground">Criar e editar fichas de clientes</p>
+                </div>
+                <Button variant="outline" size="sm">Permitido</Button>
+             </div>
+             <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                   <p className="text-sm font-bold">Solicitar Documentos</p>
+                   <p className="text-xs text-muted-foreground">Pedir arquivos para o cliente</p>
+                </div>
+                <Button variant="outline" size="sm">Permitido</Button>
+             </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => { toast.success("Permissões salvas"); setPermissionOpen(false); }}>Salvar Permissões</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
