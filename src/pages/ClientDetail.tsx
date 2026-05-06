@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { Repeat, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const statusBadge: Record<string, string> = {
   ativo: "bg-success-muted text-success",
