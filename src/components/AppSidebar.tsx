@@ -232,7 +232,7 @@ export function AppSidebar() {
         supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo"),
         supabase.from("sales").select("amount").in("status", ["pendente", "em_andamento"]),
         supabase.from("commissions").select("amount").eq("status", "pendente"),
-        supabase.from("documents").select("id", { count: "exact", head: true }).eq("status", "solicitado"),
+        supabase.from("documents").select("id", { count: "exact", head: true }).in("status", ["enviado", "em_analise"]),
         supabase.from("sales").select("amount, sale_date").gte("sale_date", sevenIso),
       ]);
 
