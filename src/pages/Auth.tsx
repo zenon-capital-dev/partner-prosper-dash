@@ -231,12 +231,12 @@ export default function AuthPage() {
 
             <Button
               type="submit"
-              className="w-full h-13 font-bold text-[15px] rounded-xl shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all active:scale-[0.98]"
+              className="w-full h-13 font-bold text-[15px] rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-950/10 hover:shadow-slate-950/20 transition-all active:scale-[0.98]"
               disabled={submitting}
             >
               {submitting ? (
                 <span className="flex items-center gap-2">
-                  <span className="size-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                  <span className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                   Validando...
                 </span>
               ) : (
