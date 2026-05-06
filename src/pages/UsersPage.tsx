@@ -77,7 +77,8 @@ export default function UsersPage() {
   };
 
   const toggleStatus = async (userId: string, currentStatus: boolean, field: 'active' | 'has_system_access' = 'active') => {
-    const { error } = await supabase.from("profiles").update({ [field]: !currentStatus }).eq("id", userId);
+    const payload = field === 'active' ? { active: !currentStatus } : { has_system_access: !currentStatus };
+    const { error } = await supabase.from("profiles").update(payload as any).eq("id", userId);
     if (error) return toast.error(error.message);
     toast.success(`Usuário atualizado`);
     qc.invalidateQueries({ queryKey: ["users-with-roles"] });
