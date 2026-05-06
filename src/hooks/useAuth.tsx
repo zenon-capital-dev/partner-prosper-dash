@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "admin" | "vendedor" | "parceiro" | "colaborador" | "prestador" | "cliente";
+type AppRole = "admin" | "admin_secondary" | "colaborador" | "parceiro" | "prestador" | "cliente" | "lead";
 
 interface AuthContextValue {
   user: User | null;
@@ -10,11 +10,12 @@ interface AuthContextValue {
   roles: AppRole[];
   loading: boolean;
   isAdmin: boolean;
-  isVendedor: boolean;
-  isParceiro: boolean;
-  isCliente: boolean;
+  isAdminSecondary: boolean;
   isColaborador: boolean;
+  isParceiro: boolean;
   isPrestador: boolean;
+  isCliente: boolean;
+  isLead: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -65,11 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         roles,
         loading,
         isAdmin: roles.includes("admin"),
-        isVendedor: roles.includes("vendedor"),
-        isParceiro: roles.includes("parceiro"),
-        isCliente: roles.includes("cliente"),
+        isAdminSecondary: roles.includes("admin_secondary"),
         isColaborador: roles.includes("colaborador"),
+        isParceiro: roles.includes("parceiro"),
         isPrestador: roles.includes("prestador"),
+        isCliente: roles.includes("cliente"),
+        isLead: roles.includes("lead"),
         signOut,
       }}
     >
