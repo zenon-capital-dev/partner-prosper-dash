@@ -140,8 +140,12 @@ export default function Reports() {
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="sales">Vendas</SelectItem>
-              <SelectItem value="partners">Performance de parceiros</SelectItem>
-              <SelectItem value="categories">Por categoria</SelectItem>
+              <SelectItem value="partners">Parceiros e Comissões</SelectItem>
+              <SelectItem value="products">Produtos Vendidos</SelectItem>
+              <SelectItem value="leads">Origem de Leads</SelectItem>
+              <SelectItem value="tasks">Tarefas e Pendências</SelectItem>
+              <SelectItem value="docs">Documentos e Contratos</SelectItem>
+              <SelectItem value="team">Colaboradores e Prestadores</SelectItem>
             </SelectContent>
           </Select>
         </div>
