@@ -199,7 +199,7 @@ export default function ClientDetail() {
 
   const { data: availableProducts = [] } = useQuery({
     queryKey: ["available-products"],
-    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("*").eq("active", true).order("name")).data ?? [],
   });
 
   const saleIds = sales.map((s: any) => s.id);
