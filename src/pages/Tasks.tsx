@@ -270,7 +270,7 @@ export default function Tasks() {
         )}
       </div>
 
-      <Dialog open={createOpen || editOpen} onOpenChange={val => !val && (setCreateOpen(false) || setEditOpen(false))}>
+      <Dialog open={createOpen || editOpen} onOpenChange={val => { if (!val) { setCreateOpen(false); setEditOpen(false); } }}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>{editOpen ? "Editar Tarefa" : "Nova Tarefa"}</DialogTitle>
