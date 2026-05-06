@@ -382,6 +382,7 @@ function ListView({ clients, onOpen, onDelete }: any) {
               </tr>
             ))}
           </tbody>
+        </table>
       </div>
     </div>
   );
