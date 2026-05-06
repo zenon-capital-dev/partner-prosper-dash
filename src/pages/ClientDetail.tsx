@@ -498,47 +498,98 @@ export default function ClientDetail() {
           </div>
         </TabsContent>
 
-        {/* ============ PRODUTOS ATIVOS ============ */}
-        <TabsContent value="subscriptions" className="mt-4">
+        {/* ============ PRODUTOS CONTRATADOS ============ */}
+        <TabsContent value="products" className="mt-4">
           <div className="vx-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold">Produtos contratados pelo cliente</p>
-                <p className="text-[11px] text-muted-foreground">Renovação e ciclo de cobrança de cada produto ativo</p>
+                <p className="text-[11px] text-muted-foreground">Gestão operacional de cada serviço</p>
               </div>
-              <Button size="sm" onClick={() => setSubOpen(true)} className="gap-2"><Plus className="size-4" /> Vincular produto</Button>
+              <Button size="sm" onClick={() => setSubOpen(true)} className="gap-2 bg-gradient-primary shadow-vx-sm"><Plus className="size-4" /> Contratar produto</Button>
             </div>
-            {subscriptions.length === 0 ? (
+            {clientProducts.length === 0 ? (
               <EmptyState icon={Repeat} text="Nenhum produto vinculado ainda." />
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th className="px-6 py-3 text-left font-semibold">Produto</th>
-                    <th className="px-6 py-3 text-left font-semibold">Ciclo</th>
-                    <th className="px-6 py-3 text-right font-semibold">Valor</th>
-                    <th className="px-6 py-3 text-left font-semibold">Início</th>
-                    <th className="px-6 py-3 text-left font-semibold">Próx. cobrança</th>
-                    <th className="px-6 py-3 text-left font-semibold">Status</th>
-                    <th className="px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {subscriptions.map((s: any) => (
-                    <tr key={s.id} className="hover:bg-muted/30">
-                      <td className="px-6 py-3 font-medium">{s.products?.name ?? s.custom_name ?? "—"}</td>
-                      <td className="px-6 py-3 capitalize text-xs">{s.billing_cycle}</td>
-                      <td className="px-6 py-3 text-right vx-mono font-semibold">{formatBRL(s.amount)}</td>
-                      <td className="px-6 py-3 text-xs text-muted-foreground">{formatDate(s.start_date)}</td>
-                      <td className="px-6 py-3 text-xs">{s.next_billing_date ? formatDate(s.next_billing_date) : "—"}</td>
-                      <td className="px-6 py-3"><Badge variant="secondary" className="text-[10px] uppercase">{s.status}</Badge></td>
-                      <td className="px-6 py-3 text-right">
-                        <Button variant="ghost" size="icon" className="size-8" onClick={() => removeSubscription(s.id)}><Trash2 className="size-4 text-destructive" /></Button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                      <th className="px-6 py-3 text-left font-semibold">Status</th>
+                      <th className="px-6 py-3 text-left font-semibold">Responsável</th>
+                      <th className="px-6 py-3 text-left font-semibold">Prestador</th>
+                      <th className="px-6 py-3 text-right font-semibold">Valor</th>
+                      <th className="px-6 py-3 text-left font-semibold">Prazo</th>
+                      <th className="px-6 py-3 text-left font-semibold">Progresso</th>
+                      <th className="px-6 py-3"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {clientProducts.map((p: any) => {
+                      const completed = (p.current_steps || []).filter((s: any) => s.completed).length;
+                      const total = (p.current_steps || []).length;
+                      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+                      
+                      return (
+                        <tr key={p.id} className="hover:bg-muted/30 group">
+                          <td className="px-6 py-3">
+                            <p className="font-medium">{p.products?.name ?? "—"}</p>
+                            {p.notes && <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{p.notes}</p>}
+                          </td>
+                          <td className="px-6 py-3">
+                            <Badge variant="secondary" className={cn("text-[9px] uppercase", statusBadge[p.status])}>
+                              {statusLabel[p.status] || p.status}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <UserCheck className="size-3 text-primary" /> {p.profiles?.full_name ?? "Não definido"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Truck className="size-3" /> {p.service_providers?.name ?? "Nenhum"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <p className="vx-mono font-semibold">{formatBRL(p.custom_value || p.products?.base_price)}</p>
+                            {p.discount > 0 && <p className="text-[10px] text-destructive">- {formatBRL(p.discount)}</p>}
+                          </td>
+                          <td className="px-6 py-3 text-xs">
+                            {p.deadline ? (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="size-3" /> {formatDate(p.deadline)}
+                              </div>
+                            ) : "—"}
+                          </td>
+                          <td className="px-6 py-3 min-w-[120px]">
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-[9px]">
+                                <span>{progress}%</span>
+                                <span>{completed}/{total} etapas</span>
+                              </div>
+                              <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="size-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => removeProduct(p.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Remover</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </TabsContent>
