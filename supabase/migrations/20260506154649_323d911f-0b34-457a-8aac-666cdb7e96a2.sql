@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.generate_commission_splits() FROM PUBLIC, anon, authenticated;
