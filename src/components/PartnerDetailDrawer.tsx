@@ -97,8 +97,22 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
   const stats = useMemo(() => {
     const total = commissions.reduce((s, c: any) => s + Number(c.amount || 0), 0);
     const paid = commissions.filter((c: any) => c.status === "paga").reduce((s, c: any) => s + Number(c.amount || 0), 0);
-    const pending = commissions.filter((c: any) => c.status === "pendente").reduce((s, c: any) => s + Number(c.amount || 0), 0);
-    return { total, paid, pending, clientsCount: clients.length, productsCount: links.length };
+    const pending = commissions.filter((c: any) => ["gerada", "em_analise", "aprovada"].includes(c.status)).reduce((s, c: any) => s + Number(c.amount || 0), 0);
+    const approved = commissions.filter((c: any) => c.status === "aprovada").reduce((s, c: any) => s + Number(c.amount || 0), 0);
+    
+    // Clients stats
+    const convertedClients = clients.filter((c: any) => c.status === "ativo").length;
+    const now = new Date();
+    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthClients = clients.filter((c: any) => new Date(c.created_at) >= startMonth).length;
+
+    return { 
+      total, paid, pending, approved,
+      clientsCount: clients.length, 
+      convertedClients,
+      monthClients,
+      productsCount: links.length 
+    };
   }, [commissions, clients, links]);
 
   // Add product
