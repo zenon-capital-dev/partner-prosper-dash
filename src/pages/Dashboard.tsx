@@ -18,6 +18,10 @@ import {
   Coins,
   CheckCircle2,
   Sparkles,
+  ArrowRight,
+  ClipboardList,
+  Activity,
+  UserCheck,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -25,6 +29,7 @@ import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 const C = {
   primary: "hsl(var(--primary))",
@@ -193,27 +198,132 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 vx-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-display text-lg font-bold">Atividades Recentes</h3>
-            <Button variant="ghost" size="sm" className="text-xs">Ver todas</Button>
+        <div className="lg:col-span-2 space-y-6">
+          <div className="vx-card overflow-hidden">
+            <div className="p-6 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+              <div>
+                <h3 className="font-display text-lg font-bold flex items-center gap-2">
+                  <Activity className="size-5 text-primary" />
+                  Atividades Recentes
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Acompanhamento operacional em tempo real</p>
+              </div>
+              <Button variant="outline" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">
+                Ver Todas
+              </Button>
+            </div>
+            <div className="p-0">
+              {[
+                { type: 'sale', title: 'Novo contrato fechado', user: 'Douglas Santos', time: '14:20', detail: 'Gestão Financeira - R$ 12.500,00' },
+                { type: 'doc', title: 'Documentos recebidos', user: 'Ana Paula (Cliente)', time: '11:05', detail: 'Regularização Imobiliária' },
+                { type: 'partner', title: 'Nova indicação de parceiro', user: 'Consultoria ABC', time: 'Ontem', detail: 'Lead: Marcos Oliveira' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 hover:bg-muted/30 transition-colors border-b last:border-0 border-border/40 group">
+                  <div className="mt-1 size-8 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                    {item.type === 'sale' ? <FileSignature className="size-4" /> : item.type === 'doc' ? <FileUp className="size-4" /> : <UserPlus className="size-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-bold truncate">{item.title}</p>
+                      <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">{item.time}</span>
+                    </div>
+                    <p className="text-[12px] text-muted-foreground mt-0.5">
+                      <span className="font-semibold text-foreground">{item.user}</span> • {item.detail}
+                    </p>
+                  </div>
+                  <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity self-center" />
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground text-center py-8">Acompanhe aqui as movimentações do sistema em tempo real.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+            <div className="rounded-3xl p-6 bg-slate-950 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                 <Coins className="size-24" />
+               </div>
+               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Meta de Faturamento</p>
+               <div className="mt-4 space-y-3">
+                 <div className="flex items-end justify-between">
+                   <h4 className="text-2xl font-bold">R$ 842.000</h4>
+                   <span className="text-xs font-medium text-emerald-400">84%</span>
+                 </div>
+                 <Progress value={84} className="h-2 bg-white/10" />
+                 <p className="text-[11px] text-slate-500">Faltam R$ 158.000 para a meta do mês</p>
+               </div>
+            </div>
+
+            <div className="rounded-3xl p-6 bg-primary relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:scale-110 transition-transform">
+                 <Users className="size-24" />
+               </div>
+               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary-foreground/70">Performance de Leads</p>
+               <div className="mt-4 space-y-3">
+                 <div className="flex items-end justify-between">
+                   <h4 className="text-2xl font-bold">128 Leads</h4>
+                   <span className="text-xs font-medium text-primary-foreground">+12%</span>
+                 </div>
+                 <div className="flex gap-1 h-2">
+                   <div className="flex-1 bg-white/40 rounded-full" />
+                   <div className="flex-1 bg-white/20 rounded-full" />
+                   <div className="flex-1 bg-white/10 rounded-full" />
+                 </div>
+                 <p className="text-[11px] text-primary-foreground/60">Conversão de 18.5% este mês</p>
+               </div>
+            </div>
           </div>
         </div>
         
-        <div className="vx-card p-6">
-          <h3 className="font-display text-lg font-bold mb-6">Pendências</h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-destructive/5 border border-destructive/10">
-              <div className="p-2 rounded-lg bg-destructive/10 text-destructive">
-                <Clock className="size-4" />
-              </div>
-              <div>
-                <p className="text-sm font-bold">Aguardando Documentos</p>
-                <p className="text-[11px] text-muted-foreground">3 solicitações pendentes</p>
-              </div>
+        <div className="space-y-6">
+          <div className="vx-card p-6">
+            <h3 className="font-display text-lg font-bold flex items-center gap-2 mb-6">
+              <ClipboardList className="size-5 text-amber-500" />
+              Pendências Críticas
+            </h3>
+            <div className="space-y-4">
+              {[
+                { label: 'Contratos em Atraso', count: 4, tone: 'bg-destructive/10 text-destructive border-destructive/20' },
+                { label: 'Documentos Pendentes', count: 12, tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+                { label: 'Contas a Pagar (Hoje)', count: 2, tone: 'bg-slate-900 text-white border-slate-800 dark:bg-slate-800' },
+              ].map((p, i) => (
+                <div key={i} className={cn("flex items-center justify-between p-4 rounded-2xl border transition-all hover:scale-[1.02]", p.tone)}>
+                  <span className="text-sm font-bold">{p.label}</span>
+                  <span className="text-xl font-black">{p.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="vx-card p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
+            <h3 className="font-display text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Equipe Online</h3>
+            <div className="space-y-4">
+              {[
+                { name: 'Ricardo Melo', role: 'Colaborador', status: 'online' },
+                { name: 'Juliana Costa', role: 'Vendedor', status: 'busy' },
+                { name: 'Marcos Silva', role: 'Prestador', status: 'offline' },
+              ].map((member, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="relative size-10 shrink-0">
+                    <div className="size-full rounded-full bg-muted border border-border flex items-center justify-center font-bold text-xs">
+                      {member.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <span className={cn(
+                      "absolute bottom-0 right-0 size-3 rounded-full border-2 border-card",
+                      member.status === 'online' ? 'bg-success' : member.status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'
+                    )} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{member.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{member.role}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="size-8 rounded-full">
+                    <Activity className="size-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" className="w-full mt-2 h-9 text-xs font-bold border-dashed">
+                Gerenciar Equipe
+              </Button>
             </div>
           </div>
         </div>
