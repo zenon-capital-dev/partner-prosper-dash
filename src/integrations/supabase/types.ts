@@ -993,7 +993,13 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "vendedor" | "parceiro" | "cliente"
+      app_role:
+        | "admin"
+        | "vendedor"
+        | "parceiro"
+        | "cliente"
+        | "colaborador"
+        | "prestador"
       beneficiary_type: "partner" | "referrer" | "collaborator"
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status: "ativo" | "inativo" | "prospecto"
@@ -1136,7 +1142,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "vendedor", "parceiro", "cliente"],
+      app_role: [
+        "admin",
+        "vendedor",
+        "parceiro",
+        "cliente",
+        "colaborador",
+        "prestador",
+      ],
       beneficiary_type: ["partner", "referrer", "collaborator"],
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
       client_status: ["ativo", "inativo", "prospecto"],
