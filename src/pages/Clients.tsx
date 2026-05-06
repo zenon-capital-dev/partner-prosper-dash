@@ -345,9 +345,19 @@ function ListView({ clients, onOpen, onDelete }: any) {
                 </td>
                 <td className="px-6 py-3.5">
                   {c.partners ? (
-                    <Badge variant="secondary" className="text-[10px] gap-1 font-normal">
-                      {c.partners.full_name}
-                    </Badge>
+                    <div className="space-y-1">
+                      <Badge variant="secondary" className="text-[10px] gap-1 font-normal">
+                        {c.partners.full_name}
+                      </Badge>
+                      <p className="text-[10px] text-muted-foreground">Via Parceiro</p>
+                    </div>
+                  ) : c.referrer_id ? (
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="text-[10px] gap-1 font-normal border-warning/30 text-warning">
+                        Indicação
+                      </Badge>
+                      <p className="text-[10px] text-muted-foreground">Link Direto</p>
+                    </div>
                   ) : (
                     <span className="text-[11px] text-muted-foreground/60">Direto</span>
                   )}
