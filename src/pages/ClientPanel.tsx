@@ -339,6 +339,10 @@ export default function ClientPanel() {
           )}
         </TabsContent>
 
+        <TabsContent value="solicitacoes" className="space-y-4">
+          <ClientRequestsView requests={requests} client={client} />
+        </TabsContent>
+
         {/* ===== FINANCEIRO ===== */}
         <TabsContent value="financeiro" className="space-y-3">
           {sales.length === 0 ? (
