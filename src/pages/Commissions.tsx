@@ -419,9 +419,9 @@ export default function Commissions() {
                   <td className="px-4 py-3 text-right vx-mono">{formatPercent(c.percent)}</td>
                   <td className="px-4 py-3 text-right vx-mono font-bold text-success">{formatBRL(c.amount)}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${statusBadge[c.status]}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge[c.status]}`}>
                       <span className="size-1.5 rounded-full bg-current" />
-                      {c.status === "pendente" ? "a pagar" : c.status}
+                      {c.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
