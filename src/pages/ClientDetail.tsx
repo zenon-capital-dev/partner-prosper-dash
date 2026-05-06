@@ -8,7 +8,7 @@ import {
   Pencil, Wallet, FolderKanban, Activity as ActivityIcon, TrendingUp, Tag,
   Hash, IdCard, Calendar, Sparkles, ArrowUpRight, CircleDollarSign, Receipt,
   CheckCircle2, Clock3, AlertTriangle, MessageSquarePlus, Users2, FileUp, Eye,
-  UserCheck, Truck, ClipboardList,
+  UserCheck, Truck, ClipboardList, Target,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
