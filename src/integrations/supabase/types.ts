@@ -712,6 +712,54 @@ export type Database = {
           },
         ]
       }
+      employees: {
+        Row: {
+          created_at: string
+          email: string | null
+          function: string | null
+          has_system_access: boolean | null
+          id: string
+          name: string
+          notes: string | null
+          permissions: Json | null
+          phone: string | null
+          role: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          function?: string | null
+          has_system_access?: boolean | null
+          id?: string
+          name: string
+          notes?: string | null
+          permissions?: Json | null
+          phone?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          function?: string | null
+          has_system_access?: boolean | null
+          id?: string
+          name?: string
+          notes?: string | null
+          permissions?: Json | null
+          phone?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number

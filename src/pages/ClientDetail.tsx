@@ -166,7 +166,7 @@ export default function ClientDetail() {
           *, 
           products(name, base_price, required_documents, standard_steps),
           service_providers(name),
-          profiles:responsible_employee_id(full_name)
+          employees(name)
         `)
         .eq("client_id", id!)
         .order("created_at", { ascending: false });
@@ -179,9 +179,10 @@ export default function ClientDetail() {
     queryKey: ["employees"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .order("full_name");
+        .from("employees")
+        .select("id, name")
+        .eq("status", "active")
+        .order("name");
       return data ?? [];
     },
   });
@@ -556,7 +557,7 @@ export default function ClientDetail() {
                           </td>
                           <td className="px-6 py-3">
                             <div className="flex items-center gap-1.5 text-xs">
-                              <UserCheck className="size-3 text-primary" /> {p.profiles?.full_name ?? "Não definido"}
+                              <UserCheck className="size-3 text-primary" /> {p.employees?.name ?? "Não definido"}
                             </div>
                           </td>
                           <td className="px-6 py-3">
@@ -843,7 +844,7 @@ export default function ClientDetail() {
                 <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
-                  {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.full_name}</SelectItem>)}
+                  {employees.map((e: any) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
