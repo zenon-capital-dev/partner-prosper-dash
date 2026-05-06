@@ -35,6 +35,12 @@ type Product = {
   category_id: string | null;
   base_price: number | null;
   default_commission_percent: number | null;
+  default_employee_commission: number | null;
+  default_provider_value: number | null;
+  billing_type: string;
+  required_documents: string[] | null;
+  standard_steps: { label: string; completed: boolean }[] | null;
+  avg_delivery_time: number | null;
   active: boolean;
   recurring: boolean;
   allow_partner: boolean;
@@ -52,6 +58,12 @@ const emptyForm = {
   category_id: "",
   base_price: 0,
   default_commission_percent: 10,
+  default_employee_commission: 0,
+  default_provider_value: 0,
+  billing_type: "unico",
+  required_documents: "",
+  standard_steps: "",
+  avg_delivery_time: "",
   active: true,
   recurring: false,
   allow_partner: true,
