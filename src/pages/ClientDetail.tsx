@@ -28,9 +28,47 @@ import { Repeat, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const statusBadge: Record<string, string> = {
-  ativo: "bg-success-muted text-success",
-  prospecto: "bg-warning-muted text-warning",
+  novo_cliente: "bg-blue-50 text-blue-600 border-blue-200",
+  aguardando_atendimento: "bg-amber-50 text-amber-600 border-amber-200",
+  aguardando_documentos: "bg-amber-50 text-amber-600 border-amber-200",
+  documentos_enviados: "bg-blue-50 text-blue-600 border-blue-200",
+  documentos_analise: "bg-indigo-50 text-indigo-600 border-indigo-200",
+  documentos_aprovados: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  documentos_reprovados: "bg-destructive/10 text-destructive border-destructive/20",
+  aguardando_contrato: "bg-amber-50 text-amber-600 border-amber-200",
+  contrato_enviado: "bg-blue-50 text-blue-600 border-blue-200",
+  contrato_assinado: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  pagamento_pendente: "bg-warning/15 text-warning border-warning/30",
+  pagamento_parcial: "bg-warning/15 text-warning border-warning/30",
+  pagamento_confirmado: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  em_andamento: "bg-primary/10 text-primary border-primary/20",
+  aguardando_terceiro: "bg-slate-100 text-slate-600 border-slate-200",
+  finalizado: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  cancelado: "bg-muted text-muted-foreground",
   inativo: "bg-muted text-muted-foreground",
+  reembolso: "bg-destructive/10 text-destructive border-destructive/20",
+};
+
+const statusLabel: Record<string, string> = {
+  novo_cliente: "Novo Cliente",
+  aguardando_atendimento: "Aguardando atendimento",
+  aguardando_documentos: "Aguardando documentos",
+  documentos_enviados: "Documentos enviados",
+  documentos_analise: "Documentos em análise",
+  documentos_aprovados: "Documentos aprovados",
+  documentos_reprovados: "Documentos reprovados",
+  aguardando_contrato: "Aguardando contrato",
+  contrato_enviado: "Contrato enviado",
+  contrato_assinado: "Contrato assinado",
+  pagamento_pendente: "Pagamento pendente",
+  pagamento_parcial: "Pagamento parcial",
+  pagamento_confirmado: "Pagamento confirmado",
+  em_andamento: "Em andamento",
+  aguardando_terceiro: "Aguardando terceiro",
+  finalizado: "Finalizado",
+  cancelado: "Cancelado",
+  inativo: "Inativo",
+  reembolso: "Reembolso",
 };
 
 const saleStatusBadge: Record<string, string> = {
@@ -268,9 +306,10 @@ export default function ClientDetail() {
           {/* Contato grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
             <ContactItem icon={Mail} label="E-mail" value={client.email ?? "—"} />
-            <ContactItem icon={Phone} label="Telefone" value={formatPhone(client.phone)} />
-            <ContactItem icon={IdCard} label="CPF/CNPJ" value={formatDoc(client.document)} mono />
-            <ContactItem icon={MapPin} label="Cidade/UF" value={[client.city, client.state].filter(Boolean).join("/") || "—"} />
+            <ContactItem icon={Phone} label="WhatsApp / Celular" value={formatPhone(client.whatsapp || client.phone)} />
+            <ContactItem icon={IdCard} label={client.document_type || "CPF/CNPJ"} value={formatDoc(client.document)} mono />
+            <ContactItem icon={MapPin} label="Origem" value={client.source?.replace("_", " ") || "—"} />
+            <ContactItem icon={MapPin} label="Cidade/UF" value={[client.address_city, client.address_state].filter(Boolean).join("/") || "—"} />
             <ContactItem icon={MapPin} label="Endereço" value={client.address_street ? `${client.address_street}, ${client.address_number}` : client.address || "—"} />
           </div>
         </div>

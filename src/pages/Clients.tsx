@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import {
   Plus, Search, MoreHorizontal, Eye, Trash2, Users, UserCheck, UserPlus,
   TrendingUp, LayoutGrid, List, SlidersHorizontal, Download, Mail, Phone,
-  Building2, Tag, Sparkles, ArrowUpRight, Crown, X,
+  Building2, Tag, Sparkles, ArrowUpRight, Crown, X, Pencil, FileUp,
 } from "lucide-react";
 import { formatDate, formatBRL, initials, formatPhone, timeAgo } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
@@ -301,13 +301,13 @@ function ListView({ clients, onOpen, onDelete }: any) {
           <thead className="bg-muted/40">
             <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
               <th className="px-6 py-3 text-left font-semibold">Cliente</th>
-              <th className="px-6 py-3 text-left font-semibold">Empresa / Local</th>
-              <th className="px-6 py-3 text-left font-semibold">Parceiro</th>
-              <th className="px-6 py-3 text-right font-semibold">Vendas</th>
-              <th className="px-6 py-3 text-right font-semibold">LTV</th>
-              <th className="px-6 py-3 text-left font-semibold">Última venda</th>
-              <th className="px-6 py-3 text-left font-semibold">Status</th>
-              <th className="px-6 py-3 text-right font-semibold w-12"></th>
+              <th className="px-6 py-3 text-left font-semibold">Produto / Status</th>
+              <th className="px-6 py-3 text-left font-semibold">Origem / Indicação</th>
+              <th className="px-6 py-3 text-left font-semibold">Responsável</th>
+              <th className="px-6 py-3 text-right font-semibold">Valor Vendido</th>
+              <th className="px-6 py-3 text-left font-semibold">Financeiro</th>
+              <th className="px-6 py-3 text-left font-semibold">Documentos</th>
+              <th className="px-6 py-3 text-right font-semibold w-12">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -320,61 +320,35 @@ function ListView({ clients, onOpen, onDelete }: any) {
                 <td className="px-6 py-3.5">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="size-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center text-xs font-semibold ring-1 ring-primary/10">
+                      <div className="size-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold ring-1 ring-border">
                         {initials(c.full_name)}
                       </div>
-                      {c._isVip && (
-                        <div className="absolute -top-1 -right-1 size-4 rounded-full bg-warning text-warning-foreground flex items-center justify-center" title="Cliente VIP (LTV ≥ R$ 50k)">
-                          <Crown className="size-2.5" />
-                        </div>
-                      )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium truncate group-hover:text-primary transition-colors">{c.full_name}</p>
-                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
-                        {c.email ? <><Mail className="size-2.5" /> {c.email}</> : c.phone ? <><Phone className="size-2.5" /> {formatPhone(c.phone)}</> : "—"}
-                      </p>
+                      <p className="font-bold truncate group-hover:text-primary transition-colors">{c.full_name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{c.email}</p>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-3.5">
-                  <p className="text-sm truncate">{c.company ?? "—"}</p>
-                  {(c.city || c.state) && (
-                    <p className="text-[11px] text-muted-foreground truncate">{[c.city, c.state].filter(Boolean).join("/")}</p>
-                  )}
-                </td>
-                <td className="px-6 py-3.5">
-                  {c.partners ? (
-                    <div className="space-y-1">
-                      <Badge variant="secondary" className="text-[10px] gap-1 font-normal">
-                        {c.partners.full_name}
-                      </Badge>
-                      <p className="text-[10px] text-muted-foreground">Via Parceiro</p>
-                    </div>
-                  ) : c.referrer_id ? (
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="text-[10px] gap-1 font-normal border-warning/30 text-warning">
-                        Indicação
-                      </Badge>
-                      <p className="text-[10px] text-muted-foreground">Link Direto</p>
-                    </div>
-                  ) : (
-                    <span className="text-[11px] text-muted-foreground/60">Direto</span>
-                  )}
-                </td>
-                <td className="px-6 py-3.5 text-right">
-                  <span className="vx-mono text-sm font-semibold">{c._salesCount}</span>
-                </td>
-                <td className="px-6 py-3.5 text-right">
-                  <span className={`vx-mono text-sm font-semibold ${c._ltv > 0 ? "text-foreground" : "text-muted-foreground/60"}`}>
-                    {c._ltv > 0 ? formatBRL(c._ltv) : "—"}
-                  </span>
-                </td>
-                <td className="px-6 py-3.5 text-[11px] text-muted-foreground">
-                  {c._lastSale ? timeAgo(c._lastSale) : <span className="text-muted-foreground/60">Nunca</span>}
-                </td>
-                <td className="px-6 py-3.5">
+                  <p className="text-[11px] font-bold text-foreground">Gestão Financeira</p>
                   <StatusPill status={c.status} />
+                </td>
+                <td className="px-6 py-3.5">
+                  <p className="text-[11px] font-medium capitalize">{c.source?.replace("_", " ") || "Manual"}</p>
+                  <p className="text-[10px] text-muted-foreground">{c.partners?.full_name || "Direto"}</p>
+                </td>
+                <td className="px-6 py-3.5 text-sm font-medium">
+                  {c.collaborators?.full_name || "Douglas"}
+                </td>
+                <td className="px-6 py-3.5 text-right">
+                  <p className="vx-mono font-bold">{formatBRL(c.sale_value || 0)}</p>
+                </td>
+                <td className="px-6 py-3.5">
+                   <Badge variant="outline" className="text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100">Confirmado</Badge>
+                </td>
+                <td className="px-6 py-3.5">
+                   <Badge variant="outline" className="text-[10px] uppercase bg-blue-50 text-blue-600 border-blue-100">7/12</Badge>
                 </td>
                 <td className="px-6 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
@@ -389,19 +363,18 @@ function ListView({ clients, onOpen, onDelete }: any) {
                       <DropdownMenuItem onClick={() => onOpen(c.id)}>
                         <Eye className="size-3.5 mr-2" /> Ver detalhes
                       </DropdownMenuItem>
-                      {c.email && (
-                        <DropdownMenuItem onClick={() => window.open(`mailto:${c.email}`)}>
-                          <Mail className="size-3.5 mr-2" /> Enviar email
-                        </DropdownMenuItem>
-                      )}
-                      {c.phone && (
-                        <DropdownMenuItem onClick={() => window.open(`tel:${c.phone}`)}>
-                          <Phone className="size-3.5 mr-2" /> Ligar
-                        </DropdownMenuItem>
-                      )}
+                      <DropdownMenuItem>
+                        <Pencil className="size-3.5 mr-2" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Plus className="size-3.5 mr-2" /> Adicionar produto
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Plus className="size-3.5 mr-2" /> Criar tarefa
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => onDelete(c.id)} className="text-destructive">
-                        <Trash2 className="size-3.5 mr-2" /> Excluir
+                        <Trash2 className="size-3.5 mr-2" /> Desativar
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

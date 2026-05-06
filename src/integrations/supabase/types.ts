@@ -83,6 +83,57 @@ export type Database = {
         }
         Relationships: []
       }
+      client_products: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          custom_product_name: string | null
+          end_date: string | null
+          id: string
+          product_id: string | null
+          start_date: string | null
+          status: string | null
+          value: number | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          custom_product_name?: string | null
+          end_date?: string | null
+          id?: string
+          product_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          value?: number | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          custom_product_name?: string | null
+          end_date?: string | null
+          id?: string
+          product_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_products_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_subscriptions: {
         Row: {
           amount: number
@@ -193,99 +244,150 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          address_city: string | null
           address_complement: string | null
+          address_country: string | null
           address_neighborhood: string | null
           address_number: string | null
+          address_state: string | null
           address_street: string | null
           address_zip_code: string | null
+          birth_date: string | null
           city: string | null
           collaborator_id: string | null
           commission_value: number | null
           company: string | null
+          completion_date: string | null
           contract_value: number | null
           created_at: string
           created_by: string | null
           document: string | null
+          document_type: string | null
           email: string | null
+          entry_date: string | null
           full_name: string
           id: string
+          indicator_id: string | null
+          internal_notes: string | null
           notes: string | null
           origin: string | null
           partner_id: string | null
+          payment_method: string | null
           payment_status: string | null
           phone: string | null
+          priority: string | null
+          provider_id: string | null
           referral_id: string | null
           referrer_id: string | null
+          responsible_id: string | null
+          sale_date: string | null
+          sale_value: number | null
           service_provider_id: string | null
+          source: string
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
           updated_at: string
           user_id: string | null
+          whatsapp: string | null
         }
         Insert: {
           address?: string | null
+          address_city?: string | null
           address_complement?: string | null
+          address_country?: string | null
           address_neighborhood?: string | null
           address_number?: string | null
+          address_state?: string | null
           address_street?: string | null
           address_zip_code?: string | null
+          birth_date?: string | null
           city?: string | null
           collaborator_id?: string | null
           commission_value?: number | null
           company?: string | null
+          completion_date?: string | null
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
           document?: string | null
+          document_type?: string | null
           email?: string | null
+          entry_date?: string | null
           full_name: string
           id?: string
+          indicator_id?: string | null
+          internal_notes?: string | null
           notes?: string | null
           origin?: string | null
           partner_id?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           phone?: string | null
+          priority?: string | null
+          provider_id?: string | null
           referral_id?: string | null
           referrer_id?: string | null
+          responsible_id?: string | null
+          sale_date?: string | null
+          sale_value?: number | null
           service_provider_id?: string | null
+          source?: string
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           updated_at?: string
           user_id?: string | null
+          whatsapp?: string | null
         }
         Update: {
           address?: string | null
+          address_city?: string | null
           address_complement?: string | null
+          address_country?: string | null
           address_neighborhood?: string | null
           address_number?: string | null
+          address_state?: string | null
           address_street?: string | null
           address_zip_code?: string | null
+          birth_date?: string | null
           city?: string | null
           collaborator_id?: string | null
           commission_value?: number | null
           company?: string | null
+          completion_date?: string | null
           contract_value?: number | null
           created_at?: string
           created_by?: string | null
           document?: string | null
+          document_type?: string | null
           email?: string | null
+          entry_date?: string | null
           full_name?: string
           id?: string
+          indicator_id?: string | null
+          internal_notes?: string | null
           notes?: string | null
           origin?: string | null
           partner_id?: string | null
+          payment_method?: string | null
           payment_status?: string | null
           phone?: string | null
+          priority?: string | null
+          provider_id?: string | null
           referral_id?: string | null
           referrer_id?: string | null
+          responsible_id?: string | null
+          sale_date?: string | null
+          sale_value?: number | null
           service_provider_id?: string | null
+          source?: string
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
           updated_at?: string
           user_id?: string | null
+          whatsapp?: string | null
         }
         Relationships: [
           {

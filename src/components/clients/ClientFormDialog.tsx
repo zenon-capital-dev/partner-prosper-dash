@@ -20,7 +20,7 @@ interface Props {
 export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "ativo" });
+  const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual", priority: "media" });
 
   useEffect(() => {
     if (client) setForm(client);
@@ -189,17 +189,48 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Origem do cliente</Label>
-            <Input value={form.origin ?? ""} onChange={(e) => setForm({ ...form, origin: e.target.value })} placeholder="Ex: Google, Instagram, Indicação" />
+            <Label>Origem do cliente *</Label>
+            <Select value={form.source} onValueChange={(v) => setForm({ ...form, source: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cadastro_manual">Cadastro manual</SelectItem>
+                <SelectItem value="indicacao_parceiro">Indicação de parceiro</SelectItem>
+                <SelectItem value="indicacao_cliente">Indicação de cliente</SelectItem>
+                <SelectItem value="indicacao_colaborador">Indicação de colaborador</SelectItem>
+                <SelectItem value="trafego_pago">Tráfego pago</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
+                <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                <SelectItem value="site">Site</SelectItem>
+                <SelectItem value="organico">Orgânico</SelectItem>
+                <SelectItem value="prospeccao_ativa">Prospecção ativa</SelectItem>
+                <SelectItem value="outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>Status do Cliente</Label>
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="prospecto">Prospecto</SelectItem>
-                <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="novo_cliente">Novo Cliente</SelectItem>
+                <SelectItem value="aguardando_atendimento">Aguardando atendimento</SelectItem>
+                <SelectItem value="aguardando_documentos">Aguardando documentos</SelectItem>
+                <SelectItem value="documentos_enviados">Documentos enviados</SelectItem>
+                <SelectItem value="documentos_analise">Documentos em análise</SelectItem>
+                <SelectItem value="documentos_aprovados">Documentos aprovados</SelectItem>
+                <SelectItem value="documentos_reprovados">Documentos reprovados</SelectItem>
+                <SelectItem value="aguardando_contrato">Aguardando contrato</SelectItem>
+                <SelectItem value="contrato_enviado">Contrato enviado</SelectItem>
+                <SelectItem value="contrato_assinado">Contrato assinado</SelectItem>
+                <SelectItem value="pagamento_pendente">Pagamento pendente</SelectItem>
+                <SelectItem value="pagamento_parcial">Pagamento parcial</SelectItem>
+                <SelectItem value="pagamento_confirmado">Pagamento confirmado</SelectItem>
+                <SelectItem value="em_andamento">Em andamento</SelectItem>
+                <SelectItem value="aguardando_terceiro">Aguardando terceiro</SelectItem>
+                <SelectItem value="finalizado">Finalizado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
                 <SelectItem value="inativo">Inativo</SelectItem>
+                <SelectItem value="reembolso">Reembolso</SelectItem>
               </SelectContent>
             </Select>
           </div>
