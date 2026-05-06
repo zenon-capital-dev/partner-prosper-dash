@@ -13,15 +13,22 @@ import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
-type Role = "admin" | "vendedor" | "parceiro" | "cliente" | "none";
+type Role = "admin" | "vendedor" | "parceiro" | "colaborador" | "prestador" | "cliente" | "none";
 
 const roleLabel: Record<string, string> = {
-  admin: "Administrador", vendedor: "Vendedor", parceiro: "Parceiro", cliente: "Cliente",
+  admin: "Administrador",
+  vendedor: "Vendedor",
+  parceiro: "Parceiro",
+  colaborador: "Colaborador",
+  prestador: "Prestador",
+  cliente: "Cliente",
 };
 const roleClass: Record<string, string> = {
   admin: "bg-primary-muted text-primary",
   vendedor: "bg-info-muted text-info",
   parceiro: "bg-warning-muted text-warning",
+  colaborador: "bg-emerald-100 text-emerald-700",
+  prestador: "bg-slate-200 text-slate-800",
   cliente: "bg-muted text-foreground",
 };
 
@@ -141,7 +148,9 @@ export default function UsersPage() {
                       <SelectItem value="none">Sem papel</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
                       <SelectItem value="vendedor">Vendedor</SelectItem>
+                      <SelectItem value="colaborador">Colaborador</SelectItem>
                       <SelectItem value="parceiro">Parceiro</SelectItem>
+                      <SelectItem value="prestador">Prestador</SelectItem>
                       <SelectItem value="cliente">Cliente</SelectItem>
                     </SelectContent>
                   </Select>
@@ -169,7 +178,9 @@ export default function UsersPage() {
                 <SelectContent>
                   <SelectItem value="admin">Administrador</SelectItem>
                   <SelectItem value="vendedor">Vendedor</SelectItem>
+                  <SelectItem value="colaborador">Colaborador</SelectItem>
                   <SelectItem value="parceiro">Parceiro</SelectItem>
+                  <SelectItem value="prestador">Prestador</SelectItem>
                   <SelectItem value="cliente">Cliente</SelectItem>
                 </SelectContent>
               </Select>
