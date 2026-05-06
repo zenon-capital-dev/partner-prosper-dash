@@ -6,7 +6,16 @@ import { useAuth } from "@/hooks/useAuth";
  * sem precisar digitar URL.
  */
 export default function RoleHome() {
-  const { loading, isAdmin, isVendedor, isParceiro, isCliente, isColaborador, isPrestador } = useAuth();
+  const { 
+    loading, 
+    isAdmin, 
+    isAdminSecondary, 
+    isColaborador, 
+    isParceiro, 
+    isPrestador, 
+    isCliente, 
+    isLead 
+  } = useAuth();
 
   if (loading) {
     return (
@@ -16,11 +25,14 @@ export default function RoleHome() {
     );
   }
 
-  if (isAdmin || isVendedor || isColaborador) return <Navigate to="/admin" replace />;
+  // Admin and Staff go to Admin Dashboard
+  if (isAdmin || isAdminSecondary || isColaborador) return <Navigate to="/admin" replace />;
+  
+  // Specific role panels
   if (isParceiro) return <Navigate to="/parceiro" replace />;
   if (isPrestador) return <Navigate to="/prestador" replace />;
-  if (isCliente) return <Navigate to="/cliente" replace />;
+  if (isCliente || isLead) return <Navigate to="/cliente" replace />;
 
-  // sem papel ainda — manda pra área do cliente como fallback
+  // fallback
   return <Navigate to="/cliente" replace />;
 }
