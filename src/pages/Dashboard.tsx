@@ -24,6 +24,7 @@ import { ptBR } from "date-fns/locale";
 import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const C = {
   primary: "hsl(var(--primary))",
