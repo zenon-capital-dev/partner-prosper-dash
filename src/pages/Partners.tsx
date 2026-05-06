@@ -120,8 +120,20 @@ export default function Partners() {
   const openEdit = (p: any) => {
     setEditing(p);
     setForm({
-      full_name: p.full_name, email: p.email, phone: p.phone, document: p.document,
-      pix_key: p.pix_key, commission_percent: p.commission_percent, notes: p.notes, active: p.active,
+      full_name: p.full_name, 
+      email: p.email, 
+      phone: p.phone, 
+      whatsapp: p.whatsapp,
+      document: p.document,
+      pix_key: p.pix_key, 
+      bank_name: p.bank_name,
+      bank_agency: p.bank_agency,
+      bank_account: p.bank_account,
+      partner_category: p.partner_category || "indicador",
+      has_system_access: !!p.has_system_access,
+      commission_percent: p.commission_percent, 
+      notes: p.notes, 
+      active: p.active,
     });
     setOpen(true);
   };
@@ -129,9 +141,20 @@ export default function Partners() {
   const submit = async () => {
     if (!form.full_name) { toast.error("Nome obrigatório"); return; }
     const payload = {
-      full_name: form.full_name, email: form.email || null, phone: form.phone || null,
-      document: form.document || null, pix_key: form.pix_key || null,
-      commission_percent: Number(form.commission_percent ?? 10), notes: form.notes || null, active: !!form.active,
+      full_name: form.full_name, 
+      email: form.email || null, 
+      phone: form.phone || null,
+      whatsapp: form.whatsapp || null,
+      document: form.document || null, 
+      pix_key: form.pix_key || null,
+      bank_name: form.bank_name || null,
+      bank_agency: form.bank_agency || null,
+      bank_account: form.bank_account || null,
+      partner_category: form.partner_category || "indicador",
+      has_system_access: !!form.has_system_access,
+      commission_percent: Number(form.commission_percent ?? 10), 
+      notes: form.notes || null, 
+      active: !!form.active,
     };
     const { error } = editing
       ? await supabase.from("partners").update(payload).eq("id", editing.id)
@@ -284,20 +307,50 @@ export default function Partners() {
         <DialogContent className="max-w-xl">
           <DialogHeader><DialogTitle className="font-display text-xl">{editing ? "Editar parceiro" : "Novo parceiro"}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
-            <div className="col-span-2 space-y-2"><Label>Nome *</Label><Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
+            <div className="col-span-2 space-y-2"><Label>Nome completo *</Label><Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
             <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div className="space-y-2"><Label>Telefone</Label><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+            <div className="space-y-2"><Label>WhatsApp</Label><Input value={form.whatsapp ?? ""} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} /></div>
             <div className="space-y-2"><Label>CPF/CNPJ</Label><Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Chave PIX</Label><Input value={form.pix_key ?? ""} onChange={(e) => setForm({ ...form, pix_key: e.target.value })} /></div>
+            
+            <div className="col-span-2 grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg border border-border/50 mt-2">
+              <div className="col-span-2"><p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Dados Financeiros</p></div>
+              <div className="space-y-2"><Label>Chave PIX</Label><Input value={form.pix_key ?? ""} onChange={(e) => setForm({ ...form, pix_key: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Banco</Label><Input value={form.bank_name ?? ""} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Agência</Label><Input value={form.bank_agency ?? ""} onChange={(e) => setForm({ ...form, bank_agency: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Conta</Label><Input value={form.bank_account ?? ""} onChange={(e) => setForm({ ...form, bank_account: e.target.value })} /></div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de parceiro</Label>
+              <Select value={form.partner_category} onValueChange={(v) => setForm({ ...form, partner_category: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="indicador">Indicador</SelectItem>
+                  <SelectItem value="afiliado">Afiliado</SelectItem>
+                  <SelectItem value="consultoria">Consultoria</SelectItem>
+                  <SelectItem value="agencia">Agência</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2"><Label>% Comissão padrão</Label><Input type="number" step="0.01" value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} /></div>
-            <div className="space-y-2 flex flex-col">
-              <Label>Status</Label>
-              <div className="flex items-center gap-2 h-9">
+            
+            <div className="space-y-2 flex flex-col justify-center">
+              <Label className="mb-2">Acesso ao sistema</Label>
+              <div className="flex items-center gap-2">
+                <Switch checked={!!form.has_system_access} onCheckedChange={(v) => setForm({ ...form, has_system_access: v })} />
+                <span className="text-xs text-muted-foreground">{form.has_system_access ? "Permitido" : "Bloqueado"}</span>
+              </div>
+            </div>
+            <div className="space-y-2 flex flex-col justify-center">
+              <Label className="mb-2">Status</Label>
+              <div className="flex items-center gap-2">
                 <Switch checked={!!form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
                 <span className="text-xs text-muted-foreground">{form.active ? "Ativo" : "Inativo"}</span>
               </div>
             </div>
-            <div className="col-span-2 space-y-2"><Label>Observações</Label><Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+            <div className="col-span-2 space-y-2"><Label>Observações internas</Label><Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>

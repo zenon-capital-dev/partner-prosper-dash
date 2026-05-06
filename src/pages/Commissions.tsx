@@ -26,12 +26,15 @@ import {
 import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 
-type StatusFilter = "all" | "pendente" | "pago" | "cancelado";
+type StatusFilter = "all" | "gerada" | "em_analise" | "aprovada" | "paga" | "cancelada" | "bloqueada";
 
 const statusBadge: Record<string, string> = {
-  pendente: "bg-warning-muted text-warning",
-  pago: "bg-success-muted text-success",
-  cancelado: "bg-destructive-muted text-destructive",
+  gerada: "bg-blue-50 text-blue-600 border-blue-200",
+  em_analise: "bg-indigo-50 text-indigo-600 border-indigo-200",
+  aprovada: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  paga: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  cancelada: "bg-destructive/10 text-destructive border-destructive/20",
+  bloqueada: "bg-muted text-muted-foreground border-border",
 };
 
 export default function Commissions() {
@@ -104,13 +107,12 @@ export default function Commissions() {
   }, [commissions, statusFilter, partnerFilter, dateFrom, dateTo, search]);
 
   const totals = useMemo(() => {
-    const acc = { paid: 0, pending: 0, cancelled: 0, total: 0, count: filtered.length };
+    const acc = { paid: 0, pending: 0, total: 0, count: filtered.length };
     filtered.forEach((c: any) => {
       const v = Number(c.amount || 0);
       acc.total += v;
-      if (c.status === "pago") acc.paid += v;
-      else if (c.status === "pendente") acc.pending += v;
-      else if (c.status === "cancelado") acc.cancelled += v;
+      if (c.status === "paga") acc.paid += v;
+      else if (["gerada", "em_analise", "aprovada"].includes(c.status)) acc.pending += v;
     });
     return acc;
   }, [filtered]);
@@ -189,15 +191,15 @@ export default function Commissions() {
   };
 
   const cancelOne = async (c: any) => {
-    const { error } = await supabase.from("commissions").update({ status: "cancelado", paid_at: null }).eq("id", c.id);
+    const { error } = await supabase.from("commissions").update({ status: "cancelada", paid_at: null }).eq("id", c.id);
     if (error) toast.error(error.message);
     else { toast.success("Comissão cancelada"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
 
   const reopenOne = async (c: any) => {
-    const { error } = await supabase.from("commissions").update({ status: "pendente", paid_at: null }).eq("id", c.id);
+    const { error } = await supabase.from("commissions").update({ status: "gerada", paid_at: null }).eq("id", c.id);
     if (error) toast.error(error.message);
-    else { toast.success("Comissão reaberta"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
+    else { toast.success("Comissão redefinida para Gerada"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
 
   const openPaySingle = (c: any) => { setPayTarget({ ids: [c.id] }); setPayOpen(true); };
@@ -225,7 +227,7 @@ export default function Commissions() {
   const bulkCancel = async () => {
     if (selectedIds.length === 0) return;
     if (!confirm(`Cancelar ${selectedIds.length} comissão(ões)?`)) return;
-    const { error } = await supabase.from("commissions").update({ status: "cancelado", paid_at: null }).in("id", selectedIds);
+    const { error } = await supabase.from("commissions").update({ status: "cancelada", paid_at: null }).in("id", selectedIds);
     if (error) toast.error(error.message);
     else { toast.success("Comissões canceladas"); setSelected({}); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
@@ -301,9 +303,9 @@ export default function Commissions() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KpiCard icon={CircleDollarSign} label="Total filtrado" value={formatBRL(totals.total)} sub={`${totals.count} registros`} tone="primary" />
-        <KpiCard icon={Clock} label="A pagar" value={formatBRL(totals.pending)} tone="warning" />
+        <KpiCard icon={Clock} label="Pendente/Em Análise" value={formatBRL(totals.pending)} tone="warning" />
         <KpiCard icon={CheckCircle2} label="Pagas" value={formatBRL(totals.paid)} tone="success" />
-        <KpiCard icon={XCircle} label="Canceladas" value={formatBRL(totals.cancelled)} tone="destructive" />
+        <KpiCard icon={TrendingUp} label="Taxa Conversão" value={`${totals.total ? Math.round((totals.paid / totals.total) * 100) : 0}%`} tone="info" />
       </div>
 
       {/* Toolbar */}
@@ -338,9 +340,12 @@ export default function Commissions() {
         <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
           <TabsList className="h-10">
             <TabsTrigger value="all">Todas <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
-            <TabsTrigger value="pendente" className="data-[state=active]:text-warning">A pagar</TabsTrigger>
-            <TabsTrigger value="pago" className="data-[state=active]:text-success">Pagas</TabsTrigger>
-            <TabsTrigger value="cancelado" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
+            <TabsTrigger value="gerada" className="data-[state=active]:text-blue-500">Geradas</TabsTrigger>
+            <TabsTrigger value="em_analise" className="data-[state=active]:text-indigo-500">Em análise</TabsTrigger>
+            <TabsTrigger value="aprovada" className="data-[state=active]:text-emerald-500">Aprovadas</TabsTrigger>
+            <TabsTrigger value="paga" className="data-[state=active]:text-emerald-700">Pagas</TabsTrigger>
+            <TabsTrigger value="cancelada" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
+            <TabsTrigger value="bloqueada" className="data-[state=active]:text-muted-foreground">Bloqueadas</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -414,9 +419,9 @@ export default function Commissions() {
                   <td className="px-4 py-3 text-right vx-mono">{formatPercent(c.percent)}</td>
                   <td className="px-4 py-3 text-right vx-mono font-bold text-success">{formatBRL(c.amount)}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${statusBadge[c.status]}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge[c.status]}`}>
                       <span className="size-1.5 rounded-full bg-current" />
-                      {c.status === "pendente" ? "a pagar" : c.status}
+                      {c.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -429,7 +434,7 @@ export default function Commissions() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {c.status === "pendente" && (
+                      {["gerada", "em_analise", "aprovada"].includes(c.status) && (
                         <Button size="sm" variant="outline" onClick={() => openPaySingle(c)} className="h-7 gap-1 text-xs">
                           <Check className="size-3" /> Pagar
                         </Button>
@@ -440,10 +445,10 @@ export default function Commissions() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
-                          {c.status !== "pendente" && (
-                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Reabrir</DropdownMenuItem>
+                          {c.status !== "gerada" && (
+                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Resetar (Gerada)</DropdownMenuItem>
                           )}
-                          {c.status !== "cancelado" && (
+                          {c.status !== "cancelada" && (
                             <DropdownMenuItem onClick={() => cancelOne(c)}><XCircle className="size-3.5 mr-2" /> Cancelar</DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
@@ -514,9 +519,12 @@ export default function Commissions() {
               <Select value={createForm.status} onValueChange={(v) => setCreateForm({ ...createForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">A pagar</SelectItem>
-                  <SelectItem value="pago">Já paga</SelectItem>
-                  <SelectItem value="cancelado">Cancelada</SelectItem>
+                  <SelectItem value="gerada">Gerada</SelectItem>
+                  <SelectItem value="em_analise">Em análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
+                  <SelectItem value="pago">Paga</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="bloqueada">Bloqueada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -553,9 +561,12 @@ export default function Commissions() {
               <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">A pagar</SelectItem>
+                  <SelectItem value="gerada">Gerada</SelectItem>
+                  <SelectItem value="em_analise">Em análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
                   <SelectItem value="pago">Paga</SelectItem>
-                  <SelectItem value="cancelado">Cancelada</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="bloqueada">Bloqueada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
