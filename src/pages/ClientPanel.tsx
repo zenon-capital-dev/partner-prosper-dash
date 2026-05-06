@@ -115,7 +115,7 @@ export default function ClientPanel() {
     );
   }
 
-  const { client, subscriptions, sales, docs, catalog } = data;
+  const { client, subscriptions, sales, docs, catalog, requests } = data;
   const activeSubs = subscriptions.filter((s: any) => s.status === "ativa");
   const monthlyTotal = activeSubs
     .filter((s: any) => s.billing_cycle === "mensal")
