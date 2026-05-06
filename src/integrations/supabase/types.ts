@@ -1364,6 +1364,7 @@ export type Database = {
           document_number: string | null
           email: string | null
           full_name: string | null
+          has_system_access: boolean | null
           id: string
           phone: string | null
           referral_id: string | null
@@ -1385,6 +1386,7 @@ export type Database = {
           document_number?: string | null
           email?: string | null
           full_name?: string | null
+          has_system_access?: boolean | null
           id: string
           phone?: string | null
           referral_id?: string | null
@@ -1406,6 +1408,7 @@ export type Database = {
           document_number?: string | null
           email?: string | null
           full_name?: string | null
+          has_system_access?: boolean | null
           id?: string
           phone?: string | null
           referral_id?: string | null
@@ -1761,6 +1764,30 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_permissions: {
+        Row: {
+          created_at: string | null
+          granted: boolean | null
+          id: string
+          permission_key: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          granted?: boolean | null
+          id?: string
+          permission_key: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          granted?: boolean | null
+          id?: string
+          permission_key?: string
+          user_id?: string | null
         }
         Relationships: []
       }
