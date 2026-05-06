@@ -292,7 +292,8 @@ export default function ClientDetail() {
           <TabsTrigger value="subscriptions" className="gap-1.5"><Repeat className="size-3.5" /> Produtos ativos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{subscriptions.length}</Badge></TabsTrigger>
           <TabsTrigger value="projects" className="gap-1.5"><FolderKanban className="size-3.5" /> Projetos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.projectsCount}</Badge></TabsTrigger>
           <TabsTrigger value="commissions" className="gap-1.5"><Wallet className="size-3.5" /> Comissões <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
-          <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.docsCount}</Badge></TabsTrigger>
+          <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{docs.length}</Badge></TabsTrigger>
+          <TabsTrigger value="doc-requests" className="gap-1.5"><FileUp className="size-3.5" /> Solicitar Docs</TabsTrigger>
           <TabsTrigger value="timeline" className="gap-1.5"><ActivityIcon className="size-3.5" /> Timeline</TabsTrigger>
         </TabsList>
 
