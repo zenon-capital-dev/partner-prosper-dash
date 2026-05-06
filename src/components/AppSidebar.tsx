@@ -30,6 +30,12 @@ import {
   ArrowUpRight,
   Plus,
   Zap,
+  Target,
+  ClipboardList,
+  History,
+  UserCircle,
+  Truck,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -92,36 +98,46 @@ const adminSections: NavSection[] = [
     label: "Visão Geral",
     icon: LayoutDashboard,
     items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard },
+      { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "Histórico / Auditoria", url: "/auditoria", icon: History },
     ],
   },
   {
-    label: "Operação",
+    label: "Comercial",
     icon: Briefcase,
     items: [
       { title: "Clientes", url: "/clientes", icon: Users, counterKey: "clients" },
-      { title: "Produtos", url: "/produtos", icon: Package },
+      { title: "Leads / Convidados", url: "/leads", icon: Target },
+      { title: "Produtos / Serviços", url: "/produtos", icon: Package },
       { title: "Parceiros", url: "/parceiros", icon: Handshake },
-      { title: "Contratos", url: "/contratos", icon: FileSignature },
+    ],
+  },
+  {
+    label: "Operacional",
+    icon: ClipboardList,
+    items: [
+      { title: "Tarefas / Pendências", url: "/tarefas", icon: ClipboardList },
       { title: "Documentos", url: "/documentos", icon: FileText, counterKey: "newDocs" },
+      { title: "Contratos", url: "/contratos", icon: FileSignature },
+      { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
+      { title: "Prestadores", url: "/prestadores", icon: Truck },
     ],
   },
   {
     label: "Financeiro",
     icon: CircleDollarSign,
     items: [
-      { title: "Comissões", url: "/comissoes", icon: Wallet, counterKey: "pendingCom" },
       { title: "Financeiro", url: "/financeiro", icon: Banknote, counterKey: "pendingFin" },
+      { title: "Comissões", url: "/comissoes", icon: Wallet, counterKey: "pendingCom" },
     ],
   },
   {
     label: "Sistema",
     icon: Cog,
     items: [
-      { title: "Usuários", url: "/usuarios", icon: UserCog },
+      { title: "Usuários e Acessos", url: "/usuarios", icon: UserCog },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
-      { title: "Suporte", url: "/suporte", icon: LifeBuoy },
     ],
   },
 ];
@@ -153,7 +169,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, isVendedor, isParceiro, isCliente, isColaborador, isPrestador, signOut } = useAuth();
+  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, signOut } = useAuth();
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
