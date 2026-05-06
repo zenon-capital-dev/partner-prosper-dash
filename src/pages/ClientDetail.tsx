@@ -825,7 +825,7 @@ export default function ClientDetail() {
             </div>
             <div className="space-y-2">
               <Label>Desconto (R$)</Label>
-              <Input type="number" step="0.01" value={subForm.discount ?? ""} onChange={(e) => setSubForm({ ...form, discount: e.target.value })} />
+              <Input type="number" step="0.01" value={subForm.discount ?? ""} onChange={(e) => setSubForm({ ...subForm, discount: e.target.value })} />
             </div>
 
             <div className="space-y-2">
