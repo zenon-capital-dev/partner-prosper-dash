@@ -645,6 +645,82 @@ export default function ClientDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={subOpen} onOpenChange={setSubOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Vincular produto ao cliente</DialogTitle>
+            <DialogDescription>Adicione um produto que o cliente já possui ou contratou.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="col-span-2 space-y-2">
+              <Label>Produto</Label>
+              <Select value={subForm.product_id ?? "custom"} onValueChange={(v) => {
+                if (v === "custom") return setSubForm({ ...subForm, product_id: null });
+                const p = availableProducts.find((x: any) => x.id === v);
+                setSubForm({ ...subForm, product_id: v, amount: subForm.amount ?? p?.base_price });
+              }}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {availableProducts.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  <SelectItem value="custom">— Outro (digitar nome) —</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {!subForm.product_id && (
+              <div className="col-span-2 space-y-2">
+                <Label>Nome do produto</Label>
+                <Input value={subForm.custom_name ?? ""} onChange={(e) => setSubForm({ ...subForm, custom_name: e.target.value })} />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Valor (R$) *</Label>
+              <Input type="number" step="0.01" value={subForm.amount ?? ""} onChange={(e) => setSubForm({ ...subForm, amount: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Ciclo</Label>
+              <Select value={subForm.billing_cycle} onValueChange={(v) => setSubForm({ ...subForm, billing_cycle: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="trimestral">Trimestral</SelectItem>
+                  <SelectItem value="semestral">Semestral</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                  <SelectItem value="unico">Pagamento único</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={subForm.status} onValueChange={(v) => setSubForm({ ...subForm, status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativa">Ativa</SelectItem>
+                  <SelectItem value="pausada">Pausada</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="encerrada">Encerrada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Início</Label>
+              <Input type="date" value={subForm.start_date} onChange={(e) => setSubForm({ ...subForm, start_date: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Próxima cobrança</Label>
+              <Input type="date" value={subForm.next_billing_date ?? ""} onChange={(e) => setSubForm({ ...subForm, next_billing_date: e.target.value })} />
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>Observações</Label>
+              <Textarea value={subForm.notes ?? ""} onChange={(e) => setSubForm({ ...subForm, notes: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSubOpen(false)}>Cancelar</Button>
+            <Button onClick={submitSubscription} className="gap-2"><Repeat className="size-4" /> Vincular</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
