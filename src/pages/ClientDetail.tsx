@@ -269,7 +269,8 @@ export default function ClientDetail() {
             <ContactItem icon={Mail} label="E-mail" value={client.email ?? "—"} />
             <ContactItem icon={Phone} label="Telefone" value={formatPhone(client.phone)} />
             <ContactItem icon={IdCard} label="CPF/CNPJ" value={formatDoc(client.document)} mono />
-            <ContactItem icon={MapPin} label="Cidade/UF" value={[client.city, client.state].filter(Boolean).join("/") || "—"} />
+            <ContactItem icon={MapPin} label="Cidade/UF" value={[client.address_city || client.city, client.address_state || client.state].filter(Boolean).join("/") || "—"} />
+            <ContactItem icon={MapPin} label="Endereço" value={client.address_street ? `${client.address_street}, ${client.address_number}` : "—"} />
           </div>
         </div>
       </div>
