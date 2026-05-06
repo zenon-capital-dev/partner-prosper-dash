@@ -561,9 +561,12 @@ export default function Commissions() {
               <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">A pagar</SelectItem>
+                  <SelectItem value="gerada">Gerada</SelectItem>
+                  <SelectItem value="em_analise">Em análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
                   <SelectItem value="pago">Paga</SelectItem>
-                  <SelectItem value="cancelado">Cancelada</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="bloqueada">Bloqueada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
