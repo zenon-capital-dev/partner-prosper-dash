@@ -445,10 +445,10 @@ export default function Commissions() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
-                          {c.status !== "pendente" && (
-                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Reabrir</DropdownMenuItem>
+                          {c.status !== "gerada" && (
+                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Resetar (Gerada)</DropdownMenuItem>
                           )}
-                          {c.status !== "cancelado" && (
+                          {c.status !== "cancelada" && (
                             <DropdownMenuItem onClick={() => cancelOne(c)}><XCircle className="size-3.5 mr-2" /> Cancelar</DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
