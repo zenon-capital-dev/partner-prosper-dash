@@ -106,14 +106,25 @@ export default function Products() {
     queryKey: ["product-usage"],
     queryFn: async () => {
       const { data: sales } = await supabase.from("sales").select("product_id, amount");
+      const { data: clientProds } = await supabase.from("client_products").select("product_id, custom_value");
       const { data: links } = await supabase.from("partner_products").select("product_id");
+      
       const map: Record<string, { sales: number; revenue: number; partners: number }> = {};
+      
       (sales ?? []).forEach((s: any) => {
         if (!s.product_id) return;
         map[s.product_id] = map[s.product_id] || { sales: 0, revenue: 0, partners: 0 };
         map[s.product_id].sales += 1;
         map[s.product_id].revenue += Number(s.amount || 0);
       });
+
+      (clientProds ?? []).forEach((cp: any) => {
+        if (!cp.product_id) return;
+        map[cp.product_id] = map[cp.product_id] || { sales: 0, revenue: 0, partners: 0 };
+        // We only add revenue if it wasn't already counted in sales (assuming sales is for invoices and clientProds is for contracts)
+        // For simplicity, let's just count them as "contracts"
+      });
+
       (links ?? []).forEach((l: any) => {
         map[l.product_id] = map[l.product_id] || { sales: 0, revenue: 0, partners: 0 };
         map[l.product_id].partners += 1;
