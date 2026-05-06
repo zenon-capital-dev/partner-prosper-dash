@@ -301,13 +301,13 @@ function ListView({ clients, onOpen, onDelete }: any) {
           <thead className="bg-muted/40">
             <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
               <th className="px-6 py-3 text-left font-semibold">Cliente</th>
-              <th className="px-6 py-3 text-left font-semibold">Empresa / Local</th>
-              <th className="px-6 py-3 text-left font-semibold">Parceiro</th>
-              <th className="px-6 py-3 text-right font-semibold">Vendas</th>
-              <th className="px-6 py-3 text-right font-semibold">LTV</th>
-              <th className="px-6 py-3 text-left font-semibold">Última venda</th>
-              <th className="px-6 py-3 text-left font-semibold">Status</th>
-              <th className="px-6 py-3 text-right font-semibold w-12"></th>
+              <th className="px-6 py-3 text-left font-semibold">Produto / Status</th>
+              <th className="px-6 py-3 text-left font-semibold">Origem / Indicação</th>
+              <th className="px-6 py-3 text-left font-semibold">Responsável</th>
+              <th className="px-6 py-3 text-right font-semibold">Valor Vendido</th>
+              <th className="px-6 py-3 text-left font-semibold">Financeiro</th>
+              <th className="px-6 py-3 text-left font-semibold">Documentos</th>
+              <th className="px-6 py-3 text-right font-semibold w-12">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
