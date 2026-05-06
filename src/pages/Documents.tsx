@@ -56,14 +56,12 @@ export default function Documents() {
     refetch();
   };
 
-  const download = async (path: string, name: string) => {
-    const { data, error } = await supabase.storage.from("documents").download(path);
+  const viewFile = async (path: string) => {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
     if (error) { toast.error(error.message); return; }
-    const url = URL.createObjectURL(data);
-    const a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
-    URL.revokeObjectURL(url);
+    window.open(data.signedUrl, "_blank");
   };
+
 
   const handleRequestCorrection = (doc: any) => {
     const reason = window.prompt("Motivo da solicitação de correção:");
@@ -169,21 +167,47 @@ export default function Documents() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
                           {d.file_path && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    size="icon" 
-                                    variant="ghost" 
-                                    className="size-8 text-muted-foreground hover:text-primary"
-                                    onClick={() => download(d.file_path, d.name)}
-                                  >
-                                    <Download className="size-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Baixar arquivo</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <div className="flex items-center gap-1">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      size="icon" 
+                                      variant="ghost" 
+                                      className="size-8 text-muted-foreground hover:text-primary"
+                                      onClick={() => viewFile(d.file_path)}
+                                    >
+                                      <Eye className="size-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Visualizar documento</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      size="icon" 
+                                      variant="ghost" 
+                                      className="size-8 text-muted-foreground hover:text-primary"
+                                      onClick={() => {
+                                        // Simple download implementation using signed URL to avoid CORS issues if any
+                                        supabase.storage.from("documents").download(d.file_path).then(({ data, error }) => {
+                                          if (error) return toast.error(error.message);
+                                          const url = URL.createObjectURL(data);
+                                          const a = document.createElement("a");
+                                          a.href = url; a.download = d.name; a.click();
+                                        });
+                                      }}
+                                    >
+                                      <Download className="size-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Baixar arquivo</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                           )}
                           
                           <DropdownMenu>
