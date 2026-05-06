@@ -175,6 +175,41 @@ export default function ClientDetail() {
     qc.invalidateQueries({ queryKey: ["client-timeline", id] });
   };
 
+  const submitSubscription = async () => {
+    if (!subForm.amount || (!subForm.product_id && !subForm.custom_name)) {
+      toast.error("Informe produto (ou nome) e valor");
+      return;
+    }
+    const { data: auth } = await supabase.auth.getUser();
+    const payload = {
+      client_id: id!,
+      product_id: subForm.product_id || null,
+      custom_name: subForm.custom_name || null,
+      amount: Number(subForm.amount),
+      billing_cycle: subForm.billing_cycle,
+      status: subForm.status,
+      start_date: subForm.start_date,
+      next_billing_date: subForm.next_billing_date || null,
+      end_date: subForm.end_date || null,
+      notes: subForm.notes || null,
+      created_by: auth.user?.id,
+    };
+    const { error } = await supabase.from("client_subscriptions").insert(payload);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Produto vinculado ao cliente");
+    setSubOpen(false);
+    setSubForm({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
+    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+  };
+
+  const removeSubscription = async (sid: string) => {
+    if (!confirm("Remover este produto do cliente?")) return;
+    const { error } = await supabase.from("client_subscriptions").delete().eq("id", sid);
+    if (error) return toast.error(error.message);
+    toast.success("Removido");
+    qc.invalidateQueries({ queryKey: ["client-subscriptions", id] });
+  };
+
   if (!client) {
     return <div className="p-12 text-center text-muted-foreground">Carregando...</div>;
   }
