@@ -120,8 +120,20 @@ export default function Partners() {
   const openEdit = (p: any) => {
     setEditing(p);
     setForm({
-      full_name: p.full_name, email: p.email, phone: p.phone, document: p.document,
-      pix_key: p.pix_key, commission_percent: p.commission_percent, notes: p.notes, active: p.active,
+      full_name: p.full_name, 
+      email: p.email, 
+      phone: p.phone, 
+      whatsapp: p.whatsapp,
+      document: p.document,
+      pix_key: p.pix_key, 
+      bank_name: p.bank_name,
+      bank_agency: p.bank_agency,
+      bank_account: p.bank_account,
+      partner_category: p.partner_category || "indicador",
+      has_system_access: !!p.has_system_access,
+      commission_percent: p.commission_percent, 
+      notes: p.notes, 
+      active: p.active,
     });
     setOpen(true);
   };
@@ -129,9 +141,20 @@ export default function Partners() {
   const submit = async () => {
     if (!form.full_name) { toast.error("Nome obrigatório"); return; }
     const payload = {
-      full_name: form.full_name, email: form.email || null, phone: form.phone || null,
-      document: form.document || null, pix_key: form.pix_key || null,
-      commission_percent: Number(form.commission_percent ?? 10), notes: form.notes || null, active: !!form.active,
+      full_name: form.full_name, 
+      email: form.email || null, 
+      phone: form.phone || null,
+      whatsapp: form.whatsapp || null,
+      document: form.document || null, 
+      pix_key: form.pix_key || null,
+      bank_name: form.bank_name || null,
+      bank_agency: form.bank_agency || null,
+      bank_account: form.bank_account || null,
+      partner_category: form.partner_category || "indicador",
+      has_system_access: !!form.has_system_access,
+      commission_percent: Number(form.commission_percent ?? 10), 
+      notes: form.notes || null, 
+      active: !!form.active,
     };
     const { error } = editing
       ? await supabase.from("partners").update(payload).eq("id", editing.id)
