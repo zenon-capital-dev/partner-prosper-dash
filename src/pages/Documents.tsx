@@ -13,7 +13,7 @@ export default function Documents() {
     queryFn: async () => (await supabase.from("documents").select("*, clients(full_name)").order("created_at", { ascending: false })).data ?? [],
   });
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: "aprovado" | "enviado" | "rejeitado" | "solicitado") => {
     const { error } = await supabase.from("documents").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success(`Documento ${status}`);
