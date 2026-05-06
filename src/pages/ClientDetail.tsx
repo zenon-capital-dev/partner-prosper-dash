@@ -338,7 +338,7 @@ export default function ClientDetail() {
                     <Badge key={t} variant="outline" className="text-[10px]"><Tag className="size-2.5 mr-1" /> {t}</Badge>
                   ))}
                   <span className="text-[11px] text-muted-foreground">
-                    Cliente desde {formatDate(client.created_at)}
+                    Cliente desde {formatDate(client.entry_date || client.created_at)}
                   </span>
                 </div>
               </div>
