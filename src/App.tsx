@@ -26,6 +26,7 @@ import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
 import NotFound from "./pages/NotFound.tsx";
+import RoleHome from "./components/RoleHome";
 
 const queryClient = new QueryClient();
 
