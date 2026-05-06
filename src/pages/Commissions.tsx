@@ -519,9 +519,12 @@ export default function Commissions() {
               <Select value={createForm.status} onValueChange={(v) => setCreateForm({ ...createForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pendente">A pagar</SelectItem>
-                  <SelectItem value="pago">Já paga</SelectItem>
-                  <SelectItem value="cancelado">Cancelada</SelectItem>
+                  <SelectItem value="gerada">Gerada</SelectItem>
+                  <SelectItem value="em_analise">Em análise</SelectItem>
+                  <SelectItem value="aprovada">Aprovada</SelectItem>
+                  <SelectItem value="pago">Paga</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                  <SelectItem value="bloqueada">Bloqueada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
