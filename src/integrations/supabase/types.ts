@@ -608,6 +608,79 @@ export type Database = {
           },
         ]
       }
+      contracts: {
+        Row: {
+          amount: number | null
+          client_id: string
+          created_at: string | null
+          file_path: string | null
+          finished_at: string | null
+          id: string
+          internal_notes: string | null
+          name: string
+          product_id: string | null
+          sale_id: string | null
+          sent_at: string | null
+          signed_at: string | null
+          status: Database["public"]["Enums"]["contract_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number | null
+          client_id: string
+          created_at?: string | null
+          file_path?: string | null
+          finished_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          name: string
+          product_id?: string | null
+          sale_id?: string | null
+          sent_at?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number | null
+          client_id?: string
+          created_at?: string | null
+          file_path?: string | null
+          finished_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          name?: string
+          product_id?: string | null
+          sale_id?: string | null
+          sent_at?: string | null
+          signed_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_requests: {
         Row: {
           client_id: string
@@ -1107,6 +1180,72 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          amount_paid: number | null
+          client_id: string
+          created_at: string | null
+          due_date: string
+          id: string
+          installment_number: number | null
+          installments_count: number | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          sale_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          amount_paid?: number | null
+          client_id: string
+          created_at?: string | null
+          due_date: string
+          id?: string
+          installment_number?: number | null
+          installments_count?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          sale_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number | null
+          client_id?: string
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          installment_number?: number | null
+          installments_count?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          sale_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_categories: {
         Row: {
@@ -1639,13 +1778,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { roles: string[] }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
@@ -1669,6 +1810,14 @@ export type Database = {
         | "paga"
         | "cancelada"
         | "bloqueada"
+      contract_status:
+        | "criado"
+        | "enviado"
+        | "aguardando_assinatura"
+        | "assinado"
+        | "pendente_correcao"
+        | "cancelado"
+        | "finalizado"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
       document_status_new:
         | "solicitado"
@@ -1685,6 +1834,13 @@ export type Database = {
         | "consultoria"
         | "agencia"
         | "outro"
+      payment_status:
+        | "pago"
+        | "pendente"
+        | "parcialmente_pago"
+        | "atrasado"
+        | "cancelado"
+        | "reembolsado"
       project_status:
         | "previsto"
         | "ativo"
@@ -1843,6 +1999,15 @@ export const Constants = {
         "cancelada",
         "bloqueada",
       ],
+      contract_status: [
+        "criado",
+        "enviado",
+        "aguardando_assinatura",
+        "assinado",
+        "pendente_correcao",
+        "cancelado",
+        "finalizado",
+      ],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
       document_status_new: [
         "solicitado",
@@ -1860,6 +2025,14 @@ export const Constants = {
         "consultoria",
         "agencia",
         "outro",
+      ],
+      payment_status: [
+        "pago",
+        "pendente",
+        "parcialmente_pago",
+        "atrasado",
+        "cancelado",
+        "reembolsado",
       ],
       project_status: [
         "previsto",
