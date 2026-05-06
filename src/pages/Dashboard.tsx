@@ -453,8 +453,8 @@ export default function Dashboard() {
       {/* ===== HEADER ===== */}
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div className="min-w-0">
-          <h1 className="font-display text-[38px] font-bold tracking-[-0.03em] leading-none bg-gradient-to-br from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-            Dashboard
+          <h1 className="font-display text-[38px] font-bold tracking-[-0.03em] leading-none text-foreground">
+            Visão Geral
           </h1>
           <div className="flex items-center gap-2 mt-3">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
