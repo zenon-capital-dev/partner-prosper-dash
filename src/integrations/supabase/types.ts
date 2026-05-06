@@ -157,6 +157,11 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_street: string | null
+          address_zip_code: string | null
           city: string | null
           collaborator_id: string | null
           company: string | null
@@ -169,6 +174,7 @@ export type Database = {
           notes: string | null
           partner_id: string | null
           phone: string | null
+          referral_id: string | null
           referrer_id: string | null
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
@@ -178,6 +184,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           city?: string | null
           collaborator_id?: string | null
           company?: string | null
@@ -190,6 +201,7 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
+          referral_id?: string | null
           referrer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -199,6 +211,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           city?: string | null
           collaborator_id?: string | null
           company?: string | null
@@ -211,6 +228,7 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
+          referral_id?: string | null
           referrer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
@@ -224,6 +242,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
