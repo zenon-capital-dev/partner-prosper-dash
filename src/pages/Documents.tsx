@@ -65,7 +65,7 @@ export default function Documents() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => updateStatus(d.id, "aprovado")} className="text-success"><Check className="size-3.5 mr-2" /> Aprovar</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => updateStatus(d.id, "rejeitado")} className="text-destructive"><X className="size-3.5 mr-2" /> Reprovar</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => updateStatus(d.id, "pendente")} className="text-warning"><Clock className="size-3.5 mr-2" /> Marcar pendente</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateStatus(d.id, "solicitado")} className="text-warning"><Clock className="size-3.5 mr-2" /> Marcar pendente</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   {d.file_path && (
