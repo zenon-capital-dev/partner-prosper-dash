@@ -455,10 +455,10 @@ export default function Products() {
             <DialogTitle className="font-display text-xl">{editing ? "Editar produto" : "Novo produto"}</DialogTitle>
             <DialogDescription>Configure preço, comissão e disponibilidade para parceiros.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-2">
+          <div className="grid grid-cols-2 gap-4 py-2 max-h-[60vh] overflow-y-auto px-1">
             <div className="col-span-2 space-y-1.5">
               <Label>Nome do produto *</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Plano Enterprise" />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Gestão Financeira Completa" />
             </div>
             <div className="space-y-1.5">
               <Label>Categoria *</Label>
@@ -477,38 +477,70 @@ export default function Products() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Preço base (R$)</Label>
+              <Label>Tipo de cobrança</Label>
+              <Select value={form.billing_type} onValueChange={(v) => setForm({ ...form, billing_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unico">Pagamento único</SelectItem>
+                  <SelectItem value="mensal">Mensalidade</SelectItem>
+                  <SelectItem value="anual">Anual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Valor padrão (R$)</Label>
               <Input type="number" step="0.01" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Prazo médio (dias)</Label>
+              <Input type="number" value={form.avg_delivery_time} onChange={(e) => setForm({ ...form, avg_delivery_time: e.target.value })} placeholder="Ex: 30" />
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label>Descrição</Label>
-              <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detalhes, escopo, entregáveis..." />
+              <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detalhes, escopo, entregáveis..." />
             </div>
+            
             <div className="space-y-1.5">
-              <Label>% Comissão padrão</Label>
+              <Label>Comissão Parceiro (%)</Label>
               <Input type="number" step="0.01" value={form.default_commission_percent} onChange={(e) => setForm({ ...form, default_commission_percent: e.target.value })} />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Comissão Colaborador (%)</Label>
+              <Input type="number" step="0.01" value={form.default_employee_commission} onChange={(e) => setForm({ ...form, default_employee_commission: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Valor Prestador (R$)</Label>
+              <Input type="number" step="0.01" value={form.default_provider_value} onChange={(e) => setForm({ ...form, default_provider_value: e.target.value })} />
+            </div>
+            
+            <div className="col-span-2 space-y-1.5">
+              <Label>Documentos necessários (separados por vírgula)</Label>
+              <Input value={form.required_documents} onChange={(e) => setForm({ ...form, required_documents: e.target.value })} placeholder="Ex: RG, CPF, Comprovante de Residência" />
+            </div>
+
+            <div className="col-span-2 space-y-1.5">
+              <Label>Etapas padrão do processo (separadas por vírgula)</Label>
+              <Input value={form.standard_steps} onChange={(e) => setForm({ ...form, standard_steps: e.target.value })} placeholder="Ex: Triagem, Análise, Entrega" />
+            </div>
+
+            <div className="col-span-2 space-y-3">
               <Label>Configurações</Label>
-              <div className="space-y-2 p-3 rounded-md border border-border bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Ativo</p>
-                    <p className="text-[11px] text-muted-foreground">Disponível para venda</p>
+              <div className="grid grid-cols-3 gap-3 p-3 rounded-md border border-border bg-muted/30">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium">Ativo</p>
                   </div>
                   <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Recorrente</p>
-                    <p className="text-[11px] text-muted-foreground">Cobrança mensal</p>
+                <div className="flex items-center justify-between gap-2 border-l pl-3">
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium">Recorrente</p>
                   </div>
                   <Switch checked={form.recurring} onCheckedChange={(v) => setForm({ ...form, recurring: v })} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Permitir parceiros</p>
-                    <p className="text-[11px] text-muted-foreground">Vendável por indicadores</p>
+                <div className="flex items-center justify-between gap-2 border-l pl-3">
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium">Parceiros</p>
                   </div>
                   <Switch checked={form.allow_partner} onCheckedChange={(v) => setForm({ ...form, allow_partner: v })} />
                 </div>
