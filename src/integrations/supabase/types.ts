@@ -47,6 +47,72 @@ export type Database = {
         }
         Relationships: []
       }
+      client_subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          client_id: string
+          created_at: string
+          created_by: string | null
+          custom_name: string | null
+          end_date: string | null
+          id: string
+          next_billing_date: string | null
+          notes: string | null
+          product_id: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          custom_name?: string | null
+          end_date?: string | null
+          id?: string
+          next_billing_date?: string | null
+          notes?: string | null
+          product_id?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          custom_name?: string | null
+          end_date?: string | null
+          id?: string
+          next_billing_date?: string | null
+          notes?: string | null
+          product_id?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_timeline: {
         Row: {
           client_id: string
@@ -92,6 +158,7 @@ export type Database = {
         Row: {
           address: string | null
           city: string | null
+          collaborator_id: string | null
           company: string | null
           created_at: string
           created_by: string | null
@@ -102,6 +169,7 @@ export type Database = {
           notes: string | null
           partner_id: string | null
           phone: string | null
+          referrer_id: string | null
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
@@ -111,6 +179,7 @@ export type Database = {
         Insert: {
           address?: string | null
           city?: string | null
+          collaborator_id?: string | null
           company?: string | null
           created_at?: string
           created_by?: string | null
@@ -121,6 +190,7 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
+          referrer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
@@ -130,6 +200,7 @@ export type Database = {
         Update: {
           address?: string | null
           city?: string | null
+          collaborator_id?: string | null
           company?: string | null
           created_at?: string
           created_by?: string | null
@@ -140,6 +211,7 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
+          referrer_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
@@ -152,6 +224,66 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_splits: {
+        Row: {
+          amount: number
+          beneficiary_id: string
+          beneficiary_type: Database["public"]["Enums"]["beneficiary_type"]
+          created_at: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          percent: number
+          sale_id: string
+          status: Database["public"]["Enums"]["split_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          beneficiary_id: string
+          beneficiary_type: Database["public"]["Enums"]["beneficiary_type"]
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          percent: number
+          sale_id: string
+          status?: Database["public"]["Enums"]["split_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          beneficiary_id?: string
+          beneficiary_type?: Database["public"]["Enums"]["beneficiary_type"]
+          created_at?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          percent?: number
+          sale_id?: string
+          status?: Database["public"]["Enums"]["split_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_splits_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
             referencedColumns: ["id"]
           },
         ]
@@ -596,10 +728,57 @@ export type Database = {
         }
         Relationships: []
       }
+      referrers: {
+        Row: {
+          active: boolean
+          commission_percent: number
+          created_at: string
+          document: string | null
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          pix_key: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          commission_percent?: number
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          pix_key?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          commission_percent?: number
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          pix_key?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           amount: number
           client_id: string
+          collaborator_id: string | null
+          collaborator_percent: number | null
           commission_percent: number | null
           created_at: string
           created_by: string | null
@@ -607,6 +786,8 @@ export type Database = {
           notes: string | null
           partner_id: string | null
           product_id: string
+          referrer_id: string | null
+          referrer_percent: number | null
           sale_date: string
           status: Database["public"]["Enums"]["sale_status"]
           updated_at: string
@@ -614,6 +795,8 @@ export type Database = {
         Insert: {
           amount?: number
           client_id: string
+          collaborator_id?: string | null
+          collaborator_percent?: number | null
           commission_percent?: number | null
           created_at?: string
           created_by?: string | null
@@ -621,6 +804,8 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           product_id: string
+          referrer_id?: string | null
+          referrer_percent?: number | null
           sale_date?: string
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
@@ -628,6 +813,8 @@ export type Database = {
         Update: {
           amount?: number
           client_id?: string
+          collaborator_id?: string | null
+          collaborator_percent?: number | null
           commission_percent?: number | null
           created_at?: string
           created_by?: string | null
@@ -635,6 +822,8 @@ export type Database = {
           notes?: string | null
           partner_id?: string | null
           product_id?: string
+          referrer_id?: string | null
+          referrer_percent?: number | null
           sale_date?: string
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
@@ -659,6 +848,13 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
             referencedColumns: ["id"]
           },
         ]
@@ -700,6 +896,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "vendedor" | "parceiro" | "cliente"
+      beneficiary_type: "partner" | "referrer" | "collaborator"
+      billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status: "ativo" | "inativo" | "prospecto"
       commission_status: "pendente" | "pago" | "cancelado"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
@@ -711,6 +909,8 @@ export type Database = {
         | "concluido"
         | "cancelado"
       sale_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
+      split_status: "pendente" | "pago" | "cancelado"
+      subscription_status: "ativa" | "pausada" | "cancelada" | "inadimplente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -839,6 +1039,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "vendedor", "parceiro", "cliente"],
+      beneficiary_type: ["partner", "referrer", "collaborator"],
+      billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
       client_status: ["ativo", "inativo", "prospecto"],
       commission_status: ["pendente", "pago", "cancelado"],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
@@ -851,6 +1053,8 @@ export const Constants = {
         "cancelado",
       ],
       sale_status: ["pendente", "em_andamento", "concluida", "cancelada"],
+      split_status: ["pendente", "pago", "cancelado"],
+      subscription_status: ["ativa", "pausada", "cancelada", "inadimplente"],
     },
   },
 } as const
