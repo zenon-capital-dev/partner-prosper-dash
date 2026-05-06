@@ -516,49 +516,87 @@ export type Database = {
       commissions: {
         Row: {
           amount: number
+          approval_date: string | null
+          approved_by: string | null
+          client_id: string | null
           created_at: string
           id: string
+          is_recurring: boolean | null
           notes: string | null
           paid_at: string | null
           partner_id: string
+          payment_date: string | null
           payment_method: string | null
           percent: number
+          product_id: string | null
+          reason: string | null
+          rule_type: string | null
           sale_id: string
-          status: Database["public"]["Enums"]["commission_status"]
+          status: string
           updated_at: string
         }
         Insert: {
           amount: number
+          approval_date?: string | null
+          approved_by?: string | null
+          client_id?: string | null
           created_at?: string
           id?: string
+          is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
           partner_id: string
+          payment_date?: string | null
           payment_method?: string | null
           percent: number
+          product_id?: string | null
+          reason?: string | null
+          rule_type?: string | null
           sale_id: string
-          status?: Database["public"]["Enums"]["commission_status"]
+          status?: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          approval_date?: string | null
+          approved_by?: string | null
+          client_id?: string | null
           created_at?: string
           id?: string
+          is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
           partner_id?: string
+          payment_date?: string | null
           payment_method?: string | null
           percent?: number
+          product_id?: string | null
+          reason?: string | null
+          rule_type?: string | null
           sale_id?: string
-          status?: Database["public"]["Enums"]["commission_status"]
+          status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "commissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commissions_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
@@ -922,48 +960,75 @@ export type Database = {
       partners: {
         Row: {
           active: boolean
+          bank_account: string | null
+          bank_agency: string | null
+          bank_name: string | null
           commission_percent: number | null
           created_at: string
+          default_commission_value: number | null
           document: string | null
           email: string | null
           full_name: string
+          has_system_access: boolean | null
           id: string
           notes: string | null
+          partner_category:
+            | Database["public"]["Enums"]["partner_type_enum"]
+            | null
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string | null
           pix_key: string | null
           updated_at: string
           user_id: string | null
+          whatsapp: string | null
         }
         Insert: {
           active?: boolean
+          bank_account?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
           commission_percent?: number | null
           created_at?: string
+          default_commission_value?: number | null
           document?: string | null
           email?: string | null
           full_name: string
+          has_system_access?: boolean | null
           id?: string
           notes?: string | null
+          partner_category?:
+            | Database["public"]["Enums"]["partner_type_enum"]
+            | null
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
           updated_at?: string
           user_id?: string | null
+          whatsapp?: string | null
         }
         Update: {
           active?: boolean
+          bank_account?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
           commission_percent?: number | null
           created_at?: string
+          default_commission_value?: number | null
           document?: string | null
           email?: string | null
           full_name?: string
+          has_system_access?: boolean | null
           id?: string
           notes?: string | null
+          partner_category?:
+            | Database["public"]["Enums"]["partner_type_enum"]
+            | null
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
           updated_at?: string
           user_id?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -1521,8 +1586,21 @@ export type Database = {
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status: "ativo" | "inativo" | "prospecto"
       commission_status: "pendente" | "pago" | "cancelado"
+      commission_status_enum:
+        | "gerada"
+        | "em_analise"
+        | "aprovada"
+        | "paga"
+        | "cancelada"
+        | "bloqueada"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
       partner_type: "parceiro" | "indicador"
+      partner_type_enum:
+        | "indicador"
+        | "afiliado"
+        | "consultoria"
+        | "agencia"
+        | "outro"
       project_status:
         | "previsto"
         | "ativo"
@@ -1673,8 +1751,23 @@ export const Constants = {
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
       client_status: ["ativo", "inativo", "prospecto"],
       commission_status: ["pendente", "pago", "cancelado"],
+      commission_status_enum: [
+        "gerada",
+        "em_analise",
+        "aprovada",
+        "paga",
+        "cancelada",
+        "bloqueada",
+      ],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
       partner_type: ["parceiro", "indicador"],
+      partner_type_enum: [
+        "indicador",
+        "afiliado",
+        "consultoria",
+        "agencia",
+        "outro",
+      ],
       project_status: [
         "previsto",
         "ativo",
