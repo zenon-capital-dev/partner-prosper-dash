@@ -704,41 +704,136 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_history: {
+        Row: {
+          action: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          lead_id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
+          conversion_date: string | null
+          converted_to_client_id: string | null
           created_at: string | null
           email: string | null
           full_name: string
           id: string
           notes: string | null
+          partner_id: string | null
           phone: string | null
+          product_id: string | null
+          referral_id: string | null
+          responsible_id: string | null
           source: string | null
           status: string | null
           updated_at: string | null
+          whatsapp: string | null
         }
         Insert: {
+          conversion_date?: string | null
+          converted_to_client_id?: string | null
           created_at?: string | null
           email?: string | null
           full_name: string
           id?: string
           notes?: string | null
+          partner_id?: string | null
           phone?: string | null
+          product_id?: string | null
+          referral_id?: string | null
+          responsible_id?: string | null
           source?: string | null
           status?: string | null
           updated_at?: string | null
+          whatsapp?: string | null
         }
         Update: {
+          conversion_date?: string | null
+          converted_to_client_id?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string
           id?: string
           notes?: string | null
+          partner_id?: string | null
           phone?: string | null
+          product_id?: string | null
+          referral_id?: string | null
+          responsible_id?: string | null
           source?: string | null
           status?: string | null
           updated_at?: string | null
+          whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {

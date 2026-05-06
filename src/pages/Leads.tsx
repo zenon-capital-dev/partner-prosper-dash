@@ -1,10 +1,126 @@
-import { Target, Search, Plus, Filter, Download } from "lucide-react";
+import { Target, Search, Plus, Filter, Download, MoreHorizontal, Eye, UserPlus, Phone, Mail, MessageSquare, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useMemo } from "react";
+import { formatDate, formatPhone, initials } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
+import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+
+const statusColors: Record<string, string> = {
+  "Novo": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  "Em contato": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
+  "Interessado": "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  "Proposta enviada": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+  "Aguardando resposta": "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400",
+  "Negociação": "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+  "Virou cliente": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  "Perdido": "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
+  "Sem resposta": "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-400",
+};
 
 export default function Leads() {
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const { data: leads, isLoading } = useQuery({
+    queryKey: ["leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("leads")
+        .select(`
+          *,
+          products(name),
+          partners(full_name),
+          profiles:responsible_id(full_name)
+        `)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const filteredLeads = useMemo(() => {
+    if (!leads) return [];
+    if (!search) return leads;
+    const q = search.toLowerCase();
+    return leads.filter((l: any) => 
+      l.full_name?.toLowerCase().includes(q) ||
+      l.email?.toLowerCase().includes(q) ||
+      l.phone?.includes(q)
+    );
+  }, [leads, search]);
+
+  const handleEdit = (lead: any) => {
+    setSelectedLead(lead);
+    setOpen(true);
+  };
+
+  const handleNew = () => {
+    setSelectedLead(null);
+    setOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Excluir este lead permanentemente?")) return;
+    const { error } = await supabase.from("leads").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Lead excluído");
+      qc.invalidateQueries({ queryKey: ["leads"] });
+    }
+  };
+
+  const convertToClient = async (lead: any) => {
+    if (!confirm(`Converter ${lead.full_name} em cliente?`)) return;
+    
+    // In a real scenario, we would show a more complex dialog or redirect to client creation with pre-filled data
+    // Here we'll do a basic conversion
+    const { data: client, error: clientError } = await supabase.from("clients").insert({
+      full_name: lead.full_name,
+      email: lead.email,
+      phone: lead.phone,
+      whatsapp: lead.whatsapp,
+      origin: lead.source,
+      status: "ativo",
+      partner_id: lead.partner_id,
+      collaborator_id: lead.responsible_id,
+      notes: lead.notes,
+    }).select().single();
+
+    if (clientError) {
+      toast.error(clientError.message);
+      return;
+    }
+
+    // Mark lead as converted
+    await supabase.from("leads").update({
+      status: "Virou cliente",
+      converted_to_client_id: client.id,
+      conversion_date: new Date().toISOString()
+    }).eq("id", lead.id);
+
+    toast.success("Lead convertido em cliente com sucesso!");
+    qc.invalidateQueries({ queryKey: ["leads"] });
+    navigate(`/clientes/${client.id}`);
+  };
+
   return (
-    <div className="page-shell space-y-7">
+    <div className="page-shell space-y-7 animate-fade-in">
       <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
         <div className="min-w-0 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -22,7 +138,7 @@ export default function Leads() {
             <Download className="size-3.5 mr-2" />
             Exportar
           </Button>
-          <Button className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20">
+          <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
             <Plus className="size-3.5 mr-2" />
             Novo Lead
           </Button>
@@ -33,7 +149,12 @@ export default function Leads() {
         <div className="flex items-center gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input className="pl-10 h-10 text-sm" placeholder="Buscar por nome, email ou telefone..." />
+            <Input 
+              className="pl-10 h-10 text-sm" 
+              placeholder="Buscar por nome, email ou telefone..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <Button variant="outline" className="h-10 text-xs font-bold px-4">
             <Filter className="size-3.5 mr-2" />
@@ -43,52 +164,105 @@ export default function Leads() {
       </div>
 
       <div className="vx-card overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-border/50 bg-muted/20">
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Lead</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Origem</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Data</th>
-              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[1, 2, 3].map((i) => (
-              <tr key={i} className="border-b last:border-0 border-border/40 hover:bg-muted/30 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">
-                      L{i}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold">Lead Exemplo {i}</p>
-                      <p className="text-xs text-muted-foreground">lead{i}@exemplo.com</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                    Novo
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm font-medium">Instagram</td>
-                <td className="px-6 py-4 text-xs text-muted-foreground">12/05/2026</td>
-                <td className="px-6 py-4 text-right">
-                  <Button variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase">Detalhes</Button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-border/50 bg-muted/20">
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Lead</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Origem / Indicação</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Produto Interesse</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Data Cadastro</th>
+                <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground text-right">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className="p-4 border-t border-border/40 bg-muted/5 flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">Mostrando 3 de 3 resultados</p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Anterior</Button>
-            <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Próximo</Button>
-          </div>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-20 text-center text-sm text-muted-foreground">Carregando leads...</td>
+                </tr>
+              ) : filteredLeads.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-20 text-center text-sm text-muted-foreground">Nenhum lead encontrado.</td>
+                </tr>
+              ) : (
+                filteredLeads.map((lead: any) => (
+                  <tr key={lead.id} className="border-b last:border-0 border-border/40 hover:bg-muted/30 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center font-bold text-xs text-primary ring-1 ring-primary/20">
+                          {initials(lead.full_name)}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold">{lead.full_name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {lead.whatsapp && <span className="text-[10px] text-muted-foreground flex items-center gap-1"><MessageSquare className="size-2.5" /> {formatPhone(lead.whatsapp)}</span>}
+                            {lead.email && <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Mail className="size-2.5" /> {lead.email}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusColors[lead.status] || "bg-muted text-muted-foreground"}`}>
+                        {lead.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-[11px] font-bold">{lead.source}</p>
+                      <p className="text-[10px] text-muted-foreground">{lead.partners?.full_name || "Direto"}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-[11px] font-medium text-foreground">{lead.products?.name || "—"}</p>
+                    </td>
+                    <td className="px-6 py-4 text-xs text-muted-foreground">{formatDate(lead.created_at)}</td>
+                    <td className="px-6 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground">Opções</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEdit(lead)}>
+                            <Pencil className="size-3.5 mr-2" /> Editar Informações
+                          </DropdownMenuItem>
+                          {lead.status !== "Virou cliente" && (
+                            <DropdownMenuItem onClick={() => convertToClient(lead)} className="text-primary font-bold">
+                              <UserPlus className="size-3.5 mr-2" /> Converter em Cliente
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(lead.id)} className="text-destructive">
+                            <Trash2 className="size-3.5 mr-2" /> Excluir Lead
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
+        {!isLoading && filteredLeads.length > 0 && (
+          <div className="p-4 border-t border-border/40 bg-muted/5 flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Mostrando {filteredLeads.length} resultados</p>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Anterior</Button>
+              <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Próximo</Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <LeadFormDialog 
+        open={open} 
+        onOpenChange={setOpen} 
+        lead={selectedLead} 
+        onCreated={() => qc.invalidateQueries({ queryKey: ["leads"] })}
+      />
     </div>
   );
 }

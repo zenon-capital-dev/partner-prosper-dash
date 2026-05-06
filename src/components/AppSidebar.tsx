@@ -599,6 +599,9 @@ export function AppSidebar() {
           ))}
           <CommandSeparator />
           <CommandGroup heading="Ações rápidas">
+            <CommandItem onSelect={() => { navigate("/leads?new=1"); setCmdOpen(false); }}>
+              <Plus className="size-4 mr-2" /> Novo lead / convidado
+            </CommandItem>
             <CommandItem onSelect={() => { navigate("/clientes?new=1"); setCmdOpen(false); }}>
               <Plus className="size-4 mr-2" /> Novo cliente
             </CommandItem>

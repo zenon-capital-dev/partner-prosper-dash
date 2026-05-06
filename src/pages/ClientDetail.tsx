@@ -8,7 +8,7 @@ import {
   Pencil, Wallet, FolderKanban, Activity as ActivityIcon, TrendingUp, Tag,
   Hash, IdCard, Calendar, Sparkles, ArrowUpRight, CircleDollarSign, Receipt,
   CheckCircle2, Clock3, AlertTriangle, MessageSquarePlus, Users2, FileUp, Eye,
-  UserCheck, Truck, ClipboardList,
+  UserCheck, Truck, ClipboardList, Target,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -338,7 +338,7 @@ export default function ClientDetail() {
                     <Badge key={t} variant="outline" className="text-[10px]"><Tag className="size-2.5 mr-1" /> {t}</Badge>
                   ))}
                   <span className="text-[11px] text-muted-foreground">
-                    Cliente desde {formatDate(client.created_at)}
+                    Cliente desde {formatDate(client.entry_date || client.created_at)}
                   </span>
                 </div>
               </div>
@@ -356,8 +356,8 @@ export default function ClientDetail() {
             <ContactItem icon={Mail} label="E-mail" value={client.email ?? "—"} />
             <ContactItem icon={Phone} label="WhatsApp / Celular" value={formatPhone(client.whatsapp || client.phone)} />
             <ContactItem icon={IdCard} label={client.document_type || "CPF/CNPJ"} value={formatDoc(client.document)} mono />
-            <ContactItem icon={MapPin} label="Origem" value={client.source?.replace("_", " ") || "—"} />
-            <ContactItem icon={MapPin} label="Cidade/UF" value={[client.address_city, client.address_state].filter(Boolean).join("/") || "—"} />
+            <ContactItem icon={Target} label="Origem" value={client.source?.replace("_", " ") || client.origin?.replace("_", " ") || "—"} />
+            <ContactItem icon={MapPin} label="Cidade/UF" value={[client.address_city || client.city, client.address_state || client.state].filter(Boolean).join("/") || "—"} />
             <ContactItem icon={MapPin} label="Endereço" value={client.address_street ? `${client.address_street}, ${client.address_number}` : client.address || "—"} />
           </div>
         </div>
