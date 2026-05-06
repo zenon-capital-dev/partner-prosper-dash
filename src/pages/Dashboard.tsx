@@ -106,6 +106,17 @@ export default function Dashboard() {
     },
   });
 
+  const { data: pendingDocsCount = 0 } = useQuery({
+    queryKey: ["dash-pending-docs"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("documents")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["enviado", "em_analise"]);
+      return count ?? 0;
+    },
+  });
+
   const totalRevenue = sales.reduce((s, x: any) => s + Number(x.amount), 0);
   const contractsClosed = sales.filter((s: any) => s.status === "concluida").length;
   const contractsPending = sales.filter((s: any) => s.status === "pendente").length;
@@ -293,7 +304,7 @@ export default function Dashboard() {
             <div className="space-y-4">
               {[
                 { label: 'Contratos em Atraso', count: 4, tone: 'bg-destructive/10 text-destructive border-destructive/20' },
-                { label: 'Documentos Pendentes', count: 12, tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+                { label: 'Documentos para Análise', count: pendingDocsCount, tone: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
                 { label: 'Contas a Pagar (Hoje)', count: 2, tone: 'bg-slate-900 text-white border-slate-800 dark:bg-slate-800' },
               ].map((p, i) => (
                 <div key={i} className={cn("flex items-center justify-between p-4 rounded-2xl border transition-all hover:scale-[1.02]", p.tone)}>

@@ -654,45 +654,66 @@ export type Database = {
           client_id: string
           created_at: string
           description: string | null
+          due_date: string | null
           file_path: string | null
           file_size: number | null
           id: string
+          internal_notes: string | null
           mime_type: string | null
           name: string
+          product_id: string | null
+          rejection_reason: string | null
+          requested_at: string | null
           requested_by: string | null
+          reviewed_at: string | null
           sale_id: string | null
-          status: Database["public"]["Enums"]["document_status"]
+          status: Database["public"]["Enums"]["document_status_new"]
           updated_at: string
+          uploaded_at: string | null
           uploaded_by: string | null
         }
         Insert: {
           client_id: string
           created_at?: string
           description?: string | null
+          due_date?: string | null
           file_path?: string | null
           file_size?: number | null
           id?: string
+          internal_notes?: string | null
           mime_type?: string | null
           name: string
+          product_id?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
           requested_by?: string | null
+          reviewed_at?: string | null
           sale_id?: string | null
-          status?: Database["public"]["Enums"]["document_status"]
+          status?: Database["public"]["Enums"]["document_status_new"]
           updated_at?: string
+          uploaded_at?: string | null
           uploaded_by?: string | null
         }
         Update: {
           client_id?: string
           created_at?: string
           description?: string | null
+          due_date?: string | null
           file_path?: string | null
           file_size?: number | null
           id?: string
+          internal_notes?: string | null
           mime_type?: string | null
           name?: string
+          product_id?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
           requested_by?: string | null
+          reviewed_at?: string | null
           sale_id?: string | null
-          status?: Database["public"]["Enums"]["document_status"]
+          status?: Database["public"]["Enums"]["document_status_new"]
           updated_at?: string
+          uploaded_at?: string | null
           uploaded_by?: string | null
         }
         Relationships: [
@@ -701,6 +722,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
@@ -1642,6 +1670,14 @@ export type Database = {
         | "cancelada"
         | "bloqueada"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
+      document_status_new:
+        | "solicitado"
+        | "enviado"
+        | "em_analise"
+        | "aprovado"
+        | "reprovado"
+        | "pendente_correcao"
+        | "vencido"
       partner_type: "parceiro" | "indicador"
       partner_type_enum:
         | "indicador"
@@ -1808,6 +1844,15 @@ export const Constants = {
         "bloqueada",
       ],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
+      document_status_new: [
+        "solicitado",
+        "enviado",
+        "em_analise",
+        "aprovado",
+        "reprovado",
+        "pendente_correcao",
+        "vencido",
+      ],
       partner_type: ["parceiro", "indicador"],
       partner_type_enum: [
         "indicador",

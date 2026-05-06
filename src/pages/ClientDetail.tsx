@@ -751,7 +751,7 @@ export default function ClientDetail() {
       {/* DIALOGS */}
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} client={client} onCreated={() => qc.invalidateQueries({ queryKey: ["client", id] })} />
       <SaleFormDialog open={saleOpen} onOpenChange={setSaleOpen} clientId={id!} onCreated={() => { qc.invalidateQueries({ queryKey: ["client-sales", id] }); toast.success("Venda registrada"); }} />
-      <DocumentDialog open={docOpen} onOpenChange={setDocOpen} clientId={id!} onCreated={() => qc.invalidateQueries({ queryKey: ["client-docs", id] })} />
+      <DocumentDialog open={docOpen} onOpenChange={setDocOpen} clientId={id!} onSuccess={() => qc.invalidateQueries({ queryKey: ["client-docs", id] })} />
 
       <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
         <DialogContent>
