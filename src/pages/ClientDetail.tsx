@@ -94,7 +94,13 @@ export default function ClientDetail() {
   const [docOpen, setDocOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
-  const [subForm, setSubForm] = useState<any>({ billing_cycle: "mensal", status: "ativa", start_date: new Date().toISOString().slice(0, 10) });
+  const [subForm, setSubForm] = useState<any>({ 
+    status: "pendente", 
+    custom_value: 0, 
+    discount: 0,
+    required_documents: [],
+    current_steps: [],
+  });
   const [note, setNote] = useState({ title: "", description: "", event_type: "nota" });
 
   const { data: client } = useQuery({
