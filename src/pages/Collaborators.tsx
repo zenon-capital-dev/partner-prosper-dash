@@ -153,7 +153,7 @@ export default function Collaborators() {
                 onClick={() => setSelectedCollaborator(collab)}
               >
                 <div className="absolute top-4 right-4">
-                  <Badge variant={collab.status === 'active' ? 'success' : 'secondary'} className="text-[9px] uppercase tracking-wider">
+                  <Badge variant={collab.status === 'active' ? 'default' : 'secondary'} className={`text-[9px] uppercase tracking-wider ${collab.status === 'active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
                     {collab.status === 'active' ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </div>
@@ -276,7 +276,7 @@ export default function Collaborators() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-3">
-                                  <Badge variant={i % 2 === 0 ? "success" : "warning"} className="text-[9px]">
+                                  <Badge variant="default" className={`text-[9px] ${i % 2 === 0 ? "bg-emerald-500 hover:bg-emerald-600" : "bg-amber-500 hover:bg-amber-600"}`}>
                                     {i % 2 === 0 ? "Finalizado" : "Em Andamento"}
                                   </Badge>
                                 </td>
