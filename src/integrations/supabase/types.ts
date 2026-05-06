@@ -721,9 +721,11 @@ export type Database = {
           address_number: string | null
           address_state: string | null
           address_street: string | null
+          address_zip: string | null
           address_zip_code: string | null
           avatar_url: string | null
           created_at: string
+          document_number: string | null
           email: string | null
           full_name: string | null
           id: string
@@ -738,9 +740,11 @@ export type Database = {
           address_number?: string | null
           address_state?: string | null
           address_street?: string | null
+          address_zip?: string | null
           address_zip_code?: string | null
           avatar_url?: string | null
           created_at?: string
+          document_number?: string | null
           email?: string | null
           full_name?: string | null
           id: string
@@ -755,9 +759,11 @@ export type Database = {
           address_number?: string | null
           address_state?: string | null
           address_street?: string | null
+          address_zip?: string | null
           address_zip_code?: string | null
           avatar_url?: string | null
           created_at?: string
+          document_number?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -778,6 +784,7 @@ export type Database = {
       projects: {
         Row: {
           amount: number
+          budget: number | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -786,6 +793,7 @@ export type Database = {
           name: string
           notes: string | null
           partner_id: string | null
+          priority: string | null
           product_id: string | null
           progress: number
           start_date: string
@@ -794,6 +802,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          budget?: number | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -802,6 +811,7 @@ export type Database = {
           name: string
           notes?: string | null
           partner_id?: string | null
+          priority?: string | null
           product_id?: string | null
           progress?: number
           start_date?: string
@@ -810,6 +820,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          budget?: number | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -818,6 +829,7 @@ export type Database = {
           name?: string
           notes?: string | null
           partner_id?: string | null
+          priority?: string | null
           product_id?: string | null
           progress?: number
           start_date?: string
@@ -881,8 +893,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          invoice_number: string | null
           notes: string | null
+          paid_at: string | null
           partner_id: string | null
+          payment_method: string | null
           product_id: string
           referrer_id: string | null
           referrer_percent: number | null
@@ -899,8 +914,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          invoice_number?: string | null
           notes?: string | null
+          paid_at?: string | null
           partner_id?: string | null
+          payment_method?: string | null
           product_id: string
           referrer_id?: string | null
           referrer_percent?: number | null
@@ -917,8 +935,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          invoice_number?: string | null
           notes?: string | null
+          paid_at?: string | null
           partner_id?: string | null
+          payment_method?: string | null
           product_id?: string
           referrer_id?: string | null
           referrer_percent?: number | null
@@ -956,6 +977,103 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_assignments: {
+        Row: {
+          client_id: string | null
+          collaborator_id: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          product_id: string | null
+          provider_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          collaborator_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          provider_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          collaborator_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          provider_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_assignments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_assignments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_providers: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          document_number: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          specialty: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          document_number?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          document_number?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          specialty?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
