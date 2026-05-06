@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
-  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone,
+  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
