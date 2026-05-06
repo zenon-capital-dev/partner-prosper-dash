@@ -1719,6 +1719,27 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -1827,6 +1848,16 @@ export type Database = {
           }
         | { Args: { roles: string[] }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      log_action: {
+        Args: {
+          p_action: string
+          p_entity_id: string
+          p_entity_type: string
+          p_new_value?: Json
+          p_old_value?: Json
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
