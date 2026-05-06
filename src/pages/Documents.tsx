@@ -1,15 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, Check, X, Clock, FilePlus } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 export default function Documents() {
-  const { data: docs } = useQuery({
+  const { data: docs, refetch } = useQuery({
     queryKey: ["docs-all"],
     queryFn: async () => (await supabase.from("documents").select("*, clients(full_name)").order("created_at", { ascending: false })).data ?? [],
   });
+
+  const updateStatus = async (id: string, status: "aprovado" | "enviado" | "rejeitado" | "solicitado") => {
+    const { error } = await supabase.from("documents").update({ status }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success(`Documento ${status}`);
+    refetch();
+  };
 
   const download = async (path: string, name: string) => {
     const { data, error } = await supabase.storage.from("documents").download(path);
@@ -39,14 +48,28 @@ export default function Documents() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                    d.status === "aprovado" ? "bg-success-muted text-success" :
-                    d.status === "enviado" ? "bg-info-muted text-info" :
-                    d.status === "rejeitado" ? "bg-destructive-muted text-destructive" :
-                    "bg-warning-muted text-warning"
-                  }`}>{d.status}</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase flex items-center gap-1 transition-opacity hover:opacity-80 ${
+                        d.status === "aprovado" ? "bg-success-muted text-success" :
+                        d.status === "enviado" ? "bg-info-muted text-info" :
+                        d.status === "rejeitado" ? "bg-destructive-muted text-destructive" :
+                        "bg-warning-muted text-warning"
+                      }`}>
+                        {d.status === "aprovado" && <Check className="size-2.5" />}
+                        {d.status === "rejeitado" && <X className="size-2.5" />}
+                        {d.status === "pendente" && <Clock className="size-2.5" />}
+                        {d.status}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => updateStatus(d.id, "aprovado")} className="text-success"><Check className="size-3.5 mr-2" /> Aprovar</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateStatus(d.id, "rejeitado")} className="text-destructive"><X className="size-3.5 mr-2" /> Reprovar</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => updateStatus(d.id, "solicitado")} className="text-warning"><Clock className="size-3.5 mr-2" /> Marcar pendente</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   {d.file_path && (
-                    <button onClick={() => download(d.file_path, d.name)} className="size-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"><Download className="size-4" /></button>
+                    <button onClick={() => download(d.file_path, d.name)} className="size-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground" title="Download"><Download className="size-4" /></button>
                   )}
                 </div>
               </div>

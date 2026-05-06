@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { UserCog, UserPlus, Search, Mail, Copy, Shield } from "lucide-react";
+import { UserCog, UserPlus, Search, Mail, Copy, Shield, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,14 +38,14 @@ export default function UsersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<any>({ role: "vendedor", send_invite: true });
+  const [form, setForm] = useState<any>({ role: "vendedor", send_invite: true, active: true });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ["users-with-roles"],
     queryFn: async () => {
       const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email, phone, created_at").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, full_name, email, phone, created_at, active").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
       ]);
       return (profiles ?? []).map((p) => ({
@@ -71,6 +72,21 @@ export default function UsersPage() {
     qc.invalidateQueries({ queryKey: ["users-with-roles"] });
   };
 
+  const toggleStatus = async (userId: string, currentStatus: boolean) => {
+    const { error } = await supabase.from("profiles").update({ active: !currentStatus }).eq("id", userId);
+    if (error) return toast.error(error.message);
+    toast.success(`Usuário ${!currentStatus ? 'ativado' : 'desativado'}`);
+    qc.invalidateQueries({ queryKey: ["users-with-roles"] });
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Email de reset de senha enviado");
+  };
+
   const invite = async () => {
     if (!form.email) return toast.error("Email obrigatório");
     const { data, error } = await supabase.functions.invoke("invite-user", {
@@ -86,7 +102,7 @@ export default function UsersPage() {
     if ((data as any)?.error) return toast.error((data as any).error);
     toast.success("Usuário criado");
     setCreatedInfo({ email: form.email, password: (data as any)?.temp_password });
-    setForm({ role: "vendedor", send_invite: true });
+    setForm({ role: "vendedor", send_invite: true, active: true });
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["users-with-roles"] });
   };
@@ -120,7 +136,8 @@ export default function UsersPage() {
               <th className="px-4 py-3 text-left font-semibold">Email</th>
               <th className="px-4 py-3 text-left font-semibold">Telefone</th>
               <th className="px-4 py-3 text-left font-semibold">Papel atual</th>
-              <th className="px-4 py-3 text-left font-semibold">Alterar papel</th>
+              <th className="px-4 py-3 text-left font-semibold">Status</th>
+              <th className="px-4 py-3 text-left font-semibold">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -142,18 +159,40 @@ export default function UsersPage() {
                   ))}
                 </td>
                 <td className="px-4 py-3">
-                  <Select value={u.roles[0] ?? "none"} onValueChange={(v) => setRole(u.id, v as Role)}>
-                    <SelectTrigger className="w-44 h-8"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem papel</SelectItem>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                      <SelectItem value="vendedor">Vendedor</SelectItem>
-                      <SelectItem value="colaborador">Colaborador</SelectItem>
-                      <SelectItem value="parceiro">Parceiro</SelectItem>
-                      <SelectItem value="prestador">Prestador</SelectItem>
-                      <SelectItem value="cliente">Cliente</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Badge variant={u.active ? "outline" : "destructive"} className="text-[10px]">
+                    {u.active ? "Ativo" : "Inativo"}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Select value={u.roles[0] ?? "none"} onValueChange={(v) => setRole(u.id, v as Role)}>
+                      <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem papel</SelectItem>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="vendedor">Vendedor</SelectItem>
+                        <SelectItem value="colaborador">Colaborador</SelectItem>
+                        <SelectItem value="parceiro">Parceiro</SelectItem>
+                        <SelectItem value="prestador">Prestador</SelectItem>
+                        <SelectItem value="cliente">Cliente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => toggleStatus(u.id, u.active)}>
+                          {u.active ? "Desativar acesso" : "Ativar acesso"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => resetPassword(u.email)}>
+                          Resetar senha
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </td>
               </tr>
             ))}

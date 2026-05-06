@@ -45,6 +45,10 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       return data ?? [];
     },
   });
+  const { data: serviceProviders } = useQuery({
+    queryKey: ["service-providers-select"],
+    queryFn: async () => (await supabase.from("service_providers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
 
   const submit = async () => {
     if (!form.full_name) {
@@ -69,6 +73,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       partner_id: form.partner_id || null,
       referrer_id: form.referrer_id || null,
       collaborator_id: form.collaborator_id || null,
+      service_provider_id: form.service_provider_id || null,
+      origin: form.origin || null,
+      contract_value: form.contract_value || null,
+      commission_value: form.commission_value || null,
+      payment_status: form.payment_status || "pendente",
       notes: form.notes || null,
       tags: form.tags ?? [],
       created_by: user?.id,
@@ -170,6 +179,20 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="space-y-2">
+            <Label>Prestador de serviço</Label>
+            <Select value={form.service_provider_id ?? "none"} onValueChange={(v) => setForm({ ...form, service_provider_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem prestador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem prestador</SelectItem>
+                {serviceProviders?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Origem do cliente</Label>
+            <Input value={form.origin ?? ""} onChange={(e) => setForm({ ...form, origin: e.target.value })} placeholder="Ex: Google, Instagram, Indicação" />
+          </div>
+          <div className="space-y-2">
             <Label>Status</Label>
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -177,6 +200,26 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                 <SelectItem value="prospecto">Prospecto</SelectItem>
                 <SelectItem value="ativo">Ativo</SelectItem>
                 <SelectItem value="inativo">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Valor do contrato (R$)</Label>
+            <Input type="number" step="0.01" value={form.contract_value ?? ""} onChange={(e) => setForm({ ...form, contract_value: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Comissão (R$)</Label>
+            <Input type="number" step="0.01" value={form.commission_value ?? ""} onChange={(e) => setForm({ ...form, commission_value: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Status de pagamento</Label>
+            <Select value={form.payment_status} onValueChange={(v) => setForm({ ...form, payment_status: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="pago">Pago</SelectItem>
+                <SelectItem value="atrasado">Atrasado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>

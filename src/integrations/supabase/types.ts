@@ -164,7 +164,9 @@ export type Database = {
           address_zip_code: string | null
           city: string | null
           collaborator_id: string | null
+          commission_value: number | null
           company: string | null
+          contract_value: number | null
           created_at: string
           created_by: string | null
           document: string | null
@@ -172,10 +174,13 @@ export type Database = {
           full_name: string
           id: string
           notes: string | null
+          origin: string | null
           partner_id: string | null
+          payment_status: string | null
           phone: string | null
           referral_id: string | null
           referrer_id: string | null
+          service_provider_id: string | null
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
@@ -191,7 +196,9 @@ export type Database = {
           address_zip_code?: string | null
           city?: string | null
           collaborator_id?: string | null
+          commission_value?: number | null
           company?: string | null
+          contract_value?: number | null
           created_at?: string
           created_by?: string | null
           document?: string | null
@@ -199,10 +206,13 @@ export type Database = {
           full_name: string
           id?: string
           notes?: string | null
+          origin?: string | null
           partner_id?: string | null
+          payment_status?: string | null
           phone?: string | null
           referral_id?: string | null
           referrer_id?: string | null
+          service_provider_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
@@ -218,7 +228,9 @@ export type Database = {
           address_zip_code?: string | null
           city?: string | null
           collaborator_id?: string | null
+          commission_value?: number | null
           company?: string | null
+          contract_value?: number | null
           created_at?: string
           created_by?: string | null
           document?: string | null
@@ -226,10 +238,13 @@ export type Database = {
           full_name?: string
           id?: string
           notes?: string | null
+          origin?: string | null
           partner_id?: string | null
+          payment_status?: string | null
           phone?: string | null
           referral_id?: string | null
           referrer_id?: string | null
+          service_provider_id?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
@@ -256,6 +271,13 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "referrers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -715,6 +737,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active: boolean | null
           address_city: string | null
           address_complement: string | null
           address_neighborhood: string | null
@@ -731,9 +754,11 @@ export type Database = {
           id: string
           phone: string | null
           referral_id: string | null
+          temp_password: string | null
           updated_at: string
         }
         Insert: {
+          active?: boolean | null
           address_city?: string | null
           address_complement?: string | null
           address_neighborhood?: string | null
@@ -750,9 +775,11 @@ export type Database = {
           id: string
           phone?: string | null
           referral_id?: string | null
+          temp_password?: string | null
           updated_at?: string
         }
         Update: {
+          active?: boolean | null
           address_city?: string | null
           address_complement?: string | null
           address_neighborhood?: string | null
@@ -769,6 +796,7 @@ export type Database = {
           id?: string
           phone?: string | null
           referral_id?: string | null
+          temp_password?: string | null
           updated_at?: string
         }
         Relationships: [
