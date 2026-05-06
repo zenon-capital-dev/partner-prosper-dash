@@ -320,61 +320,35 @@ function ListView({ clients, onOpen, onDelete }: any) {
                 <td className="px-6 py-3.5">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="size-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center text-xs font-semibold ring-1 ring-primary/10">
+                      <div className="size-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold ring-1 ring-border">
                         {initials(c.full_name)}
                       </div>
-                      {c._isVip && (
-                        <div className="absolute -top-1 -right-1 size-4 rounded-full bg-warning text-warning-foreground flex items-center justify-center" title="Cliente VIP (LTV ≥ R$ 50k)">
-                          <Crown className="size-2.5" />
-                        </div>
-                      )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium truncate group-hover:text-primary transition-colors">{c.full_name}</p>
-                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
-                        {c.email ? <><Mail className="size-2.5" /> {c.email}</> : c.phone ? <><Phone className="size-2.5" /> {formatPhone(c.phone)}</> : "—"}
-                      </p>
+                      <p className="font-bold truncate group-hover:text-primary transition-colors">{c.full_name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{c.email}</p>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-3.5">
-                  <p className="text-sm truncate">{c.company ?? "—"}</p>
-                  {(c.city || c.state) && (
-                    <p className="text-[11px] text-muted-foreground truncate">{[c.city, c.state].filter(Boolean).join("/")}</p>
-                  )}
-                </td>
-                <td className="px-6 py-3.5">
-                  {c.partners ? (
-                    <div className="space-y-1">
-                      <Badge variant="secondary" className="text-[10px] gap-1 font-normal">
-                        {c.partners.full_name}
-                      </Badge>
-                      <p className="text-[10px] text-muted-foreground">Via Parceiro</p>
-                    </div>
-                  ) : c.referrer_id ? (
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="text-[10px] gap-1 font-normal border-warning/30 text-warning">
-                        Indicação
-                      </Badge>
-                      <p className="text-[10px] text-muted-foreground">Link Direto</p>
-                    </div>
-                  ) : (
-                    <span className="text-[11px] text-muted-foreground/60">Direto</span>
-                  )}
-                </td>
-                <td className="px-6 py-3.5 text-right">
-                  <span className="vx-mono text-sm font-semibold">{c._salesCount}</span>
-                </td>
-                <td className="px-6 py-3.5 text-right">
-                  <span className={`vx-mono text-sm font-semibold ${c._ltv > 0 ? "text-foreground" : "text-muted-foreground/60"}`}>
-                    {c._ltv > 0 ? formatBRL(c._ltv) : "—"}
-                  </span>
-                </td>
-                <td className="px-6 py-3.5 text-[11px] text-muted-foreground">
-                  {c._lastSale ? timeAgo(c._lastSale) : <span className="text-muted-foreground/60">Nunca</span>}
-                </td>
-                <td className="px-6 py-3.5">
+                  <p className="text-[11px] font-bold text-foreground">Gestão Financeira</p>
                   <StatusPill status={c.status} />
+                </td>
+                <td className="px-6 py-3.5">
+                  <p className="text-[11px] font-medium capitalize">{c.source?.replace("_", " ") || "Manual"}</p>
+                  <p className="text-[10px] text-muted-foreground">{c.partners?.full_name || "Direto"}</p>
+                </td>
+                <td className="px-6 py-3.5 text-sm font-medium">
+                  {c.collaborators?.full_name || "Douglas"}
+                </td>
+                <td className="px-6 py-3.5 text-right">
+                  <p className="vx-mono font-bold">{formatBRL(c.sale_value || 0)}</p>
+                </td>
+                <td className="px-6 py-3.5">
+                   <Badge variant="outline" className="text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100">Confirmado</Badge>
+                </td>
+                <td className="px-6 py-3.5">
+                   <Badge variant="outline" className="text-[10px] uppercase bg-blue-50 text-blue-600 border-blue-100">7/12</Badge>
                 </td>
                 <td className="px-6 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
@@ -383,6 +357,17 @@ function ListView({ clients, onOpen, onDelete }: any) {
                         <MoreHorizontal className="size-4 text-muted-foreground" />
                       </button>
                     </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onOpen(c.id)}>Ver detalhes</DropdownMenuItem>
+                      <DropdownMenuItem>Editar</DropdownMenuItem>
+                      <DropdownMenuItem>Solicitar documento</DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive">Desativar</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </td>
+              </tr>
+            ))}
+          </tbody>
                     <DropdownMenuContent align="end" className="w-44">
                       <DropdownMenuLabel className="text-[10px] uppercase">{c.full_name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
