@@ -88,7 +88,7 @@ export default function PartnerPanel() {
           </div>
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {partner.partner_type === "colaborador" ? "Colaborador" : "Parceiro"}
+              {partner.partner_type === "indicador" ? "Indicador" : "Parceiro"}
             </p>
             <h1 className="font-display text-[28px] font-bold tracking-tight leading-tight">{partner.full_name}</h1>
             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
