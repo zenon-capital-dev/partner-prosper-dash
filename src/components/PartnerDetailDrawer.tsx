@@ -325,16 +325,44 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
                     <p className="text-sm text-muted-foreground">Nenhuma comissão registrada</p>
                   </div>
                 ) : (
-                  <div className="vx-card divide-y divide-border">
-                    {commissions.map((c: any, i: number) => (
-                      <div key={i} className="p-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold vx-mono">{formatBRL(c.amount)}</p>
-                          <p className="text-[11px] text-muted-foreground">{formatDate(c.created_at)}</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[11px] font-bold uppercase text-muted-foreground px-1">
+                      <span>Histórico de Pagamentos</span>
+                    </div>
+                    <div className="vx-card divide-y divide-border">
+                      {commissions.map((c: any) => (
+                        <div key={c.id} className="p-3.5 hover:bg-muted/30 transition-colors group">
+                          <div className="flex items-center justify-between gap-3 mb-2">
+                            <div>
+                              <p className="text-sm font-bold vx-mono text-primary">{formatBRL(c.amount)}</p>
+                              <p className="text-[10px] text-muted-foreground">{formatDate(c.created_at)}</p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1.5">
+                              <Badge variant="outline" className={cn("text-[9px] uppercase font-bold", 
+                                c.status === "paga" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                c.status === "aprovada" ? "bg-blue-50 text-blue-600 border-blue-100" :
+                                c.status === "cancelada" ? "bg-rose-50 text-rose-600 border-rose-100" :
+                                "bg-amber-50 text-amber-600 border-amber-100"
+                              )}>
+                                {c.status}
+                              </Badge>
+                              {c.paid_at && <span className="text-[9px] text-muted-foreground italic">Pago em {formatDate(c.paid_at)}</span>}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 p-2 bg-muted/20 rounded border border-border/40">
+                             <div className="min-w-0">
+                               <p className="text-[9px] uppercase text-muted-foreground font-bold">Cliente</p>
+                               <p className="text-[11px] font-medium truncate">{c.clients?.full_name || "—"}</p>
+                             </div>
+                             <div className="min-w-0">
+                               <p className="text-[9px] uppercase text-muted-foreground font-bold">Produto</p>
+                               <p className="text-[11px] font-medium truncate">{c.products?.name || "—"}</p>
+                             </div>
+                          </div>
+                          {c.notes && <p className="mt-2 text-[10px] text-muted-foreground bg-muted/10 p-1.5 rounded border-l-2 border-primary/30 italic">"{c.notes}"</p>}
                         </div>
-                        <Badge variant={c.status === "paga" ? "default" : "secondary"} className="text-[10px] uppercase">{c.status}</Badge>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </TabsContent>
