@@ -32,7 +32,7 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [subs, sales, docs, catalog] = await Promise.all([
+      const [subs, sales, docs, catalog, requests] = await Promise.all([
         supabase
           .from("client_subscriptions")
           .select("*, products(name, description, product_categories(name, color))")
@@ -52,6 +52,11 @@ export default function ClientPanel() {
           .from("products")
           .select("id, name, description, base_price, recurring, product_categories(name, color)")
           .eq("active", true),
+        supabase
+          .from("document_requests")
+          .select("*")
+          .eq("client_id", client.id)
+          .order("requested_at", { ascending: false }),
       ]);
 
       return {
@@ -60,6 +65,7 @@ export default function ClientPanel() {
         sales: sales.data ?? [],
         docs: docs.data ?? [],
         catalog: catalog.data ?? [],
+        requests: requests.data ?? [],
       };
     },
     enabled: !!user,
