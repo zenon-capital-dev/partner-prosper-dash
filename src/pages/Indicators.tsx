@@ -25,13 +25,12 @@ export default function Indicators() {
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["referrers-rich"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("referrers")
-        .select("*, commission_splits!commission_splits_beneficiary_id_fkey(amount,status)")
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
+    queryFn: async () => (await supabase.from("referrers").select("*").order("created_at", { ascending: false })).data ?? [],
+  });
+
+  const { data: splits = [] } = useQuery({
+    queryKey: ["referrer-splits-all"],
+    queryFn: async () => (await supabase.from("commission_splits").select("beneficiary_id, amount, status").eq("beneficiary_type", "referrer")).data ?? [],
   });
 
   const { data: clientsByReferrer = [] } = useQuery({
