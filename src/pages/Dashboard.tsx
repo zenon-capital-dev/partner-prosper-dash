@@ -126,53 +126,63 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="page-shell space-y-7">
+    <div className="page-shell space-y-7 animate-in fade-in duration-500">
       <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
         <div className="min-w-0 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            <span className="vx-live-dot" />
-            Painel administrativo
+            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+            Visão Geral Estratégica
           </div>
           <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
             {(() => {
               const h = new Date().getHours();
               const greeting = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
-              const name = (user?.user_metadata?.full_name as string)?.split(" ")[0] ?? "";
-              return name ? `${greeting}, ${name}` : greeting;
+              const name = (user?.user_metadata?.full_name as string)?.split(" ")[0] ?? "Admin";
+              return `${greeting}, ${name}`;
             })()}
           </h1>
-          <div className="flex items-center gap-2.5 text-[12px] text-muted-foreground">
+          <div className="flex items-center gap-2.5 text-[12px] text-muted-foreground font-medium">
             <CalendarDays className="size-3.5 text-primary" />
             {range.label}
+            <span className="text-border mx-1">|</span>
+            <Activity className="size-3.5 text-success" />
+            Sistema Operacional
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-card/50 p-1 rounded-xl border border-border/50">
+        <div className="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-border/60 shadow-sm backdrop-blur-sm">
           {presets.map((p) => (
             <button
               key={p.key}
               onClick={() => setRangeKey(p.key)}
               className={cn(
-                "h-8 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5",
-                rangeKey === p.key ? "bg-slate-900 text-white shadow-lg" : "text-muted-foreground hover:bg-muted"
+                "h-9 px-4 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2",
+                rangeKey === p.key 
+                  ? "bg-slate-950 text-white shadow-md shadow-slate-900/10 dark:bg-white dark:text-slate-950" 
+                  : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
               )}
             >
-              <p.icon className="size-3" />
+              <p.icon className="size-3.5" />
               {p.label}
             </button>
           ))}
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {kpis.map((k) => (
-          <div key={k.label} className="vx-card p-5 group hover:border-primary/20 transition-all">
-            <div className={cn("p-2 w-fit rounded-xl", k.tone)}>
-              <k.icon className="size-5" />
+          <div key={k.label} className="vx-card p-6 group hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+            <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110", k.tone)}>
+              <k.icon className="size-6" />
             </div>
-            <div className="mt-4">
-              <p className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">{k.label}</p>
-              <h3 className="text-2xl font-bold mt-1 tracking-tight">{k.value}</h3>
+            <div className="mt-5">
+              <p className="vx-kpi-label">{k.label}</p>
+              <h3 className="vx-kpi-value mt-2">{k.value}</h3>
+              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-success">
+                <ArrowUpRight className="size-3" />
+                <span>+12.5%</span>
+                <span className="text-muted-foreground font-medium ml-1">vs. período anterior</span>
+              </div>
             </div>
           </div>
         ))}
