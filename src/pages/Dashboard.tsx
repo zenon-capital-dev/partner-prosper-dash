@@ -451,22 +451,30 @@ export default function Dashboard() {
   return (
     <div className="page-shell space-y-6">
       {/* ===== HEADER ===== */}
-      <header className="flex items-end justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <h1 className="font-display text-[38px] font-bold tracking-[-0.03em] leading-none text-foreground">
-            Visão Geral
+      <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
+        <div className="min-w-0 space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            <span className="vx-live-dot" />
+            Painel administrativo
+          </div>
+          <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
+            {(() => {
+              const h = new Date().getHours();
+              const greeting = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+              const name = (user?.user_metadata?.full_name as string)?.split(" ")[0] ?? "";
+              return name ? `${greeting}, ${name}` : greeting;
+            })()}
           </h1>
-          <div className="flex items-center gap-2 mt-3">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-              <CalendarDays className="size-3.5 text-primary" />
-              {range.label}
-            </span>
+          <div className="flex items-center gap-2.5 text-[12px] text-muted-foreground">
+            <CalendarDays className="size-3.5 text-primary" />
+            <span className="font-semibold text-foreground">{range.label}</span>
             <span className="size-1 rounded-full bg-muted-foreground/40" />
-            <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-              {aggregated.sales.length} vendas no período
-            </span>
+            <span className="tabular-nums">{aggregated.sales.length} vendas</span>
+            <span className="size-1 rounded-full bg-muted-foreground/40" />
+            <span className="tabular-nums">{aggregated.newClients} novos clientes</span>
           </div>
         </div>
+
         <div className="flex items-center gap-2 flex-wrap">
           {/* Period segmented control */}
           <div className="vx-segment !p-0.5">
@@ -529,14 +537,8 @@ export default function Dashboard() {
             </PopoverContent>
           </Popover>
 
-          <button className="relative size-9 rounded-lg border border-border bg-card flex items-center justify-center hover:bg-muted/50 transition-colors">
-            <Bell className="size-4 text-muted-foreground" />
-            <span className="absolute -top-1 -right-1 size-4 rounded-full bg-destructive text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-background">
-              3
-            </span>
-          </button>
-          <button className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors">
-            <Plus className="size-4" /> Novo
+          <button className="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-foreground text-background text-[13px] font-bold hover:bg-foreground/90 transition-colors shadow-sm">
+            <Plus className="size-4" /> Novo registro
           </button>
         </div>
       </header>
