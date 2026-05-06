@@ -26,12 +26,15 @@ import {
 import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 
-type StatusFilter = "all" | "pendente" | "pago" | "cancelado";
+type StatusFilter = "all" | "gerada" | "em_analise" | "aprovada" | "paga" | "cancelada" | "bloqueada";
 
 const statusBadge: Record<string, string> = {
-  pendente: "bg-warning-muted text-warning",
-  pago: "bg-success-muted text-success",
-  cancelado: "bg-destructive-muted text-destructive",
+  gerada: "bg-blue-50 text-blue-600 border-blue-200",
+  em_analise: "bg-indigo-50 text-indigo-600 border-indigo-200",
+  aprovada: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  paga: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  cancelada: "bg-destructive/10 text-destructive border-destructive/20",
+  bloqueada: "bg-muted text-muted-foreground border-border",
 };
 
 export default function Commissions() {
