@@ -357,36 +357,24 @@ function ListView({ clients, onOpen, onDelete }: any) {
                         <MoreHorizontal className="size-4 text-muted-foreground" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onOpen(c.id)}>Ver detalhes</DropdownMenuItem>
-                      <DropdownMenuItem>Editar</DropdownMenuItem>
-                      <DropdownMenuItem>Solicitar documento</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Desativar</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
                     <DropdownMenuContent align="end" className="w-44">
                       <DropdownMenuLabel className="text-[10px] uppercase">{c.full_name}</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => onOpen(c.id)}>
                         <Eye className="size-3.5 mr-2" /> Ver detalhes
                       </DropdownMenuItem>
-                      {c.email && (
-                        <DropdownMenuItem onClick={() => window.open(`mailto:${c.email}`)}>
-                          <Mail className="size-3.5 mr-2" /> Enviar email
-                        </DropdownMenuItem>
-                      )}
-                      {c.phone && (
-                        <DropdownMenuItem onClick={() => window.open(`tel:${c.phone}`)}>
-                          <Phone className="size-3.5 mr-2" /> Ligar
-                        </DropdownMenuItem>
-                      )}
+                      <DropdownMenuItem>
+                        <Pencil className="size-3.5 mr-2" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Plus className="size-3.5 mr-2" /> Adicionar produto
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Plus className="size-3.5 mr-2" /> Criar tarefa
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => onDelete(c.id)} className="text-destructive">
-                        <Trash2 className="size-3.5 mr-2" /> Excluir
+                        <Trash2 className="size-3.5 mr-2" /> Desativar
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -394,7 +382,6 @@ function ListView({ clients, onOpen, onDelete }: any) {
               </tr>
             ))}
           </tbody>
-        </table>
       </div>
     </div>
   );
