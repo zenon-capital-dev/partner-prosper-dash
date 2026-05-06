@@ -84,7 +84,11 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
     queryKey: ["partner-commissions", partnerId],
     queryFn: async () => {
       if (!partnerId) return [];
-      const { data } = await supabase.from("commissions").select("amount,status,created_at,paid_at").eq("partner_id", partnerId);
+      const { data } = await supabase
+        .from("commissions")
+        .select("*, products(name), clients(full_name)")
+        .eq("partner_id", partnerId)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!partnerId && open,
