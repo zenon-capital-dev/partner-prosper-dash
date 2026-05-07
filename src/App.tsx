@@ -34,6 +34,7 @@ import Tasks from "./pages/Tasks";
 import AuditLog from "./pages/AuditLog";
 import CollaboratorPanel from "./pages/CollaboratorPanel";
 import ProviderPanel from "./pages/ProviderPanel";
+import ReferrerPanel from "./pages/ReferrerPanel";
 import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/cliente" element={<ClientPanel />} />
               <Route path="/cliente/documentos" element={<ClientPanel />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
+              <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/prestador" element={<ProviderPanel />} />
             </Route>
             <Route path="*" element={<NotFound />} />
