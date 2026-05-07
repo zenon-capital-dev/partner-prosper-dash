@@ -1595,6 +1595,7 @@ export type Database = {
           full_name: string | null
           has_system_access: boolean | null
           id: string
+          internal_notes: string | null
           phone: string | null
           referral_id: string | null
           temp_password: string | null
@@ -1617,6 +1618,7 @@ export type Database = {
           full_name?: string | null
           has_system_access?: boolean | null
           id: string
+          internal_notes?: string | null
           phone?: string | null
           referral_id?: string | null
           temp_password?: string | null
@@ -1639,6 +1641,7 @@ export type Database = {
           full_name?: string | null
           has_system_access?: boolean | null
           id?: string
+          internal_notes?: string | null
           phone?: string | null
           referral_id?: string | null
           temp_password?: string | null
