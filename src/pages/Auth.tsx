@@ -323,6 +323,19 @@ export default function AuthPage() {
             </Button>
           </form>
 
+          {/* Sign-up link */}
+          <div className="text-center">
+            <p className="text-[12.5px] text-slate-500">
+              Não tem uma conta?{" "}
+              <Link
+                to="/cadastro"
+                className="text-slate-900 font-semibold underline underline-offset-2 hover:text-slate-700"
+              >
+                Criar conta
+              </Link>
+            </p>
+          </div>
+
           {/* Footer trust */}
           <div className="pt-6 border-t border-slate-200/60">
             <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
