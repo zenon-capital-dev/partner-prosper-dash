@@ -33,7 +33,7 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [subs, sales, docs, catalog, requests] = await Promise.all([
+      const [subs, sales, docs, catalog, requests, contracts, timeline, payments] = await Promise.all([
         supabase
           .from("client_subscriptions")
           .select("*, products(name, description, product_categories(name, color))")
@@ -58,6 +58,22 @@ export default function ClientPanel() {
           .select("*")
           .eq("client_id", client.id)
           .order("requested_at", { ascending: false }),
+        supabase
+          .from("contracts")
+          .select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)")
+          .eq("client_id", client.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("client_timeline")
+          .select("*")
+          .eq("client_id", client.id)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("payments")
+          .select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count")
+          .eq("client_id", client.id)
+          .order("due_date", { ascending: false }),
       ]);
 
       return {
@@ -67,6 +83,9 @@ export default function ClientPanel() {
         docs: docs.data ?? [],
         catalog: catalog.data ?? [],
         requests: requests.data ?? [],
+        contracts: contracts.data ?? [],
+        timeline: timeline.data ?? [],
+        payments: payments.data ?? [],
       };
     },
     enabled: !!user,
@@ -116,7 +135,7 @@ export default function ClientPanel() {
     );
   }
 
-  const { client, subscriptions, sales, docs, catalog, requests } = data;
+  const { client, subscriptions, sales, docs, catalog, requests, contracts, timeline, payments } = data;
   const activeSubs = subscriptions.filter((s: any) => s.status === "ativa");
   const monthlyTotal = activeSubs
     .filter((s: any) => s.billing_cycle === "mensal")
@@ -124,6 +143,9 @@ export default function ClientPanel() {
   const pendingDocs = requests.filter((r: any) => r.status === "solicitado" || r.status === "reprovado").length;
   const ownedProductIds = new Set(subscriptions.map((s: any) => s.product_id).filter(Boolean));
   const availableCatalog = catalog.filter((p: any) => !ownedProductIds.has(p.id));
+  const overduePayments = payments.filter((p: any) => p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date());
+  const upcomingPayments = payments.filter((p: any) => p.status !== "pago").slice(0, 10);
+  const pendingContracts = contracts.filter((c: any) => c.status !== "assinado" && c.status !== "finalizado");
 
   return (
     <div className="page-shell space-y-7">
@@ -167,11 +189,13 @@ export default function ClientPanel() {
             <Upload className="size-4" /> Solicitações
             {pendingDocs > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingDocs}</Badge>}
           </TabsTrigger>
+          <TabsTrigger value="contratos" className="h-9 gap-2 text-[13px] font-semibold">
+            <ClipboardList className="size-4" /> Contratos
+            {pendingContracts.length > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingContracts.length}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
             <Receipt className="size-4" /> Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="tarefas" className="h-9 gap-2 text-[13px] font-semibold">
-            <ListTodo className="size-4" /> Pendências
+            {overduePayments.length > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-destructive text-destructive-foreground">{overduePayments.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="historico" className="h-9 gap-2 text-[13px] font-semibold">
             <History className="size-4" /> Histórico
@@ -358,12 +382,118 @@ export default function ClientPanel() {
           <ClientRequestsView requests={requests} client={client} />
         </TabsContent>
 
-        {/* ===== FINANCEIRO ===== */}
-        <TabsContent value="financeiro" className="space-y-3">
-          {sales.length === 0 ? (
-            <Empty icon={Receipt} title="Sem histórico financeiro" desc="Suas compras e contratações aparecerão aqui." />
+        {/* ===== CONTRATOS ===== */}
+        <TabsContent value="contratos" className="space-y-3">
+          {contracts.length === 0 ? (
+            <Empty icon={ClipboardList} title="Nenhum contrato" desc="Seus contratos aparecerão aqui assim que forem gerados." />
           ) : (
+            <div className="vx-card divide-y divide-border">
+              {contracts.map((c: any) => {
+                const tone =
+                  c.status === "assinado" || c.status === "finalizado" ? "vx-pill-success" :
+                  c.status === "enviado" ? "vx-pill-info" :
+                  c.status === "cancelado" ? "vx-pill-danger" : "vx-pill-muted";
+                return (
+                  <div key={c.id} className="p-4 lg:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="size-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                      <ClipboardList className="size-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-[14px] truncate">{c.name}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-muted-foreground">
+                        {c.products?.name && <span>{c.products.name}</span>}
+                        {c.amount && <span className="vx-mono font-semibold text-foreground">{formatBRL(c.amount)}</span>}
+                        <span>Criado em {formatDate(c.created_at)}</span>
+                        {c.signed_at && <span className="text-success">Assinado em {formatDate(c.signed_at)}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`vx-pill ${tone}`}>{c.status}</span>
+                      {c.file_path && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={async () => {
+                          const { data: f, error } = await supabase.storage.from("contracts").download(c.file_path);
+                          if (error) return toast.error(error.message);
+                          const url = URL.createObjectURL(f);
+                          const a = document.createElement("a"); a.href = url; a.download = c.name; a.click();
+                          URL.revokeObjectURL(url);
+                        }}>
+                          <Download className="size-3.5" /> Baixar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* ===== FINANCEIRO ===== */}
+        <TabsContent value="financeiro" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="vx-card p-5">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Mensalidade ativa</p>
+              <p className="font-display text-[22px] font-bold tabular-nums mt-1.5">{formatBRL(monthlyTotal)}</p>
+            </div>
+            <div className="vx-card p-5">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Pagamentos pendentes</p>
+              <p className="font-display text-[22px] font-bold tabular-nums mt-1.5">{upcomingPayments.length}</p>
+            </div>
+            <div className="vx-card p-5">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Em atraso</p>
+              <p className={`font-display text-[22px] font-bold tabular-nums mt-1.5 ${overduePayments.length > 0 ? "text-destructive" : ""}`}>
+                {overduePayments.length}
+              </p>
+            </div>
+          </div>
+
+          {payments.length > 0 && (
             <div className="vx-card overflow-hidden">
+              <div className="p-4 border-b border-border flex items-center gap-2">
+                <Receipt className="size-4 text-primary" />
+                <p className="text-sm font-semibold">Cobranças e pagamentos</p>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40">
+                  <tr className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-5 py-3 text-left font-semibold">Vencimento</th>
+                    <th className="px-5 py-3 text-left font-semibold">Parcela</th>
+                    <th className="px-5 py-3 text-right font-semibold">Valor</th>
+                    <th className="px-5 py-3 text-left font-semibold">Método</th>
+                    <th className="px-5 py-3 text-left font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {payments.map((p: any) => {
+                    const overdue = p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date();
+                    return (
+                      <tr key={p.id} className={overdue ? "bg-destructive/5" : ""}>
+                        <td className="px-5 py-3.5 text-xs">{p.due_date ? formatDate(p.due_date) : "—"}</td>
+                        <td className="px-5 py-3.5 text-xs text-muted-foreground">{p.installment_number}/{p.installments_count}</td>
+                        <td className="px-5 py-3.5 text-right vx-mono font-semibold">{formatBRL(p.amount)}</td>
+                        <td className="px-5 py-3.5 text-xs text-muted-foreground">{p.payment_method ?? "—"}</td>
+                        <td className="px-5 py-3.5">
+                          <span className={`vx-pill ${
+                            p.status === "pago" ? "vx-pill-success" :
+                            overdue ? "vx-pill-danger" : "vx-pill-muted"
+                          }`}>
+                            {overdue ? "atrasado" : p.status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {sales.length > 0 && (
+            <div className="vx-card overflow-hidden">
+              <div className="p-4 border-b border-border flex items-center gap-2">
+                <ShoppingBag className="size-4 text-primary" />
+                <p className="text-sm font-semibold">Histórico de contratações</p>
+              </div>
               <table className="w-full text-sm">
                 <thead className="bg-muted/40">
                   <tr className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
@@ -379,51 +509,44 @@ export default function ClientPanel() {
                       <td className="px-5 py-3.5 text-xs text-muted-foreground">{formatDate(s.sale_date)}</td>
                       <td className="px-5 py-3.5 font-medium">{s.products?.name ?? "—"}</td>
                       <td className="px-5 py-3.5 text-right vx-mono font-semibold">{formatBRL(s.amount)}</td>
-                      <td className="px-5 py-3.5">
-                        <span className="vx-pill vx-pill-muted">{s.status}</span>
-                      </td>
+                      <td className="px-5 py-3.5"><span className="vx-pill vx-pill-muted">{s.status}</span></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </TabsContent>
-        
-        {/* ===== PENDÊNCIAS (TAREFAS) ===== */}
-        <TabsContent value="tarefas" className="space-y-4">
-          <div className="vx-card divide-y divide-border">
-            <div className="p-4 flex items-center gap-3">
-               <AlertCircle className="size-5 text-warning" />
-               <p className="text-sm font-semibold">Suas próximas pendências</p>
-            </div>
-            <div className="p-8 text-center">
-               <ListTodo className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-               <p className="text-sm font-medium">Nenhuma tarefa crítica pendente no momento.</p>
-               <p className="text-xs text-muted-foreground mt-1">Quando houver algo que exija sua atenção, aparecerá aqui.</p>
-            </div>
-          </div>
+
+          {payments.length === 0 && sales.length === 0 && (
+            <Empty icon={Receipt} title="Sem histórico financeiro" desc="Suas compras e cobranças aparecerão aqui." />
+          )}
         </TabsContent>
 
         {/* ===== HISTÓRICO ===== */}
         <TabsContent value="historico" className="space-y-4">
-          <div className="vx-card divide-y divide-border">
-            <div className="p-4 flex items-center gap-3">
-               <History className="size-5 text-primary" />
-               <p className="text-sm font-semibold">Histórico de Atendimento</p>
+          <div className="vx-card">
+            <div className="p-4 border-b border-border flex items-center gap-2">
+              <History className="size-4 text-primary" />
+              <p className="text-sm font-semibold">Linha do tempo</p>
             </div>
-            <div className="p-6 space-y-6">
-              {[
-                { date: new Date().toISOString(), title: 'Contrato Assinado', desc: 'Gestão Financeira' },
-                { date: client.created_at, title: 'Cadastro Realizado', desc: 'Sua conta foi criada no sistema.' }
-              ].map((h, i) => (
-                <div key={i} className="relative pl-6 border-l-2 border-primary/20 last:border-0 pb-6">
-                  <div className="absolute left-[-9px] top-0 size-4 rounded-full bg-primary border-4 border-white shadow-sm" />
-                  <p className="text-xs font-bold text-muted-foreground">{formatDate(h.date)}</p>
-                  <p className="text-sm font-bold mt-1">{h.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{h.desc}</p>
+            <div className="p-6">
+              {timeline.length === 0 ? (
+                <div className="text-center py-8">
+                  <History className="size-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <p className="text-sm font-medium">Nenhum evento registrado ainda.</p>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-5">
+                  {timeline.map((h: any) => (
+                    <div key={h.id} className="relative pl-6 border-l-2 border-primary/20 last:border-0 pb-5 last:pb-0">
+                      <div className="absolute left-[-9px] top-0 size-4 rounded-full bg-primary border-4 border-background shadow-sm" />
+                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-wider">{formatDate(h.created_at)}</p>
+                      <p className="text-sm font-bold mt-1">{h.title}</p>
+                      {h.description && <p className="text-xs text-muted-foreground mt-0.5">{h.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
