@@ -84,6 +84,20 @@ export default function Contracts() {
     URL.revokeObjectURL(url);
   };
 
+  const allContracts = contracts ?? [];
+  const kpis = useMemo(() => ({
+    total: allContracts.length,
+    pendentes: allContracts.filter((c: any) => ['criado','enviado','aguardando_assinatura','pendente_correcao'].includes(c.status)).length,
+    assinados: allContracts.filter((c: any) => c.status === 'assinado' || c.status === 'finalizado').length,
+    valorTotal: allContracts.reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0),
+  }), [allContracts]);
+
+  const filteredContracts = useMemo(() => allContracts.filter((c: any) => {
+    if (statusFilter !== "all" && c.status !== statusFilter) return false;
+    if (search && !`${c.name} ${c.clients?.full_name ?? ''}`.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }), [allContracts, search, statusFilter]);
+
   return (
     <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -96,11 +110,34 @@ export default function Contracts() {
         </Button>
       </div>
 
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total" value={String(kpis.total)} icon={FileSignature} iconColor="primary" />
+        <StatCard label="Em andamento" value={String(kpis.pendentes)} icon={Clock} iconColor="warning" />
+        <StatCard label="Assinados / Finalizados" value={String(kpis.assinados)} icon={CheckCircle2} iconColor="success" />
+        <StatCard label="Valor total" value={formatBRL(kpis.valorTotal)} icon={DollarSign} iconColor="info" />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Buscar por contrato ou cliente..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            {Object.entries(statusConfig).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="vx-card overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-muted-foreground text-sm">Carregando contratos...</div>
-        ) : (contracts ?? []).length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground text-sm">Nenhum contrato gerado ainda</div>
+        ) : filteredContracts.length === 0 ? (
+          <div className="p-12 text-center text-muted-foreground text-sm">Nenhum contrato encontrado</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
