@@ -30,25 +30,29 @@ const ROUTE_LABEL: Record<string, string> = {
 
 export default function AdminLayout() {
   const { user, loading } = useAuth();
-  useTheme();
   const [collapsed, setCollapsed] = useState(false);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="size-8 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+        <div className="size-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
       </div>
     );
   }
 
   if (!user) return <Navigate to="/auth" replace />;
 
+  const handleSearchClick = () => {
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
+  };
+
   return (
     <div className="min-h-screen flex w-full bg-background text-foreground admin-shell overflow-hidden">
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <main className="flex-1">
+      <div className="flex-1 flex flex-col min-w-0">
+        <AdminHeader onSearchClick={handleSearchClick} />
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>
