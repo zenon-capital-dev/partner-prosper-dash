@@ -21,7 +21,7 @@ export function ClientDocuments({ clientId }: { clientId: string }) {
   });
 
   const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status }: { id: string; status: any }) => {
       const { error } = await supabase.from("documents").update({ status }).eq("id", id);
       if (error) throw error;
     },
