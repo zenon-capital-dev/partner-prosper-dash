@@ -129,11 +129,11 @@ export default function Dashboard() {
                 <span className="text-[10px] font-bold text-muted-foreground">RECEITA REAL</span>
               </div>
             </div>
-            <div className="h-[300px] w-full bg-slate-50/50 dark:bg-slate-900/50 rounded-xl flex items-end justify-around p-6 gap-2">
+            <div className="h-[300px] w-full bg-muted/30 rounded-xl flex items-end justify-around p-6 gap-2 border border-border/40">
                {[40, 65, 45, 90, 55, 80, 70, 85, 60, 95, 75, 100].map((h, i) => (
                  <div key={i} className="flex-1 space-y-2 group">
-                   <div className="relative w-full bg-indigo-500/20 rounded-t-lg transition-all group-hover:bg-indigo-500/40" style={{ height: `${h}%` }}>
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                   <div className="relative w-full bg-primary/10 rounded-t-lg transition-all group-hover:bg-primary/20" style={{ height: `${h}%` }}>
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                         R${h}k
                       </div>
                    </div>
