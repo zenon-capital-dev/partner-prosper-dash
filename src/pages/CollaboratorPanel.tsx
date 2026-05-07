@@ -2,12 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { PageHeader } from "@/components/PageHeader";
-import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Users, FileText, Clock, CheckCircle2, ArrowRight } from "lucide-react";
-import { formatDate } from "@/lib/format";
+import { ClipboardList, Users, FileText, Clock, CheckCircle2, ArrowRight, Sparkles, LayoutDashboard } from "lucide-react";
+import { formatDate, initials } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export default function CollaboratorPanel() {
   const { user } = useAuth();
@@ -17,11 +16,7 @@ export default function CollaboratorPanel() {
     queryKey: ["collab-tasks", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("assigned_to", user!.id)
-        .order("due_date", { ascending: true });
+      const { data } = await supabase.from("tasks").select("*").eq("assigned_to", user!.id).order("due_date", { ascending: true });
       return data ?? [];
     },
   });
@@ -30,25 +25,7 @@ export default function CollaboratorPanel() {
     queryKey: ["collab-clients", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("id, full_name, status, sale_value")
-        .eq("responsible_id", user!.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      return data ?? [];
-    },
-  });
-
-  const { data: docs = [] } = useQuery({
-    queryKey: ["collab-docs"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("documents")
-        .select("id, name, status, due_date, clients(full_name)")
-        .in("status", ["solicitado", "enviado", "em_analise"])
-        .order("due_date", { ascending: true })
-        .limit(10);
+      const { data } = await supabase.from("clients").select("id, full_name, status, sale_value").eq("responsible_id", user!.id).order("created_at", { ascending: false }).limit(20);
       return data ?? [];
     },
   });
@@ -57,97 +34,131 @@ export default function CollaboratorPanel() {
   const doneTasks = tasks.filter((t: any) => t.status === "Concluída");
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
-      <PageHeader title="Painel do Colaborador" description="Suas tarefas, clientes e documentos pendentes." />
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Tarefas abertas" value={String(openTasks.length)} icon={ClipboardList} iconColor="warning" />
-        <StatCard label="Tarefas concluídas" value={String(doneTasks.length)} icon={CheckCircle2} iconColor="success" />
-        <StatCard label="Clientes sob responsabilidade" value={String(clients.length)} icon={Users} iconColor="primary" />
-        <StatCard label="Docs pendentes (geral)" value={String(docs.length)} icon={FileText} iconColor="info" />
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="vx-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Minhas tarefas</h3>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/tarefas")} className="gap-1 text-xs">
-              Ver todas <ArrowRight className="size-3" />
-            </Button>
-          </div>
-          {openTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhuma tarefa aberta</p>
-          ) : (
-            <div className="space-y-2">
-              {openTasks.slice(0, 8).map((t: any) => (
-                <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/30 transition">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{t.title}</p>
-                    {t.due_date && (
-                      <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <Clock className="size-3" /> {formatDate(t.due_date)}
-                      </p>
-                    )}
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="vx-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Clientes sob minha responsabilidade</h3>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="gap-1 text-xs">
-              Ver todos <ArrowRight className="size-3" />
-            </Button>
-          </div>
-          {clients.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum cliente atribuído</p>
-          ) : (
-            <div className="space-y-2">
-              {clients.slice(0, 8).map((c: any) => (
-                <button
-                  key={c.id}
-                  onClick={() => navigate(`/clientes/${c.id}`)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/30 transition text-left"
-                >
-                  <span className="text-sm font-medium truncate">{c.full_name}</span>
-                  <Badge variant="outline" className="text-[10px]">{c.status}</Badge>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="vx-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Documentos pendentes</h3>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/documentos")} className="gap-1 text-xs">
-            Gerenciar <ArrowRight className="size-3" />
-          </Button>
-        </div>
-        {docs.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">Nenhum documento pendente</p>
-        ) : (
-          <div className="divide-y divide-border">
-            {docs.map((d: any) => (
-              <div key={d.id} className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium">{d.name}</p>
-                  <p className="text-[11px] text-muted-foreground">{d.clients?.full_name}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {d.due_date && <span className="text-[11px] text-muted-foreground">{formatDate(d.due_date)}</span>}
-                  <Badge variant="outline" className="text-[10px]">{d.status}</Badge>
-                </div>
+    <div className="bg-premium min-h-screen">
+      <div className="page-shell space-y-12 py-12">
+        {/* Header */}
+        <section className="relative overflow-hidden rounded-[40px] bg-white p-10 lg:p-14 border border-slate-100 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] group">
+           <div className="absolute top-0 left-0 size-80 bg-blue-500/5 blur-[100px] -ml-40 -mt-40 rounded-full" />
+           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative">
+              <div className="flex items-center gap-8">
+                 <div className="size-20 lg:size-24 rounded-[30px] bg-slate-900 text-white flex items-center justify-center font-editorial text-3xl shadow-xl">
+                   {initials(user?.user_metadata?.full_name || "C")}
+                 </div>
+                 <div>
+                    <div className="flex items-center gap-2 mb-2">
+                       <Sparkles className="size-4 text-amber-400" />
+                       <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Internal Operations</span>
+                    </div>
+                    <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
+                       Workspace de <span className="italic text-primary">{user?.user_metadata?.full_name?.split(' ')[0]}</span>.
+                    </h1>
+                 </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              <div className="grid grid-cols-2 gap-10 lg:pl-16 lg:border-l border-slate-100">
+                 <CollabStat label="Tarefas" value={String(openTasks.length)} sub="pendentes" />
+                 <CollabStat label="Portfólio" value={String(clients.length)} sub="clientes" />
+              </div>
+           </div>
+        </section>
+
+        {/* Dashboard Grid */}
+        <div className="grid lg:grid-cols-3 gap-8">
+           {/* Left column: Tasks */}
+           <div className="lg:col-span-2 space-y-8">
+              <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100 shadow-xl shadow-slate-200/10">
+                 <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                       <ClipboardList className="size-5 text-primary" />
+                       <h3 className="font-editorial text-2xl font-bold text-slate-900">Minha Agenda</h3>
+                    </div>
+                    <Button variant="ghost" onClick={() => navigate("/tarefas")} className="text-xs uppercase tracking-widest font-bold text-primary hover:bg-primary/5">
+                       Ver Painel Completo <ArrowRight className="size-4 ml-2" />
+                    </Button>
+                 </div>
+                 <div className="p-4 space-y-3">
+                    {openTasks.length === 0 ? (
+                      <p className="p-10 text-center font-editorial italic text-muted-foreground">Todas as tarefas foram concluídas. Excelente trabalho!</p>
+                    ) : (
+                      openTasks.slice(0, 6).map((t: any) => (
+                        <div key={t.id} className="p-5 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-all flex items-center justify-between group">
+                           <div className="flex items-center gap-5">
+                              <div className="size-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-amber-400 group-hover:border-amber-100 transition-all">
+                                 <Clock className="size-5" />
+                              </div>
+                              <div>
+                                 <p className="font-bold text-slate-900 group-hover:text-primary transition-colors">{t.title}</p>
+                                 <p className="text-xs text-muted-foreground mt-0.5">Prazo: {formatDate(t.due_date)}</p>
+                              </div>
+                           </div>
+                           <Badge className="rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 border-none px-4 py-1 text-[10px] uppercase tracking-widest font-bold">
+                              {t.status}
+                           </Badge>
+                        </div>
+                      ))
+                    )}
+                 </div>
+              </div>
+           </div>
+
+           {/* Right column: Clients & Context */}
+           <div className="space-y-8">
+              <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] shadow-2xl shadow-slate-900/20">
+                 <Users className="size-10 text-primary mb-6" />
+                 <h3 className="font-editorial text-2xl font-bold leading-tight">Gestão de Carteira</h3>
+                 <p className="text-sm text-white/50 mt-4 leading-relaxed">
+                    Você é o ponto de contato principal para {clients.length} clientes. Mantenha os cronogramas atualizados.
+                 </p>
+                 <div className="mt-8 space-y-3">
+                    {clients.slice(0, 4).map((c: any) => (
+                      <button 
+                        key={c.id} 
+                        onClick={() => navigate(`/clientes/${c.id}`)}
+                        className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all text-left flex items-center justify-between"
+                      >
+                         <span className="font-bold text-sm truncate pr-4">{c.full_name}</span>
+                         <ArrowRight className="size-4 text-white/20" />
+                      </button>
+                    ))}
+                 </div>
+                 <Button className="w-full mt-6 rounded-2xl bg-primary hover:bg-primary/90 text-white h-12 font-bold" onClick={() => navigate("/clientes")}>
+                    Ver Todos Clientes
+                 </Button>
+              </div>
+
+              <div className="vx-card p-8 bg-white rounded-[32px] border-slate-100">
+                 <LayoutDashboard className="size-8 text-primary/40 mb-4" />
+                 <h4 className="font-editorial text-lg font-bold">Quick Shortcuts</h4>
+                 <div className="mt-4 grid grid-cols-2 gap-3">
+                    <Shortcut label="New Task" url="/tarefas" />
+                    <Shortcut label="Docs" url="/documentos" />
+                    <Shortcut label="Reports" url="/relatorios" />
+                    <Shortcut label="Admin" url="/admin" />
+                 </div>
+              </div>
+           </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function CollabStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <div className="space-y-1">
+       <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{label}</p>
+       <div className="flex items-baseline gap-2">
+          <span className="font-editorial text-4xl lg:text-6xl font-bold text-slate-900">{value}</span>
+          <span className="text-xs text-muted-foreground italic">{sub}</span>
+       </div>
+    </div>
+  );
+}
+
+function Shortcut({ label, url }: { label: string; url: string }) {
+  return (
+    <a href={url} className="p-3 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-primary/5 hover:border-primary/20 hover:text-primary transition-all text-[11px] font-bold uppercase tracking-widest text-center">
+       {label}
+    </a>
   );
 }
