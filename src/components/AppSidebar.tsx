@@ -186,16 +186,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
-  const [isDark, setIsDark] = useState<boolean>(() =>
-    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-  );
-
-  // Theme toggle
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) root.classList.add("dark");
-    else root.classList.remove("dark");
-  }, [isDark]);
+  const { theme, setTheme } = useTheme();
 
   // ⌘K open
   useEffect(() => {
