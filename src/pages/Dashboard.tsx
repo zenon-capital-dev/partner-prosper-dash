@@ -158,13 +158,13 @@ export default function Dashboard() {
         <div className="min-w-0 space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
             <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-            Visão Geral Estratégica
+            Painel de Controle PROSPER
           </div>
           <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
             {(() => {
               const h = new Date().getHours();
               const greeting = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
-              const name = (user?.user_metadata?.full_name as string)?.split(" ")[0] ?? "Admin";
+              const name = (user?.user_metadata?.full_name as string)?.split(" ")[0] ?? "Gestor";
               return `${greeting}, ${name}`;
             })()}
           </h1>
@@ -332,7 +332,7 @@ export default function Dashboard() {
           </div>
 
           <div className="vx-card p-6 bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
-            <h3 className="font-display text-sm font-bold uppercase tracking-widest text-muted-foreground mb-6">Equipe Online</h3>
+            <h3 className="font-display text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">Controle de Equipe</h3>
             <div className="space-y-4">
               {[
                 { name: 'Ricardo Melo', role: 'Colaborador', status: 'online' },
