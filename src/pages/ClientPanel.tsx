@@ -33,7 +33,7 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [subs, sales, docs, catalog, requests] = await Promise.all([
+      const [subs, sales, docs, catalog, requests, contracts, timeline, payments] = await Promise.all([
         supabase
           .from("client_subscriptions")
           .select("*, products(name, description, product_categories(name, color))")
@@ -58,6 +58,22 @@ export default function ClientPanel() {
           .select("*")
           .eq("client_id", client.id)
           .order("requested_at", { ascending: false }),
+        supabase
+          .from("contracts")
+          .select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)")
+          .eq("client_id", client.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("client_timeline")
+          .select("*")
+          .eq("client_id", client.id)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("payments")
+          .select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count")
+          .eq("client_id", client.id)
+          .order("due_date", { ascending: false }),
       ]);
 
       return {
@@ -67,6 +83,9 @@ export default function ClientPanel() {
         docs: docs.data ?? [],
         catalog: catalog.data ?? [],
         requests: requests.data ?? [],
+        contracts: contracts.data ?? [],
+        timeline: timeline.data ?? [],
+        payments: payments.data ?? [],
       };
     },
     enabled: !!user,
