@@ -99,29 +99,29 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-screen sticky top-0 shrink-0 flex flex-col border-r border-white/[0.06] bg-[#08090c] text-white transition-[width] duration-200",
-          collapsed ? "w-[68px]" : "w-[248px]"
+          "h-screen sticky top-0 shrink-0 flex flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-[width] duration-300 ease-in-out z-50",
+          collapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
         {/* Brand */}
-        <div className={cn("h-14 flex items-center border-b border-white/[0.06] px-3", collapsed ? "justify-center" : "justify-between")}>
-          <button onClick={() => navigate("/admin")} className="flex items-center gap-2.5 group">
-            <div className="size-7 rounded-md bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center shadow-[0_0_18px_rgba(16,185,129,0.35)]">
-              <Zap className="size-3.5 text-black" strokeWidth={3} />
+        <div className={cn("h-16 flex items-center px-4", collapsed ? "justify-center" : "justify-between")}>
+          <button onClick={() => navigate("/admin")} className="flex items-center gap-3 group">
+            <div className="size-8 rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-300">
+              <Zap className="size-4 text-white fill-white" />
             </div>
             {!collapsed && (
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-[13px] font-bold tracking-tight">prosper</span>
-                <span className="text-[9px] font-bold tracking-[0.2em] text-emerald-400 uppercase">core</span>
+              <div className="flex flex-col">
+                <span className="font-display text-[15px] font-extrabold tracking-tight text-white leading-none">PROSPER</span>
+                <span className="text-[10px] font-bold tracking-[0.25em] text-indigo-400 uppercase mt-0.5">ECOSYSTEM</span>
               </div>
             )}
           </button>
           {!collapsed && (
             <button
               onClick={onToggle}
-              className="size-7 rounded-md hover:bg-white/[0.05] flex items-center justify-center text-white/40 hover:text-white transition-colors"
+              className="size-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-sidebar-foreground/40 hover:text-white transition-all duration-200"
             >
-              <ChevronsLeft className="size-3.5" />
+              <ChevronsLeft className="size-4" />
             </button>
           )}
         </div>
@@ -129,46 +129,46 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {collapsed && (
           <button
             onClick={onToggle}
-            className="mt-2 mx-auto size-7 rounded-md hover:bg-white/[0.05] flex items-center justify-center text-white/40 hover:text-white transition-colors"
+            className="mt-2 mx-auto size-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-sidebar-foreground/40 hover:text-white transition-all"
           >
-            <ChevronsRight className="size-3.5" />
+            <ChevronsRight className="size-4" />
           </button>
         )}
 
         {/* Search */}
-        <div className="px-2.5 pt-3 pb-2">
+        <div className="px-3 pt-4 pb-2">
           {!collapsed ? (
             <button
               onClick={() => setCmdOpen(true)}
-              className="w-full h-8 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.05] flex items-center gap-2 px-2.5 text-[12px] text-white/40 transition-colors"
+              className="w-full h-9 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05] flex items-center gap-2.5 px-3 text-[13px] text-sidebar-foreground/50 transition-all duration-200 group"
             >
-              <Search className="size-3.5" />
-              <span className="flex-1 text-left font-mono">Search</span>
-              <kbd className="text-[9.5px] font-mono bg-white/[0.06] border border-white/[0.06] rounded px-1 py-0.5 flex items-center gap-0.5">
-                <Command className="size-2.5" />K
+              <Search className="size-4 group-hover:text-white transition-colors" />
+              <span className="flex-1 text-left font-medium">Search anything...</span>
+              <kbd className="text-[10px] font-mono bg-white/[0.08] border border-white/[0.08] rounded-md px-1.5 py-0.5 flex items-center gap-1 opacity-60">
+                <Command className="size-3" />K
               </kbd>
             </button>
           ) : (
             <button
               onClick={() => setCmdOpen(true)}
-              className="size-8 mx-auto rounded-md bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] flex items-center justify-center text-white/50"
+              className="size-9 mx-auto rounded-lg bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] flex items-center justify-center text-sidebar-foreground/50 hover:text-white transition-all"
             >
-              <Search className="size-3.5" />
+              <Search className="size-4" />
             </button>
           )}
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-3 admin-scroll">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6 admin-scroll">
           {SECTIONS.map((section) => (
             <div key={section.label}>
               {!collapsed && (
-                <div className="px-2.5 mb-1.5 text-[9.5px] font-bold uppercase tracking-[0.18em] text-white/30 font-mono">
+                <div className="px-3 mb-2.5 text-[10px] font-bold uppercase tracking-[0.2em] text-sidebar-foreground/30 font-display">
                   {section.label}
                 </div>
               )}
-              {collapsed && <div className="h-px bg-white/[0.04] mx-2 mb-2" />}
-              <div className="space-y-0.5">
+              {collapsed && <div className="h-px bg-white/[0.03] mx-2 mb-4" />}
+              <div className="space-y-1">
                 {section.items.map((item) => {
                   const active = isActive(item.url);
                   const Icon = item.icon;
@@ -178,18 +178,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       to={item.url}
                       title={collapsed ? item.title : undefined}
                       className={cn(
-                        "group relative flex items-center gap-2.5 h-8 rounded-md text-[12.5px] font-medium transition-all",
-                        collapsed ? "justify-center px-0" : "px-2.5",
+                        "group relative flex items-center gap-3 h-9 rounded-lg text-[13.5px] font-medium transition-all duration-200",
+                        collapsed ? "justify-center px-0" : "px-3",
                         active
-                          ? "bg-white/[0.06] text-white"
-                          : "text-white/55 hover:text-white hover:bg-white/[0.03]"
+                          ? "bg-white/[0.08] text-white shadow-sm"
+                          : "text-sidebar-foreground/60 hover:text-white hover:bg-white/[0.03]"
                       )}
                     >
-                      {active && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-r bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                      )}
-                      <Icon className={cn("size-[15px] shrink-0", active && "text-emerald-400")} strokeWidth={active ? 2.25 : 1.85} />
+                      <Icon className={cn("size-[18px] shrink-0 transition-colors", active ? "text-indigo-400" : "group-hover:text-white")} strokeWidth={active ? 2.25 : 1.75} />
                       {!collapsed && <span className="truncate">{item.title}</span>}
+                      {active && !collapsed && (
+                        <div className="ml-auto size-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      )}
                     </NavLink>
                   );
                 })}
@@ -199,63 +199,64 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         </nav>
 
         {/* User */}
-        <div className="border-t border-white/[0.06] p-2">
+        <div className="mt-auto border-t border-white/[0.05] p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-2.5 rounded-md p-1.5 hover:bg-white/[0.04] transition-colors",
+                  "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.04] transition-all duration-200 group",
                   collapsed && "justify-center"
                 )}
               >
-                <div className="size-7 rounded-md bg-gradient-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center text-[10.5px] font-mono font-bold text-emerald-300 shrink-0">
+                <div className="size-9 rounded-lg bg-gradient-to-tr from-sidebar-accent to-indigo-500/20 border border-white/[0.08] flex items-center justify-center text-[11px] font-bold text-indigo-300 shrink-0 group-hover:border-indigo-500/40 transition-colors">
                   {initials(user?.user_metadata?.full_name || user?.email || "A")}
                 </div>
                 {!collapsed && (
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12px] font-semibold text-white truncate leading-tight">
-                      {user?.user_metadata?.full_name || "Admin"}
+                    <p className="text-[13px] font-bold text-white truncate leading-tight">
+                      {user?.user_metadata?.full_name || "Admin User"}
                     </p>
-                    <p className="text-[10px] text-white/40 truncate font-mono">{user?.email}</p>
+                    <p className="text-[11px] text-sidebar-foreground/40 truncate font-mono mt-0.5">{user?.email}</p>
                   </div>
                 )}
                 {!collapsed && (
-                  <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                  <div className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                 )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              side="right"
+              side={collapsed ? "right" : "top"}
               align="end"
-              className="w-52 bg-[#0c0d11] border-white/[0.08] text-white"
+              className="w-56 bg-[#0f172a] border-white/[0.08] text-white p-2 rounded-xl shadow-2xl"
             >
-              <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
-                Conta
+              <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white/30 font-display">
+                Management
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
               <DropdownMenuItem
                 onClick={() => navigate("/configuracoes")}
-                className="gap-2 text-[12.5px] focus:bg-white/[0.06]"
+                className="gap-3 px-2 py-2 text-[13px] rounded-lg focus:bg-white/[0.08] cursor-pointer"
               >
-                <Settings className="size-3.5" /> Configurações
+                <Settings className="size-4 text-white/40" /> Profile Settings
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/suporte")}
-                className="gap-2 text-[12.5px] focus:bg-white/[0.06]"
+                className="gap-3 px-2 py-2 text-[13px] rounded-lg focus:bg-white/[0.08] cursor-pointer"
               >
-                <LifeBuoy className="size-3.5" /> Suporte
+                <LifeBuoy className="size-4 text-white/40" /> Help & Support
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
               <DropdownMenuItem
                 onClick={signOut}
-                className="gap-2 text-[12.5px] text-red-400 focus:bg-red-500/10 focus:text-red-300"
+                className="gap-3 px-2 py-2 text-[13px] rounded-lg text-rose-400 focus:bg-rose-500/10 focus:text-rose-300 cursor-pointer"
               >
-                <LogOut className="size-3.5" /> Sair
+                <LogOut className="size-4" /> Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </aside>
+
 
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
         <CommandInput placeholder="Comandos, páginas, ações..." />
