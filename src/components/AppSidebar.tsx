@@ -1,5 +1,6 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   Users,
