@@ -36,6 +36,8 @@ const statusConfig: Record<ContractStatus, { label: string; color: string; icon:
 export default function Contracts() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: contracts, refetch, isLoading } = useQuery({
     queryKey: ["contracts-all"],
