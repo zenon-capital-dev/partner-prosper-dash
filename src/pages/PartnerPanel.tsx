@@ -98,11 +98,11 @@ export default function PartnerPanel() {
         </section>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
            <SimpleKpi label="Ganhos este mês" value={formatBRL(totals.thisMonth)} tone="info" icon={TrendingUp} />
-           <SimpleKpi label="Pendentes" value={formatBRL(totals.pending)} tone="warning" icon={Clock} />
-           <SimpleKpi label="Já recebidos" value={formatBRL(totals.paid)} tone="success" icon={CheckCircle2} />
-           <SimpleKpi label="Saldo futuro" value={formatBRL(totals.total - totals.paid)} tone="primary" icon={Wallet} />
+           <SimpleKpi label="Comissões Pendentes" value={formatBRL(totals.pending)} tone="warning" icon={Clock} />
+           <SimpleKpi label="Total Recebido" value={formatBRL(totals.paid)} tone="success" icon={CheckCircle2} />
+           <SimpleKpi label="Previsão de Saldo" value={formatBRL(totals.total - totals.paid)} tone="primary" icon={Wallet} />
         </div>
 
         <Tabs defaultValue="clientes" className="space-y-10">

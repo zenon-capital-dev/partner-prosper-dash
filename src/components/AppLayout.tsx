@@ -28,24 +28,27 @@ export default function AppLayout() {
       <div className="min-h-screen flex w-full bg-background bg-premium selection:bg-primary selection:text-primary-foreground">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] dark:bg-[#020617]/50">
-          <header className="glass-header h-16 flex items-center px-8 gap-6 no-print">
+          <header className="glass-header h-20 flex items-center px-8 gap-6 no-print border-b border-border/5">
             <SidebarTrigger className="text-muted-foreground transition-all hover:text-foreground active:scale-90" />
-            <div className="h-6 w-px bg-border/10 mx-1 hidden sm:block" />
+            <div className="h-8 w-px bg-border/10 mx-1 hidden sm:block" />
             <div className="flex-1 max-w-2xl">
               <GlobalSearch />
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center bg-muted/40 rounded-full p-1 border border-border/5">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center bg-muted/30 dark:bg-muted/10 rounded-full p-1 border border-border/5 shadow-inner">
                 <ThemeToggle />
               </div>
-              <NotificationBell />
+              <div className="relative group">
+                <NotificationBell />
+                <span className="absolute -top-1 -right-1 size-2 bg-primary rounded-full ring-2 ring-background animate-pulse" />
+              </div>
               <div className="h-8 w-px bg-border/10 mx-1 hidden sm:block" />
-              <div className="flex items-center gap-3 pl-2">
+              <div className="flex items-center gap-4 pl-2">
                 <div className="flex flex-col items-end hidden md:flex">
-                  <span className="text-[11px] font-black uppercase tracking-widest text-foreground/80 leading-none">Status</span>
-                  <span className="text-[10px] font-bold text-success mt-1 flex items-center gap-1">
-                    <div className="size-1 rounded-full bg-success animate-pulse" />
-                    SISTEMA ONLINE
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40 leading-none mb-1.5">Network Status</span>
+                  <span className="text-[10px] font-bold text-success flex items-center gap-2 bg-success/5 px-2.5 py-1 rounded-full border border-success/10">
+                    <div className="size-1.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                    SECURE & ONLINE
                   </span>
                 </div>
               </div>

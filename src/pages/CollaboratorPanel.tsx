@@ -34,30 +34,32 @@ export default function CollaboratorPanel() {
   const doneTasks = tasks.filter((t: any) => t.status === "Concluída");
 
   return (
-    <div className="bg-premium min-h-screen">
+    <div className="bg-premium min-h-screen dark:bg-[#020617]">
       <div className="page-shell space-y-12 py-12">
         {/* Header */}
-        <section className="relative overflow-hidden rounded-[40px] bg-white p-10 lg:p-14 border border-slate-100 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] group">
-           <div className="absolute top-0 left-0 size-80 bg-blue-500/5 blur-[100px] -ml-40 -mt-40 rounded-full" />
-           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative">
-              <div className="flex items-center gap-8">
-                 <div className="size-20 lg:size-24 rounded-[30px] bg-slate-900 text-white flex items-center justify-center font-editorial text-3xl shadow-xl">
+        <section className="relative overflow-hidden rounded-[48px] bg-white dark:bg-card p-12 lg:p-16 border border-slate-100 dark:border-white/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.04)] group">
+           <div className="absolute top-0 left-0 size-[500px] bg-primary/5 blur-[120px] -ml-40 -mt-40 rounded-full" />
+           <div className="absolute bottom-0 right-0 size-[300px] bg-blue-500/5 blur-[100px] -mr-32 -mb-32 rounded-full" />
+           
+           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12 relative">
+              <div className="flex items-center gap-10">
+                 <div className="size-24 lg:size-28 rounded-[36px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50 dark:ring-white/5 transition-all group-hover:scale-105">
                    {initials(user?.user_metadata?.full_name || "C")}
                  </div>
-                 <div>
-                    <div className="flex items-center gap-2 mb-2">
-                       <Sparkles className="size-4 text-amber-400" />
-                       <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Internal Operations</span>
+                 <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                       <Sparkles className="size-4 text-amber-400 animate-pulse" />
+                       <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground/60">Operations Intelligence</span>
                     </div>
-                    <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
-                       Workspace de <span className="italic text-primary">{user?.user_metadata?.full_name?.split(' ')[0]}</span>.
+                    <h1 className="font-editorial text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white leading-[0.95]">
+                       Workspace de <br/><span className="italic text-primary">{user?.user_metadata?.full_name?.split(' ')[0]}</span>.
                     </h1>
                  </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-10 lg:pl-16 lg:border-l border-slate-100">
-                 <CollabStat label="Tarefas" value={String(openTasks.length)} sub="pendentes" />
-                 <CollabStat label="Portfólio" value={String(clients.length)} sub="clientes" />
+              <div className="grid grid-cols-2 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                 <CollabStat label="Agenda Ativa" value={String(openTasks.length)} sub="tarefas" />
+                 <CollabStat label="Portfólio" value={String(clients.length)} sub="contas" />
               </div>
            </div>
         </section>
