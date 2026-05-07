@@ -120,7 +120,7 @@ export default function ClientPanel() {
   const monthlyTotal = activeSubs
     .filter((s: any) => s.billing_cycle === "mensal")
     .reduce((sum: number, s: any) => sum + Number(s.amount), 0);
-  const pendingDocs = requests.filter((r: any) => r.status === "pending").length;
+  const pendingDocs = requests.filter((r: any) => r.status === "solicitado" || r.status === "reprovado").length;
   const ownedProductIds = new Set(subscriptions.map((s: any) => s.product_id).filter(Boolean));
   const availableCatalog = catalog.filter((p: any) => !ownedProductIds.has(p.id));
 
