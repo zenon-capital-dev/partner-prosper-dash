@@ -339,7 +339,7 @@ function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     ativo: { label: "active", cls: "vx-pill-success" },
     prospecto: { label: "prospect", cls: "vx-pill-warning" },
-    inativo: { label: "vx-pill-danger" },
+    inativo: { label: "inactive", cls: "vx-pill-danger" },
   };
   const m = map[status] ?? { label: status, cls: "vx-pill" };
   return <span className={cn("vx-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
