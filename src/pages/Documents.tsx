@@ -1,15 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
-import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History } from "lucide-react";
+import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History, Search } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StatCard } from "@/components/StatCard";
 
 export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'reprovado' | 'pendente_correcao' | 'vencido';
 
