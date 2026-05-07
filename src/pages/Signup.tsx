@@ -19,6 +19,7 @@ import {
   Check,
 } from "lucide-react";
 import { z } from "zod";
+import { ProsperLogo } from "@/components/VendxLogo";
 
 const signupSchema = z
   .object({
