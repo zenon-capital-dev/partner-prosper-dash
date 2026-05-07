@@ -135,6 +135,49 @@ export default function Dashboard() {
           <MiniKPICard label="TOTAL CLIENTES" value={stats?.clients.total || 0} color="slate" />
         </div>
 
+        {/* Charts Section */}
+        <div className="grid grid-cols-12 gap-8">
+          <div className="col-span-12 lg:col-span-8 cp-panel p-6">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h3 className="text-base font-bold tracking-tight">Performance Financeira</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Fluxo de receita e ticket médio mensal</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-indigo-500" />
+                <span className="text-[10px] font-bold text-muted-foreground">RECEITA REAL</span>
+              </div>
+            </div>
+            <div className="h-[300px] w-full bg-slate-50/50 dark:bg-slate-900/50 rounded-xl flex items-end justify-around p-6 gap-2">
+               {[40, 65, 45, 90, 55, 80, 70, 85, 60, 95, 75, 100].map((h, i) => (
+                 <div key={i} className="flex-1 space-y-2 group">
+                   <div className="relative w-full bg-indigo-500/20 rounded-t-lg transition-all group-hover:bg-indigo-500/40" style={{ height: `${h}%` }}>
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                        R${h}k
+                      </div>
+                   </div>
+                   <p className="text-[9px] text-center font-bold text-muted-foreground/60">{['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</p>
+                 </div>
+               ))}
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-4 cp-panel p-6">
+            <h3 className="text-base font-bold tracking-tight mb-6">Origem dos Clientes</h3>
+            <div className="space-y-5">
+              <SourceItem label="Instagram" value={45} color="bg-pink-500" />
+              <SourceItem label="Indicação de Parceiro" value={30} color="bg-indigo-500" />
+              <SourceItem label="WhatsApp" value={15} color="bg-emerald-500" />
+              <SourceItem label="Orgânico / Site" value={10} color="bg-slate-400" />
+            </div>
+            <div className="mt-8 pt-6 border-t border-border/40">
+               <p className="text-[11px] text-muted-foreground leading-relaxed">
+                 O tráfego vindo de <strong>redes sociais</strong> continua sendo o maior canal de aquisição deste trimestre.
+               </p>
+            </div>
+          </div>
+        </div>
+
         {/* Main Content Sections */}
         <div className="grid grid-cols-12 gap-8">
           {/* Left Column: Recent Activities */}
