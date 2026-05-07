@@ -78,7 +78,7 @@ export default function Dashboard() {
             value={formatBRL(stats?.financial.received || 0)} 
             delta="+8.4%" 
             trend="up"
-            icon={<DollarSign className="size-4 text-indigo-600" />}
+            icon={<DollarSign className="size-5" />}
             color="indigo"
           />
           <KPICard 
@@ -86,15 +86,15 @@ export default function Dashboard() {
             value={String(stats?.clients.month || 0)} 
             delta="+12.5%" 
             trend="up"
-            icon={<Users className="size-4 text-emerald-600" />}
+            icon={<Users className="size-5" />}
             color="emerald"
           />
           <KPICard 
-            label="Conversão de Leads" 
+            label="Conv. Leads" 
             value={Math.round((stats?.leads.conversionRate || 0) * 100) + "%"} 
             delta="+2.1%" 
             trend="up"
-            icon={<Target className="size-4 text-amber-600" />}
+            icon={<Target className="size-5" />}
             color="amber"
           />
           <KPICard 
@@ -102,7 +102,7 @@ export default function Dashboard() {
             value={formatBRL((stats?.financial.total || 0) / (stats?.clients.total || 1))} 
             delta="+5.2%" 
             trend="up"
-            icon={<Wallet className="size-4 text-blue-600" />}
+            icon={<Wallet className="size-5" />}
             color="blue"
           />
         </div>
