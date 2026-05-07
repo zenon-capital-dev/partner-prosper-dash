@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -322,6 +322,19 @@ export default function AuthPage() {
               )}
             </Button>
           </form>
+
+          {/* Sign-up link */}
+          <div className="text-center">
+            <p className="text-[12.5px] text-slate-500">
+              Não tem uma conta?{" "}
+              <Link
+                to="/cadastro"
+                className="text-slate-900 font-semibold underline underline-offset-2 hover:text-slate-700"
+              >
+                Criar conta
+              </Link>
+            </p>
+          </div>
 
           {/* Footer trust */}
           <div className="pt-6 border-t border-slate-200/60">
