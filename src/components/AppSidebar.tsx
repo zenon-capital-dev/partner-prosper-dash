@@ -318,23 +318,27 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-white/5 !bg-[#09090b]">
+      <Sidebar collapsible="icon" className="border-r border-white/5 !bg-[#020617]">
         <SidebarHeader className="!bg-transparent px-5 pt-8 pb-6">
           <div className={cn("flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-1")}>
-            <div className="relative shrink-0 active:scale-95 transition-transform cursor-pointer" onClick={() => navigate("/")}>
-              <AppLogo size={collapsed ? 28 : 34} />
-              <div className="absolute -inset-1 bg-primary/20 blur-lg rounded-full animate-pulse opacity-50" />
+            <div className="relative shrink-0 active:scale-95 transition-all duration-300 cursor-pointer group" onClick={() => navigate("/")}>
+              <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative size-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
+                <AppLogo size={24} />
+              </div>
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-display font-bold tracking-tight text-white text-lg leading-none">
+                <div className="flex flex-col">
+                  <span className="font-display font-black tracking-tight text-white text-xl leading-none italic">
                     PROSPER
                   </span>
-                  <div className="size-1 rounded-full bg-primary/60" />
-                  <span className="text-[10px] font-bold tracking-widest text-primary uppercase opacity-80">
-                    PRO
-                  </span>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase opacity-90">
+                      OPERATIONS
+                    </span>
+                    <div className="size-1 rounded-full bg-primary/40 animate-pulse" />
+                  </div>
                 </div>
               </div>
             )}
@@ -343,29 +347,30 @@ export function AppSidebar() {
           {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-8 w-full h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] flex items-center gap-3 px-4 text-xs text-sidebar-foreground/50 transition-all group"
+              className="mt-10 w-full h-11 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] hover:border-white/[0.1] flex items-center gap-3 px-4 text-[13px] text-white/40 transition-all group relative overflow-hidden"
             >
-              <Search className="size-3.5 group-hover:text-sidebar-foreground transition-colors" />
-              <span className="flex-1 text-left font-medium">Search anything...</span>
-              <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-white/40">
+              <div className="absolute inset-0 animate-shimmer opacity-20" />
+              <Search className="size-4 group-hover:text-white transition-colors relative z-10" />
+              <span className="flex-1 text-left font-medium relative z-10">Buscar comando...</span>
+              <div className="flex items-center gap-1 rounded-md border border-white/5 bg-white/5 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white/20 relative z-10">
                 <span className="text-xs">⌘</span>K
-              </kbd>
+              </div>
             </button>
           )}
         </SidebarHeader>
 
-        <SidebarContent className="!bg-transparent px-3 pb-4">
-          {sections.map((section, idx) => (
-            <SidebarGroup key={section.label} className={cn("py-2", idx > 0 && "mt-2")}>
+        <SidebarContent className="!bg-transparent px-4 pb-4 overflow-x-hidden vx-sidebar-scroll">
+          {sections.map((section, idx) => (idx === 0 || !collapsed) && (
+            <SidebarGroup key={section.label} className={cn("py-4", idx > 0 && "mt-2")}>
               {!collapsed && (
-                <div className="px-3 mb-2 flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                <div className="px-3 mb-3 flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/20">
                     {section.label}
                   </span>
                 </div>
               )}
               <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
+                <SidebarMenu className="gap-1.5">
                   {section.items.map((item) => {
                     const active = isActive(item.url);
                     const Icon = item.icon;
@@ -381,15 +386,15 @@ export function AppSidebar() {
                         >
                           <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
                             <span className="vx-nav-icon-wrap">
-                              <Icon className={cn("size-[18px] transition-all", active ? "text-primary" : "text-inherit")} strokeWidth={active ? 2.25 : 1.8} />
+                              <Icon className={cn("size-4 transition-all", active ? "text-primary-foreground" : "text-inherit")} strokeWidth={active ? 2.5 : 2} />
                             </span>
                             {!collapsed && (
                               <>
-                                <span className={cn("flex-1 transition-colors", active ? "text-white font-semibold" : "text-inherit")}>
+                                <span className={cn("flex-1 transition-colors tracking-tight", active ? "text-white font-bold" : "text-inherit")}>
                                   {item.title}
                                 </span>
                                 {counter !== null && (
-                                  <span className="ml-auto size-5 flex items-center justify-center rounded-md bg-white/5 text-[10px] font-bold text-white/40 border border-white/5">
+                                  <span className="ml-auto flex items-center justify-center px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-black text-white/40 border border-white/5 group-hover:bg-white/10 group-hover:text-white transition-all">
                                     {counter}
                                   </span>
                                 )}
@@ -405,6 +410,7 @@ export function AppSidebar() {
             </SidebarGroup>
           ))}
         </SidebarContent>
+
 
         <SidebarFooter className="!bg-transparent p-4 mt-auto border-t border-white/5">
           <DropdownMenu>
