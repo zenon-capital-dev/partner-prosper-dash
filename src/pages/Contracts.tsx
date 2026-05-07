@@ -152,7 +152,7 @@ export default function Contracts() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {contracts?.map((c: any) => {
+                {filteredContracts.map((c: any) => {
                   const config = statusConfig[c.status as ContractStatus] || statusConfig.criado;
                   const StatusIcon = config.icon;
                   
