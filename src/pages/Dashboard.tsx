@@ -330,19 +330,20 @@ function KPICard({ label, value, delta, trend, icon, color }: any) {
 
 function MiniKPICard({ label, value, color }: any) {
   const colorMap: any = {
-    blue: "text-blue-600 border-blue-100 bg-blue-50/30",
-    emerald: "text-emerald-600 border-emerald-100 bg-emerald-50/30",
-    amber: "text-amber-600 border-amber-100 bg-amber-50/30",
-    rose: "text-rose-600 border-rose-100 bg-rose-50/30",
-    slate: "text-slate-600 border-slate-100 bg-slate-50/30",
+    blue: "text-blue-600 dark:text-blue-400 border-blue-500/10 bg-blue-500/5 hover:bg-blue-500/10",
+    emerald: "text-emerald-600 dark:text-emerald-400 border-emerald-500/10 bg-emerald-500/5 hover:bg-emerald-500/10",
+    amber: "text-amber-600 dark:text-amber-400 border-amber-500/10 bg-amber-500/5 hover:bg-amber-500/10",
+    rose: "text-rose-600 dark:text-rose-400 border-rose-500/10 bg-rose-500/5 hover:bg-rose-500/10",
+    slate: "text-slate-600 dark:text-slate-400 border-slate-500/10 bg-slate-500/5 hover:bg-slate-500/10",
   };
   return (
-    <div className={cn("border rounded-xl p-4 flex flex-col justify-between transition-colors", colorMap[color] || colorMap.slate)}>
-      <p className="text-[9px] font-extrabold tracking-[0.15em] mb-1">{label}</p>
-      <p className="text-xl font-bold tracking-tight">{value}</p>
+    <div className={cn("border rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 cursor-default", colorMap[color] || colorMap.slate)}>
+      <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">{label}</p>
+      <p className="text-xl font-black tracking-tight tabular-nums">{value}</p>
     </div>
   );
 }
+
 
 function SourceItem({ label, value, color }: { label: string; value: number; color: string }) {
   return (
