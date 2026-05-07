@@ -4,10 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
-  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo, Eye
+  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -34,46 +33,14 @@ export default function ClientPanel() {
       if (!client) return null;
 
       const [subs, sales, docs, catalog, requests, contracts, timeline, payments] = await Promise.all([
-        supabase
-          .from("client_subscriptions")
-          .select("*, products(name, description, product_categories(name, color))")
-          .eq("client_id", client.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("sales")
-          .select("id, amount, sale_date, status, products(name)")
-          .eq("client_id", client.id)
-          .order("sale_date", { ascending: false }),
-        supabase
-          .from("documents")
-          .select("*")
-          .eq("client_id", client.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("products")
-          .select("id, name, description, base_price, recurring, product_categories(name, color)")
-          .eq("active", true),
-        supabase
-          .from("document_requests")
-          .select("*")
-          .eq("client_id", client.id)
-          .order("requested_at", { ascending: false }),
-        supabase
-          .from("contracts")
-          .select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)")
-          .eq("client_id", client.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("client_timeline")
-          .select("*")
-          .eq("client_id", client.id)
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("payments")
-          .select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count")
-          .eq("client_id", client.id)
-          .order("due_date", { ascending: false }),
+        supabase.from("client_subscriptions").select("*, products(name, description, product_categories(name, color))").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("sales").select("id, amount, sale_date, status, products(name)").eq("client_id", client.id).order("sale_date", { ascending: false }),
+        supabase.from("documents").select("*").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true),
+        supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
+        supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("client_timeline").select("*").eq("client_id", client.id).order("created_at", { ascending: false }).limit(50),
+        supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false }),
       ]);
 
       return {
@@ -91,612 +58,213 @@ export default function ClientPanel() {
     enabled: !!user,
   });
 
-  const download = async (path: string, name: string) => {
-    const { data: file, error } = await supabase.storage.from("documents").download(path);
-    if (error) return toast.error(error.message);
-    const url = URL.createObjectURL(file);
-    const a = document.createElement("a");
-    a.href = url; a.download = name; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleUpload = async (docId: string, file: File) => {
-    if (!data) return;
-    setUploadingDocId(docId);
-    const path = `${data.client.id}/${docId}-${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-    if (upErr) { setUploadingDocId(null); return toast.error(upErr.message); }
-
-    const { error: dbErr } = await supabase.from("documents").update({
-      file_path: path, file_size: file.size, mime_type: file.type,
-      status: "enviado", uploaded_by: user!.id,
-    }).eq("id", docId);
-
-    setUploadingDocId(null);
-    if (dbErr) return toast.error(dbErr.message);
-    toast.success("Documento enviado!");
-    qc.invalidateQueries({ queryKey: ["client-panel"] });
-  };
-
-  if (isLoading) {
-    return <div className="p-12 text-center text-sm text-muted-foreground">Carregando…</div>;
-  }
-  if (!data) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center p-8">
-        <div className="vx-card p-10 max-w-md text-center">
-          <Inbox className="size-10 text-muted-foreground/50 mx-auto mb-4" />
-          <h2 className="font-display text-xl font-bold">Cadastro em processamento</h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            Sua conta ainda não foi vinculada como cliente. Entre em contato com o administrador.
-          </p>
-        </div>
+  if (isLoading) return <div className="p-12 text-center text-sm font-editorial italic text-muted-foreground">Coletando suas informações...</div>;
+  
+  if (!data) return (
+    <div className="min-h-[70vh] flex items-center justify-center p-8 bg-premium">
+      <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white/40 backdrop-blur-xl border-white/20">
+        <Inbox className="size-12 text-primary/30 mx-auto mb-6" />
+        <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3">Sua experiência está sendo preparada</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          Nossa equipe está configurando seu acesso personalizado. <br/>Em breve você terá acesso a todo o seu ecossistema.
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
 
   const { client, subscriptions, sales, docs, catalog, requests, contracts, timeline, payments } = data;
   const activeSubs = subscriptions.filter((s: any) => s.status === "ativa");
-  const monthlyTotal = activeSubs
-    .filter((s: any) => s.billing_cycle === "mensal")
-    .reduce((sum: number, s: any) => sum + Number(s.amount), 0);
+  const monthlyTotal = activeSubs.filter((s: any) => s.billing_cycle === "mensal").reduce((sum: number, s: any) => sum + Number(s.amount), 0);
   const pendingDocs = requests.filter((r: any) => r.status === "solicitado" || r.status === "reprovado").length;
-  const ownedProductIds = new Set(subscriptions.map((s: any) => s.product_id).filter(Boolean));
-  const availableCatalog = catalog.filter((p: any) => !ownedProductIds.has(p.id));
-  const overduePayments = payments.filter((p: any) => p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date());
-  const upcomingPayments = payments.filter((p: any) => p.status !== "pago").slice(0, 10);
-  const pendingContracts = contracts.filter((c: any) => c.status !== "assinado" && c.status !== "finalizado");
+  const availableCatalog = catalog.filter((p: any) => !subscriptions.find((s: any) => s.product_id === p.id));
 
   return (
-    <div className="page-shell space-y-10">
-      {/* ===== Greeting card ===== */}
-      <div className="vx-card p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 group overflow-hidden">
-        <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-all group-hover:bg-primary/10" />
-        
-        <div className="relative flex items-center gap-6">
-          <div className="size-16 lg:size-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center font-display font-bold text-2xl shadow-xl shadow-primary/20">
-            {initials(client.full_name)}
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Portal do Cliente</span>
-              <div className="size-1 rounded-full bg-primary/30" />
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">{client.company || "Dashboard Principal"}</span>
-            </div>
-            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
-              Olá, {client.full_name.split(' ')[0]}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-medium pt-1">
-              {client.email && <span className="flex items-center gap-1.5"><Mail className="size-3.5 opacity-60" /> {client.email}</span>}
-              {client.phone && <span className="flex items-center gap-1.5"><Phone className="size-3.5 opacity-60" /> {client.phone}</span>}
-            </div>
-          </div>
-        </div>
+    <div className="bg-premium min-h-screen">
+      <div className="page-shell space-y-12 py-12">
+        {/* Header Section */}
+        <section className="relative overflow-hidden rounded-[32px] bg-white p-8 lg:p-14 border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] group">
+          <div className="absolute top-0 right-0 size-96 bg-primary/5 blur-[120px] -mr-48 -mt-48 rounded-full transition-all group-hover:bg-primary/10" />
+          
+          <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative">
+             <div className="size-24 lg:size-28 rounded-[28px] bg-slate-900 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50">
+               {initials(client.full_name)}
+             </div>
+             <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="h-px w-8 bg-primary/30" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary/60">Private Client Portal</span>
+                </div>
+                <h1 className="font-editorial text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.1]">
+                  Bem-vindo, <br/><span className="text-primary italic">{client.full_name.split(' ')[0]}</span>.
+                </h1>
+                <div className="flex flex-wrap items-center gap-6 text-[13px] text-muted-foreground font-medium pt-3">
+                   <span className="flex items-center gap-2"><Mail className="size-4 text-primary/40" /> {client.email}</span>
+                   {client.phone && <span className="flex items-center gap-2"><Phone className="size-4 text-primary/40" /> {client.phone}</span>}
+                </div>
+             </div>
 
-        <div className="relative grid grid-cols-3 gap-8 lg:gap-12 lg:border-l lg:pl-12 border-border/40">
-          <Stat label="Ativos" value={String(activeSubs.length)} />
-          <Stat label="Recorrência" value={formatBRL(monthlyTotal)} />
-          <Stat 
-            label="Pendências" 
-            value={String(pendingDocs)} 
-            tone={pendingDocs > 0 ? "warning" : "default"} 
-          />
-        </div>
-      </div>
+             <div className="grid grid-cols-2 sm:grid-cols-3 gap-10 lg:pl-16 lg:border-l border-slate-100">
+                <PremiumStat label="Serviços" value={String(activeSubs.length)} />
+                <PremiumStat label="Investimento" value={formatBRL(monthlyTotal)} sub="recorrência" />
+                <PremiumStat label="Documentos" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
+             </div>
+          </div>
+        </section>
 
-      <Tabs defaultValue="produtos" className="space-y-8">
-        <div className="flex items-center justify-between border-b border-border/40 pb-1">
-          <TabsList className="h-auto p-0 bg-transparent gap-8">
-            <TabTrigger value="produtos" icon={Package} label="Meus Produtos" badge={activeSubs.length} />
-            <TabTrigger value="catalogo" icon={ShoppingBag} label="Catálogo" badge={availableCatalog.length} />
-            <TabTrigger value="docs" icon={FileText} label="Meus Arquivos" />
-            <TabTrigger value="solicitacoes" icon={Upload} label="Solicitações" badge={pendingDocs} badgeTone="warning" />
-            <TabTrigger value="contratos" icon={ClipboardList} label="Contratos" badge={pendingContracts.length} badgeTone="warning" />
-            <TabTrigger value="financeiro" icon={Receipt} label="Financeiro" badge={overduePayments.length} badgeTone="danger" />
-            <TabTrigger value="historico" icon={History} label="Histórico" />
+        {/* Navigation Tabs */}
+        <Tabs defaultValue="meus-produtos" className="space-y-10">
+          <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
+            <PremiumTabTrigger value="meus-produtos" label="Meus Serviços" icon={Package} />
+            <PremiumTabTrigger value="catalogo" label="Descobrir" icon={ShoppingBag} />
+            <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
+            <PremiumTabTrigger value="financeiro" label="Financeiro" icon={Receipt} />
+            <PremiumTabTrigger value="timeline" label="Jornada" icon={History} />
           </TabsList>
-        </div>
 
-        {/* ===== MEUS PRODUTOS ===== */}
-        <TabsContent value="produtos" className="space-y-3">
-          {subscriptions.length === 0 ? (
-            <Empty icon={Package} title="Nenhum produto contratado" desc="Confira o catálogo para ver os produtos disponíveis." />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {subscriptions.map((s: any) => {
-                const cat = s.products?.product_categories;
-                const name = s.products?.name ?? s.custom_name ?? "Produto";
-                const statusTone = s.status === "ativa" ? "vx-pill-success" : s.status === "inadimplente" ? "vx-pill-danger" : "vx-pill-muted";
-                return (
-                  <div key={s.id} className="vx-card vx-card-hover p-5 flex flex-col gap-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        {cat && (
-                          <span className="vx-pill" style={{ background: `${cat.color}15`, color: cat.color, borderColor: "transparent" }}>
-                            {cat.name}
-                          </span>
-                        )}
-                        <h3 className="font-display font-bold text-[17px] mt-2 truncate">{name}</h3>
-                        {s.products?.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.products.description}</p>
-                        )}
-                      </div>
-                      <span className={`vx-pill ${statusTone}`}>{s.status}</span>
+          <TabsContent value="meus-produtos" className="animate-fade-up">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {activeSubs.map((s: any) => (
+                <div key={s.id} className="vx-card p-8 bg-white border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 rounded-[24px]">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                       <Package className="size-6" />
                     </div>
-                    <div className="flex items-end justify-between pt-3 border-t border-border">
-                      <div>
-                        <p className="font-display text-[22px] font-bold tabular-nums leading-none">{formatBRL(s.amount)}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1">{cycleLabel[s.billing_cycle] ?? s.billing_cycle}</p>
-                      </div>
-                      {s.next_billing_date && (
-                        <div className="text-right">
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Próx. cobrança</p>
-                          <p className="text-xs font-semibold flex items-center gap-1 mt-1">
-                            <Calendar className="size-3" /> {formatDate(s.next_billing_date)}
-                          </p>
+                    <span className="vx-pill vx-pill-success uppercase tracking-widest text-[9px]">Ativo</span>
+                  </div>
+                  <h3 className="font-editorial text-2xl font-bold text-slate-900 leading-tight">
+                    {s.products?.name ?? "Assinatura"}
+                  </h3>
+                  <p className="text-[13px] text-muted-foreground mt-2 line-clamp-2 min-h-[40px]">
+                    {s.products?.description || "Acompanhamento premium e suporte dedicado."}
+                  </p>
+                  <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                     <div>
+                        <p className="text-[20px] font-bold tabular-nums text-slate-900">{formatBRL(s.amount)}</p>
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-1">{s.billing_cycle}</p>
+                     </div>
+                     <Button variant="ghost" size="sm" className="group text-primary hover:text-primary hover:bg-primary/5">
+                        Detalhes <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                     </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="catalogo" className="animate-fade-up">
+             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {availableCatalog.map((p: any) => (
+                  <div key={p.id} className="vx-card p-8 bg-white/60 backdrop-blur-md border-white/50 hover:bg-white transition-all rounded-[24px] border-dashed border-2">
+                    <h3 className="font-editorial text-2xl font-bold text-slate-800">{p.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
+                    <div className="mt-8 flex items-center justify-between">
+                       <p className="text-xl font-bold text-slate-900">{formatBRL(p.base_price)}</p>
+                       <Button className="rounded-full bg-slate-900 hover:bg-slate-800">Saber mais</Button>
+                    </div>
+                  </div>
+                ))}
+             </div>
+          </TabsContent>
+
+          <TabsContent value="docs" className="animate-fade-up">
+             <div className="vx-card bg-white rounded-[24px] overflow-hidden border-slate-100 shadow-xl shadow-slate-200/20">
+                <div className="p-6 border-b border-slate-50 bg-slate-50/30">
+                   <h3 className="font-editorial text-xl font-bold text-slate-900">Documentação Compartilhada</h3>
+                </div>
+                <div className="divide-y divide-slate-50">
+                   {docs.map((d: any) => (
+                     <div key={d.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                        <div className="flex items-center gap-5">
+                           <div className="size-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                              <FileText className="size-6" />
+                           </div>
+                           <div>
+                              <p className="font-bold text-slate-900">{d.name}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Enviado em {formatDate(d.created_at)}</p>
+                           </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ===== CATÁLOGO ===== */}
-        <TabsContent value="catalogo" className="space-y-3">
-          {availableCatalog.length === 0 ? (
-            <Empty icon={ShoppingBag} title="Você já contratou todos os produtos" desc="Não há novos produtos disponíveis no momento." />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {availableCatalog.map((p: any) => {
-                const cat = p.product_categories;
-                return (
-                  <div key={p.id} className="vx-card vx-card-hover p-5 flex flex-col gap-4">
-                    <div>
-                      {cat && (
-                        <span className="vx-pill" style={{ background: `${cat.color}15`, color: cat.color, borderColor: "transparent" }}>
-                          {cat.name}
-                        </span>
-                      )}
-                      <h3 className="font-display font-bold text-[17px] mt-2">{p.name}</h3>
-                      {p.description && <p className="text-xs text-muted-foreground mt-1.5 line-clamp-3">{p.description}</p>}
-                    </div>
-                    <div className="flex items-end justify-between pt-3 border-t border-border">
-                      <div>
-                        <p className="font-display text-[22px] font-bold tabular-nums leading-none">{formatBRL(p.base_price)}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1">{p.recurring ? "recorrente" : "único"}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => toast.info("Solicitação enviada ao seu consultor")}
-                      >
-                        Tenho interesse
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ===== DOCUMENTOS ===== */}
-        <TabsContent value="docs" className="space-y-3">
-          {pendingDocs > 0 && (
-            <div className="vx-card p-4 border-warning/40 bg-warning/[0.04] flex items-start gap-3">
-              <AlertCircle className="size-5 text-warning shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold">{pendingDocs} documento(s) aguardando envio</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Anexe os arquivos solicitados abaixo para que possamos seguir com seu atendimento.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {docs.length === 0 ? (
-            <Empty icon={FileText} title="Nenhum documento" desc="Quando seu consultor solicitar um documento, ele aparecerá aqui." />
-          ) : (
-            <div className="vx-card divide-y divide-border">
-              {docs.map((d: any) => {
-                const statusMeta =
-                  d.status === "aprovado" ? { label: "Aprovado", icon: CheckCircle2, tone: "text-success bg-success/10" } :
-                  d.status === "enviado" || d.status === "em_analise" ? { label: "Em análise", icon: Clock, tone: "text-info bg-info/10" } :
-                  d.status === "reprovado" ? { label: "Reprovado", icon: AlertCircle, tone: "text-destructive bg-destructive/10" } :
-                  d.status === "pendente_correcao" ? { label: "Pendente correção", icon: AlertCircle, tone: "text-orange-600 bg-orange-50" } :
-                  d.status === "vencido" ? { label: "Vencido", icon: AlertCircle, tone: "text-slate-500 bg-slate-50" } :
-                                            { label: "Aguardando envio", icon: Upload, tone: "text-warning bg-warning/10" };
-                const StatusIcon = statusMeta.icon;
-                const isUploading = uploadingDocId === d.id;
-                const needsUpload = d.status === "solicitado" || d.status === "reprovado" || d.status === "pendente_correcao";
-
-                return (
-                  <div key={d.id} className="p-4 lg:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="size-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <FileText className="size-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[14px] truncate">{d.name}</p>
-                      {d.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{d.description}</p>}
-                      <div className="flex flex-wrap items-center gap-3 mt-2">
-                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold ${statusMeta.tone}`}>
-                          <StatusIcon className="size-3" /> {statusMeta.label}
-                        </span>
-                        {(d.status === "reprovado" || d.status === "pendente_correcao") && d.rejection_reason && (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold text-destructive bg-destructive/5">
-                            <AlertCircle className="size-3" /> Motivo: {d.rejection_reason}
-                          </span>
-                        )}
-                        <span className="text-[11px] text-muted-foreground">Solicitado em {formatDate(d.created_at)}</span>
-                        {d.due_date && <span className="text-[11px] text-orange-600 font-medium">Prazo: {formatDate(d.due_date)}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {d.file_path && (
-                        <Button size="sm" variant="outline" onClick={() => download(d.file_path, d.name)} className="gap-1.5">
-                          <Download className="size-3.5" /> Baixar
+                        <Button variant="outline" size="sm" className="rounded-xl gap-2 h-10 border-slate-200 hover:bg-slate-900 hover:text-white transition-all">
+                           <Download className="size-4" /> Download
                         </Button>
-                      )}
-                      {needsUpload && (
-                        <>
-                          <input
-                            type="file"
-                            ref={fileRef}
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) handleUpload(d.id, f);
-                              e.target.value = "";
-                            }}
-                          />
-                          <Button
-                            size="sm"
-                            disabled={isUploading}
-                            onClick={() => {
-                              fileRef.current?.setAttribute("data-doc-id", d.id);
-                              fileRef.current?.click();
-                            }}
-                            className="gap-1.5"
-                          >
-                            <Upload className="size-3.5" /> {isUploading ? "Enviando…" : d.file_path ? "Reenviar" : "Enviar"}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="solicitacoes" className="space-y-4">
-          <ClientRequestsView requests={requests} client={client} />
-        </TabsContent>
-
-        {/* ===== CONTRATOS ===== */}
-        <TabsContent value="contratos" className="space-y-3">
-          {contracts.length === 0 ? (
-            <Empty icon={ClipboardList} title="Nenhum contrato" desc="Seus contratos aparecerão aqui assim que forem gerados." />
-          ) : (
-            <div className="vx-card divide-y divide-border">
-              {contracts.map((c: any) => {
-                const tone =
-                  c.status === "assinado" || c.status === "finalizado" ? "vx-pill-success" :
-                  c.status === "enviado" ? "vx-pill-info" :
-                  c.status === "cancelado" ? "vx-pill-danger" : "vx-pill-muted";
-                return (
-                  <div key={c.id} className="p-4 lg:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="size-11 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                      <ClipboardList className="size-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[14px] truncate">{c.name}</p>
-                      <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] text-muted-foreground">
-                        {c.products?.name && <span>{c.products.name}</span>}
-                        {c.amount && <span className="vx-mono font-semibold text-foreground">{formatBRL(c.amount)}</span>}
-                        <span>Criado em {formatDate(c.created_at)}</span>
-                        {c.signed_at && <span className="text-success">Assinado em {formatDate(c.signed_at)}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`vx-pill ${tone}`}>{c.status}</span>
-                      {c.file_path && (
-                        <Button size="sm" variant="outline" className="gap-1.5" onClick={async () => {
-                          const { data: f, error } = await supabase.storage.from("contracts").download(c.file_path);
-                          if (error) return toast.error(error.message);
-                          const url = URL.createObjectURL(f);
-                          const a = document.createElement("a"); a.href = url; a.download = c.name; a.click();
-                          URL.revokeObjectURL(url);
-                        }}>
-                          <Download className="size-3.5" /> Baixar
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* ===== FINANCEIRO ===== */}
-        <TabsContent value="financeiro" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="vx-card p-5">
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Mensalidade ativa</p>
-              <p className="font-display text-[22px] font-bold tabular-nums mt-1.5">{formatBRL(monthlyTotal)}</p>
-            </div>
-            <div className="vx-card p-5">
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Pagamentos pendentes</p>
-              <p className="font-display text-[22px] font-bold tabular-nums mt-1.5">{upcomingPayments.length}</p>
-            </div>
-            <div className="vx-card p-5">
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Em atraso</p>
-              <p className={`font-display text-[22px] font-bold tabular-nums mt-1.5 ${overduePayments.length > 0 ? "text-destructive" : ""}`}>
-                {overduePayments.length}
-              </p>
-            </div>
-          </div>
-
-          {payments.length > 0 && (
-            <div className="vx-card overflow-hidden">
-              <div className="p-4 border-b border-border flex items-center gap-2">
-                <Receipt className="size-4 text-primary" />
-                <p className="text-sm font-semibold">Cobranças e pagamentos</p>
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40">
-                  <tr className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
-                    <th className="px-5 py-3 text-left font-semibold">Vencimento</th>
-                    <th className="px-5 py-3 text-left font-semibold">Parcela</th>
-                    <th className="px-5 py-3 text-right font-semibold">Valor</th>
-                    <th className="px-5 py-3 text-left font-semibold">Método</th>
-                    <th className="px-5 py-3 text-left font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {payments.map((p: any) => {
-                    const overdue = p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date();
-                    return (
-                      <tr key={p.id} className={overdue ? "bg-destructive/5" : ""}>
-                        <td className="px-5 py-3.5 text-xs">{p.due_date ? formatDate(p.due_date) : "—"}</td>
-                        <td className="px-5 py-3.5 text-xs text-muted-foreground">{p.installment_number}/{p.installments_count}</td>
-                        <td className="px-5 py-3.5 text-right vx-mono font-semibold">{formatBRL(p.amount)}</td>
-                        <td className="px-5 py-3.5 text-xs text-muted-foreground">{p.payment_method ?? "—"}</td>
-                        <td className="px-5 py-3.5">
-                          <span className={`vx-pill ${
-                            p.status === "pago" ? "vx-pill-success" :
-                            overdue ? "vx-pill-danger" : "vx-pill-muted"
-                          }`}>
-                            {overdue ? "atrasado" : p.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {sales.length > 0 && (
-            <div className="vx-card overflow-hidden">
-              <div className="p-4 border-b border-border flex items-center gap-2">
-                <ShoppingBag className="size-4 text-primary" />
-                <p className="text-sm font-semibold">Histórico de contratações</p>
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40">
-                  <tr className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
-                    <th className="px-5 py-3 text-left font-semibold">Data</th>
-                    <th className="px-5 py-3 text-left font-semibold">Produto</th>
-                    <th className="px-5 py-3 text-right font-semibold">Valor</th>
-                    <th className="px-5 py-3 text-left font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {sales.map((s: any) => (
-                    <tr key={s.id}>
-                      <td className="px-5 py-3.5 text-xs text-muted-foreground">{formatDate(s.sale_date)}</td>
-                      <td className="px-5 py-3.5 font-medium">{s.products?.name ?? "—"}</td>
-                      <td className="px-5 py-3.5 text-right vx-mono font-semibold">{formatBRL(s.amount)}</td>
-                      <td className="px-5 py-3.5"><span className="vx-pill vx-pill-muted">{s.status}</span></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {payments.length === 0 && sales.length === 0 && (
-            <Empty icon={Receipt} title="Sem histórico financeiro" desc="Suas compras e cobranças aparecerão aqui." />
-          )}
-        </TabsContent>
-
-        {/* ===== HISTÓRICO ===== */}
-        <TabsContent value="historico" className="space-y-4">
-          <div className="vx-card">
-            <div className="p-4 border-b border-border flex items-center gap-2">
-              <History className="size-4 text-primary" />
-              <p className="text-sm font-semibold">Linha do tempo</p>
-            </div>
-            <div className="p-6">
-              {timeline.length === 0 ? (
-                <div className="text-center py-8">
-                  <History className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-sm font-medium">Nenhum evento registrado ainda.</p>
+                     </div>
+                   ))}
+                   {docs.length === 0 && <p className="p-12 text-center font-editorial italic text-muted-foreground">Nenhum arquivo disponível no momento.</p>}
                 </div>
-              ) : (
-                <div className="space-y-5">
-                  {timeline.map((h: any) => (
-                    <div key={h.id} className="relative pl-6 border-l-2 border-primary/20 last:border-0 pb-5 last:pb-0">
-                      <div className="absolute left-[-9px] top-0 size-4 rounded-full bg-primary border-4 border-background shadow-sm" />
-                      <p className="text-[10.5px] font-bold text-muted-foreground uppercase tracking-wider">{formatDate(h.created_at)}</p>
-                      <p className="text-sm font-bold mt-1">{h.title}</p>
-                      {h.description && <p className="text-xs text-muted-foreground mt-0.5">{h.description}</p>}
-                    </div>
-                  ))}
+             </div>
+          </TabsContent>
+
+          <TabsContent value="financeiro" className="animate-fade-up">
+             <div className="grid lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 vx-card bg-white rounded-[24px] overflow-hidden border-slate-100">
+                   <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                      <h3 className="font-editorial text-xl font-bold text-slate-900">Extrato de Pagamentos</h3>
+                   </div>
+                   <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                         <thead>
+                            <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50">
+                               <th className="px-6 py-4 text-left">Vencimento</th>
+                               <th className="px-6 py-4 text-left">Status</th>
+                               <th className="px-6 py-4 text-right">Valor</th>
+                            </tr>
+                         </thead>
+                         <tbody className="divide-y divide-slate-50">
+                            {payments.map((p: any) => (
+                              <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                                 <td className="px-6 py-4 font-medium text-slate-700">{formatDate(p.due_date)}</td>
+                                 <td className="px-6 py-4">
+                                    <span className={cn(
+                                      "vx-pill uppercase tracking-widest text-[9px]",
+                                      p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                    )}>{p.status}</span>
+                                 </td>
+                                 <td className="px-6 py-4 text-right font-bold tabular-nums text-slate-900">{formatBRL(p.amount)}</td>
+                              </tr>
+                            ))}
+                         </tbody>
+                      </table>
+                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+                <div className="vx-card p-8 bg-slate-900 text-white rounded-[24px] space-y-6">
+                   <Receipt className="size-10 text-primary mb-4" />
+                   <h3 className="font-editorial text-2xl font-bold leading-tight">Deseja alterar <br/>seu faturamento?</h3>
+                   <p className="text-sm text-white/60 leading-relaxed">Fale com seu gestor de conta para ajustar métodos de pagamento ou ciclos de renovação.</p>
+                   <Button className="w-full rounded-2xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold">Solicitar Alteração</Button>
+                </div>
+             </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }
 
-function ClientRequestsView({ requests, client }: { requests: any[]; client: any }) {
-  const qc = useQueryClient();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [activeReqId, setActiveReqId] = useState<string | null>(null);
-
-  const onUpload = async (reqId: string, file: File) => {
-    setActiveReqId(reqId);
-    const path = `client-requests/${client.id}/${reqId}-${Date.now()}-${file.name}`;
-    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-    if (upErr) { setActiveReqId(null); return toast.error(upErr.message); }
-
-    const { data: publicData } = supabase.storage.from("documents").getPublicUrl(path);
-    const { error: dbErr } = await supabase.from("document_requests").update({
-      file_url: publicData.publicUrl,
-      status: "enviado",
-      submission_date: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }).eq("id", reqId);
-
-    setActiveReqId(null);
-    if (dbErr) return toast.error(dbErr.message);
-    toast.success("Documento enviado com sucesso! Agora aguarde a análise.");
-    qc.invalidateQueries({ queryKey: ["client-panel"] });
-  };
-
+function PremiumStat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "success" | "warning" | "default" }) {
   return (
-    <div className="space-y-4">
-      {requests.length === 0 ? (
-        <Empty icon={Upload} title="Sem solicitações" desc="Seu consultor ainda não solicitou nenhum documento específico." />
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {requests.map((r) => {
-            const isPending = r.status === "solicitado" || r.status === "reprovado";
-            const isReproved = r.status === "reprovado";
-            const isApproved = r.status === "aprovado";
-            
-            return (
-              <div key={r.id} className="vx-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-primary/20 transition-all">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-bold text-[15px]">{r.request_title}</p>
-                    <Badge variant="outline" className={cn("text-[9px] uppercase font-bold", 
-                      isApproved ? "bg-success/5 text-success border-success/20" : 
-                      isReproved ? "bg-destructive/5 text-destructive border-destructive/20" :
-                      isPending ? "bg-warning/5 text-warning border-warning/20" : "bg-info/5 text-info border-info/20"
-                    )}>
-                      {r.status === 'solicitado' ? 'Pendente' : r.status === 'enviado' ? 'Em análise' : r.status}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{r.description || "Por favor, anexe o arquivo solicitado."}</p>
-                  
-                  <div className="flex flex-wrap items-center gap-3 mt-3 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="size-3" /> Solicitado: {formatDate(r.requested_at)}</span>
-                    {r.deadline && <span className="flex items-center gap-1 font-semibold text-orange-600"><Clock className="size-3" /> Prazo: {formatDate(r.deadline)}</span>}
-                  </div>
-
-                  {isReproved && r.rejection_reason && (
-                    <div className="mt-3 p-2 rounded-lg bg-destructive/5 border border-destructive/10">
-                      <p className="text-[11px] font-bold text-destructive flex items-center gap-1.5">
-                        <AlertCircle className="size-3" /> Motivo da Reprovação:
-                      </p>
-                      <p className="text-xs text-destructive/80 mt-1">{r.rejection_reason}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <input
-                    type="file"
-                    className="hidden"
-                    id={`file-input-${r.id}`}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) onUpload(r.id, f);
-                    }}
-                  />
-                  {r.file_url && (
-                    <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-bold uppercase tracking-wider" onClick={() => window.open(r.file_url)}>
-                      <Eye className="size-3.5 mr-2" /> Ver Enviado
-                    </Button>
-                  )}
-                  {isPending && (
-                    <Button
-                      size="sm"
-                      disabled={activeReqId === r.id}
-                      onClick={() => document.getElementById(`file-input-${r.id}`)?.click()}
-                      className="h-9 px-5 text-xs font-bold uppercase tracking-wider shadow-md bg-gradient-primary"
-                    >
-                      <Upload className="size-3.5 mr-2" />
-                      {activeReqId === r.id ? "Enviando..." : "Enviar agora"}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+    <div className="space-y-1">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+      <div className="flex items-baseline gap-2">
+         <span className={cn(
+           "font-editorial text-3xl font-bold tracking-tight",
+           tone === "success" ? "text-emerald-500" : tone === "warning" ? "text-amber-500" : "text-slate-900"
+         )}>{value}</span>
+         {sub && <span className="text-[11px] text-muted-foreground lowercase italic">{sub}</span>}
+      </div>
     </div>
   );
 }
 
-
-function TabTrigger({ value, icon: Icon, label, badge, badgeTone = "primary" }: { value: string; icon: any; label: string; badge?: number; badgeTone?: "primary" | "warning" | "danger" }) {
+function PremiumTabTrigger({ value, label, icon: Icon }: { value: string; label: string; icon: any }) {
   return (
     <TabsTrigger 
       value={value} 
-      className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-14 px-0 flex items-center gap-2.5 text-sm font-medium text-muted-foreground transition-all hover:text-foreground group relative"
+      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary border-none rounded-none p-0 pb-4 text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 transition-all relative group h-auto"
     >
-      <Icon className="size-4 opacity-50 transition-opacity group-hover:opacity-100 group-data-[state=active]:opacity-100" />
-      {label}
-      {badge !== undefined && badge > 0 && (
-        <span className={cn(
-          "px-1.5 py-0.5 rounded-md text-[10px] font-bold tabular-nums min-w-[20px] transition-transform group-hover:scale-110",
-          badgeTone === "warning" ? "bg-warning/10 text-warning" : 
-          badgeTone === "danger" ? "bg-destructive/10 text-destructive" : 
-          "bg-primary/10 text-primary"
-        )}>
-          {badge}
-        </span>
-      )}
-    </TabsTrigger>
-  );
-}
-
-function Stat({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" }) {
-  return (
-    <div className="flex flex-col gap-1.5 transition-transform hover:translate-x-1 duration-300">
-      <p className="vx-kpi-label">{label}</p>
-      <p className={cn(
-        "vx-kpi-value",
-        tone === "warning" ? "text-warning" : "text-foreground"
-      )}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function Empty({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
-  return (
-    <div className="vx-card py-24 text-center border-dashed border-2 bg-transparent">
-      <div className="size-16 rounded-full bg-muted/40 flex items-center justify-center mx-auto mb-5">
-        <Icon className="size-8 text-muted-foreground/40" />
+      <div className="flex items-center gap-3">
+        <Icon className="size-4 opacity-40 group-data-[state=active]:opacity-100" />
+        {label}
       </div>
-      <p className="text-base font-bold text-foreground">{title}</p>
-      <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">{desc}</p>
-    </div>
+      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 data-[state=active]:scale-x-100 transition-transform origin-left" />
+    </TabsTrigger>
   );
 }
