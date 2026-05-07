@@ -175,22 +175,22 @@ export default function Clients() {
       </div>
 
       {/* Filter Bar */}
-      <div className="cp-panel p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+      <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="relative flex-1">
-          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-          <input
+          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+          <Input
             placeholder="Search by name, email, company..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-md h-9 pl-9 pr-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+            className="w-full bg-muted/30 border-border/50 h-9 pl-9 pr-4 text-[13px]"
           />
         </div>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-9 w-[130px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-9 w-[130px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+            <SelectContent>
               <SelectItem value="todos">All Status</SelectItem>
               <SelectItem value="ativo">Active</SelectItem>
               <SelectItem value="prospecto">Prospects</SelectItem>
@@ -199,10 +199,10 @@ export default function Clients() {
           </Select>
 
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-9 w-[150px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-9 w-[150px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+            <SelectContent>
               <SelectItem value="recent">Most Recent</SelectItem>
               <SelectItem value="name">Name A-Z</SelectItem>
               <SelectItem value="revenue">Highest LTV</SelectItem>
@@ -211,16 +211,16 @@ export default function Clients() {
           </Select>
 
           {hasFilters && (
-            <button onClick={clearFilters} className="h-9 px-3 text-white/40 hover:text-white transition-colors">
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-9 w-9 text-muted-foreground/60 hover:text-foreground">
               <X className="size-4" />
-            </button>
+            </Button>
           )}
 
-          <div className="flex items-center bg-white/[0.03] border border-white/[0.06] rounded-md p-0.5 ml-2">
-            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-white/10 text-white" : "text-white/30 hover:text-white")}>
+          <div className="flex items-center bg-muted/30 border border-border/50 rounded-md p-0.5 ml-2">
+            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
               <List className="size-3.5" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-white/10 text-white" : "text-white/30 hover:text-white")}>
+            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
               <LayoutGrid className="size-3.5" />
             </button>
           </div>
