@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { z } from "zod";
+import { ProsperLogo } from "@/components/VendxLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
