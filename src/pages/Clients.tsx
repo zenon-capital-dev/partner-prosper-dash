@@ -141,32 +141,32 @@ export default function Clients() {
   const hasFilters = !!search || statusFilter !== "todos" || partnerFilter !== "todos" || sortBy !== "recent";
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] admin-shell">
+    <div className="px-6 py-6 space-y-6 max-w-[1600px] animate-fade-up">
       {/* Header */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">● management</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/30">CLIENT PORTFOLIO</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary">● management</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/40">CLIENT PORTFOLIO</span>
           </div>
-          <h1 className="text-[28px] font-semibold tracking-tight leading-none text-white">Clients</h1>
-          <p className="text-[12.5px] text-white/40 mt-1.5 font-mono">
+          <h1 className="text-[28px] font-semibold tracking-tight leading-none">Clients</h1>
+          <p className="text-[12.5px] text-muted-foreground mt-1.5 font-mono">
             {enriched.length} total records · sync live
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={exportCSV} className="h-8 px-3 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-[11.5px] font-mono uppercase tracking-wider text-white/60 hover:text-white flex items-center gap-1.5 transition-colors">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-8 text-[11px] font-mono uppercase tracking-wider gap-1.5">
             <Download className="size-3" /> export
-          </button>
-          <button onClick={() => setOpen(true)} className="h-8 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors">
+          </Button>
+          <Button size="sm" onClick={() => setOpen(true)} className="h-8 font-mono font-bold uppercase tracking-wider text-[11px] gap-1.5">
             <Plus className="size-3.5" strokeWidth={3} /> New Client
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/40 rounded-lg overflow-hidden border border-border/40 shadow-sm">
         <MiniKpi label="Total Clients" value={String(kpis.total)} />
         <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
         <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
@@ -175,22 +175,22 @@ export default function Clients() {
       </div>
 
       {/* Filter Bar */}
-      <div className="cp-panel p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+      <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="relative flex-1">
-          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-          <input
+          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+          <Input
             placeholder="Search by name, email, company..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-md h-9 pl-9 pr-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+            className="w-full bg-muted/30 border-border/50 h-9 pl-9 pr-4 text-[13px]"
           />
         </div>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-9 w-[130px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-9 w-[130px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+            <SelectContent>
               <SelectItem value="todos">All Status</SelectItem>
               <SelectItem value="ativo">Active</SelectItem>
               <SelectItem value="prospecto">Prospects</SelectItem>
@@ -199,10 +199,10 @@ export default function Clients() {
           </Select>
 
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-9 w-[150px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-9 w-[150px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+            <SelectContent>
               <SelectItem value="recent">Most Recent</SelectItem>
               <SelectItem value="name">Name A-Z</SelectItem>
               <SelectItem value="revenue">Highest LTV</SelectItem>
@@ -211,16 +211,16 @@ export default function Clients() {
           </Select>
 
           {hasFilters && (
-            <button onClick={clearFilters} className="h-9 px-3 text-white/40 hover:text-white transition-colors">
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-9 w-9 text-muted-foreground/60 hover:text-foreground">
               <X className="size-4" />
-            </button>
+            </Button>
           )}
 
-          <div className="flex items-center bg-white/[0.03] border border-white/[0.06] rounded-md p-0.5 ml-2">
-            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-white/10 text-white" : "text-white/30 hover:text-white")}>
+          <div className="flex items-center bg-muted/30 border border-border/50 rounded-md p-0.5 ml-2">
+            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
               <List className="size-3.5" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-white/10 text-white" : "text-white/30 hover:text-white")}>
+            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
               <LayoutGrid className="size-3.5" />
             </button>
           </div>
@@ -228,16 +228,16 @@ export default function Clients() {
       </div>
 
       {/* Main Content */}
-      <div className="cp-panel overflow-hidden">
+      <div className="vx-card overflow-hidden">
         {isLoading ? (
-          <div className="py-32 text-center text-white/20 font-mono text-[13px]">Synchronizing data...</div>
+          <div className="py-32 text-center text-muted-foreground/30 font-mono text-[13px] animate-pulse">Synchronizing data...</div>
         ) : filtered.length === 0 ? (
-          <div className="py-32 text-center text-white/20 font-mono text-[13px]">No records found.</div>
+          <div className="py-32 text-center text-muted-foreground/30 font-mono text-[13px]">No records found.</div>
         ) : view === "list" ? (
           <div className="overflow-x-auto">
             <table className="w-full text-[12.5px]">
-              <thead className="bg-white/[0.02]">
-                <tr className="border-b border-white/[0.06]">
+              <thead>
+                <tr className="border-b border-border/40 bg-muted/20">
                   <Th>Client / Account</Th>
                   <Th>Status</Th>
                   <Th>Indication</Th>
@@ -246,42 +246,42 @@ export default function Clients() {
                   <Th align="right">Actions</Th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/20">
                 {filtered.map((c: any) => (
-                  <tr key={c.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                  <tr key={c.id} className="hover:bg-muted/30 transition-colors group">
                     <Td>
                       <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[11px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
+                        <div className="size-8 rounded-md bg-muted border border-border/50 flex items-center justify-center text-[11px] font-mono text-muted-foreground group-hover:text-primary group-hover:border-primary/20 transition-all">
                           {initials(c.full_name)}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-white truncate cursor-pointer hover:underline" onClick={() => navigate(`/clientes/${c.id}`)}>
+                          <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/clientes/${c.id}`)}>
                             {c.full_name}
                           </p>
-                          <p className="text-[11px] text-white/30 truncate font-mono uppercase tracking-wider">{c.company || "Personal Account"}</p>
+                          <p className="text-[11px] text-muted-foreground/50 truncate font-mono uppercase tracking-wider">{c.company || "Personal Account"}</p>
                         </div>
                       </div>
                     </Td>
                     <Td><StatusPill status={c.status} /></Td>
                     <Td>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-white/40">{c.partners?.full_name || "Direct"}</span>
+                        <span className="text-muted-foreground">{c.partners?.full_name || "Direct"}</span>
                       </div>
                     </Td>
-                    <Td align="right"><span className="font-mono font-semibold text-white tabular-nums">{formatBRL(c._ltv)}</span></Td>
-                    <Td align="right"><span className="font-mono text-white/60 tabular-nums">{c._salesCount}</span></Td>
+                    <Td align="right"><span className="font-mono font-semibold tabular-nums">{formatBRL(c._ltv)}</span></Td>
+                    <Td align="right"><span className="font-mono text-muted-foreground/60 tabular-nums">{c._salesCount}</span></Td>
                     <Td align="right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="size-8 rounded-md hover:bg-white/5 flex items-center justify-center text-white/20 hover:text-white transition-colors">
+                          <Button variant="ghost" size="icon" className="size-8 text-muted-foreground/40 hover:text-foreground">
                             <MoreHorizontal className="size-4" />
-                          </button>
+                          </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#12141a] border-white/[0.1] text-white">
+                        <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> View Details</DropdownMenuItem>
                           <DropdownMenuItem><Pencil className="size-3.5 mr-2" /> Edit Info</DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/[0.06]" />
-                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-rose-400 focus:text-rose-400 focus:bg-rose-400/10"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive focus:text-destructive"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </Td>
@@ -291,25 +291,25 @@ export default function Clients() {
             </table>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-white/[0.06]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-border/20">
             {filtered.map((c: any) => (
-              <div key={c.id} className="bg-[#0d0e12] p-5 hover:bg-[#111216] transition-colors group relative border-r border-b border-white/[0.06]">
+              <div key={c.id} className="bg-background p-5 hover:bg-muted/10 transition-colors group relative border-r border-b border-border/20">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="size-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[13px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
+                  <div className="size-10 rounded-lg bg-muted border border-border/50 flex items-center justify-center text-[13px] font-mono text-muted-foreground group-hover:text-primary group-hover:border-primary/20 transition-all">
                     {initials(c.full_name)}
                   </div>
                   <StatusPill status={c.status} />
                 </div>
-                <h3 className="text-white font-semibold truncate hover:underline cursor-pointer" onClick={() => navigate(`/clientes/${c.id}`)}>{c.full_name}</h3>
-                <p className="text-[11px] text-white/30 font-mono uppercase tracking-wider mt-1 truncate">{c.company || "Personal Account"}</p>
-                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between">
+                <h3 className="font-semibold truncate hover:text-primary cursor-pointer transition-colors" onClick={() => navigate(`/clientes/${c.id}`)}>{c.full_name}</h3>
+                <p className="text-[11px] text-muted-foreground/50 font-mono uppercase tracking-wider mt-1 truncate">{c.company || "Personal Account"}</p>
+                <div className="mt-6 pt-4 border-t border-border/20 flex items-center justify-between">
                    <div>
-                     <p className="cp-stat-label">LTV</p>
-                     <p className="font-mono font-bold text-white text-[15px] tabular-nums mt-0.5">{formatBRL(c._ltv)}</p>
+                     <p className="vx-kpi-label">LTV</p>
+                     <p className="font-mono font-bold text-[15px] tabular-nums mt-0.5">{formatBRL(c._ltv)}</p>
                    </div>
                    <div className="text-right">
-                     <p className="cp-stat-label">Sales</p>
-                     <p className="font-mono text-white/60 text-[15px] tabular-nums mt-0.5">{c._salesCount}</p>
+                     <p className="vx-kpi-label">Sales</p>
+                     <p className="font-mono text-muted-foreground/60 text-[15px] tabular-nums mt-0.5">{c._salesCount}</p>
                    </div>
                 </div>
               </div>
@@ -325,11 +325,11 @@ export default function Clients() {
 
 function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="bg-[#0d0e12] p-4 lg:p-5">
-      <p className="cp-stat-label mb-2">{label}</p>
+    <div className="bg-background p-4 lg:p-5">
+      <p className="vx-kpi-label mb-2">{label}</p>
       <div className="flex items-center justify-between">
-        <p className={cn("cp-stat-value text-[20px] lg:text-[22px]", tone === "primary" && "text-emerald-400")}>{value}</p>
-        <TrendingUp className={cn("size-3.5", tone === "success" ? "text-emerald-400" : tone === "warning" ? "text-amber-400" : "text-white/10")} />
+        <p className={cn("vx-kpi-value text-[20px] lg:text-[22px]", tone === "primary" && "text-primary")}>{value}</p>
+        <TrendingUp className={cn("size-3.5", tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-muted-foreground/10")} />
       </div>
     </div>
   );
@@ -337,18 +337,18 @@ function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: 
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    ativo: { label: "active", cls: "cp-pill-success" },
-    prospecto: { label: "prospect", cls: "cp-pill-warning" },
-    inativo: { label: "inactive", cls: "cp-pill-danger" },
+    ativo: { label: "active", cls: "vx-pill-success" },
+    prospecto: { label: "prospect", cls: "vx-pill-warning" },
+    inativo: { label: "inactive", cls: "vx-pill-danger" },
   };
-  const m = map[status] ?? { label: status, cls: "cp-pill-muted" };
-  return <span className={cn("cp-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
+  const m = map[status] ?? { label: status, cls: "vx-pill" };
+  return <span className={cn("vx-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
 }
 
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-muted-foreground/40",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}

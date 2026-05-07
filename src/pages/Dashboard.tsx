@@ -41,44 +41,25 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#020617] cp-grid-bg">
-      {/* Top Header / Search Bar */}
-      <header className="h-16 border-b border-border/40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-4 flex-1 max-w-xl">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input 
-              type="text" 
-              placeholder="Buscar clientes, parceiros, produtos..." 
-              className="w-full h-10 pl-10 pr-4 bg-slate-100 dark:bg-slate-900 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all"
-            />
-          </div>
+    <div className="min-h-screen bg-background cp-grid-bg">
+      <div className="p-8 flex items-center justify-end">
+        <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50">
+          {(["today", "7d", "30d", "month"] as RangeKey[]).map((k) => (
+            <button
+              key={k}
+              onClick={() => setRangeKey(k)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all",
+                rangeKey === k 
+                  ? "bg-background text-foreground shadow-sm border border-border/20" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {makeRange(k).label}
+            </button>
+          ))}
         </div>
-        
-        <div className="flex items-center gap-3">
-          <button className="size-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-900 flex items-center justify-center text-muted-foreground transition-colors relative">
-            <Bell className="size-5" />
-            <span className="absolute top-2.5 right-2.5 size-2 bg-indigo-500 rounded-full border-2 border-white dark:border-slate-950" />
-          </button>
-          <div className="h-6 w-px bg-border/60 mx-1" />
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-lg">
-            {(["today", "7d", "30d", "month"] as RangeKey[]).map((k) => (
-              <button
-                key={k}
-                onClick={() => setRangeKey(k)}
-                className={cn(
-                  "px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all",
-                  rangeKey === k 
-                    ? "bg-white dark:bg-slate-800 text-foreground shadow-sm" 
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {makeRange(k).label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
+      </div>
 
       <main className="p-8 space-y-8 max-w-[1600px] mx-auto animate-fade-up">
         {/* Breadcrumb / Info */}
@@ -148,11 +129,11 @@ export default function Dashboard() {
                 <span className="text-[10px] font-bold text-muted-foreground">RECEITA REAL</span>
               </div>
             </div>
-            <div className="h-[300px] w-full bg-slate-50/50 dark:bg-slate-900/50 rounded-xl flex items-end justify-around p-6 gap-2">
+            <div className="h-[300px] w-full bg-muted/30 rounded-xl flex items-end justify-around p-6 gap-2 border border-border/40">
                {[40, 65, 45, 90, 55, 80, 70, 85, 60, 95, 75, 100].map((h, i) => (
                  <div key={i} className="flex-1 space-y-2 group">
-                   <div className="relative w-full bg-indigo-500/20 rounded-t-lg transition-all group-hover:bg-indigo-500/40" style={{ height: `${h}%` }}>
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                   <div className="relative w-full bg-primary/10 rounded-t-lg transition-all group-hover:bg-primary/20" style={{ height: `${h}%` }}>
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                         R${h}k
                       </div>
                    </div>

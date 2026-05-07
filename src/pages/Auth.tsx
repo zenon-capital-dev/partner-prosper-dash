@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { ProsperLogo } from "@/components/VendxLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -176,20 +177,24 @@ export default function AuthPage() {
       </div>
 
       {/* ╔══════════════════════ RIGHT — FORM ══════════════════════╗ */}
-      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-[#FAFAF7] text-slate-900">
+      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-background text-foreground transition-colors duration-500">
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle />
+        </div>
+
         {/* subtle texture */}
-        <div className="absolute inset-0 opacity-[0.4] pointer-events-none"
+        <div className="absolute inset-0 opacity-[0.2] dark:opacity-[0.05] pointer-events-none"
              style={{
-               backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0)",
+               backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
                backgroundSize: "24px 24px",
              }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
 
         {/* corner ornaments */}
-        <CornerMark className="top-6 left-6" />
-        <CornerMark className="top-6 right-6" rotate="rotate-90" />
-        <CornerMark className="bottom-6 left-6" rotate="-rotate-90" />
-        <CornerMark className="bottom-6 right-6" rotate="rotate-180" />
+        <CornerMark className="top-6 left-6 opacity-30" />
+        <CornerMark className="top-6 right-6 opacity-30" rotate="rotate-90" />
+        <CornerMark className="bottom-6 left-6 opacity-30" rotate="-rotate-90" />
+        <CornerMark className="bottom-6 right-6 opacity-30" rotate="rotate-180" />
 
         <div className="relative w-full max-w-[420px] space-y-9">
           {/* Mobile brand */}
@@ -211,13 +216,13 @@ export default function AuthPage() {
           </div>
 
           <div className="space-y-3 text-center">
-            <h2 className="font-display text-[42px] font-bold tracking-[-0.03em] leading-[1] text-slate-950">
+            <h2 className="font-display text-[42px] font-bold tracking-[-0.03em] leading-[1] text-foreground">
               Bem-vindo
-              <span className="block text-slate-400 text-[28px] font-normal italic mt-2 tracking-tight">
+              <span className="block text-muted-foreground text-[28px] font-normal italic mt-2 tracking-tight">
                 de volta.
               </span>
             </h2>
-            <p className="text-[13.5px] text-slate-500 leading-relaxed max-w-[320px] mx-auto">
+            <p className="text-[13.5px] text-muted-foreground leading-relaxed max-w-[320px] mx-auto">
               Entre com suas credenciais para acessar o painel de gestão.
             </p>
           </div>
