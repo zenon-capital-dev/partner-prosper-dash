@@ -191,6 +191,25 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
             </div>
           </div>
 
+          {clientId && (sales?.length ?? 0) > 0 && (
+            <div className="space-y-2">
+              <Label>Vincular a uma venda (opcional)</Label>
+              <Select value={form.sale_id || "none"} onValueChange={(v) => setForm({ ...form, sale_id: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma venda específica" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma venda específica</SelectItem>
+                  {sales?.map((s: any) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.products?.name || "Venda"} — {new Date(s.sale_date).toLocaleDateString('pt-BR')} — R$ {Number(s.amount).toFixed(2)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Observações internas</Label>
             <Textarea 
