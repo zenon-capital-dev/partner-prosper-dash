@@ -283,30 +283,50 @@ export default function Dashboard() {
 /* --- Components --- */
 
 function KPICard({ label, value, delta, trend, icon, color }: any) {
+  const gradients: any = {
+    indigo: "from-indigo-500/10 to-transparent",
+    emerald: "from-emerald-500/10 to-transparent",
+    amber: "from-amber-500/10 to-transparent",
+    blue: "from-blue-500/10 to-transparent",
+  };
+  
+  const iconColors: any = {
+    indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10",
+  };
+
   return (
-    <div className="cp-panel p-6 group hover:translate-y-[-2px] transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className={cn("size-10 rounded-xl flex items-center justify-center bg-opacity-10", {
-          "bg-indigo-500": color === "indigo",
-          "bg-emerald-500": color === "emerald",
-          "bg-amber-500": color === "amber",
-          "bg-blue-500": color === "blue",
-        })}>
+    <div className={cn("vx-card-premium p-6 group cursor-pointer hover:border-primary/20", gradients[color])}>
+      <div className="flex items-center justify-between mb-5">
+        <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg", iconColors[color])}>
           {icon}
         </div>
         <div className={cn("cp-pill", trend === "up" ? "cp-pill-success" : "cp-pill-danger")}>
-          <ArrowUpRight className="size-3" />
+          <ArrowUpRight className={cn("size-3 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5")} />
           {delta}
         </div>
       </div>
-      <p className="cp-stat-label">{label}</p>
-      <div className="flex items-baseline gap-2 mt-1">
-        <h4 className="cp-stat-value">{value}</h4>
+      <p className="vx-kpi-label">{label}</p>
+      <div className="flex items-baseline gap-2 mt-2">
+        <h4 className="vx-kpi-value">{value}</h4>
       </div>
-      <p className="text-[10px] text-muted-foreground/60 mt-2 font-medium tracking-wide">vs. período anterior</p>
+      <div className="mt-4 flex items-center gap-2">
+        <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+          <div className={cn("h-full rounded-full transition-all duration-1000 w-[65%]", {
+            "bg-indigo-500": color === "indigo",
+            "bg-emerald-500": color === "emerald",
+            "bg-amber-500": color === "amber",
+            "bg-blue-500": color === "blue",
+          })} />
+        </div>
+        <span className="text-[10px] font-bold text-muted-foreground/40">65%</span>
+      </div>
     </div>
   );
 }
+
 
 function MiniKPICard({ label, value, color }: any) {
   const colorMap: any = {
