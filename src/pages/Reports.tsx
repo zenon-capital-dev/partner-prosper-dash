@@ -77,15 +77,15 @@ export default function Reports() {
 
   const { data: collaborators } = useQuery({
     queryKey: ["report-collab"],
-    queryFn: async () => (await supabase.from("collaborators")
-      .select("full_name, role, email, status, created_at")).data ?? [],
+    queryFn: async () => (await supabase.from("employees")
+      .select("name, role, email, status, created_at")).data ?? [],
     enabled: reportType === "team",
   });
 
   const { data: providers } = useQuery({
     queryKey: ["report-providers"],
-    queryFn: async () => (await supabase.from("providers")
-      .select("full_name, specialty, email, status, created_at")).data ?? [],
+    queryFn: async () => (await supabase.from("service_providers")
+      .select("name, specialty, email, active, created_at")).data ?? [],
     enabled: reportType === "team",
   });
 
