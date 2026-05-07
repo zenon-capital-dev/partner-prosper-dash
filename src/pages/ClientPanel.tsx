@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
-  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo
+  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo, Eye
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
@@ -120,7 +121,7 @@ export default function ClientPanel() {
   const monthlyTotal = activeSubs
     .filter((s: any) => s.billing_cycle === "mensal")
     .reduce((sum: number, s: any) => sum + Number(s.amount), 0);
-  const pendingDocs = requests.filter((r: any) => r.status === "pending").length;
+  const pendingDocs = requests.filter((r: any) => r.status === "solicitado" || r.status === "reprovado").length;
   const ownedProductIds = new Set(subscriptions.map((s: any) => s.product_id).filter(Boolean));
   const availableCatalog = catalog.filter((p: any) => !ownedProductIds.has(p.id));
 
@@ -445,13 +446,14 @@ function ClientRequestsView({ requests, client }: { requests: any[]; client: any
     const { data: publicData } = supabase.storage.from("documents").getPublicUrl(path);
     const { error: dbErr } = await supabase.from("document_requests").update({
       file_url: publicData.publicUrl,
-      status: "submitted",
+      status: "enviado",
+      submission_date: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", reqId);
 
     setActiveReqId(null);
     if (dbErr) return toast.error(dbErr.message);
-    toast.success("Documento enviado com sucesso!");
+    toast.success("Documento enviado com sucesso! Agora aguarde a análise.");
     qc.invalidateQueries({ queryKey: ["client-panel"] });
   };
 
@@ -460,50 +462,78 @@ function ClientRequestsView({ requests, client }: { requests: any[]; client: any
       {requests.length === 0 ? (
         <Empty icon={Upload} title="Sem solicitações" desc="Seu consultor ainda não solicitou nenhum documento específico." />
       ) : (
-        <div className="vx-card divide-y divide-border">
-          {requests.map((r) => (
-            <div key={r.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
-              <div>
-                <p className="text-sm font-bold">{r.request_title}</p>
-                <p className="text-xs text-muted-foreground mt-1">{r.description || "Por favor, anexe o arquivo solicitado."}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="outline" className={r.status === "pending" ? "text-warning border-warning/20 bg-warning/5" : "text-success border-success/20 bg-success/5"}>
-                    {r.status === "pending" ? "Pendente" : "Enviado"}
-                  </Badge>
-                  <span className="text-[10px] text-muted-foreground">Solicitado em {formatDate(r.requested_at)}</span>
+        <div className="grid grid-cols-1 gap-4">
+          {requests.map((r) => {
+            const isPending = r.status === "solicitado" || r.status === "reprovado";
+            const isReproved = r.status === "reprovado";
+            const isApproved = r.status === "aprovado";
+            
+            return (
+              <div key={r.id} className="vx-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 hover:border-primary/20 transition-all">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold text-[15px]">{r.request_title}</p>
+                    <Badge variant="outline" className={cn("text-[9px] uppercase font-bold", 
+                      isApproved ? "bg-success/5 text-success border-success/20" : 
+                      isReproved ? "bg-destructive/5 text-destructive border-destructive/20" :
+                      isPending ? "bg-warning/5 text-warning border-warning/20" : "bg-info/5 text-info border-info/20"
+                    )}>
+                      {r.status === 'solicitado' ? 'Pendente' : r.status === 'enviado' ? 'Em análise' : r.status}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{r.description || "Por favor, anexe o arquivo solicitado."}</p>
+                  
+                  <div className="flex flex-wrap items-center gap-3 mt-3 text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1"><Calendar className="size-3" /> Solicitado: {formatDate(r.requested_at)}</span>
+                    {r.deadline && <span className="flex items-center gap-1 font-semibold text-orange-600"><Clock className="size-3" /> Prazo: {formatDate(r.deadline)}</span>}
+                  </div>
+
+                  {isReproved && r.rejection_reason && (
+                    <div className="mt-3 p-2 rounded-lg bg-destructive/5 border border-destructive/10">
+                      <p className="text-[11px] font-bold text-destructive flex items-center gap-1.5">
+                        <AlertCircle className="size-3" /> Motivo da Reprovação:
+                      </p>
+                      <p className="text-xs text-destructive/80 mt-1">{r.rejection_reason}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <input
+                    type="file"
+                    className="hidden"
+                    id={`file-input-${r.id}`}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) onUpload(r.id, f);
+                    }}
+                  />
+                  {r.file_url && (
+                    <Button variant="outline" size="sm" className="h-9 px-4 text-xs font-bold uppercase tracking-wider" onClick={() => window.open(r.file_url)}>
+                      <Eye className="size-3.5 mr-2" /> Ver Enviado
+                    </Button>
+                  )}
+                  {isPending && (
+                    <Button
+                      size="sm"
+                      disabled={activeReqId === r.id}
+                      onClick={() => document.getElementById(`file-input-${r.id}`)?.click()}
+                      className="h-9 px-5 text-xs font-bold uppercase tracking-wider shadow-md bg-gradient-primary"
+                    >
+                      <Upload className="size-3.5 mr-2" />
+                      {activeReqId === r.id ? "Enviando..." : "Enviar agora"}
+                    </Button>
+                  )}
                 </div>
               </div>
-              <div>
-                <input
-                  type="file"
-                  className="hidden"
-                  ref={fileRef}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f && activeReqId) onUpload(activeReqId, f);
-                  }}
-                />
-                <Button
-                  size="sm"
-                  variant={r.status === "pending" ? "default" : "outline"}
-                  disabled={activeReqId === r.id}
-                  onClick={() => {
-                    setActiveReqId(r.id);
-                    fileRef.current?.click();
-                  }}
-                  className="gap-2"
-                >
-                  <Upload className="size-4" />
-                  {activeReqId === r.id ? "Enviando..." : r.status === "pending" ? "Enviar agora" : "Reenviar"}
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
+
 
 function Stat({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" }) {
   return (

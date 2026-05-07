@@ -745,33 +745,51 @@ export type Database = {
       }
       document_requests: {
         Row: {
+          approval_date: string | null
           client_id: string
+          deadline: string | null
           description: string | null
           file_url: string | null
           id: string
+          observations: string | null
+          product_id: string | null
+          rejection_reason: string | null
           request_title: string
           requested_at: string
           status: string
+          submission_date: string | null
           updated_at: string
         }
         Insert: {
+          approval_date?: string | null
           client_id: string
+          deadline?: string | null
           description?: string | null
           file_url?: string | null
           id?: string
+          observations?: string | null
+          product_id?: string | null
+          rejection_reason?: string | null
           request_title: string
           requested_at?: string
           status?: string
+          submission_date?: string | null
           updated_at?: string
         }
         Update: {
+          approval_date?: string | null
           client_id?: string
+          deadline?: string | null
           description?: string | null
           file_url?: string | null
           id?: string
+          observations?: string | null
+          product_id?: string | null
+          rejection_reason?: string | null
           request_title?: string
           requested_at?: string
           status?: string
+          submission_date?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -780,6 +798,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
