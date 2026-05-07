@@ -189,11 +189,13 @@ export default function ClientPanel() {
             <Upload className="size-4" /> Solicitações
             {pendingDocs > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingDocs}</Badge>}
           </TabsTrigger>
+          <TabsTrigger value="contratos" className="h-9 gap-2 text-[13px] font-semibold">
+            <ClipboardList className="size-4" /> Contratos
+            {pendingContracts.length > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingContracts.length}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
             <Receipt className="size-4" /> Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="tarefas" className="h-9 gap-2 text-[13px] font-semibold">
-            <ListTodo className="size-4" /> Pendências
+            {overduePayments.length > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-destructive text-destructive-foreground">{overduePayments.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="historico" className="h-9 gap-2 text-[13px] font-semibold">
             <History className="size-4" /> Histórico
