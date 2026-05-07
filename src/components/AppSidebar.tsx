@@ -36,6 +36,7 @@ import {
   UserCircle,
   Truck,
   ShieldCheck,
+  Star,
 } from "lucide-react";
 import {
   Sidebar,
@@ -212,17 +213,21 @@ export function AppSidebar() {
 
   const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
-  const showPrestador = isPrestador && !showAdmin && !showPartner;
-  const showClient = isCliente && !showAdmin && !showPartner && !showPrestador;
+  const showReferrer = isIndicador && !showAdmin && !showPartner;
+  const showPrestador = isPrestador && !showAdmin && !showPartner && !showReferrer;
+  const showClient = isCliente && !showAdmin && !showPartner && !showPrestador && !showReferrer;
+  
   const sections = showAdmin
     ? adminSections
     : showPartner
       ? partnerSections
-      : showPrestador
-        ? [] // We can add provider specific sections later
-        : showClient
-          ? clientSections
-          : adminSections;
+      : showReferrer
+        ? referrerSections
+        : showPrestador
+          ? []
+          : showClient
+            ? clientSections
+            : adminSections;
 
   // ===== Live counters & sparkline (admin/vendedor) =====
   const { data: live } = useQuery({
