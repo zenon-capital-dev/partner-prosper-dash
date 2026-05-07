@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import AppLayout from "@/components/AppLayout";
+import AdminLayout from "@/components/admin/AdminLayout";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
@@ -49,8 +50,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastro" element={<Signup />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<RoleHome />} />
+            <Route element={<AdminLayout />}>
               <Route path="/admin" element={<Dashboard />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/:id" element={<ClientDetail />} />
@@ -72,6 +72,9 @@ const App = () => (
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Support />} />
+            </Route>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<RoleHome />} />
               <Route path="/parceiro" element={<PartnerPanel />} />
               <Route path="/parceiro/clientes" element={<PartnerPanel />} />
               <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
