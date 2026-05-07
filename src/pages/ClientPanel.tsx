@@ -148,59 +148,54 @@ export default function ClientPanel() {
   const pendingContracts = contracts.filter((c: any) => c.status !== "assinado" && c.status !== "finalizado");
 
   return (
-    <div className="page-shell space-y-7">
+    <div className="page-shell space-y-10">
       {/* ===== Greeting card ===== */}
-      <div className="vx-card p-6 lg:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-        <div className="flex items-center gap-4">
-          <div className="size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-display font-bold text-xl">
+      <div className="vx-card p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 group overflow-hidden">
+        <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-all group-hover:bg-primary/10" />
+        
+        <div className="relative flex items-center gap-6">
+          <div className="size-16 lg:size-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-white flex items-center justify-center font-display font-bold text-2xl shadow-xl shadow-primary/20">
             {initials(client.full_name)}
           </div>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Bem-vindo de volta</p>
-            <h1 className="font-display text-[28px] font-bold tracking-tight leading-tight">{client.full_name}</h1>
-            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-              {client.company && <span>{client.company}</span>}
-              {client.email && <span className="flex items-center gap-1"><Mail className="size-3" /> {client.email}</span>}
-              {client.phone && <span className="flex items-center gap-1"><Phone className="size-3" /> {client.phone}</span>}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Portal do Cliente</span>
+              <div className="size-1 rounded-full bg-primary/30" />
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">{client.company || "Dashboard Principal"}</span>
+            </div>
+            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
+              Olá, {client.full_name.split(' ')[0]}
+            </h1>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground font-medium pt-1">
+              {client.email && <span className="flex items-center gap-1.5"><Mail className="size-3.5 opacity-60" /> {client.email}</span>}
+              {client.phone && <span className="flex items-center gap-1.5"><Phone className="size-3.5 opacity-60" /> {client.phone}</span>}
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-6 lg:border-l lg:pl-7 lg:border-border">
+
+        <div className="relative grid grid-cols-3 gap-8 lg:gap-12 lg:border-l lg:pl-12 border-border/40">
           <Stat label="Ativos" value={String(activeSubs.length)} />
-          <Stat label="Mensalidade" value={formatBRL(monthlyTotal)} />
-          <Stat label="Pendentes" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "default"} />
+          <Stat label="Recorrência" value={formatBRL(monthlyTotal)} />
+          <Stat 
+            label="Pendências" 
+            value={String(pendingDocs)} 
+            tone={pendingDocs > 0 ? "warning" : "default"} 
+          />
         </div>
       </div>
 
-      <Tabs defaultValue="produtos" className="space-y-5">
-        <TabsList className="h-11 p-1">
-          <TabsTrigger value="produtos" className="h-9 gap-2 text-[13px] font-semibold">
-            <Package className="size-4" /> Meus Produtos
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{activeSubs.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="catalogo" className="h-9 gap-2 text-[13px] font-semibold">
-            <ShoppingBag className="size-4" /> Catálogo
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">{availableCatalog.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="docs" className="h-9 gap-2 text-[13px] font-semibold">
-            <FileText className="size-4" /> Meus Arquivos
-          </TabsTrigger>
-          <TabsTrigger value="solicitacoes" className="h-9 gap-2 text-[13px] font-semibold">
-            <Upload className="size-4" /> Solicitações
-            {pendingDocs > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingDocs}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="contratos" className="h-9 gap-2 text-[13px] font-semibold">
-            <ClipboardList className="size-4" /> Contratos
-            {pendingContracts.length > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-warning text-warning-foreground">{pendingContracts.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="financeiro" className="h-9 gap-2 text-[13px] font-semibold">
-            <Receipt className="size-4" /> Financeiro
-            {overduePayments.length > 0 && <Badge className="ml-1 h-5 px-1.5 text-[10px] bg-destructive text-destructive-foreground">{overduePayments.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="h-9 gap-2 text-[13px] font-semibold">
-            <History className="size-4" /> Histórico
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="produtos" className="space-y-8">
+        <div className="flex items-center justify-between border-b border-border/40 pb-1">
+          <TabsList className="h-auto p-0 bg-transparent gap-8">
+            <TabTrigger value="produtos" icon={Package} label="Meus Produtos" badge={activeSubs.length} />
+            <TabTrigger value="catalogo" icon={ShoppingBag} label="Catálogo" badge={availableCatalog.length} />
+            <TabTrigger value="docs" icon={FileText} label="Meus Arquivos" />
+            <TabTrigger value="solicitacoes" icon={Upload} label="Solicitações" badge={pendingDocs} badgeTone="warning" />
+            <TabTrigger value="contratos" icon={ClipboardList} label="Contratos" badge={pendingContracts.length} badgeTone="warning" />
+            <TabTrigger value="financeiro" icon={Receipt} label="Financeiro" badge={overduePayments.length} badgeTone="danger" />
+            <TabTrigger value="historico" icon={History} label="Histórico" />
+          </TabsList>
+        </div>
 
         {/* ===== MEUS PRODUTOS ===== */}
         <TabsContent value="produtos" className="space-y-3">
