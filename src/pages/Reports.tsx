@@ -284,10 +284,10 @@ export default function Reports() {
           ],
           rows: [
             ...(collaborators ?? []).map((c: any) => ({
-              tipo: "Colaborador", nome: c.full_name, funcao: c.role ?? "—", email: c.email ?? "—", status: c.status ?? "—",
+              tipo: "Colaborador", nome: c.name, funcao: c.role ?? "—", email: c.email ?? "—", status: c.status ?? "—",
             })),
             ...(providers ?? []).map((p: any) => ({
-              tipo: "Prestador", nome: p.full_name, funcao: p.specialty ?? "—", email: p.email ?? "—", status: p.status ?? "—",
+              tipo: "Prestador", nome: p.name, funcao: p.specialty ?? "—", email: p.email ?? "—", status: p.active ? "ativo" : "inativo",
             })),
           ],
           totals: [
