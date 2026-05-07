@@ -378,14 +378,25 @@ export default function ClientDetail() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="overview" className="gap-1.5"><Sparkles className="size-3.5" /> Visão geral</TabsTrigger>
+          <TabsTrigger value="cadastral" className="gap-1.5"><IdCard className="size-3.5" /> Dados cadastrais</TabsTrigger>
           <TabsTrigger value="sales" className="gap-1.5"><ShoppingBag className="size-3.5" /> Vendas <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.salesCount}</Badge></TabsTrigger>
           <TabsTrigger value="products" className="gap-1.5"><Repeat className="size-3.5" /> Produtos contratados <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{clientProducts.length}</Badge></TabsTrigger>
-          <TabsTrigger value="projects" className="gap-1.5"><FolderKanban className="size-3.5" /> Projetos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.projectsCount}</Badge></TabsTrigger>
+          <TabsTrigger value="contracts" className="gap-1.5"><FileText className="size-3.5" /> Contratos</TabsTrigger>
+          <TabsTrigger value="payments" className="gap-1.5"><CircleDollarSign className="size-3.5" /> Financeiro</TabsTrigger>
           <TabsTrigger value="commissions" className="gap-1.5"><Wallet className="size-3.5" /> Comissões <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
           <TabsTrigger value="documents" className="gap-1.5"><FileText className="size-3.5" /> Documentos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{docs.length}</Badge></TabsTrigger>
           <TabsTrigger value="doc-requests" className="gap-1.5"><FileUp className="size-3.5" /> Solicitar Docs</TabsTrigger>
+          <TabsTrigger value="tasks" className="gap-1.5"><ClipboardList className="size-3.5" /> Tarefas</TabsTrigger>
+          <TabsTrigger value="notes" className="gap-1.5"><MessageSquarePlus className="size-3.5" /> Notas</TabsTrigger>
+          <TabsTrigger value="projects" className="gap-1.5"><FolderKanban className="size-3.5" /> Projetos <Badge variant="secondary" className="ml-1 h-4 text-[9px] px-1">{stats.projectsCount}</Badge></TabsTrigger>
           <TabsTrigger value="timeline" className="gap-1.5"><ActivityIcon className="size-3.5" /> Timeline</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="cadastral" className="mt-4"><CadastralTab client={client} /></TabsContent>
+        <TabsContent value="contracts" className="mt-4"><ContractsTab clientId={id!} /></TabsContent>
+        <TabsContent value="payments" className="mt-4"><PaymentsTab clientId={id!} /></TabsContent>
+        <TabsContent value="tasks" className="mt-4"><TasksTab clientId={id!} /></TabsContent>
+        <TabsContent value="notes" className="mt-4"><NotesTab clientId={id!} /></TabsContent>
 
         <TabsContent value="doc-requests" className="mt-4">
           <DocRequestList clientId={id!} />
