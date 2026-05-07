@@ -310,311 +310,161 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-        {/* ========== HEADER ========== */}
-        <SidebarHeader className="bg-sidebar px-4 pt-5 pb-4">
-          <div className={collapsed ? "flex flex-col items-center gap-2" : "flex items-center gap-3 px-1"}>
-            <div className="relative shrink-0">
-              <AppLogo size={collapsed ? 32 : 42} />
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-sidebar" />
+      <Sidebar collapsible="icon" className="border-r border-white/5 !bg-[#09090b]">
+        <SidebarHeader className="!bg-transparent px-5 pt-8 pb-6">
+          <div className={cn("flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-1")}>
+            <div className="relative shrink-0 active:scale-95 transition-transform cursor-pointer" onClick={() => navigate("/")}>
+              <AppLogo size={collapsed ? 28 : 34} />
+              <div className="absolute -inset-1 bg-primary/20 blur-lg rounded-full animate-pulse opacity-50" />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display font-black tracking-[0.14em] text-white text-[22px] leading-none uppercase">
+                <div className="flex items-center gap-2">
+                  <span className="font-display font-bold tracking-tight text-white text-lg leading-none">
                     PROSPER
                   </span>
-                  <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
+                  <div className="size-1 rounded-full bg-primary/60" />
+                  <span className="text-[10px] font-bold tracking-widest text-primary uppercase opacity-80">
                     PRO
                   </span>
                 </div>
               </div>
             )}
-            {!collapsed && (
-              <button
-                onClick={toggleSidebar}
-                className="size-8 rounded-lg hover:bg-white/[0.05] flex items-center justify-center text-sidebar-muted hover:text-white transition-colors"
-                title="Recolher"
-              >
-                <PanelLeftClose className="size-4" />
-              </button>
-            )}
           </div>
 
-          {!collapsed ? (
+          {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-5 w-full h-11 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] flex items-center gap-2.5 px-3.5 text-[13.5px] text-sidebar-muted transition-colors group"
+              className="mt-8 w-full h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] flex items-center gap-3 px-4 text-xs text-sidebar-foreground/50 transition-all group"
             >
-              <Search className="size-4 group-hover:text-white transition-colors" />
-              <span className="flex-1 text-left">Buscar comandos…</span>
-              <kbd className="text-[10.5px] font-mono bg-white/[0.07] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5">
-                <Command className="size-2.5" />K
+              <Search className="size-3.5 group-hover:text-sidebar-foreground transition-colors" />
+              <span className="flex-1 text-left font-medium">Search anything...</span>
+              <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-white/40">
+                <span className="text-xs">⌘</span>K
               </kbd>
-            </button>
-          ) : (
-            <button
-              onClick={() => setCmdOpen(true)}
-              className="mt-3 size-9 mx-auto rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] flex items-center justify-center text-sidebar-muted hover:text-white transition-colors"
-              title="Buscar (⌘K)"
-            >
-              <Search className="size-4" />
             </button>
           )}
         </SidebarHeader>
 
-        {/* ========== NAV ========== */}
-        <SidebarContent className="bg-sidebar px-3 pb-2 vx-sidebar-scroll">
-          {sections.map((section) => {
-            const SectionIcon = section.icon;
-            return (
-              <SidebarGroup key={section.label} className="py-0">
-                {!collapsed && (
-                  <div className="vx-nav-section">
-                    <span className="vx-nav-section-icon">
-                      <SectionIcon className="size-3.5" strokeWidth={2.25} />
-                    </span>
-                    <span className="vx-nav-section-label">{section.label}</span>
-                    <span className="vx-nav-section-line" />
-                  </div>
-                )}
-                {collapsed && <div className="h-px bg-white/[0.05] mx-2 my-2" />}
-                <SidebarGroupContent>
-                  <SidebarMenu className="gap-0.5">
-                    {section.items.map((item) => {
-                      const active = isActive(item.url);
-                      const Icon = item.icon;
-                      const counter = counterFor(item.counterKey);
-                      const counterTone =
-                        item.counterKey === "pendingFin" || item.counterKey === "pendingCom"
-                          ? "vx-nav-counter-warning"
-                          : item.counterKey === "newDocs"
-                            ? "vx-nav-counter-info"
-                            : item.counterKey === "clients"
-                              ? "vx-nav-counter-primary"
-                              : "";
-                      return (
-                        <SidebarMenuItem key={item.url}>
-                          <SidebarMenuButton
-                            asChild
-                            isActive={active}
-                            tooltip={collapsed ? item.title : undefined}
-                            className="!h-auto !p-0 hover:!bg-transparent data-[active=true]:!bg-transparent"
-                          >
-                            <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
-                              <span className="vx-nav-icon-wrap">
-                                <Icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.9} />
-                                {collapsed && counter && (
-                                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-sidebar" />
+        <SidebarContent className="!bg-transparent px-3 pb-4">
+          {sections.map((section, idx) => (
+            <SidebarGroup key={section.label} className={cn("py-2", idx > 0 && "mt-2")}>
+              {!collapsed && (
+                <div className="px-3 mb-2 flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/30">
+                    {section.label}
+                  </span>
+                </div>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu className="gap-1">
+                  {section.items.map((item) => {
+                    const active = isActive(item.url);
+                    const Icon = item.icon;
+                    const counter = counterFor(item.counterKey);
+                    
+                    return (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={collapsed ? item.title : undefined}
+                          className="!h-auto !p-0 !bg-transparent"
+                        >
+                          <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
+                            <span className="vx-nav-icon-wrap">
+                              <Icon className={cn("size-[18px] transition-all", active ? "text-primary" : "text-inherit")} strokeWidth={active ? 2.25 : 1.8} />
+                            </span>
+                            {!collapsed && (
+                              <>
+                                <span className={cn("flex-1 transition-colors", active ? "text-white font-semibold" : "text-inherit")}>
+                                  {item.title}
+                                </span>
+                                {counter !== null && (
+                                  <span className="ml-auto size-5 flex items-center justify-center rounded-md bg-white/5 text-[10px] font-bold text-white/40 border border-white/5">
+                                    {counter}
+                                  </span>
                                 )}
-                              </span>
-                              {!collapsed && (
-                                <>
-                                  <span className="truncate">{item.title}</span>
-                                  {counter !== null && (
-                                    <span className={cn("vx-nav-counter", counterTone)}>
-                                      {counter}
-                                    </span>
-                                  )}
-                                </>
-                              )}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            );
-          })}
-
-          {!collapsed && showAdmin && (
-            <div className="mx-1 mt-6 mb-2 rounded-xl p-4 border border-white/[0.07] bg-white/[0.03]">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-sidebar-muted flex items-center gap-1.5">
-                  <Zap className="size-3 text-success" />
-                  Receita · 7 dias
-                </span>
-                <span className="text-[11px] font-semibold tabular-nums text-success flex items-center gap-0.5">
-                  <ArrowUpRight className="size-3" />
-                  +18.2%
-                </span>
-              </div>
-              <p className="font-display text-white text-[22px] font-bold tabular-nums tracking-[-0.02em] leading-none">
-                {formatBRL(liveData.monthRev)}
-              </p>
-              <div className="mt-3 h-9">
-                <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="w-full h-full">
-                  <defs>
-                    <linearGradient id="sb-spark" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="hsl(var(--sidebar-primary))" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  {sparkPath && (
-                    <>
-                      <path d={`${sparkPath} L100,28 L0,28 Z`} fill="url(#sb-spark)" />
-                      <path d={sparkPath} fill="none" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-                    </>
-                  )}
-                </svg>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/[0.06]">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-muted font-semibold">A receber</p>
-                  <p className="text-[13px] font-bold text-white tabular-nums mt-1">{formatBRL(liveData.pendingFinTotal)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-muted font-semibold">A pagar</p>
-                  <p className="text-[13px] font-bold text-warning tabular-nums mt-1">{formatBRL(liveData.pendingComTotal)}</p>
-                </div>
-              </div>
-            </div>
-          )}
+                              </>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
         </SidebarContent>
 
-        {/* ========== FOOTER ========== */}
-        <SidebarFooter className="bg-sidebar border-t border-sidebar-border p-2">
-          {/* quick actions row */}
-          {!collapsed && (
-            <div className="flex items-center gap-1 px-1 pb-2">
-              <button
-                onClick={() => setIsDark((v) => !v)}
-                className="flex-1 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] hover:border-white/[0.1] flex items-center justify-center gap-1.5 text-[11px] font-semibold text-sidebar-muted hover:text-white transition-all"
-                title="Alternar tema"
-              >
-                {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-                {isDark ? "Claro" : "Escuro"}
-              </button>
-              <button
-                onClick={toggleSidebar}
-                className="size-8 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] hover:border-white/[0.1] flex items-center justify-center text-sidebar-muted hover:text-white transition-all"
-                title="Recolher"
-              >
-                <PanelLeftClose className="size-3.5" />
-              </button>
-            </div>
-          )}
-          {collapsed && (
-            <div className="flex flex-col items-center gap-1 pb-2">
-              <button
-                onClick={toggleSidebar}
-                className="size-8 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] flex items-center justify-center text-sidebar-muted hover:text-white"
-                title="Expandir"
-              >
-                <PanelLeftOpen className="size-3.5" />
-              </button>
-              <button
-                onClick={() => setIsDark((v) => !v)}
-                className="size-8 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] flex items-center justify-center text-sidebar-muted hover:text-white"
-                title="Tema"
-              >
-                {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-              </button>
-            </div>
-          )}
-
-          {/* user dropdown */}
+        <SidebarFooter className="!bg-transparent p-4 mt-auto border-t border-white/5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2.5 w-full rounded-xl p-2 hover:bg-white/[0.05] transition-colors group">
-                <div className="relative shrink-0">
-                  <div className="size-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[12px] font-extrabold">
-                    {initials(user?.email)}
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-success ring-2 ring-sidebar" />
+              <button className={cn(
+                "flex items-center gap-3 w-full p-2 rounded-xl transition-all hover:bg-white/5 group",
+                collapsed ? "justify-center" : "text-left"
+              )}>
+                <div className="size-8 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-[11px] font-bold text-primary shrink-0 transition-transform group-hover:scale-105">
+                  {initials(user?.user_metadata?.full_name || user?.email || "U")}
                 </div>
                 {!collapsed && (
-                  <>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[13px] font-bold text-white truncate leading-tight">
-                        {isAdmin ? "Admin Principal" : isAdminSecondary ? "Admin Secundário" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : isLead ? "Lead" : "Cliente"}
-                      </p>
-                      <p className="text-[11px] text-sidebar-muted truncate">{user?.email}</p>
-                    </div>
-                    <ChevronDown className="size-4 text-sidebar-muted group-hover:text-white transition-colors" />
-                  </>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {user?.user_metadata?.full_name || "Usuário"}
+                    </p>
+                    <p className="text-[10px] text-white/40 truncate font-medium">
+                      {user?.email}
+                    </p>
+                  </div>
                 )}
+                {!collapsed && <ChevronDown className="size-3.5 text-white/20 group-hover:text-white/40 transition-colors" />}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-64">
-              <DropdownMenuLabel className="flex items-center gap-2.5">
-                <div className="size-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold">
-                  {initials(user?.email)}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[12px] font-bold truncate">{user?.email}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">
-                    {isAdmin ? "Admin Principal" : isAdminSecondary ? "Admin Secundário" : isColaborador ? "Colaborador" : isParceiro ? "Parceiro" : isPrestador ? "Prestador" : isLead ? "Lead" : "Cliente"}
-                  </p>
-                </div>
+            <DropdownMenuContent align="end" className="w-56 rounded-xl border-white/10 bg-[#09090b] text-white shadow-2xl">
+              <DropdownMenuLabel className="font-display font-bold px-3 py-2 text-xs uppercase tracking-widest text-white/30">
+                Minha Conta
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
-                <Settings className="size-4 mr-2" /> Configurações
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-3 py-2.5 rounded-lg focus:bg-white/10 transition-colors cursor-pointer">
+                <Settings className="size-4 text-white/50" />
+                <span className="text-sm font-medium">Configurações</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/suporte")}>
-                <LifeBuoy className="size-4 mr-2" /> Suporte
+              <DropdownMenuItem onClick={() => navigate("/suporte")} className="gap-2.5 px-3 py-2.5 rounded-lg focus:bg-white/10 transition-colors cursor-pointer">
+                <LifeBuoy className="size-4 text-white/50" />
+                <span className="text-sm font-medium">Suporte</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setCmdOpen(true)}>
-                <Search className="size-4 mr-2" /> Buscar
-                <kbd className="ml-auto text-[10px] font-mono bg-muted rounded px-1.5 py-0.5">⌘K</kbd>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive">
-                <LogOut className="size-4 mr-2" /> Sair
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuItem onClick={signOut} className="gap-2.5 px-3 py-2.5 rounded-lg focus:bg-destructive/10 text-destructive transition-colors cursor-pointer">
+                <LogOut className="size-4" />
+                <span className="text-sm font-medium">Sair da conta</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarFooter>
       </Sidebar>
 
-      {/* ===== Command palette ===== */}
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
-        <CommandInput placeholder="Buscar páginas, ações…" />
-        <CommandList>
-          <CommandEmpty>Nada encontrado.</CommandEmpty>
-          {Array.from(new Set(cmdItems.map((i) => i.group))).map((group) => (
-            <CommandGroup key={group} heading={group}>
-              {cmdItems
-                .filter((i) => i.group === group)
-                .map((i) => {
-                  const Icon = i.icon;
-                  return (
-                    <CommandItem
-                      key={i.url}
-                      onSelect={() => {
-                        navigate(i.url);
-                        setCmdOpen(false);
-                      }}
-                    >
-                      <Icon className="size-4 mr-2" />
-                      {i.title}
-                      <ArrowUpRight className="size-3 ml-auto opacity-50" />
-                    </CommandItem>
-                  );
-                })}
-            </CommandGroup>
-          ))}
-          <CommandSeparator />
-          <CommandGroup heading="Ações rápidas">
-            <CommandItem onSelect={() => { navigate("/leads?new=1"); setCmdOpen(false); }}>
-              <Plus className="size-4 mr-2" /> Novo lead / convidado
-            </CommandItem>
-            <CommandItem onSelect={() => { navigate("/clientes?new=1"); setCmdOpen(false); }}>
-              <Plus className="size-4 mr-2" /> Novo cliente
-            </CommandItem>
-            <CommandItem onSelect={() => { navigate("/produtos?new=1"); setCmdOpen(false); }}>
-              <Plus className="size-4 mr-2" /> Novo produto
-            </CommandItem>
-            <CommandItem onSelect={() => { setIsDark((v) => !v); }}>
-              {isDark ? <Sun className="size-4 mr-2" /> : <Moon className="size-4 mr-2" />}
-              Alternar tema
-            </CommandItem>
-            <CommandItem onSelect={signOut}>
-              <LogOut className="size-4 mr-2" /> Sair
-            </CommandItem>
+        <CommandInput placeholder="Digite para buscar..." />
+        <CommandList className="max-h-[300px] vx-sidebar-scroll">
+          <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
+          <CommandGroup heading="Navegação">
+            {cmdItems.map((item) => (
+              <CommandItem
+                key={item.url}
+                onSelect={() => {
+                  navigate(item.url);
+                  setCmdOpen(false);
+                }}
+                className="gap-3 py-3 px-4 rounded-lg cursor-pointer"
+              >
+                <item.icon className="size-4 text-muted-foreground" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{item.title}</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest">{item.group}</span>
+                </div>
+              </CommandItem>
+            ))}
           </CommandGroup>
         </CommandList>
       </CommandDialog>

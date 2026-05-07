@@ -153,14 +153,14 @@ export default function Dashboard() {
   if (roles.includes("parceiro")) return <PartnerPanel />;
 
   return (
-    <div className="page-shell space-y-7 animate-in fade-in duration-500 pb-20">
-      <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
-        <div className="min-w-0 space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-            Painel de Controle PROSPER
+    <div className="page-shell space-y-10 animate-fade-up">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+            <span className="size-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
+            Sistema de Inteligência Prosper
           </div>
-          <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
+          <h1 className="font-display text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.1]">
             {(() => {
               const h = new Date().getHours();
               const greeting = h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
@@ -168,16 +168,14 @@ export default function Dashboard() {
               return `${greeting}, ${name}`;
             })()}
           </h1>
-          <div className="flex items-center gap-2.5 text-[12px] text-muted-foreground font-medium">
-            <CalendarDays className="size-3.5 text-primary" />
-            {range.label}
-            <span className="text-border mx-1">|</span>
-            <Activity className="size-3.5 text-success" />
-            Sistema Operacional
+          <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
+            <span className="flex items-center gap-1.5"><CalendarDays className="size-3.5 opacity-60" /> {range.label}</span>
+            <div className="size-1 rounded-full bg-border" />
+            <span className="flex items-center gap-1.5"><Activity className="size-3.5 text-success" /> Operação Online</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-white/50 dark:bg-slate-900/50 p-1.5 rounded-2xl border border-border/60 shadow-sm backdrop-blur-sm">
+        <div className="flex items-center gap-1.5 bg-card/40 p-1.5 rounded-2xl border border-border/40 backdrop-blur-sm self-start lg:self-end">
           {presets.map((p) => (
             <button
               key={p.key}
@@ -185,8 +183,8 @@ export default function Dashboard() {
               className={cn(
                 "h-9 px-4 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2",
                 rangeKey === p.key 
-                  ? "bg-slate-950 text-white shadow-md shadow-slate-900/10 dark:bg-white dark:text-slate-950" 
-                  : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                  ? "bg-foreground text-background shadow-lg" 
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
               <p.icon className="size-3.5" />
@@ -196,20 +194,24 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpis.map((k) => (
-          <div key={k.label} className="vx-card p-6 group hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-            <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110", k.tone)}>
-              <k.icon className="size-6" />
-            </div>
-            <div className="mt-5">
-              <p className="vx-kpi-label">{k.label}</p>
-              <h3 className="vx-kpi-value mt-2">{k.value}</h3>
-              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-success">
-                <ArrowUpRight className="size-3" />
-                <span>+12.5%</span>
-                <span className="text-muted-foreground font-medium ml-1">vs. período anterior</span>
+          <div key={k.label} className="vx-card p-6 lg:p-7 vx-card-hover group">
+            <div className="flex items-center justify-between mb-6">
+              <div className={cn("size-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-3", k.tone)}>
+                <k.icon className="size-5" />
               </div>
+              <div className="text-[11px] font-bold text-success flex items-center gap-1 bg-success/5 px-2 py-1 rounded-lg">
+                <ArrowUpRight className="size-3" />
+                12.5%
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="vx-kpi-label">{k.label}</p>
+              <h3 className="vx-kpi-value">{k.value}</h3>
+            </div>
+            <div className="mt-4 h-1 w-full bg-muted/30 rounded-full overflow-hidden">
+              <div className="h-full bg-primary/40 w-[70%] group-hover:w-[85%] transition-all duration-700" />
             </div>
           </div>
         ))}

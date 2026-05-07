@@ -19,8 +19,14 @@ export default function RoleHome() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <div className="relative">
+          <div className="size-10 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
+          <div className="absolute inset-0 size-10 rounded-full border border-primary/10 blur-md animate-pulse" />
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/60 animate-pulse">
+          Identificando perfil...
+        </p>
       </div>
     );
   }

@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { z } from "zod";
+import { ProsperLogo } from "@/components/VendxLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -93,21 +94,9 @@ export default function AuthPage() {
 
         {/* ──── HEADER: brand mark ──── */}
         <header className="relative z-10 flex items-center gap-3.5">
-          <div className="relative">
-            <div className="size-11 rounded-2xl bg-gradient-to-br from-white/[0.12] to-white/[0.02] backdrop-blur-2xl border border-white/[0.08] flex items-center justify-center shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)]">
-              {/* monogram */}
-              <svg viewBox="0 0 24 24" className="size-5" fill="none">
-                <path d="M4 20V4h6c2.8 0 5 2 5 4.8 0 2.6-1.8 4.4-4.4 4.6L15 20" stroke="url(#g1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                <defs>
-                  <linearGradient id="g1" x1="0" y1="0" x2="24" y2="24">
-                    <stop offset="0%" stopColor="#60A5FA"/>
-                    <stop offset="100%" stopColor="#A78BFA"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-md -z-10" />
-          </div>
+          <Link to="/" className="relative transition-transform active:scale-95">
+            <ProsperLogo size={46} />
+          </Link>
           <div>
             <div className="font-display font-bold text-[14px] tracking-[0.28em] uppercase leading-none">
               Prosper
@@ -204,12 +193,8 @@ export default function AuthPage() {
 
         <div className="relative w-full max-w-[420px] space-y-9">
           {/* Mobile brand */}
-          <div className="lg:hidden flex flex-col items-center text-center space-y-3 mb-2">
-            <div className="size-12 rounded-2xl bg-slate-900 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="size-6" fill="none">
-                <path d="M4 20V4h6c2.8 0 5 2 5 4.8 0 2.6-1.8 4.4-4.4 4.6L15 20" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
+          <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-2">
+            <ProsperLogo size={56} />
             <div>
               <div className="font-display font-bold text-[15px] tracking-[0.28em] uppercase">PROSPER</div>
               <div className="text-[9.5px] text-slate-500 tracking-[0.3em] uppercase mt-1 font-semibold">Strategic Management</div>
