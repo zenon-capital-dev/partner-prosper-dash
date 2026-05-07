@@ -9,14 +9,11 @@ import { toast } from "sonner";
 import {
   ArrowRight,
   ShieldCheck,
-  TrendingUp,
-  Users,
-  CheckCircle2,
   Lock,
   Mail,
   Eye,
   EyeOff,
-  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { z } from "zod";
 
@@ -48,149 +45,224 @@ export default function AuthPage() {
     setSubmitting(false);
     if (error)
       return toast.error(
-        error.message === "Invalid login credentials" ? "Email ou senha incorretos" : error.message
+        error.message === "Invalid login credentials" ? "Email ou senha incorretos" : error.message,
       );
     toast.success("Bem-vindo de volta");
     navigate("/", { replace: true });
   };
 
   return (
-    <div className="min-h-[100dvh] grid lg:grid-cols-[1.1fr_1fr] bg-background">
-      {/* ============ LEFT — BRAND CINEMATIC ============ */}
-      <div className="hidden lg:flex flex-col justify-between p-14 relative overflow-hidden text-white bg-slate-950">
-        {/* Animated gradients and effects */}
+    <div className="min-h-[100dvh] w-full grid lg:grid-cols-[1.15fr_1fr] bg-[#06070C] text-white overflow-hidden">
+      {/* ╔══════════════════════ LEFT — CINEMATIC CANVAS ══════════════════════╗ */}
+      <div className="relative hidden lg:flex flex-col justify-between p-14 xl:p-16 overflow-hidden">
+        {/* Animated mesh background */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,#0f172a_0%,transparent_50%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,#1e293b_0%,transparent_50%)]" />
-          <div 
-            className="absolute inset-0 opacity-[0.05]" 
-            style={{ 
-              backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)',
-              backgroundSize: '40px 40px',
-              maskImage: 'radial-gradient(ellipse 60% 50% at 50% 50%, #000 10%, transparent 100%)'
+          {/* Base */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0A0E1A] via-[#06070C] to-[#0A0E1A]" />
+          {/* Animated orbs */}
+          <div className="absolute -top-40 -left-40 w-[640px] h-[640px] rounded-full opacity-[0.55] blur-[120px] animate-orb-1"
+               style={{ background: "radial-gradient(circle, #3B82F6 0%, transparent 70%)" }} />
+          <div className="absolute top-1/3 -right-40 w-[560px] h-[560px] rounded-full opacity-[0.45] blur-[120px] animate-orb-2"
+               style={{ background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)" }} />
+          <div className="absolute -bottom-40 left-1/4 w-[520px] h-[520px] rounded-full opacity-[0.35] blur-[120px] animate-orb-3"
+               style={{ background: "radial-gradient(circle, #06B6D4 0%, transparent 70%)" }} />
+
+          {/* Precision grid */}
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage:
+                "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+              backgroundSize: "56px 56px",
+              maskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 100%)",
             }}
           />
+
+          {/* Noise texture */}
+          <div
+            className="absolute inset-0 opacity-[0.025] mix-blend-overlay pointer-events-none"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+            }}
+          />
+
+          {/* Edge vignette */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#06070C_100%)]" />
         </div>
 
-        {/* HEADER */}
-        <header className="relative flex items-center gap-3 z-10">
-          <div className="size-11 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
-            <Sparkles className="size-5 text-blue-400" strokeWidth={1.8} />
+        {/* ──── HEADER: brand mark ──── */}
+        <header className="relative z-10 flex items-center gap-3.5">
+          <div className="relative">
+            <div className="size-11 rounded-2xl bg-gradient-to-br from-white/[0.12] to-white/[0.02] backdrop-blur-2xl border border-white/[0.08] flex items-center justify-center shadow-[0_8px_32px_-8px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)]">
+              {/* monogram */}
+              <svg viewBox="0 0 24 24" className="size-5" fill="none">
+                <path d="M4 20V4h6c2.8 0 5 2 5 4.8 0 2.6-1.8 4.4-4.4 4.6L15 20" stroke="url(#g1)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="24" y2="24">
+                    <stop offset="0%" stopColor="#60A5FA"/>
+                    <stop offset="100%" stopColor="#A78BFA"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 blur-md -z-10" />
           </div>
           <div>
-            <div className="font-display font-bold text-[15px] tracking-[0.2em] uppercase leading-none">
-              PROSPER
+            <div className="font-display font-bold text-[14px] tracking-[0.28em] uppercase leading-none">
+              Prosper
             </div>
-            <div className="text-[10px] text-white/40 tracking-[0.15em] uppercase mt-1.5 font-medium">
-              Gestão Estratégica
+            <div className="text-[9.5px] text-white/40 tracking-[0.32em] uppercase mt-1.5 font-semibold">
+              Strategic Management
             </div>
           </div>
         </header>
 
-        {/* MIDDLE */}
-        <div className="relative space-y-12 max-w-xl z-10">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
-              <span className="size-1.5 rounded-full bg-primary shadow-[0_0_8px_#3b82f6]" />
-              Ambiente de Acesso Restrito
+        {/* ──── MIDDLE: editorial composition ──── */}
+        <div className="relative z-10 max-w-xl space-y-12">
+          <div className="space-y-7">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl pl-2 pr-4 py-1.5">
+              <span className="relative flex size-2">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-60" />
+                <span className="relative size-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]" />
+              </span>
+              <span className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-white/70">
+                Sistema operacional
+              </span>
             </div>
-            <h1 className="font-display text-[48px] leading-[1.1] font-bold tracking-tight">
-              A inteligência que <br />
-              <span className="text-white/60">impulsiona seu negócio.</span>
+
+            <h1 className="font-display text-[58px] xl:text-[64px] leading-[0.98] font-bold tracking-[-0.025em]">
+              Onde decisões<br />
+              <span className="bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
+                viram resultado.
+              </span>
             </h1>
-            <p className="text-[16px] text-white/50 leading-relaxed max-w-md">
-              Acesse o ecossistema PROSPER para gestão completa de clientes, 
-              parceiros e indicadores estratégicos.
+
+            <p className="text-[15.5px] text-white/50 leading-[1.65] max-w-[480px] font-light">
+              A plataforma que centraliza clientes, parceiros e indicadores
+              num único fluxo — do primeiro contato ao pagamento da comissão.
             </p>
           </div>
 
-          {/* Features */}
-          <ul className="grid gap-4">
+          {/* Numbered features — editorial style */}
+          <div className="space-y-px">
             {[
-              "Centralização de operações de assessoria",
-              "Gestão automatizada de comissionamento",
-              "Relatórios analíticos de performance",
-            ].map((t) => (
-              <li key={t} className="flex items-center gap-3 text-[14px] text-white/70">
-          <div className="size-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-                  <CheckCircle2 className="size-3 text-primary" />
+              { n: "01", t: "Operação centralizada", d: "Clientes, vendas e contratos em um só lugar." },
+              { n: "02", t: "Comissionamento automático", d: "Splits entre parceiro, indicador e colaborador." },
+              { n: "03", t: "Inteligência de gestão", d: "Relatórios e exportações em tempo real." },
+            ].map((f) => (
+              <div key={f.n} className="group flex items-start gap-5 py-4 border-t border-white/[0.06] last:border-b transition-colors hover:bg-white/[0.015]">
+                <span className="font-mono text-[10.5px] text-white/30 tracking-widest mt-0.5 tabular-nums">
+                  {f.n}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold text-white/85 group-hover:text-white transition-colors">{f.t}</p>
+                  <p className="text-[12.5px] text-white/40 mt-0.5 font-light">{f.d}</p>
                 </div>
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
-          
-          <div className="grid grid-cols-3 gap-8 pt-10 border-t border-white/5">
-            {[
-              { icon: Users, label: "Operações", value: "24/7" },
-              { icon: TrendingUp, label: "Performance", value: "Estratégica" },
-              { icon: ShieldCheck, label: "Segurança", value: "SSL" },
-            ].map((m) => (
-              <div key={m.label} className="space-y-1">
-                <m.icon className="size-4 text-primary/50" />
-                <div className="text-[18px] font-bold text-white/90">{m.value}</div>
-                <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">{m.label}</div>
+                <CheckCircle2 className="size-4 text-white/20 group-hover:text-emerald-400/80 transition-colors mt-1" strokeWidth={1.6} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* FOOTER */}
-        <footer className="relative flex items-center justify-between text-[11px] text-white/30 z-10">
-          <span>© {new Date().getFullYear()} PROSPER - Gestão Estratégica</span>
-          <div className="flex gap-4">
-            <span className="cursor-pointer hover:text-white/50 transition-colors">Termos</span>
-            <span className="cursor-pointer hover:text-white/50 transition-colors">Privacidade</span>
+        {/* ──── FOOTER ──── */}
+        <footer className="relative z-10 flex items-end justify-between">
+          <div>
+            <p className="font-display text-[11px] font-semibold tracking-[0.28em] uppercase text-white/40">
+              MMXXVI
+            </p>
+            <p className="text-[10.5px] text-white/25 mt-1.5 font-light tracking-wide">
+              © Prosper · Todos os direitos reservados
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10.5px] text-white/30 font-medium tracking-wider uppercase">
+            <span className="size-1 rounded-full bg-white/30" />
+            <span>SOC 2</span>
+            <span className="size-1 rounded-full bg-white/30 mx-2" />
+            <span>ISO 27001</span>
+            <span className="size-1 rounded-full bg-white/30 mx-2" />
+            <span>LGPD</span>
           </div>
         </footer>
       </div>
 
-      {/* ============ RIGHT — FORM ============ */}
-      <div className="flex flex-col items-center justify-center p-8 sm:p-12 md:p-16 lg:p-24 bg-background">
-        <div className="w-full max-w-[400px] space-y-10">
-          {/* Mobile brand visibility */}
-          <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-8">
-            <div className="size-12 rounded-2xl bg-foreground text-background flex items-center justify-center shadow-xl">
-              <Sparkles className="size-6" />
+      {/* ╔══════════════════════ RIGHT — FORM ══════════════════════╗ */}
+      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-[#FAFAF7] text-slate-900">
+        {/* subtle texture */}
+        <div className="absolute inset-0 opacity-[0.4] pointer-events-none"
+             style={{
+               backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0)",
+               backgroundSize: "24px 24px",
+             }} />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none" />
+
+        {/* corner ornaments */}
+        <CornerMark className="top-6 left-6" />
+        <CornerMark className="top-6 right-6" rotate="rotate-90" />
+        <CornerMark className="bottom-6 left-6" rotate="-rotate-90" />
+        <CornerMark className="bottom-6 right-6" rotate="rotate-180" />
+
+        <div className="relative w-full max-w-[420px] space-y-9">
+          {/* Mobile brand */}
+          <div className="lg:hidden flex flex-col items-center text-center space-y-3 mb-2">
+            <div className="size-12 rounded-2xl bg-slate-900 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="size-6" fill="none">
+                <path d="M4 20V4h6c2.8 0 5 2 5 4.8 0 2.6-1.8 4.4-4.4 4.6L15 20" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
             <div>
-              <div className="font-display font-bold text-[16px] tracking-[0.2em] uppercase">PROSPER</div>
-              <div className="text-[10px] text-muted-foreground tracking-widest uppercase mt-1">Gestão Estratégica</div>
+              <div className="font-display font-bold text-[15px] tracking-[0.28em] uppercase">PROSPER</div>
+              <div className="text-[9.5px] text-slate-500 tracking-[0.3em] uppercase mt-1 font-semibold">Strategic Management</div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="font-display text-[32px] font-bold tracking-tight text-foreground">
-              Autenticação
+          {/* Eyebrow */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+            <span className="font-mono text-[10px] tracking-[0.32em] uppercase text-slate-400 font-semibold">
+              Acesso · 01
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
+          </div>
+
+          <div className="space-y-3 text-center">
+            <h2 className="font-display text-[42px] font-bold tracking-[-0.03em] leading-[1] text-slate-950">
+              Bem-vindo
+              <span className="block text-slate-400 text-[28px] font-normal italic mt-2 tracking-tight">
+                de volta.
+              </span>
             </h2>
-            <p className="text-[15px] text-muted-foreground leading-relaxed">
-              Insira suas credenciais corporativas para acessar o sistema.
+            <p className="text-[13.5px] text-slate-500 leading-relaxed max-w-[320px] mx-auto">
+              Entre com suas credenciais para acessar o painel de gestão.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-4">
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="login-email" className="text-[13px] font-medium text-foreground/80">
-                  E-mail corporativo
+                <Label htmlFor="login-email" className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                  E-mail
                 </Label>
                 <div className="relative group">
-                  <Mail className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-slate-900/[0.03] to-transparent pointer-events-none" />
+                  <Mail className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors z-10" strokeWidth={1.8} />
                   <Input
                     id="login-email"
                     name="email"
                     type="email"
-                    placeholder="exemplo@empresa.com"
+                    placeholder="seu@email.com"
                     required
-                    className="h-13 pl-11 bg-muted/30 border-muted-foreground/10 focus:bg-background transition-all rounded-xl text-[14px]"
+                    className="relative h-13 pl-11 bg-white border-slate-200/80 hover:border-slate-300 focus:border-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[14px] text-slate-900 placeholder:text-slate-400 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all"
                   />
                 </div>
               </div>
 
+              {/* Password */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="login-password" className="text-[13px] font-medium text-foreground/80">
-                    Sua senha
+                  <Label htmlFor="login-password" className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    Senha
                   </Label>
                   <button
                     type="button"
@@ -201,61 +273,93 @@ export default function AuthPage() {
                         redirectTo: `${window.location.origin}/reset-password`,
                       });
                       if (error) toast.error(error.message);
-                      else toast.success("Instruções enviadas para seu e-mail");
+                      else toast.success("Instruções enviadas");
                     }}
-                    className="text-[12px] font-semibold text-primary/80 hover:text-primary transition-colors"
+                    className="text-[11px] font-semibold text-slate-500 hover:text-slate-900 transition-colors underline-offset-2 hover:underline"
                   >
-                    Esqueceu a senha?
+                    Esqueci a senha
                   </button>
                 </div>
                 <div className="relative group">
-                  <Lock className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+                  <Lock className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors z-10" strokeWidth={1.8} />
                   <Input
                     id="login-password"
                     name="password"
                     type={showPwd ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="••••••••••"
                     required
-                    className="h-13 pl-11 pr-11 bg-muted/30 border-muted-foreground/10 focus:bg-background transition-all rounded-xl text-[14px]"
+                    className="relative h-13 pl-11 pr-12 bg-white border-slate-200/80 hover:border-slate-300 focus:border-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-xl text-[14px] text-slate-900 placeholder:text-slate-400 tracking-wider shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPwd((s) => !s)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 size-7 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                    aria-label="Mostrar senha"
                   >
-                    {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    {showPwd ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </button>
                 </div>
               </div>
             </div>
 
+            {/* Submit */}
             <Button
               type="submit"
-              className="w-full h-13 font-bold text-[15px] rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-950/10 hover:shadow-slate-950/20 transition-all active:scale-[0.98]"
+              className="group relative w-full h-13 font-semibold text-[14px] rounded-xl bg-slate-950 hover:bg-slate-900 text-white shadow-[0_1px_2px_rgba(0,0,0,0.05),0_8px_24px_-8px_rgba(15,23,42,0.4)] hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_12px_32px_-8px_rgba(15,23,42,0.5)] transition-all active:scale-[0.99] overflow-hidden"
               disabled={submitting}
             >
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.08] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               {submitting ? (
-                <span className="flex items-center gap-2">
-                  <span className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                  Validando...
+                <span className="relative flex items-center gap-2.5">
+                  <span className="size-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Validando…
                 </span>
               ) : (
-                <span className="flex items-center gap-2">
-                  Acessar Painel
-                  <ArrowRight className="size-4" />
+                <span className="relative flex items-center gap-2.5 tracking-wide">
+                  Entrar no painel
+                  <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.2} />
                 </span>
               )}
             </Button>
           </form>
 
-          <div className="pt-8 border-t border-muted/50">
-            <div className="flex items-center gap-2 text-[12px] text-muted-foreground justify-center">
-              <ShieldCheck className="size-4 text-emerald-500/80" />
-              <span>Conexão segura com criptografia 256-bit</span>
+          {/* Footer trust */}
+          <div className="pt-6 border-t border-slate-200/60">
+            <div className="flex items-center justify-center gap-2 text-[11px] text-slate-400">
+              <ShieldCheck className="size-3.5 text-emerald-600/70" strokeWidth={1.8} />
+              <span className="font-medium tracking-wide">Conexão criptografada · TLS 1.3</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Animations */}
+      <style>{`
+        @keyframes orb-1 {
+          0%, 100% { transform: translate(0,0) scale(1); }
+          50% { transform: translate(80px, 60px) scale(1.1); }
+        }
+        @keyframes orb-2 {
+          0%, 100% { transform: translate(0,0) scale(1); }
+          50% { transform: translate(-60px, 80px) scale(0.95); }
+        }
+        @keyframes orb-3 {
+          0%, 100% { transform: translate(0,0) scale(1); }
+          50% { transform: translate(40px, -60px) scale(1.05); }
+        }
+        .animate-orb-1 { animation: orb-1 18s ease-in-out infinite; }
+        .animate-orb-2 { animation: orb-2 22s ease-in-out infinite; }
+        .animate-orb-3 { animation: orb-3 26s ease-in-out infinite; }
+      `}</style>
+    </div>
+  );
+}
+
+function CornerMark({ className = "", rotate = "" }: { className?: string; rotate?: string }) {
+  return (
+    <div className={`absolute size-3 ${className} ${rotate} pointer-events-none`}>
+      <div className="absolute top-0 left-0 w-full h-px bg-slate-300/60" />
+      <div className="absolute top-0 left-0 h-full w-px bg-slate-300/60" />
     </div>
   );
 }
