@@ -78,7 +78,7 @@ export default function Dashboard() {
             value={formatBRL(stats?.financial.received || 0)} 
             delta="+8.4%" 
             trend="up"
-            icon={<DollarSign className="size-4 text-indigo-600" />}
+            icon={<DollarSign className="size-5" />}
             color="indigo"
           />
           <KPICard 
@@ -86,15 +86,15 @@ export default function Dashboard() {
             value={String(stats?.clients.month || 0)} 
             delta="+12.5%" 
             trend="up"
-            icon={<Users className="size-4 text-emerald-600" />}
+            icon={<Users className="size-5" />}
             color="emerald"
           />
           <KPICard 
-            label="Conversão de Leads" 
+            label="Conv. Leads" 
             value={Math.round((stats?.leads.conversionRate || 0) * 100) + "%"} 
             delta="+2.1%" 
             trend="up"
-            icon={<Target className="size-4 text-amber-600" />}
+            icon={<Target className="size-5" />}
             color="amber"
           />
           <KPICard 
@@ -102,7 +102,7 @@ export default function Dashboard() {
             value={formatBRL((stats?.financial.total || 0) / (stats?.clients.total || 1))} 
             delta="+5.2%" 
             trend="up"
-            icon={<Wallet className="size-4 text-blue-600" />}
+            icon={<Wallet className="size-5" />}
             color="blue"
           />
         </div>
@@ -283,46 +283,67 @@ export default function Dashboard() {
 /* --- Components --- */
 
 function KPICard({ label, value, delta, trend, icon, color }: any) {
+  const gradients: any = {
+    indigo: "from-indigo-500/10 to-transparent",
+    emerald: "from-emerald-500/10 to-transparent",
+    amber: "from-amber-500/10 to-transparent",
+    blue: "from-blue-500/10 to-transparent",
+  };
+  
+  const iconColors: any = {
+    indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10",
+  };
+
   return (
-    <div className="cp-panel p-6 group hover:translate-y-[-2px] transition-all duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <div className={cn("size-10 rounded-xl flex items-center justify-center bg-opacity-10", {
-          "bg-indigo-500": color === "indigo",
-          "bg-emerald-500": color === "emerald",
-          "bg-amber-500": color === "amber",
-          "bg-blue-500": color === "blue",
-        })}>
+    <div className={cn("vx-card-premium p-6 group cursor-pointer hover:border-primary/20", gradients[color])}>
+      <div className="flex items-center justify-between mb-5">
+        <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg", iconColors[color])}>
           {icon}
         </div>
         <div className={cn("cp-pill", trend === "up" ? "cp-pill-success" : "cp-pill-danger")}>
-          <ArrowUpRight className="size-3" />
+          <ArrowUpRight className={cn("size-3 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5")} />
           {delta}
         </div>
       </div>
-      <p className="cp-stat-label">{label}</p>
-      <div className="flex items-baseline gap-2 mt-1">
-        <h4 className="cp-stat-value">{value}</h4>
+      <p className="vx-kpi-label">{label}</p>
+      <div className="flex items-baseline gap-2 mt-2">
+        <h4 className="vx-kpi-value">{value}</h4>
       </div>
-      <p className="text-[10px] text-muted-foreground/60 mt-2 font-medium tracking-wide">vs. período anterior</p>
+      <div className="mt-4 flex items-center gap-2">
+        <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+          <div className={cn("h-full rounded-full transition-all duration-1000 w-[65%]", {
+            "bg-indigo-500": color === "indigo",
+            "bg-emerald-500": color === "emerald",
+            "bg-amber-500": color === "amber",
+            "bg-blue-500": color === "blue",
+          })} />
+        </div>
+        <span className="text-[10px] font-bold text-muted-foreground/40">65%</span>
+      </div>
     </div>
   );
 }
 
+
 function MiniKPICard({ label, value, color }: any) {
   const colorMap: any = {
-    blue: "text-blue-600 border-blue-100 bg-blue-50/30",
-    emerald: "text-emerald-600 border-emerald-100 bg-emerald-50/30",
-    amber: "text-amber-600 border-amber-100 bg-amber-50/30",
-    rose: "text-rose-600 border-rose-100 bg-rose-50/30",
-    slate: "text-slate-600 border-slate-100 bg-slate-50/30",
+    blue: "text-blue-600 dark:text-blue-400 border-blue-500/10 bg-blue-500/5 hover:bg-blue-500/10",
+    emerald: "text-emerald-600 dark:text-emerald-400 border-emerald-500/10 bg-emerald-500/5 hover:bg-emerald-500/10",
+    amber: "text-amber-600 dark:text-amber-400 border-amber-500/10 bg-amber-500/5 hover:bg-amber-500/10",
+    rose: "text-rose-600 dark:text-rose-400 border-rose-500/10 bg-rose-500/5 hover:bg-rose-500/10",
+    slate: "text-slate-600 dark:text-slate-400 border-slate-500/10 bg-slate-500/5 hover:bg-slate-500/10",
   };
   return (
-    <div className={cn("border rounded-xl p-4 flex flex-col justify-between transition-colors", colorMap[color] || colorMap.slate)}>
-      <p className="text-[9px] font-extrabold tracking-[0.15em] mb-1">{label}</p>
-      <p className="text-xl font-bold tracking-tight">{value}</p>
+    <div className={cn("border rounded-2xl p-4 flex flex-col justify-between transition-all duration-300 cursor-default", colorMap[color] || colorMap.slate)}>
+      <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 mb-1">{label}</p>
+      <p className="text-xl font-black tracking-tight tabular-nums">{value}</p>
     </div>
   );
 }
+
 
 function SourceItem({ label, value, color }: { label: string; value: number; color: string }) {
   return (
@@ -340,33 +361,34 @@ function SourceItem({ label, value, color }: { label: string; value: number; col
 
 function ActivityItem({ title, desc, time, icon }: any) {
   return (
-    <div className="flex items-start gap-4 group">
-      <div className="size-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border/40 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors shadow-sm">
+    <div className="flex items-start gap-4 group cursor-pointer">
+      <div className="size-11 rounded-2xl bg-muted/40 border border-border/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/20">
         {icon}
       </div>
-      <div className="flex-1 min-w-0 border-b border-border/40 pb-5 group-last:border-none group-last:pb-0">
-        <div className="flex items-center justify-between gap-4 mb-1">
-          <h4 className="text-sm font-bold tracking-tight text-foreground truncate">{title}</h4>
-          <span className="text-[11px] font-mono text-muted-foreground">{time}</span>
+      <div className="flex-1 min-w-0 border-b border-border/5 pb-5 group-last:border-none group-last:pb-0 transition-colors group-hover:border-primary/20">
+        <div className="flex items-center justify-between gap-4 mb-1.5">
+          <h4 className="text-[13px] font-black tracking-tight text-foreground/90 truncate">{title}</h4>
+          <span className="text-[10px] font-black tracking-widest text-muted-foreground/40">{time}</span>
         </div>
-        <p className="text-xs text-muted-foreground truncate">{desc}</p>
+        <p className="text-xs text-muted-foreground/60 truncate font-medium">{desc}</p>
       </div>
     </div>
   );
 }
 
-function StatusItem({ label, value, color, isDark }: any) {
+function StatusItem({ label, value, color }: any) {
   const colors: any = {
-    rose: "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20",
-    amber: "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20",
-    blue: "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20",
-    slate: "bg-slate-900 text-white border-slate-800",
+    rose: "bg-rose-500/5 text-rose-500 border-rose-500/10",
+    amber: "bg-amber-500/5 text-amber-500 border-amber-500/10",
+    blue: "bg-blue-500/5 text-blue-500 border-blue-500/10",
+    slate: "bg-slate-500/5 text-slate-500 border-slate-500/10",
   };
   
   return (
-    <div className={cn("flex items-center justify-between p-4 rounded-xl border transition-all", colors[color])}>
-      <span className="text-xs font-bold tracking-tight">{label}</span>
-      <span className="text-lg font-bold tabular-nums">{value}</span>
+    <div className={cn("flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.02] cursor-default", colors[color])}>
+      <span className="text-[11px] font-black uppercase tracking-widest opacity-80">{label}</span>
+      <span className="text-2xl font-black tabular-nums">{value}</span>
     </div>
   );
 }
+
