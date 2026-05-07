@@ -216,13 +216,13 @@ export default function AuthPage() {
           </div>
 
           <div className="space-y-3 text-center">
-            <h2 className="font-display text-[42px] font-bold tracking-[-0.03em] leading-[1] text-slate-950">
+            <h2 className="font-display text-[42px] font-bold tracking-[-0.03em] leading-[1] text-foreground">
               Bem-vindo
-              <span className="block text-slate-400 text-[28px] font-normal italic mt-2 tracking-tight">
+              <span className="block text-muted-foreground text-[28px] font-normal italic mt-2 tracking-tight">
                 de volta.
               </span>
             </h2>
-            <p className="text-[13.5px] text-slate-500 leading-relaxed max-w-[320px] mx-auto">
+            <p className="text-[13.5px] text-muted-foreground leading-relaxed max-w-[320px] mx-auto">
               Entre com suas credenciais para acessar o painel de gestão.
             </p>
           </div>
