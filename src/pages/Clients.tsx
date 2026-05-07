@@ -166,7 +166,7 @@ export default function Clients() {
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/40 rounded-lg overflow-hidden border border-border/40 shadow-sm">
         <MiniKpi label="Total Clients" value={String(kpis.total)} />
         <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
         <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
