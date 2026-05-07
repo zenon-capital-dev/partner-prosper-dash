@@ -141,27 +141,27 @@ export default function Clients() {
   const hasFilters = !!search || statusFilter !== "todos" || partnerFilter !== "todos" || sortBy !== "recent";
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] admin-shell">
+    <div className="px-6 py-6 space-y-6 max-w-[1600px] animate-fade-up">
       {/* Header */}
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">● management</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/30">CLIENT PORTFOLIO</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary">● management</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/40">CLIENT PORTFOLIO</span>
           </div>
-          <h1 className="text-[28px] font-semibold tracking-tight leading-none text-white">Clients</h1>
-          <p className="text-[12.5px] text-white/40 mt-1.5 font-mono">
+          <h1 className="text-[28px] font-semibold tracking-tight leading-none">Clients</h1>
+          <p className="text-[12.5px] text-muted-foreground mt-1.5 font-mono">
             {enriched.length} total records · sync live
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={exportCSV} className="h-8 px-3 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-[11.5px] font-mono uppercase tracking-wider text-white/60 hover:text-white flex items-center gap-1.5 transition-colors">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-8 text-[11px] font-mono uppercase tracking-wider gap-1.5">
             <Download className="size-3" /> export
-          </button>
-          <button onClick={() => setOpen(true)} className="h-8 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors">
+          </Button>
+          <Button size="sm" onClick={() => setOpen(true)} className="h-8 font-mono font-bold uppercase tracking-wider text-[11px] gap-1.5">
             <Plus className="size-3.5" strokeWidth={3} /> New Client
-          </button>
+          </Button>
         </div>
       </div>
 
