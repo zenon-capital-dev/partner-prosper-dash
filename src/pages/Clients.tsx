@@ -228,16 +228,16 @@ export default function Clients() {
       </div>
 
       {/* Main Content */}
-      <div className="cp-panel overflow-hidden">
+      <div className="vx-card overflow-hidden">
         {isLoading ? (
-          <div className="py-32 text-center text-white/20 font-mono text-[13px]">Synchronizing data...</div>
+          <div className="py-32 text-center text-muted-foreground/30 font-mono text-[13px] animate-pulse">Synchronizing data...</div>
         ) : filtered.length === 0 ? (
-          <div className="py-32 text-center text-white/20 font-mono text-[13px]">No records found.</div>
+          <div className="py-32 text-center text-muted-foreground/30 font-mono text-[13px]">No records found.</div>
         ) : view === "list" ? (
           <div className="overflow-x-auto">
             <table className="w-full text-[12.5px]">
-              <thead className="bg-white/[0.02]">
-                <tr className="border-b border-white/[0.06]">
+              <thead>
+                <tr className="border-b border-border/40 bg-muted/20">
                   <Th>Client / Account</Th>
                   <Th>Status</Th>
                   <Th>Indication</Th>
@@ -246,42 +246,42 @@ export default function Clients() {
                   <Th align="right">Actions</Th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/20">
                 {filtered.map((c: any) => (
-                  <tr key={c.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                  <tr key={c.id} className="hover:bg-muted/30 transition-colors group">
                     <Td>
                       <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[11px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
+                        <div className="size-8 rounded-md bg-muted border border-border/50 flex items-center justify-center text-[11px] font-mono text-muted-foreground group-hover:text-primary group-hover:border-primary/20 transition-all">
                           {initials(c.full_name)}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-white truncate cursor-pointer hover:underline" onClick={() => navigate(`/clientes/${c.id}`)}>
+                          <p className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/clientes/${c.id}`)}>
                             {c.full_name}
                           </p>
-                          <p className="text-[11px] text-white/30 truncate font-mono uppercase tracking-wider">{c.company || "Personal Account"}</p>
+                          <p className="text-[11px] text-muted-foreground/50 truncate font-mono uppercase tracking-wider">{c.company || "Personal Account"}</p>
                         </div>
                       </div>
                     </Td>
                     <Td><StatusPill status={c.status} /></Td>
                     <Td>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-white/40">{c.partners?.full_name || "Direct"}</span>
+                        <span className="text-muted-foreground">{c.partners?.full_name || "Direct"}</span>
                       </div>
                     </Td>
-                    <Td align="right"><span className="font-mono font-semibold text-white tabular-nums">{formatBRL(c._ltv)}</span></Td>
-                    <Td align="right"><span className="font-mono text-white/60 tabular-nums">{c._salesCount}</span></Td>
+                    <Td align="right"><span className="font-mono font-semibold tabular-nums">{formatBRL(c._ltv)}</span></Td>
+                    <Td align="right"><span className="font-mono text-muted-foreground/60 tabular-nums">{c._salesCount}</span></Td>
                     <Td align="right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="size-8 rounded-md hover:bg-white/5 flex items-center justify-center text-white/20 hover:text-white transition-colors">
+                          <Button variant="ghost" size="icon" className="size-8 text-muted-foreground/40 hover:text-foreground">
                             <MoreHorizontal className="size-4" />
-                          </button>
+                          </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#12141a] border-white/[0.1] text-white">
+                        <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> View Details</DropdownMenuItem>
                           <DropdownMenuItem><Pencil className="size-3.5 mr-2" /> Edit Info</DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-white/[0.06]" />
-                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-rose-400 focus:text-rose-400 focus:bg-rose-400/10"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive focus:text-destructive"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </Td>
@@ -291,25 +291,25 @@ export default function Clients() {
             </table>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-white/[0.06]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-border/20">
             {filtered.map((c: any) => (
-              <div key={c.id} className="bg-[#0d0e12] p-5 hover:bg-[#111216] transition-colors group relative border-r border-b border-white/[0.06]">
+              <div key={c.id} className="bg-background p-5 hover:bg-muted/10 transition-colors group relative border-r border-b border-border/20">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="size-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[13px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
+                  <div className="size-10 rounded-lg bg-muted border border-border/50 flex items-center justify-center text-[13px] font-mono text-muted-foreground group-hover:text-primary group-hover:border-primary/20 transition-all">
                     {initials(c.full_name)}
                   </div>
                   <StatusPill status={c.status} />
                 </div>
-                <h3 className="text-white font-semibold truncate hover:underline cursor-pointer" onClick={() => navigate(`/clientes/${c.id}`)}>{c.full_name}</h3>
-                <p className="text-[11px] text-white/30 font-mono uppercase tracking-wider mt-1 truncate">{c.company || "Personal Account"}</p>
-                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between">
+                <h3 className="font-semibold truncate hover:text-primary cursor-pointer transition-colors" onClick={() => navigate(`/clientes/${c.id}`)}>{c.full_name}</h3>
+                <p className="text-[11px] text-muted-foreground/50 font-mono uppercase tracking-wider mt-1 truncate">{c.company || "Personal Account"}</p>
+                <div className="mt-6 pt-4 border-t border-border/20 flex items-center justify-between">
                    <div>
-                     <p className="cp-stat-label">LTV</p>
-                     <p className="font-mono font-bold text-white text-[15px] tabular-nums mt-0.5">{formatBRL(c._ltv)}</p>
+                     <p className="vx-kpi-label">LTV</p>
+                     <p className="font-mono font-bold text-[15px] tabular-nums mt-0.5">{formatBRL(c._ltv)}</p>
                    </div>
                    <div className="text-right">
-                     <p className="cp-stat-label">Sales</p>
-                     <p className="font-mono text-white/60 text-[15px] tabular-nums mt-0.5">{c._salesCount}</p>
+                     <p className="vx-kpi-label">Sales</p>
+                     <p className="font-mono text-muted-foreground/60 text-[15px] tabular-nums mt-0.5">{c._salesCount}</p>
                    </div>
                 </div>
               </div>
