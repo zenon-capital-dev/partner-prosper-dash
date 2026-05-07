@@ -343,6 +343,20 @@ function MiniKPICard({ label, value, color }: any) {
   );
 }
 
+function SourceItem({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tight">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="text-foreground">{value}%</span>
+      </div>
+      <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className={cn("h-full rounded-full", color)} style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function ActivityItem({ title, desc, time, icon }: any) {
   return (
     <div className="flex items-start gap-4 group">
