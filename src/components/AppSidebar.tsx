@@ -36,6 +36,7 @@ import {
   UserCircle,
   Truck,
   ShieldCheck,
+  Star,
 } from "lucide-react";
 import {
   Sidebar,
@@ -154,6 +155,17 @@ const partnerSections: NavSection[] = [
   },
 ];
 
+const referrerSections: NavSection[] = [
+  {
+    label: "Indicador",
+    icon: Star,
+    items: [
+      { title: "Painel", url: "/indicador", icon: LayoutDashboard },
+      { title: "Indicações", url: "/indicador", icon: Users },
+    ],
+  },
+];
+
 const clientSections: NavSection[] = [
   {
     label: "Cliente",
@@ -169,7 +181,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, signOut } = useAuth();
+  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, isIndicador, signOut } = useAuth();
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -201,17 +213,21 @@ export function AppSidebar() {
 
   const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
-  const showPrestador = isPrestador && !showAdmin && !showPartner;
-  const showClient = isCliente && !showAdmin && !showPartner && !showPrestador;
+  const showReferrer = isIndicador && !showAdmin && !showPartner;
+  const showPrestador = isPrestador && !showAdmin && !showPartner && !showReferrer;
+  const showClient = isCliente && !showAdmin && !showPartner && !showPrestador && !showReferrer;
+  
   const sections = showAdmin
     ? adminSections
     : showPartner
       ? partnerSections
-      : showPrestador
-        ? [] // We can add provider specific sections later
-        : showClient
-          ? clientSections
-          : adminSections;
+      : showReferrer
+        ? referrerSections
+        : showPrestador
+          ? []
+          : showClient
+            ? clientSections
+            : adminSections;
 
   // ===== Live counters & sparkline (admin/vendedor) =====
   const { data: live } = useQuery({
