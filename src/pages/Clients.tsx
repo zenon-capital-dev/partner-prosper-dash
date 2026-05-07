@@ -1,15 +1,14 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Plus, Search, MoreHorizontal, Eye, Trash2, Users, UserCheck, UserPlus,
-  TrendingUp, LayoutGrid, List, SlidersHorizontal, Download, Mail, Phone,
-  Building2, Tag, Sparkles, ArrowUpRight, Crown, X, Pencil, FileUp,
+  TrendingUp, LayoutGrid, List, SlidersHorizontal, Download, 
+  ArrowUpRight, Crown, X, Pencil, Filter,
 } from "lucide-react";
-import { formatDate, formatBRL, initials, formatPhone, timeAgo } from "@/lib/format";
+import { formatBRL, initials } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { toast } from "sonner";
@@ -20,7 +19,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type ViewMode = "list" | "grid";
 type StatusFilter = "todos" | "ativo" | "prospecto" | "inativo";
@@ -64,20 +63,11 @@ export default function Clients() {
     return (clients ?? []).map((c: any) => {
       const sales = c.sales ?? [];
       const ltv = sales.reduce((s: number, x: any) => s + Number(x.amount || 0), 0);
-      const paid = sales
-        .filter((x: any) => x.status === "pago")
-        .reduce((s: number, x: any) => s + Number(x.amount || 0), 0);
-      const lastSale = sales
-        .map((x: any) => x.sale_date)
-        .sort()
-        .reverse()[0];
+      const salesCount = sales.length;
       return {
         ...c,
         _ltv: ltv,
-        _paid: paid,
-        _salesCount: sales.length,
-        _lastSale: lastSale,
-        _isVip: ltv >= 50000,
+        _salesCount: salesCount,
       };
     });
   }, [clients]);
@@ -118,7 +108,7 @@ export default function Clients() {
   }, [enriched]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este cliente? Vendas e documentos vinculados serão removidos.")) return;
+    if (!confirm("Excluir este cliente?")) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
@@ -129,28 +119,17 @@ export default function Clients() {
 
   const exportCSV = () => {
     const rows = [
-      ["Nome", "Email", "Telefone", "Empresa", "Status", "Parceiro", "Vendas", "LTV", "Cadastro"],
+      ["Nome", "Email", "Telefone", "Empresa", "Status", "Parceiro", "Vendas", "LTV"],
       ...filtered.map((c: any) => [
-        c.full_name,
-        c.email ?? "",
-        c.phone ?? "",
-        c.company ?? "",
-        c.status,
-        c.partners?.full_name ?? "",
-        c._salesCount,
-        c._ltv.toFixed(2),
-        formatDate(c.created_at),
+        c.full_name, c.email ?? "", c.phone ?? "", c.company ?? "",
+        c.status, c.partners?.full_name ?? "", c._salesCount, c._ltv.toFixed(2),
       ]),
     ];
     const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `clientes_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
+    const a = document.createElement("a"); a.href = url; a.download = "clientes.csv"; a.click();
     URL.revokeObjectURL(url);
-    toast.success("CSV exportado");
   };
 
   const clearFilters = () => {
@@ -162,343 +141,229 @@ export default function Clients() {
   const hasFilters = !!search || statusFilter !== "todos" || partnerFilter !== "todos" || sortBy !== "recent";
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-5">
-      <PageHeader
-        title="Clientes"
-        description="Carteira completa: contatos, indicações, faturamento e ciclo de vida."
-        actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2">
-              <Download className="size-4" /> Exportar
-            </Button>
-            <Button onClick={() => setOpen(true)} className="gap-2 bg-gradient-primary hover:opacity-90">
-              <Plus className="size-4" /> Novo Cliente
-            </Button>
+    <div className="px-6 py-6 space-y-6 max-w-[1600px] admin-shell">
+      {/* Header */}
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">● management</span>
+            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/30">CLIENT PORTFOLIO</span>
           </div>
-        }
-      />
+          <h1 className="text-[28px] font-semibold tracking-tight leading-none text-white">Clients</h1>
+          <p className="text-[12.5px] text-white/40 mt-1.5 font-mono">
+            {enriched.length} total records · sync live
+          </p>
+        </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <KpiCard icon={Users} label="Total" value={kpis.total} tone="primary" />
-        <KpiCard icon={UserCheck} label="Ativos" value={kpis.active} tone="success" sub={`${kpis.total ? Math.round((kpis.active / kpis.total) * 100) : 0}% da carteira`} />
-        <KpiCard icon={Sparkles} label="Prospectos" value={kpis.prospects} tone="warning" />
-        <KpiCard icon={UserPlus} label="Novos no mês" value={kpis.newThisMonth} tone="info" />
-        <KpiCard icon={TrendingUp} label="LTV total" value={formatBRL(kpis.totalLTV)} tone="primary" highlight />
+        <div className="flex items-center gap-2">
+          <button onClick={exportCSV} className="h-8 px-3 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-[11.5px] font-mono uppercase tracking-wider text-white/60 hover:text-white flex items-center gap-1.5 transition-colors">
+            <Download className="size-3" /> export
+          </button>
+          <button onClick={() => setOpen(true)} className="h-8 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors">
+            <Plus className="size-3.5" strokeWidth={3} /> New Client
+          </button>
+        </div>
       </div>
 
-      {/* Filtros + view toggle */}
-      <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
-        <div className="relative flex-1 min-w-0">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, email, empresa ou telefone..."
+      {/* KPI Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
+        <MiniKpi label="Total Clients" value={String(kpis.total)} />
+        <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
+        <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
+        <MiniKpi label="New this month" value={String(kpis.newThisMonth)} tone="info" />
+        <MiniKpi label="Portfolio LTV" value={formatBRL(kpis.totalLTV)} tone="primary" />
+      </div>
+
+      {/* Filter Bar */}
+      <div className="cp-panel p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input
+            placeholder="Search by name, email, company..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 bg-background"
+            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-md h-9 pl-9 pr-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
           />
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-9 w-[140px] text-xs">
+            <SelectTrigger className="h-9 w-[130px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos status</SelectItem>
-              <SelectItem value="ativo">Ativos</SelectItem>
-              <SelectItem value="prospecto">Prospectos</SelectItem>
-              <SelectItem value="inativo">Inativos</SelectItem>
+            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+              <SelectItem value="todos">All Status</SelectItem>
+              <SelectItem value="ativo">Active</SelectItem>
+              <SelectItem value="prospecto">Prospects</SelectItem>
+              <SelectItem value="inativo">Inactive</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={partnerFilter} onValueChange={setPartnerFilter}>
-            <SelectTrigger className="h-9 w-[180px] text-xs">
-              <SelectValue placeholder="Parceiro" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos parceiros</SelectItem>
-              <SelectItem value="sem">Sem indicação</SelectItem>
-              {partnersList.map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-9 w-[150px] text-xs">
-              <SlidersHorizontal className="size-3.5 mr-1" />
+            <SelectTrigger className="h-9 w-[150px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Mais recentes</SelectItem>
-              <SelectItem value="name">Nome A-Z</SelectItem>
-              <SelectItem value="revenue">Maior receita</SelectItem>
-              <SelectItem value="sales">Mais vendas</SelectItem>
+            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+              <SelectItem value="recent">Most Recent</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
+              <SelectItem value="revenue">Highest LTV</SelectItem>
+              <SelectItem value="sales">Sales Count</SelectItem>
             </SelectContent>
           </Select>
+
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 gap-1 text-xs">
-              <X className="size-3" /> Limpar
-            </Button>
+            <button onClick={clearFilters} className="h-9 px-3 text-white/40 hover:text-white transition-colors">
+              <X className="size-4" />
+            </button>
           )}
-          <div className="h-6 w-px bg-border mx-1" />
-          <div className="flex items-center rounded-md border border-border bg-background p-0.5">
-            <button
-              onClick={() => setView("list")}
-              className={`size-7 rounded flex items-center justify-center transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              title="Lista"
-            >
+
+          <div className="flex items-center bg-white/[0.03] border border-white/[0.06] rounded-md p-0.5 ml-2">
+            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-white/10 text-white" : "text-white/30 hover:text-white")}>
               <List className="size-3.5" />
             </button>
-            <button
-              onClick={() => setView("grid")}
-              className={`size-7 rounded flex items-center justify-center transition ${view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-              title="Cartões"
-            >
+            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-white/10 text-white" : "text-white/30 hover:text-white")}>
               <LayoutGrid className="size-3.5" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-        <span>
-          Exibindo <span className="font-semibold text-foreground">{filtered.length}</span> de {enriched.length} clientes
-        </span>
-        {filtered.length > 0 && sortBy === "revenue" && (
-          <span className="flex items-center gap-1"><Crown className="size-3 text-warning" /> Ordenado por LTV</span>
+      {/* Main Content */}
+      <div className="cp-panel overflow-hidden">
+        {isLoading ? (
+          <div className="py-32 text-center text-white/20 font-mono text-[13px]">Synchronizing data...</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-32 text-center text-white/20 font-mono text-[13px]">No records found.</div>
+        ) : view === "list" ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12.5px]">
+              <thead className="bg-white/[0.02]">
+                <tr className="border-b border-white/[0.06]">
+                  <Th>Client / Account</Th>
+                  <Th>Status</Th>
+                  <Th>Indication</Th>
+                  <Th align="right">LTV</Th>
+                  <Th align="right">Sales</Th>
+                  <Th align="right"></Th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((c: any) => (
+                  <tr key={c.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                    <Td>
+                      <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-md bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[11px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
+                          {initials(c.full_name)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-white truncate cursor-pointer hover:underline" onClick={() => navigate(`/clientes/${c.id}`)}>
+                            {c.full_name}
+                          </p>
+                          <p className="text-[11px] text-white/30 truncate font-mono uppercase tracking-wider">{c.company || "Personal Account"}</p>
+                        </div>
+                      </div>
+                    </Td>
+                    <Td><StatusPill status={c.status} /></Td>
+                    <Td>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white/40">{c.partners?.full_name || "Direct"}</span>
+                      </div>
+                    </Td>
+                    <Td align="right"><span className="font-mono font-semibold text-white tabular-nums">{formatBRL(c._ltv)}</span></Td>
+                    <Td align="right"><span className="font-mono text-white/60 tabular-nums">{c._salesCount}</span></Td>
+                    <Td align="right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="size-8 rounded-md hover:bg-white/5 flex items-center justify-center text-white/20 hover:text-white transition-colors">
+                            <MoreHorizontal className="size-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#12141a] border-white/[0.1] text-white">
+                          <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> View Details</DropdownMenuItem>
+                          <DropdownMenuItem><Pencil className="size-3.5 mr-2" /> Edit Info</DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-white/[0.06]" />
+                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-rose-400 focus:text-rose-400 focus:bg-rose-400/10"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-white/[0.06]">
+            {filtered.map((c: any) => (
+              <div key={c.id} className="bg-[#0d0e12] p-5 hover:bg-[#111216] transition-colors group relative">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="size-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[13px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
+                    {initials(c.full_name)}
+                  </div>
+                  <StatusPill status={c.status} />
+                </div>
+                <h3 className="text-white font-semibold truncate hover:underline cursor-pointer" onClick={() => navigate(`/clientes/${c.id}`)}>{c.full_name}</h3>
+                <p className="text-[11px] text-white/30 font-mono uppercase tracking-wider mt-1 truncate">{c.company || "Personal Account"}</p>
+                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between">
+                   <div>
+                     <p className="cp-stat-label">LTV</p>
+                     <p className="font-mono font-bold text-white text-[15px] tabular-nums mt-0.5">{formatBRL(c._ltv)}</p>
+                   </div>
+                   <div className="text-right">
+                     <p className="cp-stat-label">Sales</p>
+                     <p className="font-mono text-white/60 text-[15px] tabular-nums mt-0.5">{c._salesCount}</p>
+                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-
-      {isLoading ? (
-        <div className="vx-card py-20 text-center text-muted-foreground text-sm">Carregando carteira...</div>
-      ) : filtered.length === 0 ? (
-        <div className="vx-card py-20 text-center">
-          <Users className="size-10 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-sm font-medium">Nenhum cliente encontrado</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {hasFilters ? "Tente ajustar os filtros" : "Cadastre seu primeiro cliente"}
-          </p>
-          <Button size="sm" onClick={hasFilters ? clearFilters : () => setOpen(true)} className="mt-4 gap-2">
-            {hasFilters ? <><X className="size-4" /> Limpar filtros</> : <><Plus className="size-4" /> Novo Cliente</>}
-          </Button>
-        </div>
-      ) : view === "list" ? (
-        <ListView clients={filtered} onOpen={(id) => navigate(`/clientes/${id}`)} onDelete={handleDelete} />
-      ) : (
-        <GridView clients={filtered} onOpen={(id) => navigate(`/clientes/${id}`)} onDelete={handleDelete} />
-      )}
 
       <ClientFormDialog open={open} onOpenChange={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["clients-rich"] })} />
     </div>
   );
 }
 
-/* ============ LIST VIEW ============ */
-function ListView({ clients, onOpen, onDelete }: any) {
+function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="vx-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40">
-            <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-6 py-3 text-left font-semibold">Cliente</th>
-              <th className="px-6 py-3 text-left font-semibold">Produto / Status</th>
-              <th className="px-6 py-3 text-left font-semibold">Origem / Indicação</th>
-              <th className="px-6 py-3 text-left font-semibold">Responsável</th>
-              <th className="px-6 py-3 text-right font-semibold">Valor Vendido</th>
-              <th className="px-6 py-3 text-left font-semibold">Financeiro</th>
-              <th className="px-6 py-3 text-left font-semibold">Documentos</th>
-              <th className="px-6 py-3 text-right font-semibold w-12">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {clients.map((c: any) => (
-              <tr
-                key={c.id}
-                className="hover:bg-muted/30 transition-colors cursor-pointer group"
-                onClick={() => onOpen(c.id)}
-              >
-                <td className="px-6 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="size-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold ring-1 ring-border">
-                        {initials(c.full_name)}
-                      </div>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold truncate group-hover:text-primary transition-colors">{c.full_name}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">{c.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-3.5">
-                  <p className="text-[11px] font-bold text-foreground">Gestão Financeira</p>
-                  <StatusPill status={c.status} />
-                </td>
-                <td className="px-6 py-3.5">
-                  <p className="text-[11px] font-medium capitalize">{c.source?.replace("_", " ") || "Manual"}</p>
-                  <p className="text-[10px] text-muted-foreground">{c.partners?.full_name || "Direto"}</p>
-                </td>
-                <td className="px-6 py-3.5 text-sm font-medium">
-                  {c.collaborators?.full_name || "Douglas"}
-                </td>
-                <td className="px-6 py-3.5 text-right">
-                  <p className="vx-mono font-bold">{formatBRL(c.sale_value || 0)}</p>
-                </td>
-                <td className="px-6 py-3.5">
-                   <Badge variant="outline" className="text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100">Confirmado</Badge>
-                </td>
-                <td className="px-6 py-3.5">
-                   <Badge variant="outline" className="text-[10px] uppercase bg-blue-50 text-blue-600 border-blue-100">7/12</Badge>
-                </td>
-                <td className="px-6 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="size-8 rounded-md hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <MoreHorizontal className="size-4 text-muted-foreground" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuLabel className="text-[10px] uppercase">{c.full_name}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onOpen(c.id)}>
-                        <Eye className="size-3.5 mr-2" /> Ver detalhes
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Pencil className="size-3.5 mr-2" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Plus className="size-3.5 mr-2" /> Adicionar produto
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Plus className="size-3.5 mr-2" /> Criar tarefa
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onDelete(c.id)} className="text-destructive">
-                        <Trash2 className="size-3.5 mr-2" /> Desativar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="bg-[#0d0e12] p-4 lg:p-5">
+      <p className="cp-stat-label mb-2">{label}</p>
+      <div className="flex items-center justify-between">
+        <p className={cn("cp-stat-value text-[20px] lg:text-[22px]", tone === "primary" && "text-emerald-400")}>{value}</p>
+        <TrendingUp className={cn("size-3.5", tone === "success" ? "text-emerald-400" : tone === "warning" ? "text-amber-400" : "text-white/10")} />
       </div>
     </div>
   );
 }
 
-/* ============ GRID VIEW ============ */
-function GridView({ clients, onOpen, onDelete }: any) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-      {clients.map((c: any) => (
-        <div
-          key={c.id}
-          className="vx-card p-4 hover:border-primary/40 hover:shadow-vx-md transition-all cursor-pointer group"
-          onClick={() => onOpen(c.id)}
-        >
-          <div className="flex items-start gap-3">
-            <div className="relative shrink-0">
-              <div className="size-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center text-sm font-semibold ring-1 ring-primary/10">
-                {initials(c.full_name)}
-              </div>
-              {c._isVip && (
-                <div className="absolute -top-1 -right-1 size-4 rounded-full bg-warning text-warning-foreground flex items-center justify-center">
-                  <Crown className="size-2.5" />
-                </div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-semibold truncate group-hover:text-primary transition-colors">{c.full_name}</p>
-                  {c.company && <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1"><Building2 className="size-2.5" /> {c.company}</p>}
-                </div>
-                <StatusPill status={c.status} />
-              </div>
-              <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground truncate">
-                {c.email && <span className="truncate">{c.email}</span>}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border">
-            <Mini label="Vendas" value={c._salesCount} />
-            <Mini label="LTV" value={c._ltv > 0 ? formatBRL(c._ltv) : "—"} highlight={c._ltv > 0} />
-            <Mini label="Última" value={c._lastSale ? timeAgo(c._lastSale) : "Nunca"} muted />
-          </div>
-
-          {(c.tags?.length > 0 || c.partners) && (
-            <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-              {c.partners && (
-                <Badge variant="secondary" className="text-[10px] font-normal">
-                  via {c.partners.full_name}
-                </Badge>
-              )}
-              {(c.tags ?? []).slice(0, 3).map((t: string) => (
-                <Badge key={t} variant="outline" className="text-[10px] font-normal gap-1">
-                  <Tag className="size-2" /> {t}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center justify-end gap-1 mt-3" onClick={(e) => e.stopPropagation()}>
-            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => onOpen(c.id)}>
-              Ver perfil <ArrowUpRight className="size-3" />
-            </Button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ============ HELPERS ============ */
 function StatusPill({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    ativo: "bg-success-muted text-success",
-    prospecto: "bg-warning-muted text-warning",
-    inativo: "bg-muted text-muted-foreground",
+  const map: Record<string, { label: string; cls: string }> = {
+    ativo: { label: "active", cls: "cp-pill-success" },
+    prospecto: { label: "prospect", cls: "cp-pill-warning" },
+    inativo: { label: "inactive", cls: "cp-pill-danger" },
   };
+  const m = map[status] ?? { label: status, cls: "cp-pill-muted" };
+  return <span className={cn("cp-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
+}
+
+function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${map[status] ?? "bg-muted text-muted-foreground"}`}>
-      <span className="size-1.5 rounded-full bg-current" />
-      {status}
-    </span>
+    <th className={cn(
+      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      align === "right" ? "text-right" : "text-left"
+    )}>
+      {children}
+    </th>
   );
 }
 
-function Mini({ label, value, highlight, muted }: any) {
+function Td({ children, align = "left", className }: { children: React.ReactNode; align?: "left" | "right"; className?: string }) {
   return (
-    <div>
-      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
-      <p className={`text-xs vx-mono font-semibold mt-0.5 ${highlight ? "text-primary" : muted ? "text-muted-foreground" : ""}`}>{value}</p>
-    </div>
-  );
-}
-
-function KpiCard({ icon: Icon, label, value, tone, sub, highlight = false }: any) {
-  const map: any = {
-    primary: { color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },
-    success: { color: "text-success", bg: "bg-success-muted", ring: "ring-success/20" },
-    warning: { color: "text-warning", bg: "bg-warning-muted", ring: "ring-warning/20" },
-    info: { color: "text-info", bg: "bg-info-muted", ring: "ring-info/20" },
-  };
-  const t = map[tone] ?? map.primary;
-  return (
-    <div className={`vx-card p-3.5 ${highlight ? `ring-1 ${t.ring}` : ""}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
-          <p className="font-display text-xl font-bold vx-mono mt-1 truncate">{value}</p>
-          {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
-        </div>
-        <div className={`size-8 rounded-md flex items-center justify-center ${t.bg} ${t.color}`}>
-          <Icon className="size-4" />
-        </div>
-      </div>
-    </div>
+    <td className={cn(
+      "px-5 py-4",
+      align === "right" ? "text-right" : "text-left",
+      className
+    )}>
+      {children}
+    </td>
   );
 }
