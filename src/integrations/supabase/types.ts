@@ -2121,6 +2121,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_admins: {
+        Args: {
+          p_link: string
+          p_message: string
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
