@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { 
   FileSignature, Plus, Download, Eye, Clock, CheckCircle2, 
   XCircle, AlertCircle, FileText, Filter, MoreHorizontal,
-  FileCheck2, Ban, History
+  FileCheck2, Ban, History, Search, DollarSign
 } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,13 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
   DropdownMenuTrigger, DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { ContractDialog } from "@/components/contracts/ContractDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StatCard } from "@/components/StatCard";
 
 export type ContractStatus = 'criado' | 'enviado' | 'aguardando_assinatura' | 'assinado' | 'pendente_correcao' | 'cancelado' | 'finalizado';
 
