@@ -194,20 +194,24 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpis.map((k) => (
-          <div key={k.label} className="vx-card p-6 group hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-            <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110", k.tone)}>
-              <k.icon className="size-6" />
-            </div>
-            <div className="mt-5">
-              <p className="vx-kpi-label">{k.label}</p>
-              <h3 className="vx-kpi-value mt-2">{k.value}</h3>
-              <div className="mt-3 flex items-center gap-1.5 text-[11px] font-bold text-success">
-                <ArrowUpRight className="size-3" />
-                <span>+12.5%</span>
-                <span className="text-muted-foreground font-medium ml-1">vs. período anterior</span>
+          <div key={k.label} className="vx-card p-6 lg:p-7 vx-card-hover group">
+            <div className="flex items-center justify-between mb-6">
+              <div className={cn("size-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-3", k.tone)}>
+                <k.icon className="size-5" />
               </div>
+              <div className="text-[11px] font-bold text-success flex items-center gap-1 bg-success/5 px-2 py-1 rounded-lg">
+                <ArrowUpRight className="size-3" />
+                12.5%
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="vx-kpi-label">{k.label}</p>
+              <h3 className="vx-kpi-value">{k.value}</h3>
+            </div>
+            <div className="mt-4 h-1 w-full bg-muted/30 rounded-full overflow-hidden">
+              <div className="h-full bg-primary/40 w-[70%] group-hover:w-[85%] transition-all duration-700" />
             </div>
           </div>
         ))}
