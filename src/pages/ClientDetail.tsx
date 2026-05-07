@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { formatBRL, formatDate, formatDateTime, formatDoc, formatPhone, initials, timeAgo, formatPercent } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { CadastralTab, ContractsTab, PaymentsTab, TasksTab, NotesTab } from "@/components/clients/ClientFichaTabs";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { toast } from "sonner";
