@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
-  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo
+  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, MessageSquare, ListTodo, Eye
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
