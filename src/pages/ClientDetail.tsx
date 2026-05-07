@@ -997,70 +997,153 @@ function RecentList({ title, items, empty }: any) {
 function DocRequestList({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
+  const [form, setForm] = useState<any>({
+    request_title: "",
+    description: "",
+    product_id: "none",
+    deadline: "",
+  });
 
   const { data: requests = [] } = useQuery({
     queryKey: ["doc-requests", clientId],
-    queryFn: async () => (await supabase.from("document_requests").select("*").eq("client_id", clientId).order("requested_at", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase
+      .from("document_requests")
+      .select("*, products(name)")
+      .eq("client_id", clientId)
+      .order("requested_at", { ascending: false })).data ?? [],
+  });
+
+  const { data: clientProducts = [] } = useQuery({
+    queryKey: ["client-products-select", clientId],
+    queryFn: async () => (await supabase
+      .from("client_products")
+      .select("*, products(id, name)")
+      .eq("client_id", clientId)).data ?? [],
   });
 
   const submit = async () => {
-    if (!title) return toast.error("Título obrigatório");
+    if (!form.request_title) return toast.error("Título obrigatório");
     const { error } = await supabase.from("document_requests").insert({
       client_id: clientId,
-      request_title: title,
-      description: desc,
+      request_title: form.request_title,
+      description: form.description,
+      product_id: form.product_id === "none" ? null : form.product_id,
+      deadline: form.deadline || null,
+      status: "solicitado",
     });
     if (error) return toast.error(error.message);
-    toast.success("Solicitação criada");
+    toast.success("Solicitação enviada");
     setOpen(false);
-    setTitle("");
-    setDesc("");
+    setForm({ request_title: "", description: "", product_id: "none", deadline: "" });
+    qc.invalidateQueries({ queryKey: ["doc-requests", clientId] });
+  };
+
+  const updateStatus = async (id: string, status: string, reason?: string) => {
+    const payload: any = { status };
+    if (status === "aprovado") payload.approval_date = new Date().toISOString();
+    if (reason) payload.rejection_reason = reason;
+
+    const { error } = await supabase.from("document_requests").update(payload).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success(`Documento ${status}`);
     qc.invalidateQueries({ queryKey: ["doc-requests", clientId] });
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-display font-bold">Solicitações de Documentos</h3>
-        <Button size="sm" onClick={() => setOpen(true)} className="gap-2"><Plus className="size-4" /> Nova Solicitação</Button>
+        <h3 className="font-display font-bold flex items-center gap-2">
+          <FileUp className="size-5 text-primary" />
+          Solicitações de Documentos
+        </h3>
+        <Button size="sm" onClick={() => setOpen(true)} className="gap-2 bg-gradient-primary shadow-vx-sm">
+          <Plus className="size-4" /> Nova Solicitação
+        </Button>
       </div>
 
       <div className="vx-card divide-y divide-border">
         {requests.length === 0 ? (
           <EmptyState icon={FileUp} text="Nenhuma solicitação pendente." />
         ) : requests.map((r: any) => (
-          <div key={r.id} className="p-4 flex items-center justify-between hover:bg-muted/30">
-            <div>
-              <p className="text-sm font-semibold">{r.request_title}</p>
-              <p className="text-xs text-muted-foreground">{r.description || "Sem descrição"}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" className={cn("text-[9px] uppercase", r.status === "pending" ? "text-warning border-warning/20" : "text-success border-success/20")}>
-                  {r.status === "pending" ? "Pendente" : "Enviado"}
+          <div key={r.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold">{r.request_title}</p>
+                <Badge variant="outline" className={cn("text-[9px] uppercase", 
+                  r.status === 'aprovado' ? "border-success text-success bg-success/5" : 
+                  r.status === 'reprovado' ? "border-destructive text-destructive bg-destructive/5" : "border-warning text-warning bg-warning/5"
+                )}>
+                  {r.status}
                 </Badge>
-                <span className="text-[10px] text-muted-foreground">{formatDate(r.requested_at)}</span>
               </div>
+              <p className="text-xs text-muted-foreground">{r.description || "Sem descrição"}</p>
+              <div className="flex items-center gap-3 text-[10px] text-muted-foreground mt-1">
+                {r.products && <span className="flex items-center gap-1 font-medium"><ShoppingBag className="size-3 text-primary" /> {r.products.name}</span>}
+                {r.deadline && <span className="flex items-center gap-1"><Clock3 className="size-3" /> Prazo: {formatDate(r.deadline)}</span>}
+                <span className="flex items-center gap-1"><Calendar className="size-3" /> Solicitado em: {formatDate(r.requested_at)}</span>
+              </div>
+              {r.rejection_reason && <p className="text-[10px] text-destructive font-semibold mt-1 p-1 bg-destructive/5 rounded">Motivo reprovação: {r.rejection_reason}</p>}
             </div>
-            {r.file_url && (
-              <Button size="sm" variant="outline" onClick={() => window.open(r.file_url)} className="gap-2">
-                <Eye className="size-4" /> Ver Arquivo
-              </Button>
-            )}
+
+            <div className="flex items-center gap-2">
+              {r.file_url && (
+                <Button variant="outline" size="sm" className="h-8 text-[11px]" onClick={() => window.open(r.file_url)}>
+                  <Eye className="size-3.5 mr-1.5" /> Ver Arquivo
+                </Button>
+              )}
+              {r.status !== "aprovado" && (
+                <>
+                  <Button variant="outline" size="sm" className="h-8 text-[11px] text-success hover:bg-success/10 border-success/30" onClick={() => updateStatus(r.id, "aprovado")}>
+                    <CheckCircle2 className="size-3.5 mr-1.5" /> Aprovar
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8 text-[11px] text-destructive hover:bg-destructive/10 border-destructive/30" onClick={() => {
+                    const reason = prompt("Motivo da reprovação:");
+                    if (reason) updateStatus(r.id, "reprovado", reason);
+                  }}>
+                    <X className="size-3.5 mr-1.5" /> Reprovar
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Solicitar Documento</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Solicitar Documento</DialogTitle>
+            <DialogDescription>Solicite documentos específicos para o cliente enviar pelo painel.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2"><Label>Título do Documento</Label><Input placeholder="Ex: RG, CPF, Foto do Rosto" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Instruções para o cliente</Label><Textarea placeholder="Explique como o cliente deve enviar este arquivo..." value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
+            <div className="space-y-1.5">
+              <Label>Nome do documento *</Label>
+              <Input value={form.request_title} onChange={(e) => setForm({ ...form, request_title: e.target.value })} placeholder="Ex: RG, Comprovante de Residência..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Produto Relacionado</Label>
+              <Select value={form.product_id} onValueChange={(v) => setForm({ ...form, product_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione um produto..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum (Geral)</SelectItem>
+                  {clientProducts.map((cp: any) => (
+                    <SelectItem key={cp.products.id} value={cp.products.id}>{cp.products.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Prazo para envio</Label>
+              <Input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Instruções / Descrição</Label>
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Explique o que é necessário..." />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={submit}>Criar Solicitação</Button>
+            <Button onClick={submit} className="bg-gradient-primary">Solicitar agora</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1070,9 +1153,31 @@ function DocRequestList({ clientId }: { clientId: string }) {
 
 function EmptyState({ icon: Icon, text }: any) {
   return (
-    <div className="p-12 text-center">
-      <Icon className="size-8 text-muted-foreground/40 mx-auto mb-2" />
-      <p className="text-sm text-muted-foreground">{text}</p>
+    <div className="p-12 text-center bg-muted/20 rounded-2xl border border-dashed border-border/60">
+      <Icon className="size-10 text-muted-foreground/30 mx-auto mb-3" />
+      <p className="text-sm text-muted-foreground font-medium px-6">{text}</p>
     </div>
   );
 }
+
+function X({ className, ...props }: any) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      {...props}
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
