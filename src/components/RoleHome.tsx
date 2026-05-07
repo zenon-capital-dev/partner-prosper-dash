@@ -25,10 +25,11 @@ export default function RoleHome() {
     );
   }
 
-  // Admin and Staff go to Admin Dashboard
-  if (isAdmin || isAdminSecondary || isColaborador) return <Navigate to="/admin" replace />;
-  
+  // Admin and Admin Secondary go to Admin Dashboard
+  if (isAdmin || isAdminSecondary) return <Navigate to="/admin" replace />;
+
   // Specific role panels
+  if (isColaborador) return <Navigate to="/colaborador" replace />;
   if (isParceiro) return <Navigate to="/parceiro" replace />;
   if (isPrestador) return <Navigate to="/prestador" replace />;
   if (isCliente || isLead) return <Navigate to="/cliente" replace />;
