@@ -191,15 +191,20 @@
 
 /* Glassmorphism Header */
 .glass-header {
-  @apply sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md;
+  @apply sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl;
 }
 
 /* Background Pattern */
 .bg-premium {
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(var(--primary), 0.03) 0, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(var(--chart-1), 0.03) 0, transparent 50%);
+  @apply relative;
 }
+.bg-premium::before {
+  content: "";
+  @apply absolute inset-0 -z-10 opacity-[0.03] dark:opacity-[0.02] pointer-events-none;
+  background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0);
+  background-size: 32px 32px;
+}
+
 
 /* ==========================================
    ADMIN COCKPIT — Cinema Premium Hybrid
