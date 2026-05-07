@@ -34,6 +34,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: editDoc.description || "",
           product_id: editDoc.product_id || "none",
           due_date: editDoc.due_date || "",
+          sale_id: editDoc.sale_id || "none",
         });
         setSelectedClientId(editDoc.client_id);
       } else {
@@ -42,11 +43,26 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: "",
           product_id: "none",
           due_date: "",
+          sale_id: "none",
         });
         setSelectedClientId(propClientId || "");
       }
     }
   }, [open, editDoc, propClientId]);
+
+  const clientId = propClientId || selectedClientId;
+  const { data: sales } = useQuery({
+    queryKey: ["sales-by-client", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sales")
+        .select("id, amount, sale_date, products(name)")
+        .eq("client_id", clientId)
+        .order("sale_date", { ascending: false });
+      return data ?? [];
+    },
+    enabled: open && !!clientId,
+  });
 
   const { data: clients } = useQuery({
     queryKey: ["clients-list-simple"],
@@ -96,6 +112,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       name: form.name,
       description: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
+      sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       status,
       file_path,
@@ -187,6 +204,25 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
               </div>
             </div>
           </div>
+
+          {clientId && (sales?.length ?? 0) > 0 && (
+            <div className="space-y-2">
+              <Label>Vincular a uma venda (opcional)</Label>
+              <Select value={form.sale_id || "none"} onValueChange={(v) => setForm({ ...form, sale_id: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma venda específica" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma venda específica</SelectItem>
+                  {sales?.map((s: any) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.products?.name || "Venda"} — {new Date(s.sale_date).toLocaleDateString('pt-BR')} — R$ {Number(s.amount).toFixed(2)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Instruções / Descrição</Label>

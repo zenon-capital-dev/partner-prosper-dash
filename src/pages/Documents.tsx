@@ -1,15 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/PageHeader";
-import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History } from "lucide-react";
+import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History, Search } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { StatCard } from "@/components/StatCard";
 
 export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'reprovado' | 'pendente_correcao' | 'vencido';
 
@@ -26,6 +29,8 @@ const statusConfig: Record<DocumentStatus, { label: string; color: string; icon:
 export default function Documents() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: docs, refetch } = useQuery({
     queryKey: ["docs-all"],
@@ -77,6 +82,20 @@ export default function Documents() {
     }
   };
 
+  const allDocs = docs ?? [];
+  const kpis = useMemo(() => ({
+    total: allDocs.length,
+    pendentes: allDocs.filter((d: any) => ['solicitado','enviado','em_analise','pendente_correcao'].includes(d.status)).length,
+    aprovados: allDocs.filter((d: any) => d.status === 'aprovado').length,
+    reprovados: allDocs.filter((d: any) => d.status === 'reprovado' || d.status === 'vencido').length,
+  }), [allDocs]);
+
+  const filteredDocs = useMemo(() => allDocs.filter((d: any) => {
+    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    if (search && !`${d.name} ${d.clients?.full_name ?? ''}`.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }), [allDocs, search, statusFilter]);
+
   return (
     <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -89,9 +108,32 @@ export default function Documents() {
         </Button>
       </div>
 
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Total" value={String(kpis.total)} icon={FileText} iconColor="primary" />
+        <StatCard label="Pendentes" value={String(kpis.pendentes)} icon={Clock} iconColor="warning" />
+        <StatCard label="Aprovados" value={String(kpis.aprovados)} icon={Check} iconColor="success" />
+        <StatCard label="Reprovados / vencidos" value={String(kpis.reprovados)} icon={X} iconColor="destructive" />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input className="pl-9" placeholder="Buscar por documento ou cliente..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            {Object.entries(statusConfig).map(([k, v]) => (
+              <SelectItem key={k} value={k}>{v.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="vx-card overflow-hidden">
-        {(docs ?? []).length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground text-sm">Nenhum documento solicitado ainda</div>
+        {filteredDocs.length === 0 ? (
+          <div className="p-12 text-center text-muted-foreground text-sm">Nenhum documento encontrado</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -105,7 +147,7 @@ export default function Documents() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {docs?.map((d: any) => {
+                {filteredDocs.map((d: any) => {
                   const config = statusConfig[d.status as DocumentStatus] || statusConfig.solicitado;
                   const StatusIcon = config.icon;
                   

@@ -34,6 +34,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           amount: editContract.amount || "",
           description: editContract.internal_notes || "",
           product_id: editContract.product_id || "none",
+          sale_id: editContract.sale_id || "none",
         });
         setSelectedClientId(editContract.client_id);
       } else {
@@ -42,11 +43,26 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           amount: "",
           description: "",
           product_id: "none",
+          sale_id: "none",
         });
         setSelectedClientId(propClientId || "");
       }
     }
   }, [open, editContract, propClientId]);
+
+  const clientId = propClientId || selectedClientId;
+  const { data: sales } = useQuery({
+    queryKey: ["sales-by-client-contract", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sales")
+        .select("id, amount, sale_date, products(name)")
+        .eq("client_id", clientId)
+        .order("sale_date", { ascending: false });
+      return data ?? [];
+    },
+    enabled: open && !!clientId,
+  });
 
   const { data: clients } = useQuery({
     queryKey: ["clients-list-simple"],
@@ -67,7 +83,6 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   });
 
   const submit = async () => {
-    const clientId = propClientId || selectedClientId;
     if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do contrato é obrigatório"); return; }
     
@@ -89,6 +104,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
       amount: form.amount ? Number(form.amount) : null,
       internal_notes: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
+      sale_id: form.sale_id === "none" ? null : form.sale_id,
       file_path,
     };
 
@@ -174,6 +190,25 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
               </div>
             </div>
           </div>
+
+          {clientId && (sales?.length ?? 0) > 0 && (
+            <div className="space-y-2">
+              <Label>Vincular a uma venda (opcional)</Label>
+              <Select value={form.sale_id || "none"} onValueChange={(v) => setForm({ ...form, sale_id: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Nenhuma venda específica" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma venda específica</SelectItem>
+                  {sales?.map((s: any) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.products?.name || "Venda"} — {new Date(s.sale_date).toLocaleDateString('pt-BR')} — R$ {Number(s.amount).toFixed(2)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Observações internas</Label>
