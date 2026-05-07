@@ -5,12 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useTheme } from "@/hooks/useTheme";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
-  useTheme();
 
   if (loading) {
     return (
