@@ -653,11 +653,36 @@ function ClientRequestsView({ requests, client }: { requests: any[]; client: any
 }
 
 
+function TabTrigger({ value, icon: Icon, label, badge, badgeTone = "primary" }: { value: string; icon: any; label: string; badge?: number; badgeTone?: "primary" | "warning" | "danger" }) {
+  return (
+    <TabsTrigger 
+      value={value} 
+      className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-14 px-0 flex items-center gap-2.5 text-sm font-medium text-muted-foreground transition-all hover:text-foreground group relative"
+    >
+      <Icon className="size-4 opacity-50 transition-opacity group-hover:opacity-100 group-data-[state=active]:opacity-100" />
+      {label}
+      {badge !== undefined && badge > 0 && (
+        <span className={cn(
+          "px-1.5 py-0.5 rounded-md text-[10px] font-bold tabular-nums min-w-[20px] transition-transform group-hover:scale-110",
+          badgeTone === "warning" ? "bg-warning/10 text-warning" : 
+          badgeTone === "danger" ? "bg-destructive/10 text-destructive" : 
+          "bg-primary/10 text-primary"
+        )}>
+          {badge}
+        </span>
+      )}
+    </TabsTrigger>
+  );
+}
+
 function Stat({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" }) {
   return (
-    <div>
-      <p className="text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-      <p className={`font-display text-[22px] font-bold tabular-nums leading-none mt-1.5 ${tone === "warning" ? "text-warning" : ""}`}>
+    <div className="flex flex-col gap-1.5 transition-transform hover:translate-x-1 duration-300">
+      <p className="vx-kpi-label">{label}</p>
+      <p className={cn(
+        "vx-kpi-value",
+        tone === "warning" ? "text-warning" : "text-foreground"
+      )}>
         {value}
       </p>
     </div>
@@ -666,10 +691,12 @@ function Stat({ label, value, tone = "default" }: { label: string; value: string
 
 function Empty({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
   return (
-    <div className="vx-card py-16 text-center">
-      <Icon className="size-10 text-muted-foreground/40 mx-auto mb-3" />
-      <p className="text-sm font-semibold">{title}</p>
-      <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+    <div className="vx-card py-24 text-center border-dashed border-2 bg-transparent">
+      <div className="size-16 rounded-full bg-muted/40 flex items-center justify-center mx-auto mb-5">
+        <Icon className="size-8 text-muted-foreground/40" />
+      </div>
+      <p className="text-base font-bold text-foreground">{title}</p>
+      <p className="text-sm text-muted-foreground mt-2 max-w-[280px] mx-auto leading-relaxed">{desc}</p>
     </div>
   );
 }
