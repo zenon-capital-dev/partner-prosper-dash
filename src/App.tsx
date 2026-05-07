@@ -43,7 +43,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <ThemeProvider defaultTheme="light" storageKey="crm-theme">
+      <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -90,7 +91,8 @@ const App = () => (
           </Routes>
         </AuthProvider>
       </BrowserRouter>
-    </TooltipProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
