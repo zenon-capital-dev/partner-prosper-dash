@@ -14,7 +14,8 @@ export default function RoleHome() {
     isParceiro, 
     isPrestador, 
     isCliente, 
-    isLead 
+    isLead,
+    isIndicador 
   } = useAuth();
 
   if (loading) {
@@ -37,6 +38,7 @@ export default function RoleHome() {
   // Specific role panels
   if (isColaborador) return <Navigate to="/colaborador" replace />;
   if (isParceiro) return <Navigate to="/parceiro" replace />;
+  if (isIndicador) return <Navigate to="/indicador" replace />;
   if (isPrestador) return <Navigate to="/prestador" replace />;
   if (isCliente || isLead) return <Navigate to="/cliente" replace />;
 
