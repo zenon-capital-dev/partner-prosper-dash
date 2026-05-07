@@ -29,6 +29,8 @@ const statusConfig: Record<DocumentStatus, { label: string; color: string; icon:
 export default function Documents() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: docs, refetch } = useQuery({
     queryKey: ["docs-all"],
