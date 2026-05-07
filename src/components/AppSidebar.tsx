@@ -154,6 +154,17 @@ const partnerSections: NavSection[] = [
   },
 ];
 
+const referrerSections: NavSection[] = [
+  {
+    label: "Indicador",
+    icon: Star,
+    items: [
+      { title: "Painel", url: "/indicador", icon: LayoutDashboard },
+      { title: "Indicações", url: "/indicador", icon: Users },
+    ],
+  },
+];
+
 const clientSections: NavSection[] = [
   {
     label: "Cliente",
