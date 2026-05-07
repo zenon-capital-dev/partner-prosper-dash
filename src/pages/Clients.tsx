@@ -293,7 +293,7 @@ export default function Clients() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-white/[0.06]">
             {filtered.map((c: any) => (
-              <div key={c.id} className="bg-[#0d0e12] p-5 hover:bg-[#111216] transition-colors group relative">
+              <div key={c.id} className="bg-[#0d0e12] p-5 hover:bg-[#111216] transition-colors group relative border-r border-b border-white/[0.06]">
                 <div className="flex items-start justify-between mb-4">
                   <div className="size-10 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[13px] font-mono text-white/40 group-hover:text-white group-hover:border-white/20 transition-all">
                     {initials(c.full_name)}
