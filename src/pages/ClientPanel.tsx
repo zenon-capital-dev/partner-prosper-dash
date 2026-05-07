@@ -131,26 +131,26 @@ export default function ClientPanel() {
           <TabsContent value="meus-produtos" className="animate-fade-up">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {activeSubs.map((s: any) => (
-                <div key={s.id} className="vx-card p-8 bg-white border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 rounded-[24px]">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                       <Package className="size-6" />
+                <div key={s.id} className="vx-card p-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 rounded-[32px] group/item">
+                  <div className="flex justify-between items-start mb-8">
+                    <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
+                       <Package className="size-7" />
                     </div>
-                    <span className="vx-pill vx-pill-success uppercase tracking-widest text-[9px]">Ativo</span>
+                    <span className="vx-pill vx-pill-success uppercase tracking-[0.2em] text-[9px] px-3 py-1">Contrato Ativo</span>
                   </div>
-                  <h3 className="font-editorial text-2xl font-bold text-slate-900 leading-tight">
+                  <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                     {s.products?.name ?? "Assinatura"}
                   </h3>
-                  <p className="text-[13px] text-muted-foreground mt-2 line-clamp-2 min-h-[40px]">
-                    {s.products?.description || "Acompanhamento premium e suporte dedicado."}
+                  <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 min-h-[42px] leading-relaxed">
+                    {s.products?.description || "Acompanhamento premium e suporte estratégico dedicado."}
                   </p>
-                  <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                  <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5 flex items-center justify-between">
                      <div>
-                        <p className="text-[20px] font-bold tabular-nums text-slate-900">{formatBRL(s.amount)}</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-1">{s.billing_cycle}</p>
+                        <p className="text-[22px] font-bold tabular-nums text-slate-900 dark:text-white tracking-tight">{formatBRL(s.amount)}</p>
+                        <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground/60 mt-1.5">{s.billing_cycle || "Ciclo"}</p>
                      </div>
-                     <Button variant="ghost" size="sm" className="group text-primary hover:text-primary hover:bg-primary/5">
-                        Detalhes <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                     <Button variant="ghost" size="sm" className="group text-primary hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 rounded-xl px-4">
+                        Gerenciar <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
                      </Button>
                   </div>
                 </div>

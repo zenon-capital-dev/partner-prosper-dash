@@ -83,17 +83,17 @@ export default function CollaboratorPanel() {
                       <p className="p-10 text-center font-editorial italic text-muted-foreground">Todas as tarefas foram concluídas. Excelente trabalho!</p>
                     ) : (
                       openTasks.slice(0, 6).map((t: any) => (
-                        <div key={t.id} className="p-5 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-all flex items-center justify-between group">
-                           <div className="flex items-center gap-5">
-                              <div className="size-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-amber-400 group-hover:border-amber-100 transition-all">
-                                 <Clock className="size-5" />
+                        <div key={t.id} className="p-6 rounded-[24px] border border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-between group">
+                           <div className="flex items-center gap-6">
+                              <div className="size-12 rounded-[18px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-300 group-hover:text-amber-400 group-hover:border-amber-100 transition-all shadow-sm">
+                                 <Clock className="size-6" />
                               </div>
-                              <div>
-                                 <p className="font-bold text-slate-900 group-hover:text-primary transition-colors">{t.title}</p>
-                                 <p className="text-xs text-muted-foreground mt-0.5">Prazo: {formatDate(t.due_date)}</p>
+                              <div className="space-y-1">
+                                 <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors text-base">{t.title}</p>
+                                 <p className="text-xs text-muted-foreground font-medium">Data limite: <span className="text-slate-600 dark:text-slate-400">{formatDate(t.due_date)}</span></p>
                               </div>
                            </div>
-                           <Badge className="rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 border-none px-4 py-1 text-[10px] uppercase tracking-widest font-bold">
+                           <Badge className="rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 border-none px-5 py-1.5 text-[10px] uppercase tracking-[0.2em] font-bold">
                               {t.status}
                            </Badge>
                         </div>
@@ -112,14 +112,17 @@ export default function CollaboratorPanel() {
                     Você é o ponto de contato principal para {clients.length} clientes. Mantenha os cronogramas atualizados.
                  </p>
                  <div className="mt-8 space-y-3">
-                    {clients.slice(0, 4).map((c: any) => (
+                    {clients.slice(0, 5).map((c: any) => (
                       <button 
                         key={c.id} 
                         onClick={() => navigate(`/clientes/${c.id}`)}
-                        className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all text-left flex items-center justify-between"
+                        className="w-full p-5 rounded-[20px] bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all text-left flex items-center justify-between group/client"
                       >
-                         <span className="font-bold text-sm truncate pr-4">{c.full_name}</span>
-                         <ArrowRight className="size-4 text-white/20" />
+                         <div className="flex items-center gap-4 min-w-0">
+                           <div className="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-bold">{initials(c.full_name)}</div>
+                           <span className="font-bold text-sm truncate">{c.full_name}</span>
+                         </div>
+                         <ArrowRight className="size-4 text-white/20 group-hover/client:text-primary transition-colors group-hover/client:translate-x-1" />
                       </button>
                     ))}
                  </div>
