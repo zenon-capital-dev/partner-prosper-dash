@@ -19,8 +19,8 @@ export default function Settings() {
   
   const [profile, setProfile] = useState<any>({});
   const [companySettings, setCompanySettings] = useState({
-    name: "Minha Empresa",
-    system_name: "CRM VIP",
+    name: "PROSPER",
+    system_name: "PROSPER - Gestão Estratégica",
     primary_color: "#1d4ed8",
     logo_url: "",
     notifications: {

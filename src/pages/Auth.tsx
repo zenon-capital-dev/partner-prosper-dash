@@ -79,10 +79,10 @@ export default function AuthPage() {
           </div>
           <div>
             <div className="font-display font-bold text-[15px] tracking-[0.2em] uppercase leading-none">
-              Painel Douglas
+              PROSPER
             </div>
             <div className="text-[10px] text-white/40 tracking-[0.15em] uppercase mt-1.5 font-medium">
-              Consultoria Corporativa
+              Gestão Estratégica
             </div>
           </div>
         </header>
@@ -91,16 +91,16 @@ export default function AuthPage() {
         <div className="relative space-y-12 max-w-xl z-10">
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/70">
-              <span className="size-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
+              <span className="size-1.5 rounded-full bg-primary shadow-[0_0_8px_#3b82f6]" />
               Ambiente de Acesso Restrito
             </div>
             <h1 className="font-display text-[48px] leading-[1.1] font-bold tracking-tight">
-              Gestão estratégica <br />
-              <span className="text-white/60">de alto impacto.</span>
+              A inteligência que <br />
+              <span className="text-white/60">impulsiona seu negócio.</span>
             </h1>
             <p className="text-[16px] text-white/50 leading-relaxed max-w-md">
-              Acesse sua infraestrutura de dados para acompanhamento de clientes, 
-              parceiros e indicadores em tempo real.
+              Acesse o ecossistema PROSPER para gestão completa de clientes, 
+              parceiros e indicadores estratégicos.
             </p>
           </div>
 
@@ -112,8 +112,8 @@ export default function AuthPage() {
               "Relatórios analíticos de performance",
             ].map((t) => (
               <li key={t} className="flex items-center gap-3 text-[14px] text-white/70">
-          <div className="size-5 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
-                  <CheckCircle2 className="size-3 text-blue-400" />
+          <div className="size-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                  <CheckCircle2 className="size-3 text-primary" />
                 </div>
                 <span>{t}</span>
               </li>
@@ -123,11 +123,11 @@ export default function AuthPage() {
           <div className="grid grid-cols-3 gap-8 pt-10 border-t border-white/5">
             {[
               { icon: Users, label: "Operações", value: "24/7" },
-              { icon: TrendingUp, label: "Performance", value: "Real-time" },
+              { icon: TrendingUp, label: "Performance", value: "Estratégica" },
               { icon: ShieldCheck, label: "Segurança", value: "SSL" },
             ].map((m) => (
               <div key={m.label} className="space-y-1">
-                <m.icon className="size-4 text-blue-400/50" />
+                <m.icon className="size-4 text-primary/50" />
                 <div className="text-[18px] font-bold text-white/90">{m.value}</div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40 font-semibold">{m.label}</div>
               </div>
@@ -137,9 +137,9 @@ export default function AuthPage() {
 
         {/* FOOTER */}
         <footer className="relative flex items-center justify-between text-[11px] text-white/30 z-10">
-          <span>© {new Date().getFullYear()} Painel Douglas</span>
+          <span>© {new Date().getFullYear()} PROSPER - Gestão Estratégica</span>
           <div className="flex gap-4">
-            <span className="cursor-pointer hover:text-white/50 transition-colors">Segurança</span>
+            <span className="cursor-pointer hover:text-white/50 transition-colors">Termos</span>
             <span className="cursor-pointer hover:text-white/50 transition-colors">Privacidade</span>
           </div>
         </footer>
@@ -154,8 +154,8 @@ export default function AuthPage() {
               <Sparkles className="size-6" />
             </div>
             <div>
-              <div className="font-display font-bold text-[16px] tracking-[0.2em] uppercase">Painel Douglas</div>
-              <div className="text-[10px] text-muted-foreground tracking-widest uppercase mt-1">Assessoria Premium</div>
+              <div className="font-display font-bold text-[16px] tracking-[0.2em] uppercase">PROSPER</div>
+              <div className="text-[10px] text-muted-foreground tracking-widest uppercase mt-1">Gestão Estratégica</div>
             </div>
           </div>
 

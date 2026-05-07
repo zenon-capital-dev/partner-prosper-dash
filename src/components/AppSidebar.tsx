@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { initials, formatBRL } from "@/lib/format";
-import { VendxLogo } from "@/components/VendxLogo";
+import { ProsperLogo as AppLogo } from "@/components/VendxLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -315,14 +315,14 @@ export function AppSidebar() {
         <SidebarHeader className="bg-sidebar px-4 pt-5 pb-4">
           <div className={collapsed ? "flex flex-col items-center gap-2" : "flex items-center gap-3 px-1"}>
             <div className="relative shrink-0">
-              <VendxLogo size={collapsed ? 32 : 42} />
+              <AppLogo size={collapsed ? 32 : 42} />
               <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-success ring-2 ring-sidebar" />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="font-display font-black tracking-[0.14em] text-white text-[22px] leading-none uppercase">
-                    Advisory CRM
+                    PROSPER
                   </span>
                   <span className="text-[10px] font-bold tracking-wider text-white bg-primary rounded px-1.5 py-0.5 leading-none">
                     PRO
