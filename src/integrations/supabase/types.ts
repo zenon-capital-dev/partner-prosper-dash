@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -87,6 +123,7 @@ export type Database = {
         Row: {
           client_id: string
           created_at: string | null
+          current_step_id: string | null
           current_steps: Json | null
           custom_product_name: string | null
           custom_value: number | null
@@ -101,6 +138,7 @@ export type Database = {
           required_documents: Json | null
           responsible_employee_id: string | null
           responsible_provider_id: string | null
+          service_provider_id: string | null
           start_date: string | null
           status: string | null
           updated_at: string | null
@@ -109,6 +147,7 @@ export type Database = {
         Insert: {
           client_id: string
           created_at?: string | null
+          current_step_id?: string | null
           current_steps?: Json | null
           custom_product_name?: string | null
           custom_value?: number | null
@@ -123,6 +162,7 @@ export type Database = {
           required_documents?: Json | null
           responsible_employee_id?: string | null
           responsible_provider_id?: string | null
+          service_provider_id?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
@@ -131,6 +171,7 @@ export type Database = {
         Update: {
           client_id?: string
           created_at?: string | null
+          current_step_id?: string | null
           current_steps?: Json | null
           custom_product_name?: string | null
           custom_value?: number | null
@@ -145,6 +186,7 @@ export type Database = {
           required_documents?: Json | null
           responsible_employee_id?: string | null
           responsible_provider_id?: string | null
+          service_provider_id?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
@@ -159,6 +201,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_products_current_step_id_fkey"
+            columns: ["current_step_id"]
+            isOneToOne: false
+            referencedRelation: "product_steps"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_products_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -168,6 +217,13 @@ export type Database = {
           {
             foreignKeyName: "client_products_responsible_provider_id_fkey"
             columns: ["responsible_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_products_service_provider_id_fkey"
+            columns: ["service_provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
             referencedColumns: ["id"]
@@ -1028,6 +1084,71 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          client_id: string | null
+          content: string
+          contract_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_private: boolean | null
+          product_id: string | null
+          task_id: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          content: string
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_private?: boolean | null
+          product_id?: string | null
+          task_id?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          content?: string
+          contract_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_private?: boolean | null
+          product_id?: string | null
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1192,6 +1313,7 @@ export type Database = {
           amount: number
           amount_paid: number | null
           client_id: string
+          client_product_id: string | null
           created_at: string | null
           due_date: string
           id: string
@@ -1208,6 +1330,7 @@ export type Database = {
           amount: number
           amount_paid?: number | null
           client_id: string
+          client_product_id?: string | null
           created_at?: string | null
           due_date: string
           id?: string
@@ -1224,6 +1347,7 @@ export type Database = {
           amount?: number
           amount_paid?: number | null
           client_id?: string
+          client_product_id?: string | null
           created_at?: string | null
           due_date?: string
           id?: string
@@ -1242,6 +1366,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
             referencedColumns: ["id"]
           },
           {
@@ -1279,6 +1410,79 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      product_required_documents: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_mandatory: boolean | null
+          name: string
+          product_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          name: string
+          product_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          name?: string
+          product_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_required_documents_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_steps: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          product_id: string | null
+          step_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          product_id?: string | null
+          step_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          product_id?: string | null
+          step_order?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_steps_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -1743,10 +1947,13 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          contract_id: string | null
           created_at: string | null
           description: string | null
+          document_id: string | null
           due_date: string | null
           id: string
+          payment_id: string | null
           priority: string | null
           related_entity_id: string | null
           related_entity_type: string | null
@@ -1758,10 +1965,13 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          contract_id?: string | null
           created_at?: string | null
           description?: string | null
+          document_id?: string | null
           due_date?: string | null
           id?: string
+          payment_id?: string | null
           priority?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
@@ -1773,10 +1983,13 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          contract_id?: string | null
           created_at?: string | null
           description?: string | null
+          document_id?: string | null
           due_date?: string | null
           id?: string
+          payment_id?: string | null
           priority?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
@@ -1786,7 +1999,29 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_permissions: {
         Row: {
