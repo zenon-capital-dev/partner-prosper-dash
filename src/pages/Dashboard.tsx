@@ -361,33 +361,34 @@ function SourceItem({ label, value, color }: { label: string; value: number; col
 
 function ActivityItem({ title, desc, time, icon }: any) {
   return (
-    <div className="flex items-start gap-4 group">
-      <div className="size-10 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border/40 flex items-center justify-center shrink-0 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors shadow-sm">
+    <div className="flex items-start gap-4 group cursor-pointer">
+      <div className="size-11 rounded-2xl bg-muted/40 border border-border/10 flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/20">
         {icon}
       </div>
-      <div className="flex-1 min-w-0 border-b border-border/40 pb-5 group-last:border-none group-last:pb-0">
-        <div className="flex items-center justify-between gap-4 mb-1">
-          <h4 className="text-sm font-bold tracking-tight text-foreground truncate">{title}</h4>
-          <span className="text-[11px] font-mono text-muted-foreground">{time}</span>
+      <div className="flex-1 min-w-0 border-b border-border/5 pb-5 group-last:border-none group-last:pb-0 transition-colors group-hover:border-primary/20">
+        <div className="flex items-center justify-between gap-4 mb-1.5">
+          <h4 className="text-[13px] font-black tracking-tight text-foreground/90 truncate">{title}</h4>
+          <span className="text-[10px] font-black tracking-widest text-muted-foreground/40">{time}</span>
         </div>
-        <p className="text-xs text-muted-foreground truncate">{desc}</p>
+        <p className="text-xs text-muted-foreground/60 truncate font-medium">{desc}</p>
       </div>
     </div>
   );
 }
 
-function StatusItem({ label, value, color, isDark }: any) {
+function StatusItem({ label, value, color }: any) {
   const colors: any = {
-    rose: "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20",
-    amber: "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20",
-    blue: "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20",
-    slate: "bg-slate-900 text-white border-slate-800",
+    rose: "bg-rose-500/5 text-rose-500 border-rose-500/10",
+    amber: "bg-amber-500/5 text-amber-500 border-amber-500/10",
+    blue: "bg-blue-500/5 text-blue-500 border-blue-500/10",
+    slate: "bg-slate-500/5 text-slate-500 border-slate-500/10",
   };
   
   return (
-    <div className={cn("flex items-center justify-between p-4 rounded-xl border transition-all", colors[color])}>
-      <span className="text-xs font-bold tracking-tight">{label}</span>
-      <span className="text-lg font-bold tabular-nums">{value}</span>
+    <div className={cn("flex items-center justify-between p-5 rounded-2xl border transition-all duration-300 hover:scale-[1.02] cursor-default", colors[color])}>
+      <span className="text-[11px] font-black uppercase tracking-widest opacity-80">{label}</span>
+      <span className="text-2xl font-black tabular-nums">{value}</span>
     </div>
   );
 }
+
