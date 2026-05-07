@@ -79,32 +79,39 @@ export default function ClientPanel() {
   const availableCatalog = catalog.filter((p: any) => !subscriptions.find((s: any) => s.product_id === p.id));
 
   return (
-    <div className="bg-premium min-h-screen">
+    <div className="bg-premium min-h-screen dark:bg-[#020617]">
       <div className="page-shell space-y-12 py-12">
         {/* Header Section */}
-        <section className="relative overflow-hidden rounded-[32px] bg-white p-8 lg:p-14 border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.05)] group">
-          <div className="absolute top-0 right-0 size-96 bg-primary/5 blur-[120px] -mr-48 -mt-48 rounded-full transition-all group-hover:bg-primary/10" />
+        <section className="relative overflow-hidden rounded-[40px] bg-white dark:bg-card p-10 lg:p-16 border border-slate-100 dark:border-white/5 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.03)] group">
+          <div className="absolute top-0 right-0 size-[500px] bg-primary/5 blur-[120px] -mr-64 -mt-64 rounded-full transition-all group-hover:bg-primary/10" />
+          <div className="absolute bottom-0 left-0 size-[300px] bg-blue-500/5 blur-[100px] -ml-32 -mb-32 rounded-full" />
           
-          <div className="flex flex-col lg:flex-row lg:items-center gap-10 relative">
-             <div className="size-24 lg:size-28 rounded-[28px] bg-slate-900 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50">
-               {initials(client.full_name)}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-12 relative">
+             <div className="relative group">
+               <div className="size-28 lg:size-32 rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50 dark:ring-white/5 transition-transform duration-500 group-hover:scale-105">
+                 {initials(client.full_name)}
+               </div>
+               <div className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-900">
+                 <CheckCircle2 className="size-5" />
+               </div>
              </div>
-             <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="h-px w-8 bg-primary/30" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary/60">Private Client Portal</span>
+             
+             <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-4">
+                  <span className="h-px w-12 bg-primary/30" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary/60 dark:text-primary/80">Private Client Portal</span>
                 </div>
-                <h1 className="font-editorial text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.1]">
+                <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-[0.95]">
                   Bem-vindo, <br/><span className="text-primary italic">{client.full_name.split(' ')[0]}</span>.
                 </h1>
-                <div className="flex flex-wrap items-center gap-6 text-[13px] text-muted-foreground font-medium pt-3">
-                   <span className="flex items-center gap-2"><Mail className="size-4 text-primary/40" /> {client.email}</span>
-                   {client.phone && <span className="flex items-center gap-2"><Phone className="size-4 text-primary/40" /> {client.phone}</span>}
+                <div className="flex flex-wrap items-center gap-8 text-[13px] text-muted-foreground font-medium pt-4">
+                   <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default"><Mail className="size-4 text-primary/40" /> {client.email}</span>
+                   {client.phone && <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default"><Phone className="size-4 text-primary/40" /> {client.phone}</span>}
                 </div>
              </div>
 
-             <div className="grid grid-cols-2 sm:grid-cols-3 gap-10 lg:pl-16 lg:border-l border-slate-100">
-                <PremiumStat label="Serviços" value={String(activeSubs.length)} />
+             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                <PremiumStat label="Serviços Ativos" value={String(activeSubs.length)} />
                 <PremiumStat label="Investimento" value={formatBRL(monthlyTotal)} sub="recorrência" />
                 <PremiumStat label="Documentos" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
              </div>
@@ -124,26 +131,26 @@ export default function ClientPanel() {
           <TabsContent value="meus-produtos" className="animate-fade-up">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {activeSubs.map((s: any) => (
-                <div key={s.id} className="vx-card p-8 bg-white border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 rounded-[24px]">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                       <Package className="size-6" />
+                <div key={s.id} className="vx-card p-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 rounded-[32px] group/item">
+                  <div className="flex justify-between items-start mb-8">
+                    <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
+                       <Package className="size-7" />
                     </div>
-                    <span className="vx-pill vx-pill-success uppercase tracking-widest text-[9px]">Ativo</span>
+                    <span className="vx-pill vx-pill-success uppercase tracking-[0.2em] text-[9px] px-3 py-1">Contrato Ativo</span>
                   </div>
-                  <h3 className="font-editorial text-2xl font-bold text-slate-900 leading-tight">
+                  <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                     {s.products?.name ?? "Assinatura"}
                   </h3>
-                  <p className="text-[13px] text-muted-foreground mt-2 line-clamp-2 min-h-[40px]">
-                    {s.products?.description || "Acompanhamento premium e suporte dedicado."}
+                  <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 min-h-[42px] leading-relaxed">
+                    {s.products?.description || "Acompanhamento premium e suporte estratégico dedicado."}
                   </p>
-                  <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                  <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5 flex items-center justify-between">
                      <div>
-                        <p className="text-[20px] font-bold tabular-nums text-slate-900">{formatBRL(s.amount)}</p>
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-1">{s.billing_cycle}</p>
+                        <p className="text-[22px] font-bold tabular-nums text-slate-900 dark:text-white tracking-tight">{formatBRL(s.amount)}</p>
+                        <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-muted-foreground/60 mt-1.5">{s.billing_cycle || "Ciclo"}</p>
                      </div>
-                     <Button variant="ghost" size="sm" className="group text-primary hover:text-primary hover:bg-primary/5">
-                        Detalhes <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                     <Button variant="ghost" size="sm" className="group text-primary hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 rounded-xl px-4">
+                        Gerenciar <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
                      </Button>
                   </div>
                 </div>

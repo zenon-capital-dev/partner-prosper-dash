@@ -34,30 +34,32 @@ export default function CollaboratorPanel() {
   const doneTasks = tasks.filter((t: any) => t.status === "Concluída");
 
   return (
-    <div className="bg-premium min-h-screen">
+    <div className="bg-premium min-h-screen dark:bg-[#020617]">
       <div className="page-shell space-y-12 py-12">
         {/* Header */}
-        <section className="relative overflow-hidden rounded-[40px] bg-white p-10 lg:p-14 border border-slate-100 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] group">
-           <div className="absolute top-0 left-0 size-80 bg-blue-500/5 blur-[100px] -ml-40 -mt-40 rounded-full" />
-           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative">
-              <div className="flex items-center gap-8">
-                 <div className="size-20 lg:size-24 rounded-[30px] bg-slate-900 text-white flex items-center justify-center font-editorial text-3xl shadow-xl">
+        <section className="relative overflow-hidden rounded-[48px] bg-white dark:bg-card p-12 lg:p-16 border border-slate-100 dark:border-white/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.04)] group">
+           <div className="absolute top-0 left-0 size-[500px] bg-primary/5 blur-[120px] -ml-40 -mt-40 rounded-full" />
+           <div className="absolute bottom-0 right-0 size-[300px] bg-blue-500/5 blur-[100px] -mr-32 -mb-32 rounded-full" />
+           
+           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-12 relative">
+              <div className="flex items-center gap-10">
+                 <div className="size-24 lg:size-28 rounded-[36px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50 dark:ring-white/5 transition-all group-hover:scale-105">
                    {initials(user?.user_metadata?.full_name || "C")}
                  </div>
-                 <div>
-                    <div className="flex items-center gap-2 mb-2">
-                       <Sparkles className="size-4 text-amber-400" />
-                       <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Internal Operations</span>
+                 <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                       <Sparkles className="size-4 text-amber-400 animate-pulse" />
+                       <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground/60">Operations Intelligence</span>
                     </div>
-                    <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900">
-                       Workspace de <span className="italic text-primary">{user?.user_metadata?.full_name?.split(' ')[0]}</span>.
+                    <h1 className="font-editorial text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white leading-[0.95]">
+                       Workspace de <br/><span className="italic text-primary">{user?.user_metadata?.full_name?.split(' ')[0]}</span>.
                     </h1>
                  </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-10 lg:pl-16 lg:border-l border-slate-100">
-                 <CollabStat label="Tarefas" value={String(openTasks.length)} sub="pendentes" />
-                 <CollabStat label="Portfólio" value={String(clients.length)} sub="clientes" />
+              <div className="grid grid-cols-2 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                 <CollabStat label="Agenda Ativa" value={String(openTasks.length)} sub="tarefas" />
+                 <CollabStat label="Portfólio" value={String(clients.length)} sub="contas" />
               </div>
            </div>
         </section>
@@ -81,17 +83,17 @@ export default function CollaboratorPanel() {
                       <p className="p-10 text-center font-editorial italic text-muted-foreground">Todas as tarefas foram concluídas. Excelente trabalho!</p>
                     ) : (
                       openTasks.slice(0, 6).map((t: any) => (
-                        <div key={t.id} className="p-5 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-all flex items-center justify-between group">
-                           <div className="flex items-center gap-5">
-                              <div className="size-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-amber-400 group-hover:border-amber-100 transition-all">
-                                 <Clock className="size-5" />
+                        <div key={t.id} className="p-6 rounded-[24px] border border-slate-50 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all flex items-center justify-between group">
+                           <div className="flex items-center gap-6">
+                              <div className="size-12 rounded-[18px] bg-white dark:bg-slate-800 border border-slate-100 dark:border-white/10 flex items-center justify-center text-slate-300 group-hover:text-amber-400 group-hover:border-amber-100 transition-all shadow-sm">
+                                 <Clock className="size-6" />
                               </div>
-                              <div>
-                                 <p className="font-bold text-slate-900 group-hover:text-primary transition-colors">{t.title}</p>
-                                 <p className="text-xs text-muted-foreground mt-0.5">Prazo: {formatDate(t.due_date)}</p>
+                              <div className="space-y-1">
+                                 <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors text-base">{t.title}</p>
+                                 <p className="text-xs text-muted-foreground font-medium">Data limite: <span className="text-slate-600 dark:text-slate-400">{formatDate(t.due_date)}</span></p>
                               </div>
                            </div>
-                           <Badge className="rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 border-none px-4 py-1 text-[10px] uppercase tracking-widest font-bold">
+                           <Badge className="rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 border-none px-5 py-1.5 text-[10px] uppercase tracking-[0.2em] font-bold">
                               {t.status}
                            </Badge>
                         </div>
@@ -110,14 +112,17 @@ export default function CollaboratorPanel() {
                     Você é o ponto de contato principal para {clients.length} clientes. Mantenha os cronogramas atualizados.
                  </p>
                  <div className="mt-8 space-y-3">
-                    {clients.slice(0, 4).map((c: any) => (
+                    {clients.slice(0, 5).map((c: any) => (
                       <button 
                         key={c.id} 
                         onClick={() => navigate(`/clientes/${c.id}`)}
-                        className="w-full p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all text-left flex items-center justify-between"
+                        className="w-full p-5 rounded-[20px] bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all text-left flex items-center justify-between group/client"
                       >
-                         <span className="font-bold text-sm truncate pr-4">{c.full_name}</span>
-                         <ArrowRight className="size-4 text-white/20" />
+                         <div className="flex items-center gap-4 min-w-0">
+                           <div className="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-bold">{initials(c.full_name)}</div>
+                           <span className="font-bold text-sm truncate">{c.full_name}</span>
+                         </div>
+                         <ArrowRight className="size-4 text-white/20 group-hover/client:text-primary transition-colors group-hover/client:translate-x-1" />
                       </button>
                     ))}
                  </div>
