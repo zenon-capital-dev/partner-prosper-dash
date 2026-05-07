@@ -83,7 +83,6 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   });
 
   const submit = async () => {
-    const clientId = propClientId || selectedClientId;
     if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do contrato é obrigatório"); return; }
     
@@ -105,6 +104,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
       amount: form.amount ? Number(form.amount) : null,
       internal_notes: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
+      sale_id: form.sale_id === "none" ? null : form.sale_id,
       file_path,
     };
 
