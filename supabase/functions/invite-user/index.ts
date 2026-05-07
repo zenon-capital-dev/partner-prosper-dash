@@ -14,6 +14,8 @@ interface Body {
   phone?: string;
   role: Role;
   send_invite?: boolean;
+  has_system_access?: boolean;
+  internal_notes?: string;
   link_client_id?: string;
   link_partner_id?: string;
   link_referrer_id?: string;
@@ -89,6 +91,8 @@ Deno.serve(async (req) => {
       email: body.email,
       full_name: body.full_name ?? body.email,
       phone: body.phone ?? null,
+      has_system_access: body.has_system_access ?? true,
+      internal_notes: body.internal_notes ?? null,
     });
 
     // Set role: clear existing then set chosen
