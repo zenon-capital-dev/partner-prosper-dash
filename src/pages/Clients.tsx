@@ -325,11 +325,11 @@ export default function Clients() {
 
 function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="bg-[#0d0e12] p-4 lg:p-5">
-      <p className="cp-stat-label mb-2">{label}</p>
+    <div className="bg-background p-4 lg:p-5">
+      <p className="vx-kpi-label mb-2">{label}</p>
       <div className="flex items-center justify-between">
-        <p className={cn("cp-stat-value text-[20px] lg:text-[22px]", tone === "primary" && "text-emerald-400")}>{value}</p>
-        <TrendingUp className={cn("size-3.5", tone === "success" ? "text-emerald-400" : tone === "warning" ? "text-amber-400" : "text-white/10")} />
+        <p className={cn("vx-kpi-value text-[20px] lg:text-[22px]", tone === "primary" && "text-primary")}>{value}</p>
+        <TrendingUp className={cn("size-3.5", tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-muted-foreground/10")} />
       </div>
     </div>
   );
@@ -337,18 +337,18 @@ function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: 
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    ativo: { label: "active", cls: "cp-pill-success" },
-    prospecto: { label: "prospect", cls: "cp-pill-warning" },
-    inativo: { label: "inactive", cls: "cp-pill-danger" },
+    ativo: { label: "active", cls: "vx-pill-success" },
+    prospecto: { label: "prospect", cls: "vx-pill-warning" },
+    inativo: { label: "vx-pill-danger" },
   };
-  const m = map[status] ?? { label: status, cls: "cp-pill-muted" };
-  return <span className={cn("cp-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
+  const m = map[status] ?? { label: status, cls: "vx-pill" };
+  return <span className={cn("vx-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
 }
 
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-muted-foreground/40",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
