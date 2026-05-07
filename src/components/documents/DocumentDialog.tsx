@@ -34,6 +34,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: editDoc.description || "",
           product_id: editDoc.product_id || "none",
           due_date: editDoc.due_date || "",
+          sale_id: editDoc.sale_id || "none",
         });
         setSelectedClientId(editDoc.client_id);
       } else {
@@ -42,11 +43,26 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: "",
           product_id: "none",
           due_date: "",
+          sale_id: "none",
         });
         setSelectedClientId(propClientId || "");
       }
     }
   }, [open, editDoc, propClientId]);
+
+  const clientId = propClientId || selectedClientId;
+  const { data: sales } = useQuery({
+    queryKey: ["sales-by-client", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sales")
+        .select("id, amount, sale_date, products(name)")
+        .eq("client_id", clientId)
+        .order("sale_date", { ascending: false });
+      return data ?? [];
+    },
+    enabled: open && !!clientId,
+  });
 
   const { data: clients } = useQuery({
     queryKey: ["clients-list-simple"],
