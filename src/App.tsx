@@ -30,6 +30,8 @@ import Collaborators from "./pages/Collaborators";
 import Providers from "./pages/Providers";
 import Tasks from "./pages/Tasks";
 import AuditLog from "./pages/AuditLog";
+import CollaboratorPanel from "./pages/CollaboratorPanel";
+import ProviderPanel from "./pages/ProviderPanel";
 import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 
