@@ -1313,6 +1313,7 @@ export type Database = {
           amount: number
           amount_paid: number | null
           client_id: string
+          client_product_id: string | null
           created_at: string | null
           due_date: string
           id: string
@@ -1329,6 +1330,7 @@ export type Database = {
           amount: number
           amount_paid?: number | null
           client_id: string
+          client_product_id?: string | null
           created_at?: string | null
           due_date: string
           id?: string
@@ -1345,6 +1347,7 @@ export type Database = {
           amount?: number
           amount_paid?: number | null
           client_id?: string
+          client_product_id?: string | null
           created_at?: string | null
           due_date?: string
           id?: string
@@ -1363,6 +1366,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
             referencedColumns: ["id"]
           },
           {
@@ -1937,10 +1947,13 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          contract_id: string | null
           created_at: string | null
           description: string | null
+          document_id: string | null
           due_date: string | null
           id: string
+          payment_id: string | null
           priority: string | null
           related_entity_id: string | null
           related_entity_type: string | null
@@ -1952,10 +1965,13 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          contract_id?: string | null
           created_at?: string | null
           description?: string | null
+          document_id?: string | null
           due_date?: string | null
           id?: string
+          payment_id?: string | null
           priority?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
@@ -1967,10 +1983,13 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          contract_id?: string | null
           created_at?: string | null
           description?: string | null
+          document_id?: string | null
           due_date?: string | null
           id?: string
+          payment_id?: string | null
           priority?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
@@ -1980,7 +1999,29 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_permissions: {
         Row: {
