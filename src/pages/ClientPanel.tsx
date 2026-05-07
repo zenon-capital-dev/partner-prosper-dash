@@ -135,7 +135,7 @@ export default function ClientPanel() {
     );
   }
 
-  const { client, subscriptions, sales, docs, catalog, requests } = data;
+  const { client, subscriptions, sales, docs, catalog, requests, contracts, timeline, payments } = data;
   const activeSubs = subscriptions.filter((s: any) => s.status === "ativa");
   const monthlyTotal = activeSubs
     .filter((s: any) => s.billing_cycle === "mensal")
@@ -143,6 +143,9 @@ export default function ClientPanel() {
   const pendingDocs = requests.filter((r: any) => r.status === "solicitado" || r.status === "reprovado").length;
   const ownedProductIds = new Set(subscriptions.map((s: any) => s.product_id).filter(Boolean));
   const availableCatalog = catalog.filter((p: any) => !ownedProductIds.has(p.id));
+  const overduePayments = payments.filter((p: any) => p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date());
+  const upcomingPayments = payments.filter((p: any) => p.status !== "pago").slice(0, 10);
+  const pendingContracts = contracts.filter((c: any) => c.status !== "assinado" && c.status !== "finalizado");
 
   return (
     <div className="page-shell space-y-7">
