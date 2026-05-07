@@ -181,7 +181,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, signOut } = useAuth();
+  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, isIndicador, signOut } = useAuth();
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
