@@ -24,22 +24,34 @@ export default function AppLayout() {
   if (!user) return <Navigate to="/auth" replace />;
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": "18rem" } as React.CSSProperties}>
-      <div className="min-h-screen flex w-full bg-background bg-premium">
+    <SidebarProvider style={{ "--sidebar-width": "18.5rem" } as React.CSSProperties}>
+      <div className="min-h-screen flex w-full bg-background bg-premium selection:bg-primary selection:text-primary-foreground">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="glass-header h-14 flex items-center px-6 gap-4 no-print">
-            <SidebarTrigger className="text-muted-foreground transition-colors hover:text-foreground active:scale-95" />
-            <div className="h-4 w-px bg-border/40 mx-1 hidden sm:block" />
-            <div className="flex-1">
+        <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] dark:bg-[#020617]/50">
+          <header className="glass-header h-16 flex items-center px-8 gap-6 no-print">
+            <SidebarTrigger className="text-muted-foreground transition-all hover:text-foreground active:scale-90" />
+            <div className="h-6 w-px bg-border/10 mx-1 hidden sm:block" />
+            <div className="flex-1 max-w-2xl">
               <GlobalSearch />
             </div>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
+            <div className="flex items-center gap-4">
+              <div className="flex items-center bg-muted/40 rounded-full p-1 border border-border/5">
+                <ThemeToggle />
+              </div>
               <NotificationBell />
+              <div className="h-8 w-px bg-border/10 mx-1 hidden sm:block" />
+              <div className="flex items-center gap-3 pl-2">
+                <div className="flex flex-col items-end hidden md:flex">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-foreground/80 leading-none">Status</span>
+                  <span className="text-[10px] font-bold text-success mt-1 flex items-center gap-1">
+                    <div className="size-1 rounded-full bg-success animate-pulse" />
+                    SISTEMA ONLINE
+                  </span>
+                </div>
+              </div>
             </div>
           </header>
-          <main className="flex-1 overflow-y-auto overflow-x-hidden animate-fade-up">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden animate-fade-up scroll-smooth">
             <Outlet />
           </main>
         </div>
@@ -47,3 +59,4 @@ export default function AppLayout() {
     </SidebarProvider>
   );
 }
+
