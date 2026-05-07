@@ -112,6 +112,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       name: form.name,
       description: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
+      sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       status,
       file_path,
