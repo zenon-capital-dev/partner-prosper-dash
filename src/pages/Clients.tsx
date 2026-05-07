@@ -243,7 +243,7 @@ export default function Clients() {
                   <Th>Indication</Th>
                   <Th align="right">LTV</Th>
                   <Th align="right">Sales</Th>
-                  <Th align="right"></Th>
+                  <Th align="right">Actions</Th>
                 </tr>
               </thead>
               <tbody>
