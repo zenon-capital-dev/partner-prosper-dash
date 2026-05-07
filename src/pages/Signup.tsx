@@ -245,18 +245,8 @@ export default function SignupPage() {
 
         <div className="relative w-full max-w-[440px] space-y-7">
           {/* Mobile brand */}
-          <div className="lg:hidden flex flex-col items-center text-center space-y-3 mb-2">
-            <div className="size-12 rounded-2xl bg-slate-900 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="size-6" fill="none">
-                <path
-                  d="M4 20V4h6c2.8 0 5 2 5 4.8 0 2.6-1.8 4.4-4.4 4.6L15 20"
-                  stroke="white"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+          <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-2">
+            <ProsperLogo size={56} />
             <div>
               <div className="font-display font-bold text-[15px] tracking-[0.28em] uppercase">
                 PROSPER
