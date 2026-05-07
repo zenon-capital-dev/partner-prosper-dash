@@ -75,6 +75,8 @@ const App = () => (
               <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
               <Route path="/cliente" element={<ClientPanel />} />
               <Route path="/cliente/documentos" element={<ClientPanel />} />
+              <Route path="/colaborador" element={<CollaboratorPanel />} />
+              <Route path="/prestador" element={<ProviderPanel />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
