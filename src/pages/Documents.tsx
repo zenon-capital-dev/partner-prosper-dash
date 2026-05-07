@@ -147,7 +147,7 @@ export default function Documents() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {docs?.map((d: any) => {
+                {filteredDocs.map((d: any) => {
                   const config = statusConfig[d.status as DocumentStatus] || statusConfig.solicitado;
                   const StatusIcon = config.icon;
                   
