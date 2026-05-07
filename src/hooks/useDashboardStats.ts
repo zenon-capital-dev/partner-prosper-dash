@@ -46,6 +46,8 @@ export function useDashboardStats() {
         supabase.from("commissions").select("amount, status"),
         // Tasks
         supabase.from("tasks").select("id, status, due_date"),
+        // Recent Activities
+        supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(5),
       ]);
 
       const contracts = contractsCount.data || [];
@@ -54,6 +56,7 @@ export function useDashboardStats() {
       const payments = paymentsSummary.data || [];
       const commissions = commissionsSummary.data || [];
       const tasks = tasksSummary.data || [];
+      const recentActivities = recentActivitiesSummary.data || [];
 
       const revenueReceived = payments
         .filter((p) => p.status === "pago")
