@@ -1,9 +1,8 @@
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useTheme } from "@/hooks/useTheme";
 import { AdminSidebar } from "./AdminSidebar";
-import { NotificationBell } from "@/components/NotificationBell";
+import { AdminHeader } from "./AdminHeader";
 import { Bell, ChevronRight, Slash } from "lucide-react";
 
 const ROUTE_LABEL: Record<string, string> = {
