@@ -56,11 +56,11 @@ export function useDashboardStats() {
       const tasks = tasksSummary.data || [];
 
       const revenueReceived = payments
-        .filter((p) => p.status === "paid")
+        .filter((p) => p.status === "pago")
         .reduce((sum, p) => sum + Number(p.amount_paid || 0), 0);
       const revenuePending = payments
-        .filter((p) => p.status === "pending")
-        .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+        .filter((p) => p.status === "pendente" || p.status === "atrasado" || p.status === "parcialmente_pago")
+        .reduce((sum, p) => sum + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
       const revenueTotal = revenueReceived + revenuePending;
 
       const commsPaid = commissions
