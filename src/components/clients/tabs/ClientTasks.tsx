@@ -12,7 +12,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
       const { data } = await supabase
         .from("tasks")
         .select("*")
-        .eq("client_id", clientId)
+        .eq("related_entity_id", clientId)
         .order("due_date", { ascending: true });
       return data ?? [];
     },
