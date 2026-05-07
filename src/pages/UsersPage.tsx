@@ -42,14 +42,14 @@ export default function UsersPage() {
   const [open, setOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, has_system_access: true });
+  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, has_system_access: true, internal_notes: "" });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
 
   const { data: users = [] } = useQuery({
     queryKey: ["users-with-roles"],
     queryFn: async () => {
       const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, email, phone, created_at, active, has_system_access").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, full_name, email, phone, created_at, active, has_system_access, internal_notes").order("created_at", { ascending: false }),
         supabase.from("user_roles").select("user_id, role"),
       ]);
       return (profiles ?? []).map((p) => ({
@@ -101,6 +101,8 @@ export default function UsersPage() {
         phone: form.phone,
         role: form.role,
         send_invite: !!form.send_invite,
+        has_system_access: !!form.has_system_access,
+        internal_notes: form.internal_notes,
       },
     });
     if (error) return toast.error(error.message);
@@ -152,6 +154,7 @@ export default function UsersPage() {
                   <div className="flex items-center gap-2.5">
                     <div className="size-8 rounded-full bg-primary-muted text-primary flex items-center justify-center text-xs font-bold">{initials(u.full_name)}</div>
                     <p className="font-medium">{u.full_name ?? "—"}</p>
+                    {u.internal_notes && <Badge variant="outline" className="text-[9px] h-4 px-1 opacity-60">Nota</Badge>}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs">{u.email}</td>
@@ -224,9 +227,18 @@ export default function UsersPage() {
             <DialogDescription>Crie o login e defina o papel. O sistema envia o email de definição de senha.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
-            <div className="col-span-2 space-y-2"><Label>Nome completo</Label><Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
-            <div className="col-span-2 space-y-2"><Label>Email *</Label><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Telefone</Label><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+            <div className="col-span-2 space-y-2">
+              <Label>Nome completo</Label>
+              <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: João Silva" />
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>Email *</Label>
+              <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" />
+            </div>
             <div className="space-y-2">
               <Label>Papel</Label>
               <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
@@ -238,12 +250,28 @@ export default function UsersPage() {
                   <SelectItem value="parceiro">Parceiro</SelectItem>
                   <SelectItem value="prestador">Prestador</SelectItem>
                   <SelectItem value="cliente">Cliente</SelectItem>
-                  <SelectItem value="lead">Lead / Convidado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="col-span-2 flex items-center gap-2 text-xs text-muted-foreground">
-              <Shield className="size-3.5" /> O usuário receberá um email para definir a própria senha.
+            <div className="col-span-2 space-y-2">
+              <Label>Status de Acesso</Label>
+              <Select value={form.has_system_access ? "yes" : "no"} onValueChange={(v) => setForm({ ...form, has_system_access: v === "yes" })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">Com acesso ao sistema</SelectItem>
+                  <SelectItem value="no">Sem acesso ao sistema</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>Observações Internas</Label>
+              <Input value={form.internal_notes ?? ""} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} placeholder="Notas privadas para administração" />
+            </div>
+            <div className="col-span-2 flex items-center gap-2 text-[11px] text-muted-foreground bg-muted/50 p-2 rounded">
+              <Shield className="size-3.5" /> 
+              {form.has_system_access 
+                ? "O usuário poderá logar. Ele receberá um email para definir a senha ou você verá uma senha temporária." 
+                : "Cadastro apenas para controle. Login bloqueado."}
             </div>
           </div>
           <DialogFooter>
