@@ -1,6 +1,7 @@
 import { Search, Bell, Command } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
+import { InternalChat } from "@/components/chat/InternalChat";
 import { cn } from "@/lib/utils";
 
 interface AdminHeaderProps {
@@ -27,6 +28,7 @@ export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
       
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1 pr-2 border-r border-border/60">
+          <InternalChat />
           <NotificationBell />
         </div>
         

@@ -11,6 +11,7 @@ import {
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { NpsCard } from "@/components/nps/NpsCard";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
@@ -241,6 +242,11 @@ export default function ClientPanel() {
              </div>
           </TabsContent>
         </Tabs>
+
+        {/* NPS — pesquisa de satisfação */}
+        <section className="max-w-2xl mx-auto w-full">
+          <NpsCard clientId={client.id} />
+        </section>
       </div>
     </div>
   );

@@ -38,6 +38,7 @@ import ProviderPanel from "./pages/ProviderPanel";
 import ReferrerPanel from "./pages/ReferrerPanel";
 import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
+import MessageTemplates from "./pages/MessageTemplates";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Support />} />
+              <Route path="/templates" element={<MessageTemplates />} />
             </Route>
             <Route element={<AppLayout />}>
               <Route path="/" element={<RoleHome />} />
