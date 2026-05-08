@@ -269,10 +269,13 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
             <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <UserCog className="size-3" /> Prestador delegado (opcional)
             </h4>
-            <Select value={form.service_provider_id} onValueChange={(v) => setForm({ ...form, service_provider_id: v })}>
+            <Select 
+              value={form.service_provider_id || "__none__"} 
+              onValueChange={(v) => setForm({ ...form, service_provider_id: v === "__none__" ? "" : v })}
+            >
               <SelectTrigger><SelectValue placeholder="Delegar mais tarde" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Delegar mais tarde</SelectItem>
+                <SelectItem value="__none__">Delegar mais tarde</SelectItem>
                 {providers.map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.name} {p.specialty && `· ${p.specialty}`}
