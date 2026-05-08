@@ -270,6 +270,9 @@ export default function Leads() {
                           <DropdownMenuItem onClick={() => handleEdit(lead)}>
                             <Pencil className="size-3.5 mr-2" /> Editar Informações
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openFollowUp(lead)}>
+                            <CalendarClock className="size-3.5 mr-2" /> Agendar Follow-up
+                          </DropdownMenuItem>
                           {lead.status !== "Virou cliente" && (
                             <DropdownMenuItem onClick={() => convertToClient(lead)} className="text-primary font-bold">
                               <UserPlus className="size-3.5 mr-2" /> Converter em Cliente
@@ -298,12 +301,23 @@ export default function Leads() {
           </div>
         )}
       </div>
+      )}
 
       <LeadFormDialog 
         open={open} 
         onOpenChange={setOpen} 
         lead={selectedLead} 
         onCreated={() => qc.invalidateQueries({ queryKey: ["leads"] })}
+      />
+      <LeadsCsvImport
+        open={csvOpen}
+        onOpenChange={setCsvOpen}
+        onImported={() => qc.invalidateQueries({ queryKey: ["leads"] })}
+      />
+      <LeadFollowUpDialog
+        open={followUpOpen}
+        onOpenChange={setFollowUpOpen}
+        lead={followUpLead}
       />
     </div>
   );
