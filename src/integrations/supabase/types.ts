@@ -203,6 +203,7 @@ export type Database = {
           id: string
           notes: string | null
           reported_by: string | null
+          service_provider_id: string | null
           status: string
         }
         Insert: {
@@ -211,6 +212,7 @@ export type Database = {
           id?: string
           notes?: string | null
           reported_by?: string | null
+          service_provider_id?: string | null
           status: string
         }
         Update: {
@@ -219,6 +221,7 @@ export type Database = {
           id?: string
           notes?: string | null
           reported_by?: string | null
+          service_provider_id?: string | null
           status?: string
         }
         Relationships: [
@@ -227,6 +230,13 @@ export type Database = {
             columns: ["client_product_id"]
             isOneToOne: false
             referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_product_status_reports_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
