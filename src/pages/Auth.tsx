@@ -177,26 +177,28 @@ export default function AuthPage() {
       </div>
 
       {/* ╔══════════════════════ RIGHT — FORM ══════════════════════╗ */}
-      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-background text-foreground transition-colors duration-500">
+      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-white dark:bg-[#06070C] text-foreground transition-colors duration-500 overflow-y-auto">
         <div className="absolute top-6 right-6 z-20">
           <ThemeToggle />
         </div>
 
+        {/* Dynamic ambient backgrounds */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.4] dark:opacity-[0.15]">
+          <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-primary/20 animate-pulse" />
+          <div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-blue-500/20 animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
         {/* subtle texture */}
-        <div className="absolute inset-0 opacity-[0.2] dark:opacity-[0.05] pointer-events-none"
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
              style={{
-               backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
-               backgroundSize: "24px 24px",
+               backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
              }} />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
 
-        {/* corner ornaments */}
-        <CornerMark className="top-6 left-6 opacity-30" />
-        <CornerMark className="top-6 right-6 opacity-30" rotate="rotate-90" />
-        <CornerMark className="bottom-6 left-6 opacity-30" rotate="-rotate-90" />
-        <CornerMark className="bottom-6 right-6 opacity-30" rotate="rotate-180" />
-
-        <div className="relative w-full max-w-[420px] space-y-9">
+        <div className="relative w-full max-w-[420px] space-y-10">
+          {/* Progress bar indication */}
+          <div className="absolute -top-12 left-0 w-full h-1 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
+            <div className="h-full w-1/3 bg-primary animate-progress-glow" />
+          </div>
           {/* Mobile brand */}
           <div className="lg:hidden flex flex-col items-center text-center space-y-4 mb-2">
             <ProsperLogo size={56} />
