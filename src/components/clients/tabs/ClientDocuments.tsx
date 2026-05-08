@@ -31,7 +31,7 @@ export function ClientDocuments({ clientId, user_id }: { clientId: string; user_
     },
   });
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: any) => {
     const { error } = await supabase
       .from("documents")
       .update({ status, reviewed_at: new Date().toISOString() })
