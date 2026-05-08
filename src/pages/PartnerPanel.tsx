@@ -48,18 +48,37 @@ export default function PartnerPanel() {
   });
 
   const totals = useMemo(() => {
-    if (!data) return { total: 0, paid: 0, pending: 0, thisMonth: 0 };
+    if (!data) return { total: 0, paid: 0, pending: 0, cancelled: 0, thisMonth: 0 };
     const splits = data.splits;
     const total = splits.reduce((s, x: any) => s + Number(x.amount), 0);
     const paid = splits.filter((x: any) => x.status === "pago").reduce((s, x: any) => s + Number(x.amount), 0);
     const pending = splits.filter((x: any) => x.status === "pendente").reduce((s, x: any) => s + Number(x.amount), 0);
+    const cancelled = splits.filter((x: any) => x.status === "cancelado").reduce((s, x: any) => s + Number(x.amount), 0);
     const now = new Date();
     const thisMonth = splits.filter((x: any) => {
       const d = new Date(x.created_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).reduce((s, x: any) => s + Number(x.amount), 0);
-    return { total, paid, pending, thisMonth };
+    return { total, paid, pending, cancelled, thisMonth };
   }, [data]);
+
+  const filteredSplits = useMemo(() => {
+    if (!data) return [];
+    if (statusFilter === "todos") return data.splits;
+    return data.splits.filter((s: any) => s.status === statusFilter);
+  }, [data, statusFilter]);
+
+  async function handleDownloadContract(filePath: string, name: string) {
+    const { data: signed, error } = await supabase.storage.from("contracts").createSignedUrl(filePath, 60);
+    if (error || !signed) {
+      toast.error("Não foi possível gerar o link do contrato");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = signed.signedUrl;
+    a.download = name;
+    a.click();
+  }
 
   if (isLoading) return <div className="p-12 text-center text-sm font-editorial italic text-muted-foreground">Processando ganhos...</div>;
 
