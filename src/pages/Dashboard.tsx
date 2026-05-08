@@ -132,15 +132,15 @@ export default function Dashboard() {
                 <span className="text-[10px] font-bold text-muted-foreground">RECEITA REAL</span>
               </div>
             </div>
-            <div className="h-[300px] w-full bg-muted/30 rounded-xl flex items-end justify-around p-6 gap-2 border border-border/40">
+            <div className="h-[300px] w-full flex items-end justify-around p-6 gap-2">
                {[40, 65, 45, 90, 55, 80, 70, 85, 60, 95, 75, 100].map((h, i) => (
-                 <div key={i} className="flex-1 space-y-2 group">
-                   <div className="relative w-full bg-primary/10 rounded-t-lg transition-all group-hover:bg-primary/20" style={{ height: `${h}%` }}>
+                 <div key={i} className="flex-1 space-y-2 group flex flex-col items-center">
+                   <div className="relative w-full max-w-[32px] bg-indigo-500/10 rounded-full transition-all group-hover:bg-indigo-500/20" style={{ height: `${h}%` }}>
                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[9px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                         R${h}k
                       </div>
                    </div>
-                   <p className="text-[9px] text-center font-bold text-muted-foreground/60">{['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</p>
+                   <p className="text-[9px] font-bold text-muted-foreground/60">{['J','F','M','A','M','J','J','A','S','O','N','D'][i]}</p>
                  </div>
                ))}
             </div>
