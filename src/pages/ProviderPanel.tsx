@@ -1,162 +1,327 @@
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Users, Clock, CheckCircle2, ArrowRight, ClipboardList, Zap } from "lucide-react";
+import { Briefcase, FileText, ClipboardCheck, Inbox, Download, ArrowRight } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 
 export default function ProviderPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").eq("email", user!.email!).maybeSingle();
+      // Try by user_id first, fallback to email
+      let { data } = await supabase
+        .from("service_providers")
+        .select("id, name, specialty, email")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (!data && user?.email) {
+        const r = await supabase
+          .from("service_providers")
+          .select("id, name, specialty, email")
+          .ilike("email", user.email)
+          .maybeSingle();
+        data = r.data;
+      }
       return data;
     },
   });
 
   const providerId = provider?.id;
 
-  const { data: assignments = [] } = useQuery({
-    queryKey: ["provider-assignments", providerId],
-    enabled: !!providerId,
-    queryFn: async () => {
-      const { data } = await supabase.from("service_assignments").select("*, clients(full_name), products(name)").eq("provider_id", providerId!).order("due_date", { ascending: true });
-      return data ?? [];
-    },
-  });
-
-  const { data: clientProducts = [] } = useQuery({
+  const { data: clientProducts = [], isLoading } = useQuery({
     queryKey: ["provider-client-products", providerId],
     enabled: !!providerId,
     queryFn: async () => {
-      const { data } = await supabase.from("client_products").select("id, status, value, deadline, clients(id, full_name), products(name)").eq("service_provider_id", providerId!);
+      const { data } = await supabase
+        .from("client_products")
+        .select("id, status, value, deadline, created_at, clients(id, full_name, email, phone), products(name, category)")
+        .eq("service_provider_id", providerId!)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
 
-  const pending = assignments.filter((a: any) => a.status !== "completed" && a.status !== "cancelled");
-  const completed = assignments.filter((a: any) => a.status === "completed");
-  const totalValue = clientProducts.reduce((sum: number, cp: any) => sum + Number(cp.value || 0), 0);
+  const clientProductIds = useMemo(() => clientProducts.map((cp: any) => cp.id), [clientProducts]);
 
-  return (
-    <div className="bg-premium min-h-screen">
-      <div className="page-shell space-y-12 py-12">
-        {/* Provider Header */}
-        <section className="relative overflow-hidden rounded-[40px] bg-slate-900 p-10 lg:p-16 text-white group shadow-[0_40px_80px_-20px_rgba(0,0,0,0.2)]">
-           <div className="absolute top-0 right-0 size-80 bg-primary/10 blur-[100px] -mr-40 -mt-40 rounded-full" />
-           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 relative">
-              <div className="space-y-6">
-                 <div className="flex items-center gap-3">
-                   <Zap className="size-4 text-primary" />
-                   <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40">Expert Service Network</span>
-                 </div>
-                 <h1 className="font-editorial text-4xl lg:text-7xl font-bold tracking-tight leading-[0.95]">
-                   Mestre da <br/><span className="italic text-primary">execução</span>.
-                 </h1>
-                 <p className="font-editorial italic text-xl text-white/60">
-                    {provider?.name || "Especialista Parceiro"}
-                 </p>
-              </div>
+  const { data: documents = [] } = useQuery({
+    queryKey: ["provider-documents", clientProductIds],
+    enabled: clientProductIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("documents")
+        .select("id, name, status, file_path, created_at, client_id, client_product_id, clients(full_name)")
+        .in("client_product_id", clientProductIds)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
 
-              <div className="grid grid-cols-2 gap-10 lg:pl-16 lg:border-l border-white/10">
-                 <ProviderStat label="Pendentes" value={String(pending.length)} />
-                 <ProviderStat label="Produção" value={formatBRL(totalValue)} highlight />
-              </div>
-           </div>
-        </section>
+  const { data: reports = [] } = useQuery({
+    queryKey: ["status-reports", clientProductIds],
+    enabled: clientProductIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_product_status_reports")
+        .select("id, status, notes, created_at, client_product_id")
+        .in("client_product_id", clientProductIds)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return data ?? [];
+    },
+  });
 
-        {!provider && (
-          <div className="vx-card p-12 text-center bg-white/40 backdrop-blur-xl border-white/20 rounded-[32px]">
-            <p className="font-editorial text-xl italic text-muted-foreground">Sua conta de prestador está sendo vinculada ao sistema...</p>
-          </div>
-        )}
+  const stats = useMemo(() => {
+    const total = clientProducts.length;
+    const concluidos = clientProducts.filter((c: any) => c.status === "concluido").length;
+    const pendentes = total - concluidos;
+    const valor = clientProducts.reduce((s: number, c: any) => s + Number(c.value || 0), 0);
+    return { total, concluidos, pendentes, valor };
+  }, [clientProducts]);
 
-        <div className="grid lg:grid-cols-2 gap-8">
-           {/* Assignments List */}
-           <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100 shadow-xl shadow-slate-200/10">
-              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                 <div className="flex items-center gap-3">
-                    <ClipboardList className="size-5 text-primary" />
-                    <h3 className="font-editorial text-2xl font-bold text-slate-900">Ordens de Serviço</h3>
-                 </div>
-                 <Badge className="bg-slate-100 text-slate-500 rounded-full px-4">{pending.length} abertas</Badge>
-              </div>
-              <div className="divide-y divide-slate-50">
-                 {assignments.length === 0 ? (
-                   <p className="p-12 text-center font-editorial italic text-muted-foreground">Nenhum serviço atribuído no momento.</p>
-                 ) : (
-                   assignments.map((a: any) => (
-                     <div key={a.id} className="p-6 hover:bg-slate-50 transition-colors flex items-center justify-between group">
-                        <div className="flex items-center gap-5">
-                           <div className="size-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/5 transition-all">
-                              <Briefcase className="size-6" />
-                           </div>
-                           <div>
-                              <p className="font-bold text-slate-900">{a.products?.name || "Serviço"}</p>
-                              <p className="text-xs text-muted-foreground">Cliente: {a.clients?.full_name}</p>
-                              {a.due_date && <p className="text-[10px] uppercase font-bold tracking-widest text-primary/60 mt-2">Prazo: {formatDate(a.due_date)}</p>}
-                           </div>
-                        </div>
-                        <Badge variant="outline" className="rounded-full px-4 py-1 text-[9px] uppercase tracking-widest font-bold border-slate-200">{a.status}</Badge>
-                     </div>
-                   ))
-                 )}
-              </div>
-           </div>
+  async function handleDownload(filePath: string, name: string) {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 60);
+    if (error || !data) return;
+    const a = document.createElement("a");
+    a.href = data.signedUrl;
+    a.download = name;
+    a.click();
+  }
 
-           {/* Production List */}
-           <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100 shadow-xl shadow-slate-200/10">
-              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                 <div className="flex items-center gap-3">
-                    <Users className="size-5 text-primary" />
-                    <h3 className="font-editorial text-2xl font-bold text-slate-900">Em Execução</h3>
-                 </div>
-                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Capacidade Atual</span>
-              </div>
-              <div className="divide-y divide-slate-50">
-                 {clientProducts.length === 0 ? (
-                   <p className="p-12 text-center font-editorial italic text-muted-foreground">Nenhum projeto em execução ativa.</p>
-                 ) : (
-                   clientProducts.map((cp: any) => (
-                     <div key={cp.id} className="p-6 hover:bg-slate-50 transition-colors flex items-center justify-between">
-                        <div>
-                           <p className="font-bold text-slate-900">{cp.clients?.full_name}</p>
-                           <p className="text-xs text-muted-foreground">{cp.products?.name}</p>
-                        </div>
-                        <div className="text-right">
-                           <p className="font-bold text-slate-900 tabular-nums">{formatBRL(cp.value)}</p>
-                           <button onClick={() => navigate(`/clientes/${cp.clients?.id}`)} className="text-[10px] font-bold uppercase tracking-widest text-primary mt-1 hover:underline">Ver Processo</button>
-                        </div>
-                     </div>
-                   ))
-                 )}
-              </div>
-              <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                 <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Valor Total Produzido</p>
-                 <p className="font-editorial text-3xl font-bold text-slate-900">{formatBRL(totalValue)}</p>
-              </div>
-           </div>
+  if (!provider) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-8">
+        <div className="vx-card p-12 max-w-lg text-center">
+          <Inbox className="size-12 text-primary/30 mx-auto mb-6" />
+          <h2 className="text-2xl font-bold tracking-tight mb-3">Acesso de prestador pendente</h2>
+          <p className="text-muted-foreground">
+            Sua conta ainda não foi vinculada a um cadastro de prestador. Entre em contato com o administrador.
+          </p>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="bg-background min-h-screen">
+      <div className="page-shell space-y-10 py-10">
+        {/* Header */}
+        <header className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Painel do Prestador</p>
+          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Olá, {provider.name}</h1>
+          {provider.specialty && (
+            <p className="text-sm text-muted-foreground">{provider.specialty}</p>
+          )}
+        </header>
+
+        {/* KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiCard label="Atendimentos" value={String(stats.total)} icon={Briefcase} />
+          <KpiCard label="Pendentes" value={String(stats.pendentes)} icon={ClipboardCheck} tone="warning" />
+          <KpiCard label="Concluídos" value={String(stats.concluidos)} icon={ClipboardCheck} tone="success" />
+          <KpiCard label="Valor sob gestão" value={formatBRL(stats.valor)} icon={FileText} />
+        </div>
+
+        <Tabs defaultValue="clientes" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="clientes">Meus Clientes ({clientProducts.length})</TabsTrigger>
+            <TabsTrigger value="documentos">Documentos ({documents.length})</TabsTrigger>
+            <TabsTrigger value="reportes">Histórico de Reportes ({reports.length})</TabsTrigger>
+          </TabsList>
+
+          {/* CLIENTES */}
+          <TabsContent value="clientes" className="space-y-3">
+            {isLoading ? (
+              <p className="text-center text-muted-foreground py-12">Carregando...</p>
+            ) : clientProducts.length === 0 ? (
+              <EmptyState message="Nenhum cliente delegado a você no momento." />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {clientProducts.map((cp: any) => (
+                  <div key={cp.id} className="vx-card p-6 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-bold text-foreground">{cp.clients?.full_name}</h3>
+                        <p className="text-xs text-muted-foreground">{cp.products?.name}</p>
+                      </div>
+                      <StatusBadge status={cp.status} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <p className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Prazo</p>
+                        <p className="font-medium">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Iniciado</p>
+                        <p className="font-medium">{formatDate(cp.created_at)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-3 border-t border-border">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => navigate(`/clientes/${cp.clients?.id}`)}
+                      >
+                        Ver Cliente <ArrowRight className="size-3 ml-1" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}
+                      >
+                        <ClipboardCheck className="size-3 mr-1" /> Reportar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* DOCUMENTOS */}
+          <TabsContent value="documentos">
+            {documents.length === 0 ? (
+              <EmptyState message="Nenhum documento disponível para os produtos delegados." />
+            ) : (
+              <div className="vx-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <th className="px-6 py-4 text-left">Documento</th>
+                      <th className="px-6 py-4 text-left">Cliente</th>
+                      <th className="px-6 py-4 text-left">Status</th>
+                      <th className="px-6 py-4 text-left">Data</th>
+                      <th className="px-6 py-4 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {documents.map((d: any) => (
+                      <tr key={d.id} className="hover:bg-muted/30">
+                        <td className="px-6 py-4 font-medium">{d.name}</td>
+                        <td className="px-6 py-4 text-xs text-muted-foreground">{d.clients?.full_name}</td>
+                        <td className="px-6 py-4"><StatusBadge status={d.status} /></td>
+                        <td className="px-6 py-4 text-xs text-muted-foreground">{formatDate(d.created_at)}</td>
+                        <td className="px-6 py-4 text-right">
+                          {d.file_path ? (
+                            <Button size="sm" variant="ghost" onClick={() => handleDownload(d.file_path, d.name)}>
+                              <Download className="size-3 mr-1" /> Baixar
+                            </Button>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground">Sem arquivo</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* REPORTES */}
+          <TabsContent value="reportes">
+            {reports.length === 0 ? (
+              <EmptyState message="Você ainda não enviou nenhum reporte." />
+            ) : (
+              <div className="vx-card divide-y divide-border">
+                {reports.map((r: any) => {
+                  const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
+                  return (
+                    <div key={r.id} className="p-5 flex items-start gap-4">
+                      <div className="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <ClipboardCheck className="size-5" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-sm">{cp?.clients?.full_name ?? "Cliente"}</p>
+                          <span className="text-muted-foreground text-xs">·</span>
+                          <p className="text-xs text-muted-foreground">{cp?.products?.name}</p>
+                          <StatusBadge status={r.status} />
+                        </div>
+                        {r.notes && <p className="text-sm text-muted-foreground">{r.notes}</p>}
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{formatDate(r.created_at)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {reportTarget && (
+        <ReportStatusDialog
+          open={!!reportTarget}
+          onOpenChange={(v) => !v && setReportTarget(null)}
+          clientProductId={reportTarget.id}
+          productName={reportTarget.productName}
+          clientName={reportTarget.clientName}
+        />
+      )}
     </div>
   );
 }
 
-function ProviderStat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function KpiCard({ label, value, icon: Icon, tone = "default" }: any) {
+  const tones: any = {
+    default: "bg-muted text-muted-foreground",
+    warning: "bg-amber-500/10 text-amber-600",
+    success: "bg-emerald-500/10 text-emerald-600",
+  };
   return (
-    <div className="space-y-2">
-       <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/30">{label}</p>
-       <p className={cn(
-         "font-editorial text-4xl lg:text-5xl font-bold tracking-tight",
-         highlight ? "text-primary" : "text-white"
-       )}>{value}</p>
+    <div className="vx-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className={cn("size-9 rounded-lg flex items-center justify-center", tones[tone])}>
+          <Icon className="size-4" />
+        </div>
+      </div>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="text-2xl font-bold tracking-tight mt-1">{value}</p>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: any = {
+    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
+    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
+    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/30" },
+    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/30" },
+    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
+    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-muted text-muted-foreground border-border" },
+    aprovado: { label: "APROVADO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+    enviado: { label: "ENVIADO", className: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
+    solicitado: { label: "SOLICITADO", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
+  };
+  const cfg = map[status] || { label: status?.toUpperCase() || "—", className: "bg-muted text-muted-foreground border-border" };
+  return (
+    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border", cfg.className)}>
+      {cfg.label}
+    </Badge>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="vx-card p-16 text-center">
+      <Inbox className="size-10 text-muted-foreground/40 mx-auto mb-4" />
+      <p className="text-muted-foreground">{message}</p>
     </div>
   );
 }
