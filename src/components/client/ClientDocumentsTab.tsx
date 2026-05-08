@@ -311,7 +311,13 @@ export function ClientDocumentsTab({
                           req.file_url && "border-primary/20 text-primary hover:bg-primary/5 dark:hover:bg-primary/10"
                         )}
                         disabled={isUploading}
-                        onClick={() => document.getElementById(`upload-${req.id}`)?.click()}
+                        onClick={() => {
+                          if (req.file_url) {
+                            setConfirmReq(req);
+                          } else {
+                            document.getElementById(`upload-${req.id}`)?.click();
+                          }
+                        }}
                       >
                         {isUploading ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Upload className="size-4 mr-1.5" />}
                         {isUploading ? "Enviando..." : req.file_url ? "Reenviar" : "Anexar Arquivo"}
@@ -324,6 +330,28 @@ export function ClientDocumentsTab({
           </div>
         </div>
       ))}
+
+      {/* Modal de Confirmação */}
+      <AlertDialog open={!!confirmReq} onOpenChange={() => setConfirmReq(null)}>
+        <AlertDialogContent className="rounded-[24px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-editorial text-2xl">Confirmar novo envio?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Ao enviar um novo arquivo para <strong className="text-slate-900 dark:text-white">"{confirmReq?.request_title}"</strong>, 
+              o arquivo anterior será substituído e o processo de análise será reiniciado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl border-slate-200">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="rounded-xl bg-primary"
+              onClick={() => document.getElementById(`upload-${confirmReq?.id}`)?.click()}
+            >
+              Confirmar e Escolher Arquivo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
