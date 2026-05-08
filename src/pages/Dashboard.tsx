@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight, Zap, Search, Bell, Calendar,
   DollarSign, Users, Wallet, Target, Activity,
@@ -26,6 +27,7 @@ function makeRange(key: RangeKey) {
 
 export default function Dashboard() {
   const { roles } = useAuth();
+  const navigate = useNavigate();
   const [rangeKey, setRangeKey] = useState<RangeKey>("month");
   const { data: stats, isLoading } = useDashboardStats();
 
@@ -177,7 +179,12 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground mt-0.5">Últimas ações realizadas no sistema</p>
                   </div>
                 </div>
-                <button className="text-[11px] font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-700 transition-colors">Ver Auditoria</button>
+                <button 
+                  onClick={() => navigate("/auditoria")}
+                  className="text-[11px] font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  Ver Auditoria
+                </button>
               </div>
 
               <div className="space-y-6">
