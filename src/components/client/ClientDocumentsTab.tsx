@@ -1,12 +1,17 @@
 import { useRef, useState, useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package } from "lucide-react";
+import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 type DocRequest = {
   id: string;
@@ -46,6 +51,19 @@ export function ClientDocumentsTab({
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [openHistory, setOpenHistory] = useState<string | null>(null);
+
+  const { data: history } = useQuery({
+    queryKey: ["document-history", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("document_history")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const grouped = useMemo(() => {
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
@@ -62,19 +80,36 @@ export function ClientDocumentsTab({
     try {
       setUploadingId(req.id);
       const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${clientId}/${req.id}/${Date.now()}.${ext}`;
+      const timestamp = Date.now();
+      const path = `${clientId}/${req.id}/${timestamp}.${ext}`;
 
+      // Upload file
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
       if (upErr) throw upErr;
 
+      // Update request status
       const { error: updErr } = await supabase
         .from("document_requests")
-        .update({ file_url: path, status: "enviado", submission_date: new Date().toISOString() })
+        .update({ 
+          file_url: path, 
+          status: "enviado", 
+          submission_date: new Date().toISOString(),
+          rejection_reason: null // Clear reason on resubmit
+        })
         .eq("id", req.id);
       if (updErr) throw updErr;
 
+      // Log to history
+      await supabase.from("document_history").insert({
+        request_id: req.id,
+        file_url: path,
+        status: "enviado",
+        created_by: (await supabase.auth.getUser()).data.user?.id
+      });
+
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
+      qc.invalidateQueries({ queryKey: ["document-history"] });
     } catch (e: any) {
       toast.error(e.message ?? "Falha ao enviar documento");
     } finally {
@@ -82,11 +117,15 @@ export function ClientDocumentsTab({
     }
   }
 
-  async function handleDownload(req: DocRequest) {
-    if (!req.file_url) return;
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(req.file_url, 60);
+  async function downloadFile(url: string) {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(url, 60);
     if (error || !data) return toast.error("Não foi possível baixar o arquivo");
     window.open(data.signedUrl, "_blank");
+  }
+
+  async function handleDownload(req: DocRequest) {
+    if (!req.file_url) return;
+    await downloadFile(req.file_url);
   }
 
   if (requests.length === 0) {
@@ -148,15 +187,60 @@ export function ClientDocumentsTab({
                       {overdue && <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200">Atrasado</Badge>}
                     </div>
                     {req.description && <p className="text-sm text-muted-foreground mt-1">{req.description}</p>}
+                    
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
-                      {req.deadline && <span>Prazo: {formatDate(req.deadline)}</span>}
-                      {req.submission_date && <span>Enviado: {formatDate(req.submission_date)}</span>}
-                      {req.approval_date && <span>Aprovado: {formatDate(req.approval_date)}</span>}
+                      {req.deadline && <span className="flex items-center gap-1"><Clock className="size-3" /> Prazo: {formatDate(req.deadline)}</span>}
+                      {req.submission_date && <span>Último envio: {formatDate(req.submission_date)}</span>}
                     </div>
+
                     {req.status === "reprovado" && req.rejection_reason && (
-                      <p className="text-xs text-rose-600 mt-2 bg-rose-50 dark:bg-rose-500/10 px-3 py-2 rounded-lg">
-                        <strong>Motivo:</strong> {req.rejection_reason}
+                      <p className="text-xs text-rose-600 mt-2 bg-rose-50 dark:bg-rose-500/10 px-3 py-2 rounded-lg border border-rose-100 dark:border-rose-500/20">
+                        <strong>Motivo do reprovado:</strong> {req.rejection_reason}
                       </p>
+                    )}
+
+                    {/* Histórico Colapsável */}
+                    {history?.some(h => h.request_id === req.id) && (
+                      <Collapsible
+                        open={openHistory === req.id}
+                        onOpenChange={() => setOpenHistory(openHistory === req.id ? null : req.id)}
+                        className="mt-4"
+                      >
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase tracking-wider font-bold text-primary px-0 hover:bg-transparent">
+                            <HistoryIcon className="size-3 mr-1.5" />
+                            Histórico de Versões
+                            {openHistory === req.id ? <ChevronUp className="size-3 ml-1" /> : <ChevronDown className="size-3 ml-1" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-3 space-y-3 border-l-2 border-slate-100 dark:border-white/5 pl-4 ml-1">
+                          {history
+                            ?.filter((h) => h.request_id === req.id)
+                            .map((h) => (
+                              <div key={h.id} className="text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-slate-700 dark:text-slate-300">{formatDate(h.created_at)}</span>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 text-[10px] text-primary hover:bg-primary/5"
+                                    onClick={() => downloadFile(h.file_url)}
+                                  >
+                                    <Download className="size-3 mr-1" /> Baixar v.{h.created_at.slice(0, 10)}
+                                  </Button>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", STATUS_META[h.status]?.tone || "bg-slate-50")}>
+                                    {STATUS_META[h.status]?.label || h.status}
+                                  </Badge>
+                                  {h.rejection_reason && (
+                                    <span className="text-rose-500 italic">Reprovado: {h.rejection_reason}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                        </CollapsibleContent>
+                      </Collapsible>
                     )}
                   </div>
 
