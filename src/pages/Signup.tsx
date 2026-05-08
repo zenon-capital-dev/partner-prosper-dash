@@ -96,7 +96,10 @@ export default function SignupPage() {
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: parsed.data.fullName },
+        data: { 
+          full_name: parsed.data.fullName,
+          role: parsed.data.role
+        },
       },
     });
     setSubmitting(false);
