@@ -51,6 +51,19 @@ export function ClientDocumentsTab({
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [openHistory, setOpenHistory] = useState<string | null>(null);
+
+  const { data: history } = useQuery({
+    queryKey: ["document-history", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("document_history")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const grouped = useMemo(() => {
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
