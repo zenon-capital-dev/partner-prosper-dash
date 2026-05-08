@@ -12,6 +12,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NpsCard } from "@/components/nps/NpsCard";
+import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
