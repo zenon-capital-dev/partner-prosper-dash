@@ -46,7 +46,7 @@ export default function ProviderPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, status, value, deadline, created_at, clients(id, full_name, email, phone), products(name, category)")
+        .select("id, status, value, deadline, created_at, clients(id, full_name, email, phone), products(name)")
         .eq("service_provider_id", providerId!)
         .order("created_at", { ascending: false });
       return data ?? [];
