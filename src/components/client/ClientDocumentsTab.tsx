@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type DocRequest = {
   id: string;
@@ -34,8 +44,8 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
   solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300", icon: Clock },
   enviado: { label: "Analisando", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
   analisando: { label: "Analisando", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
-  aprovado: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
-  concluido: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
+  aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
+  concluido: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
   reprovado: { label: "Reprovado", tone: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300", icon: AlertCircle },
 };
 
@@ -52,6 +62,7 @@ export function ClientDocumentsTab({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [openHistory, setOpenHistory] = useState<string | null>(null);
+  const [confirmReq, setConfirmReq] = useState<DocRequest | null>(null);
 
   const { data: history } = useQuery({
     queryKey: ["document-history", clientId],
@@ -79,9 +90,23 @@ export function ClientDocumentsTab({
   async function handleUpload(req: DocRequest, file: File) {
     try {
       setUploadingId(req.id);
+      
+      // Validações
+      const maxSizeMB = 10; // Default fallback
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        throw new Error(`Arquivo muito grande. Limite de ${maxSizeMB}MB.`);
+      }
+      
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Formato inválido. Use PDF, JPG ou PNG.");
+      }
+
       const ext = file.name.split(".").pop() ?? "bin";
       const timestamp = Date.now();
       const path = `${clientId}/${req.id}/${timestamp}.${ext}`;
+      const oldUrl = req.file_url;
 
       // Upload file
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
@@ -94,18 +119,30 @@ export function ClientDocumentsTab({
           file_url: path, 
           status: "enviado", 
           submission_date: new Date().toISOString(),
-          rejection_reason: null // Clear reason on resubmit
+          rejection_reason: null
         })
         .eq("id", req.id);
       if (updErr) throw updErr;
 
-      // Log to history
-      await supabase.from("document_history").insert({
-        request_id: req.id,
-        file_url: path,
-        status: "enviado",
-        created_by: (await supabase.auth.getUser()).data.user?.id
-      });
+      // Audit Log and History
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      await Promise.all([
+        supabase.from("document_history").insert({
+          request_id: req.id,
+          file_url: path,
+          status: "enviado",
+          created_by: user?.id
+        }),
+        supabase.from("audit_logs").insert({
+          user_id: user?.id,
+          action: "RE-UPLOAD",
+          entity_type: "document_requests",
+          entity_id: req.id,
+          old_data: { file_url: oldUrl },
+          new_data: { file_url: path, file_name: file.name, size: file.size }
+        })
+      ]);
 
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
@@ -114,6 +151,7 @@ export function ClientDocumentsTab({
       toast.error(e.message ?? "Falha ao enviar documento");
     } finally {
       setUploadingId(null);
+      setConfirmReq(null);
     }
   }
 
@@ -273,7 +311,13 @@ export function ClientDocumentsTab({
                           req.file_url && "border-primary/20 text-primary hover:bg-primary/5 dark:hover:bg-primary/10"
                         )}
                         disabled={isUploading}
-                        onClick={() => document.getElementById(`upload-${req.id}`)?.click()}
+                        onClick={() => {
+                          if (req.file_url) {
+                            setConfirmReq(req);
+                          } else {
+                            document.getElementById(`upload-${req.id}`)?.click();
+                          }
+                        }}
                       >
                         {isUploading ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Upload className="size-4 mr-1.5" />}
                         {isUploading ? "Enviando..." : req.file_url ? "Reenviar" : "Anexar Arquivo"}
@@ -286,6 +330,28 @@ export function ClientDocumentsTab({
           </div>
         </div>
       ))}
+
+      {/* Modal de Confirmação */}
+      <AlertDialog open={!!confirmReq} onOpenChange={() => setConfirmReq(null)}>
+        <AlertDialogContent className="rounded-[24px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-editorial text-2xl">Confirmar novo envio?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Ao enviar um novo arquivo para <strong className="text-slate-900 dark:text-white">"{confirmReq?.request_title}"</strong>, 
+              o arquivo anterior será substituído e o processo de análise será reiniciado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel className="rounded-xl border-slate-200">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="rounded-xl bg-primary"
+              onClick={() => document.getElementById(`upload-${confirmReq?.id}`)?.click()}
+            >
+              Confirmar e Escolher Arquivo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
