@@ -27,6 +27,7 @@ function makeRange(key: RangeKey) {
 
 export default function Dashboard() {
   const { roles } = useAuth();
+  const navigate = useNavigate();
   const [rangeKey, setRangeKey] = useState<RangeKey>("month");
   const { data: stats, isLoading } = useDashboardStats();
 
