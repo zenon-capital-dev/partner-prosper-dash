@@ -161,7 +161,9 @@ export default function ClientPanel() {
             </div>
           </TabsContent>
 
-          <TabsContent value="catalogo" className="animate-fade-up">
+          <TabsContent value="documentos" className="animate-fade-up">
+            <ClientDocumentsTab clientId={client.id} requests={requests as any} products={catalog as any} />
+          </TabsContent>
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {availableCatalog.map((p: any) => (
                   <div key={p.id} className="vx-card p-8 bg-white/60 backdrop-blur-md border-white/50 hover:bg-white transition-all rounded-[24px] border-dashed border-2">
