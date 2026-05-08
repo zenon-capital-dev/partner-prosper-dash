@@ -163,6 +163,25 @@ export default function Finance() {
               <SelectItem value="all">All Time</SelectItem>
             </SelectContent>
           </Select>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest gap-2"
+            onClick={() => {
+              const headers = ["Produto", "Vendas", "Receita Bruta", "Comissoes", "Receita Liquida"];
+              const rows = productPerformance.map((p: any) => [
+                p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
+              ]);
+              const csv = [headers, ...rows].map(r => r.join(";")).join("\n");
+              const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(blob);
+              link.download = `performance_produtos_${new Date().toISOString().slice(0, 10)}.csv`;
+              link.click();
+            }}
+          >
+            <Download className="size-3.5" /> Export Performance
+          </Button>
           <Button size="sm" className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-success/20 bg-success hover:bg-success/90 text-success-foreground">
             <Plus className="size-4" strokeWidth={3} /> Record Expense
           </Button>
