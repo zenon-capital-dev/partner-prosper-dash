@@ -152,7 +152,7 @@ export default function DashboardAdmin() {
         </div>
       </div>
 
-      <div className="vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 rounded-[32px]">
+      <div className="vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] shadow-none hover:border-primary/10 transition-colors">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Top Parceiros & Canais</h3>
