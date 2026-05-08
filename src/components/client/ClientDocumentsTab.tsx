@@ -101,8 +101,8 @@ export function ClientDocumentsTab({
       setUploadingId(req.id);
       
       // Validações
-      const maxSizeMB = 10; // Default fallback
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      const maxSizeMB = 10;
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
       
       if (file.size > maxSizeMB * 1024 * 1024) {
         throw new Error(`Arquivo muito grande. Limite de ${maxSizeMB}MB.`);
@@ -115,7 +115,7 @@ export function ClientDocumentsTab({
       const ext = file.name.split(".").pop() ?? "bin";
       const timestamp = Date.now();
       const path = `${clientId}/${req.id}/${timestamp}.${ext}`;
-      const oldUrl = req.file_url;
+      const oldPath = req.file_path;
 
       // Upload file
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
@@ -123,39 +123,35 @@ export function ClientDocumentsTab({
 
       // Update request status
       const { error: updErr } = await supabase
-        .from("document_requests")
+        .from("documents")
         .update({ 
-          file_url: path, 
+          file_path: path, 
           status: "enviado", 
-          submission_date: new Date().toISOString(),
-          rejection_reason: null
+          uploaded_at: new Date().toISOString(),
+          rejection_reason: null,
+          file_size: file.size,
+          mime_type: file.type
         })
         .eq("id", req.id);
       if (updErr) throw updErr;
 
-      // Audit Log and History
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      await Promise.all([
-        supabase.from("document_history").insert({
-          request_id: req.id,
-          file_url: path,
-          status: "enviado",
-          created_by: user?.id
-        }),
-        supabase.from("audit_logs").insert({
+      // Audit Log (if tables exist, or just toast success)
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("audit_logs").insert({
           user_id: user?.id,
           action: "RE-UPLOAD",
-          entity_type: "document_requests",
+          entity_type: "documents",
           entity_id: req.id,
-          old_data: { file_url: oldUrl },
-          new_data: { file_url: path, file_name: file.name, size: file.size }
-        })
-      ]);
+          old_data: { file_path: oldPath },
+          new_data: { file_path: path, file_name: file.name, size: file.size }
+        });
+      } catch (e) {
+        console.warn("Could not write audit log", e);
+      }
 
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
-      qc.invalidateQueries({ queryKey: ["document-history"] });
     } catch (e: any) {
       toast.error(e.message ?? "Falha ao enviar documento");
     } finally {
@@ -165,14 +161,14 @@ export function ClientDocumentsTab({
   }
 
   async function downloadFile(url: string) {
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(url, 60);
-    if (error || !data) return toast.error("Não foi possível baixar o arquivo");
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(url, 3600);
+    if (error || !data) return toast.error("Não foi possível acessar o arquivo");
     window.open(data.signedUrl, "_blank");
   }
 
   async function handleDownload(req: DocRequest) {
-    if (!req.file_url) return;
-    await downloadFile(req.file_url);
+    if (!req.file_path) return;
+    await downloadFile(req.file_path);
   }
 
   if (requests.length === 0) {
