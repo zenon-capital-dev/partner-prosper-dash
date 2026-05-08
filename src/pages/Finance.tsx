@@ -315,6 +315,75 @@ export default function Finance() {
         </div>
       </div>
 
+      {/* Performance Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+         {/* Product Ranking */}
+         <div className="vx-card p-8 bg-white dark:bg-card">
+            <div className="flex items-center justify-between mb-8">
+               <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest">Performance por Produto</h3>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Ranking de volume bruto</p>
+               </div>
+               <BarChart3 className="size-5 text-primary opacity-30" />
+            </div>
+            <div className="space-y-6">
+               {productPerformance.slice(0, 6).map((p: any) => (
+                  <div key={p.product_id} className="space-y-2">
+                     <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-foreground">{p.product_name}</span>
+                        <span className="font-mono font-bold text-success">{formatBRL(p.gross_revenue)}</span>
+                     </div>
+                     <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                           className="h-full bg-primary rounded-full transition-all duration-1000" 
+                           style={{ width: `${(p.gross_revenue / (productPerformance[0]?.gross_revenue || 1)) * 100}%` }} 
+                        />
+                     </div>
+                     <div className="flex items-center justify-between text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                        <span>{p.total_sales} vendas</span>
+                        <span>Margem: {p.gross_revenue > 0 ? ((p.net_revenue / p.gross_revenue) * 100).toFixed(1) : 0}%</span>
+                     </div>
+                  </div>
+               ))}
+               {productPerformance.length === 0 && <p className="text-xs text-muted-foreground italic">Sem dados de performance.</p>}
+            </div>
+         </div>
+
+         {/* Source Performance */}
+         <div className="vx-card p-8 bg-white dark:bg-card">
+            <div className="flex items-center justify-between mb-8">
+               <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest">Origem de Leads</h3>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Conversão e ROI por canal</p>
+               </div>
+               <TrendingUp className="size-5 text-success opacity-30" />
+            </div>
+            <div className="space-y-6">
+               {sourcePerformance.slice(0, 6).map((s: any) => (
+                  <div key={s.source} className="flex items-center gap-6">
+                     <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                           <span className="font-bold text-foreground">{s.source || "Direto / Orgânico"}</span>
+                           <span className="font-mono font-bold">{formatBRL(s.total_revenue)}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                           <div 
+                              className="h-full bg-emerald-500 rounded-full" 
+                              style={{ width: `${(s.total_revenue / (sourcePerformance[0]?.total_revenue || 1)) * 100}%` }} 
+                           />
+                        </div>
+                     </div>
+                     <div className="text-center shrink-0">
+                        <p className="text-lg font-bold text-foreground leading-none">{s.total_leads > 0 ? ((s.converted_sales / s.total_leads) * 100).toFixed(0) : 0}%</p>
+                        <p className="text-[8px] text-muted-foreground uppercase tracking-tighter mt-1">Conv.</p>
+                     </div>
+                  </div>
+               ))}
+               {sourcePerformance.length === 0 && <p className="text-xs text-muted-foreground italic">Sem dados de leads.</p>}
+            </div>
+         </div>
+      </div>
+
       {/* Transaction Feed */}
       <div className="vx-card overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 gap-4 border-b border-border/10">
