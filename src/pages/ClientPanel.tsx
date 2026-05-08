@@ -178,17 +178,6 @@ export default function ClientPanel() {
                   </div>
                 ))}
              </div>
-                {availableCatalog.map((p: any) => (
-                  <div key={p.id} className="vx-card p-8 bg-white/60 backdrop-blur-md border-white/50 hover:bg-white transition-all rounded-[24px] border-dashed border-2">
-                    <h3 className="font-editorial text-2xl font-bold text-slate-800">{p.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
-                    <div className="mt-8 flex items-center justify-between">
-                       <p className="text-xl font-bold text-slate-900">{formatBRL(p.base_price)}</p>
-                       <Button className="rounded-full bg-slate-900 hover:bg-slate-800">Saber mais</Button>
-                    </div>
-                  </div>
-                ))}
-             </div>
           </TabsContent>
 
           <TabsContent value="docs" className="animate-fade-up">
