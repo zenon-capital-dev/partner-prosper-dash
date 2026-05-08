@@ -51,15 +51,24 @@ export function ClientProducts({ clientId }: { clientId: string }) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold tracking-tight">Produtos Contratados</h3>
-          <p className="text-xs text-muted-foreground">Serviços ativos e prestadores delegados</p>
+          <p className="text-xs text-muted-foreground">Serviços ativos, prestadores delegados e splits de comissão</p>
         </div>
+        <Button onClick={() => setAddOpen(true)} size="sm" className="gap-2">
+          <Plus className="size-4" /> Adicionar Produto
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {isLoading ? (
           <div className="col-span-2 text-center py-12 text-muted-foreground">Carregando...</div>
         ) : clientProducts?.length === 0 ? (
-          <div className="col-span-2 text-center py-12 text-muted-foreground">Nenhum produto vinculado.</div>
+          <div className="col-span-2 vx-card p-16 text-center border-dashed border-2">
+            <Package className="size-10 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground mb-4">Nenhum produto vinculado a este cliente.</p>
+            <Button onClick={() => setAddOpen(true)} size="sm" variant="outline" className="gap-2">
+              <Plus className="size-4" /> Adicionar Primeiro Produto
+            </Button>
+          </div>
         ) : clientProducts?.map((cp: any) => {
           const lastReport = (latestReports as any)[cp.id];
           return (
