@@ -70,14 +70,25 @@ export default function Finance() {
     },
   });
 
+  const { data: splits = [] } = useQuery({
+    queryKey: ["finance-splits", from, to],
+    queryFn: async () => {
+      let q = supabase.from("commission_splits").select("*, sales(clients(full_name), products(name))").order("created_at", { ascending: false });
+      if (from) q = q.gte("created_at", from);
+      const { data } = await q;
+      return data ?? [];
+    },
+  });
+
   const kpis = useMemo(() => {
     const revenue = sales.filter((s: any) => s.status === "concluida").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
-    const commissionsPaid = commissions.filter((c: any) => c.status === "paga").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const profit = revenue - commissionsPaid - expensesTotal;
+    const commissionsTotal = splits.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const commissionsPaid = splits.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const profit = revenue - commissionsTotal - expensesTotal;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { revenue, expensesTotal, commissionsPaid, profit, margin };
-  }, [sales, commissions, expenses]);
+    return { revenue, expensesTotal, commissionsPaid, commissionsTotal, profit, margin };
+  }, [sales, expenses, splits]);
 
   // Group data for charts
   const chartData = useMemo(() => {
