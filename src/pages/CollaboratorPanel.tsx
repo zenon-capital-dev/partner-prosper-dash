@@ -165,12 +165,15 @@ export default function CollaboratorPanel() {
   );
 }
 
-function CollabStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+function CollabStat({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: string }) {
   return (
     <div className="space-y-1">
        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{label}</p>
        <div className="flex items-baseline gap-2">
-          <span className="font-editorial text-4xl lg:text-6xl font-bold text-slate-900">{value}</span>
+          <span className={cn(
+            "font-editorial text-4xl lg:text-6xl font-bold",
+            tone === "primary" ? "text-primary" : "text-slate-900"
+          )}>{value}</span>
           <span className="text-xs text-muted-foreground italic">{sub}</span>
        </div>
     </div>
