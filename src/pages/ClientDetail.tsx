@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Plus, Pencil, Wallet, 
+  ArrowLeft, Plus, Pencil, Wallet, MessageSquare,
   Activity as ActivityIcon, CheckCircle2, Clock3,
   FileText, ShoppingBag, FileSignature, ClipboardList,
   History, Info, CreditCard
 } from "lucide-react";
+import { openWhatsApp } from "@/lib/whatsapp";
+import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, initials } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
@@ -83,6 +85,18 @@ export default function ClientDetail() {
         </div>
 
         <div className="flex items-center gap-2">
+           <button
+             onClick={() => {
+               const ok = openWhatsApp({
+                 phone: client.whatsapp || client.phone,
+                 message: `Olá ${client.full_name?.split(" ")[0] || ""}, tudo bem?`,
+               });
+               if (!ok) toast.error("Cliente sem telefone válido");
+             }}
+             className="h-8 px-4 rounded-md bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors"
+           >
+            <MessageSquare className="size-3.5" /> WhatsApp
+           </button>
            <button onClick={() => setEditOpen(true)} className="h-8 px-4 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-[11.5px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5 transition-colors">
             <Pencil className="size-3" /> Editar Cadastro
            </button>
