@@ -90,9 +90,23 @@ export function ClientDocumentsTab({
   async function handleUpload(req: DocRequest, file: File) {
     try {
       setUploadingId(req.id);
+      
+      // Validações
+      const maxSizeMB = 10; // Default fallback
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        throw new Error(`Arquivo muito grande. Limite de ${maxSizeMB}MB.`);
+      }
+      
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Formato inválido. Use PDF, JPG ou PNG.");
+      }
+
       const ext = file.name.split(".").pop() ?? "bin";
       const timestamp = Date.now();
       const path = `${clientId}/${req.id}/${timestamp}.${ext}`;
+      const oldUrl = req.file_url;
 
       // Upload file
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
@@ -105,18 +119,30 @@ export function ClientDocumentsTab({
           file_url: path, 
           status: "enviado", 
           submission_date: new Date().toISOString(),
-          rejection_reason: null // Clear reason on resubmit
+          rejection_reason: null
         })
         .eq("id", req.id);
       if (updErr) throw updErr;
 
-      // Log to history
-      await supabase.from("document_history").insert({
-        request_id: req.id,
-        file_url: path,
-        status: "enviado",
-        created_by: (await supabase.auth.getUser()).data.user?.id
-      });
+      // Audit Log and History
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      await Promise.all([
+        supabase.from("document_history").insert({
+          request_id: req.id,
+          file_url: path,
+          status: "enviado",
+          created_by: user?.id
+        }),
+        supabase.from("audit_logs").insert({
+          user_id: user?.id,
+          action: "RE-UPLOAD",
+          entity_type: "document_requests",
+          entity_id: req.id,
+          old_data: { file_url: oldUrl },
+          new_data: { file_url: path, file_name: file.name, size: file.size }
+        })
+      ]);
 
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
@@ -125,6 +151,7 @@ export function ClientDocumentsTab({
       toast.error(e.message ?? "Falha ao enviar documento");
     } finally {
       setUploadingId(null);
+      setConfirmReq(null);
     }
   }
 
