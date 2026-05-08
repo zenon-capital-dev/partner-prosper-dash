@@ -124,7 +124,7 @@ export default function Finance() {
       }
     });
 
-    commissions.forEach((c: any) => {
+    splits.forEach((c: any) => {
       const key = (c.paid_at || c.created_at)?.slice(0, 10);
       if (dailyMap[key]) {
         dailyMap[key].commissions += Number(c.amount || 0);
@@ -132,7 +132,7 @@ export default function Finance() {
     });
 
     return Object.values(dailyMap);
-  }, [sales, expenses, commissions]);
+  }, [sales, expenses, splits]);
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
