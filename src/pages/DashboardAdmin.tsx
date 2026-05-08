@@ -70,8 +70,8 @@ export default function DashboardAdmin() {
             <span className="h-px w-8 bg-primary/40" />
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Executive Cockpit</p>
           </div>
-          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
-            Visão <span className="text-primary italic">Global</span>.
+          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
+            Visão <span className="text-primary italic font-medium">Global</span>.
           </h1>
         </div>
         <div className="flex items-center gap-3">
