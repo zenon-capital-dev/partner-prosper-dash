@@ -149,6 +149,53 @@ export type Database = {
         }
         Relationships: []
       }
+      client_document_requests: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          file_url: string | null
+          id: string
+          reviewed_at: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          file_url?: string | null
+          id?: string
+          reviewed_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_document_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_product_status_reports: {
         Row: {
           client_product_id: string
@@ -177,6 +224,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_product_status_reports_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_product_steps: {
+        Row: {
+          client_product_id: string
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          label: string
+          position: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_product_id: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          label: string
+          position?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_product_id?: string
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          label?: string
+          position?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_steps_client_product_id_fkey"
             columns: ["client_product_id"]
             isOneToOne: false
             referencedRelation: "client_products"
