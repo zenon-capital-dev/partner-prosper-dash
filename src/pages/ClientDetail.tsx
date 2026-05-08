@@ -183,7 +183,7 @@ export default function ClientDetail() {
         <main className="min-h-[600px] animate-fade-up" key={activeTab}>
           {activeTab === "visao-geral" && <ClientOverview client={client} stats={stats} />}
           {activeTab === "produtos" && <ClientProducts clientId={id!} />}
-          {activeTab === "documentos" && <ClientDocuments clientId={id!} />}
+          {activeTab === "documentos" && <ClientDocuments clientId={id!} user_id={client.user_id} />}
           {activeTab === "contratos" && <ClientContracts clientId={id!} />}
           {activeTab === "financeiro" && <ClientFinancial clientId={id!} />}
           {activeTab === "tarefas" && <ClientTasks clientId={id!} />}

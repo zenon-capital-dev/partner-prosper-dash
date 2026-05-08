@@ -125,13 +125,12 @@ export default function ClientPanel() {
         {/* Navigation Tabs */}
         <Tabs defaultValue="meus-produtos" className="space-y-10">
           <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
-            <PremiumTabTrigger value="meus-produtos" label="Meus Serviços" icon={Package} />
-            <PremiumTabTrigger value="documentos" label="Documentos" icon={Upload} />
-            <PremiumTabTrigger value="catalogo" label="Descobrir" icon={ShoppingBag} />
-            <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-            <PremiumTabTrigger value="financeiro" label="Financeiro" icon={Receipt} />
+            <PremiumTabTrigger value="meus-produtos" label="Contratações" icon={Package} />
+            <PremiumTabTrigger value="documentos" label="Checklist" icon={Upload} />
+            <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} />
             <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
-            <PremiumTabTrigger value="timeline" label="Jornada" icon={History} />
+            <PremiumTabTrigger value="docs" label="Arquivos" icon={FileText} />
+            <PremiumTabTrigger value="catalogo" label="Descobrir" icon={ShoppingBag} />
           </TabsList>
 
           <TabsContent value="meus-produtos" className="animate-fade-up">
@@ -165,7 +164,7 @@ export default function ClientPanel() {
           </TabsContent>
 
           <TabsContent value="documentos" className="animate-fade-up">
-            <ClientDocumentsTab clientId={client.id} requests={requests as any} products={catalog as any} />
+            <ClientDocumentsTab clientId={client.id} requests={docs as any} products={catalog as any} />
           </TabsContent>
 
           <TabsContent value="catalogo" className="animate-fade-up">
