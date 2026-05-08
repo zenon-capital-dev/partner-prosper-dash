@@ -89,7 +89,7 @@ export default function DashboardAdmin() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 rounded-[32px] shadow-2xl shadow-slate-200/20">
+        <div className="lg:col-span-2 vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] hover:border-primary/20 transition-colors shadow-none">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Performance por Produto</h3>
@@ -110,9 +110,9 @@ export default function DashboardAdmin() {
                   </div>
                   <span className="font-mono text-sm font-bold text-slate-900 dark:text-white">{formatBRL(value)}</span>
                 </div>
-                <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-primary to-indigo-400 transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(99,102,241,0.3)]" 
+                    className="h-full bg-primary transition-all duration-1000 ease-out" 
                     style={{ width: `${(value / (stats.totalSales || 1)) * 100}%` }} 
                   />
                 </div>
