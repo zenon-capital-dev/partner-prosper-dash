@@ -85,6 +85,7 @@ export default function SignupPage() {
       email: fd.get("email"),
       password: fd.get("password"),
       confirmPassword: fd.get("confirmPassword"),
+      role: selectedRole,
       acceptTerms: accept,
     });
     if (!parsed.success) return toast.error(parsed.error.errors[0].message);
