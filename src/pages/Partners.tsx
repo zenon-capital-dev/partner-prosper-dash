@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight,
+  Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight, Handshake,
   Users2, Wallet, TrendingUp, CheckCircle2, Clock3, Award, Crown,
   LayoutGrid, List, Download, X, Power, PowerOff, Mail, Phone, KeyRound, Copy,
 } from "lucide-react";
