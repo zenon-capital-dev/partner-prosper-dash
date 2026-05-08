@@ -306,11 +306,11 @@ export default function Finance() {
            <div className="mt-8 p-5 rounded-xl bg-muted/30 border border-border/50">
              <div className="flex items-center gap-2 mb-2.5">
                <Sparkles className="size-3.5 text-primary" />
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
-             </div>
-             <p className="text-xs text-muted-foreground leading-relaxed">
-               Based on current run-rate, projected end-of-month profit is <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.4)}</span>.
-             </p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Considerando o volume atual de vendas e a taxa de conversão de leads, o lucro projetado para este período é de <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.2)}</span>.
+              </p>
            </div>
         </div>
       </div>
