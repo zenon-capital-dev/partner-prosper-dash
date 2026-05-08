@@ -773,6 +773,44 @@ export type Database = {
           },
         ]
       }
+      document_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          file_url: string
+          id: string
+          rejection_reason: string | null
+          request_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          file_url: string
+          id?: string
+          rejection_reason?: string | null
+          request_id?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          file_url?: string
+          id?: string
+          rejection_reason?: string | null
+          request_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_history_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_requests: {
         Row: {
           approval_date: string | null
