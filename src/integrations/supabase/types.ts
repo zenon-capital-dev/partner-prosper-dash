@@ -149,6 +149,41 @@ export type Database = {
         }
         Relationships: []
       }
+      client_product_status_reports: {
+        Row: {
+          client_product_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          reported_by: string | null
+          status: string
+        }
+        Insert: {
+          client_product_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reported_by?: string | null
+          status: string
+        }
+        Update: {
+          client_product_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reported_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_status_reports_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_products: {
         Row: {
           client_id: string
@@ -763,12 +798,14 @@ export type Database = {
         Row: {
           amount: number | null
           client_id: string
+          contract_kind: string
           created_at: string | null
           file_path: string | null
           finished_at: string | null
           id: string
           internal_notes: string | null
           name: string
+          partner_id: string | null
           product_id: string | null
           sale_id: string | null
           sent_at: string | null
@@ -779,12 +816,14 @@ export type Database = {
         Insert: {
           amount?: number | null
           client_id: string
+          contract_kind?: string
           created_at?: string | null
           file_path?: string | null
           finished_at?: string | null
           id?: string
           internal_notes?: string | null
           name: string
+          partner_id?: string | null
           product_id?: string | null
           sale_id?: string | null
           sent_at?: string | null
@@ -795,12 +834,14 @@ export type Database = {
         Update: {
           amount?: number | null
           client_id?: string
+          contract_kind?: string
           created_at?: string | null
           file_path?: string | null
           finished_at?: string | null
           id?: string
           internal_notes?: string | null
           name?: string
+          partner_id?: string | null
           product_id?: string | null
           sale_id?: string | null
           sent_at?: string | null
@@ -814,6 +855,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
           {
@@ -881,6 +929,7 @@ export type Database = {
         Row: {
           approval_date: string | null
           client_id: string
+          client_product_id: string | null
           deadline: string | null
           description: string | null
           file_url: string | null
@@ -897,6 +946,7 @@ export type Database = {
         Insert: {
           approval_date?: string | null
           client_id: string
+          client_product_id?: string | null
           deadline?: string | null
           description?: string | null
           file_url?: string | null
@@ -913,6 +963,7 @@ export type Database = {
         Update: {
           approval_date?: string | null
           client_id?: string
+          client_product_id?: string | null
           deadline?: string | null
           description?: string | null
           file_url?: string | null
@@ -935,6 +986,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "document_requests_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "document_requests_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -953,6 +1011,7 @@ export type Database = {
       documents: {
         Row: {
           client_id: string
+          client_product_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -975,6 +1034,7 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          client_product_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -997,6 +1057,7 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          client_product_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -1023,6 +1084,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
             referencedColumns: ["id"]
           },
           {
@@ -2398,6 +2466,10 @@ export type Database = {
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
+      is_delegated_provider: {
+        Args: { _client_product_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_action: {
         Args: {
           p_action: string
