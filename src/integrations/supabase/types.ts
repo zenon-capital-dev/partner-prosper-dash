@@ -91,6 +91,7 @@ export type Database = {
           entity_type: string
           id: string
           ip_address: string | null
+          metadata: Json | null
           new_data: Json | null
           old_data: Json | null
           user_id: string | null
@@ -102,6 +103,7 @@ export type Database = {
           entity_type: string
           id?: string
           ip_address?: string | null
+          metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           user_id?: string | null
@@ -113,6 +115,7 @@ export type Database = {
           entity_type?: string
           id?: string
           ip_address?: string | null
+          metadata?: Json | null
           new_data?: Json | null
           old_data?: Json | null
           user_id?: string | null
@@ -2130,6 +2133,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role:
