@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Search, Command,
   Briefcase, CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
-  ChevronsLeft, ChevronsRight, Activity, Zap,
+  ChevronsLeft, ChevronsRight, Activity, Zap, MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,7 @@ const SECTIONS: NavSection[] = [
       { title: "Documentos", url: "/documentos", icon: FileText },
       { title: "Contratos", url: "/contratos", icon: FileSignature },
       { title: "Projetos", url: "/projetos", icon: Briefcase },
+      { title: "Templates", url: "/templates", icon: MessageSquare },
       { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
       { title: "Prestadores", url: "/prestadores", icon: Truck },
       { title: "Indicadores", url: "/indicadores", icon: Activity },
