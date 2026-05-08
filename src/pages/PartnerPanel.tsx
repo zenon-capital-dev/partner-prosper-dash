@@ -1,20 +1,25 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Users, Wallet, CheckCircle2, TrendingUp, Clock, Inbox,
-  ArrowUpRight, Mail, Phone, Building2, ArrowRight,
+  ArrowUpRight, FileText, Download, XCircle,
 } from "lucide-react";
-import { formatBRL, formatDate, initials, formatPhone } from "@/lib/format";
+import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default function PartnerPanel() {
   const { user } = useAuth();
+
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
 
   const { data, isLoading } = useQuery({
     queryKey: ["partner-panel", user?.id],
@@ -26,33 +31,54 @@ export default function PartnerPanel() {
         .maybeSingle();
       if (!partner) return null;
 
-      const [clients, splits] = await Promise.all([
+      const [clients, splits, contracts] = await Promise.all([
         supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(amount, sale_date, status)").eq("partner_id", partner.id).order("created_at", { ascending: false }),
         supabase.from("commission_splits").select("*, sales(sale_date, clients(full_name), products(name))").eq("beneficiary_type", "partner").eq("beneficiary_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind").eq("partner_id", partner.id).eq("contract_kind", "parceiro").order("created_at", { ascending: false }),
       ]);
 
       return {
         partner,
         clients: clients.data ?? [],
         splits: splits.data ?? [],
+        contracts: contracts.data ?? [],
       };
     },
     enabled: !!user,
   });
 
   const totals = useMemo(() => {
-    if (!data) return { total: 0, paid: 0, pending: 0, thisMonth: 0 };
+    if (!data) return { total: 0, paid: 0, pending: 0, cancelled: 0, thisMonth: 0 };
     const splits = data.splits;
     const total = splits.reduce((s, x: any) => s + Number(x.amount), 0);
     const paid = splits.filter((x: any) => x.status === "pago").reduce((s, x: any) => s + Number(x.amount), 0);
     const pending = splits.filter((x: any) => x.status === "pendente").reduce((s, x: any) => s + Number(x.amount), 0);
+    const cancelled = splits.filter((x: any) => x.status === "cancelado").reduce((s, x: any) => s + Number(x.amount), 0);
     const now = new Date();
     const thisMonth = splits.filter((x: any) => {
       const d = new Date(x.created_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).reduce((s, x: any) => s + Number(x.amount), 0);
-    return { total, paid, pending, thisMonth };
+    return { total, paid, pending, cancelled, thisMonth };
   }, [data]);
+
+  const filteredSplits = useMemo(() => {
+    if (!data) return [];
+    if (statusFilter === "todos") return data.splits;
+    return data.splits.filter((s: any) => s.status === statusFilter);
+  }, [data, statusFilter]);
+
+  async function handleDownloadContract(filePath: string, name: string) {
+    const { data: signed, error } = await supabase.storage.from("contracts").createSignedUrl(filePath, 60);
+    if (error || !signed) {
+      toast.error("Não foi possível gerar o link do contrato");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = signed.signedUrl;
+    a.download = name;
+    a.click();
+  }
 
   if (isLoading) return <div className="p-12 text-center text-sm font-editorial italic text-muted-foreground">Processando ganhos...</div>;
 
@@ -68,7 +94,7 @@ export default function PartnerPanel() {
     </div>
   );
 
-  const { partner, clients, splits } = data;
+  const { partner, clients, splits, contracts } = data;
 
   return (
     <div className="bg-premium min-h-screen">
@@ -117,9 +143,11 @@ export default function PartnerPanel() {
         </div>
 
         <Tabs defaultValue="clientes" className="space-y-10">
-           <TabsList className="bg-transparent h-auto p-0 flex gap-12 border-b border-slate-200 rounded-none pb-px">
+           <TabsList className="bg-transparent h-auto p-0 flex gap-12 border-b border-slate-200 rounded-none pb-px flex-wrap">
               <PremiumTabTrigger value="clientes" label="Carteira Indicada" count={clients.length} />
-              <PremiumTabTrigger value="comissoes" label="Extrato de Splits" count={splits.length} />
+              <PremiumTabTrigger value="comissoes" label="Comissões" count={splits.length} />
+              <PremiumTabTrigger value="financeiro" label="Financeiro" />
+              <PremiumTabTrigger value="contrato" label="Meu Contrato" count={contracts.length} />
            </TabsList>
 
            <TabsContent value="clientes" className="animate-fade-up">
@@ -172,21 +200,44 @@ export default function PartnerPanel() {
               )}
            </TabsContent>
 
-           <TabsContent value="comissoes" className="animate-fade-up">
+           {/* COMISSOES com filtro */}
+           <TabsContent value="comissoes" className="animate-fade-up space-y-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex gap-2 items-center">
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Filtrar:</span>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      <SelectItem value="pendente">Pendentes</SelectItem>
+                      <SelectItem value="pago">Pagos</SelectItem>
+                      <SelectItem value="cancelado">Cancelados</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-3 text-xs">
+                  <span className="text-amber-600 font-bold">Pendente: {formatBRL(totals.pending)}</span>
+                  <span className="text-emerald-600 font-bold">Pago: {formatBRL(totals.paid)}</span>
+                  <span className="text-rose-600 font-bold">Cancelado: {formatBRL(totals.cancelled)}</span>
+                </div>
+              </div>
+
               <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100 shadow-xl shadow-slate-200/20">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                      <thead>
                         <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50">
                            <th className="px-8 py-5 text-left">Data</th>
-                           <th className="px-8 py-5 text-left">Referência</th>
-                           <th className="px-8 py-5 text-right">Percentual</th>
+                           <th className="px-8 py-5 text-left">Cliente / Produto</th>
+                           <th className="px-8 py-5 text-right">%</th>
                            <th className="px-8 py-5 text-right">Crédito</th>
                            <th className="px-8 py-5 text-left">Status</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-slate-50">
-                        {splits.map((s: any) => (
+                        {filteredSplits.length === 0 ? (
+                          <tr><td colSpan={5} className="px-8 py-12 text-center text-muted-foreground">Nenhuma comissão para o filtro selecionado.</td></tr>
+                        ) : filteredSplits.map((s: any) => (
                           <tr key={s.id} className="hover:bg-slate-50/50">
                              <td className="px-8 py-6 text-xs text-muted-foreground">{formatDate(s.created_at)}</td>
                              <td className="px-8 py-6">
@@ -194,11 +245,13 @@ export default function PartnerPanel() {
                                 <p className="text-[11px] text-muted-foreground">{s.sales?.products?.name ?? "Venda direta"}</p>
                              </td>
                              <td className="px-8 py-6 text-right font-mono text-xs">{Number(s.percent).toFixed(1)}%</td>
-                             <td className="px-8 py-6 text-right font-bold text-emerald-500 tabular-nums">{formatBRL(s.amount)}</td>
+                             <td className="px-8 py-6 text-right font-bold tabular-nums">{formatBRL(s.amount)}</td>
                              <td className="px-8 py-6">
                                 <span className={cn(
                                   "vx-pill uppercase tracking-widest text-[9px]",
-                                  s.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                  s.status === 'pago' && "vx-pill-success",
+                                  s.status === 'pendente' && "vx-pill-warning",
+                                  s.status === 'cancelado' && "vx-pill-muted",
                                 )}>{s.status}</span>
                              </td>
                           </tr>
@@ -208,8 +261,89 @@ export default function PartnerPanel() {
                 </div>
               </div>
            </TabsContent>
+
+           {/* FINANCEIRO */}
+           <TabsContent value="financeiro" className="animate-fade-up">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FinanceTile label="Saldo Pendente" value={formatBRL(totals.pending)} icon={Clock} tone="warning" />
+                <FinanceTile label="Total Recebido" value={formatBRL(totals.paid)} icon={CheckCircle2} tone="success" />
+                <FinanceTile label="Cancelado" value={formatBRL(totals.cancelled)} icon={XCircle} tone="muted" />
+              </div>
+              <div className="vx-card mt-6 p-8 bg-white rounded-[32px] border-slate-100">
+                <h3 className="font-bold text-lg mb-4">Resumo do Período</h3>
+                <div className="space-y-3">
+                  <Row label="Comissões geradas (total)" value={formatBRL(totals.total)} />
+                  <Row label="Recebido este mês" value={formatBRL(totals.thisMonth)} />
+                  <Row label="Comissão padrão configurada" value={`${Number(partner.commission_percent).toFixed(1)}%`} />
+                  {partner.pix_key && <Row label="Chave PIX para pagamento" value={partner.pix_key} />}
+                </div>
+              </div>
+           </TabsContent>
+
+           {/* CONTRATO */}
+           <TabsContent value="contrato" className="animate-fade-up">
+              {contracts.length === 0 ? (
+                <div className="vx-card p-20 text-center border-dashed border-2">
+                  <FileText className="size-12 text-slate-300 mx-auto mb-4" />
+                  <p className="font-editorial text-xl font-bold">Nenhum contrato disponível</p>
+                  <p className="text-muted-foreground text-sm mt-2">Quando seu contrato de parceria estiver pronto ele aparecerá aqui.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {contracts.map((c: any) => (
+                    <div key={c.id} className="vx-card p-6 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="size-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <FileText className="size-6" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold truncate">{c.name}</p>
+                          <div className="flex gap-2 items-center text-xs text-muted-foreground mt-1">
+                            <Badge variant="outline" className="text-[9px]">{c.status}</Badge>
+                            <span>·</span>
+                            <span>{formatDate(c.created_at)}</span>
+                            {c.amount && <><span>·</span><span className="font-bold">{formatBRL(c.amount)}</span></>}
+                          </div>
+                        </div>
+                      </div>
+                      {c.file_path && (
+                        <Button onClick={() => handleDownloadContract(c.file_path, c.name)}>
+                          <Download className="size-4 mr-2" /> Baixar
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+function FinanceTile({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
+  const tones: any = {
+    warning: "bg-amber-500/10 text-amber-600",
+    success: "bg-emerald-500/10 text-emerald-600",
+    muted: "bg-muted text-muted-foreground",
+  };
+  return (
+    <div className="vx-card p-6 bg-white rounded-[28px] border-slate-100">
+      <div className={cn("size-10 rounded-2xl flex items-center justify-center mb-3", tones[tone])}>
+        <Icon className="size-5" />
+      </div>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-bold">{value}</span>
     </div>
   );
 }
