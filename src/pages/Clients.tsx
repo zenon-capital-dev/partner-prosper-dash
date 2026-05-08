@@ -11,6 +11,7 @@ import {
 import { formatBRL, initials } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { PageHero } from "@/components/PageHero";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -142,37 +143,31 @@ export default function Clients() {
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
-      {/* Header */}
-      <div className="flex items-end justify-between gap-6 flex-wrap">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● management</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">CLIENT PORTFOLIO</span>
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Clients</h1>
-          <p className="text-xs text-muted-foreground/60 font-medium">
-            {enriched.length} total records · sync live
-          </p>
-        </div>
+      <PageHero
+        eyebrow="Management"
+        category="Client Portfolio"
+        title="Clientes"
+        description={`${enriched.length} registros sincronizados em tempo real. Gerencie carteira, indicações e LTV em um só lugar.`}
+        icon={<Users className="size-6" />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
+              <Download className="size-4" /> Exportar
+            </Button>
+            <Button size="sm" onClick={() => setOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Novo Cliente
+            </Button>
+          </>
+        }
+        kpis={[
+          { label: "Total Clientes", value: kpis.total, tone: "primary", icon: <Users className="size-4" /> },
+          { label: "Ativos", value: kpis.active, tone: "success", icon: <UserCheck className="size-4" /> },
+          { label: "Prospects", value: kpis.prospects, tone: "warning", icon: <UserPlus className="size-4" /> },
+          { label: "Novos no mês", value: kpis.newThisMonth, tone: "info", icon: <TrendingUp className="size-4" /> },
+          { label: "Portfolio LTV", value: formatBRL(kpis.totalLTV), tone: "primary", icon: <Crown className="size-4" /> },
+        ]}
+      />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
-            <Download className="size-3.5" /> export
-          </Button>
-          <Button size="sm" onClick={() => setOpen(true)} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
-            <Plus className="size-4" strokeWidth={3} /> New Client
-          </Button>
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
-        <MiniKpi label="Total Clients" value={String(kpis.total)} />
-        <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
-        <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
-        <MiniKpi label="New this month" value={String(kpis.newThisMonth)} tone="info" />
-        <MiniKpi label="Portfolio LTV" value={formatBRL(kpis.totalLTV)} tone="primary" />
-      </div>
 
       {/* Filter Bar */}
       <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
