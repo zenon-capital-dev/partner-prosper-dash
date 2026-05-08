@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight, Zap, Search, Bell, Calendar,
   DollarSign, Users, Wallet, Target, Activity,
