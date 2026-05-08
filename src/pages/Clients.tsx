@@ -11,6 +11,7 @@ import {
 import { formatBRL, initials } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { PageHero } from "@/components/PageHero";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -142,86 +143,80 @@ export default function Clients() {
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
-      {/* Header */}
-      <div className="flex items-end justify-between gap-6 flex-wrap">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● management</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">CLIENT PORTFOLIO</span>
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Clients</h1>
-          <p className="text-xs text-muted-foreground/60 font-medium">
-            {enriched.length} total records · sync live
-          </p>
-        </div>
+      <PageHero
+        eyebrow="Management"
+        category="Client Portfolio"
+        title="Clientes"
+        description={`${enriched.length} registros sincronizados em tempo real. Gerencie carteira, indicações e LTV em um só lugar.`}
+        icon={<Users className="size-6" />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
+              <Download className="size-4" /> Exportar
+            </Button>
+            <Button size="sm" onClick={() => setOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Novo Cliente
+            </Button>
+          </>
+        }
+        kpis={[
+          { label: "Total Clientes", value: kpis.total, tone: "primary", icon: <Users className="size-4" /> },
+          { label: "Ativos", value: kpis.active, tone: "success", icon: <UserCheck className="size-4" /> },
+          { label: "Prospects", value: kpis.prospects, tone: "warning", icon: <UserPlus className="size-4" /> },
+          { label: "Novos no mês", value: kpis.newThisMonth, tone: "info", icon: <TrendingUp className="size-4" /> },
+          { label: "Portfolio LTV", value: formatBRL(kpis.totalLTV), tone: "primary", icon: <Crown className="size-4" /> },
+        ]}
+      />
 
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
-            <Download className="size-3.5" /> export
-          </Button>
-          <Button size="sm" onClick={() => setOpen(true)} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
-            <Plus className="size-4" strokeWidth={3} /> New Client
-          </Button>
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
-        <MiniKpi label="Total Clients" value={String(kpis.total)} />
-        <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
-        <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
-        <MiniKpi label="New this month" value={String(kpis.newThisMonth)} tone="info" />
-        <MiniKpi label="Portfolio LTV" value={formatBRL(kpis.totalLTV)} tone="primary" />
-      </div>
 
       {/* Filter Bar */}
-      <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+      <div className="toolbar">
         <div className="relative flex-1">
-          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <Input
-            placeholder="Search by name, email, company..."
+            placeholder="Buscar por nome, email, empresa..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-muted/30 border-border/50 h-9 pl-9 pr-4 text-[13px]"
+            className="w-full bg-background/60 border-border h-10 pl-10 pr-4 text-sm rounded-xl"
           />
         </div>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-9 w-[130px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-10 w-[140px] bg-background/60 rounded-xl text-xs font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">All Status</SelectItem>
-              <SelectItem value="ativo">Active</SelectItem>
+              <SelectItem value="todos">Todos status</SelectItem>
+              <SelectItem value="ativo">Ativos</SelectItem>
               <SelectItem value="prospecto">Prospects</SelectItem>
-              <SelectItem value="inativo">Inactive</SelectItem>
+              <SelectItem value="inativo">Inativos</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-9 w-[150px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-10 w-[160px] bg-background/60 rounded-xl text-xs font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="recent">Most Recent</SelectItem>
-              <SelectItem value="name">Name A-Z</SelectItem>
-              <SelectItem value="revenue">Highest LTV</SelectItem>
-              <SelectItem value="sales">Sales Count</SelectItem>
+              <SelectItem value="recent">Mais recentes</SelectItem>
+              <SelectItem value="name">Nome A-Z</SelectItem>
+              <SelectItem value="revenue">Maior LTV</SelectItem>
+              <SelectItem value="sales">Mais vendas</SelectItem>
             </SelectContent>
           </Select>
 
           {hasFilters && (
-            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-9 w-9 text-muted-foreground/60 hover:text-foreground">
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground">
               <X className="size-4" />
             </Button>
           )}
 
-          <div className="flex items-center bg-muted/30 border border-border/50 rounded-md p-0.5 ml-2">
-            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
-              <List className="size-3.5" />
+          <div className="flex items-center bg-muted/40 border border-border/60 rounded-xl p-1 ml-1">
+            <button onClick={() => setView("list")} className={cn("size-8 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-background text-primary shadow-sm" : "text-muted-foreground/60 hover:text-foreground")}>
+              <List className="size-4" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
-              <LayoutGrid className="size-3.5" />
+            <button onClick={() => setView("grid")} className={cn("size-8 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-background text-primary shadow-sm" : "text-muted-foreground/60 hover:text-foreground")}>
+              <LayoutGrid className="size-4" />
             </button>
           </div>
         </div>

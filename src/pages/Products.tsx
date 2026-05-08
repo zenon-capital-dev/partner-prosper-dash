@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -248,30 +248,32 @@ export default function Products() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
-      <PageHeader
-        title="Catálogo de produtos"
+    <div className="page-shell space-y-8 animate-fade-up">
+      <PageHero
+        eyebrow="Catálogo"
+        category="Product Suite"
+        title="Produtos"
         description="Gerencie produtos, categorias, preços, comissões e disponibilidade para parceiros."
+        icon={<Boxes className="size-6" />}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="gap-2">
+          <>
+            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 gap-2">
               <Tag className="size-4" /> Categorias
             </Button>
-            <Button onClick={openNew} className="gap-2 bg-gradient-primary hover:opacity-90 shadow-vx-sm">
-              <Plus className="size-4" /> Novo produto
+            <Button onClick={openNew} className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Novo Produto
             </Button>
-          </div>
+          </>
         }
+        kpis={[
+          { label: "Total", value: kpis.total, tone: "primary", icon: <Boxes className="size-4" /> },
+          { label: "Ativos", value: kpis.active, tone: "success", icon: <Power className="size-4" /> },
+          { label: "Recorrentes", value: kpis.recurring, tone: "warning", icon: <RefreshCcw className="size-4" /> },
+          { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "primary", icon: <TrendingUp className="size-4" /> },
+          { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "success", icon: <Sparkles className="size-4" /> },
+        ]}
       />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        <KpiCard icon={Boxes} label="Total" value={kpis.total} tone="primary" />
-        <KpiCard icon={Power} label="Ativos" value={kpis.active} tone="success" />
-        <KpiCard icon={RefreshCcw} label="Recorrentes" value={kpis.recurring} tone="warning" />
-        <KpiCard icon={TrendingUp} label="Comissão média" value={formatPercent(kpis.avgCommission)} tone="primary" />
-        <KpiCard icon={Sparkles} label="Receita gerada" value={formatBRL(kpis.totalRevenue)} tone="success" className="col-span-2 md:col-span-1" />
-      </div>
 
       {/* Toolbar */}
       <div className="vx-card p-4 flex flex-col lg:flex-row lg:items-center gap-3">

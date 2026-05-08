@@ -1,37 +1,51 @@
-import { Search, Bell, Command } from "lucide-react";
+import { Search, Command, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { InternalChat } from "@/components/chat/InternalChat";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AdminHeaderProps {
   onSearchClick: () => void;
 }
 
 export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
+  const { user } = useAuth();
+  const firstName = (user?.user_metadata?.full_name || user?.email || "Admin").split(/[ @]/)[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+
   return (
-    <header className="h-20 border-b border-border/40 bg-background/60 backdrop-blur-xl px-10 flex items-center justify-between sticky top-0 z-40 transition-all duration-500">
-      <div className="flex items-center gap-4 flex-1 max-w-xl">
-        <div className="relative w-full group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
-          <button
-            onClick={onSearchClick}
-            className="w-full h-11 pl-11 pr-4 bg-muted/20 hover:bg-muted/40 border border-border/40 rounded-xl text-sm text-muted-foreground flex items-center justify-between transition-all shadow-sm hover:shadow-md"
-          >
-            <span className="font-medium opacity-70">Buscar clientes, parceiros, produtos...</span>
-            <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-background border border-border/50 rounded px-1.5 py-0.5">⌘ K</span>
-            </div>
-          </button>
+    <header className="h-20 glass-header px-6 lg:px-10 flex items-center justify-between gap-6">
+      {/* Greeting */}
+      <div className="hidden md:flex items-center gap-2.5">
+        <div className="size-9 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-md shadow-primary/30">
+          <Sparkles className="size-4 text-primary-foreground" />
+        </div>
+        <div className="leading-tight">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60">{greeting}</p>
+          <p className="text-sm font-semibold text-foreground capitalize">{firstName}</p>
         </div>
       </div>
-      
-      <div className="flex items-center gap-3">
+
+      {/* Search */}
+      <div className="flex-1 max-w-xl">
+        <button
+          onClick={onSearchClick}
+          className="w-full h-11 pl-11 pr-3 bg-muted/40 hover:bg-muted/60 border border-border/60 hover:border-primary/30 rounded-xl text-sm text-muted-foreground flex items-center justify-between transition-all shadow-sm hover:shadow-md group relative"
+        >
+          <Search className="absolute left-3.5 size-4 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+          <span className="font-medium opacity-80">Buscar clientes, parceiros, produtos…</span>
+          <kbd className="text-[10px] font-mono font-bold tracking-wider bg-background/80 border border-border/60 rounded-md px-1.5 py-0.5 flex items-center gap-1 text-muted-foreground/70">
+            <Command className="size-3" /> K
+          </kbd>
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 pr-2 border-r border-border/60">
           <InternalChat />
           <NotificationBell />
         </div>
-        
         <ThemeToggle />
       </div>
     </header>

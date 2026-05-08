@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -299,29 +299,31 @@ export default function Commissions() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-5">
-      <PageHeader
+    <div className="page-shell space-y-8 animate-fade-up">
+      <PageHero
+        eyebrow="Financeiro"
+        category="Commission Engine"
         title="Comissões"
         description="Gestão completa de comissões: criar, editar, pagar, cancelar e exportar."
+        icon={<Wallet className="size-6" />}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={exportCSV} className="gap-2">
+          <>
+            <Button variant="outline" onClick={exportCSV} className="h-10 gap-2">
               <FileSpreadsheet className="size-4" /> Exportar CSV
             </Button>
-            <Button onClick={() => setCreateOpen(true)} className="gap-2 bg-gradient-primary hover:opacity-90">
-              <Plus className="size-4" /> Nova comissão
+            <Button onClick={() => setCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Nova comissão
             </Button>
-          </div>
+          </>
         }
+        kpis={[
+          { label: "Total filtrado", value: formatBRL(totals.total), tone: "primary", hint: `${totals.count} registros`, icon: <CircleDollarSign className="size-4" /> },
+          { label: "Pendente / Análise", value: formatBRL(totals.pending), tone: "warning", icon: <Clock className="size-4" /> },
+          { label: "Pagas", value: formatBRL(totals.paid), tone: "success", icon: <CheckCircle2 className="size-4" /> },
+          { label: "Taxa Conversão", value: `${totals.total ? Math.round((totals.paid / totals.total) * 100) : 0}%`, tone: "info", icon: <TrendingUp className="size-4" /> },
+        ]}
       />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard icon={CircleDollarSign} label="Total filtrado" value={formatBRL(totals.total)} sub={`${totals.count} registros`} tone="primary" />
-        <KpiCard icon={Clock} label="Pendente/Em Análise" value={formatBRL(totals.pending)} tone="warning" />
-        <KpiCard icon={CheckCircle2} label="Pagas" value={formatBRL(totals.paid)} tone="success" />
-        <KpiCard icon={TrendingUp} label="Taxa Conversão" value={`${totals.total ? Math.round((totals.paid / totals.total) * 100) : 0}%`} tone="info" />
-      </div>
 
       {/* Toolbar */}
       <div className="vx-card p-4 space-y-3">

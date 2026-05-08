@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PageHero } from "@/components/PageHero";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
-  Clock3, Trash2, Eye, ShoppingBag, X, SlidersHorizontal,
-  CalendarRange, Sparkles, Filter, ArrowUpRight,
+  Clock3, Trash2, Eye, ShoppingBag, X, SlidersHorizontal, CircleDollarSign,
+  CalendarRange, Sparkles, Filter, ArrowUpRight, TrendingUp,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
@@ -93,133 +96,126 @@ export default function Sales() {
   const hasActiveFilters = !!search || status !== "todos" || partnerFilter !== "todos" || !!dateFrom || !!dateTo;
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] admin-shell">
-      {/* Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">● ledger</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/30">SALES ACTIVITY</span>
-          </div>
-          <h1 className="text-[28px] font-semibold tracking-tight leading-none text-white">Sales</h1>
-          <p className="text-[12.5px] text-white/40 mt-1.5 font-mono">
-            Operational transaction log · sync live
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button onClick={exportCSV} className="h-8 px-3 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-[11.5px] font-mono uppercase tracking-wider text-white/60 hover:text-white flex items-center gap-1.5 transition-colors">
-            <Download className="size-3" /> export
-          </button>
-          <button onClick={() => setOpen(true)} className="h-8 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors">
-            <Plus className="size-3.5" strokeWidth={3} /> New Sale
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
-        <MiniKpi label="Gross Volume" value={formatBRL(kpis.total)} />
-        <MiniKpi label="Succeeded" value={formatBRL(kpis.concluida)} tone="success" />
-        <MiniKpi label="Processing" value={formatBRL(kpis.em_andamento)} tone="info" />
-        <MiniKpi label="Pending" value={formatBRL(kpis.pendente)} tone="warning" />
-        <MiniKpi label="Total Count" value={String(kpis.count)} />
-      </div>
+    <div className="page-shell space-y-8 animate-fade-up">
+      <PageHero
+        eyebrow="Ledger"
+        category="Sales Activity"
+        title="Vendas"
+        description="Log operacional de transações sincronizado em tempo real."
+        icon={<ShoppingBag className="size-6" />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
+              <Download className="size-4" /> Exportar
+            </Button>
+            <Button size="sm" onClick={() => setOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Nova Venda
+            </Button>
+          </>
+        }
+        kpis={[
+          { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" /> },
+          { label: "Concluídas", value: formatBRL(kpis.concluida), tone: "success", icon: <CheckCircle2 className="size-4" /> },
+          { label: "Em Andamento", value: formatBRL(kpis.em_andamento), tone: "info", icon: <PlayCircle className="size-4" /> },
+          { label: "Pendentes", value: formatBRL(kpis.pendente), tone: "warning", icon: <Clock3 className="size-4" /> },
+          { label: "Total Registros", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" /> },
+        ]}
+      />
 
       {/* Filter Bar */}
-      <div className="cp-panel p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+      <div className="toolbar">
         <div className="relative flex-1">
-          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-          <input
-            placeholder="Search transactions..."
+          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+          <Input
+            placeholder="Buscar transações..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/[0.03] border border-white/[0.06] rounded-md h-9 pl-9 pr-4 text-[13px] text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
+            className="w-full bg-background/60 border-border h-10 pl-10 pr-4 text-sm rounded-xl"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Select value={status} onValueChange={(v) => setStatus(v as StatusKey)}>
-            <SelectTrigger className="h-9 w-[130px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-10 w-[140px] rounded-xl bg-background/60 text-xs font-medium">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
-              <SelectItem value="todos">All Status</SelectItem>
-              <SelectItem value="concluida">Succeeded</SelectItem>
-              <SelectItem value="em_andamento">Processing</SelectItem>
-              <SelectItem value="pendente">Pending</SelectItem>
-              <SelectItem value="cancelada">Canceled</SelectItem>
+            <SelectContent>
+              <SelectItem value="todos">Todos status</SelectItem>
+              <SelectItem value="concluida">Concluídas</SelectItem>
+              <SelectItem value="em_andamento">Em andamento</SelectItem>
+              <SelectItem value="pendente">Pendentes</SelectItem>
+              <SelectItem value="cancelada">Canceladas</SelectItem>
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] rounded-md px-2 h-9">
-            <CalendarRange className="size-3.5 text-white/20" />
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-transparent text-[11px] text-white/60 font-mono outline-none" />
-            <span className="text-white/20">/</span>
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-transparent text-[11px] text-white/60 font-mono outline-none" />
+          <div className="flex items-center gap-1.5 bg-background/60 border border-border rounded-xl px-2.5 h-10">
+            <CalendarRange className="size-3.5 text-muted-foreground/60" />
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
+            <span className="text-muted-foreground/40">→</span>
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
           </div>
 
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="h-9 px-3 text-white/40 hover:text-white transition-colors">
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground">
               <X className="size-4" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       {/* Table Content */}
-      <div className="cp-panel overflow-hidden">
+      <div className="vx-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-[12.5px]">
-            <thead className="bg-white/[0.02]">
-              <tr className="border-b border-white/[0.06]">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
                 <Th>Status</Th>
-                <Th>Account / Client</Th>
-                <Th>Product</Th>
-                <Th>Date</Th>
-                <Th align="right">Amount</Th>
-                <Th align="right">Actions</Th>
+                <Th>Cliente</Th>
+                <Th>Produto</Th>
+                <Th>Data</Th>
+                <Th align="right">Valor</Th>
+                <Th align="right">Ações</Th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/40">
               {isLoading ? (
-                <tr><td colSpan={6} className="py-24 text-center text-white/20 font-mono">Syncing transactions...</td></tr>
+                <tr><td colSpan={6} className="py-24 text-center text-muted-foreground/50 animate-pulse">Sincronizando transações...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="py-24 text-center text-white/20 font-mono">No transactions found.</td></tr>
+                <tr><td colSpan={6} className="py-24 text-center text-muted-foreground/50">Nenhuma transação encontrada.</td></tr>
               ) : filtered.map((s: any) => (
-                <tr key={s.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
                   <Td><StatusPill status={s.status} /></Td>
                   <Td>
                     <div className="min-w-0">
-                      <p className="font-semibold text-white truncate cursor-pointer hover:underline" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
+                      <p className="font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
                         {s.clients?.full_name ?? "—"}
                       </p>
-                      <p className="text-[11px] text-white/30 truncate font-mono uppercase tracking-wider">{s.clients?.company || "Personal Account"}</p>
+                      <p className="text-[11px] text-muted-foreground/60 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
                     </div>
                   </Td>
                   <Td>
                     <div className="flex items-center gap-2">
-                       {s.products?.product_categories && (
-                         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border" style={{ borderColor: `${s.products.product_categories.color}30`, color: s.products.product_categories.color }}>
-                           {s.products.product_categories.name.toUpperCase()}
-                         </span>
-                       )}
-                       <span className="text-white/60">{s.products?.name ?? "—"}</span>
+                      {s.products?.product_categories && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border" style={{ borderColor: `${s.products.product_categories.color}40`, color: s.products.product_categories.color, backgroundColor: `${s.products.product_categories.color}10` }}>
+                          {s.products.product_categories.name.toUpperCase()}
+                        </span>
+                      )}
+                      <span className="text-foreground/80">{s.products?.name ?? "—"}</span>
                     </div>
                   </Td>
-                  <Td className="text-white/40 font-mono text-[11px] uppercase tracking-wider">{formatDate(s.sale_date)}</Td>
-                  <Td align="right"><span className="font-mono font-semibold text-white tabular-nums">{formatBRL(s.amount)}</span></Td>
+                  <Td className="text-muted-foreground text-xs">{formatDate(s.sale_date)}</Td>
+                  <Td align="right"><span className="font-semibold text-foreground tabular-nums">{formatBRL(s.amount)}</span></Td>
                   <Td align="right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="size-8 rounded-md hover:bg-white/5 flex items-center justify-center text-white/20 hover:text-white transition-colors">
+                        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground/40 hover:text-foreground">
                           <MoreHorizontal className="size-4" />
-                        </button>
+                        </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#12141a] border-white/[0.1] text-white">
-                        <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients?.id}`)}><Eye className="size-3.5 mr-2" /> View Client</DropdownMenuItem>
-                        <DropdownMenuItem><Clock3 className="size-3.5 mr-2" /> Change Status</DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/[0.06]" />
-                        <DropdownMenuItem onClick={() => removeOne(s)} className="text-rose-400 focus:text-rose-400 focus:bg-rose-400/10"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients?.id}`)}><Eye className="size-3.5 mr-2" /> Ver Cliente</DropdownMenuItem>
+                        <DropdownMenuItem><Clock3 className="size-3.5 mr-2" /> Mudar Status</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => removeOne(s)} className="text-destructive focus:text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </Td>
@@ -235,33 +231,21 @@ export default function Sales() {
   );
 }
 
-function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
-  return (
-    <div className="bg-[#0d0e12] p-4 lg:p-5">
-      <p className="cp-stat-label mb-2">{label}</p>
-      <div className="flex items-center justify-between">
-        <p className={cn("cp-stat-value text-[20px] lg:text-[22px]", tone === "success" && "text-emerald-400", tone === "info" && "text-cyan-400", tone === "warning" && "text-amber-400")}>{value}</p>
-        <ArrowUpRight className={cn("size-3.5", tone === "success" ? "text-emerald-400" : "text-white/10")} />
-      </div>
-    </div>
-  );
-}
-
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    concluida: { label: "succeeded", cls: "cp-pill-success" },
-    em_andamento: { label: "processing", cls: "cp-pill-info" },
-    pendente: { label: "pending", cls: "cp-pill-warning" },
-    cancelada: { label: "canceled", cls: "cp-pill-danger" },
+    concluida: { label: "concluída", cls: "vx-pill-success" },
+    em_andamento: { label: "em andamento", cls: "vx-pill-info" },
+    pendente: { label: "pendente", cls: "vx-pill-warning" },
+    cancelada: { label: "cancelada", cls: "vx-pill-danger" },
   };
-  const m = map[status] ?? { label: status, cls: "cp-pill-muted" };
-  return <span className={cn("cp-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
+  const m = map[status] ?? { label: status, cls: "vx-pill" };
+  return <span className={cn("vx-pill", m.cls)}>{m.label}</span>;
 }
 
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      "px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
