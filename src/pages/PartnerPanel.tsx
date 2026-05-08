@@ -32,8 +32,8 @@ export default function PartnerPanel() {
       if (!partner) return null;
 
       const [clients, splits, contracts] = await Promise.all([
-        supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(amount, sale_date, status)").eq("partner_id", partner.id).order("created_at", { ascending: false }),
-        supabase.from("commission_splits").select("*, sales(sale_date, clients(full_name), products(name))").eq("beneficiary_type", "partner").eq("beneficiary_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(id, amount, sale_date, status, products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("commission_splits").select("*, sales(id, amount, sale_date, clients(full_name), products(name))").eq("beneficiary_type", "partner").eq("beneficiary_id", partner.id).order("created_at", { ascending: false }),
         supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind").eq("partner_id", partner.id).eq("contract_kind", "parceiro").order("created_at", { ascending: false }),
       ]);
 
