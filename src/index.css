@@ -397,6 +397,15 @@
     @apply relative px-6 lg:px-8 py-7 lg:py-8;
   }
 
+  @keyframes progress-glow {
+    0% { transform: translateX(-100%); opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { transform: translateX(300%); opacity: 0.3; }
+  }
+  .animate-progress-glow {
+    animation: progress-glow 3s infinite linear;
+  }
+
   /* Editorial & Premium v3 Layouts */
   .detail-shell {
     @apply grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start;
