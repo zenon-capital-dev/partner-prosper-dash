@@ -294,16 +294,21 @@ export default function Partners() {
           </Button>
         </div>
       ) : view === "list" ? (
-        <ListView
-          partners={filtered} topIds={topIds}
-          onDetail={setDrawerId} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} onCopyPix={copyPix}
-        />
+        <div className="vx-card overflow-hidden">
+          <ListView
+            partners={filtered} topIds={topIds}
+            onDetail={setDrawerId} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive} onCopyPix={copyPix}
+          />
+        </div>
       ) : (
-        <GridView
-          partners={filtered} topIds={topIds}
-          onDetail={setDrawerId} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <GridView
+            partners={filtered} topIds={topIds}
+            onDetail={setDrawerId} onEdit={openEdit} onDelete={handleDelete} onToggle={toggleActive}
+          />
+        </div>
       )}
+
 
       {/* Form */}
       <Dialog open={open} onOpenChange={setOpen}>
