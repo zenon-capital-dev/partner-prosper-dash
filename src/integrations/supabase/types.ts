@@ -1653,6 +1653,8 @@ export type Database = {
           default_employee_commission: number | null
           default_provider_value: number | null
           description: string | null
+          doc_allowed_types: string[] | null
+          doc_max_size_mb: number | null
           id: string
           name: string
           recurring: boolean
@@ -1672,6 +1674,8 @@ export type Database = {
           default_employee_commission?: number | null
           default_provider_value?: number | null
           description?: string | null
+          doc_allowed_types?: string[] | null
+          doc_max_size_mb?: number | null
           id?: string
           name: string
           recurring?: boolean
@@ -1691,6 +1695,8 @@ export type Database = {
           default_employee_commission?: number | null
           default_provider_value?: number | null
           description?: string | null
+          doc_allowed_types?: string[] | null
+          doc_max_size_mb?: number | null
           id?: string
           name?: string
           recurring?: boolean
