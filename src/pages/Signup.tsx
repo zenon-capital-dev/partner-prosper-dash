@@ -61,6 +61,7 @@ export default function SignupPage() {
   const [showPwd2, setShowPwd2] = useState(false);
   const [pwd, setPwd] = useState("");
   const [accept, setAccept] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"cliente" | "parceiro">("cliente");
 
   useEffect(() => {
     if (!loading && user) navigate("/", { replace: true });
