@@ -4,7 +4,7 @@ import { PageHero } from "@/components/PageHero";
 import { 
   TrendingUp, CircleDollarSign, Users, Package, 
   ArrowUpRight, ArrowDownRight, Activity, 
-  CreditCard, Wallet, Receipt
+  CreditCard, Wallet, Receipt, Clock, CheckCircle2
 } from "lucide-react";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { useMemo } from "react";
@@ -37,14 +37,12 @@ export default function DashboardAdmin() {
     const paidCommissions = commissions.filter(c => c.status === 'paga').reduce((s, x) => s + Number(x.amount || 0), 0);
     const pendingCommissions = totalCommissions - paidCommissions;
     
-    // Revenue by Product
     const byProduct: Record<string, number> = {};
     sales.forEach(s => {
       const p = products.find(x => x.id === s.product_id)?.name || "Outros";
       byProduct[p] = (byProduct[p] || 0) + Number(s.amount || 0);
     });
 
-    // Revenue by Partner
     const byPartner: Record<string, number> = {};
     sales.forEach(s => {
       const p = partners.find(x => x.id === s.partner_id)?.full_name || "Direto";
@@ -79,7 +77,6 @@ export default function DashboardAdmin() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Vendas por Produto */}
         <div className="vx-card p-8 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="editorial-title text-xl flex items-center gap-3">
@@ -97,7 +94,7 @@ export default function DashboardAdmin() {
                 <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-primary transition-all duration-1000" 
-                    style={{ width: `${(value / stats.totalSales) * 100}%` }} 
+                    style={{ width: `${(value / (stats.totalSales || 1)) * 100}%` }} 
                   />
                 </div>
               </div>
@@ -105,7 +102,6 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        {/* Vendas por Parceiro */}
         <div className="vx-card p-8 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="editorial-title text-xl flex items-center gap-3">
@@ -123,7 +119,7 @@ export default function DashboardAdmin() {
                 <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-primary transition-all duration-1000" 
-                    style={{ width: `${(value / stats.totalSales) * 100}%` }} 
+                    style={{ width: `${(value / (stats.totalSales || 1)) * 100}%` }} 
                   />
                 </div>
               </div>
@@ -156,25 +152,5 @@ export default function DashboardAdmin() {
         </div>
       </div>
     </div>
-  );
-}
-
-function CheckCircle2(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
   );
 }
