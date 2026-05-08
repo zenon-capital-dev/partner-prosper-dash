@@ -162,35 +162,38 @@ export function ClientDocumentsTab({
 
                   <div className="flex items-center gap-2 shrink-0">
                     {req.file_url && (
-                      <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleDownload(req)}>
-                        <Download className="size-4 mr-1" /> Ver
+                      <Button variant="outline" size="sm" className="rounded-xl border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5" onClick={() => handleDownload(req)}>
+                        <Download className="size-4 mr-1.5" /> Ver
                       </Button>
                     )}
-                    {(req.status === "solicitado" || req.status === "reprovado") && (
-                      <>
-                        <input
-                          ref={(el) => {
-                            if (el) (el as any)._reqId = req.id;
-                          }}
-                          type="file"
-                          className="hidden"
-                          id={`upload-${req.id}`}
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleUpload(req, f);
-                            e.target.value = "";
-                          }}
-                        />
-                        <Button
-                          size="sm"
-                          className="rounded-xl bg-primary hover:bg-primary/90"
-                          disabled={isUploading}
-                          onClick={() => document.getElementById(`upload-${req.id}`)?.click()}
-                        >
-                          {isUploading ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Upload className="size-4 mr-1" />}
-                          {isUploading ? "Enviando..." : req.file_url ? "Reenviar" : "Anexar"}
-                        </Button>
-                      </>
+                    
+                    <input
+                      type="file"
+                      className="hidden"
+                      id={`upload-${req.id}`}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleUpload(req, f);
+                        e.target.value = "";
+                      }}
+                    />
+
+                    {/* Botão Anexar ou Reenviar */}
+                    {(req.status === "solicitado" || req.status === "reprovado" || req.file_url) && (
+                      <Button
+                        size="sm"
+                        variant={req.file_url ? "outline" : "default"}
+                        className={cn(
+                          "rounded-xl transition-all font-semibold",
+                          !req.file_url && "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm",
+                          req.file_url && "border-primary/20 text-primary hover:bg-primary/5 dark:hover:bg-primary/10"
+                        )}
+                        disabled={isUploading}
+                        onClick={() => document.getElementById(`upload-${req.id}`)?.click()}
+                      >
+                        {isUploading ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Upload className="size-4 mr-1.5" />}
+                        {isUploading ? "Enviando..." : req.file_url ? "Reenviar" : "Anexar Arquivo"}
+                      </Button>
                     )}
                   </div>
                 </div>
