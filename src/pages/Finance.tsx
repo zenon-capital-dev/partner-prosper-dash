@@ -136,66 +136,60 @@ export default function Finance() {
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 flex-wrap">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-success">● treasury</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">FINANCIAL OPERATIONS</span>
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Finance</h1>
-          <p className="text-xs text-muted-foreground/60 font-medium">
-            Balance: {formatBRL(kpis.profit)} · net margin {kpis.margin.toFixed(1)}%
-          </p>
-        </div>
+      <PageHero
+        eyebrow="Treasury"
+        category="Financial Operations"
+        title="Financeiro"
+        description={`Saldo: ${formatBRL(kpis.profit)} · margem líquida ${kpis.margin.toFixed(1)}%`}
+        icon={<PiggyBank className="size-6" />}
+        actions={
+          <>
+            <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
+              <SelectTrigger className="h-10 w-[170px] rounded-xl bg-background/60">
+                <CalendarRange className="size-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="this_month">Este mês</SelectItem>
+                <SelectItem value="last_month">Mês passado</SelectItem>
+                <SelectItem value="this_quarter">Este trimestre</SelectItem>
+                <SelectItem value="this_year">Este ano</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-10 px-4 gap-2"
+              onClick={() => {
+                const headers = ["Produto", "Vendas", "Receita Bruta", "Comissoes", "Receita Liquida"];
+                const rows = productPerformance.map((p: any) => [
+                  p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
+                ]);
+                const csv = [headers, ...rows].map(r => r.join(";")).join("\n");
+                const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `performance_produtos_${new Date().toISOString().slice(0, 10)}.csv`;
+                link.click();
+              }}
+            >
+              <Download className="size-4" /> Exportar
+            </Button>
+            <Button size="sm" className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
+            </Button>
+          </>
+        }
+        kpis={[
+          { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
+          { label: "Comissões", value: formatBRL(kpis.commissionsTotal), tone: "warning", icon: <Wallet className="size-4" /> },
+          { label: "Despesas", value: formatBRL(kpis.expensesTotal), tone: "danger", icon: <ArrowDownToLine className="size-4" /> },
+          { label: "Lucro Líquido", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
+          { label: "Margem", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
+        ]}
+      />
 
-        <div className="flex items-center gap-3">
-          <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
-            <SelectTrigger className="h-9 w-[160px] bg-muted/30 border-border/50 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
-              <CalendarRange className="size-3.5 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="this_month">This Month</SelectItem>
-              <SelectItem value="last_month">Last Month</SelectItem>
-              <SelectItem value="this_quarter">This Quarter</SelectItem>
-              <SelectItem value="this_year">This Year</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest gap-2"
-            onClick={() => {
-              const headers = ["Produto", "Vendas", "Receita Bruta", "Comissoes", "Receita Liquida"];
-              const rows = productPerformance.map((p: any) => [
-                p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
-              ]);
-              const csv = [headers, ...rows].map(r => r.join(";")).join("\n");
-              const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = `performance_produtos_${new Date().toISOString().slice(0, 10)}.csv`;
-              link.click();
-            }}
-          >
-            <Download className="size-3.5" /> Export Performance
-          </Button>
-          <Button size="sm" className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-success/20 bg-success hover:bg-success/90 text-success-foreground">
-            <Plus className="size-4" strokeWidth={3} /> Record Expense
-          </Button>
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
-        <MiniKpi label="Gross Revenue" value={formatBRL(kpis.revenue)} tone="success" />
-        <MiniKpi label="Commissions Total" value={formatBRL(kpis.commissionsTotal)} tone="warning" />
-        <MiniKpi label="Expenses Total" value={formatBRL(kpis.expensesTotal)} tone="danger" />
-        <MiniKpi label="Net Profit" value={formatBRL(kpis.profit)} tone="primary" />
-        <MiniKpi label="Margin" value={`${kpis.margin.toFixed(1)}%`} />
-      </div>
 
       <div className="grid grid-cols-12 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         {/* Main Chart */}
