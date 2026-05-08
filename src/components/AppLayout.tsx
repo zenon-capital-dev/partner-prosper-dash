@@ -27,8 +27,8 @@ export default function AppLayout() {
     <SidebarProvider style={{ "--sidebar-width": "18.5rem" } as React.CSSProperties}>
       <div className="min-h-screen flex w-full bg-background bg-premium selection:bg-primary selection:text-primary-foreground">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] dark:bg-[#020617]/50">
-          <header className="glass-header h-20 flex items-center px-8 gap-6 no-print border-b border-border/5">
+        <div className="flex-1 flex flex-col min-w-0 bg-secondary/30 dark:bg-background/50">
+          <header className="glass-header h-16 flex items-center px-6 gap-4 no-print border-b border-border/5">
             <SidebarTrigger className="text-muted-foreground transition-all hover:text-foreground active:scale-90" />
             <div className="h-8 w-px bg-border/10 mx-1 hidden sm:block" />
             <div className="flex-1 max-w-2xl">
