@@ -44,19 +44,9 @@ export default function Finance() {
   const { data: sales = [] } = useQuery({
     queryKey: ["finance-sales", from, to],
     queryFn: async () => {
-      let q = supabase.from("sales").select("id, amount, status, sale_date").order("sale_date", { ascending: false });
+      let q = supabase.from("sales").select("id, amount, status, sale_date, products(name, product_categories(name))").order("sale_date", { ascending: false });
       if (from) q = q.gte("sale_date", from);
       if (to) q = q.lte("sale_date", to);
-      const { data } = await q;
-      return data ?? [];
-    },
-  });
-
-  const { data: commissions = [] } = useQuery({
-    queryKey: ["finance-commissions", from, to],
-    queryFn: async () => {
-      let q = supabase.from("commissions").select("id, amount, status, created_at, paid_at").order("created_at", { ascending: false });
-      if (from) q = q.gte("created_at", from);
       const { data } = await q;
       return data ?? [];
     },
@@ -78,6 +68,22 @@ export default function Finance() {
       let q = supabase.from("commission_splits").select("*, sales(clients(full_name), products(name))").order("created_at", { ascending: false });
       if (from) q = q.gte("created_at", from);
       const { data } = await q;
+      return data ?? [];
+    },
+  });
+
+  const { data: productPerformance = [] } = useQuery({
+    queryKey: ["product-performance"],
+    queryFn: async () => {
+      const { data } = await supabase.from("view_performance_by_product").select("*").order("gross_revenue", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const { data: sourcePerformance = [] } = useQuery({
+    queryKey: ["source-performance"],
+    queryFn: async () => {
+      const { data } = await supabase.from("view_performance_by_source").select("*").order("total_revenue", { ascending: false });
       return data ?? [];
     },
   });
