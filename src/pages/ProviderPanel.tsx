@@ -10,7 +10,8 @@ import {
   Briefcase, FileText, ClipboardCheck, Inbox, 
   Download, ArrowRight, CheckCircle2, Clock, 
   Search, Filter, ListChecks, MessageSquare,
-  ShieldCheck, LayoutDashboard
+  ShieldCheck, LayoutDashboard, ChevronLeft,
+  X, AlertCircle
 } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -134,154 +135,284 @@ export default function ProviderPanel() {
   const selectedProduct = clientProducts.find((cp: any) => cp.id === selectedProductId);
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-premium min-h-screen dark:bg-[#020617]">
       <div className="page-shell space-y-10 py-10">
-        {/* Header */}
-        <header className="space-y-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Painel do Prestador</p>
-          <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">Olá, {provider.name}</h1>
-          {provider.specialty && (
-            <p className="text-sm text-muted-foreground">{provider.specialty}</p>
-          )}
-        </header>
+        
+        {/* Header & Stats Strip */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white dark:bg-card p-8 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-colors group-hover:bg-primary/10" />
+          
+          <div className="relative space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="h-px w-8 bg-primary/40" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Service Provider Console</p>
+            </div>
+            <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Olá, <span className="text-primary italic">{provider.name.split(' ')[0]}</span>.
+            </h1>
+            <p className="text-xs text-muted-foreground font-medium flex items-center gap-2">
+              <ShieldCheck className="size-3.5 text-primary/40" /> {provider.specialty || "Prestador Especialista"}
+            </p>
+          </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard label="Atendimentos" value={String(stats.total)} icon={Briefcase} />
-          <KpiCard label="Pendentes" value={String(stats.pendentes)} icon={ClipboardCheck} tone="warning" />
-          <KpiCard label="Concluídos" value={String(stats.concluidos)} icon={ClipboardCheck} tone="success" />
-          <KpiCard label="Valor sob gestão" value={formatBRL(stats.valor)} icon={FileText} />
+          <div className="flex flex-wrap gap-8 lg:gap-12 relative">
+            <StatItem label="Ativos" value={String(stats.emAndamento)} />
+            <StatItem label="Pendentes" value={String(stats.pendentes)} tone="warning" />
+            <StatItem label="Concluídos" value={String(stats.concluidos)} tone="success" />
+          </div>
         </div>
 
-        <Tabs defaultValue="clientes" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="clientes">Meus Clientes ({clientProducts.length})</TabsTrigger>
-            <TabsTrigger value="documentos">Documentos ({documents.length})</TabsTrigger>
-            <TabsTrigger value="reportes">Histórico de Reportes ({reports.length})</TabsTrigger>
-          </TabsList>
+        {selectedProductId ? (
+          /* PRODUCT DETAIL VIEW */
+          <div className="animate-fade-up space-y-6">
+            <Button 
+              variant="ghost" 
+              onClick={() => setSelectedProductId(null)} 
+              className="group text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ChevronLeft className="size-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar para lista
+            </Button>
 
-          {/* CLIENTES */}
-          <TabsContent value="clientes" className="space-y-3">
-            {isLoading ? (
-              <p className="text-center text-muted-foreground py-12">Carregando...</p>
-            ) : clientProducts.length === 0 ? (
-              <EmptyState message="Nenhum cliente delegado a você no momento." />
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {clientProducts.map((cp: any) => (
-                  <div key={cp.id} className="vx-card p-6 space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-bold text-foreground">{cp.clients?.full_name}</h3>
-                        <p className="text-xs text-muted-foreground">{cp.products?.name}</p>
-                      </div>
-                      <StatusBadge status={cp.status} />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <p className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Prazo</p>
-                        <p className="font-medium">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground uppercase tracking-widest text-[10px] font-bold">Iniciado</p>
-                        <p className="font-medium">{formatDate(cp.created_at)}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 pt-3 border-t border-border">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => navigate(`/clientes/${cp.clients?.id}`)}
-                      >
-                        Ver Cliente <ArrowRight className="size-3 ml-1" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}
-                      >
-                        <ClipboardCheck className="size-3 mr-1" /> Reportar
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* DOCUMENTOS */}
-          <TabsContent value="documentos">
-            {documents.length === 0 ? (
-              <EmptyState message="Nenhum documento disponível para os produtos delegados." />
-            ) : (
-              <div className="vx-card overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/50">
-                    <tr className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <th className="px-6 py-4 text-left">Documento</th>
-                      <th className="px-6 py-4 text-left">Cliente</th>
-                      <th className="px-6 py-4 text-left">Status</th>
-                      <th className="px-6 py-4 text-left">Data</th>
-                      <th className="px-6 py-4 text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {documents.map((d: any) => (
-                      <tr key={d.id} className="hover:bg-muted/30">
-                        <td className="px-6 py-4 font-medium">{d.name}</td>
-                        <td className="px-6 py-4 text-xs text-muted-foreground">{d.clients?.full_name}</td>
-                        <td className="px-6 py-4"><StatusBadge status={d.status} /></td>
-                        <td className="px-6 py-4 text-xs text-muted-foreground">{formatDate(d.created_at)}</td>
-                        <td className="px-6 py-4 text-right">
-                          {d.file_path ? (
-                            <Button size="sm" variant="ghost" onClick={() => handleDownload(d.file_path, d.name)}>
-                              <Download className="size-3 mr-1" /> Baixar
-                            </Button>
-                          ) : (
-                            <span className="text-[10px] text-muted-foreground">Sem arquivo</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* REPORTES */}
-          <TabsContent value="reportes">
-            {reports.length === 0 ? (
-              <EmptyState message="Você ainda não enviou nenhum reporte." />
-            ) : (
-              <div className="vx-card divide-y divide-border">
-                {reports.map((r: any) => {
-                  const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
-                  return (
-                    <div key={r.id} className="p-5 flex items-start gap-4">
-                      <div className="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <ClipboardCheck className="size-5" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-sm">{cp?.clients?.full_name ?? "Cliente"}</p>
-                          <span className="text-muted-foreground text-xs">·</span>
-                          <p className="text-xs text-muted-foreground">{cp?.products?.name}</p>
-                          <StatusBadge status={r.status} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                   <div className="flex items-start justify-between mb-8">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Atendimento em Curso</p>
+                        <h2 className="font-editorial text-3xl font-bold text-slate-900 dark:text-white">
+                           {selectedProduct.clients?.full_name}
+                        </h2>
+                        <div className="flex items-center gap-3 pt-2">
+                           <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold tracking-widest text-[10px] uppercase">
+                             {selectedProduct.products?.name}
+                           </Badge>
+                           <StatusBadge status={selectedProduct.status} />
                         </div>
-                        {r.notes && <p className="text-sm text-muted-foreground">{r.notes}</p>}
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{formatDate(r.created_at)}</p>
+                      </div>
+                      <div className="size-14 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center border border-slate-100 dark:border-white/10">
+                         <Briefcase className="size-6 text-slate-400" />
+                      </div>
+                   </div>
+
+                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 pt-8 border-t border-slate-50 dark:border-white/5">
+                      <DetailField label="Data de Início" value={formatDate(selectedProduct.created_at)} />
+                      <DetailField label="Prazo Fatal" value={selectedProduct.deadline ? formatDate(selectedProduct.deadline) : "—"} />
+                      <DetailField label="Valor Delegado" value={formatBRL(selectedProduct.value)} />
+                   </div>
+
+                   {selectedProduct.notes && (
+                     <div className="mt-8 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Observações do Admin</p>
+                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">{selectedProduct.notes}</p>
+                     </div>
+                   )}
+                </div>
+
+                {/* Checklist / Steps */}
+                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                   <div className="flex items-center gap-3 mb-6">
+                      <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <ListChecks className="size-5" />
+                      </div>
+                      <h3 className="font-editorial text-xl font-bold">Checklist Operacional</h3>
+                   </div>
+                   <ClientProductSteps clientProductId={selectedProduct.id} />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* Actions */}
+                <div className="vx-card p-6 bg-slate-900 text-white rounded-[24px] shadow-xl space-y-4">
+                   <h3 className="font-editorial text-xl font-bold mb-4">Ações Rápidas</h3>
+                   <Button 
+                     className="w-full h-12 rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all font-bold"
+                     onClick={() => setReportTarget({ id: selectedProduct.id, productName: selectedProduct.products?.name, clientName: selectedProduct.clients?.full_name })}
+                   >
+                     <ClipboardCheck className="size-4 mr-2" /> Reportar Status
+                   </Button>
+                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5" disabled>
+                     <MessageSquare className="size-4 mr-2" /> Mensagem Admin
+                   </Button>
+                </div>
+
+                {/* Documents for this product */}
+                <div className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px] space-y-4">
+                   <h3 className="font-editorial text-lg font-bold border-b border-slate-50 dark:border-white/5 pb-3">Documentos Vinculados</h3>
+                   <div className="space-y-3">
+                      {documents.filter(d => d.client_product_id === selectedProductId).length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic p-4 text-center">Nenhum documento anexado.</p>
+                      ) : (
+                        documents.filter(d => d.client_product_id === selectedProductId).map((d: any) => (
+                          <div key={d.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 transition-colors">
+                             <div className="flex items-center gap-3 min-w-0">
+                                <FileText className="size-4 text-primary/60 shrink-0" />
+                                <p className="text-xs font-bold truncate">{d.name}</p>
+                             </div>
+                             {d.file_path && (
+                               <Button size="icon" variant="ghost" className="size-8 text-muted-foreground hover:text-primary" onClick={() => handleDownload(d.file_path, d.name)}>
+                                  <Download className="size-4" />
+                               </Button>
+                             )}
+                          </div>
+                        ))
+                      )}
+                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* MAIN LIST VIEW */
+          <Tabs defaultValue="clientes" className="space-y-8 animate-fade-up">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12">
+                <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Atendimentos ({clientProducts.length})
+                </TabsTrigger>
+                <TabsTrigger value="documentos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Documentos
+                </TabsTrigger>
+                <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Reportes
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <Input 
+                  placeholder="Filtrar por cliente ou serviço..." 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 h-12 bg-white/50 dark:bg-card border-slate-200 dark:border-white/5 rounded-2xl w-full md:w-[320px] transition-all focus:ring-primary/20"
+                />
+              </div>
+            </div>
+
+            <TabsContent value="clientes" className="space-y-4 outline-none">
+              {isLoading ? (
+                <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>
+              ) : filteredProducts.length === 0 ? (
+                <EmptyState message={search ? "Nenhum resultado para sua busca." : "Nenhum atendimento delegado a você no momento."} />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredProducts.map((cp: any) => (
+                    <div 
+                      key={cp.id} 
+                      className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card cursor-pointer"
+                      onClick={() => setSelectedProductId(cp.id)}
+                    >
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
+                          <Briefcase className="size-6" />
+                        </div>
+                        <StatusBadge status={cp.status} />
+                      </div>
+
+                      <div className="space-y-1">
+                        <h3 className="font-editorial text-xl font-bold text-slate-900 dark:text-white leading-tight group-hover/card:text-primary transition-colors">
+                           {cp.clients?.full_name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Fatal</p>
+                          <p className="text-xs font-bold">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
+                           <p className="text-xs font-bold">{formatDate(cp.created_at)}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex items-center justify-between group/link">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary group-hover/link:translate-x-1 transition-transform">Ver Detalhes</span>
+                        <ArrowRight className="size-4 text-primary opacity-0 group-hover/card:opacity-100 transition-opacity" />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="documentos">
+              {documents.length === 0 ? (
+                <EmptyState message="Nenhum documento disponível para seus atendimentos." />
+              ) : (
+                <div className="vx-card overflow-hidden bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px]">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-50/50 dark:bg-white/5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                        <th className="px-6 py-5 text-left">Documento / Atendimento</th>
+                        <th className="px-6 py-5 text-left">Status</th>
+                        <th className="px-6 py-5 text-left">Data</th>
+                        <th className="px-6 py-5 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                      {documents.map((d: any) => (
+                        <tr key={d.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                               <div className="size-9 rounded-lg bg-primary/5 flex items-center justify-center text-primary/60">
+                                 <FileText className="size-4" />
+                               </div>
+                               <div>
+                                  <p className="font-bold text-slate-900 dark:text-white leading-tight">{d.name}</p>
+                                  <p className="text-[10px] text-muted-foreground mt-1">{d.clients?.full_name}</p>
+                               </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4"><StatusBadge status={d.status} /></td>
+                          <td className="px-6 py-4 text-xs text-muted-foreground font-medium">{formatDate(d.created_at)}</td>
+                          <td className="px-6 py-4 text-right">
+                            {d.file_path ? (
+                              <Button size="sm" variant="outline" className="h-8 rounded-lg border-slate-200 hover:bg-primary hover:text-white transition-all" onClick={() => handleDownload(d.file_path, d.name)}>
+                                <Download className="size-3 mr-1.5" /> Baixar
+                              </Button>
+                            ) : (
+                              <Badge variant="ghost" className="text-[10px] text-muted-foreground uppercase tracking-widest">Sem arquivo</Badge>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="reportes">
+              {reports.length === 0 ? (
+                <EmptyState message="Você ainda não enviou nenhum reporte." />
+              ) : (
+                <div className="vx-card divide-y divide-slate-50 dark:divide-white/5 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px]">
+                  {reports.map((r: any) => {
+                    const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
+                    return (
+                      <div key={r.id} className="p-6 flex items-start gap-4 hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors first:rounded-t-[24px] last:rounded-b-[24px]">
+                        <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-sm">
+                          <ClipboardCheck className="size-6" />
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <p className="font-bold text-slate-900 dark:text-white">{cp?.clients?.full_name ?? "Cliente"}</p>
+                            <span className="size-1 rounded-full bg-slate-300" />
+                            <p className="text-xs text-muted-foreground font-medium">{cp?.products?.name}</p>
+                            <StatusBadge status={r.status} />
+                          </div>
+                          {r.notes && <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">"{r.notes}"</p>}
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{formatDate(r.created_at)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
 
       {reportTarget && (
@@ -297,41 +428,46 @@ export default function ProviderPanel() {
   );
 }
 
-function KpiCard({ label, value, icon: Icon, tone = "default" }: any) {
-  const tones: any = {
-    default: "bg-muted text-muted-foreground",
-    warning: "bg-amber-500/10 text-amber-600",
-    success: "bg-emerald-500/10 text-emerald-600",
+function StatItem({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" | "success" }) {
+  const colors: any = {
+    default: "text-slate-900 dark:text-white",
+    warning: "text-amber-500",
+    success: "text-emerald-500",
   };
   return (
-    <div className="vx-card p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div className={cn("size-9 rounded-lg flex items-center justify-center", tones[tone])}>
-          <Icon className="size-4" />
-        </div>
-      </div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="text-2xl font-bold tracking-tight mt-1">{value}</p>
+    <div className="space-y-1">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
+      <p className={cn("text-3xl font-bold font-editorial tracking-tight leading-none", colors[tone])}>{value}</p>
+    </div>
+  );
+}
+
+function DetailField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
+      <p className="text-sm font-bold text-slate-900 dark:text-white">{value}</p>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const map: any = {
-    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
-    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
-    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/30" },
-    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/30" },
-    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
-    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-muted text-muted-foreground border-border" },
-    aprovado: { label: "APROVADO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-    enviado: { label: "ENVIADO", className: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
-    solicitado: { label: "SOLICITADO", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
+    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
+    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/20" },
+    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
+    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
+    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-white/40" },
+    aprovado: { label: "APROVADO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+    enviado: { label: "ENVIADO", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
+    solicitado: { label: "SOLICITADO", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+    vencido: { label: "VENCIDO", className: "bg-rose-100 text-rose-700 border-rose-200" },
   };
-  const cfg = map[status] || { label: status?.toUpperCase() || "—", className: "bg-muted text-muted-foreground border-border" };
+  const cfg = map[status] || { label: status?.toUpperCase() || "—", className: "bg-slate-100 text-slate-600 border-slate-200" };
   return (
-    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border", cfg.className)}>
+    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border px-2 py-0.5", cfg.className)}>
       {cfg.label}
     </Badge>
   );
@@ -339,9 +475,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="vx-card p-16 text-center">
-      <Inbox className="size-10 text-muted-foreground/40 mx-auto mb-4" />
-      <p className="text-muted-foreground">{message}</p>
+    <div className="vx-card p-20 text-center bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] border-dashed border-2">
+      <Inbox className="size-12 text-slate-200 dark:text-white/5 mx-auto mb-4" />
+      <p className="font-editorial text-lg text-muted-foreground">{message}</p>
     </div>
   );
 }
