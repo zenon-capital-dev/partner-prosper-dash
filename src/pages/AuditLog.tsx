@@ -54,10 +54,31 @@ export default function AuditLog() {
           profiles(full_name, email)
         `)
         .order("created_at", { ascending: false })
-        .limit(300);
+        .limit(1000);
       return data ?? [];
     },
   });
+
+  const exportToCSV = () => {
+    const headers = ["ID", "Usuario", "Acao", "Entidade", "Data"];
+    const rows = filteredLogs.map((log: any) => [
+      log.id,
+      log.profiles?.full_name || "Sistema",
+      log.action,
+      log.entity_type,
+      format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss")
+    ]);
+    
+    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `audit_logs_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const { data: users = [] } = useQuery({
     queryKey: ["audit-users"],
