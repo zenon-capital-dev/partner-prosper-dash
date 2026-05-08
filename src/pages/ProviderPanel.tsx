@@ -6,10 +6,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Briefcase, FileText, ClipboardCheck, Inbox, Download, ArrowRight } from "lucide-react";
+import { 
+  Briefcase, FileText, ClipboardCheck, Inbox, 
+  Download, ArrowRight, CheckCircle2, Clock, 
+  Search, Filter, ListChecks, MessageSquare,
+  ShieldCheck, LayoutDashboard
+} from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
+import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { Input } from "@/components/ui/input";
 
 export default function ProviderPanel() {
   const { user } = useAuth();
