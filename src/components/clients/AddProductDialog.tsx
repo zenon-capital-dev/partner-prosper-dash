@@ -208,10 +208,13 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
                 <Label className="text-xs">Parceiro</Label>
-                <Select value={form.partner_id} onValueChange={handlePartnerChange}>
+                <Select 
+                  value={form.partner_id || "__none__"} 
+                  onValueChange={(v) => v === "__none__" ? setForm({ ...form, partner_id: "", partner_commission: 10 }) : handlePartnerChange(v)}
+                >
                   <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem parceiro</SelectItem>
+                    <SelectItem value="__none__">Sem parceiro</SelectItem>
                     {partners.map((p: any) => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.full_name} ({Number(p.commission_percent || 10)}% padrão)
