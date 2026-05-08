@@ -90,27 +90,27 @@ export default function Finance() {
   }, []);
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] admin-shell">
+    <div className="page-shell space-y-8 animate-fade-up">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">● treasury</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/30">FINANCIAL OPERATIONS</span>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 flex-wrap">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-success">● treasury</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">FINANCIAL OPERATIONS</span>
           </div>
-          <h1 className="text-[28px] font-semibold tracking-tight leading-none text-white">Finance</h1>
-          <p className="text-[12.5px] text-white/40 mt-1.5 font-mono">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Finance</h1>
+          <p className="text-xs text-muted-foreground/60 font-medium">
             Balance: {formatBRL(kpis.profit)} · net margin {kpis.margin.toFixed(1)}%
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
-            <SelectTrigger className="h-8 w-[150px] bg-white/[0.03] border-white/[0.06] text-white/60 text-[11px] font-mono uppercase tracking-wider">
-              <CalendarRange className="size-3.5 mr-1.5" />
+            <SelectTrigger className="h-9 w-[160px] bg-muted/30 border-border/50 text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+              <CalendarRange className="size-3.5 mr-2" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#12141a] border-white/[0.1] text-white">
+            <SelectContent>
               <SelectItem value="this_month">This Month</SelectItem>
               <SelectItem value="last_month">Last Month</SelectItem>
               <SelectItem value="this_quarter">This Quarter</SelectItem>
@@ -118,14 +118,14 @@ export default function Finance() {
               <SelectItem value="all">All Time</SelectItem>
             </SelectContent>
           </Select>
-          <button className="h-8 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-black font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors">
-            <Plus className="size-3.5" strokeWidth={3} /> Record Expense
-          </button>
+          <Button size="sm" className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-success/20 bg-success hover:bg-success/90 text-success-foreground">
+            <Plus className="size-4" strokeWidth={3} /> Record Expense
+          </Button>
         </div>
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         <MiniKpi label="Gross Revenue" value={formatBRL(kpis.revenue)} tone="success" />
         <MiniKpi label="Total Expenses" value={formatBRL(kpis.expensesTotal)} tone="danger" />
         <MiniKpi label="Commissions" value={formatBRL(kpis.commissionsPaid)} tone="warning" />
