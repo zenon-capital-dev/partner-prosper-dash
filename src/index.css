@@ -47,15 +47,15 @@
     --radius: 0.875rem;
 
     /* Sidebar — Deep Slate */
-    --sidebar-background: 224 45% 6%;
-    --sidebar-foreground: 220 14% 75%;
+    --sidebar-background: 224 45% 4%;
+    --sidebar-foreground: 220 10% 65%;
     --sidebar-primary: 243 75% 59%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 35% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 224 35% 11%;
+    --sidebar-accent: 224 35% 8%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 224 35% 8%;
     --sidebar-ring: 243 75% 59%;
-    --sidebar-muted: 220 14% 55%;
+    --sidebar-muted: 220 10% 45%;
 
     /* Status palette */
     --success: 152 70% 42%;
