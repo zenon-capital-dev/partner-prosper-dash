@@ -3,14 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Plus, Pencil, Wallet, MessageSquare,
-  Activity as ActivityIcon, CheckCircle2, Clock3,
+  ArrowLeft, Plus, Pencil, MessageSquare,
   FileText, ShoppingBag, FileSignature, ClipboardList,
-  History, Info, CreditCard
+  History, Info, CreditCard, Sparkles, AlertCircle
 } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, initials } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { ClientOverview } from "@/components/clients/tabs/ClientOverview";
@@ -22,10 +20,21 @@ import { ClientTasks } from "@/components/clients/tabs/ClientTasks";
 import { ClientHistory } from "@/components/clients/tabs/ClientHistory";
 import { cn } from "@/lib/utils";
 
+const TABS = [
+  { id: "visao-geral", label: "Visão Geral", icon: Info },
+  { id: "produtos", label: "Produtos", icon: ShoppingBag },
+  { id: "documentos", label: "Documentos", icon: FileText },
+  { id: "contratos", label: "Contratos", icon: FileSignature },
+  { id: "financeiro", label: "Financeiro", icon: CreditCard },
+  { id: "tarefas", label: "Tarefas", icon: ClipboardList },
+  { id: "historico", label: "Histórico", icon: History },
+];
+
 export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState("visao-geral");
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: client, isLoading } = useQuery({
@@ -54,105 +63,133 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["client-contracts", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("contracts").select("status").eq("client_id", id!);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
   const stats = useMemo(() => {
     const totalRevenue = clientProducts.reduce((s: number, x: any) => s + Number(x.value || 0), 0);
     return { totalRevenue, salesCount: clientProducts.length };
   }, [clientProducts]);
 
+  const suggestion = useMemo(() => {
+    if (clientProducts.length === 0) return { title: "Adicionar Produto", desc: "Este cliente ainda não possui produtos vinculados.", action: () => setActiveTab("produtos"), icon: Sparkles };
+    const hasUnsigned = contracts.some(c => c.status !== "assinado" && c.status !== "finalizado");
+    if (hasUnsigned) return { title: "Cobrar Assinatura", desc: "Existem contratos pendentes de assinatura.", action: () => setActiveTab("contratos"), icon: AlertCircle };
+    return null;
+  }, [clientProducts, contracts]);
+
   if (isLoading) return <div className="p-12 text-center text-white/20 font-mono">Loading account details...</div>;
   if (!client) return <div className="p-12 text-center text-rose-400 font-mono">Account not found.</div>;
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] admin-shell">
-      {/* Header with back button */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate("/clientes")} className="size-8 rounded-md bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/40 hover:text-white transition-colors">
-            <ArrowLeft className="size-4" />
+    <div className="page-shell space-y-8 animate-fade-up">
+      {/* Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <button onClick={() => navigate("/clientes")} className="size-10 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.08] transition-all">
+            <ArrowLeft className="size-5" />
           </button>
-          <div className="flex items-center gap-4">
-            <div className="size-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xl font-bold text-indigo-400">
+          <div className="flex items-center gap-5">
+            <div className="size-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-2xl font-bold text-primary shadow-[0_0_40px_rgba(var(--primary-rgb),0.1)]">
                {initials(client.full_name)}
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">● ficha ativa</span>
-                 <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/30">CLIENT 360º VIEW</span>
+              <div className="flex items-center gap-3 mb-2">
+                 <span className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-emerald-400 px-2 py-0.5 bg-emerald-400/10 rounded-full border border-emerald-400/20">Ficha Ativa</span>
+                 <span className="editorial-label">Client Management Console</span>
               </div>
-              <h1 className="text-[24px] font-semibold tracking-tight text-white leading-none">{client.full_name}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-white">{client.full_name}</h1>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
            <button
              onClick={() => {
-               const ok = openWhatsApp({
-                 phone: client.whatsapp || client.phone,
-                 message: `Olá ${client.full_name?.split(" ")[0] || ""}, tudo bem?`,
-               });
+               const ok = openWhatsApp({ phone: client.whatsapp || client.phone, message: `Olá ${client.full_name?.split(" ")[0] || ""}, tudo bem?` });
                if (!ok) toast.error("Cliente sem telefone válido");
              }}
-             className="h-8 px-4 rounded-md bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-400 font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors"
+             className="action-button btn-success"
            >
-            <MessageSquare className="size-3.5" /> WhatsApp
+            <MessageSquare className="size-4" /> WhatsApp
            </button>
-           <button onClick={() => setEditOpen(true)} className="h-8 px-4 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] text-[11.5px] font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5 transition-colors">
-            <Pencil className="size-3" /> Editar Cadastro
-           </button>
-           <button className="h-8 px-4 rounded-md bg-indigo-500 hover:bg-indigo-400 text-white font-mono font-bold uppercase tracking-wider text-[11.5px] flex items-center gap-1.5 transition-colors">
-            <Plus className="size-3.5" strokeWidth={3} /> Nova Ação
+           <button onClick={() => setEditOpen(true)} className="action-button btn-outline">
+            <Pencil className="size-3.5" /> Editar Cadastro
            </button>
         </div>
       </div>
 
-      <Tabs defaultValue="visao-geral" className="w-full space-y-6">
-        <TabsList className="bg-white/[0.03] border border-white/[0.06] p-1 h-auto flex-wrap justify-start">
-          <TabsTrigger value="visao-geral" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <Info className="size-3.5" /> Visão Geral
-          </TabsTrigger>
-          <TabsTrigger value="produtos" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <ShoppingBag className="size-3.5" /> Produtos
-          </TabsTrigger>
-          <TabsTrigger value="documentos" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <FileText className="size-3.5" /> Documentos
-          </TabsTrigger>
-          <TabsTrigger value="contratos" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <FileSignature className="size-3.5" /> Contratos
-          </TabsTrigger>
-          <TabsTrigger value="financeiro" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <CreditCard className="size-3.5" /> Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="tarefas" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <ClipboardList className="size-3.5" /> Tarefas
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="gap-2 text-[11px] font-bold uppercase tracking-widest py-2 px-4 data-[state=active]:bg-white/10 data-[state=active]:text-white">
-            <History className="size-3.5" /> Histórico
-          </TabsTrigger>
-        </TabsList>
+      {/* Stats Strip */}
+      <div className="stats-strip">
+        <div className="stats-item">
+          <p className="editorial-label mb-1">Portfolio LTV</p>
+          <p className="text-2xl font-bold font-mono tracking-tight">{formatBRL(stats.totalRevenue)}</p>
+        </div>
+        <div className="stats-item">
+          <p className="editorial-label mb-1">Produtos Ativos</p>
+          <p className="text-2xl font-bold font-mono tracking-tight text-primary">{stats.salesCount}</p>
+        </div>
+        <div className="stats-item">
+          <p className="editorial-label mb-1">Status Principal</p>
+          <p className="text-2xl font-bold tracking-tight capitalize">{client.status?.replace("_", " ") || "Prospecto"}</p>
+        </div>
+        <div className="stats-item">
+          <p className="editorial-label mb-1">Parceiro</p>
+          <p className="text-lg font-semibold truncate text-white/60">{client.partners?.full_name || "Direto"}</p>
+        </div>
+      </div>
 
-        <TabsContent value="visao-geral">
-          <ClientOverview client={client} stats={stats} />
-        </TabsContent>
-        <TabsContent value="produtos">
-          <ClientProducts clientId={id!} />
-        </TabsContent>
-        <TabsContent value="documentos">
-          <ClientDocuments clientId={id!} />
-        </TabsContent>
-        <TabsContent value="contratos">
-          <ClientContracts clientId={id!} />
-        </TabsContent>
-        <TabsContent value="financeiro">
-          <ClientFinancial clientId={id!} />
-        </TabsContent>
-        <TabsContent value="tarefas">
-          <ClientTasks clientId={id!} />
-        </TabsContent>
-        <TabsContent value="historico">
-          <ClientHistory clientId={id!} />
-        </TabsContent>
-      </Tabs>
+      {/* Suggestion banner if any */}
+      {suggestion && (
+        <div className="suggested-card group">
+          <div className="flex items-center gap-4">
+            <div className="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <suggestion.icon className="size-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">{suggestion.title}</p>
+              <p className="text-xs text-white/40">{suggestion.desc}</p>
+            </div>
+          </div>
+          <button onClick={suggestion.action} className="h-9 px-4 rounded-lg bg-primary text-primary-foreground text-[11px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity">
+            Resolver Agora
+          </button>
+        </div>
+      )}
+
+      {/* Main Grid Content */}
+      <div className="detail-shell">
+        {/* Navigation Sidebar */}
+        <aside className="nav-sidebar">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn("nav-item w-full", activeTab === tab.id && "active")}
+            >
+              <tab.icon className="size-4" />
+              {tab.label}
+            </button>
+          ))}
+        </aside>
+
+        {/* Dynamic Content Area */}
+        <main className="min-h-[600px] animate-fade-up" key={activeTab}>
+          {activeTab === "visao-geral" && <ClientOverview client={client} stats={stats} />}
+          {activeTab === "produtos" && <ClientProducts clientId={id!} />}
+          {activeTab === "documentos" && <ClientDocuments clientId={id!} />}
+          {activeTab === "contratos" && <ClientContracts clientId={id!} />}
+          {activeTab === "financeiro" && <ClientFinancial clientId={id!} />}
+          {activeTab === "tarefas" && <ClientTasks clientId={id!} />}
+          {activeTab === "historico" && <ClientHistory clientId={id!} />}
+        </main>
+      </div>
 
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["client", id] })} client={client} />
     </div>
