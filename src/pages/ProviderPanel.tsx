@@ -11,7 +11,7 @@ import {
   Download, ArrowRight, CheckCircle2, Clock, 
   Search, Filter, ListChecks, MessageSquare,
   ShieldCheck, LayoutDashboard, ChevronLeft,
-  X, AlertCircle
+  X, AlertCircle, Loader2
 } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
