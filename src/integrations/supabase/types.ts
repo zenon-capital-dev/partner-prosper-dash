@@ -2260,6 +2260,7 @@ export type Database = {
           phone: string | null
           specialty: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           active?: boolean | null
@@ -2271,6 +2272,7 @@ export type Database = {
           phone?: string | null
           specialty?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           active?: boolean | null
@@ -2282,6 +2284,7 @@ export type Database = {
           phone?: string | null
           specialty?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
