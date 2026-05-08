@@ -243,10 +243,13 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2">
                 <Label className="text-xs">Quem indicou</Label>
-                <Select value={form.referrer_id} onValueChange={handleReferrerChange}>
+                <Select 
+                  value={form.referrer_id || "__none__"} 
+                  onValueChange={(v) => v === "__none__" ? setForm({ ...form, referrer_id: "", referrer_commission: 5 }) : handleReferrerChange(v)}
+                >
                   <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem indicador</SelectItem>
+                    <SelectItem value="__none__">Sem indicador</SelectItem>
                     {referrers.map((r: any) => (
                       <SelectItem key={r.id} value={r.id}>
                         {r.full_name} ({Number(r.commission_percent || 5)}% padrão)
