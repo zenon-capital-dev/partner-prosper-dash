@@ -163,12 +163,12 @@ export default function DashboardAdmin() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {stats.byPartner.map(([name, value]) => (
-            <div key={name} className="p-6 rounded-[24px] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group hover:bg-white dark:hover:bg-white/10 transition-all">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">{name}</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">{formatBRL(value)}</p>
+            <div key={name} className="p-6 rounded-[24px] bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 group hover:border-primary/20 transition-all">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">{name}</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white leading-none">{formatBRL(value)}</p>
               <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-white/5 flex items-center justify-between">
-                <span className="text-[10px] font-bold text-primary">{formatPercent((value / (stats.totalSales || 1)) * 100)}</span>
-                <ArrowRight className="size-3 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                <span className="text-[10px] font-bold text-primary/80 uppercase tracking-widest">{formatPercent((value / (stats.totalSales || 1)) * 100)}</span>
+                <ArrowRight className="size-3 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </div>
             </div>
           ))}
