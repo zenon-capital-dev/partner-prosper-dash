@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   ChevronRight, Package, User, UserCog, ClipboardCheck, 
   Plus, Layers, Calendar, DollarSign, Activity,
-  MoreVertical, Edit3, Trash2
+  MoreVertical, Edit3, Trash2, Clock
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export function ClientProducts({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
@@ -237,50 +238,22 @@ function DataField({ label, value, icon: Icon, highlight }: { label: string; val
   );
 }
 
-      {delegateTarget && (
-        <DelegateProviderDialog
-          open={!!delegateTarget}
-          onOpenChange={(v) => !v && setDelegateTarget(null)}
-          clientProductId={delegateTarget.id}
-          currentProviderId={delegateTarget.providerId}
-          productName={delegateTarget.productName}
-        />
-      )}
-
-      <AddProductDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        clientId={clientId}
-      />
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium">{value}</p>
-    </div>
-  );
-}
-
 function StatusBadge({ status }: { status: string }) {
   const map: any = {
-    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
-    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
-    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/30" },
-    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/30" },
-    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
-    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-muted text-muted-foreground border-border" },
-    ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
+    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/20" },
+    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
+    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
+    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-white/40" },
+    ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
     finalizado: { label: "FINALIZADO", className: "bg-muted text-muted-foreground border-border" },
   };
   const cfg = map[status] || { label: (status || "—").toUpperCase(), className: "bg-muted text-muted-foreground border-border" };
   return (
-    <span className={cn("px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest border", cfg.className)}>
+    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border px-2 py-0.5", cfg.className)}>
       {cfg.label}
-    </span>
+    </Badge>
   );
 }
