@@ -283,6 +283,60 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
+            {/* Role Selection */}
+            <div className="space-y-2.5">
+              <Label className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                Tipo de conta
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole("cliente")}
+                  className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    selectedRole === "cliente"
+                      ? "border-slate-950 bg-slate-950/5 shadow-sm"
+                      : "border-slate-100 bg-white hover:border-slate-200"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${selectedRole === "cliente" ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-400"}`}>
+                    <Users className="size-4" />
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-[12px] font-bold ${selectedRole === "cliente" ? "text-slate-950" : "text-slate-500"}`}>Cliente</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Contratante</p>
+                  </div>
+                  {selectedRole === "cliente" && (
+                    <div className="absolute top-2 right-2 size-4 rounded-full bg-slate-950 flex items-center justify-center">
+                      <Check className="size-2 text-white" strokeWidth={4} />
+                    </div>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole("parceiro")}
+                  className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    selectedRole === "parceiro"
+                      ? "border-slate-950 bg-slate-950/5 shadow-sm"
+                      : "border-slate-100 bg-white hover:border-slate-200"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${selectedRole === "parceiro" ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-400"}`}>
+                    <Briefcase className="size-4" />
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-[12px] font-bold ${selectedRole === "parceiro" ? "text-slate-950" : "text-slate-500"}`}>Parceiro</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Indicador/Sócio</p>
+                  </div>
+                  {selectedRole === "parceiro" && (
+                    <div className="absolute top-2 right-2 size-4 rounded-full bg-slate-950 flex items-center justify-center">
+                      <Check className="size-2 text-white" strokeWidth={4} />
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* Full name */}
             <div className="space-y-1.5">
               <Label
