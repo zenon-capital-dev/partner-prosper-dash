@@ -75,13 +75,13 @@ export default function Dashboard() {
         </div>
 
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <KPICard 
             label="Receita Recebida" 
             value={formatBRL(stats?.financial.received || 0)} 
             delta="+8.4%" 
             trend="up"
-            icon={<DollarSign className="size-5" />}
+            icon={<DollarSign className="size-6" />}
             color="indigo"
           />
           <KPICard 
@@ -89,7 +89,7 @@ export default function Dashboard() {
             value={String(stats?.clients.month || 0)} 
             delta="+12.5%" 
             trend="up"
-            icon={<Users className="size-5" />}
+            icon={<Users className="size-6" />}
             color="emerald"
           />
           <KPICard 
@@ -97,7 +97,7 @@ export default function Dashboard() {
             value={Math.round((stats?.leads.conversionRate || 0) * 100) + "%"} 
             delta="+2.1%" 
             trend="up"
-            icon={<Target className="size-5" />}
+            icon={<Target className="size-6" />}
             color="amber"
           />
           <KPICard 
@@ -105,13 +105,13 @@ export default function Dashboard() {
             value={formatBRL((stats?.financial.total || 0) / (stats?.clients.total || 1))} 
             delta="+5.2%" 
             trend="up"
-            icon={<Wallet className="size-5" />}
+            icon={<Wallet className="size-6" />}
             color="blue"
           />
         </div>
 
         {/* Secondary KPI Strip (Mini) */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
           <MiniKPICard label="CONTRATOS ABERTOS" value={stats?.contracts.open || 0} color="blue" />
           <MiniKPICard label="DOCS PENDENTES" value={stats?.documents.pending || 0} color="amber" />
           <MiniKPICard label="TAREFAS EM ATRASO" value={stats?.tasks.overdue || 0} color="rose" />
@@ -301,13 +301,13 @@ function KPICard({ label, value, delta, trend, icon, color }: any) {
   };
 
   return (
-    <div className={cn("vx-card-premium p-6 group cursor-pointer hover:border-primary/20", gradients[color])}>
-      <div className="flex items-center justify-between mb-6">
-        <div className={cn("size-10 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg", iconColors[color])}>
+    <div className={cn("vx-card-premium p-8 group cursor-pointer hover:border-primary/20", gradients[color])}>
+      <div className="flex items-center justify-between mb-8">
+        <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-xl", iconColors[color])}>
           {icon}
         </div>
-        <div className={cn("cp-pill", trend === "up" ? "cp-pill-success" : "cp-pill-danger")}>
-          <ArrowUpRight className={cn("size-3 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5")} />
+        <div className={cn("cp-pill scale-110", trend === "up" ? "cp-pill-success" : "cp-pill-danger")}>
+          <ArrowUpRight className={cn("size-3.5 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5")} />
           {delta}
         </div>
       </div>
@@ -338,7 +338,7 @@ function MiniKPICard({ label, value, color }: any) {
     slate: "text-muted-foreground border-border/10 bg-muted/5 hover:bg-muted/10",
   };
   return (
-    <div className={cn("vx-card p-4 flex flex-col justify-between transition-all duration-300 cursor-default", colorMap[color] || colorMap.slate)}>
+    <div className={cn("vx-card p-6 flex flex-col justify-between transition-all duration-500 cursor-default group hover:translate-y-[-2px]", colorMap[color] || colorMap.slate)}>
       <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40 mb-1.5">{label}</p>
       <p className="text-xl font-bold tracking-tight tabular-nums">{value}</p>
     </div>
