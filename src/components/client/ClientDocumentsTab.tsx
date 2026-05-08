@@ -63,6 +63,8 @@ export function ClientDocumentsTab({
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [openHistory, setOpenHistory] = useState<string | null>(null);
   const [confirmReq, setConfirmReq] = useState<DocRequest | null>(null);
+  const [historyFilter, setHistoryFilter] = useState<string>("todos");
+  const [visibleHistoryCount, setVisibleHistoryCount] = useState<Record<string, number>>({});
 
   const { data: history } = useQuery({
     queryKey: ["document-history", clientId],
