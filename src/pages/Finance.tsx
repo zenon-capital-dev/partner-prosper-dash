@@ -175,39 +175,39 @@ export default function Finance() {
         </div>
 
         {/* Breakdown */}
-        <div className="col-span-12 lg:col-span-4 bg-[#0d0e12] p-6 border-l border-white/[0.06]">
-           <h2 className="text-[13px] font-semibold tracking-tight text-white mb-6">Operations breakdown</h2>
+        <div className="col-span-12 lg:col-span-4 bg-card p-6 border-l border-border/10">
+           <h2 className="text-sm font-bold tracking-tight text-foreground mb-6">Operations breakdown</h2>
            
-           <div className="space-y-5">
-             <BreakdownItem label="Direct Sales" value={formatBRL(kpis.revenue * 0.7)} percent={70} color="bg-emerald-500" />
-             <BreakdownItem label="Partner Leads" value={formatBRL(kpis.revenue * 0.3)} percent={30} color="bg-emerald-400/40" />
-             <div className="h-px bg-white/[0.06] my-2" />
-             <BreakdownItem label="Operational Expenses" value={formatBRL(kpis.expensesTotal * 0.6)} percent={60} color="bg-rose-500" />
-             <BreakdownItem label="Commission Payouts" value={formatBRL(kpis.commissionsPaid)} percent={40} color="bg-amber-500" />
+           <div className="space-y-6">
+             <BreakdownItem label="Direct Sales" value={formatBRL(kpis.revenue * 0.7)} percent={70} color="bg-success" />
+             <BreakdownItem label="Partner Leads" value={formatBRL(kpis.revenue * 0.3)} percent={30} color="bg-success/30" />
+             <div className="h-px bg-border/10 my-2" />
+             <BreakdownItem label="Operational Expenses" value={formatBRL(kpis.expensesTotal * 0.6)} percent={60} color="bg-destructive" />
+             <BreakdownItem label="Commission Payouts" value={formatBRL(kpis.commissionsPaid)} percent={40} color="bg-warning" />
            </div>
 
-           <div className="mt-8 p-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-             <div className="flex items-center gap-2 mb-2">
-               <Sparkles className="size-3.5 text-emerald-400" />
-               <p className="text-[11px] font-mono text-white/60 uppercase tracking-widest">Projection</p>
+           <div className="mt-8 p-5 rounded-xl bg-muted/30 border border-border/50">
+             <div className="flex items-center gap-2 mb-2.5">
+               <Sparkles className="size-3.5 text-primary" />
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
              </div>
-             <p className="text-[12px] text-white/40 leading-relaxed">
-               Based on current run-rate, projected end-of-month profit is <span className="text-white font-mono">{formatBRL(kpis.profit * 1.4)}</span>.
+             <p className="text-xs text-muted-foreground leading-relaxed">
+               Based on current run-rate, projected end-of-month profit is <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.4)}</span>.
              </p>
            </div>
         </div>
       </div>
 
       {/* Transaction Feed */}
-      <div className="cp-panel">
-        <div className="flex items-center justify-between p-5 border-b border-white/[0.06]">
-           <div>
-             <h2 className="text-[13px] font-semibold tracking-tight text-white">Recent movements</h2>
-             <p className="text-[11px] font-mono text-white/40 mt-0.5">combined ledger activity</p>
+      <div className="vx-card overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 gap-4 border-b border-border/10">
+           <div className="space-y-1">
+             <h2 className="text-sm font-bold tracking-tight text-foreground">Recent movements</h2>
+             <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">combined ledger activity</p>
            </div>
-           <button className="text-[10.5px] font-mono uppercase tracking-wider text-white/40 hover:text-white transition-colors flex items-center gap-1.5">
+           <Button variant="ghost" size="sm" className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2">
              full ledger <ArrowUpRight className="size-3" />
-           </button>
+           </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[12.5px]">
