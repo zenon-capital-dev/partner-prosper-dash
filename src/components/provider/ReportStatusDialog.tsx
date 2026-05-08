@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -40,6 +40,19 @@ export function ReportStatusDialog({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const { data: provider } = useQuery({
+    queryKey: ["provider-self", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_providers")
+        .select("id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   async function handleSubmit() {
     if (!status) {
       toast.error("Selecione um status");
@@ -49,6 +62,7 @@ export function ReportStatusDialog({
     const { error } = await supabase.from("client_product_status_reports").insert({
       client_product_id: clientProductId,
       reported_by: user!.id,
+      service_provider_id: provider?.id,
       status,
       notes: notes || null,
     });
@@ -57,9 +71,14 @@ export function ReportStatusDialog({
       toast.error("Erro ao reportar status", { description: error.message });
       return;
     }
+    
+    // Update the main client_product status too
+    await supabase.from("client_products").update({ status }).eq("id", clientProductId);
+
     toast.success("Status reportado ao admin");
     qc.invalidateQueries({ queryKey: ["provider-client-products"] });
     qc.invalidateQueries({ queryKey: ["status-reports"] });
+    qc.invalidateQueries({ queryKey: ["client-products"] });
     setStatus("");
     setNotes("");
     onOpenChange(false);
