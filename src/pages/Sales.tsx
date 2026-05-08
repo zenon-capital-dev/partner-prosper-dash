@@ -155,67 +155,67 @@ export default function Sales() {
           </div>
 
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="h-9 px-3 text-white/40 hover:text-white transition-colors">
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground">
               <X className="size-4" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
       {/* Table Content */}
-      <div className="cp-panel overflow-hidden">
+      <div className="vx-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-[12.5px]">
-            <thead className="bg-white/[0.02]">
-              <tr className="border-b border-white/[0.06]">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
                 <Th>Status</Th>
-                <Th>Account / Client</Th>
-                <Th>Product</Th>
-                <Th>Date</Th>
-                <Th align="right">Amount</Th>
-                <Th align="right">Actions</Th>
+                <Th>Cliente</Th>
+                <Th>Produto</Th>
+                <Th>Data</Th>
+                <Th align="right">Valor</Th>
+                <Th align="right">Ações</Th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/40">
               {isLoading ? (
-                <tr><td colSpan={6} className="py-24 text-center text-white/20 font-mono">Syncing transactions...</td></tr>
+                <tr><td colSpan={6} className="py-24 text-center text-muted-foreground/50 animate-pulse">Sincronizando transações...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="py-24 text-center text-white/20 font-mono">No transactions found.</td></tr>
+                <tr><td colSpan={6} className="py-24 text-center text-muted-foreground/50">Nenhuma transação encontrada.</td></tr>
               ) : filtered.map((s: any) => (
-                <tr key={s.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
                   <Td><StatusPill status={s.status} /></Td>
                   <Td>
                     <div className="min-w-0">
-                      <p className="font-semibold text-white truncate cursor-pointer hover:underline" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
+                      <p className="font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
                         {s.clients?.full_name ?? "—"}
                       </p>
-                      <p className="text-[11px] text-white/30 truncate font-mono uppercase tracking-wider">{s.clients?.company || "Personal Account"}</p>
+                      <p className="text-[11px] text-muted-foreground/60 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
                     </div>
                   </Td>
                   <Td>
                     <div className="flex items-center gap-2">
-                       {s.products?.product_categories && (
-                         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded border" style={{ borderColor: `${s.products.product_categories.color}30`, color: s.products.product_categories.color }}>
-                           {s.products.product_categories.name.toUpperCase()}
-                         </span>
-                       )}
-                       <span className="text-white/60">{s.products?.name ?? "—"}</span>
+                      {s.products?.product_categories && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border" style={{ borderColor: `${s.products.product_categories.color}40`, color: s.products.product_categories.color, backgroundColor: `${s.products.product_categories.color}10` }}>
+                          {s.products.product_categories.name.toUpperCase()}
+                        </span>
+                      )}
+                      <span className="text-foreground/80">{s.products?.name ?? "—"}</span>
                     </div>
                   </Td>
-                  <Td className="text-white/40 font-mono text-[11px] uppercase tracking-wider">{formatDate(s.sale_date)}</Td>
-                  <Td align="right"><span className="font-mono font-semibold text-white tabular-nums">{formatBRL(s.amount)}</span></Td>
+                  <Td className="text-muted-foreground text-xs">{formatDate(s.sale_date)}</Td>
+                  <Td align="right"><span className="font-semibold text-foreground tabular-nums">{formatBRL(s.amount)}</span></Td>
                   <Td align="right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="size-8 rounded-md hover:bg-white/5 flex items-center justify-center text-white/20 hover:text-white transition-colors">
+                        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground/40 hover:text-foreground">
                           <MoreHorizontal className="size-4" />
-                        </button>
+                        </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#12141a] border-white/[0.1] text-white">
-                        <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients?.id}`)}><Eye className="size-3.5 mr-2" /> View Client</DropdownMenuItem>
-                        <DropdownMenuItem><Clock3 className="size-3.5 mr-2" /> Change Status</DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-white/[0.06]" />
-                        <DropdownMenuItem onClick={() => removeOne(s)} className="text-rose-400 focus:text-rose-400 focus:bg-rose-400/10"><Trash2 className="size-3.5 mr-2" /> Delete</DropdownMenuItem>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients?.id}`)}><Eye className="size-3.5 mr-2" /> Ver Cliente</DropdownMenuItem>
+                        <DropdownMenuItem><Clock3 className="size-3.5 mr-2" /> Mudar Status</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => removeOne(s)} className="text-destructive focus:text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </Td>
@@ -231,33 +231,21 @@ export default function Sales() {
   );
 }
 
-function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
-  return (
-    <div className="bg-[#0d0e12] p-4 lg:p-5">
-      <p className="cp-stat-label mb-2">{label}</p>
-      <div className="flex items-center justify-between">
-        <p className={cn("cp-stat-value text-[20px] lg:text-[22px]", tone === "success" && "text-emerald-400", tone === "info" && "text-cyan-400", tone === "warning" && "text-amber-400")}>{value}</p>
-        <ArrowUpRight className={cn("size-3.5", tone === "success" ? "text-emerald-400" : "text-white/10")} />
-      </div>
-    </div>
-  );
-}
-
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    concluida: { label: "succeeded", cls: "cp-pill-success" },
-    em_andamento: { label: "processing", cls: "cp-pill-info" },
-    pendente: { label: "pending", cls: "cp-pill-warning" },
-    cancelada: { label: "canceled", cls: "cp-pill-danger" },
+    concluida: { label: "concluída", cls: "vx-pill-success" },
+    em_andamento: { label: "em andamento", cls: "vx-pill-info" },
+    pendente: { label: "pendente", cls: "vx-pill-warning" },
+    cancelada: { label: "cancelada", cls: "vx-pill-danger" },
   };
-  const m = map[status] ?? { label: status, cls: "cp-pill-muted" };
-  return <span className={cn("cp-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
+  const m = map[status] ?? { label: status, cls: "vx-pill" };
+  return <span className={cn("vx-pill", m.cls)}>{m.label}</span>;
 }
 
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      "px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
