@@ -10,6 +10,7 @@ import { formatBRL, formatPercent } from "@/lib/format";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 export default function DashboardAdmin() {
   const { data: sales = [] } = useQuery({
