@@ -68,10 +68,9 @@ export function PageHero({ eyebrow, category, title, description, actions, kpis,
 
         {/* KPIs strip */}
         {kpis && kpis.length > 0 && (
-          <div className="mt-7 pt-6 border-t border-border grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border rounded-xl overflow-hidden border border-border"
-            style={{
-              gridTemplateColumns: `repeat(${Math.min(kpis.length, 5)}, minmax(0, 1fr))`,
-            }}
+          <div
+            className="mt-7 grid gap-px bg-border rounded-xl overflow-hidden border border-border"
+            style={{ gridTemplateColumns: `repeat(${kpis.length}, minmax(0, 1fr))` }}
           >
             {kpis.map((k, i) => (
               <div key={i} className="bg-card px-5 py-4 group transition-colors hover:bg-muted/30">
