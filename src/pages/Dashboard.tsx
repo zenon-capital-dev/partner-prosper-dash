@@ -34,8 +34,11 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500" />
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="relative">
+          <div className="size-12 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
+          <div className="absolute inset-0 size-12 rounded-full border border-primary/10 blur-sm" />
+        </div>
       </div>
     );
   }
