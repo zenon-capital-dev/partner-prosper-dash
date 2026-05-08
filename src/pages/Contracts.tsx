@@ -277,6 +277,9 @@ export default function Contracts() {
                               <DropdownMenuItem onClick={() => updateStatus(c.id, "cancelado")} className="text-destructive">
                                 <Ban className="size-4 mr-2" /> Cancelar Contrato
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setHistoryContractId(c.id); setIsHistoryOpen(true); }}>
+                                <History className="size-4 mr-2" /> Ver Histórico Auditado
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => { setSelectedContract(c); setIsDialogOpen(true); }}>
                                 <FileText className="size-4 mr-2" /> Editar / Detalhes
