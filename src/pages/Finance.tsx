@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -11,6 +12,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Plus, ArrowDownToLine, ArrowUpFromLine,
   Receipt, Trash2, CheckCircle2, Clock3, Download, Search,
   CalendarRange, Sparkles, BarChart3, PiggyBank, Pencil, Filter, ArrowUpRight,
+  Users,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -70,24 +72,61 @@ export default function Finance() {
     },
   });
 
+  const { data: splits = [] } = useQuery({
+    queryKey: ["finance-splits", from, to],
+    queryFn: async () => {
+      let q = supabase.from("commission_splits").select("*, sales(clients(full_name), products(name))").order("created_at", { ascending: false });
+      if (from) q = q.gte("created_at", from);
+      const { data } = await q;
+      return data ?? [];
+    },
+  });
+
   const kpis = useMemo(() => {
     const revenue = sales.filter((s: any) => s.status === "concluida").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
-    const commissionsPaid = commissions.filter((c: any) => c.status === "paga").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const profit = revenue - commissionsPaid - expensesTotal;
+    const commissionsTotal = splits.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const commissionsPaid = splits.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const profit = revenue - commissionsTotal - expensesTotal;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { revenue, expensesTotal, commissionsPaid, profit, margin };
-  }, [sales, commissions, expenses]);
+    return { revenue, expensesTotal, commissionsPaid, commissionsTotal, profit, margin };
+  }, [sales, expenses, splits]);
 
-  // Mocked chart data for the cockpit look
+  // Group data for charts
   const chartData = useMemo(() => {
-    return Array.from({ length: 14 }).map((_, i) => ({
-      label: `${i + 1} May`,
-      revenue: Math.random() * 5000 + 2000,
-      expenses: Math.random() * 1000 + 500,
-      balance: Math.random() * 10000 + 5000,
-    }));
-  }, []);
+    const dailyMap: Record<string, { label: string; revenue: number; expenses: number; commissions: number }> = {};
+    
+    // Last 30 days
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      dailyMap[key] = { label: formatDate(key), revenue: 0, expenses: 0, commissions: 0 };
+    }
+
+    sales.forEach((s: any) => {
+      const key = s.sale_date?.slice(0, 10);
+      if (dailyMap[key] && s.status === 'concluida') {
+        dailyMap[key].revenue += Number(s.amount || 0);
+      }
+    });
+
+    expenses.forEach((e: any) => {
+      const key = e.expense_date?.slice(0, 10);
+      if (dailyMap[key]) {
+        dailyMap[key].expenses += Number(e.amount || 0);
+      }
+    });
+
+    commissions.forEach((c: any) => {
+      const key = (c.paid_at || c.created_at)?.slice(0, 10);
+      if (dailyMap[key]) {
+        dailyMap[key].commissions += Number(c.amount || 0);
+      }
+    });
+
+    return Object.values(dailyMap);
+  }, [sales, expenses, commissions]);
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
@@ -151,25 +190,96 @@ export default function Finance() {
                  <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Net Balance
                </span>
              </div>
+      </div>
+
+      {/* Top Beneficiaries */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="vx-card p-6 bg-white dark:bg-card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Users className="size-4" />
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Maiores Comissões</h3>
+          </div>
+          <div className="space-y-4">
+            {splits.slice(0, 5).map((s: any) => (
+              <div key={s.id} className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-foreground">{s.sales?.clients?.full_name || "Venda Direta"}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{s.beneficiary_type}</p>
+                </div>
+                <span className="text-xs font-bold text-success">{formatBRL(s.amount)}</span>
+              </div>
+            ))}
+            {splits.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhuma comissão registrada.</p>}
+          </div>
+        </div>
+
+        <div className="vx-card p-6 bg-white dark:bg-card">
+           <div className="flex items-center gap-3 mb-6">
+            <div className="size-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+              <Receipt className="size-4" />
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Despesas por Categoria</h3>
+          </div>
+          <div className="space-y-4">
+            {Object.entries(
+              expenses.reduce((acc: any, e: any) => {
+                acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
+                return acc;
+              }, {})
+            ).map(([cat, val]: [any, any]) => (
+              <div key={cat} className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-muted-foreground">{cat}</span>
+                  <span className="text-foreground">{formatBRL(val)}</span>
+                </div>
+                <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(val / kpis.expensesTotal) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+            {expenses.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhuma despesa registrada.</p>}
+          </div>
+        </div>
+
+        <div className="vx-card p-6 bg-slate-900 text-white border-slate-900">
+           <div className="flex items-center justify-between mb-8">
+              <PiggyBank className="size-10 text-primary" />
+              <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-[0.2em] text-[9px]">Live Status</Badge>
            </div>
+           <h3 className="font-editorial text-2xl font-bold mb-2">Liquidez Imediata</h3>
+           <p className="text-xs text-white/50 leading-relaxed mb-6">Considerando todas as comissões pagas e despesas liquidadas no período selecionado.</p>
+           <div className="space-y-4 pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Saldo em Caixa</span>
+                 <span className="text-lg font-bold tabular-nums text-white">{formatBRL(kpis.profit)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Comprometido</span>
+                 <span className="text-xs font-bold tabular-nums text-warning">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</span>
+              </div>
+           </div>
+        </div>
+      </div>
            
            <div className="h-72 w-full">
              <ResponsiveContainer>
-               <ComposedChart data={chartData}>
-                 <defs>
-                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                   </linearGradient>
-                 </defs>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace'}} />
-                 <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace'}} tickFormatter={(v) => `$${v/1000}k`} />
-                 <Tooltip contentStyle={{backgroundColor: '#12141a', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px'}} />
-                 <Area type="monotone" dataKey="revenue" stroke="#10b981" fillOpacity={1} fill="url(#colorRev)" />
-                 <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={8} />
-                 <Line type="monotone" dataKey="balance" stroke="rgba(255,255,255,0.2)" strokeWidth={1} dot={false} strokeDasharray="5 5" />
-               </ComposedChart>
+                <ComposedChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 9}} interval={4} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace'}} tickFormatter={(v) => `R$${v}`} />
+                  <Tooltip contentStyle={{backgroundColor: '#12141a', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px'}} />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fillOpacity={1} fill="url(#colorRev)" strokeWidth={2} />
+                  <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={8} />
+                  <Line type="monotone" dataKey="commissions" stroke="#f59e0b" strokeWidth={1} dot={false} />
+                </ComposedChart>
              </ResponsiveContainer>
            </div>
         </div>

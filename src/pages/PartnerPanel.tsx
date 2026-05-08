@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Users, Wallet, CheckCircle2, TrendingUp, Clock, Inbox,
   ArrowUpRight, Mail, Phone, Building2, ArrowRight,
@@ -102,7 +104,16 @@ export default function PartnerPanel() {
            <SimpleKpi label="Ganhos este mês" value={formatBRL(totals.thisMonth)} tone="info" icon={TrendingUp} />
            <SimpleKpi label="Comissões Pendentes" value={formatBRL(totals.pending)} tone="warning" icon={Clock} />
            <SimpleKpi label="Total Recebido" value={formatBRL(totals.paid)} tone="success" icon={CheckCircle2} />
-           <SimpleKpi label="Previsão de Saldo" value={formatBRL(totals.total - totals.paid)} tone="primary" icon={Wallet} />
+           <div className="vx-card p-6 bg-slate-900 text-white rounded-[28px] border-slate-900 shadow-xl flex flex-col justify-between">
+              <div className="flex items-center justify-between mb-2">
+                 <Wallet className="size-6 text-primary" />
+                 <Button variant="ghost" className="h-7 text-[10px] uppercase font-bold text-primary hover:bg-white/5" onClick={() => toast.info("Solicitação enviada ao financeiro")}>Solicitar Saque</Button>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Saldo Disponível</p>
+                <p className="font-editorial text-2xl font-bold text-white mt-1">{formatBRL(totals.pending)}</p>
+              </div>
+           </div>
         </div>
 
         <Tabs defaultValue="clientes" className="space-y-10">

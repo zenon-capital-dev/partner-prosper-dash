@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, Users, FileText, Clock, CheckCircle2, ArrowRight, Sparkles, LayoutDashboard } from "lucide-react";
-import { formatDate, initials } from "@/lib/format";
+import { formatDate, initials, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default function CollaboratorPanel() {
@@ -29,6 +30,21 @@ export default function CollaboratorPanel() {
       return data ?? [];
     },
   });
+
+  const { data: splits = [] } = useQuery({
+    queryKey: ["collab-splits", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("commission_splits").select("*, sales(clients(full_name))").eq("beneficiary_type", "collaborator").eq("beneficiary_id", user!.id).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const earnings = useMemo(() => {
+    const pending = splits.filter((s: any) => s.status === 'pendente').reduce((a, b: any) => a + Number(b.amount), 0);
+    const paid = splits.filter((s: any) => s.status === 'pago').reduce((a, b: any) => a + Number(b.amount), 0);
+    return { pending, paid };
+  }, [splits]);
 
   const openTasks = tasks.filter((t: any) => t.status !== "Concluída" && t.status !== "Cancelada");
   const doneTasks = tasks.filter((t: any) => t.status === "Concluída");
@@ -59,8 +75,9 @@ export default function CollaboratorPanel() {
 
               <div className="grid grid-cols-2 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
                  <CollabStat label="Agenda Ativa" value={String(openTasks.length)} sub="tarefas" />
-                 <CollabStat label="Portfólio" value={String(clients.length)} sub="contas" />
-              </div>
+                  <CollabStat label="Portfólio" value={String(clients.length)} sub="contas" />
+                  <CollabStat label="Ganhos" value={formatBRL(earnings.pending)} sub="pendente" tone="primary" />
+               </div>
            </div>
         </section>
 
@@ -148,12 +165,15 @@ export default function CollaboratorPanel() {
   );
 }
 
-function CollabStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+function CollabStat({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: string }) {
   return (
     <div className="space-y-1">
        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">{label}</p>
        <div className="flex items-baseline gap-2">
-          <span className="font-editorial text-4xl lg:text-6xl font-bold text-slate-900">{value}</span>
+          <span className={cn(
+            "font-editorial text-4xl lg:text-6xl font-bold",
+            tone === "primary" ? "text-primary" : "text-slate-900"
+          )}>{value}</span>
           <span className="text-xs text-muted-foreground italic">{sub}</span>
        </div>
     </div>
