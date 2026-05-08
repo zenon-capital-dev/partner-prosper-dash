@@ -142,6 +142,12 @@ export function ClientProducts({ clientId }: { clientId: string }) {
           productName={delegateTarget.productName}
         />
       )}
+
+      <AddProductDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        clientId={clientId}
+      />
     </div>
   );
 }
