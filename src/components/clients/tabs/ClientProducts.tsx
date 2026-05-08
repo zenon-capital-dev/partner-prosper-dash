@@ -1,15 +1,25 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Package, User, UserCog, ClipboardCheck, Plus, Layers } from "lucide-react";
+import { 
+  ChevronRight, Package, User, UserCog, ClipboardCheck, 
+  Plus, Layers, Calendar, DollarSign, Activity,
+  MoreVertical, Edit3, Trash2, Clock
+} from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
 import { AddProductDialog } from "@/components/clients/AddProductDialog";
 import { ClientProductSteps } from "./ClientProductSteps";
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export function ClientProducts({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
   const [delegateTarget, setDelegateTarget] = useState<{ id: string; providerId?: string | null; productName?: string } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -20,12 +30,25 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         .from("client_products")
         .select(`
           *,
-          products(name),
+          products(name, description),
           service_providers(id, name, specialty)
         `)
-        .eq("client_id", clientId);
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false });
       return data ?? [];
     },
+  });
+
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("client_products").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+      toast.success("Produto removido");
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   const cpIds = (clientProducts ?? []).map((c: any) => c.id);
@@ -48,89 +71,134 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   });
 
   return (
-    <div className="space-y-6 animate-fade-up">
+    <div className="space-y-8 animate-fade-up">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold tracking-tight">Produtos Contratados</h3>
-          <p className="text-xs text-muted-foreground">Serviços ativos, prestadores delegados e splits de comissão</p>
+          <h3 className="font-editorial text-2xl font-bold">Ecossistema de Soluções</h3>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Serviços ativos e gestão operacional dedicada</p>
         </div>
-        <Button onClick={() => setAddOpen(true)} size="sm" className="gap-2">
+        <Button onClick={() => setAddOpen(true)} className="btn-premium gap-2 h-10 px-5 rounded-xl">
           <Plus className="size-4" /> Adicionar Produto
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {isLoading ? (
-          <div className="col-span-2 text-center py-12 text-muted-foreground">Carregando...</div>
+          <div className="p-20 text-center"><Activity className="size-8 animate-spin mx-auto text-primary/20" /></div>
         ) : clientProducts?.length === 0 ? (
-          <div className="col-span-2 vx-card p-16 text-center border-dashed border-2">
-            <Package className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-4">Nenhum produto vinculado a este cliente.</p>
-            <Button onClick={() => setAddOpen(true)} size="sm" variant="outline" className="gap-2">
+          <div className="vx-card p-20 text-center border-dashed border-2 bg-slate-50 dark:bg-white/5 rounded-[40px]">
+            <Package className="size-16 text-slate-200 dark:text-white/5 mx-auto mb-6" />
+            <p className="font-editorial text-xl font-bold">Nenhum serviço contratado</p>
+            <p className="text-muted-foreground text-sm mt-2 mb-8 max-w-xs mx-auto">Vincule os produtos negociados para iniciar a gestão operacional e técnica.</p>
+            <Button onClick={() => setAddOpen(true)} variant="outline" className="gap-2 rounded-xl">
               <Plus className="size-4" /> Adicionar Primeiro Produto
             </Button>
           </div>
         ) : clientProducts?.map((cp: any) => {
           const lastReport = (latestReports as any)[cp.id];
           return (
-            <div key={cp.id} className="vx-card p-6 group hover:border-primary/40 transition-all">
-              <div className="flex items-start justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="size-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Package className="size-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground leading-none">{cp.products?.name || cp.custom_product_name}</h4>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1.5">SERVIÇO</p>
-                  </div>
-                </div>
-                <StatusBadge status={cp.status} />
-              </div>
+            <div key={cp.id} className="vx-card bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] overflow-hidden group hover:border-primary/20 transition-all duration-500">
+               <div className="p-8 lg:p-10">
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
+                     <div className="flex items-start gap-6">
+                        <div className="size-16 rounded-[24px] bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-110">
+                           <Package className="size-8" />
+                        </div>
+                        <div className="space-y-2">
+                           <div className="flex items-center gap-3">
+                              <h4 className="font-editorial text-3xl font-bold text-slate-900 dark:text-white leading-none">
+                                {cp.products?.name || cp.custom_product_name}
+                              </h4>
+                              <StatusBadge status={cp.status} />
+                           </div>
+                           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
+                              {cp.products?.description || "Acompanhamento técnico e gestão estratégica personalizada para o perfil do cliente."}
+                           </p>
+                        </div>
+                     </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <Field label="Valor" value={formatBRL(cp.value || cp.custom_value || 0)} />
-                <Field label="Iniciado" value={formatDate(cp.created_at)} />
-              </div>
-
-              {/* Provider */}
-              <div className="rounded-lg border border-border bg-muted/30 p-3 mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="size-8 rounded-md bg-background flex items-center justify-center shrink-0">
-                    <User className="size-4 text-muted-foreground" />
+                     <div className="flex items-center gap-3 self-end lg:self-start">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 rounded-xl border-slate-200 gap-2 hover:bg-primary hover:text-white transition-all"
+                          onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
+                        >
+                          <UserCog className="size-4" /> Delegar Técnico
+                        </Button>
+                        <DropdownMenu>
+                           <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5">
+                                 <MoreVertical className="size-4 text-muted-foreground" />
+                              </Button>
+                           </DropdownMenuTrigger>
+                           <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem className="gap-2 cursor-pointer"><Edit3 className="size-4" /> Editar Detalhes</DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="gap-2 text-rose-500 focus:text-rose-500 cursor-pointer"
+                                onClick={() => confirm("Remover este produto?") && deleteProduct.mutate(cp.id)}
+                              >
+                                <Trash2 className="size-4" /> Remover Produto
+                              </DropdownMenuItem>
+                           </DropdownMenuContent>
+                        </DropdownMenu>
+                     </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Prestador delegado</p>
-                    <p className="text-sm font-medium truncate">
-                      {cp.service_providers?.name || <span className="text-muted-foreground italic">Não delegado</span>}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
-                >
-                  <UserCog className="size-3.5 mr-1.5" />
-                  {cp.service_provider_id ? "Trocar" : "Delegar"}
-                </Button>
-              </div>
 
-              {/* Last report */}
-              {lastReport && (
-                <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-start gap-2.5">
-                  <ClipboardCheck className="size-4 text-primary shrink-0 mt-0.5" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Último reporte</p>
-                      <StatusBadge status={lastReport.status} />
-                    </div>
-                    {lastReport.notes && <p className="text-xs text-foreground mt-1 line-clamp-2">{lastReport.notes}</p>}
-                    <p className="text-[10px] text-muted-foreground mt-1">{formatDate(lastReport.created_at)}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10 pt-10 border-t border-slate-50 dark:border-white/5">
+                     <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
+                     <DataField label="Data de Início" value={formatDate(cp.created_at)} icon={Calendar} />
+                     <DataField label="Prazo Fatal" value={cp.deadline ? formatDate(cp.deadline) : "Nenhum"} icon={Clock} />
+                     <DataField 
+                       label="Prestador Responsável" 
+                       value={cp.service_providers?.name || "Não Delegado"} 
+                       icon={User}
+                       highlight={!!cp.service_providers}
+                     />
                   </div>
-                </div>
-              )}
 
-              <ClientProductSteps clientProductId={cp.id} />
+                  <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-10 mt-10">
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                              <ClipboardCheck className="size-4" />
+                           </div>
+                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Checklist de Entrega</h5>
+                        </div>
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] rounded-[32px] p-8 border border-slate-100 dark:border-white/5">
+                           <ClientProductSteps clientProductId={cp.id} />
+                        </div>
+                     </div>
+
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="size-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                              <Activity className="size-4" />
+                           </div>
+                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Último Reporte Técnico</h5>
+                        </div>
+                        <div className={cn(
+                          "rounded-[32px] p-8 border border-slate-100 dark:border-white/5 h-full min-h-[160px] flex flex-col justify-between transition-colors",
+                          lastReport ? "bg-indigo-50/30 dark:bg-indigo-500/5" : "bg-slate-50/50 dark:bg-white/[0.02] border-dashed border-2"
+                        )}>
+                           {lastReport ? (
+                             <>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic">"{lastReport.notes}"</p>
+                                <div className="mt-6 flex items-center justify-between border-t border-indigo-100/50 dark:border-white/5 pt-4">
+                                   <StatusBadge status={lastReport.status} />
+                                   <span className="text-[10px] font-bold text-muted-foreground uppercase">{formatDate(lastReport.created_at)}</span>
+                                </div>
+                             </>
+                           ) : (
+                             <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
+                                <Activity className="size-6 text-slate-200 dark:text-white/5" />
+                                <p className="text-xs text-muted-foreground font-medium">Nenhum reporte enviado pelo técnico ainda.</p>
+                             </div>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+               </div>
             </div>
           );
         })}
@@ -155,31 +223,37 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function DataField({ label, value, icon: Icon, highlight }: { label: string; value: string; icon: any; highlight?: boolean }) {
   return (
-    <div className="space-y-1">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium">{value}</p>
+    <div className="space-y-1.5 min-w-0">
+      <div className="flex items-center gap-2">
+        <Icon className="size-3 text-muted-foreground/60" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{label}</p>
+      </div>
+      <p className={cn(
+        "text-sm font-bold truncate",
+        highlight ? "text-primary" : "text-slate-900 dark:text-white"
+      )}>{value}</p>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const map: any = {
-    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
-    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/30" },
-    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/30" },
-    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/30" },
-    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/30" },
-    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-muted text-muted-foreground border-border" },
-    ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30" },
+    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
+    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
+    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/20" },
+    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
+    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
+    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-white/40" },
+    ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
     finalizado: { label: "FINALIZADO", className: "bg-muted text-muted-foreground border-border" },
   };
   const cfg = map[status] || { label: (status || "—").toUpperCase(), className: "bg-muted text-muted-foreground border-border" };
   return (
-    <span className={cn("px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest border", cfg.className)}>
+    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border px-2 py-0.5", cfg.className)}>
       {cfg.label}
-    </span>
+    </Badge>
   );
 }
