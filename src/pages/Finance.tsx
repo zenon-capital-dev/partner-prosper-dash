@@ -79,15 +79,41 @@ export default function Finance() {
     return { revenue, expensesTotal, commissionsPaid, profit, margin };
   }, [sales, commissions, expenses]);
 
-  // Mocked chart data for the cockpit look
+  // Group data for charts
   const chartData = useMemo(() => {
-    return Array.from({ length: 14 }).map((_, i) => ({
-      label: `${i + 1} May`,
-      revenue: Math.random() * 5000 + 2000,
-      expenses: Math.random() * 1000 + 500,
-      balance: Math.random() * 10000 + 5000,
-    }));
-  }, []);
+    const dailyMap: Record<string, { label: string; revenue: number; expenses: number; commissions: number }> = {};
+    
+    // Last 30 days
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      dailyMap[key] = { label: formatDate(key), revenue: 0, expenses: 0, commissions: 0 };
+    }
+
+    sales.forEach((s: any) => {
+      const key = s.sale_date?.slice(0, 10);
+      if (dailyMap[key] && s.status === 'concluida') {
+        dailyMap[key].revenue += Number(s.amount || 0);
+      }
+    });
+
+    expenses.forEach((e: any) => {
+      const key = e.expense_date?.slice(0, 10);
+      if (dailyMap[key]) {
+        dailyMap[key].expenses += Number(e.amount || 0);
+      }
+    });
+
+    commissions.forEach((c: any) => {
+      const key = (c.paid_at || c.created_at)?.slice(0, 10);
+      if (dailyMap[key]) {
+        dailyMap[key].commissions += Number(c.amount || 0);
+      }
+    });
+
+    return Object.values(dailyMap);
+  }, [sales, expenses, commissions]);
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
