@@ -369,5 +369,3 @@ function CornerMark({ className = "", rotate = "" }: { className?: string; rotat
     </div>
   );
 }
-  );
-}
