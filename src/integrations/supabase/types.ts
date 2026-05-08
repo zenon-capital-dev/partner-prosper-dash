@@ -2545,6 +2545,18 @@ export type Database = {
       }
     }
     Functions: {
+      check_overdue_documents: { Args: never; Returns: undefined }
+      check_pending_commissions: { Args: never; Returns: undefined }
+      create_notification: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       has_role:
         | {
             Args: {
