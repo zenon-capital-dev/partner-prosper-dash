@@ -64,14 +64,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="p-8 space-y-8 max-w-[1600px] mx-auto animate-fade-up">
+      <main className="page-shell space-y-8 animate-fade-up">
         {/* Breadcrumb / Info */}
-        <div className="flex items-center gap-3 text-muted-foreground/60">
-          <Calendar className="size-4" />
-          <span className="text-[11px] font-bold uppercase tracking-widest">{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</span>
-          <span className="text-border">|</span>
-          <Zap className="size-4 text-indigo-500" />
-          <span className="text-[11px] font-bold uppercase tracking-widest">Painel de Comando Admin</span>
+        <div className="flex items-center gap-3 text-muted-foreground/40">
+          <Calendar className="size-3.5" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</span>
+          <span className="text-border/20">/</span>
+          <Zap className="size-3.5 text-primary" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Painel de Comando Admin</span>
         </div>
 
         {/* KPI Grid */}
