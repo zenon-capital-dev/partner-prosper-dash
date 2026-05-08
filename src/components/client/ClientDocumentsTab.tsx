@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
+import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp, ShieldCheck, Info } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -22,31 +22,38 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type DocRequest = {
   id: string;
   client_id: string;
   product_id: string | null;
-  request_title: string;
+  name: string; // Updated from request_title to name
   description: string | null;
   status: string;
-  file_url: string | null;
-  deadline: string | null;
+  file_path: string | null; // Updated from file_url to file_path
+  due_date: string | null; // Updated from deadline to due_date
   rejection_reason: string | null;
-  submission_date: string | null;
-  approval_date: string | null;
-  requested_at: string;
+  uploaded_at: string | null; // Updated from submission_date
+  reviewed_at: string | null; // Updated from approval_date
+  created_at: string;
 };
 
 type Product = { id: string; name: string };
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300", icon: Clock },
-  enviado: { label: "Analisando", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
-  analisando: { label: "Analisando", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
+  enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
+  em_analise: { label: "Em Análise", tone: "bg-primary-muted text-primary border-primary/20", icon: Loader2 },
   aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
-  concluido: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
   reprovado: { label: "Reprovado", tone: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300", icon: AlertCircle },
+  pendente_correcao: { label: "Pendente Correção", tone: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
+  vencido: { label: "Vencido", tone: "bg-slate-100 text-slate-500 border-slate-200", icon: Clock },
 };
 
 export function ClientDocumentsTab({
