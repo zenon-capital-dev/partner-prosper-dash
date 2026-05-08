@@ -25,6 +25,7 @@ const signupSchema = z
   .object({
     fullName: z.string().trim().min(2, "Informe seu nome completo").max(120),
     email: z.string().trim().email("Email inválido").max(255),
+    role: z.enum(["cliente", "parceiro"]),
     password: z
       .string()
       .min(8, "A senha deve ter no mínimo 8 caracteres")
