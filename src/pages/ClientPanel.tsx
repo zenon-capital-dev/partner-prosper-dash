@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NpsCard } from "@/components/nps/NpsCard";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
+import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
