@@ -164,11 +164,12 @@ export default function Finance() {
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         <MiniKpi label="Gross Revenue" value={formatBRL(kpis.revenue)} tone="success" />
-        <MiniKpi label="Total Expenses" value={formatBRL(kpis.expensesTotal)} tone="danger" />
-        <MiniKpi label="Commissions" value={formatBRL(kpis.commissionsPaid)} tone="warning" />
+        <MiniKpi label="Commissions Total" value={formatBRL(kpis.commissionsTotal)} tone="warning" />
+        <MiniKpi label="Expenses Total" value={formatBRL(kpis.expensesTotal)} tone="danger" />
         <MiniKpi label="Net Profit" value={formatBRL(kpis.profit)} tone="primary" />
+        <MiniKpi label="Margin" value={`${kpis.margin.toFixed(1)}%`} />
       </div>
 
       <div className="grid grid-cols-12 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
