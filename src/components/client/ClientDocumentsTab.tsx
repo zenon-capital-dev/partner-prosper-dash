@@ -67,19 +67,36 @@ export function ClientDocumentsTab({
     try {
       setUploadingId(req.id);
       const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${clientId}/${req.id}/${Date.now()}.${ext}`;
+      const timestamp = Date.now();
+      const path = `${clientId}/${req.id}/${timestamp}.${ext}`;
 
+      // Upload file
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
       if (upErr) throw upErr;
 
+      // Update request status
       const { error: updErr } = await supabase
         .from("document_requests")
-        .update({ file_url: path, status: "enviado", submission_date: new Date().toISOString() })
+        .update({ 
+          file_url: path, 
+          status: "enviado", 
+          submission_date: new Date().toISOString(),
+          rejection_reason: null // Clear reason on resubmit
+        })
         .eq("id", req.id);
       if (updErr) throw updErr;
 
+      // Log to history
+      await supabase.from("document_history").insert({
+        request_id: req.id,
+        file_url: path,
+        status: "enviado",
+        created_by: (await supabase.auth.getUser()).data.user?.id
+      });
+
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
+      qc.invalidateQueries({ queryKey: ["document-history"] });
     } catch (e: any) {
       toast.error(e.message ?? "Falha ao enviar documento");
     } finally {
@@ -87,11 +104,15 @@ export function ClientDocumentsTab({
     }
   }
 
-  async function handleDownload(req: DocRequest) {
-    if (!req.file_url) return;
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(req.file_url, 60);
+  async function downloadFile(url: string) {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(url, 60);
     if (error || !data) return toast.error("Não foi possível baixar o arquivo");
     window.open(data.signedUrl, "_blank");
+  }
+
+  async function handleDownload(req: DocRequest) {
+    if (!req.file_url) return;
+    await downloadFile(req.file_url);
   }
 
   if (requests.length === 0) {
