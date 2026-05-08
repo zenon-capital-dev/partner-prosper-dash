@@ -187,14 +187,14 @@ function MetricTile({ label, value, icon: Icon, tone, sub }: any) {
   };
 
   return (
-    <div className="vx-card p-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 rounded-[32px] space-y-4 hover:shadow-xl transition-all group">
-      <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110", tones[tone])}>
-        <Icon className="size-6" />
+    <div className="vx-card p-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-3xl space-y-4 hover:border-primary/20 transition-all group shadow-none">
+      <div className={cn("size-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", tones[tone])}>
+        <Icon className="size-5" />
       </div>
       <div className="space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
-        <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums">{value}</p>
-        {sub && <p className="text-[10px] font-medium text-muted-foreground italic">{sub}</p>}
+        <p className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+        {sub && <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest mt-1">{sub}</p>}
       </div>
     </div>
   );
