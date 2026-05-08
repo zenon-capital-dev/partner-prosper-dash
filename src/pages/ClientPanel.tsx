@@ -12,6 +12,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NpsCard } from "@/components/nps/NpsCard";
+import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
@@ -123,6 +124,7 @@ export default function ClientPanel() {
         <Tabs defaultValue="meus-produtos" className="space-y-10">
           <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
             <PremiumTabTrigger value="meus-produtos" label="Meus Serviços" icon={Package} />
+            <PremiumTabTrigger value="documentos" label="Documentos" icon={Upload} />
             <PremiumTabTrigger value="catalogo" label="Descobrir" icon={ShoppingBag} />
             <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
             <PremiumTabTrigger value="financeiro" label="Financeiro" icon={Receipt} />
@@ -157,6 +159,10 @@ export default function ClientPanel() {
                 </div>
               ))}
             </div>
+          </TabsContent>
+
+          <TabsContent value="documentos" className="animate-fade-up">
+            <ClientDocumentsTab clientId={client.id} requests={requests as any} products={catalog as any} />
           </TabsContent>
 
           <TabsContent value="catalogo" className="animate-fade-up">
