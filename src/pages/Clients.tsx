@@ -141,32 +141,32 @@ export default function Clients() {
   const hasFilters = !!search || statusFilter !== "todos" || partnerFilter !== "todos" || sortBy !== "recent";
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] animate-fade-up">
+    <div className="page-shell space-y-8 animate-fade-up">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary">● management</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/40">CLIENT PORTFOLIO</span>
+      <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● management</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">CLIENT PORTFOLIO</span>
           </div>
-          <h1 className="text-[28px] font-semibold tracking-tight leading-none">Clients</h1>
-          <p className="text-[12.5px] text-muted-foreground mt-1.5 font-mono">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Clients</h1>
+          <p className="text-xs text-muted-foreground/60 font-medium">
             {enriched.length} total records · sync live
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV} className="h-8 text-[11px] font-mono uppercase tracking-wider gap-1.5">
-            <Download className="size-3" /> export
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
+            <Download className="size-3.5" /> export
           </Button>
-          <Button size="sm" onClick={() => setOpen(true)} className="h-8 font-mono font-bold uppercase tracking-wider text-[11px] gap-1.5">
-            <Plus className="size-3.5" strokeWidth={3} /> New Client
+          <Button size="sm" onClick={() => setOpen(true)} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
+            <Plus className="size-4" strokeWidth={3} /> New Client
           </Button>
         </div>
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/40 rounded-lg overflow-hidden border border-border/40 shadow-sm">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         <MiniKpi label="Total Clients" value={String(kpis.total)} />
         <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
         <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
@@ -325,11 +325,16 @@ export default function Clients() {
 
 function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="bg-background p-4 lg:p-5">
-      <p className="vx-kpi-label mb-2">{label}</p>
+    <div className="bg-card p-6">
+      <p className="vx-kpi-label mb-2.5 opacity-40">{label}</p>
       <div className="flex items-center justify-between">
-        <p className={cn("vx-kpi-value text-[20px] lg:text-[22px]", tone === "primary" && "text-primary")}>{value}</p>
-        <TrendingUp className={cn("size-3.5", tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-muted-foreground/10")} />
+        <p className={cn("vx-kpi-value text-2xl tracking-tight font-bold", 
+          tone === "primary" ? "text-primary" : 
+          tone === "success" ? "text-success" :
+          tone === "warning" ? "text-warning" :
+          tone === "info" ? "text-info" : ""
+        )}>{value}</p>
+        <TrendingUp className={cn("size-4", tone === "success" ? "text-success" : tone === "warning" ? "text-warning" : "text-muted-foreground/10")} />
       </div>
     </div>
   );
@@ -342,7 +347,7 @@ function StatusPill({ status }: { status: string }) {
     inativo: { label: "inactive", cls: "vx-pill-danger" },
   };
   const m = map[status] ?? { label: status, cls: "vx-pill" };
-  return <span className={cn("vx-pill uppercase tracking-widest text-[9px]", m.cls)}>{m.label}</span>;
+  return <span className={cn("vx-pill px-2 py-0.5 text-[9px] font-black tracking-[0.1em]", m.cls)}>{m.label}</span>;
 }
 
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {

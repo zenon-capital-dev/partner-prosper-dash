@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { PartnerDetailDrawer } from "@/components/PartnerDetailDrawer";
+import { cn } from "@/lib/utils";
 
 const emptyForm = { active: true, commission_percent: 10 };
 type SortKey = "recent" | "name" | "commissions" | "clients";
@@ -208,21 +209,27 @@ export default function Partners() {
   const hasFilters = !!search || statusFilter !== "todos" || sortBy !== "commissions";
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-5">
-      <PageHeader
-        title="Parceiros"
-        description="Indicadores, vínculos com produtos e desempenho de comissões."
-        actions={
+    <div className="page-shell space-y-8 animate-fade-up">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2">
-              <Download className="size-4" /> Exportar
-            </Button>
-            <Button onClick={openNew} className="gap-2 bg-gradient-primary hover:opacity-90">
-              <Plus className="size-4" /> Novo Parceiro
-            </Button>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● ecosystem</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">PARTNER NETWORK</span>
           </div>
-        }
-      />
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Parceiros</h1>
+          <p className="text-xs text-muted-foreground/60 font-medium leading-relaxed max-w-lg">
+            Indicadores, vínculos com produtos e desempenho de comissões. Gerencie sua rede de indicações de alto nível.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
+            <Download className="size-3.5" /> Exportar
+          </Button>
+          <Button size="sm" onClick={openNew} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
+            <Plus className="size-4" strokeWidth={3} /> Novo Parceiro
+          </Button>
+        </div>
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -583,30 +590,35 @@ function RankBadge({ rank }: { rank: number }) {
 function Mini({ label, value, highlight }: any) {
   return (
     <div>
-      <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
-      <p className={`text-xs vx-mono font-semibold mt-0.5 ${highlight ? "text-primary" : ""}`}>{value}</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/40">{label}</p>
+      <p className={`text-[13px] font-bold tabular-nums mt-1 ${highlight ? "text-primary" : "text-foreground"}`}>{value}</p>
     </div>
   );
 }
 
 function KpiCard({ icon: Icon, label, value, tone, sub, highlight = false }: any) {
   const map: any = {
-    primary: { color: "text-primary", bg: "bg-primary/10", ring: "ring-primary/20" },
-    success: { color: "text-success", bg: "bg-success-muted", ring: "ring-success/20" },
-    warning: { color: "text-warning", bg: "bg-warning-muted", ring: "ring-warning/20" },
-    info: { color: "text-info", bg: "bg-info-muted", ring: "ring-info/20" },
+    primary: { color: "text-primary", bg: "bg-primary/10", border: "border-primary/10" },
+    success: { color: "text-success", bg: "bg-success/10", border: "border-success/10" },
+    warning: { color: "text-warning", bg: "bg-warning/10", border: "border-warning/10" },
+    info: { color: "text-info", bg: "bg-info/10", border: "border-info/10" },
   };
   const t = map[tone] ?? map.primary;
   return (
-    <div className={`vx-card p-3.5 ${highlight ? `ring-1 ${t.ring}` : ""}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
-          <p className="font-display text-xl font-bold vx-mono mt-1 truncate">{value}</p>
-          {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
+    <div className={cn(
+      "vx-card p-5 group transition-all duration-300", 
+      highlight ? "border-primary/20 shadow-lg shadow-primary/5" : "hover:border-primary/10"
+    )}>
+      <div className="flex items-start justify-between">
+        <div className="space-y-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{label}</p>
+          <div className="space-y-1">
+            <p className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{value}</p>
+            {sub && <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-wider">{sub}</p>}
+          </div>
         </div>
-        <div className={`size-8 rounded-md flex items-center justify-center ${t.bg} ${t.color}`}>
-          <Icon className="size-4" />
+        <div className={cn("size-10 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110", t.bg, t.color)}>
+          <Icon className="size-5" />
         </div>
       </div>
     </div>
