@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, Users, FileText, Clock, CheckCircle2, ArrowRight, Sparkles, LayoutDashboard } from "lucide-react";
-import { formatDate, initials } from "@/lib/format";
+import { formatDate, initials, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default function CollaboratorPanel() {
