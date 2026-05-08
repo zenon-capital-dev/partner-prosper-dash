@@ -1,13 +1,21 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronRight, Package, User, UserCog, ClipboardCheck, Plus, Layers } from "lucide-react";
+import { 
+  ChevronRight, Package, User, UserCog, ClipboardCheck, 
+  Plus, Layers, Calendar, DollarSign, Activity,
+  MoreVertical, Edit3, Trash2
+} from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
 import { AddProductDialog } from "@/components/clients/AddProductDialog";
 import { ClientProductSteps } from "./ClientProductSteps";
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export function ClientProducts({ clientId }: { clientId: string }) {
   const [delegateTarget, setDelegateTarget] = useState<{ id: string; providerId?: string | null; productName?: string } | null>(null);
