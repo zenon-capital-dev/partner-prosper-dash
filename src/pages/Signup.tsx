@@ -17,6 +17,8 @@ import {
   EyeOff,
   CheckCircle2,
   Check,
+  Briefcase,
+  Users,
 } from "lucide-react";
 import { z } from "zod";
 import { ProsperLogo } from "@/components/VendxLogo";
