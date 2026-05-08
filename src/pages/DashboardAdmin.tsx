@@ -70,8 +70,8 @@ export default function DashboardAdmin() {
             <span className="h-px w-8 bg-primary/40" />
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Executive Cockpit</p>
           </div>
-          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-none">
-            Visão <span className="text-primary italic">Global</span>.
+          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
+            Visão <span className="text-primary italic font-medium">Global</span>.
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ export default function DashboardAdmin() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 rounded-[32px] shadow-2xl shadow-slate-200/20">
+        <div className="lg:col-span-2 vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] hover:border-primary/20 transition-colors shadow-none">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Performance por Produto</h3>
@@ -110,9 +110,9 @@ export default function DashboardAdmin() {
                   </div>
                   <span className="font-mono text-sm font-bold text-slate-900 dark:text-white">{formatBRL(value)}</span>
                 </div>
-                <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-primary to-indigo-400 transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(99,102,241,0.3)]" 
+                    className="h-full bg-primary transition-all duration-1000 ease-out" 
                     style={{ width: `${(value / (stats.totalSales || 1)) * 100}%` }} 
                   />
                 </div>
@@ -121,35 +121,38 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] flex flex-col justify-between shadow-2xl">
+        <div className="vx-card p-8 bg-slate-900 dark:bg-slate-950 text-white rounded-[32px] flex flex-col justify-between border-none">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <Activity className="size-6 text-primary" />
-              <Badge className="bg-white/10 text-white border-white/10 hover:bg-white/20">Real-time</Badge>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Live Analytics</span>
+              </div>
             </div>
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Margem Líquida Est.</p>
-              <p className="font-editorial text-5xl font-bold text-emerald-400 tracking-tight">
+              <p className="font-editorial text-5xl font-bold text-white tracking-tight">
                 {formatPercent(((stats.totalSales - stats.totalCommissions) / (stats.totalSales || 1)) * 100)}
               </p>
-              <p className="text-xs text-white/40 leading-relaxed">Cálculo estimado após dedução de todas as comissões e splits da rede.</p>
+              <p className="text-xs text-white/30 leading-relaxed font-medium">Lucratividade operacional projetada após todos os repasses da rede.</p>
             </div>
           </div>
           
           <div className="pt-8 border-t border-white/5 space-y-4">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-white/40 font-bold uppercase tracking-widest">Ticket Médio</span>
-              <span className="font-mono font-bold">{formatBRL(stats.totalSales / (stats.salesCount || 1))}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Ticket Médio</span>
+              <span className="font-mono text-sm font-bold text-white">{formatBRL(stats.totalSales / (stats.salesCount || 1))}</span>
             </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-white/40 font-bold uppercase tracking-widest">Comissões Pendentes</span>
-              <span className="font-mono font-bold text-warning">{formatBRL(stats.pendingCommissions)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Pendências</span>
+              <span className="font-mono text-sm font-bold text-amber-400">{formatBRL(stats.pendingCommissions)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 rounded-[32px]">
+      <div className="vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] shadow-none hover:border-primary/10 transition-colors">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Top Parceiros & Canais</h3>
@@ -160,12 +163,12 @@ export default function DashboardAdmin() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {stats.byPartner.map(([name, value]) => (
-            <div key={name} className="p-6 rounded-[24px] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 group hover:bg-white dark:hover:bg-white/10 transition-all">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">{name}</p>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">{formatBRL(value)}</p>
+            <div key={name} className="p-6 rounded-[24px] bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 group hover:border-primary/20 transition-all">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-3">{name}</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white leading-none">{formatBRL(value)}</p>
               <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-white/5 flex items-center justify-between">
-                <span className="text-[10px] font-bold text-primary">{formatPercent((value / (stats.totalSales || 1)) * 100)}</span>
-                <ArrowRight className="size-3 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                <span className="text-[10px] font-bold text-primary/80 uppercase tracking-widest">{formatPercent((value / (stats.totalSales || 1)) * 100)}</span>
+                <ArrowRight className="size-3 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </div>
             </div>
           ))}
@@ -184,14 +187,14 @@ function MetricTile({ label, value, icon: Icon, tone, sub }: any) {
   };
 
   return (
-    <div className="vx-card p-8 bg-white dark:bg-slate-900/40 border-slate-100 dark:border-white/5 rounded-[32px] space-y-4 hover:shadow-xl transition-all group">
-      <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110", tones[tone])}>
-        <Icon className="size-6" />
+    <div className="vx-card p-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-3xl space-y-4 hover:border-primary/20 transition-all group shadow-none">
+      <div className={cn("size-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", tones[tone])}>
+        <Icon className="size-5" />
       </div>
       <div className="space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
-        <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums">{value}</p>
-        {sub && <p className="text-[10px] font-medium text-muted-foreground italic">{sub}</p>}
+        <p className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+        {sub && <p className="text-[10px] font-bold text-primary/60 uppercase tracking-widest mt-1">{sub}</p>}
       </div>
     </div>
   );
