@@ -38,8 +38,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
   const { data: indicators } = useQuery({
     queryKey: ["indicators-select"],
     queryFn: async () => {
-      // Trying to fetch from indicators if exists, or fallback to partners/profiles
-      const { data } = await supabase.from("profiles").select("id, full_name").order("full_name");
+      const { data } = await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name");
       return data ?? [];
     },
   });
