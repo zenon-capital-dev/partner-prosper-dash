@@ -165,7 +165,7 @@ export default function ClientPanel() {
           </TabsContent>
 
           <TabsContent value="documentos" className="animate-fade-up">
-            <ClientDocumentsTab clientId={client.id} requests={requests as any} products={catalog as any} />
+            <ClientDocumentsTab clientId={client.id} requests={docs as any} products={catalog as any} />
           </TabsContent>
 
           <TabsContent value="catalogo" className="animate-fade-up">
