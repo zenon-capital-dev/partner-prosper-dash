@@ -141,16 +141,16 @@ export default function Clients() {
   const hasFilters = !!search || statusFilter !== "todos" || partnerFilter !== "todos" || sortBy !== "recent";
 
   return (
-    <div className="px-6 py-6 space-y-6 max-w-[1600px] animate-fade-up">
+    <div className="page-shell space-y-8 animate-fade-up">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-primary">● management</span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/40">CLIENT PORTFOLIO</span>
+      <div className="flex items-end justify-between gap-6 flex-wrap">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● management</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">CLIENT PORTFOLIO</span>
           </div>
-          <h1 className="text-[28px] font-semibold tracking-tight leading-none">Clients</h1>
-          <p className="text-[12.5px] text-muted-foreground mt-1.5 font-mono">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Clients</h1>
+          <p className="text-xs text-muted-foreground/60 font-medium">
             {enriched.length} total records · sync live
           </p>
         </div>
