@@ -38,6 +38,8 @@ export default function Contracts() {
   const [selectedContract, setSelectedContract] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyContractId, setHistoryContractId] = useState<string | null>(null);
 
   const { data: contracts, refetch, isLoading } = useQuery({
     queryKey: ["contracts-all"],
@@ -46,8 +48,8 @@ export default function Contracts() {
         .from("contracts")
         .select(`
           *,
-          clients(full_name),
-          products(name)
+          clients(id, full_name),
+          products(id, name)
         `)
         .order("created_at", { ascending: false });
       
@@ -56,7 +58,24 @@ export default function Contracts() {
     },
   });
 
-  const updateStatus = async (id: string, status: ContractStatus) => {
+  const { data: contractHistory = [] } = useQuery({
+    queryKey: ["contract-history-admin", historyContractId],
+    enabled: !!historyContractId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contract_history")
+        .select(`
+          *,
+          profiles:action_by(full_name)
+        `)
+        .eq("contract_id", historyContractId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const updateStatus = async (id: string, status: ContractStatus, notes?: string) => {
     const updateData: any = { status };
     if (status === 'enviado') updateData.sent_at = new Date().toISOString();
     if (status === 'assinado') updateData.signed_at = new Date().toISOString();
