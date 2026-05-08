@@ -22,24 +22,26 @@ export default function ProviderPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
+  const [search, setSearch] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      // Try by user_id first, fallback to email
       let { data } = await supabase
         .from("service_providers")
-        .select("id, name, specialty, email")
+        .select("id, name, specialty, email, user_id")
         .eq("user_id", user!.id)
         .maybeSingle();
+      
       if (!data && user?.email) {
-        const r = await supabase
+        const { data: byEmail } = await supabase
           .from("service_providers")
-          .select("id, name, specialty, email")
+          .select("id, name, specialty, email, user_id")
           .ilike("email", user.email)
           .maybeSingle();
-        data = r.data;
+        data = byEmail;
       }
       return data;
     },
