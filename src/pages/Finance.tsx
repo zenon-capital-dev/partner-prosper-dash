@@ -44,19 +44,9 @@ export default function Finance() {
   const { data: sales = [] } = useQuery({
     queryKey: ["finance-sales", from, to],
     queryFn: async () => {
-      let q = supabase.from("sales").select("id, amount, status, sale_date").order("sale_date", { ascending: false });
+      let q = supabase.from("sales").select("id, amount, status, sale_date, products(name, product_categories(name))").order("sale_date", { ascending: false });
       if (from) q = q.gte("sale_date", from);
       if (to) q = q.lte("sale_date", to);
-      const { data } = await q;
-      return data ?? [];
-    },
-  });
-
-  const { data: commissions = [] } = useQuery({
-    queryKey: ["finance-commissions", from, to],
-    queryFn: async () => {
-      let q = supabase.from("commissions").select("id, amount, status, created_at, paid_at").order("created_at", { ascending: false });
-      if (from) q = q.gte("created_at", from);
       const { data } = await q;
       return data ?? [];
     },
@@ -78,6 +68,22 @@ export default function Finance() {
       let q = supabase.from("commission_splits").select("*, sales(clients(full_name), products(name))").order("created_at", { ascending: false });
       if (from) q = q.gte("created_at", from);
       const { data } = await q;
+      return data ?? [];
+    },
+  });
+
+  const { data: productPerformance = [] } = useQuery({
+    queryKey: ["product-performance"],
+    queryFn: async () => {
+      const { data } = await supabase.from("view_performance_by_product").select("*").order("gross_revenue", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const { data: sourcePerformance = [] } = useQuery({
+    queryKey: ["source-performance"],
+    queryFn: async () => {
+      const { data } = await supabase.from("view_performance_by_source").select("*").order("total_revenue", { ascending: false });
       return data ?? [];
     },
   });
@@ -118,7 +124,7 @@ export default function Finance() {
       }
     });
 
-    commissions.forEach((c: any) => {
+    splits.forEach((c: any) => {
       const key = (c.paid_at || c.created_at)?.slice(0, 10);
       if (dailyMap[key]) {
         dailyMap[key].commissions += Number(c.amount || 0);
@@ -126,7 +132,7 @@ export default function Finance() {
     });
 
     return Object.values(dailyMap);
-  }, [sales, expenses, commissions]);
+  }, [sales, expenses, splits]);
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
@@ -157,6 +163,25 @@ export default function Finance() {
               <SelectItem value="all">All Time</SelectItem>
             </SelectContent>
           </Select>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-9 px-3 text-[10px] font-bold uppercase tracking-widest gap-2"
+            onClick={() => {
+              const headers = ["Produto", "Vendas", "Receita Bruta", "Comissoes", "Receita Liquida"];
+              const rows = productPerformance.map((p: any) => [
+                p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
+              ]);
+              const csv = [headers, ...rows].map(r => r.join(";")).join("\n");
+              const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(blob);
+              link.download = `performance_produtos_${new Date().toISOString().slice(0, 10)}.csv`;
+              link.click();
+            }}
+          >
+            <Download className="size-3.5" /> Export Performance
+          </Button>
           <Button size="sm" className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-success/20 bg-success hover:bg-success/90 text-success-foreground">
             <Plus className="size-4" strokeWidth={3} /> Record Expense
           </Button>
@@ -164,11 +189,12 @@ export default function Finance() {
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         <MiniKpi label="Gross Revenue" value={formatBRL(kpis.revenue)} tone="success" />
-        <MiniKpi label="Total Expenses" value={formatBRL(kpis.expensesTotal)} tone="danger" />
-        <MiniKpi label="Commissions" value={formatBRL(kpis.commissionsPaid)} tone="warning" />
+        <MiniKpi label="Commissions Total" value={formatBRL(kpis.commissionsTotal)} tone="warning" />
+        <MiniKpi label="Expenses Total" value={formatBRL(kpis.expensesTotal)} tone="danger" />
         <MiniKpi label="Net Profit" value={formatBRL(kpis.profit)} tone="primary" />
+        <MiniKpi label="Margin" value={`${kpis.margin.toFixed(1)}%`} />
       </div>
 
       <div className="grid grid-cols-12 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
@@ -299,13 +325,82 @@ export default function Finance() {
            <div className="mt-8 p-5 rounded-xl bg-muted/30 border border-border/50">
              <div className="flex items-center gap-2 mb-2.5">
                <Sparkles className="size-3.5 text-primary" />
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
-             </div>
-             <p className="text-xs text-muted-foreground leading-relaxed">
-               Based on current run-rate, projected end-of-month profit is <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.4)}</span>.
-             </p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Considerando o volume atual de vendas e a taxa de conversão de leads, o lucro projetado para este período é de <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.2)}</span>.
+              </p>
            </div>
         </div>
+      </div>
+
+      {/* Performance Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+         {/* Product Ranking */}
+         <div className="vx-card p-8 bg-white dark:bg-card">
+            <div className="flex items-center justify-between mb-8">
+               <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest">Performance por Produto</h3>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Ranking de volume bruto</p>
+               </div>
+               <BarChart3 className="size-5 text-primary opacity-30" />
+            </div>
+            <div className="space-y-6">
+               {productPerformance.slice(0, 6).map((p: any) => (
+                  <div key={p.product_id} className="space-y-2">
+                     <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-foreground">{p.product_name}</span>
+                        <span className="font-mono font-bold text-success">{formatBRL(p.gross_revenue)}</span>
+                     </div>
+                     <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                           className="h-full bg-primary rounded-full transition-all duration-1000" 
+                           style={{ width: `${(p.gross_revenue / (productPerformance[0]?.gross_revenue || 1)) * 100}%` }} 
+                        />
+                     </div>
+                     <div className="flex items-center justify-between text-[9px] text-muted-foreground uppercase tracking-widest font-bold">
+                        <span>{p.total_sales} vendas</span>
+                        <span>Margem: {p.gross_revenue > 0 ? ((p.net_revenue / p.gross_revenue) * 100).toFixed(1) : 0}%</span>
+                     </div>
+                  </div>
+               ))}
+               {productPerformance.length === 0 && <p className="text-xs text-muted-foreground italic">Sem dados de performance.</p>}
+            </div>
+         </div>
+
+         {/* Source Performance */}
+         <div className="vx-card p-8 bg-white dark:bg-card">
+            <div className="flex items-center justify-between mb-8">
+               <div>
+                  <h3 className="text-sm font-bold uppercase tracking-widest">Origem de Leads</h3>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Conversão e ROI por canal</p>
+               </div>
+               <TrendingUp className="size-5 text-success opacity-30" />
+            </div>
+            <div className="space-y-6">
+               {sourcePerformance.slice(0, 6).map((s: any) => (
+                  <div key={s.source} className="flex items-center gap-6">
+                     <div className="flex-1 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                           <span className="font-bold text-foreground">{s.source || "Direto / Orgânico"}</span>
+                           <span className="font-mono font-bold">{formatBRL(s.total_revenue)}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                           <div 
+                              className="h-full bg-emerald-500 rounded-full" 
+                              style={{ width: `${(s.total_revenue / (sourcePerformance[0]?.total_revenue || 1)) * 100}%` }} 
+                           />
+                        </div>
+                     </div>
+                     <div className="text-center shrink-0">
+                        <p className="text-lg font-bold text-foreground leading-none">{s.total_leads > 0 ? ((s.converted_sales / s.total_leads) * 100).toFixed(0) : 0}%</p>
+                        <p className="text-[8px] text-muted-foreground uppercase tracking-tighter mt-1">Conv.</p>
+                     </div>
+                  </div>
+               ))}
+               {sourcePerformance.length === 0 && <p className="text-xs text-muted-foreground italic">Sem dados de leads.</p>}
+            </div>
+         </div>
       </div>
 
       {/* Transaction Feed */}
