@@ -200,25 +200,30 @@ export default function PartnerPanel() {
               )}
            </TabsContent>
 
-           {/* COMISSOES com filtro */}
-           <TabsContent value="comissoes" className="animate-fade-up space-y-4">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
+           <TabsContent value="comissoes" className="animate-fade-up space-y-6">
+              <div className="flex items-center justify-between gap-4 flex-wrap bg-white/50 backdrop-blur-md p-6 rounded-3xl border border-white/40 shadow-sm">
                 <div className="flex gap-2 items-center">
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Filtrar:</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Filtrar Status:</span>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-[180px] bg-white border-slate-200"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="todos">Todos</SelectItem>
-                      <SelectItem value="pendente">Pendentes</SelectItem>
-                      <SelectItem value="pago">Pagos</SelectItem>
-                      <SelectItem value="cancelado">Cancelados</SelectItem>
+                      <SelectItem value="todos">Todos os Status</SelectItem>
+                      <SelectItem value="pendente">🕒 Pendentes</SelectItem>
+                      <SelectItem value="pago">✅ Pagos</SelectItem>
+                      <SelectItem value="cancelado">❌ Cancelados</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex gap-3 text-xs">
-                  <span className="text-amber-600 font-bold">Pendente: {formatBRL(totals.pending)}</span>
-                  <span className="text-emerald-600 font-bold">Pago: {formatBRL(totals.paid)}</span>
-                  <span className="text-rose-600 font-bold">Cancelado: {formatBRL(totals.cancelled)}</span>
+                <div className="flex items-center gap-6">
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Pendentes</p>
+                    <p className="text-lg font-bold text-amber-600">{formatBRL(totals.pending)}</p>
+                  </div>
+                  <div className="w-px h-8 bg-slate-200" />
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Recebido</p>
+                    <p className="text-lg font-bold text-emerald-600">{formatBRL(totals.paid)}</p>
+                  </div>
                 </div>
               </div>
 
@@ -227,32 +232,47 @@ export default function PartnerPanel() {
                   <table className="w-full text-sm">
                      <thead>
                         <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50">
-                           <th className="px-8 py-5 text-left">Data</th>
-                           <th className="px-8 py-5 text-left">Cliente / Produto</th>
-                           <th className="px-8 py-5 text-right">%</th>
-                           <th className="px-8 py-5 text-right">Crédito</th>
-                           <th className="px-8 py-5 text-left">Status</th>
+                           <th className="px-8 py-5 text-left">Lançamento / Produto</th>
+                           <th className="px-8 py-5 text-left">Cliente</th>
+                           <th className="px-8 py-5 text-right">Venda Base</th>
+                           <th className="px-8 py-5 text-right">Cálculo</th>
+                           <th className="px-8 py-5 text-right">Sua Comissão</th>
+                           <th className="px-8 py-5 text-center">Status</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-slate-50">
                         {filteredSplits.length === 0 ? (
-                          <tr><td colSpan={5} className="px-8 py-12 text-center text-muted-foreground">Nenhuma comissão para o filtro selecionado.</td></tr>
+                          <tr><td colSpan={6} className="px-8 py-20 text-center">
+                            <Inbox className="size-8 text-slate-200 mx-auto mb-3" />
+                            <p className="text-muted-foreground font-medium">Nenhum registro encontrado para este filtro.</p>
+                          </td></tr>
                         ) : filteredSplits.map((s: any) => (
-                          <tr key={s.id} className="hover:bg-slate-50/50">
-                             <td className="px-8 py-6 text-xs text-muted-foreground">{formatDate(s.created_at)}</td>
+                          <tr key={s.id} className="group hover:bg-slate-50/50 transition-colors">
                              <td className="px-8 py-6">
-                                <p className="font-bold text-slate-900">{s.sales?.clients?.full_name ?? "—"}</p>
-                                <p className="text-[11px] text-muted-foreground">{s.sales?.products?.name ?? "Venda direta"}</p>
+                                <p className="font-bold text-slate-900">{s.sales?.products?.name ?? "Serviço Especial"}</p>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{formatDate(s.created_at)}</p>
                              </td>
-                             <td className="px-8 py-6 text-right font-mono text-xs">{Number(s.percent).toFixed(1)}%</td>
-                             <td className="px-8 py-6 text-right font-bold tabular-nums">{formatBRL(s.amount)}</td>
                              <td className="px-8 py-6">
+                                <p className="font-medium text-slate-700">{s.sales?.clients?.full_name ?? "—"}</p>
+                             </td>
+                             <td className="px-8 py-6 text-right font-medium text-slate-500 tabular-nums">
+                                {formatBRL(s.sales?.amount || 0)}
+                             </td>
+                             <td className="px-8 py-6 text-right font-mono text-[10px] text-slate-400">
+                                {Number(s.percent).toFixed(1)}% de {formatBRL(s.sales?.amount || 0)}
+                             </td>
+                             <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900">
+                                {formatBRL(s.amount)}
+                             </td>
+                             <td className="px-8 py-6 text-center">
                                 <span className={cn(
-                                  "vx-pill uppercase tracking-widest text-[9px]",
+                                  "vx-pill uppercase tracking-widest text-[9px] min-w-[80px]",
                                   s.status === 'pago' && "vx-pill-success",
                                   s.status === 'pendente' && "vx-pill-warning",
                                   s.status === 'cancelado' && "vx-pill-muted",
-                                )}>{s.status}</span>
+                                )}>
+                                  {s.status === 'pago' ? "Pago" : s.status === 'pendente' ? "Pendente" : "Cancelado"}
+                                </span>
                              </td>
                           </tr>
                         ))}
