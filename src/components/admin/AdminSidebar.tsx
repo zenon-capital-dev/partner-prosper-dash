@@ -99,8 +99,8 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-screen sticky top-0 shrink-0 flex flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-[width] duration-300 ease-in-out z-50",
-          collapsed ? "w-[72px]" : "w-[260px]"
+          "h-screen sticky top-0 shrink-0 flex flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-[width] duration-500 ease-[cubic-bezier(0.2,0,0,1)] z-50",
+          collapsed ? "w-[80px]" : "w-[280px]"
         )}
       >
         {/* Brand */}
@@ -159,7 +159,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6 admin-scroll">
+        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-8 admin-scroll">
           {SECTIONS.map((section) => (
             <div key={section.label}>
               {!collapsed && (
@@ -178,7 +178,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       to={item.url}
                       title={collapsed ? item.title : undefined}
                       className={cn(
-                        "group relative flex items-center gap-3 h-9 rounded-lg text-[13.5px] font-medium transition-all duration-200",
+                        "group relative flex items-center gap-3 h-10 rounded-xl text-[13.5px] font-medium transition-all duration-300",
                         collapsed ? "justify-center px-0" : "px-3",
                         active
                           ? "bg-white/[0.08] text-white shadow-sm"
