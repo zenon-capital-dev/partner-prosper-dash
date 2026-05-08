@@ -55,12 +55,24 @@ export default function ProviderPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, status, value, deadline, created_at, clients(id, full_name, email, phone), products(name)")
+        .select(`
+          id, status, value, deadline, created_at, notes,
+          clients(id, full_name, email, phone, company),
+          products(name, description)
+        `)
         .eq("service_provider_id", providerId!)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
+
+  const filteredProducts = useMemo(() => {
+    return clientProducts.filter((cp: any) => 
+      cp.clients?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+      cp.products?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      cp.clients?.company?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [clientProducts, search]);
 
   const clientProductIds = useMemo(() => clientProducts.map((cp: any) => cp.id), [clientProducts]);
 
@@ -93,34 +105,33 @@ export default function ProviderPanel() {
 
   const stats = useMemo(() => {
     const total = clientProducts.length;
-    const concluidos = clientProducts.filter((c: any) => c.status === "concluido").length;
+    const concluidos = clientProducts.filter((c: any) => c.status === "concluido" || c.status === "finalizado").length;
+    const emAndamento = clientProducts.filter((c: any) => c.status === "em_andamento").length;
     const pendentes = total - concluidos;
-    const valor = clientProducts.reduce((s: number, c: any) => s + Number(c.value || 0), 0);
-    return { total, concluidos, pendentes, valor };
+    return { total, concluidos, emAndamento, pendentes };
   }, [clientProducts]);
 
   async function handleDownload(filePath: string, name: string) {
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 60);
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 3600);
     if (error || !data) return;
-    const a = document.createElement("a");
-    a.href = data.signedUrl;
-    a.download = name;
-    a.click();
+    window.open(data.signedUrl, "_blank");
   }
 
   if (!provider) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-8">
-        <div className="vx-card p-12 max-w-lg text-center">
+      <div className="min-h-[70vh] flex items-center justify-center p-8 bg-premium">
+        <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white/40 backdrop-blur-xl border-white/20">
           <Inbox className="size-12 text-primary/30 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold tracking-tight mb-3">Acesso de prestador pendente</h2>
-          <p className="text-muted-foreground">
-            Sua conta ainda não foi vinculada a um cadastro de prestador. Entre em contato com o administrador.
+          <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3">Acesso pendente</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Sua conta ainda não foi vinculada a um cadastro de prestador. <br/>Entre em contato com o administrador para liberação.
           </p>
         </div>
       </div>
     );
   }
+
+  const selectedProduct = clientProducts.find((cp: any) => cp.id === selectedProductId);
 
   return (
     <div className="bg-background min-h-screen">
