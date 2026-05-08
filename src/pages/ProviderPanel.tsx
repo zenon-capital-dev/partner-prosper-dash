@@ -372,7 +372,7 @@ export default function ProviderPanel() {
                                 <Download className="size-3 mr-1.5" /> Baixar
                               </Button>
                             ) : (
-                              <Badge variant="ghost" className="text-[10px] text-muted-foreground uppercase tracking-widest">Sem arquivo</Badge>
+                              <Badge variant="outline" className="text-[10px] text-muted-foreground uppercase tracking-widest border-dashed">Sem arquivo</Badge>
                             )}
                           </td>
                         </tr>
