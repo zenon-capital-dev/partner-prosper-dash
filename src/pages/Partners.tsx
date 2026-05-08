@@ -622,3 +622,4 @@ function KpiCard({ icon: Icon, label, value, tone, sub, highlight = false }: any
       </div>
     </div>
   );
+}
