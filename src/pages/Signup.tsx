@@ -17,14 +17,18 @@ import {
   EyeOff,
   CheckCircle2,
   Check,
+  Briefcase,
+  Users,
 } from "lucide-react";
 import { z } from "zod";
 import { ProsperLogo } from "@/components/VendxLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const signupSchema = z
   .object({
     fullName: z.string().trim().min(2, "Informe seu nome completo").max(120),
     email: z.string().trim().email("Email inválido").max(255),
+    role: z.enum(["cliente", "parceiro"]),
     password: z
       .string()
       .min(8, "A senha deve ter no mínimo 8 caracteres")
@@ -60,6 +64,7 @@ export default function SignupPage() {
   const [showPwd2, setShowPwd2] = useState(false);
   const [pwd, setPwd] = useState("");
   const [accept, setAccept] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<"cliente" | "parceiro">("cliente");
 
   useEffect(() => {
     if (!loading && user) navigate("/", { replace: true });
@@ -83,6 +88,7 @@ export default function SignupPage() {
       email: fd.get("email"),
       password: fd.get("password"),
       confirmPassword: fd.get("confirmPassword"),
+      role: selectedRole,
       acceptTerms: accept,
     });
     if (!parsed.success) return toast.error(parsed.error.errors[0].message);
@@ -93,7 +99,10 @@ export default function SignupPage() {
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: parsed.data.fullName },
+        data: { 
+          full_name: parsed.data.fullName,
+          role: parsed.data.role
+        },
       },
     });
     setSubmitting(false);
@@ -227,21 +236,22 @@ export default function SignupPage() {
       </div>
 
       {/* RIGHT — FORM */}
-      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-[#FAFAF7] text-slate-900">
-        <div
-          className="absolute inset-0 opacity-[0.4] pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none" />
+      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-white dark:bg-[#06070C] text-foreground transition-colors duration-500 overflow-y-auto">
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle />
+        </div>
 
-        <CornerMark className="top-6 left-6" />
-        <CornerMark className="top-6 right-6" rotate="rotate-90" />
-        <CornerMark className="bottom-6 left-6" rotate="-rotate-90" />
-        <CornerMark className="bottom-6 right-6" rotate="rotate-180" />
+        {/* Dynamic ambient backgrounds */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.4] dark:opacity-[0.15]">
+          <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-primary/20 animate-pulse" />
+          <div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-purple-500/20 animate-pulse" style={{ animationDelay: '1.5s' }} />
+        </div>
+
+        {/* subtle texture */}
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+             style={{
+               backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+             }} />
 
         <div className="relative w-full max-w-[440px] space-y-7">
           {/* Mobile brand */}
@@ -275,6 +285,60 @@ export default function SignupPage() {
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
+            {/* Role Selection */}
+            <div className="space-y-2.5">
+              <Label className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                Tipo de conta
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole("cliente")}
+                  className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    selectedRole === "cliente"
+                      ? "border-slate-950 bg-slate-950/5 shadow-sm"
+                      : "border-slate-100 bg-white hover:border-slate-200"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${selectedRole === "cliente" ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-400"}`}>
+                    <Users className="size-4" />
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-[12px] font-bold ${selectedRole === "cliente" ? "text-slate-950" : "text-slate-500"}`}>Cliente</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Contratante</p>
+                  </div>
+                  {selectedRole === "cliente" && (
+                    <div className="absolute top-2 right-2 size-4 rounded-full bg-slate-950 flex items-center justify-center">
+                      <Check className="size-2 text-white" strokeWidth={4} />
+                    </div>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole("parceiro")}
+                  className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    selectedRole === "parceiro"
+                      ? "border-slate-950 bg-slate-950/5 shadow-sm"
+                      : "border-slate-100 bg-white hover:border-slate-200"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${selectedRole === "parceiro" ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-400"}`}>
+                    <Briefcase className="size-4" />
+                  </div>
+                  <div className="text-center">
+                    <p className={`text-[12px] font-bold ${selectedRole === "parceiro" ? "text-slate-950" : "text-slate-500"}`}>Parceiro</p>
+                    <p className="text-[10px] text-slate-400 font-medium">Indicador/Sócio</p>
+                  </div>
+                  {selectedRole === "parceiro" && (
+                    <div className="absolute top-2 right-2 size-4 rounded-full bg-slate-950 flex items-center justify-center">
+                      <Check className="size-2 text-white" strokeWidth={4} />
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* Full name */}
             <div className="space-y-1.5">
               <Label
@@ -501,9 +565,10 @@ export default function SignupPage() {
 
 function CornerMark({ className = "", rotate = "" }: { className?: string; rotate?: string }) {
   return (
-    <div className={`absolute size-3 ${className} ${rotate} pointer-events-none`}>
-      <div className="absolute top-0 left-0 w-full h-px bg-slate-300/60" />
-      <div className="absolute top-0 left-0 h-full w-px bg-slate-300/60" />
+    <div className={`absolute size-4 ${className} ${rotate} pointer-events-none z-10`}>
+      <div className="absolute top-0 left-0 w-full h-[1.5px] bg-slate-900/20 dark:bg-white/20" />
+      <div className="absolute top-0 left-0 h-full w-[1.5px] bg-slate-900/20 dark:bg-white/20" />
+      <div className="absolute top-0 left-0 size-1 bg-primary/40 dark:bg-primary/60 rounded-full -translate-x-1/2 -translate-y-1/2" />
     </div>
   );
 }
