@@ -208,21 +208,27 @@ export default function Partners() {
   const hasFilters = !!search || statusFilter !== "todos" || sortBy !== "commissions";
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-5">
-      <PageHeader
-        title="Parceiros"
-        description="Indicadores, vínculos com produtos e desempenho de comissões."
-        actions={
+    <div className="page-shell space-y-8 animate-fade-up">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2">
-              <Download className="size-4" /> Exportar
-            </Button>
-            <Button onClick={openNew} className="gap-2 bg-gradient-primary hover:opacity-90">
-              <Plus className="size-4" /> Novo Parceiro
-            </Button>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● ecosystem</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">PARTNER NETWORK</span>
           </div>
-        }
-      />
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Parceiros</h1>
+          <p className="text-xs text-muted-foreground/60 font-medium leading-relaxed max-w-lg">
+            Indicadores, vínculos com produtos e desempenho de comissões. Gerencie sua rede de indicações de alto nível.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
+            <Download className="size-3.5" /> Exportar
+          </Button>
+          <Button size="sm" onClick={openNew} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
+            <Plus className="size-4" strokeWidth={3} /> Novo Parceiro
+          </Button>
+        </div>
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
