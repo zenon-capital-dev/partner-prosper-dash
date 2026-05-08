@@ -13,7 +13,17 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
   DropdownMenuTrigger, DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { ContractDialog } from "@/components/contracts/ContractDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -38,6 +48,8 @@ export default function Contracts() {
   const [selectedContract, setSelectedContract] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyContractId, setHistoryContractId] = useState<string | null>(null);
 
   const { data: contracts, refetch, isLoading } = useQuery({
     queryKey: ["contracts-all"],
@@ -46,8 +58,8 @@ export default function Contracts() {
         .from("contracts")
         .select(`
           *,
-          clients(full_name),
-          products(name)
+          clients(id, full_name),
+          products(id, name)
         `)
         .order("created_at", { ascending: false });
       
@@ -56,7 +68,24 @@ export default function Contracts() {
     },
   });
 
-  const updateStatus = async (id: string, status: ContractStatus) => {
+  const { data: contractHistory = [] } = useQuery({
+    queryKey: ["contract-history-admin", historyContractId],
+    enabled: !!historyContractId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contract_history")
+        .select(`
+          *,
+          profiles:action_by(full_name)
+        `)
+        .eq("contract_id", historyContractId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const updateStatus = async (id: string, status: ContractStatus, notes?: string) => {
     const updateData: any = { status };
     if (status === 'enviado') updateData.sent_at = new Date().toISOString();
     if (status === 'assinado') updateData.signed_at = new Date().toISOString();
@@ -258,6 +287,9 @@ export default function Contracts() {
                               <DropdownMenuItem onClick={() => updateStatus(c.id, "cancelado")} className="text-destructive">
                                 <Ban className="size-4 mr-2" /> Cancelar Contrato
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setHistoryContractId(c.id); setIsHistoryOpen(true); }}>
+                                <History className="size-4 mr-2" /> Ver Histórico Auditado
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => { setSelectedContract(c); setIsDialogOpen(true); }}>
                                 <FileText className="size-4 mr-2" /> Editar / Detalhes
@@ -281,6 +313,51 @@ export default function Contracts() {
         contract={selectedContract}
         onSuccess={refetch}
       />
+
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="max-w-2xl rounded-[32px]">
+          <DialogHeader>
+            <DialogTitle className="font-editorial text-2xl">Histórico de Alterações</DialogTitle>
+            <DialogDescription>Rastreabilidade completa de todas as movimentações e status.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 my-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-100 dark:before:bg-white/5">
+             {contractHistory.length === 0 ? (
+               <p className="text-center py-8 text-muted-foreground italic">Nenhuma alteração registrada até o momento.</p>
+             ) : (
+               contractHistory.map((h: any) => {
+                 const config = statusConfig[h.status as ContractStatus] || statusConfig.criado;
+                 return (
+                   <div key={h.id} className="relative pl-10 group">
+                      <div className={cn("absolute left-0 top-1.5 size-6 rounded-full border-4 border-white dark:border-slate-950 flex items-center justify-center", config.color.split(' ')[0])}>
+                         <div className="size-1 bg-current rounded-full" />
+                      </div>
+                      <div className="space-y-1">
+                         <div className="flex items-center justify-between">
+                            <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest px-2 py-0", config.color)}>
+                               {config.label}
+                            </Badge>
+                            <span className="text-[10px] font-mono text-muted-foreground">{formatDate(h.created_at)}</span>
+                         </div>
+                         <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{h.notes || "Alteração de status"}</p>
+                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                            <ShieldCheck className="size-3" /> Por: {h.profiles?.full_name || "Sistema"}
+                         </p>
+                         {h.file_path && (
+                            <Button variant="link" size="sm" className="h-auto p-0 text-[10px] text-primary" onClick={() => viewFile(h.file_path)}>
+                               <Download className="size-3 mr-1" /> Baixar Versão Deste Momento
+                            </Button>
+                         )}
+                      </div>
+                   </div>
+                 );
+               })
+             )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsHistoryOpen(false)} className="rounded-xl">Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
