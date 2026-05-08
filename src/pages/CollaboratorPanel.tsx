@@ -75,8 +75,9 @@ export default function CollaboratorPanel() {
 
               <div className="grid grid-cols-2 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
                  <CollabStat label="Agenda Ativa" value={String(openTasks.length)} sub="tarefas" />
-                 <CollabStat label="Portfólio" value={String(clients.length)} sub="contas" />
-              </div>
+                  <CollabStat label="Portfólio" value={String(clients.length)} sub="contas" />
+                  <CollabStat label="Ganhos" value={formatBRL(earnings.pending)} sub="pendente" tone="primary" />
+               </div>
            </div>
         </section>
 
