@@ -317,9 +317,33 @@ export default function PartnerPanel() {
               )}
            </TabsContent>
         </Tabs>
-           </TabsContent>
-        </Tabs>
       </div>
+    </div>
+  );
+}
+
+function FinanceTile({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
+  const tones: any = {
+    warning: "bg-amber-500/10 text-amber-600",
+    success: "bg-emerald-500/10 text-emerald-600",
+    muted: "bg-muted text-muted-foreground",
+  };
+  return (
+    <div className="vx-card p-6 bg-white rounded-[28px] border-slate-100">
+      <div className={cn("size-10 rounded-2xl flex items-center justify-center mb-3", tones[tone])}>
+        <Icon className="size-5" />
+      </div>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-border last:border-0">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-bold">{value}</span>
     </div>
   );
 }
