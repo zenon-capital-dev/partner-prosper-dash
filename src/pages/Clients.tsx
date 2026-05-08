@@ -155,18 +155,18 @@ export default function Clients() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportCSV} className="h-8 text-[11px] font-mono uppercase tracking-wider gap-1.5">
-            <Download className="size-3" /> export
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
+            <Download className="size-3.5" /> export
           </Button>
-          <Button size="sm" onClick={() => setOpen(true)} className="h-8 font-mono font-bold uppercase tracking-wider text-[11px] gap-1.5">
-            <Plus className="size-3.5" strokeWidth={3} /> New Client
+          <Button size="sm" onClick={() => setOpen(true)} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
+            <Plus className="size-4" strokeWidth={3} /> New Client
           </Button>
         </div>
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/40 rounded-lg overflow-hidden border border-border/40 shadow-sm">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         <MiniKpi label="Total Clients" value={String(kpis.total)} />
         <MiniKpi label="Active" value={String(kpis.active)} tone="success" />
         <MiniKpi label="Prospects" value={String(kpis.prospects)} tone="warning" />
