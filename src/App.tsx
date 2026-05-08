@@ -43,7 +43,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="crm-theme">
+    <ThemeProvider attribute="class" defaultTheme="light" storageKey="crm-theme" enableSystem={false} disableTransitionOnChange>
       <TooltipProvider>
       <Toaster />
       <Sonner />
