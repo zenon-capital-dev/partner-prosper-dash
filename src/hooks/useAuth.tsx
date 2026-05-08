@@ -42,9 +42,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const { data: { session: sess } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        setSession(sess);
+        setUser(sess?.user ?? null);
+        
+        if (sess?.user) {
+          await fetchRoles(sess.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Auth init error:", error);
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initAuth();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, sess) => {
+      if (!mounted) return;
+      
       setSession(sess);
       setUser(sess?.user ?? null);
+      
       if (sess?.user) {
         setLoading(true);
         await fetchRoles(sess.user.id);
@@ -54,17 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    supabase.auth.getSession().then(async ({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) {
-        await fetchRoles(sess.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
