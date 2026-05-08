@@ -132,23 +132,23 @@ export default function Finance() {
         <MiniKpi label="Net Profit" value={formatBRL(kpis.profit)} tone="primary" />
       </div>
 
-      <div className="grid grid-cols-12 gap-px bg-white/[0.06] rounded-lg overflow-hidden border border-white/[0.06]">
+      <div className="grid grid-cols-12 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
         {/* Main Chart */}
-        <div className="col-span-12 lg:col-span-8 bg-[#0d0e12] p-6">
-           <div className="flex items-center justify-between mb-8">
+        <div className="col-span-12 lg:col-span-8 bg-card p-6">
+           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
              <div>
-               <h2 className="text-[13px] font-semibold tracking-tight text-white">Capital flow</h2>
-               <p className="text-[11px] font-mono text-white/40 mt-0.5">daily revenue vs operational costs</p>
+               <h2 className="text-sm font-bold tracking-tight text-foreground">Capital flow</h2>
+               <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest mt-1">daily revenue vs operational costs</p>
              </div>
-             <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-widest">
-               <span className="flex items-center gap-1.5 text-emerald-400">
-                 <span className="size-1.5 rounded-full bg-emerald-500" /> Revenue
+             <div className="flex flex-wrap items-center gap-4 text-[9px] font-black uppercase tracking-[0.15em]">
+               <span className="flex items-center gap-1.5 text-success">
+                 <span className="size-1.5 rounded-full bg-success" /> Revenue
                </span>
-               <span className="flex items-center gap-1.5 text-rose-400">
-                 <span className="size-1.5 rounded-full bg-rose-500" /> Expenses
+               <span className="flex items-center gap-1.5 text-destructive">
+                 <span className="size-1.5 rounded-full bg-destructive" /> Expenses
                </span>
-               <span className="flex items-center gap-1.5 text-white/30">
-                 <span className="size-1.5 rounded-full bg-white/20" /> Net Balance
+               <span className="flex items-center gap-1.5 text-muted-foreground/40">
+                 <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Net Balance
                </span>
              </div>
            </div>
