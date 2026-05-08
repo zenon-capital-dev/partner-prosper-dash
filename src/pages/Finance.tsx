@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Plus, ArrowDownToLine, ArrowUpFromLine,
   Receipt, Trash2, CheckCircle2, Clock3, Download, Search,
   CalendarRange, Sparkles, BarChart3, PiggyBank, Pencil, Filter, ArrowUpRight,
-  Users,
+  Users, AlertCircle,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
