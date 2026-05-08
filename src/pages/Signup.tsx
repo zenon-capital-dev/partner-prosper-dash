@@ -565,9 +565,10 @@ export default function SignupPage() {
 
 function CornerMark({ className = "", rotate = "" }: { className?: string; rotate?: string }) {
   return (
-    <div className={`absolute size-3 ${className} ${rotate} pointer-events-none`}>
-      <div className="absolute top-0 left-0 w-full h-px bg-slate-300/60" />
-      <div className="absolute top-0 left-0 h-full w-px bg-slate-300/60" />
+    <div className={`absolute size-4 ${className} ${rotate} pointer-events-none z-10`}>
+      <div className="absolute top-0 left-0 w-full h-[1.5px] bg-slate-900/20 dark:bg-white/20" />
+      <div className="absolute top-0 left-0 h-full w-[1.5px] bg-slate-900/20 dark:bg-white/20" />
+      <div className="absolute top-0 left-0 size-1 bg-primary/40 dark:bg-primary/60 rounded-full -translate-x-1/2 -translate-y-1/2" />
     </div>
   );
 }
