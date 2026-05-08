@@ -142,7 +142,17 @@ export default function AuditLog() {
 
       {/* Filtros */}
       <div className="vx-card p-6 space-y-4">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-11 px-4 gap-2 border-border/50 hover:bg-muted"
+            onClick={exportToCSV}
+          >
+            <Download className="size-4" />
+            Exportar CSV
+          </Button>
+
           <div className="relative flex-1 min-w-[300px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input 
