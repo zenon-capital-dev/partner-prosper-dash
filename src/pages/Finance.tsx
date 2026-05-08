@@ -249,14 +249,14 @@ export default function Finance() {
 
 function MiniKpi({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
-    <div className="bg-[#0d0e12] p-5 hover:bg-[#101115] transition-colors group">
-      <p className="cp-stat-label mb-2">{label}</p>
+    <div className="bg-card p-6 hover:bg-muted/30 transition-colors group">
+      <p className="vx-kpi-label mb-2.5 opacity-40">{label}</p>
       <p className={cn(
-        "cp-stat-value text-[22px]",
-        tone === "success" && "text-emerald-400",
-        tone === "danger" && "text-rose-400",
-        tone === "warning" && "text-amber-400",
-        tone === "primary" && "text-cyan-400"
+        "text-2xl font-bold tracking-tight tabular-nums",
+        tone === "success" && "text-success",
+        tone === "danger" && "text-destructive",
+        tone === "warning" && "text-warning",
+        tone === "primary" && "text-primary"
       )}>{value}</p>
     </div>
   );
