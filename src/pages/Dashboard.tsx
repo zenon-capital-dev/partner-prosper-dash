@@ -287,23 +287,23 @@ export default function Dashboard() {
 
 function KPICard({ label, value, delta, trend, icon, color }: any) {
   const gradients: any = {
-    indigo: "from-indigo-500/10 to-transparent",
-    emerald: "from-emerald-500/10 to-transparent",
-    amber: "from-amber-500/10 to-transparent",
-    blue: "from-blue-500/10 to-transparent",
+    indigo: "from-primary/10 to-transparent",
+    emerald: "from-success/10 to-transparent",
+    amber: "from-warning/10 to-transparent",
+    blue: "from-info/10 to-transparent",
   };
   
   const iconColors: any = {
-    indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10",
-    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10",
-    amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10",
-    blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10",
+    indigo: "text-primary bg-primary/10",
+    emerald: "text-success bg-success/10",
+    amber: "text-warning bg-warning/10",
+    blue: "text-info bg-info/10",
   };
 
   return (
     <div className={cn("vx-card-premium p-6 group cursor-pointer hover:border-primary/20", gradients[color])}>
-      <div className="flex items-center justify-between mb-5">
-        <div className={cn("size-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg", iconColors[color])}>
+      <div className="flex items-center justify-between mb-6">
+        <div className={cn("size-10 rounded-xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg", iconColors[color])}>
           {icon}
         </div>
         <div className={cn("cp-pill", trend === "up" ? "cp-pill-success" : "cp-pill-danger")}>
@@ -311,20 +311,18 @@ function KPICard({ label, value, delta, trend, icon, color }: any) {
           {delta}
         </div>
       </div>
-      <p className="vx-kpi-label">{label}</p>
-      <div className="flex items-baseline gap-2 mt-2">
-        <h4 className="vx-kpi-value">{value}</h4>
-      </div>
-      <div className="mt-4 flex items-center gap-2">
+      <p className="vx-kpi-label mb-1.5">{label}</p>
+      <h4 className="vx-kpi-value text-3xl">{value}</h4>
+      <div className="mt-5 flex items-center gap-3">
         <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
           <div className={cn("h-full rounded-full transition-all duration-1000 w-[65%]", {
-            "bg-indigo-500": color === "indigo",
-            "bg-emerald-500": color === "emerald",
-            "bg-amber-500": color === "amber",
-            "bg-blue-500": color === "blue",
+            "bg-primary": color === "indigo",
+            "bg-success": color === "emerald",
+            "bg-warning": color === "amber",
+            "bg-info": color === "blue",
           })} />
         </div>
-        <span className="text-[10px] font-bold text-muted-foreground/40">65%</span>
+        <span className="text-[10px] font-bold text-muted-foreground/30">65%</span>
       </div>
     </div>
   );
