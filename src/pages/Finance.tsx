@@ -181,21 +181,21 @@ export default function Finance() {
            
            <div className="h-72 w-full">
              <ResponsiveContainer>
-               <ComposedChart data={chartData}>
-                 <defs>
-                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                   </linearGradient>
-                 </defs>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
-                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace'}} />
-                 <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace'}} tickFormatter={(v) => `$${v/1000}k`} />
-                 <Tooltip contentStyle={{backgroundColor: '#12141a', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px'}} />
-                 <Area type="monotone" dataKey="revenue" stroke="#10b981" fillOpacity={1} fill="url(#colorRev)" />
-                 <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={8} />
-                 <Line type="monotone" dataKey="balance" stroke="rgba(255,255,255,0.2)" strokeWidth={1} dot={false} strokeDasharray="5 5" />
-               </ComposedChart>
+                <ComposedChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 9}} interval={4} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace'}} tickFormatter={(v) => `R$${v}`} />
+                  <Tooltip contentStyle={{backgroundColor: '#12141a', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '11px'}} />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fillOpacity={1} fill="url(#colorRev)" strokeWidth={2} />
+                  <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={8} />
+                  <Line type="monotone" dataKey="commissions" stroke="#f59e0b" strokeWidth={1} dot={false} />
+                </ComposedChart>
              </ResponsiveContainer>
            </div>
         </div>
