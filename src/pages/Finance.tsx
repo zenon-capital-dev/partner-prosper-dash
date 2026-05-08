@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -11,6 +12,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Plus, ArrowDownToLine, ArrowUpFromLine,
   Receipt, Trash2, CheckCircle2, Clock3, Download, Search,
   CalendarRange, Sparkles, BarChart3, PiggyBank, Pencil, Filter, ArrowUpRight,
+  Users,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
