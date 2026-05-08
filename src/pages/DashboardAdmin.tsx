@@ -121,29 +121,32 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] flex flex-col justify-between shadow-2xl">
+        <div className="vx-card p-8 bg-slate-900 dark:bg-slate-950 text-white rounded-[32px] flex flex-col justify-between border-none">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <Activity className="size-6 text-primary" />
-              <Badge className="bg-white/10 text-white border-white/10 hover:bg-white/20">Real-time</Badge>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">Live Analytics</span>
+              </div>
             </div>
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">Margem Líquida Est.</p>
-              <p className="font-editorial text-5xl font-bold text-emerald-400 tracking-tight">
+              <p className="font-editorial text-5xl font-bold text-white tracking-tight">
                 {formatPercent(((stats.totalSales - stats.totalCommissions) / (stats.totalSales || 1)) * 100)}
               </p>
-              <p className="text-xs text-white/40 leading-relaxed">Cálculo estimado após dedução de todas as comissões e splits da rede.</p>
+              <p className="text-xs text-white/30 leading-relaxed font-medium">Lucratividade operacional projetada após todos os repasses da rede.</p>
             </div>
           </div>
           
           <div className="pt-8 border-t border-white/5 space-y-4">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-white/40 font-bold uppercase tracking-widest">Ticket Médio</span>
-              <span className="font-mono font-bold">{formatBRL(stats.totalSales / (stats.salesCount || 1))}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Ticket Médio</span>
+              <span className="font-mono text-sm font-bold text-white">{formatBRL(stats.totalSales / (stats.salesCount || 1))}</span>
             </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-white/40 font-bold uppercase tracking-widest">Comissões Pendentes</span>
-              <span className="font-mono font-bold text-warning">{formatBRL(stats.pendingCommissions)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Pendências</span>
+              <span className="font-mono text-sm font-bold text-amber-400">{formatBRL(stats.pendingCommissions)}</span>
             </div>
           </div>
         </div>
