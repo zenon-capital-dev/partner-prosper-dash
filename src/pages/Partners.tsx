@@ -210,35 +210,31 @@ export default function Partners() {
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">● ecosystem</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/30">PARTNER NETWORK</span>
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">Parceiros</h1>
-          <p className="text-xs text-muted-foreground/60 font-medium leading-relaxed max-w-lg">
-            Indicadores, vínculos com produtos e desempenho de comissões. Gerencie sua rede de indicações de alto nível.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={exportCSV} className="h-9 px-4 text-[10px] font-bold uppercase tracking-wider gap-2">
-            <Download className="size-3.5" /> Exportar
-          </Button>
-          <Button size="sm" onClick={openNew} className="h-9 px-4 font-bold uppercase tracking-wider text-[10px] gap-2 shadow-lg shadow-primary/20">
-            <Plus className="size-4" strokeWidth={3} /> Novo Parceiro
-          </Button>
-        </div>
-      </div>
+      <PageHero
+        eyebrow="Ecosystem"
+        category="Partner Network"
+        title="Parceiros"
+        description="Indicadores, vínculos com produtos e desempenho de comissões. Gerencie sua rede de indicações de alto nível."
+        icon={<Handshake className="size-6" />}
+        actions={
+          <>
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
+              <Download className="size-4" /> Exportar
+            </Button>
+            <Button size="sm" onClick={openNew} className="btn-premium h-10 px-5 gap-2 font-semibold">
+              <Plus className="size-4" strokeWidth={2.5} /> Novo Parceiro
+            </Button>
+          </>
+        }
+        kpis={[
+          { label: "Parceiros", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" /> },
+          { label: "Ativos", value: kpis.active, tone: "success", icon: <CheckCircle2 className="size-4" />, hint: `${kpis.total ? Math.round((kpis.active / kpis.total) * 100) : 0}% do total` },
+          { label: "Indicações", value: kpis.totalClients, tone: "info", icon: <Users2 className="size-4" /> },
+          { label: "A pagar", value: formatBRL(kpis.totalPending), tone: "warning", icon: <Clock3 className="size-4" /> },
+          { label: "Comissões geradas", value: formatBRL(kpis.totalComms), tone: "primary", icon: <Wallet className="size-4" /> },
+        ]}
+      />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <KpiCard icon={Users2} label="Parceiros" value={kpis.total} tone="primary" />
-        <KpiCard icon={CheckCircle2} label="Ativos" value={kpis.active} tone="success" sub={`${kpis.total ? Math.round((kpis.active / kpis.total) * 100) : 0}% do total`} />
-        <KpiCard icon={Users2} label="Indicações" value={kpis.totalClients} tone="info" />
-        <KpiCard icon={Clock3} label="A pagar" value={formatBRL(kpis.totalPending)} tone="warning" />
-        <KpiCard icon={Wallet} label="Comissões geradas" value={formatBRL(kpis.totalComms)} tone="primary" highlight />
-      </div>
 
       {/* Filtros */}
       <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
