@@ -30,6 +30,21 @@ export default function CollaboratorPanel() {
     },
   });
 
+  const { data: splits = [] } = useQuery({
+    queryKey: ["collab-splits", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("commission_splits").select("*, sales(clients(full_name))").eq("beneficiary_type", "collaborator").eq("beneficiary_id", user!.id).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const earnings = useMemo(() => {
+    const pending = splits.filter((s: any) => s.status === 'pendente').reduce((a, b: any) => a + Number(b.amount), 0);
+    const paid = splits.filter((s: any) => s.status === 'pago').reduce((a, b: any) => a + Number(b.amount), 0);
+    return { pending, paid };
+  }, [splits]);
+
   const openTasks = tasks.filter((t: any) => t.status !== "Concluída" && t.status !== "Cancelada");
   const doneTasks = tasks.filter((t: any) => t.status === "Concluída");
 
