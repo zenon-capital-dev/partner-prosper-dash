@@ -13,8 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Package, Handshake, UserCheck, UserCog, Calculator, Loader2 } from "lucide-react";
+import { Package, Handshake, UserCheck, UserCog, Calculator, Loader2, ArrowRight } from "lucide-react";
 import { formatBRL } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const schema = z.object({
   product_id: z.string().uuid({ message: "Selecione um produto" }),
@@ -111,7 +112,6 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
     setSaving(true);
     try {
-      // 1. Cria o vínculo cliente↔produto com prestador
       const { data: cp, error: cpErr } = await supabase
         .from("client_products")
         .insert({
@@ -126,7 +126,6 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
         .single();
       if (cpErr) throw cpErr;
 
-      // 2. Cria a venda (gera splits via trigger)
       const { error: sErr } = await supabase.from("sales").insert({
         client_id: clientId,
         product_id: form.product_id,
@@ -158,192 +157,185 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Package className="size-5 text-primary" /> Adicionar Produto ao Cliente
-          </DialogTitle>
-          <DialogDescription>
-            Configure produto, parceiros, prestador e comissões. As comissões são geradas automaticamente.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto bg-neutral-950 border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)] p-0">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_300px]">
+          <div className="p-8 space-y-8">
+            <DialogHeader>
+              <DialogTitle className="editorial-title flex items-center gap-3">
+                <Package className="size-6 text-primary" /> Novo Fechamento
+              </DialogTitle>
+              <DialogDescription className="editorial-label text-white/20">
+                Configure os detalhes da venda, comissões e delegação técnica.
+              </DialogDescription>
+            </DialogHeader>
 
-        <div className="space-y-6 py-2">
-          {/* PRODUTO */}
-          <section className="space-y-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Package className="size-3" /> Produto e Valor
-            </h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <Label className="text-xs">Produto *</Label>
-                <Select value={form.product_id} onValueChange={handleProductChange}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o produto" /></SelectTrigger>
-                  <SelectContent>
-                    {products.map((p: any) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} {p.base_price > 0 && `· ${formatBRL(p.base_price)}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Valor da venda (R$) *</Label>
-                <Input
-                  type="number" step="0.01" min="0"
-                  value={form.value || ""}
-                  onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
-                  placeholder="0,00"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* PARCEIRO */}
-          <section className="space-y-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Handshake className="size-3" /> Parceiro Vendedor (opcional)
-            </h4>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2">
-                <Label className="text-xs">Parceiro</Label>
-                <Select 
-                  value={form.partner_id || "__none__"} 
-                  onValueChange={(v) => v === "__none__" ? setForm({ ...form, partner_id: "", partner_commission: 10 }) : handlePartnerChange(v)}
-                >
-                  <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Sem parceiro</SelectItem>
-                    {partners.map((p: any) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.full_name} ({Number(p.commission_percent || 10)}% padrão)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">% Comissão</Label>
-                <Input
-                  type="number" step="0.1" min="0" max="100"
-                  value={form.partner_commission}
-                  onChange={(e) => setForm({ ...form, partner_commission: Number(e.target.value) })}
-                  disabled={!form.partner_id}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* INDICADOR */}
-          <section className="space-y-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <UserCheck className="size-3" /> Indicador (opcional)
-            </h4>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2">
-                <Label className="text-xs">Quem indicou</Label>
-                <Select 
-                  value={form.referrer_id || "__none__"} 
-                  onValueChange={(v) => v === "__none__" ? setForm({ ...form, referrer_id: "", referrer_commission: 5 }) : handleReferrerChange(v)}
-                >
-                  <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Sem indicador</SelectItem>
-                    {referrers.map((r: any) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.full_name} ({Number(r.commission_percent || 5)}% padrão)
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">% Comissão</Label>
-                <Input
-                  type="number" step="0.1" min="0" max="100"
-                  value={form.referrer_commission}
-                  onChange={(e) => setForm({ ...form, referrer_commission: Number(e.target.value) })}
-                  disabled={!form.referrer_id}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* PRESTADOR */}
-          <section className="space-y-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <UserCog className="size-3" /> Prestador delegado (opcional)
-            </h4>
-            <Select 
-              value={form.service_provider_id || "__none__"} 
-              onValueChange={(v) => setForm({ ...form, service_provider_id: v === "__none__" ? "" : v })}
-            >
-              <SelectTrigger><SelectValue placeholder="Delegar mais tarde" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Delegar mais tarde</SelectItem>
-                {providers.map((p: any) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} {p.specialty && `· ${p.specialty}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </section>
-
-          {/* OBS */}
-          <div>
-            <Label className="text-xs">Observações</Label>
-            <Textarea
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              rows={2} maxLength={1000}
-              placeholder="Ex.: prazo especial, documentos pendentes..."
-            />
-          </div>
-
-          {/* RESUMO */}
-          {form.value > 0 && (
-            <section className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 space-y-2">
-              <div className="flex items-center gap-2 mb-2">
-                <Calculator className="size-4 text-primary" />
-                <p className="text-[11px] font-bold uppercase tracking-widest text-primary">Resumo do Split</p>
-              </div>
-              <div className="space-y-1.5 text-sm">
-                <Row label="Valor da venda" value={formatBRL(form.value)} bold />
-                {form.partner_id && (
-                  <Row label={`↳ Parceiro (${form.partner_commission}%)`} value={`− ${formatBRL(partnerCalc)}`} muted />
-                )}
-                {form.referrer_id && (
-                  <Row label={`↳ Indicador (${form.referrer_commission}%)`} value={`− ${formatBRL(referrerCalc)}`} muted />
-                )}
-                <div className="border-t border-primary/20 pt-2 mt-2">
-                  <Row label="Líquido para empresa" value={formatBRL(companyShare)} bold success={companyShare >= 0} danger={companyShare < 0} />
+            <div className="space-y-8">
+              {/* PRODUTO */}
+              <div className="space-y-4">
+                <p className="editorial-label text-primary flex items-center gap-2">
+                   01. Seleção de Produto
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="editorial-label text-white/40">Produto</Label>
+                    <Select value={form.product_id} onValueChange={handleProductChange}>
+                      <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl"><SelectValue placeholder="Selecione o produto" /></SelectTrigger>
+                      <SelectContent>
+                        {products.map((p: any) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="editorial-label text-white/40">Valor da Venda</Label>
+                    <div className="relative">
+                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-mono text-sm">R$</span>
+                       <Input
+                         type="number" step="0.01" min="0"
+                         value={form.value || ""}
+                         onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
+                         className="h-12 pl-12 bg-white/[0.03] border-white/10 rounded-xl font-mono text-lg font-bold"
+                         placeholder="0,00"
+                       />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </section>
-          )}
-        </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving || !form.product_id || form.value <= 0}>
-            {saving && <Loader2 className="size-4 mr-2 animate-spin" />}
-            Adicionar e Gerar Comissões
-          </Button>
-        </DialogFooter>
+              {/* COMISSOES */}
+              <div className="space-y-4">
+                <p className="editorial-label text-primary flex items-center gap-2">
+                   02. Rede de Intermediação
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                      <Label className="editorial-label text-white/40 mb-3 block">Parceiro Vendedor</Label>
+                      <Select 
+                        value={form.partner_id || "__none__"} 
+                        onValueChange={(v) => v === "__none__" ? setForm({ ...form, partner_id: "", partner_commission: 10 }) : handlePartnerChange(v)}
+                      >
+                        <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Direto / Sem parceiro" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Direto / Sem parceiro</SelectItem>
+                          {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {form.partner_id && (
+                        <div className="mt-3 flex items-center justify-between">
+                           <span className="text-[10px] font-bold uppercase tracking-wider text-white/20">Taxa de Comissão</span>
+                           <input 
+                             type="number" 
+                             value={form.partner_commission} 
+                             onChange={(e) => setForm({ ...form, partner_commission: Number(e.target.value) })}
+                             className="w-16 bg-white/[0.05] border-none text-right font-mono font-bold text-sm rounded-md px-2 py-1"
+                           />
+                        </div>
+                      )}
+                   </div>
+                   <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                      <Label className="editorial-label text-white/40 mb-3 block">Indicador</Label>
+                      <Select 
+                        value={form.referrer_id || "__none__"} 
+                        onValueChange={(v) => v === "__none__" ? setForm({ ...form, referrer_id: "", referrer_commission: 5 }) : handleReferrerChange(v)}
+                      >
+                        <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem indicação" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sem indicação</SelectItem>
+                          {referrers.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {form.referrer_id && (
+                        <div className="mt-3 flex items-center justify-between">
+                           <span className="text-[10px] font-bold uppercase tracking-wider text-white/20">Taxa de Indicação</span>
+                           <input 
+                             type="number" 
+                             value={form.referrer_commission} 
+                             onChange={(e) => setForm({ ...form, referrer_commission: Number(e.target.value) })}
+                             className="w-16 bg-white/[0.05] border-none text-right font-mono font-bold text-sm rounded-md px-2 py-1"
+                           />
+                        </div>
+                      )}
+                   </div>
+                </div>
+              </div>
+
+              {/* DELEGAÇÃO */}
+              <div className="space-y-4">
+                <p className="editorial-label text-primary flex items-center gap-2">
+                   03. Execução do Serviço
+                </p>
+                <div className="space-y-2">
+                  <Label className="editorial-label text-white/40">Delegar para Prestador</Label>
+                  <Select 
+                    value={form.service_provider_id || "__none__"} 
+                    onValueChange={(v) => setForm({ ...form, service_provider_id: v === "__none__" ? "" : v })}
+                  >
+                    <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl"><SelectValue placeholder="Delegar mais tarde" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Delegar mais tarde</SelectItem>
+                      {providers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name} · {p.specialty}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SIDEBAR SUMMARY */}
+          <div className="bg-white/[0.02] border-l border-white/10 p-8 flex flex-col justify-between">
+            <div className="space-y-8">
+               <div className="space-y-2">
+                 <p className="editorial-label">Split de Receita</p>
+                 <div className="space-y-4 pt-4">
+                    <div className="flex justify-between items-center text-white/40">
+                       <span className="text-[11px] font-bold uppercase tracking-wider">Bruto</span>
+                       <span className="font-mono text-sm">{formatBRL(form.value)}</span>
+                    </div>
+                    {form.partner_id && (
+                      <div className="flex justify-between items-center text-rose-400">
+                         <span className="text-[11px] font-bold uppercase tracking-wider">Vendedor</span>
+                         <span className="font-mono text-sm">− {formatBRL(partnerCalc)}</span>
+                      </div>
+                    )}
+                    {form.referrer_id && (
+                      <div className="flex justify-between items-center text-rose-400">
+                         <span className="text-[11px] font-bold uppercase tracking-wider">Indicador</span>
+                         <span className="font-mono text-sm">− {formatBRL(referrerCalc)}</span>
+                      </div>
+                    )}
+                    <div className="h-px bg-white/5" />
+                    <div className="flex justify-between items-center">
+                       <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Líquido</span>
+                       <span className="font-mono text-xl font-bold text-emerald-400">{formatBRL(companyShare)}</span>
+                    </div>
+                 </div>
+               </div>
+
+               <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">Internal Note</p>
+                  <Textarea
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    className="bg-transparent border-none p-0 text-xs text-white/60 focus-visible:ring-0 resize-none h-24"
+                    placeholder="Adicionar notas internas sobre esta venda..."
+                  />
+               </div>
+            </div>
+
+            <div className="space-y-3 pt-8">
+               <button 
+                 disabled={saving || !form.product_id || form.value <= 0}
+                 onClick={handleSave}
+                 className="w-full action-button btn-primary h-12 shadow-[0_0_50px_rgba(var(--primary-rgb),0.3)]"
+               >
+                 {saving ? <Loader2 className="size-5 animate-spin" /> : <>Finalizar Venda <ArrowRight className="size-4 ml-2" /></>}
+               </button>
+               <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full editorial-label">Descartar</Button>
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function Row({ label, value, bold, muted, success, danger }: any) {
-  return (
-    <div className="flex justify-between items-center">
-      <span className={`text-xs ${muted ? "text-muted-foreground" : ""}`}>{label}</span>
-      <span className={`tabular-nums ${bold ? "font-bold" : ""} ${success ? "text-emerald-600" : ""} ${danger ? "text-rose-600" : ""}`}>
-        {value}
-      </span>
-    </div>
   );
 }
