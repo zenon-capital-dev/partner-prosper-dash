@@ -12,8 +12,8 @@
 @layer base {
   :root {
     /* Premium Hybrid Light — Editorial & Clean */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11.2%;
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -43,13 +43,13 @@
     --radius: 0.75rem;
 
     /* Sidebar — Professional Slate */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 215 20% 65%;
+    --sidebar-background: 222 47% 4%;
+    --sidebar-foreground: 215 20% 75%;
     --sidebar-primary: 210 40% 98%;
     --sidebar-primary-foreground: 222 47% 11.2%;
-    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent: 217 33% 15%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
+    --sidebar-border: 217 33% 12%;
     --sidebar-ring: 224.3 76.3% 48%;
 
     /* Success/Warning/Info */
@@ -60,10 +60,10 @@
 
   .dark {
     /* Obsidian Dark — Mercury/Linear Inspired */
-    --background: 222 47% 4%;
+    --background: 222 47% 2%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 6%;
+    --card: 222 47% 4%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222 47% 6%;
@@ -131,10 +131,10 @@
 
   /* Refined Premium Card */
   .vx-card {
-    @apply relative rounded-xl border border-border/50 bg-card transition-all duration-300;
+    @apply relative rounded-2xl border border-border/40 bg-card transition-all duration-300;
     box-shadow: 
-      0 1px 3px 0 rgb(0 0 0 / 0.02),
-      0 1px 2px -1px rgb(0 0 0 / 0.03);
+      0 1px 2px rgba(0,0,0,0.02),
+      0 4px 12px rgba(0,0,0,0.03);
   }
   
   .dark .vx-card {
@@ -257,7 +257,7 @@
 
 /* Cockpit panel */
 .cp-panel {
-  @apply rounded-xl border border-border/50 bg-card shadow-[0_1px_3px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04)] transition-all duration-300;
+  @apply rounded-2xl border border-border/40 bg-card shadow-[0_2px_8px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300;
 }
 .cp-panel-hover:hover {
   @apply border-border shadow-[0_10px_30px_-10px_rgba(0,0,0,0.05)];
