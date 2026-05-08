@@ -5,7 +5,7 @@ import {
   Activity, Wallet, Clock, CheckCircle2, 
   AlertCircle, FileWarning, UserPlus, CreditCard,
   FileSignature, MessageSquare, ArrowRight,
-  BarChart3, PieChart, Info
+  BarChart3, Target, PieChart, Info
 } from "lucide-react";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { useMemo } from "react";
@@ -51,12 +51,12 @@ export default function DashboardAdmin() {
 
   const { data: providers = [] } = useQuery({
     queryKey: ["admin-dashboard-providers"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, status")).data ?? []
+    queryFn: async () => (await supabase.from("service_providers").select("id, active")).data ?? []
   });
 
   const { data: partners = [] } = useQuery({
     queryKey: ["admin-dashboard-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, status, full_name")).data ?? []
+    queryFn: async () => (await supabase.from("partners").select("id, active, full_name")).data ?? []
   });
 
   const { data: documents = [] } = useQuery({
@@ -75,8 +75,8 @@ export default function DashboardAdmin() {
     
     // KPI Data
     const totalClients = clients.length;
-    const activeClients = clients.filter(c => c.status === 'ativo').length;
-    const pendingClients = clients.filter(c => c.status === 'prospecto' || c.status === 'pendente').length;
+    const activeClients = clients.filter((c: any) => c.status === 'ativo').length;
+    const pendingClients = clients.filter((c: any) => c.status === 'prospecto').length;
     
     const inProgressProducts = clientProducts.filter(p => p.status === 'em_andamento').length;
     const completedProducts = clientProducts.filter(p => p.status === 'concluido').length;
@@ -91,8 +91,8 @@ export default function DashboardAdmin() {
     
     const commissionsToPay = commissions.filter(c => c.status === 'pendente').reduce((acc, c) => acc + Number(c.amount || 0), 0);
     
-    const activeProvidersCount = providers.filter(p => p.status === 'ativo').length;
-    const activePartnersCount = partners.filter(p => p.status === 'ativo').length;
+    const activeProvidersCount = providers.filter(p => p.active).length;
+    const activePartnersCount = partners.filter(p => p.active).length;
 
     // Chart Data: Monthly Revenue
     const monthlyRevenue: Record<string, number> = {};
@@ -136,7 +136,7 @@ export default function DashboardAdmin() {
 
     // Chart Data: Clients by Origin
     const originCounts: Record<string, number> = {};
-    clients.forEach(c => {
+    clients.forEach((c: any) => {
       const o = c.source || c.origin || "Outros";
       originCounts[o] = (originCounts[o] || 0) + 1;
     });
@@ -196,25 +196,28 @@ export default function DashboardAdmin() {
 
     return {
       kpis: [
-        { label: "Total de Clientes", value: totalClients, icon: Users, tone: "info" },
-        { label: "Clientes Ativos", value: activeClients, icon: CheckCircle2, tone: "success" },
-        { label: "Clientes Pendentes", value: pendingClients, icon: Clock, tone: "warning" },
-        { label: "Produtos em Andamento", value: inProgressProducts, icon: Activity, tone: "primary" },
-        { label: "Produtos Concluídos", value: completedProducts, icon: CheckCircle2, tone: "success" },
-        { label: "Produtos Atrasados", value: delayedProducts, icon: AlertCircle, tone: "danger" },
-        { label: "Total Vendido", value: formatBRL(totalSold), icon: TrendingUp, tone: "primary" },
-        { label: "Total Recebido", value: formatBRL(totalReceived), icon: CircleDollarSign, tone: "success" },
-        { label: "Total Pendente", value: formatBRL(totalPending), icon: Wallet, tone: "warning" },
-        { label: "Comissões a Pagar", value: formatBRL(commissionsToPay), icon: CreditCard, tone: "danger" },
-        { label: "Prestadores Ativos", value: activeProvidersCount, icon: Users, tone: "info" },
-        { label: "Parceiros Ativos", value: activePartnersCount, icon: Users, tone: "info" },
+        { label: "Total de Clientes", value: String(totalClients), icon: Users, tone: "info" },
+        { label: "Clientes Ativos", value: String(activeClients), icon: CheckCircle2, tone: "success" },
+        { label: "Clientes Pendentes", value: String(pendingClients), icon: Clock, tone: "warning" },
+        { label: "Produtos em Andamento", value: String(inProgressProducts), icon: Activity, tone: "primary" },
+        { label: "Produtos Concluídos", value: String(completedProducts), icon: CheckCircle2, tone: "success" },
+        { label: "Produtos Atrasados", value: String(delayedProducts), icon: AlertCircle, tone: "danger" },
+        { label: "Total Vendido", value: formatBRL(totalSold), raw: totalSold, icon: TrendingUp, tone: "primary" },
+        { label: "Total Recebido", value: formatBRL(totalReceived), raw: totalReceived, icon: CircleDollarSign, tone: "success" },
+        { label: "Total Pendente", value: formatBRL(totalPending), raw: totalPending, icon: Wallet, tone: "warning" },
+        { label: "Comissões a Pagar", value: formatBRL(commissionsToPay), raw: commissionsToPay, icon: CreditCard, tone: "danger" },
+        { label: "Prestadores Ativos", value: String(activeProvidersCount), icon: Users, tone: "info" },
+        { label: "Parceiros Ativos", value: String(activePartnersCount), icon: Users, tone: "info" },
       ],
       revenueChartData,
       bestSellingChartData,
       statusChartData,
       commissionsPartnerChartData,
       originChartData,
-      urgentTasks
+      urgentTasks,
+      totalSold,
+      totalReceived,
+      totalPending
     };
   }, [clients, clientProducts, products, sales, payments, commissions, providers, partners, documents, contracts]);
 
@@ -391,7 +394,7 @@ export default function DashboardAdmin() {
         </ChartCard>
 
         {/* CLIENTS BY ORIGIN */}
-        <ChartCard title="Clientes por Origem" subtitle="Canais de aquisição de leads" icon={Target}>
+        <ChartCard title="Clientes por Origem" subtitle="Canais de aquisição de leads" icon={BarChart3}>
           <ResponsiveContainer width="100%" height={250}>
             <RePieChart>
               <Pie
@@ -427,19 +430,19 @@ export default function DashboardAdmin() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FinancialStat 
               label="Total Vendido" 
-              value={formatBRL(stats.kpis.find(k => k.label === 'Total Vendido')?.value || 0)} 
+              value={formatBRL(stats.totalSold)} 
               sub="Faturamento Bruto"
               color="text-primary"
             />
             <FinancialStat 
               label="Total Recebido" 
-              value={formatBRL(stats.kpis.find(k => k.label === 'Total Recebido')?.value || 0)} 
+              value={formatBRL(stats.totalReceived)} 
               sub="Dinheiro em Caixa"
               color="text-emerald-500"
             />
             <FinancialStat 
               label="Total Pendente" 
-              value={formatBRL(stats.kpis.find(k => k.label === 'Total Pendente')?.value || 0)} 
+              value={formatBRL(stats.totalPending)} 
               sub="A Receber"
               color="text-amber-500"
             />
@@ -448,7 +451,7 @@ export default function DashboardAdmin() {
           <div className="h-4 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex">
             <div 
               className="h-full bg-emerald-500 transition-all duration-1000" 
-              style={{ width: `${(Number(stats.kpis.find(k => k.label === 'Total Recebido')?.value.replace(/[^0-9.-]+/g,"")) / (Number(stats.kpis.find(k => k.label === 'Total Vendido')?.value.replace(/[^0-9.-]+/g,"")) || 1)) * 100}%` }} 
+              style={{ width: `${(stats.totalReceived / (stats.totalSold || 1)) * 100}%` }} 
             />
             <div className="h-full bg-amber-500/20" style={{flex: 1}} />
           </div>
@@ -506,5 +509,3 @@ function FinancialStat({ label, value, sub, color }: any) {
     </div>
   );
 }
-
-const Target = BarChart3;
