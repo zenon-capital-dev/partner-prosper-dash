@@ -128,6 +128,7 @@ export default function ClientPanel() {
             <PremiumTabTrigger value="catalogo" label="Descobrir" icon={ShoppingBag} />
             <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
             <PremiumTabTrigger value="financeiro" label="Financeiro" icon={Receipt} />
+            <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
             <PremiumTabTrigger value="timeline" label="Jornada" icon={History} />
           </TabsList>
 
