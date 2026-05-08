@@ -235,21 +235,22 @@ export default function SignupPage() {
       </div>
 
       {/* RIGHT — FORM */}
-      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-[#FAFAF7] text-slate-900">
-        <div
-          className="absolute inset-0 opacity-[0.4] pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0)",
-            backgroundSize: "24px 24px",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none" />
+      <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 lg:p-12 bg-white dark:bg-[#06070C] text-foreground transition-colors duration-500 overflow-y-auto">
+        <div className="absolute top-6 right-6 z-20">
+          <ThemeToggle />
+        </div>
 
-        <CornerMark className="top-6 left-6" />
-        <CornerMark className="top-6 right-6" rotate="rotate-90" />
-        <CornerMark className="bottom-6 left-6" rotate="-rotate-90" />
-        <CornerMark className="bottom-6 right-6" rotate="rotate-180" />
+        {/* Dynamic ambient backgrounds */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.4] dark:opacity-[0.15]">
+          <div className="absolute -top-[10%] -right-[10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-primary/20 animate-pulse" />
+          <div className="absolute -bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full blur-[100px] bg-purple-500/20 animate-pulse" style={{ animationDelay: '1.5s' }} />
+        </div>
+
+        {/* subtle texture */}
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+             style={{
+               backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+             }} />
 
         <div className="relative w-full max-w-[440px] space-y-7">
           {/* Mobile brand */}
