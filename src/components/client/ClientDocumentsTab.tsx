@@ -239,46 +239,112 @@ export function ClientDocumentsTab({
                       </p>
                     )}
 
-                    {/* Histórico Colapsável */}
+                    {/* Histórico Colapsável com Timeline */}
                     {history?.some(h => h.request_id === req.id) && (
                       <Collapsible
                         open={openHistory === req.id}
-                        onOpenChange={() => setOpenHistory(openHistory === req.id ? null : req.id)}
-                        className="mt-4"
+                        onOpenChange={() => {
+                          setOpenHistory(openHistory === req.id ? null : req.id);
+                          setHistoryFilter("todos");
+                        }}
+                        className="mt-6"
                       >
                         <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase tracking-wider font-bold text-primary px-0 hover:bg-transparent">
-                            <HistoryIcon className="size-3 mr-1.5" />
+                          <Button variant="ghost" size="sm" className="h-8 text-[11px] uppercase tracking-wider font-bold text-primary px-0 hover:bg-transparent group/btn">
+                            <HistoryIcon className="size-3.5 mr-2 group-hover/btn:rotate-[-30deg] transition-transform" />
                             Histórico de Versões
-                            {openHistory === req.id ? <ChevronUp className="size-3 ml-1" /> : <ChevronDown className="size-3 ml-1" />}
+                            {openHistory === req.id ? <ChevronUp className="size-4 ml-1.5" /> : <ChevronDown className="size-4 ml-1.5" />}
                           </Button>
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="mt-3 space-y-3 border-l-2 border-slate-100 dark:border-white/5 pl-4 ml-1">
-                          {history
-                            ?.filter((h) => h.request_id === req.id)
-                            .map((h) => (
-                              <div key={h.id} className="text-xs space-y-1">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-slate-700 dark:text-slate-300">{formatDate(h.created_at)}</span>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 text-[10px] text-primary hover:bg-primary/5"
-                                    onClick={() => downloadFile(h.file_url)}
-                                  >
-                                    <Download className="size-3 mr-1" /> Baixar v.{h.created_at.slice(0, 10)}
-                                  </Button>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", STATUS_META[h.status]?.tone || "bg-slate-50")}>
-                                    {STATUS_META[h.status]?.label || h.status}
-                                  </Badge>
-                                  {h.rejection_reason && (
-                                    <span className="text-rose-500 italic">Reprovado: {h.rejection_reason}</span>
-                                  )}
-                                </div>
-                              </div>
+                        
+                        <CollapsibleContent className="mt-4 pt-4 border-t border-slate-50 dark:border-white/5 animate-fade-down">
+                          {/* Filtros do Histórico */}
+                          <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
+                            {["todos", "enviado", "aprovado", "reprovado"].map((f) => (
+                              <button
+                                key={f}
+                                onClick={() => setHistoryFilter(f)}
+                                className={cn(
+                                  "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all shrink-0",
+                                  historyFilter === f 
+                                    ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900" 
+                                    : "bg-transparent text-muted-foreground border-slate-200 dark:border-white/10 hover:border-primary/30"
+                                )}
+                              >
+                                {f}
+                              </button>
                             ))}
+                          </div>
+
+                          <div className="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100 dark:before:bg-white/5">
+                            {(() => {
+                              const filtered = history
+                                ?.filter((h) => h.request_id === req.id)
+                                .filter((h) => historyFilter === "todos" || h.status === historyFilter);
+                              
+                              const limit = visibleHistoryCount[req.id] || 3;
+                              const displayed = filtered?.slice(0, limit);
+                              const hasMore = (filtered?.length || 0) > limit;
+
+                              return (
+                                <>
+                                  {displayed?.map((h) => (
+                                    <div key={h.id} className="relative pl-8 group/history">
+                                      {/* Timeline Dot */}
+                                      <div className={cn(
+                                        "absolute left-0 top-1.5 size-[23px] rounded-full border-4 border-white dark:border-slate-950 flex items-center justify-center transition-transform group-hover/history:scale-110",
+                                        STATUS_META[h.status]?.tone.split(' ')[0] || "bg-slate-200"
+                                      )}>
+                                        <div className="size-1.5 rounded-full bg-current opacity-60" />
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between gap-4">
+                                          <span className="text-[11px] font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tight">
+                                            {formatDate(h.created_at)}
+                                          </span>
+                                          <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="h-7 text-[10px] text-primary hover:bg-primary/5 rounded-lg px-2"
+                                            onClick={() => downloadFile(h.file_url)}
+                                          >
+                                            <Download className="size-3 mr-1.5" /> Baixar Versão
+                                          </Button>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest px-1.5 py-0 h-4", STATUS_META[h.status]?.tone || "bg-slate-50")}>
+                                            {STATUS_META[h.status]?.label || h.status}
+                                          </Badge>
+                                          {h.rejection_reason && (
+                                            <span className="text-[10px] text-rose-500 italic font-medium">Motivo: {h.rejection_reason}</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  
+                                  {hasMore && (
+                                    <div className="pl-8">
+                                      <Button 
+                                        variant="link" 
+                                        size="sm" 
+                                        className="text-[10px] font-bold uppercase tracking-widest p-0 h-auto text-muted-foreground hover:text-primary"
+                                        onClick={() => setVisibleHistoryCount({ ...visibleHistoryCount, [req.id]: limit + 3 })}
+                                      >
+                                        Carregar mais versões...
+                                      </Button>
+                                    </div>
+                                  )}
+
+                                  {filtered?.length === 0 && (
+                                    <p className="pl-8 text-[11px] italic text-muted-foreground py-2">Nenhuma versão encontrada para este filtro.</p>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
                         </CollapsibleContent>
                       </Collapsible>
                     )}
