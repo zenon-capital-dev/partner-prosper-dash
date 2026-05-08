@@ -44,8 +44,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background cp-grid-bg">
-      <div className="p-8 flex items-center justify-end">
+    <div className="min-h-screen bg-background bg-premium">
+      <div className="px-6 lg:px-10 py-4 flex items-center justify-end border-b border-border/5 bg-background/50 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50">
           {(["today", "7d", "30d", "month"] as RangeKey[]).map((k) => (
             <button
