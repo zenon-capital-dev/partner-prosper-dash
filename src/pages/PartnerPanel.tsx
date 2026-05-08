@@ -1,16 +1,19 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
   Users, Wallet, CheckCircle2, TrendingUp, Clock, Inbox,
-  ArrowUpRight, Mail, Phone, Building2, ArrowRight,
+  ArrowUpRight, FileText, Download, XCircle,
 } from "lucide-react";
-import { formatBRL, formatDate, initials, formatPhone } from "@/lib/format";
+import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default function PartnerPanel() {
