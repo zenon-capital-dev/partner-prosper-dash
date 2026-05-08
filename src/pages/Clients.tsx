@@ -187,36 +187,36 @@ export default function Clients() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos status</SelectItem>
-              <SelectItem value="ativo">Active</SelectItem>
+              <SelectItem value="ativo">Ativos</SelectItem>
               <SelectItem value="prospecto">Prospects</SelectItem>
-              <SelectItem value="inativo">Inactive</SelectItem>
+              <SelectItem value="inativo">Inativos</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-9 w-[150px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-10 w-[160px] bg-background/60 rounded-xl text-xs font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="recent">Most Recent</SelectItem>
-              <SelectItem value="name">Name A-Z</SelectItem>
-              <SelectItem value="revenue">Highest LTV</SelectItem>
-              <SelectItem value="sales">Sales Count</SelectItem>
+              <SelectItem value="recent">Mais recentes</SelectItem>
+              <SelectItem value="name">Nome A-Z</SelectItem>
+              <SelectItem value="revenue">Maior LTV</SelectItem>
+              <SelectItem value="sales">Mais vendas</SelectItem>
             </SelectContent>
           </Select>
 
           {hasFilters && (
-            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-9 w-9 text-muted-foreground/60 hover:text-foreground">
+            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground">
               <X className="size-4" />
             </Button>
           )}
 
-          <div className="flex items-center bg-muted/30 border border-border/50 rounded-md p-0.5 ml-2">
-            <button onClick={() => setView("list")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
-              <List className="size-3.5" />
+          <div className="flex items-center bg-muted/40 border border-border/60 rounded-xl p-1 ml-1">
+            <button onClick={() => setView("list")} className={cn("size-8 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-background text-primary shadow-sm" : "text-muted-foreground/60 hover:text-foreground")}>
+              <List className="size-4" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-7 rounded flex items-center justify-center transition-colors", view === "grid" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground/40 hover:text-foreground")}>
-              <LayoutGrid className="size-3.5" />
+            <button onClick={() => setView("grid")} className={cn("size-8 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-background text-primary shadow-sm" : "text-muted-foreground/60 hover:text-foreground")}>
+              <LayoutGrid className="size-4" />
             </button>
           </div>
         </div>
