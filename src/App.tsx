@@ -10,7 +10,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
 import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/DashboardAdmin";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import Partners from "./pages/Partners";
