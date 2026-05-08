@@ -112,6 +112,10 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
     setSaving(true);
     try {
+      // 1. Get Product steps
+      const { data: prodInfo } = await supabase.from("products").select("standard_steps").eq("id", form.product_id).single();
+
+      // 2. Insert Client Product
       const { data: cp, error: cpErr } = await supabase
         .from("client_products")
         .insert({
@@ -126,6 +130,17 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
         .single();
       if (cpErr) throw cpErr;
 
+      // 3. Create initial steps
+      if (prodInfo?.standard_steps && Array.isArray(prodInfo.standard_steps)) {
+        const steps = (prodInfo.standard_steps as any[]).map((s, idx) => ({
+          client_product_id: cp.id,
+          label: s.label,
+          position: idx
+        }));
+        await supabase.from("client_product_steps").insert(steps);
+      }
+
+      // 4. Create Sale (Trigger will handle splits)
       const { error: sErr } = await supabase.from("sales").insert({
         client_id: clientId,
         product_id: form.product_id,
@@ -137,6 +152,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
         status: "concluida",
       });
       if (sErr) throw sErr;
+
 
       toast.success("Produto adicionado com sucesso", {
         description: `Comissões geradas: ${formatBRL(partnerCalc + referrerCalc)}`,
