@@ -721,6 +721,44 @@ export type Database = {
           },
         ]
       }
+      contract_history: {
+        Row: {
+          action_by: string | null
+          contract_id: string | null
+          created_at: string | null
+          file_path: string | null
+          id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          action_by?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          action_by?: string | null
+          contract_id?: string | null
+          created_at?: string | null
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_history_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           amount: number | null

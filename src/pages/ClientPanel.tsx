@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
   Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
+  FileSignature, ShieldCheck, ChevronRight, Loader2
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { NpsCard } from "@/components/nps/NpsCard";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
+import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 
 const cycleLabel: Record<string, string> = {
   mensal: "/mês", trimestral: "/trim.", semestral: "/sem.", anual: "/ano", unico: "único",
@@ -128,6 +130,7 @@ export default function ClientPanel() {
             <PremiumTabTrigger value="catalogo" label="Descobrir" icon={ShoppingBag} />
             <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
             <PremiumTabTrigger value="financeiro" label="Financeiro" icon={Receipt} />
+            <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
             <PremiumTabTrigger value="timeline" label="Jornada" icon={History} />
           </TabsList>
 
@@ -246,6 +249,10 @@ export default function ClientPanel() {
                    <Button className="w-full rounded-2xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold">Solicitar Alteração</Button>
                 </div>
              </div>
+          </TabsContent>
+
+          <TabsContent value="contratos" className="animate-fade-up">
+            <ClientContractsTab clientId={client.id} contracts={contracts as any} />
           </TabsContent>
         </Tabs>
 
