@@ -1536,31 +1536,31 @@ export type Database = {
           created_at: string
           id: string
           link: string | null
-          message: string | null
-          read: boolean
+          message: string
+          read: boolean | null
           title: string
           type: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           link?: string | null
-          message?: string | null
-          read?: boolean
+          message: string
+          read?: boolean | null
           title: string
           type?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           link?: string | null
-          message?: string | null
-          read?: boolean
+          message?: string
+          read?: boolean | null
           title?: string
           type?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -2545,6 +2545,18 @@ export type Database = {
       }
     }
     Functions: {
+      check_overdue_documents: { Args: never; Returns: undefined }
+      check_pending_commissions: { Args: never; Returns: undefined }
+      create_notification: {
+        Args: {
+          p_link?: string
+          p_message: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       has_role:
         | {
             Args: {

@@ -86,10 +86,10 @@ export function NotificationBell() {
               <button
                 key={n.id}
                 onClick={() => click(n)}
-                className={`w-full text-left p-3 border-b border-border hover:bg-muted/40 transition-colors ${!n.read ? "bg-primary-muted/30" : ""}`}
+                className={`w-full text-left p-3 border-b border-border hover:bg-muted/40 transition-colors ${!n.read ? "bg-primary/5" : ""}`}
               >
-                <div className="flex items-start gap-2">
-                  {!n.read && <span className="mt-1.5 size-1.5 rounded-full bg-primary shrink-0" />}
+                <div className="flex items-start gap-3">
+                  {!n.read && <span className="mt-2 size-2 rounded-full bg-primary shrink-0 animate-pulse" />}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold">{n.title}</p>
                     {n.message && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>}

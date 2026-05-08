@@ -13,7 +13,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Plus, ArrowDownToLine, ArrowUpFromLine,
   Receipt, Trash2, CheckCircle2, Clock3, Download, Search,
   CalendarRange, Sparkles, BarChart3, PiggyBank, Pencil, Filter, ArrowUpRight,
-  Users,
+  Users, AlertCircle,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -176,6 +176,21 @@ export default function Finance() {
               }}
             >
               <Download className="size-4" /> Exportar
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="h-10 px-4 gap-2 border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10"
+              onClick={async () => {
+                const { data, error } = await supabase.functions.invoke('process-alerts');
+                if (error) toast.error("Erro ao processar alertas");
+                else {
+                  toast.success(`${data.alerts_processed} novos alertas gerados`);
+                  qc.invalidateQueries({ queryKey: ["notifications"] });
+                }
+              }}
+            >
+              <AlertCircle className="size-4" /> Processar Alertas
             </Button>
             <Button size="sm" className="btn-premium h-10 px-5 gap-2 font-semibold">
               <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
