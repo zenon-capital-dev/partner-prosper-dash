@@ -303,6 +303,51 @@ export default function Contracts() {
         contract={selectedContract}
         onSuccess={refetch}
       />
+
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="max-w-2xl rounded-[32px]">
+          <DialogHeader>
+            <DialogTitle className="font-editorial text-2xl">Histórico de Alterações</DialogTitle>
+            <DialogDescription>Rastreabilidade completa de todas as movimentações e status.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 my-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-100 dark:before:bg-white/5">
+             {contractHistory.length === 0 ? (
+               <p className="text-center py-8 text-muted-foreground italic">Nenhuma alteração registrada até o momento.</p>
+             ) : (
+               contractHistory.map((h: any) => {
+                 const config = statusConfig[h.status as ContractStatus] || statusConfig.criado;
+                 return (
+                   <div key={h.id} className="relative pl-10 group">
+                      <div className={cn("absolute left-0 top-1.5 size-6 rounded-full border-4 border-white dark:border-slate-950 flex items-center justify-center", config.color.split(' ')[0])}>
+                         <div className="size-1 bg-current rounded-full" />
+                      </div>
+                      <div className="space-y-1">
+                         <div className="flex items-center justify-between">
+                            <Badge variant="outline" className={cn("text-[9px] font-bold uppercase tracking-widest px-2 py-0", config.color)}>
+                               {config.label}
+                            </Badge>
+                            <span className="text-[10px] font-mono text-muted-foreground">{formatDate(h.created_at)}</span>
+                         </div>
+                         <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{h.notes || "Alteração de status"}</p>
+                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                            <ShieldCheck className="size-3" /> Por: {h.profiles?.full_name || "Sistema"}
+                         </p>
+                         {h.file_path && (
+                            <Button variant="link" size="sm" className="h-auto p-0 text-[10px] text-primary" onClick={() => viewFile(h.file_path)}>
+                               <Download className="size-3 mr-1" /> Baixar Versão Deste Momento
+                            </Button>
+                         )}
+                      </div>
+                   </div>
+                 );
+               })
+             )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsHistoryOpen(false)} className="rounded-xl">Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
