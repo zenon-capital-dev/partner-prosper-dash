@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp } from "lucide-react";
+import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, Package, History as HistoryIcon, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type DocRequest = {
   id: string;
