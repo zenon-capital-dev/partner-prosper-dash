@@ -9,13 +9,13 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
   return (
-    <header className="h-16 border-b border-border/40 bg-background/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40">
+    <header className="h-20 border-b border-border/40 bg-background/60 backdrop-blur-xl px-10 flex items-center justify-between sticky top-0 z-40 transition-all duration-500">
       <div className="flex items-center gap-4 flex-1 max-w-xl">
         <div className="relative w-full group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
           <button
             onClick={onSearchClick}
-            className="w-full h-10 pl-10 pr-4 bg-muted/30 hover:bg-muted/50 border border-border/50 rounded-lg text-sm text-muted-foreground flex items-center justify-between transition-all"
+            className="w-full h-11 pl-11 pr-4 bg-muted/20 hover:bg-muted/40 border border-border/40 rounded-xl text-sm text-muted-foreground flex items-center justify-between transition-all shadow-sm hover:shadow-md"
           >
             <span className="font-medium opacity-70">Buscar clientes, parceiros, produtos...</span>
             <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity">
