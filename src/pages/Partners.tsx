@@ -622,10 +622,3 @@ function KpiCard({ icon: Icon, label, value, tone, sub, highlight = false }: any
       </div>
     </div>
   );
-}
-          <Icon className="size-4" />
-        </div>
-      </div>
-    </div>
-  );
-}
