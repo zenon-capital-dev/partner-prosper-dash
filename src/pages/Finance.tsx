@@ -188,7 +188,78 @@ export default function Finance() {
                  <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Net Balance
                </span>
              </div>
+      </div>
+
+      {/* Top Beneficiaries */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="vx-card p-6 bg-white dark:bg-card">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <Users className="size-4" />
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Maiores Comissões</h3>
+          </div>
+          <div className="space-y-4">
+            {splits.slice(0, 5).map((s: any) => (
+              <div key={s.id} className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-foreground">{s.sales?.clients?.full_name || "Venda Direta"}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{s.beneficiary_type}</p>
+                </div>
+                <span className="text-xs font-bold text-success">{formatBRL(s.amount)}</span>
+              </div>
+            ))}
+            {splits.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhuma comissão registrada.</p>}
+          </div>
+        </div>
+
+        <div className="vx-card p-6 bg-white dark:bg-card">
+           <div className="flex items-center gap-3 mb-6">
+            <div className="size-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+              <Receipt className="size-4" />
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Despesas por Categoria</h3>
+          </div>
+          <div className="space-y-4">
+            {Object.entries(
+              expenses.reduce((acc: any, e: any) => {
+                acc[e.category] = (acc[e.category] || 0) + Number(e.amount);
+                return acc;
+              }, {})
+            ).map(([cat, val]: [any, any]) => (
+              <div key={cat} className="space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-muted-foreground">{cat}</span>
+                  <span className="text-foreground">{formatBRL(val)}</span>
+                </div>
+                <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(val / kpis.expensesTotal) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+            {expenses.length === 0 && <p className="text-xs text-muted-foreground italic">Nenhuma despesa registrada.</p>}
+          </div>
+        </div>
+
+        <div className="vx-card p-6 bg-slate-900 text-white border-slate-900">
+           <div className="flex items-center justify-between mb-8">
+              <PiggyBank className="size-10 text-primary" />
+              <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-[0.2em] text-[9px]">Live Status</Badge>
            </div>
+           <h3 className="font-editorial text-2xl font-bold mb-2">Liquidez Imediata</h3>
+           <p className="text-xs text-white/50 leading-relaxed mb-6">Considerando todas as comissões pagas e despesas liquidadas no período selecionado.</p>
+           <div className="space-y-4 pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Saldo em Caixa</span>
+                 <span className="text-lg font-bold tabular-nums text-white">{formatBRL(kpis.profit)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Comprometido</span>
+                 <span className="text-xs font-bold tabular-nums text-warning">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</span>
+              </div>
+           </div>
+        </div>
+      </div>
            
            <div className="h-72 w-full">
              <ResponsiveContainer>
