@@ -1,4 +1,4 @@
-import { Target, Search, Plus, Filter, Download, MoreHorizontal, Eye, UserPlus, Phone, Mail, MessageSquare, Trash2, Pencil } from "lucide-react";
+import { Target, Search, Plus, Filter, Download, MoreHorizontal, Eye, UserPlus, Phone, Mail, MessageSquare, Trash2, Pencil, LayoutGrid, List, Upload, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -7,6 +7,9 @@ import { useState, useMemo } from "react";
 import { formatDate, formatPhone, initials } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
+import { LeadsKanban } from "@/components/leads/LeadsKanban";
+import { LeadsCsvImport } from "@/components/leads/LeadsCsvImport";
+import { LeadFollowUpDialog } from "@/components/leads/LeadFollowUpDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,8 +38,17 @@ export default function Leads() {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [view, setView] = useState<"table" | "kanban">("kanban");
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [followUpOpen, setFollowUpOpen] = useState(false);
+  const [followUpLead, setFollowUpLead] = useState<any>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
+
+  const openFollowUp = (lead: any) => {
+    setFollowUpLead(lead);
+    setFollowUpOpen(true);
+  };
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["leads"],
@@ -139,9 +151,27 @@ export default function Leads() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9 text-xs font-bold uppercase tracking-wider">
-            <Download className="size-3.5 mr-2" />
-            Exportar
+          <div className="inline-flex rounded-lg border border-border/70 bg-card p-0.5">
+            <button
+              onClick={() => setView("kanban")}
+              className={`inline-flex items-center gap-1.5 px-3 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors ${
+                view === "kanban" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="size-3.5" /> Kanban
+            </button>
+            <button
+              onClick={() => setView("table")}
+              className={`inline-flex items-center gap-1.5 px-3 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors ${
+                view === "table" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <List className="size-3.5" /> Tabela
+            </button>
+          </div>
+          <Button variant="outline" size="sm" className="h-9 text-xs font-bold uppercase tracking-wider" onClick={() => setCsvOpen(true)}>
+            <Upload className="size-3.5 mr-2" />
+            Importar CSV
           </Button>
           <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
             <Plus className="size-3.5 mr-2" />
@@ -168,6 +198,13 @@ export default function Leads() {
         </div>
       </div>
 
+      {view === "kanban" ? (
+        isLoading ? (
+          <div className="vx-card p-12 text-center text-sm text-muted-foreground">Carregando leads...</div>
+        ) : (
+          <LeadsKanban leads={filteredLeads} onEdit={handleEdit} onConvert={convertToClient} />
+        )
+      ) : (
       <div className="vx-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
