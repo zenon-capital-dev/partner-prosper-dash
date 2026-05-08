@@ -170,23 +170,23 @@ export default function Clients() {
 
 
       {/* Filter Bar */}
-      <div className="vx-card p-3 flex flex-col lg:flex-row lg:items-center gap-3">
+      <div className="toolbar">
         <div className="relative flex-1">
-          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
+          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
           <Input
-            placeholder="Search by name, email, company..."
+            placeholder="Buscar por nome, email, empresa..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-muted/30 border-border/50 h-9 pl-9 pr-4 text-[13px]"
+            className="w-full bg-background/60 border-border h-10 pl-10 pr-4 text-sm rounded-xl"
           />
         </div>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="h-9 w-[130px] bg-muted/30 border-border/50 text-muted-foreground text-[11px] font-mono uppercase tracking-wider">
+            <SelectTrigger className="h-10 w-[140px] bg-background/60 rounded-xl text-xs font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">All Status</SelectItem>
+              <SelectItem value="todos">Todos status</SelectItem>
               <SelectItem value="ativo">Active</SelectItem>
               <SelectItem value="prospecto">Prospects</SelectItem>
               <SelectItem value="inativo">Inactive</SelectItem>
