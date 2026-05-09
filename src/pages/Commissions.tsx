@@ -812,9 +812,84 @@ export default function Commissions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* RULE CREATE Dialog */}
+      <Dialog open={ruleCreateOpen} onOpenChange={setRuleCreateOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Nova Regra de Comissionamento</DialogTitle>
+            <DialogDescription>Defina como o sistema deve calcular as comissões automaticamente.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Parceiro / Indicador (opcional)</Label>
+              <Select value={ruleForm.partner_id || "all"} onValueChange={(v) => setRuleForm({ ...ruleForm, partner_id: v === "all" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Todos os parceiros" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os parceiros</SelectItem>
+                  {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">Deixe vazio para regra geral.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Produto (opcional)</Label>
+              <Select value={ruleForm.product_id || "all"} onValueChange={(v) => setRuleForm({ ...ruleForm, product_id: v === "all" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os produtos</SelectItem>
+                  {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Valor</Label>
+              <Select value={ruleForm.rule_type} onValueChange={(v) => setRuleForm({ ...ruleForm, rule_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Percentual (%)</SelectItem>
+                  <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Valor</Label>
+              <Input type="number" step="0.01" value={ruleForm.value} onChange={(e) => setRuleForm({ ...ruleForm, value: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Evento de Disparo</Label>
+              <Select value={ruleForm.trigger_event} onValueChange={(v) => setRuleForm({ ...ruleForm, trigger_event: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {commissionTriggerEvents.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col justify-center space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="is_recurring" checked={ruleForm.is_recurring} onCheckedChange={(v) => setRuleForm({ ...ruleForm, is_recurring: !!v })} />
+                <Label htmlFor="is_recurring" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Comissão Recorrente?
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="release_after_payment" checked={ruleForm.release_after_payment} onCheckedChange={(v) => setRuleForm({ ...ruleForm, release_after_payment: !!v })} />
+                <Label htmlFor="release_after_payment" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Liberar só após pagamento do cliente?
+                </Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRuleCreateOpen(false)}>Cancelar</Button>
+            <Button onClick={saveRule} className="bg-gradient-primary gap-2"><Sparkles className="size-4" /> Salvar Regra</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 function KpiCard({ icon: Icon, label, value, sub, tone }: any) {
   const map: any = {
