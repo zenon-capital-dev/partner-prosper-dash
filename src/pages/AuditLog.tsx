@@ -80,6 +80,7 @@ export default function AuditLog() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    logAudit("EXPORT_DATA", "audit_logs", undefined, { format: "csv", count: filteredLogs.length });
   };
 
   const { data: users = [] } = useQuery({
