@@ -90,6 +90,24 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
     enabled: open,
   });
 
+  const { data: partners } = useQuery({
+    queryKey: ["partners-list-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name");
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
+  const { data: providers } = useQuery({
+    queryKey: ["providers-list-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name");
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
   const submit = async () => {
     if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do contrato é obrigatório"); return; }
