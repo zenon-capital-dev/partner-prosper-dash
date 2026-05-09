@@ -14,6 +14,9 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 
+import { calculateSLA } from "@/lib/sla";
+import { AutoStatusBadge } from "@/components/StatusBadge";
+
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
