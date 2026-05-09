@@ -40,7 +40,8 @@ export default function Documents() {
         .select(`
           *,
           clients(full_name),
-          products(name)
+          products(name),
+          client_products(service_providers:service_provider_id(name))
         `)
         .order("created_at", { ascending: false });
       
@@ -140,8 +141,9 @@ export default function Documents() {
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
                   <th className="px-6 py-4 text-left">Documento / Cliente</th>
-                  <th className="px-6 py-4 text-left">Produto</th>
-                  <th className="px-6 py-4 text-left">Status</th>
+                  <th className="px-6 py-4 text-left">Produto / Demanda</th>
+                  <th className="px-6 py-4 text-left">Status / Visib.</th>
+                  <th className="px-6 py-4 text-left">Resp. Técnico</th>
                   <th className="px-6 py-4 text-left">Prazos</th>
                   <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
@@ -175,10 +177,18 @@ export default function Documents() {
                             <StatusIcon className="size-2.5" />
                             {config.label}
                           </Badge>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                             <Badge variant="secondary" className="text-[9px] font-bold py-0 h-4 border-none opacity-60">
+                               {d.is_required ? "OBRIGATÓRIO" : "OPCIONAL"}
+                             </Badge>
+                             <Badge variant="ghost" className="text-[9px] font-bold py-0 h-4 border-none opacity-40">
+                               {d.is_public ? "PÚBLICO" : "INTERNO"}
+                             </Badge>
+                          </div>
                           {d.rejection_reason && (
                             <TooltipProvider>
                               <Tooltip>
-                                <TooltipTrigger className="flex items-center gap-1 text-[10px] text-destructive hover:underline text-left">
+                                <TooltipTrigger className="flex items-center gap-1 text-[10px] text-destructive hover:underline text-left mt-1">
                                   <AlertCircle className="size-2.5" /> Ver motivo
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -188,6 +198,11 @@ export default function Documents() {
                             </TooltipProvider>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-xs font-bold text-foreground">
+                          {(d.client_products?.service_providers as any)?.name || "—"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-0.5">
