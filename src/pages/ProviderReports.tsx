@@ -131,7 +131,6 @@ export default function ProviderReports() {
   return (
     <div className="space-y-6 p-6">
       <PageHeader
-        icon={ClipboardList}
         title="Reportes dos Prestadores"
         description="Acompanhe todos os reportes enviados pelos prestadores de serviço."
       />
