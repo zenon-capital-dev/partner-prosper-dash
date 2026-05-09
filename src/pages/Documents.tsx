@@ -235,7 +235,7 @@ export default function Documents() {
                                       size="icon" 
                                       variant="ghost" 
                                       className="size-8 text-muted-foreground hover:text-primary"
-                                      onClick={() => viewFile(d.file_path)}
+                                      onClick={() => viewFile(d)}
                                     >
                                       <Eye className="size-4" />
                                     </Button>
