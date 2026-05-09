@@ -20,6 +20,7 @@ import Commissions from "./pages/Commissions";
 import Documents from "./pages/Documents";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Automations from "./pages/Automations";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
