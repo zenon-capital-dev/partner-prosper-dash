@@ -112,14 +112,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
     setSaving(true);
     try {
-      // 1. Get product defaults (steps + required documents)
-      const { data: prodInfo } = await supabase
-        .from("products")
-        .select("standard_steps, required_documents, name")
-        .eq("id", form.product_id)
-        .single();
-
-      // 2. Insert Client Product
+      // 1. Insert Client Product (Database trigger tr_populate_client_product will handle templates)
       const { data: cp, error: cpErr } = await supabase
         .from("client_products")
         .insert({
@@ -127,40 +120,13 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
           value: form.value,
-          status: "aguardando_inicio",
           notes: form.notes || null,
         })
         .select("id")
         .single();
       if (cpErr) throw cpErr;
 
-      // 3. Create initial steps
-      if (prodInfo?.standard_steps && Array.isArray(prodInfo.standard_steps)) {
-        const steps = (prodInfo.standard_steps as any[]).map((s, idx) => ({
-          client_product_id: cp.id,
-          label: typeof s === "string" ? s : s.label,
-          position: idx,
-        }));
-        if (steps.length) await supabase.from("client_product_steps").insert(steps);
-      }
-
-      // 3b. Auto-create required document requests linked to this product
-      if (prodInfo?.required_documents && Array.isArray(prodInfo.required_documents)) {
-        const docs = (prodInfo.required_documents as any[])
-          .map((d) => (typeof d === "string" ? d : d?.name || d?.label))
-          .filter(Boolean)
-          .map((name: string) => ({
-            client_id: clientId,
-            product_id: form.product_id,
-            client_product_id: cp.id,
-            name,
-            status: "solicitado" as const,
-            is_required: true,
-          }));
-        if (docs.length) await supabase.from("documents").insert(docs);
-      }
-
-      // 4. Create Sale (Trigger will handle splits)
+      // 2. Create Sale (Trigger will handle splits)
       const { error: sErr } = await supabase.from("sales").insert({
         client_id: clientId,
         product_id: form.product_id,
