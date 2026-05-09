@@ -125,6 +125,16 @@ export default function DemandDetail() {
                  {demand.status === 'pausado' ? <PlayCircle className="size-4" /> : <PauseCircle className="size-4" />}
                  {demand.status === 'pausado' ? "Retomar Demanda" : "Pausar Demanda"}
                </DropdownMenuItem>
+
+               {(demand.status === 'aguardando_aprovacao_final' || demand.status === 'em_execucao' || demand.status === 'ajuste_solicitado') && (
+                 <DropdownMenuItem 
+                   onClick={() => setQualityDialogOpen(true)}
+                   className="gap-2 cursor-pointer text-primary focus:text-primary/80"
+                 >
+                   <FileCheck className="size-4" /> Controle de Qualidade
+                 </DropdownMenuItem>
+               )}
+
                <DropdownMenuItem 
                  onClick={() => setDelayDialogOpen(true)}
                  className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700"
