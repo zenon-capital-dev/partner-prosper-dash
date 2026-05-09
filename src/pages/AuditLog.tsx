@@ -135,7 +135,7 @@ export default function AuditLog() {
             Governança e Transparência
           </div>
           <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
-            Logs de Auditoria
+            Logs e Auditoria
           </h1>
           <p className="text-sm text-muted-foreground">Monitoramento detalhado de todas as alterações críticas na base de dados.</p>
         </div>
