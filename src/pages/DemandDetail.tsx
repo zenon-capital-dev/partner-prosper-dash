@@ -64,6 +64,13 @@ export default function DemandDetail() {
     urgente: "bg-rose-50 text-rose-600",
   };
 
+  const sla = calculateSLA(
+    demand.sla_start_date || demand.created_at,
+    demand.sla_due_date,
+    demand.status,
+    (demand.products as any)?.sla_day_type || 'working'
+  );
+
   return (
     <div className="page-shell space-y-8 animate-fade-up">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
