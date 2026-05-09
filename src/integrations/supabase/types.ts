@@ -277,6 +277,88 @@ export type Database = {
           },
         ]
       }
+      client_product_delays: {
+        Row: {
+          client_product_id: string | null
+          created_at: string | null
+          delay_reason_category: string
+          description: string
+          id: string
+          recorded_at: string | null
+          recorded_by: string | null
+        }
+        Insert: {
+          client_product_id?: string | null
+          created_at?: string | null
+          delay_reason_category: string
+          description: string
+          id?: string
+          recorded_at?: string | null
+          recorded_by?: string | null
+        }
+        Update: {
+          client_product_id?: string | null
+          created_at?: string | null
+          delay_reason_category?: string
+          description?: string
+          id?: string
+          recorded_at?: string | null
+          recorded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_delays_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_product_pauses: {
+        Row: {
+          client_product_id: string | null
+          created_at: string | null
+          freeze_sla: boolean | null
+          id: string
+          notes: string | null
+          paused_at: string | null
+          paused_by: string | null
+          reason: string
+          resumed_at: string | null
+        }
+        Insert: {
+          client_product_id?: string | null
+          created_at?: string | null
+          freeze_sla?: boolean | null
+          id?: string
+          notes?: string | null
+          paused_at?: string | null
+          paused_by?: string | null
+          reason: string
+          resumed_at?: string | null
+        }
+        Update: {
+          client_product_id?: string | null
+          created_at?: string | null
+          freeze_sla?: boolean | null
+          id?: string
+          notes?: string | null
+          paused_at?: string | null
+          paused_by?: string | null
+          reason?: string
+          resumed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_pauses_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_product_status_reports: {
         Row: {
           attachments: Json
@@ -402,6 +484,7 @@ export type Database = {
           end_date: string | null
           id: string
           internal_notes: string | null
+          is_sla_frozen: boolean | null
           notes: string | null
           partner_commission: number | null
           priority: Database["public"]["Enums"]["demand_priority"] | null
@@ -432,6 +515,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           internal_notes?: string | null
+          is_sla_frozen?: boolean | null
           notes?: string | null
           partner_commission?: number | null
           priority?: Database["public"]["Enums"]["demand_priority"] | null
@@ -462,6 +546,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           internal_notes?: string | null
+          is_sla_frozen?: boolean | null
           notes?: string | null
           partner_commission?: number | null
           priority?: Database["public"]["Enums"]["demand_priority"] | null

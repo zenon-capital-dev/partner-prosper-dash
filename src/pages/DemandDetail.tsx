@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, Package, User, Clock, 
   AlertCircle, CheckCircle2, FileText, 
   MessageSquare, History, ListChecks, 
-  Calendar, ShieldAlert, Paperclip, ArrowRight
+  Calendar, ShieldAlert, Paperclip, ArrowRight,
+  PauseCircle, PlayCircle, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +16,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
+import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 import { calculateSLA } from "@/lib/sla";
 import { AutoStatusBadge } from "@/components/StatusBadge";
@@ -20,6 +33,10 @@ import { AutoStatusBadge } from "@/components/StatusBadge";
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [delayDialogOpen, setDelayDialogOpen] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
 
   const { data: demand, isLoading } = useQuery({
     queryKey: ["demand-detail", id],
@@ -90,9 +107,34 @@ export default function DemandDetail() {
         </div>
 
         <div className="flex items-center gap-2">
-           <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
-              Ações da Demanda <ArrowRight className="size-4" />
-           </Button>
+           <DropdownMenu>
+             <DropdownMenuTrigger asChild>
+               <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
+                 Ações da Demanda <ArrowRight className="size-4" />
+               </Button>
+             </DropdownMenuTrigger>
+             <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-xl">
+               <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Operações</DropdownMenuLabel>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem 
+                 onClick={() => setPauseDialogOpen(true)}
+                 className={cn("gap-2 cursor-pointer", demand.status === 'pausado' ? "text-emerald-600 focus:text-emerald-700" : "text-amber-600 focus:text-amber-700")}
+               >
+                 {demand.status === 'pausado' ? <PlayCircle className="size-4" /> : <PauseCircle className="size-4" />}
+                 {demand.status === 'pausado' ? "Retomar Demanda" : "Pausar Demanda"}
+               </DropdownMenuItem>
+               <DropdownMenuItem 
+                 onClick={() => setDelayDialogOpen(true)}
+                 className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700"
+               >
+                 <AlertTriangle className="size-4" /> Registrar Atraso
+               </DropdownMenuItem>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem className="gap-2 cursor-pointer">
+                 <CheckCircle2 className="size-4" /> Finalizar Demanda
+               </DropdownMenuItem>
+             </DropdownMenuContent>
+           </DropdownMenu>
         </div>
       </div>
 
@@ -278,6 +320,18 @@ export default function DemandDetail() {
           @apply absolute bottom-[-1px] left-0 right-0 h-[2px] bg-primary rounded-full;
         }
       `}</style>
+
+      <PauseDemandDialog 
+        open={pauseDialogOpen} 
+        onOpenChange={setPauseDialogOpen} 
+        demandId={demand.id} 
+        isPaused={demand.status === 'pausado'} 
+      />
+      <RecordDelayDialog 
+        open={delayDialogOpen} 
+        onOpenChange={setDelayDialogOpen} 
+        demandId={demand.id} 
+      />
     </div>
   );
 }
