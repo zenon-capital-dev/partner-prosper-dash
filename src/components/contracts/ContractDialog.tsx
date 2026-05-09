@@ -109,7 +109,6 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   });
 
   const submit = async () => {
-    if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do contrato é obrigatório"); return; }
     
     setSubmitting(true);
@@ -118,7 +117,8 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     const file = fileRef.current?.files?.[0];
     if (file) {
-      const path = `${clientId}/${Date.now()}-${file.name}`;
+      const targetId = selectedClientId !== "none" ? selectedClientId : (form.partner_id !== "none" ? form.partner_id : (form.provider_id !== "none" ? form.provider_id : "general"));
+      const path = `${targetId}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("contracts").upload(path, file);
       if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
       file_path = path;
