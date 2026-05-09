@@ -376,7 +376,7 @@ export default function Demands() {
                 const daysLeft = d.sla_due_date ? Math.ceil((new Date(d.sla_due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
                 
                 return (
-                  <tr key={d.id} className="vx-table-row group">
+                  <tr key={d.id} className={cn("vx-table-row group", isOverdue && "bg-rose-500/[0.02]")}>
                     <td className="vx-table-cell">
                       <div className="flex flex-col">
                         <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer" onClick={() => navigate(`/demandas/${d.id}`)}>
