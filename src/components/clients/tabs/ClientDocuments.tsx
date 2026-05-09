@@ -237,7 +237,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                               </span>
                             )}
                             {doc.uploaded_at && <span>Enviado {formatDate(doc.uploaded_at)}</span>}
-                            {doc.uploader?.full_name && <span>Por {doc.uploader.full_name}</span>}
+                            {doc.uploaded_by && <span>Enviado pelo cliente</span>}
                             {doc.reviewed_at && <span>Revisado {formatDate(doc.reviewed_at)}</span>}
                           </div>
                           {doc.status === "reprovado" && doc.rejection_reason && (
