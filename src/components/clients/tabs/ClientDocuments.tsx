@@ -34,7 +34,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
-        .select(`*, products(id,name), uploader:profiles!documents_uploaded_by_fkey(full_name)`)
+        .select(`*, products(id,name)`)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
       if (error) throw error;
