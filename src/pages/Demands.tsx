@@ -7,9 +7,9 @@ import {
   Clock, AlertCircle, CheckCircle2, User, 
   Building2, Package, MoreHorizontal, Calendar,
   ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
-  MessageSquare, Skeleton
+  MessageSquare
 } from "lucide-react";
-import { Skeleton as SkeletonUI } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -235,13 +235,13 @@ export default function Demands() {
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} className="vx-card p-4 space-y-4">
               <div className="flex justify-between items-center">
-                <SkeletonUI className="h-4 w-20" />
-                <SkeletonUI className="h-4 w-12" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-12" />
               </div>
-              <SkeletonUI className="h-5 w-full" />
-              <SkeletonUI className="h-3 w-2/3" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-3 w-2/3" />
               <div className="pt-2 border-t border-border/40">
-                <SkeletonUI className="h-3 w-full" />
+                <Skeleton className="h-3 w-full" />
               </div>
             </div>
           ))}
