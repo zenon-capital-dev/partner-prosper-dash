@@ -40,6 +40,7 @@ import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 import MessageTemplates from "./pages/MessageTemplates";
 import ProviderReports from "./pages/ProviderReports";
+import ProviderPerformance from "./pages/ProviderPerformance";
 import Demands from "./pages/Demands";
 import DemandDetail from "./pages/DemandDetail";
 
