@@ -356,19 +356,28 @@ export default function Commissions() {
       <PageHero
         eyebrow="Financeiro"
         category="Commission Engine"
-        title="Comissões"
-        description="Gestão completa de comissões: criar, editar, pagar, cancelar e exportar."
+        title="Central de Comissões"
+        description="Gestão de regras e pagamentos para parceiros e indicadores."
         icon={<Wallet className="size-6" />}
         actions={
-          <>
-            <Button variant="outline" onClick={exportCSV} className="h-10 gap-2">
-              <FileSpreadsheet className="size-4" /> Exportar CSV
-            </Button>
-            <Button onClick={() => setCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
-              <Plus className="size-4" strokeWidth={2.5} /> Nova comissão
-            </Button>
-          </>
+          <div className="flex gap-2">
+            {activeTab === "rules" ? (
+              <Button onClick={() => setRuleCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+                <Plus className="size-4" strokeWidth={2.5} /> Nova Regra
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" onClick={exportCSV} className="h-10 gap-2">
+                  <FileSpreadsheet className="size-4" /> Exportar CSV
+                </Button>
+                <Button onClick={() => setCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+                  <Plus className="size-4" strokeWidth={2.5} /> Nova Comissão
+                </Button>
+              </>
+            )}
+          </div>
         }
+
         kpis={[
           { label: "Total filtrado", value: formatBRL(totals.total), tone: "primary", hint: `${totals.count} registros`, icon: <CircleDollarSign className="size-4" /> },
           { label: "Pendente / Análise", value: formatBRL(totals.pending), tone: "warning", icon: <Clock className="size-4" /> },
