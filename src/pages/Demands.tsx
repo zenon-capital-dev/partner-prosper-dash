@@ -372,6 +372,8 @@ export default function Demands() {
               {filtered.map((d: any) => {
                 const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
                 const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
+                const isOverdue = d.sla_due_date && new Date(d.sla_due_date) < new Date() && d.status !== 'concluido';
+                const daysLeft = d.sla_due_date ? Math.ceil((new Date(d.sla_due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
                 
                 return (
                   <tr key={d.id} className="vx-table-row group">
