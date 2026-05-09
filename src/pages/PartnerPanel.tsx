@@ -81,7 +81,7 @@ export default function PartnerPanel() {
 
   const filteredSplits = useMemo(() => {
     if (!data) return [];
-    return data.splits.filter((s: any) => {
+    return data.commissions.filter((s: any) => {
       if (statusFilter !== "todos" && s.status !== statusFilter) return false;
       if (clientFilter) {
         const name = (s.sales?.clients?.full_name || "").toLowerCase();
