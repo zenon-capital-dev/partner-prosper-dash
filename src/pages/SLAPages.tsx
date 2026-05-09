@@ -71,7 +71,7 @@ export default function SLAPages() {
           { label: "Atrasadas", value: stats.atrasadas, tone: "danger", icon: <AlertTriangle className="size-4" /> },
           { label: "Vence Hoje", value: stats.venceHoje, tone: "warning", icon: <Clock className="size-4" /> },
           { label: "Em Atenção", value: stats.atencao, tone: "info", icon: <Zap className="size-4" /> },
-          { label: "Pausadas", value: stats.pausadas, tone: "neutral", icon: <PauseCircle className="size-4" /> },
+          { label: "Pausadas", value: stats.pausadas, tone: "default" as any, icon: <PauseCircle className="size-4" /> },
         ]}
       />
 
