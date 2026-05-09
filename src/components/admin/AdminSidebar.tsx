@@ -15,6 +15,7 @@ import {
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { initials } from "@/lib/format";
 
 type NavItem = { title: string; url: string; icon: any };
