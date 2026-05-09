@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PauseCircle, PlayCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PauseDemandDialogProps {
   open: boolean;
