@@ -48,7 +48,7 @@ export default function AdminLayout() {
     <div className="min-h-screen flex w-full bg-background text-foreground admin-shell overflow-hidden">
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
         <AdminHeader onSearchClick={handleSearchClick} />
         <main className="flex-1 overflow-y-auto">
           <Outlet />
