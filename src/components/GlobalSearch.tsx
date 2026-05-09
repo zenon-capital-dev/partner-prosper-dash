@@ -6,15 +6,19 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   Users, Briefcase, FileText, FileSignature, Banknote, Truck,
-  ClipboardList, Building2, ArrowUpRight,
+  ClipboardList, Building2, ArrowUpRight, Search, Command,
 } from "lucide-react";
 
 interface NavItem { title: string; url: string; icon: any; group?: string }
 
 interface Props {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  navItems: NavItem[];
+  /** Optional controlled open/onOpenChange. If omitted, the component manages itself
+   *  and renders its own trigger button. */
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  navItems?: NavItem[];
+  /** When true and uncontrolled, render a trigger button. Default true. */
+  showTrigger?: boolean;
 }
 
 interface Hit {
@@ -26,21 +30,42 @@ interface Hit {
   group: string;
 }
 
-export function GlobalSearch({ open, onOpenChange, navItems }: Props) {
+export function GlobalSearch({ open, onOpenChange, navItems = [], showTrigger = true }: Props) {
   const navigate = useNavigate();
+  const isControlled = open !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = isControlled ? open! : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (isControlled) onOpenChange?.(v);
+    else setInternalOpen(v);
+  };
+
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Cmd+K shortcut (only when uncontrolled, otherwise the parent owns it)
   useEffect(() => {
-    if (!open) {
+    if (isControlled) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setInternalOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isControlled]);
+
+  useEffect(() => {
+    if (!isOpen) {
       setQuery("");
       setHits([]);
     }
-  }, [open]);
+  }, [isOpen]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     const term = query.trim();
     if (term.length < 2) {
       setHits([]);
@@ -111,7 +136,7 @@ export function GlobalSearch({ open, onOpenChange, navItems }: Props) {
       (contracts.data || []).forEach((c: any) => {
         results.push({ id: c.id, label: c.name, sub: c.status, url: `/contratos`, icon: FileSignature, group: "Contratos" });
       });
-      (payments.data as any[] || []).forEach((p: any) => {
+      ((payments.data as any[]) || []).forEach((p: any) => {
         results.push({ id: p.id, label: p.description || `Pagamento`, sub: `R$ ${Number(p.amount || 0).toFixed(2)} · ${p.status || ""}`, url: `/financeiro`, icon: Banknote, group: "Pagamentos" });
       });
 
@@ -123,7 +148,7 @@ export function GlobalSearch({ open, onOpenChange, navItems }: Props) {
       cancelled = true;
       clearTimeout(t);
     };
-  }, [query, open]);
+  }, [query, isOpen]);
 
   const filteredNav = navItems.filter((n) =>
     !query || n.title.toLowerCase().includes(query.toLowerCase())
@@ -136,65 +161,80 @@ export function GlobalSearch({ open, onOpenChange, navItems }: Props) {
   });
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput
-        placeholder="Buscar clientes, demandas, documentos, parceiros..."
-        value={query}
-        onValueChange={setQuery}
-      />
-      <CommandList>
-        <CommandEmpty>
-          {loading ? "Buscando..." : query.length < 2 ? "Digite ao menos 2 caracteres" : "Nenhum resultado."}
-        </CommandEmpty>
+    <>
+      {!isControlled && showTrigger && (
+        <button
+          onClick={() => setOpen(true)}
+          className="w-full h-10 pl-10 pr-3 bg-muted/40 hover:bg-muted/60 border border-border/60 hover:border-primary/30 rounded-xl text-sm text-muted-foreground flex items-center justify-between transition-all relative group"
+        >
+          <Search className="absolute left-3 size-4 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+          <span className="font-medium opacity-80">Buscar clientes, demandas, documentos...</span>
+          <kbd className="text-[10px] font-mono font-bold tracking-wider bg-background/80 border border-border/60 rounded-md px-1.5 py-0.5 flex items-center gap-1 text-muted-foreground/70">
+            <Command className="size-3" /> K
+          </kbd>
+        </button>
+      )}
 
-        {Object.entries(grouped).map(([group, items]) => (
-          <CommandGroup key={group} heading={group}>
-            {items.map((it) => (
-              <CommandItem
-                key={`${group}-${it.id}`}
-                value={`${group}-${it.id}-${it.label}`}
-                onSelect={() => {
-                  navigate(it.url);
-                  onOpenChange(false);
-                }}
-                className="gap-3"
-              >
-                <it.icon className="size-4 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <p className="truncate">{it.label}</p>
-                  {it.sub && (
-                    <p className="text-xs text-muted-foreground truncate">{it.sub}</p>
+      <CommandDialog open={isOpen} onOpenChange={setOpen}>
+        <CommandInput
+          placeholder="Buscar clientes, demandas, documentos, parceiros..."
+          value={query}
+          onValueChange={setQuery}
+        />
+        <CommandList>
+          <CommandEmpty>
+            {loading ? "Buscando..." : query.length < 2 ? "Digite ao menos 2 caracteres" : "Nenhum resultado."}
+          </CommandEmpty>
+
+          {Object.entries(grouped).map(([group, items]) => (
+            <CommandGroup key={group} heading={group}>
+              {items.map((it) => (
+                <CommandItem
+                  key={`${group}-${it.id}`}
+                  value={`${group}-${it.id}-${it.label}`}
+                  onSelect={() => {
+                    navigate(it.url);
+                    setOpen(false);
+                  }}
+                  className="gap-3"
+                >
+                  <it.icon className="size-4 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate">{it.label}</p>
+                    {it.sub && (
+                      <p className="text-xs text-muted-foreground truncate">{it.sub}</p>
+                    )}
+                  </div>
+                  <ArrowUpRight className="size-3 text-muted-foreground" />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+
+          {filteredNav.length > 0 && (
+            <CommandGroup heading="Navegação">
+              {filteredNav.map((item) => (
+                <CommandItem
+                  key={item.url}
+                  onSelect={() => {
+                    navigate(item.url);
+                    setOpen(false);
+                  }}
+                  className="gap-3"
+                >
+                  <item.icon className="size-4 text-muted-foreground" />
+                  <span className="flex-1">{item.title}</span>
+                  {item.group && (
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
+                      {item.group}
+                    </span>
                   )}
-                </div>
-                <ArrowUpRight className="size-3 text-muted-foreground" />
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        ))}
-
-        {filteredNav.length > 0 && (
-          <CommandGroup heading="Navegação">
-            {filteredNav.map((item) => (
-              <CommandItem
-                key={item.url}
-                onSelect={() => {
-                  navigate(item.url);
-                  onOpenChange(false);
-                }}
-                className="gap-3"
-              >
-                <item.icon className="size-4 text-muted-foreground" />
-                <span className="flex-1">{item.title}</span>
-                {item.group && (
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-                    {item.group}
-                  </span>
-                )}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
-      </CommandList>
-    </CommandDialog>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+        </CommandList>
+      </CommandDialog>
+    </>
   );
 }
