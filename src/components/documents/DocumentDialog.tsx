@@ -192,25 +192,29 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label>Produto vinculado</Label>
+              <Label>Produto / Demanda vinculada</Label>
               <Select 
-                value={form.product_id || "none"} 
-                onValueChange={(v) => setForm({ ...form, product_id: v })}
+                value={form.client_product_id || "none"} 
+                onValueChange={(v) => {
+                   const cp = clientProducts?.find((x: any) => x.id === v);
+                   setForm({ ...form, client_product_id: v, product_id: cp?.product_id || "none" });
+                }}
               >
                 <SelectTrigger>
                   <Package className="size-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Geral" />
+                  <SelectValue placeholder="Geral / Selecione a demanda" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Geral / Nenhum</SelectItem>
-                  {products?.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem value="none">Geral / Nenhuma demanda</SelectItem>
+                  {clientProducts?.map((cp: any) => (
+                    <SelectItem key={cp.id} value={cp.id}>{cp.products?.name || cp.custom_product_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            
             <div className="space-y-2">
               <Label>Prazo para envio</Label>
               <div className="relative">
