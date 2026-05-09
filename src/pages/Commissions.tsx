@@ -561,9 +561,11 @@ export default function Commissions() {
                 </tr>
               </tfoot>
             )}
+          </table>
         </div>
       </div>
     </TabsContent>
+
 
     <TabsContent value="rules" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
       <div className="vx-card overflow-hidden">
