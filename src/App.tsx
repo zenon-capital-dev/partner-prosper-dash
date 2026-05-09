@@ -39,6 +39,7 @@ import ReferrerPanel from "./pages/ReferrerPanel";
 import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 import MessageTemplates from "./pages/MessageTemplates";
+import ProviderReports from "./pages/ProviderReports";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/leads" element={<Leads />} />
               <Route path="/colaboradores" element={<Collaborators />} />
               <Route path="/prestadores" element={<Providers />} />
+              <Route path="/prestadores/reportes" element={<ProviderReports />} />
               <Route path="/tarefas" element={<Tasks />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/comissoes" element={<Commissions />} />

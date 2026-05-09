@@ -124,6 +124,7 @@ const adminSections: NavSection[] = [
       { title: "Contratos", url: "/contratos", icon: FileSignature },
       { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
       { title: "Prestadores", url: "/prestadores", icon: Truck },
+      { title: "Reportes dos Prestadores", url: "/prestadores/reportes", icon: ClipboardList },
     ],
   },
   {

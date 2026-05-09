@@ -198,28 +198,37 @@ export type Database = {
       }
       client_product_status_reports: {
         Row: {
+          attachments: Json
           client_product_id: string
           created_at: string
           id: string
+          next_steps: string | null
           notes: string | null
+          pending: string | null
           reported_by: string | null
           service_provider_id: string | null
           status: string
         }
         Insert: {
+          attachments?: Json
           client_product_id: string
           created_at?: string
           id?: string
+          next_steps?: string | null
           notes?: string | null
+          pending?: string | null
           reported_by?: string | null
           service_provider_id?: string | null
           status: string
         }
         Update: {
+          attachments?: Json
           client_product_id?: string
           created_at?: string
           id?: string
+          next_steps?: string | null
           notes?: string | null
+          pending?: string | null
           reported_by?: string | null
           service_provider_id?: string | null
           status?: string

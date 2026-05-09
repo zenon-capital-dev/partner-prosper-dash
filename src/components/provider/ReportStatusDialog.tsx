@@ -38,6 +38,8 @@ export function ReportStatusDialog({
   const qc = useQueryClient();
   const [status, setStatus] = useState<string>("");
   const [notes, setNotes] = useState("");
+  const [pending, setPending] = useState("");
+  const [nextSteps, setNextSteps] = useState("");
   const [saving, setSaving] = useState(false);
 
   const { data: provider } = useQuery({
@@ -65,7 +67,9 @@ export function ReportStatusDialog({
       service_provider_id: provider?.id,
       status,
       notes: notes || null,
-    });
+      pending: pending || null,
+      next_steps: nextSteps || null,
+    } as any);
     setSaving(false);
     if (error) {
       toast.error("Erro ao reportar status", { description: error.message });
@@ -81,6 +85,8 @@ export function ReportStatusDialog({
     qc.invalidateQueries({ queryKey: ["client-products"] });
     setStatus("");
     setNotes("");
+    setPending("");
+    setNextSteps("");
     onOpenChange(false);
   }
 
@@ -114,12 +120,32 @@ export function ReportStatusDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Observações</Label>
+            <Label>Descrição do andamento</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Detalhe pendências, documentos faltantes ou próximos passos..."
-              rows={4}
+              placeholder="Detalhe o que foi feito desde o último reporte..."
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Pendências</Label>
+            <Textarea
+              value={pending}
+              onChange={(e) => setPending(e.target.value)}
+              placeholder="O que está pendente do cliente ou da equipe?"
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Próximos passos</Label>
+            <Textarea
+              value={nextSteps}
+              onChange={(e) => setNextSteps(e.target.value)}
+              placeholder="O que será feito a seguir..."
+              rows={2}
             />
           </div>
         </div>
