@@ -530,8 +530,18 @@ export default function Products() {
               <Input type="number" step="0.01" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label>Prazo médio (dias)</Label>
-              <Input type="number" value={form.avg_delivery_time} onChange={(e) => setForm({ ...form, avg_delivery_time: e.target.value })} placeholder="Ex: 30" />
+              <Label>SLA Padrão (dias)</Label>
+              <Input type="number" value={form.default_sla_days} onChange={(e) => setForm({ ...form, default_sla_days: e.target.value })} placeholder="Ex: 15" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Prazo</Label>
+              <Select value={form.sla_day_type} onValueChange={(v) => setForm({ ...form, sla_day_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="working">Dias Úteis</SelectItem>
+                  <SelectItem value="calendar">Dias Corridos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label>Descrição</Label>
