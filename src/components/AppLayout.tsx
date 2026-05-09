@@ -19,9 +19,9 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider style={{ "--sidebar-width": "18.5rem" } as React.CSSProperties}>
-      <div className="min-h-screen flex w-full bg-background selection:bg-primary selection:text-primary-foreground">
+      <div className="min-h-screen flex w-full bg-background selection:bg-primary selection:text-primary-foreground relative">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 bg-[hsl(var(--background))]">
+        <div className="flex-1 flex flex-col min-w-0 bg-[hsl(var(--background))] relative overflow-hidden">
           <header className="glass-header h-14 flex items-center px-4 lg:px-6 gap-3 no-print">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors" />
             <div className="h-5 w-px bg-border/60 hidden sm:block" />

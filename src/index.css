@@ -563,6 +563,24 @@
   .vx-section-title {
     @apply text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-4;
   }
+
+  /* Custom Sidebar Scroll */
+  .vx-sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .vx-sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .vx-sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .vx-sidebar-scroll::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full;
+  }
+  .vx-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
 }
 
 /* Custom Scrollbar */
