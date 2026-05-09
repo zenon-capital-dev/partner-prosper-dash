@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
+import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
