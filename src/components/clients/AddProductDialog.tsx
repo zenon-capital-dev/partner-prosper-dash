@@ -112,8 +112,12 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
     setSaving(true);
     try {
-      // 1. Get Product steps
-      const { data: prodInfo } = await supabase.from("products").select("standard_steps").eq("id", form.product_id).single();
+      // 1. Get product defaults (steps + required documents)
+      const { data: prodInfo } = await supabase
+        .from("products")
+        .select("standard_steps, required_documents, name")
+        .eq("id", form.product_id)
+        .single();
 
       // 2. Insert Client Product
       const { data: cp, error: cpErr } = await supabase
@@ -134,10 +138,26 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
       if (prodInfo?.standard_steps && Array.isArray(prodInfo.standard_steps)) {
         const steps = (prodInfo.standard_steps as any[]).map((s, idx) => ({
           client_product_id: cp.id,
-          label: s.label,
-          position: idx
+          label: typeof s === "string" ? s : s.label,
+          position: idx,
         }));
-        await supabase.from("client_product_steps").insert(steps);
+        if (steps.length) await supabase.from("client_product_steps").insert(steps);
+      }
+
+      // 3b. Auto-create required document requests linked to this product
+      if (prodInfo?.required_documents && Array.isArray(prodInfo.required_documents)) {
+        const docs = (prodInfo.required_documents as any[])
+          .map((d) => (typeof d === "string" ? d : d?.name || d?.label))
+          .filter(Boolean)
+          .map((name: string) => ({
+            client_id: clientId,
+            product_id: form.product_id,
+            client_product_id: cp.id,
+            name,
+            status: "solicitado" as const,
+            is_required: true,
+          }));
+        if (docs.length) await supabase.from("documents").insert(docs);
       }
 
       // 4. Create Sale (Trigger will handle splits)
