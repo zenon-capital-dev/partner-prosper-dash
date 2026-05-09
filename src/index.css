@@ -503,6 +503,66 @@
   .num-pill {
     @apply inline-flex items-center gap-1 h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums bg-muted text-muted-foreground;
   }
+
+  /* Premium Stat Card */
+  .vx-stat-card {
+    @apply relative rounded-2xl border border-border bg-card p-5 transition-all duration-300 overflow-hidden;
+    box-shadow: 0 1px 2px hsl(224 38% 12% / 0.03);
+  }
+  .vx-stat-card::after {
+    content: "";
+    @apply absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60;
+  }
+  .vx-stat-card:hover {
+    @apply border-primary/30 -translate-y-0.5;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Premium table — denser, sharper, corporate */
+  .vx-table-premium {
+    @apply w-full text-sm border-separate border-spacing-0;
+  }
+  .vx-table-premium thead th {
+    @apply sticky top-0 z-10 bg-muted/40 backdrop-blur px-5 py-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground border-b border-border;
+  }
+  .vx-table-premium tbody td {
+    @apply px-5 py-3.5 border-b border-border/60 align-middle;
+  }
+  .vx-table-premium tbody tr {
+    @apply transition-colors;
+  }
+  .vx-table-premium tbody tr:hover {
+    @apply bg-muted/30;
+  }
+  .vx-table-premium tbody tr:last-child td { @apply border-b-0; }
+
+  /* Status Badge — elegant, neutral baseline + tonal variants */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-semibold border tabular-nums whitespace-nowrap;
+  }
+  .status-badge::before {
+    content: "";
+    @apply size-1.5 rounded-full bg-current opacity-70;
+  }
+  .status-badge[data-tone="success"] { @apply bg-success-muted text-success border-success/20; }
+  .status-badge[data-tone="warning"] { @apply bg-warning-muted text-warning border-warning/25; }
+  .status-badge[data-tone="danger"]  { @apply bg-destructive-muted text-destructive border-destructive/20; }
+  .status-badge[data-tone="info"]    { @apply bg-info-muted text-info border-info/20; }
+  .status-badge[data-tone="neutral"] { @apply bg-muted text-muted-foreground border-border; }
+  .status-badge[data-tone="primary"] { @apply bg-primary-muted text-primary border-primary/20; }
+
+  /* Premium dialog/modal surface */
+  .vx-modal {
+    @apply rounded-2xl border border-border bg-card shadow-2xl;
+  }
+
+  /* Section card — generic premium content container */
+  .vx-section {
+    @apply rounded-2xl border border-border bg-card p-6 transition-colors;
+  }
+  .vx-section-title {
+    @apply text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-4;
+  }
 }
 
 /* Custom Scrollbar */
