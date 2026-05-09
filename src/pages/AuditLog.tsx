@@ -304,8 +304,14 @@ export default function AuditLog() {
                             </div>
                             <div>
                               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID da Entidade</p>
-                              <p className="text-[11px] font-mono bg-muted p-1.5 rounded break-all">{log.entity_id || "—"}</p>
+                               <p className="text-[11px] font-mono bg-muted p-1.5 rounded break-all">{log.entity_id || "—"}</p>
                             </div>
+                            {log.ip_address && (
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Endereço IP</p>
+                                <p className="text-sm font-mono">{log.ip_address}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
 
