@@ -183,7 +183,7 @@ export default function Commissions() {
       amount: Number(createForm.amount),
       percent: Number(createForm.percent || 0),
       commission_type: createForm.commission_type,
-      status: createForm.status,
+      workflow_status: createForm.status,
       notes: createForm.notes || null,
       created_at: new Date().toISOString(),
     };
@@ -191,9 +191,29 @@ export default function Commissions() {
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão criada");
     setCreateOpen(false);
-    setCreateForm({ partner_id: "", sale_id: "", amount: 0, percent: 10, status: "pendente", notes: "" });
+    setCreateForm({ partner_id: "", sale_id: "", amount: 0, percent: 10, status: "aguardando_confirmacao", notes: "" });
     qc.invalidateQueries({ queryKey: ["commissions-list"] });
   };
+
+  const saveRule = async () => {
+    if (!ruleForm.rule_type) { toast.error("Selecione o tipo de regra"); return; }
+    const payload = {
+      partner_id: ruleForm.partner_id || null,
+      product_id: ruleForm.product_id || null,
+      rule_type: ruleForm.rule_type,
+      value: Number(ruleForm.value),
+      is_recurring: ruleForm.is_recurring,
+      trigger_event: ruleForm.trigger_event,
+      release_after_payment: ruleForm.release_after_payment,
+    };
+    const { error } = await supabase.from("commission_rules").insert(payload);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Regra de comissão salva");
+    setRuleCreateOpen(false);
+    setRuleForm({ partner_id: "", product_id: "", rule_type: "percentage", value: 0, is_recurring: false, trigger_event: "first_sale", release_after_payment: true });
+    qc.invalidateQueries({ queryKey: ["commission-rules"] });
+  };
+
 
   const openEdit = (c: any) => {
     setEditing(c);
