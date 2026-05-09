@@ -2519,11 +2519,14 @@ export type Database = {
         Row: {
           active: boolean
           allow_partner: boolean
+          auto_tasks_template: Json | null
           avg_delivery_time: number | null
           base_price: number | null
           billing_type: string | null
           category_id: string | null
+          client_welcome_message: string | null
           created_at: string
+          custom_fields_template: Json | null
           default_commission_percent: number | null
           default_employee_commission: number | null
           default_provider_value: number | null
@@ -2532,7 +2535,11 @@ export type Database = {
           doc_allowed_types: string[] | null
           doc_max_size_mb: number | null
           id: string
+          initial_status: string | null
           name: string
+          provider_welcome_message: string | null
+          recommended_contract_model_id: string | null
+          recommended_provider_type: string | null
           recurring: boolean
           required_documents: Json | null
           sla_day_type: string | null
@@ -2542,11 +2549,14 @@ export type Database = {
         Insert: {
           active?: boolean
           allow_partner?: boolean
+          auto_tasks_template?: Json | null
           avg_delivery_time?: number | null
           base_price?: number | null
           billing_type?: string | null
           category_id?: string | null
+          client_welcome_message?: string | null
           created_at?: string
+          custom_fields_template?: Json | null
           default_commission_percent?: number | null
           default_employee_commission?: number | null
           default_provider_value?: number | null
@@ -2555,7 +2565,11 @@ export type Database = {
           doc_allowed_types?: string[] | null
           doc_max_size_mb?: number | null
           id?: string
+          initial_status?: string | null
           name: string
+          provider_welcome_message?: string | null
+          recommended_contract_model_id?: string | null
+          recommended_provider_type?: string | null
           recurring?: boolean
           required_documents?: Json | null
           sla_day_type?: string | null
@@ -2565,11 +2579,14 @@ export type Database = {
         Update: {
           active?: boolean
           allow_partner?: boolean
+          auto_tasks_template?: Json | null
           avg_delivery_time?: number | null
           base_price?: number | null
           billing_type?: string | null
           category_id?: string | null
+          client_welcome_message?: string | null
           created_at?: string
+          custom_fields_template?: Json | null
           default_commission_percent?: number | null
           default_employee_commission?: number | null
           default_provider_value?: number | null
@@ -2578,7 +2595,11 @@ export type Database = {
           doc_allowed_types?: string[] | null
           doc_max_size_mb?: number | null
           id?: string
+          initial_status?: string | null
           name?: string
+          provider_welcome_message?: string | null
+          recommended_contract_model_id?: string | null
+          recommended_provider_type?: string | null
           recurring?: boolean
           required_documents?: Json | null
           sla_day_type?: string | null

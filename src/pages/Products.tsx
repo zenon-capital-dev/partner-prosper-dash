@@ -38,13 +38,20 @@ type Product = {
   default_employee_commission: number | null;
   default_provider_value: number | null;
   billing_type: string;
-  required_documents: string[] | null;
-  standard_steps: { label: string; completed: boolean }[] | null;
+  required_documents: { name: string }[] | null;
+  standard_steps: { label: string; completed?: boolean }[] | null;
   avg_delivery_time: number | null;
   active: boolean;
   recurring: boolean;
   allow_partner: boolean;
   created_at: string;
+  default_sla_days?: number;
+  sla_day_type?: 'calendar' | 'working';
+  initial_status?: string;
+  client_welcome_message?: string;
+  provider_welcome_message?: string;
+  auto_tasks_template?: any[];
+  recommended_provider_type?: string;
   product_categories?: { id: string; name: string; color: string | null; icon: string | null } | null;
 };
 
@@ -64,6 +71,12 @@ const emptyForm = {
   required_documents: "",
   standard_steps: "",
   avg_delivery_time: "",
+  default_sla_days: 15,
+  sla_day_type: 'working',
+  initial_status: 'aguardando_inicio',
+  client_welcome_message: "",
+  provider_welcome_message: "",
+  recommended_provider_type: "",
   active: true,
   recurring: false,
   allow_partner: true,
@@ -171,9 +184,15 @@ export default function Products() {
       default_employee_commission: p.default_employee_commission ?? 0,
       default_provider_value: p.default_provider_value ?? 0,
       billing_type: p.billing_type || "unico",
-      required_documents: Array.isArray(p.required_documents) ? p.required_documents.join(", ") : "",
+      required_documents: Array.isArray(p.required_documents) ? p.required_documents.map((d: any) => d.name).join(", ") : "",
       standard_steps: Array.isArray(p.standard_steps) ? p.standard_steps.map((s: any) => s.label).join(", ") : "",
       avg_delivery_time: p.avg_delivery_time ?? "",
+      default_sla_days: p.default_sla_days ?? 15,
+      sla_day_type: p.sla_day_type || 'working',
+      initial_status: p.initial_status || 'aguardando_inicio',
+      client_welcome_message: p.client_welcome_message ?? "",
+      provider_welcome_message: p.provider_welcome_message ?? "",
+      recommended_provider_type: p.recommended_provider_type ?? "",
       active: p.active,
       recurring: p.recurring,
       allow_partner: p.allow_partner,
@@ -194,9 +213,15 @@ export default function Products() {
       default_employee_commission: Number(form.default_employee_commission ?? 0),
       default_provider_value: Number(form.default_provider_value ?? 0),
       billing_type: form.billing_type,
-      required_documents: form.required_documents ? form.required_documents.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
-      standard_steps: form.standard_steps ? form.standard_steps.split(",").map((s: string) => ({ label: s.trim(), completed: false })).filter((s: any) => s.label) : [],
+      required_documents: form.required_documents ? form.required_documents.split(",").map((s: string) => ({ name: s.trim() })).filter((d: any) => d.name) : [],
+      standard_steps: form.standard_steps ? form.standard_steps.split(",").map((s: string) => ({ label: s.trim() })).filter((s: any) => s.label) : [],
       avg_delivery_time: form.avg_delivery_time ? Number(form.avg_delivery_time) : null,
+      default_sla_days: Number(form.default_sla_days || 15),
+      sla_day_type: form.sla_day_type,
+      initial_status: form.initial_status,
+      client_welcome_message: form.client_welcome_message?.trim() || null,
+      provider_welcome_message: form.provider_welcome_message?.trim() || null,
+      recommended_provider_type: form.recommended_provider_type?.trim() || null,
       active: !!form.active,
       recurring: !!form.recurring,
       allow_partner: !!form.allow_partner,
@@ -505,8 +530,18 @@ export default function Products() {
               <Input type="number" step="0.01" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <Label>Prazo médio (dias)</Label>
-              <Input type="number" value={form.avg_delivery_time} onChange={(e) => setForm({ ...form, avg_delivery_time: e.target.value })} placeholder="Ex: 30" />
+              <Label>SLA Padrão (dias)</Label>
+              <Input type="number" value={form.default_sla_days} onChange={(e) => setForm({ ...form, default_sla_days: e.target.value })} placeholder="Ex: 15" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Prazo</Label>
+              <Select value={form.sla_day_type} onValueChange={(v) => setForm({ ...form, sla_day_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="working">Dias Úteis</SelectItem>
+                  <SelectItem value="calendar">Dias Corridos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-2 space-y-1.5">
               <Label>Descrição</Label>
@@ -534,6 +569,24 @@ export default function Products() {
             <div className="col-span-2 space-y-1.5">
               <Label>Etapas padrão do processo (separadas por vírgula)</Label>
               <Input value={form.standard_steps} onChange={(e) => setForm({ ...form, standard_steps: e.target.value })} placeholder="Ex: Triagem, Análise, Entrega" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Status Inicial</Label>
+              <Input value={form.initial_status} onChange={(e) => setForm({ ...form, initial_status: e.target.value })} placeholder="Ex: aguardando_inicio" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Prestador Recomendado</Label>
+              <Input value={form.recommended_provider_type} onChange={(e) => setForm({ ...form, recommended_provider_type: e.target.value })} placeholder="Ex: Contador, Advogado" />
+            </div>
+
+            <div className="col-span-2 space-y-1.5">
+              <Label>Mensagem de Boas-vindas (Cliente)</Label>
+              <Textarea rows={2} value={form.client_welcome_message} onChange={(e) => setForm({ ...form, client_welcome_message: e.target.value })} placeholder="Olá! Começamos seu processo..." />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Instruções Padrão (Prestador)</Label>
+              <Textarea rows={2} value={form.provider_welcome_message} onChange={(e) => setForm({ ...form, provider_welcome_message: e.target.value })} placeholder="Uma nova demanda foi delegada..." />
             </div>
 
             <div className="col-span-2 space-y-3">
