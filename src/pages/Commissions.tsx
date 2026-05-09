@@ -631,8 +631,9 @@ export default function Commissions() {
   </Tabs>
 
   {/* DIALOGS */}
+  <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+    <DialogContent className="max-w-xl">
 
-        <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Nova comissão manual</DialogTitle>
             <DialogDescription>Bônus, ajuste ou comissão avulsa fora de uma venda.</DialogDescription>
