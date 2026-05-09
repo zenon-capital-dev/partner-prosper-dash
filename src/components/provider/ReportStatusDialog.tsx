@@ -20,7 +20,8 @@ const STATUS_OPTIONS = [
   { value: "aguardando_cliente", label: "Aguardando Cliente" },
   { value: "em_andamento", label: "Em Andamento" },
   { value: "pendente_correcao", label: "Pendente de Correção" },
-  { value: "concluido", label: "Concluído" },
+  { value: "aguardando_aprovacao_final", label: "Aguardando Aprovação Final (Conclusão)" },
+  { value: "concluido", label: "Concluir Direto (Uso Admin)" },
 ];
 
 interface Props {
