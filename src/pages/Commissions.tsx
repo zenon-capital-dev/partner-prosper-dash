@@ -221,7 +221,7 @@ export default function Commissions() {
       amount: c.amount,
       percent: c.percent,
       commission_type: c.commission_type || "percentual",
-      status: c.status,
+      status: c.workflow_status || "aguardando_confirmacao",
       notes: c.notes ?? "",
       payment_method: c.payment_method ?? "",
       paid_at: c.paid_at ? c.paid_at.slice(0, 10) : "",
