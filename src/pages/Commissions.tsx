@@ -387,47 +387,56 @@ export default function Commissions() {
       />
 
 
-      {/* Toolbar */}
-      <div className="vx-card p-4 space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Buscar indicador, cliente, produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Select value={partnerFilter} onValueChange={setPartnerFilter}>
-              <SelectTrigger className="w-[200px] h-10"><Filter className="size-3.5 mr-1" /><SelectValue placeholder="Indicador" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos indicadores</SelectItem>
-                {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-1.5 text-xs">
-              <CalendarRange className="size-4 text-muted-foreground" />
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-[150px]" />
-              <span className="text-muted-foreground">→</span>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-[150px]" />
-            </div>
-            {activeFiltersCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 h-10">
-                <X className="size-3.5" /> Limpar ({activeFiltersCount})
-              </Button>
-            )}
-          </div>
-        </div>
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="space-y-6">
+        <TabsList className="bg-white/50 backdrop-blur-sm border border-slate-200/60 p-1 h-12 rounded-2xl w-fit">
+          <TabsTrigger value="list" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Histórico de Comissões</TabsTrigger>
+          <TabsTrigger value="rules" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Regras de Comissionamento</TabsTrigger>
+        </TabsList>
 
-        <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-          <TabsList className="h-10">
-            <TabsTrigger value="all">Todas <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
-            <TabsTrigger value="gerada" className="data-[state=active]:text-blue-500">Geradas</TabsTrigger>
-            <TabsTrigger value="em_analise" className="data-[state=active]:text-indigo-500">Em análise</TabsTrigger>
-            <TabsTrigger value="aprovada" className="data-[state=active]:text-emerald-500">Aprovadas</TabsTrigger>
-            <TabsTrigger value="paga" className="data-[state=active]:text-emerald-700">Pagas</TabsTrigger>
-            <TabsTrigger value="cancelada" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
-            <TabsTrigger value="bloqueada" className="data-[state=active]:text-muted-foreground">Bloqueadas</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+        <TabsContent value="list" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {/* Toolbar */}
+          <div className="vx-card p-4 space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Buscar indicador, cliente, produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={partnerFilter} onValueChange={setPartnerFilter}>
+                  <SelectTrigger className="w-[200px] h-10"><Filter className="size-3.5 mr-1" /><SelectValue placeholder="Indicador" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos indicadores</SelectItem>
+                    {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <CalendarRange className="size-4 text-muted-foreground" />
+                  <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-[150px]" />
+                  <span className="text-muted-foreground">→</span>
+                  <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-[150px]" />
+                </div>
+                {activeFiltersCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 h-10">
+                    <X className="size-3.5" /> Limpar ({activeFiltersCount})
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+              <TabsList className="h-10 bg-slate-50/50">
+                <TabsTrigger value="all">Todas <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
+                <TabsTrigger value="aguardando_confirmacao" className="data-[state=active]:text-blue-500">Aguardando Confirmação</TabsTrigger>
+                <TabsTrigger value="pendente" className="data-[state=active]:text-amber-600">Pendentes</TabsTrigger>
+                <TabsTrigger value="liberada" className="data-[state=active]:text-indigo-500">Liberadas</TabsTrigger>
+                <TabsTrigger value="em_pagamento" className="data-[state=active]:text-purple-500">Em Pagamento</TabsTrigger>
+                <TabsTrigger value="paga" className="data-[state=active]:text-emerald-700">Pagas</TabsTrigger>
+                <TabsTrigger value="cancelada" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
+                <TabsTrigger value="estornada" className="data-[state=active]:text-slate-600">Estornadas</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
 
       {/* Bulk action bar */}
       {selectedIds.length > 0 && (
