@@ -304,8 +304,10 @@ export type Database = {
           employee_commission: number | null
           end_date: string | null
           id: string
+          internal_notes: string | null
           notes: string | null
           partner_commission: number | null
+          priority: Database["public"]["Enums"]["demand_priority"] | null
           product_id: string | null
           required_documents: Json | null
           responsible_employee_id: string | null
@@ -328,8 +330,10 @@ export type Database = {
           employee_commission?: number | null
           end_date?: string | null
           id?: string
+          internal_notes?: string | null
           notes?: string | null
           partner_commission?: number | null
+          priority?: Database["public"]["Enums"]["demand_priority"] | null
           product_id?: string | null
           required_documents?: Json | null
           responsible_employee_id?: string | null
@@ -352,8 +356,10 @@ export type Database = {
           employee_commission?: number | null
           end_date?: string | null
           id?: string
+          internal_notes?: string | null
           notes?: string | null
           partner_commission?: number | null
+          priority?: Database["public"]["Enums"]["demand_priority"] | null
           product_id?: string | null
           required_documents?: Json | null
           responsible_employee_id?: string | null
@@ -2646,6 +2652,7 @@ export type Database = {
         | "pendente_correcao"
         | "cancelado"
         | "finalizado"
+      demand_priority: "baixa" | "normal" | "alta" | "urgente"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
       document_status_new:
         | "solicitado"
@@ -2836,6 +2843,7 @@ export const Constants = {
         "cancelado",
         "finalizado",
       ],
+      demand_priority: ["baixa", "normal", "alta", "urgente"],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
       document_status_new: [
         "solicitado",
