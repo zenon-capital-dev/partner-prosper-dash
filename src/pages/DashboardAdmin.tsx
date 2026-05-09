@@ -66,7 +66,7 @@ export default function DashboardAdmin() {
 
   const { data: contracts = [] } = useQuery({
     queryKey: ["admin-dashboard-contracts"],
-    queryFn: async () => (await supabase.from("contracts").select("id, client_id")).data ?? []
+    queryFn: async () => (await supabase.from("contracts").select("id, client_id, status")).data ?? []
   });
 
   // --- Statistics Calculation ---
