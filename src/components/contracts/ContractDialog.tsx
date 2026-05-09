@@ -162,19 +162,86 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
         </DialogHeader>
         
         <div className="space-y-4 py-2">
-          {!propClientId && !editContract && (
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Cliente *</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <Label>Tipo de Contrato</Label>
+              <Select 
+                value={form.contract_type || "none"} 
+                onValueChange={(v) => setForm({ ...form, contract_type: v })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                  ))}
+                  <SelectItem value="none">Não definido</SelectItem>
+                  <SelectItem value="cliente">Contrato com cliente</SelectItem>
+                  <SelectItem value="parceiro">Contrato com parceiro</SelectItem>
+                  <SelectItem value="prestador">Contrato com prestador</SelectItem>
+                  <SelectItem value="produto">Contrato por produto</SelectItem>
+                  <SelectItem value="termo_servico">Termo de prestação de serviço</SelectItem>
+                  <SelectItem value="procuracao">Procuração</SelectItem>
+                  <SelectItem value="termo_confidencialidade">Termo de confidencialidade</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Validade / Expiração</Label>
+              <Input 
+                type="date" 
+                value={form.expires_at || ""} 
+                onChange={(e) => setForm({ ...form, expires_at: e.target.value })} 
+              />
+            </div>
+          </div>
+
+          {!editContract && (
+            <div className="space-y-4 border-y py-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Relacionado a:</p>
+              
+              <div className="space-y-2">
+                <Label>Cliente</Label>
+                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cliente (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {clients?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Parceiro</Label>
+                <Select value={form.partner_id || "none"} onValueChange={(v) => setForm({ ...form, partner_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o parceiro (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {partners?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Prestador</Label>
+                <Select value={form.provider_id || "none"} onValueChange={(v) => setForm({ ...form, provider_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o prestador (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {providers?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
