@@ -1,0 +1,1 @@
+ALTER TABLE public.documents ADD COLUMN IF NOT EXISTS is_required boolean NOT NULL DEFAULT true;
