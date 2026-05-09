@@ -138,6 +138,7 @@ export default function Demands() {
 
     updateStatusMutation.mutate({ id: draggableId, status: newStatus });
   };
+  return (
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
         eyebrow="Operations"
