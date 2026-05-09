@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { 
   ClipboardList, Search, Filter, ArrowUpRight, 
   Clock, AlertCircle, CheckCircle2, User, 
   Building2, Package, MoreHorizontal, Calendar,
-  ShieldAlert, LayoutGrid, List
+  ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
+  MessageSquare
 } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { toast } from "sonner";
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
@@ -29,8 +32,9 @@ const PRIORITY_META: Record<Priority, { label: string; color: string; icon: any 
 
 export default function Demands() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewMode, setViewMode] = useState<"list" | "grid" | "kanban">("kanban");
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -87,6 +91,53 @@ export default function Demands() {
     };
   }, [demands]);
 
+  const KANBAN_COLUMNS = [
+    { id: "aguardando_inicio", label: "Aguardando início" },
+    { id: "aguardando_documentos", label: "Aguardando documentos" },
+    { id: "em_analise", label: "Em análise" },
+    { id: "em_execucao", label: "Em execução" },
+    { id: "pendente_cliente", label: "Pendente com cliente" },
+    { id: "pendente_prestador", label: "Pendente com prestador" },
+    { id: "aguardando_aprovacao", label: "Aguardando aprovação" },
+    { id: "concluido", label: "Concluído" },
+  ];
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: any = { status };
+      if (status === 'concluido') {
+        updateData.completed_at = new Date().toISOString();
+      }
+      const { error } = await supabase
+        .from("client_products")
+        .update(updateData)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      toast.success("Status atualizado com sucesso");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar status: " + error.message);
+    }
+  });
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const { draggableId, destination } = result;
+    const newStatus = destination.droppableId;
+    
+    const demand = demands.find((d: any) => d.id === draggableId);
+    if (!demand || demand.status === newStatus) return;
+
+    if (newStatus === 'concluido') {
+      if (!window.confirm("Deseja marcar esta demanda como concluída?")) return;
+    }
+
+    updateStatusMutation.mutate({ id: draggableId, status: newStatus });
+  };
   return (
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
@@ -150,8 +201,18 @@ export default function Demands() {
             <Button 
               variant="ghost" 
               size="icon" 
+              className={cn("size-8 rounded-md", viewMode === 'kanban' && "bg-background shadow-sm")} 
+              onClick={() => setViewMode('kanban')}
+              title="Kanban"
+            >
+              <KanbanIcon className="size-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
               className={cn("size-8 rounded-md", viewMode === 'list' && "bg-background shadow-sm")} 
               onClick={() => setViewMode('list')}
+              title="Lista"
             >
               <List className="size-4" />
             </Button>
@@ -160,6 +221,7 @@ export default function Demands() {
               size="icon" 
               className={cn("size-8 rounded-md", viewMode === 'grid' && "bg-background shadow-sm")} 
               onClick={() => setViewMode('grid')}
+              title="Cards"
             >
               <LayoutGrid className="size-4" />
             </Button>
@@ -173,6 +235,109 @@ export default function Demands() {
         <div className="vx-card p-20 text-center border-dashed border-2">
            <ClipboardList className="size-12 text-muted-foreground/20 mx-auto mb-4" />
            <p className="font-medium text-muted-foreground">Nenhuma demanda encontrada para os filtros aplicados.</p>
+        </div>
+      ) : viewMode === 'kanban' ? (
+        <div className="overflow-x-auto pb-4">
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="flex gap-4 min-w-max">
+              {KANBAN_COLUMNS.map((column) => (
+                <Droppable key={column.id} droppableId={column.id}>
+                  {(provided, snapshot) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className={cn(
+                        "w-[300px] flex flex-col rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-border/50",
+                        snapshot.isDraggingOver && "bg-slate-100/50 dark:bg-white/[0.04] border-primary/20"
+                      )}
+                    >
+                      <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground">
+                          {column.label}
+                        </h3>
+                        <Badge variant="secondary" className="h-5 text-[10px] px-1.5 font-bold tabular-nums">
+                          {filtered.filter((d: any) => d.status === column.id).length}
+                        </Badge>
+                      </div>
+                      
+                      <div className="p-3 flex flex-col gap-3 flex-1 min-h-[500px]">
+                        {filtered
+                          .filter((d: any) => d.status === column.id)
+                          .map((demand: any, index: number) => {
+                            const priority = PRIORITY_META[demand.priority as Priority] || PRIORITY_META.normal;
+                            const pendingDocs = demand.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
+                            
+                            return (
+                              <Draggable key={demand.id} draggableId={demand.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={cn(
+                                      "vx-card p-4 bg-background hover:border-primary/30 transition-all select-none group",
+                                      snapshot.isDragging && "shadow-xl border-primary/50 rotate-2 scale-[1.02] z-50",
+                                      priority.label === "Urgente" && "border-l-4 border-l-rose-500"
+                                    )}
+                                    onClick={() => navigate(`/demandas/${demand.id}`)}
+                                  >
+                                    <div className="flex items-start justify-between mb-2">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-1.5 py-0.5 rounded border border-primary/10">
+                                        {demand.products?.name}
+                                      </span>
+                                      <Badge variant="outline" className={cn("h-4 text-[8px] font-black uppercase border-none px-0", priority.color.replace('border-slate-200', '').replace('bg-', 'text-'))}>
+                                        {priority.label}
+                                      </Badge>
+                                    </div>
+                                    
+                                    <h4 className="text-xs font-bold text-foreground mb-1 leading-tight group-hover:text-primary transition-colors">
+                                      {demand.clients?.full_name}
+                                    </h4>
+                                    <p className="text-[10px] text-muted-foreground/60 font-medium mb-3 truncate">
+                                      {demand.clients?.company || "Pessoa Física"}
+                                    </p>
+                                    
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                          <User className="size-2.5" />
+                                          {(demand.service_providers as any)?.name || "N/A"}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="size-2.5" />
+                                          {demand.deadline ? formatDate(demand.deadline) : "—"}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                                        {pendingDocs > 0 ? (
+                                          <div className="flex items-center gap-1 text-[8px] font-black text-amber-600 bg-amber-500/5 px-1 rounded">
+                                            <AlertCircle className="size-2" /> {pendingDocs} DOCS
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-1 text-[8px] font-black text-emerald-600 bg-emerald-500/5 px-1 rounded">
+                                            <CheckCircle2 className="size-2" /> DOCS OK
+                                          </div>
+                                        )}
+                                        
+                                        <div className="flex items-center gap-1 text-[8px] font-bold text-muted-foreground">
+                                           <MessageSquare className="size-2" /> REPORTE
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            );
+                          })}
+                        {provided.placeholder}
+                      </div>
+                    </div>
+                  )}
+                </Droppable>
+              ))}
+            </div>
+          </DragDropContext>
         </div>
       ) : viewMode === 'list' ? (
         <div className="vx-table-wrap">
