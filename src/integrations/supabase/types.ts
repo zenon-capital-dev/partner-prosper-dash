@@ -1054,7 +1054,9 @@ export type Database = {
           amount: number | null
           client_id: string
           contract_kind: string
+          contract_type: string | null
           created_at: string | null
+          expires_at: string | null
           file_path: string | null
           finished_at: string | null
           id: string
@@ -1062,6 +1064,7 @@ export type Database = {
           name: string
           partner_id: string | null
           product_id: string | null
+          provider_id: string | null
           sale_id: string | null
           sent_at: string | null
           signed_at: string | null
@@ -1072,7 +1075,9 @@ export type Database = {
           amount?: number | null
           client_id: string
           contract_kind?: string
+          contract_type?: string | null
           created_at?: string | null
+          expires_at?: string | null
           file_path?: string | null
           finished_at?: string | null
           id?: string
@@ -1080,6 +1085,7 @@ export type Database = {
           name: string
           partner_id?: string | null
           product_id?: string | null
+          provider_id?: string | null
           sale_id?: string | null
           sent_at?: string | null
           signed_at?: string | null
@@ -1090,7 +1096,9 @@ export type Database = {
           amount?: number | null
           client_id?: string
           contract_kind?: string
+          contract_type?: string | null
           created_at?: string | null
+          expires_at?: string | null
           file_path?: string | null
           finished_at?: string | null
           id?: string
@@ -1098,6 +1106,7 @@ export type Database = {
           name?: string
           partner_id?: string | null
           product_id?: string | null
+          provider_id?: string | null
           sale_id?: string | null
           sent_at?: string | null
           signed_at?: string | null
@@ -1139,6 +1148,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "contracts_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "contracts_sale_id_fkey"
@@ -3074,6 +3090,8 @@ export type Database = {
         | "pendente_correcao"
         | "cancelado"
         | "finalizado"
+        | "rascunho"
+        | "vencido"
       demand_priority: "baixa" | "normal" | "alta" | "urgente"
       document_status: "solicitado" | "enviado" | "aprovado" | "rejeitado"
       document_status_new:
@@ -3291,6 +3309,8 @@ export const Constants = {
         "pendente_correcao",
         "cancelado",
         "finalizado",
+        "rascunho",
+        "vencido",
       ],
       demand_priority: ["baixa", "normal", "alta", "urgente"],
       document_status: ["solicitado", "enviado", "aprovado", "rejeitado"],
