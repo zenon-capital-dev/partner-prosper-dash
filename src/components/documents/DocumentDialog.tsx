@@ -18,9 +18,10 @@ interface Props {
   clientId?: string;
   document?: any;
   defaultProductId?: string | null;
+  clientProductId?: string | null;
 }
 
-export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId }: Props) {
+export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
@@ -34,6 +35,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           name: editDoc.name,
           description: editDoc.description || "",
           product_id: editDoc.product_id || "none",
+          client_product_id: editDoc.client_product_id || "none",
           due_date: editDoc.due_date || "",
           sale_id: editDoc.sale_id || "none",
           is_required: editDoc.is_required ?? true,
@@ -44,6 +46,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           name: "",
           description: "",
           product_id: defaultProductId || "none",
+          client_product_id: propClientProductId || "none",
           due_date: "",
           sale_id: "none",
           is_required: true,
@@ -74,6 +77,18 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       return data ?? [];
     },
     enabled: open && !propClientId && !editDoc,
+  });
+
+  const { data: clientProducts } = useQuery({
+    queryKey: ["client-products-list", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_products")
+        .select("id, product_id, custom_product_name, products(id, name)")
+        .eq("client_id", clientId);
+      return data ?? [];
+    },
+    enabled: open && !!clientId,
   });
 
   const { data: products } = useQuery({
@@ -115,6 +130,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       name: form.name,
       description: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
+      client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       is_required: form.is_required ?? true,
@@ -176,25 +192,29 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label>Produto vinculado</Label>
+              <Label>Produto / Demanda vinculada</Label>
               <Select 
-                value={form.product_id || "none"} 
-                onValueChange={(v) => setForm({ ...form, product_id: v })}
+                value={form.client_product_id || "none"} 
+                onValueChange={(v) => {
+                   const cp = clientProducts?.find((x: any) => x.id === v);
+                   setForm({ ...form, client_product_id: v, product_id: cp?.product_id || "none" });
+                }}
               >
                 <SelectTrigger>
                   <Package className="size-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Geral" />
+                  <SelectValue placeholder="Geral / Selecione a demanda" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Geral / Nenhum</SelectItem>
-                  {products?.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  <SelectItem value="none">Geral / Nenhuma demanda</SelectItem>
+                  {clientProducts?.map((cp: any) => (
+                    <SelectItem key={cp.id} value={cp.id}>{cp.products?.name || cp.custom_product_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+            
             <div className="space-y-2">
               <Label>Prazo para envio</Label>
               <div className="relative">
