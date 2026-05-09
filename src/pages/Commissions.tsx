@@ -534,16 +534,17 @@ export default function Commissions() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
-                          {c.status !== "gerada" && (
-                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Resetar (Gerada)</DropdownMenuItem>
+                          {c.workflow_status !== "aguardando_confirmacao" && (
+                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Resetar (Aguardando)</DropdownMenuItem>
                           )}
-                          {c.status !== "cancelada" && (
+                          {c.workflow_status !== "cancelada" && (
                             <DropdownMenuItem onClick={() => cancelOne(c)}><XCircle className="size-3.5 mr-2" /> Cancelar</DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => removeOne(c)} className="text-destructive">
                             <Trash2 className="size-3.5 mr-2" /> Excluir
                           </DropdownMenuItem>
+
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
