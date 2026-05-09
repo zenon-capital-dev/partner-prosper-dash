@@ -63,9 +63,11 @@ export default function Documents() {
     refetch();
   };
 
-  const viewFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
+  const viewFile = async (doc: any) => {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
     if (error) { toast.error(error.message); return; }
+    
+    logAudit("DOCUMENT_VIEW", "documents", doc.id, { name: doc.name });
     window.open(data.signedUrl, "_blank");
   };
 
