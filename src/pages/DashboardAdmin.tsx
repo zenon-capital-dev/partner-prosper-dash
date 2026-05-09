@@ -10,6 +10,7 @@ import {
 import { formatBRL, formatPercent } from "@/lib/format";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -19,12 +20,12 @@ import {
 
 export default function DashboardAdmin() {
   // --- Data Fetching ---
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: loadingClients } = useQuery({
     queryKey: ["admin-dashboard-clients"],
     queryFn: async () => (await supabase.from("clients").select("id, status, source, origin, created_at")).data ?? []
   });
 
-  const { data: clientProducts = [] } = useQuery({
+  const { data: clientProducts = [], isLoading: loadingDemands } = useQuery({
     queryKey: ["admin-dashboard-client-products"],
     queryFn: async () => (await supabase.from("client_products").select("id, status, deadline, service_provider_id, product_id, value, created_at")).data ?? []
   });
