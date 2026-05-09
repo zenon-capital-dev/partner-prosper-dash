@@ -317,7 +317,7 @@ export default function Commissions() {
       valor_venda: c.sales?.amount ?? "",
       percentual: c.percent,
       comissao: c.amount,
-      status: c.status,
+      status: c.workflow_status || "aguardando_confirmacao",
       pago_em: c.paid_at ? formatDate(c.paid_at) : "",
       metodo: c.payment_method ?? "",
       criada_em: formatDate(c.created_at),
