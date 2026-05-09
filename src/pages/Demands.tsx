@@ -417,8 +417,14 @@ export default function Demands() {
                     </td>
                     <td className="vx-table-cell">
                       <div className="flex flex-col">
-                        <span className="text-xs font-mono">{d.deadline ? formatDate(d.deadline) : "Sem prazo"}</span>
-                        <span className="text-[9px] text-muted-foreground">Início: {formatDate(d.created_at)}</span>
+                        <span className={cn("text-xs font-bold tabular-nums", isOverdue ? "text-rose-500" : "text-foreground")}>
+                          {d.sla_due_date ? formatDate(d.sla_due_date) : "—"}
+                        </span>
+                        {daysLeft !== null && (
+                          <span className={cn("text-[9px] font-black uppercase", isOverdue ? "text-rose-500" : "text-muted-foreground")}>
+                            {isOverdue ? `${Math.abs(daysLeft)} dias de atraso` : `${daysLeft} dias restantes`}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="vx-table-cell text-right">
