@@ -185,6 +185,14 @@ export default function DashboardAdmin() {
         color: 'text-blue-500'
       },
       {
+        id: 'contracts-sign',
+        label: 'Contratos Aguardando Assinatura',
+        count: contracts.filter(c => c.status === 'aguardando_assinatura' || c.status === 'enviado').length,
+        icon: FileSignature,
+        link: '/contratos',
+        color: 'text-orange-500'
+      },
+      {
         id: 'awaiting',
         label: 'Aguardando Resposta',
         count: clientProducts.filter(p => p.status === 'em_revisao').length,
