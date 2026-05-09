@@ -26,7 +26,7 @@ export default function DemandDetail() {
         .select(`
           *,
           clients(id, full_name, email, phone, company, document),
-          products(id, name, description),
+          products(id, name, description, sla_day_type),
           service_providers:service_provider_id(id, name, specialty),
           documents(*)
         `)
