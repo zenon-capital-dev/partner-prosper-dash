@@ -223,6 +223,7 @@ export type Database = {
       client_document_requests: {
         Row: {
           client_id: string
+          client_product_id: string | null
           created_at: string | null
           description: string | null
           due_date: string | null
@@ -235,6 +236,7 @@ export type Database = {
         }
         Insert: {
           client_id: string
+          client_product_id?: string | null
           created_at?: string | null
           description?: string | null
           due_date?: string | null
@@ -247,6 +249,7 @@ export type Database = {
         }
         Update: {
           client_id?: string
+          client_product_id?: string | null
           created_at?: string | null
           description?: string | null
           due_date?: string | null
@@ -944,6 +947,7 @@ export type Database = {
           approval_date: string | null
           approved_by: string | null
           client_id: string | null
+          client_product_id: string | null
           commission_type: string | null
           created_at: string
           expected_date: string | null
@@ -975,6 +979,7 @@ export type Database = {
           approval_date?: string | null
           approved_by?: string | null
           client_id?: string | null
+          client_product_id?: string | null
           commission_type?: string | null
           created_at?: string
           expected_date?: string | null
@@ -1006,6 +1011,7 @@ export type Database = {
           approval_date?: string | null
           approved_by?: string | null
           client_id?: string | null
+          client_product_id?: string | null
           commission_type?: string | null
           created_at?: string
           expected_date?: string | null
@@ -1124,6 +1130,7 @@ export type Database = {
         Row: {
           amount: number | null
           client_id: string
+          client_product_id: string | null
           contract_kind: string
           contract_type: string | null
           created_at: string | null
@@ -1145,6 +1152,7 @@ export type Database = {
         Insert: {
           amount?: number | null
           client_id: string
+          client_product_id?: string | null
           contract_kind?: string
           contract_type?: string | null
           created_at?: string | null
@@ -1166,6 +1174,7 @@ export type Database = {
         Update: {
           amount?: number | null
           client_id?: string
+          client_product_id?: string | null
           contract_kind?: string
           contract_type?: string | null
           created_at?: string | null
@@ -1858,6 +1867,7 @@ export type Database = {
       notes: {
         Row: {
           client_id: string | null
+          client_product_id: string | null
           content: string
           contract_id: string | null
           created_at: string | null
@@ -1869,6 +1879,7 @@ export type Database = {
         }
         Insert: {
           client_id?: string | null
+          client_product_id?: string | null
           content: string
           contract_id?: string | null
           created_at?: string | null
@@ -1880,6 +1891,7 @@ export type Database = {
         }
         Update: {
           client_id?: string | null
+          client_product_id?: string | null
           content?: string
           contract_id?: string | null
           created_at?: string | null
@@ -3115,6 +3127,15 @@ export type Database = {
           p_old_value?: Json
         }
         Returns: undefined
+      }
+      log_demand_activity: {
+        Args: {
+          _action: string
+          _client_product_id: string
+          _description?: string
+          _metadata?: Json
+        }
+        Returns: string
       }
       mark_overdue_payments: { Args: never; Returns: undefined }
       notify_admins: {
