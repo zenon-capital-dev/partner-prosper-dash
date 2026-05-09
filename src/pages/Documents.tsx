@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatCard } from "@/components/StatCard";
+import { logAudit } from "@/lib/audit";
 
 export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'reprovado' | 'pendente_correcao' | 'vencido';
 
