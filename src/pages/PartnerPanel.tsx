@@ -127,7 +127,7 @@ export default function PartnerPanel() {
     </div>
   );
 
-  const { partner, clients, splits, contracts } = data;
+  const { partner, clients, commissions, contracts } = data;
 
   return (
     <div className="bg-premium min-h-screen">
