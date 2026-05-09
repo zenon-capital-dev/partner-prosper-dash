@@ -2490,59 +2490,94 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          client_id: string | null
+          client_product_id: string | null
+          completed_at: string | null
           contract_id: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           document_id: string | null
           due_date: string | null
           id: string
+          partner_id: string | null
           payment_id: string | null
           priority: string | null
+          provider_id: string | null
           related_entity_id: string | null
           related_entity_type: string | null
           related_to_id: string | null
           related_to_type: string | null
           status: string | null
+          status_new: Database["public"]["Enums"]["task_status_new"] | null
           title: string
           updated_at: string | null
         }
         Insert: {
           assigned_to?: string | null
+          client_id?: string | null
+          client_product_id?: string | null
+          completed_at?: string | null
           contract_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           document_id?: string | null
           due_date?: string | null
           id?: string
+          partner_id?: string | null
           payment_id?: string | null
           priority?: string | null
+          provider_id?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
           related_to_id?: string | null
           related_to_type?: string | null
           status?: string | null
+          status_new?: Database["public"]["Enums"]["task_status_new"] | null
           title: string
           updated_at?: string | null
         }
         Update: {
           assigned_to?: string | null
+          client_id?: string | null
+          client_product_id?: string | null
+          completed_at?: string | null
           contract_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           document_id?: string | null
           due_date?: string | null
           id?: string
+          partner_id?: string | null
           payment_id?: string | null
           priority?: string | null
+          provider_id?: string | null
           related_entity_id?: string | null
           related_entity_type?: string | null
           related_to_id?: string | null
           related_to_type?: string | null
           status?: string | null
+          status_new?: Database["public"]["Enums"]["task_status_new"] | null
           title?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_contract_id_fkey"
             columns: ["contract_id"]
@@ -2558,10 +2593,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_payment_id_fkey"
             columns: ["payment_id"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -2754,6 +2803,14 @@ export type Database = {
         | "concluido"
         | "cancelado"
       subscription_status: "ativa" | "pausada" | "cancelada" | "inadimplente"
+      task_priority_new: "baixa" | "normal" | "alta" | "urgente"
+      task_status_new:
+        | "a_fazer"
+        | "em_andamento"
+        | "aguardando_terceiros"
+        | "bloqueada"
+        | "concluida"
+        | "cancelada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2957,6 +3014,15 @@ export const Constants = {
         "cancelado",
       ],
       subscription_status: ["ativa", "pausada", "cancelada", "inadimplente"],
+      task_priority_new: ["baixa", "normal", "alta", "urgente"],
+      task_status_new: [
+        "a_fazer",
+        "em_andamento",
+        "aguardando_terceiros",
+        "bloqueada",
+        "concluida",
+        "cancelada",
+      ],
     },
   },
 } as const
