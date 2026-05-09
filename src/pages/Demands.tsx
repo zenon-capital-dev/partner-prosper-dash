@@ -32,8 +32,9 @@ const PRIORITY_META: Record<Priority, { label: string; color: string; icon: any 
 
 export default function Demands() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewMode, setViewMode] = useState<"list" | "grid" | "kanban">("kanban");
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
