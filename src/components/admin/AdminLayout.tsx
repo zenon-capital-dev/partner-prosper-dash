@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { QuickCreateFab } from "@/components/QuickCreateFab";
-import { Bell, ChevronRight, Slash } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, ChevronRight, Slash, RefreshCcw, LogOut } from "lucide-react";
 
 const ROUTE_LABEL: Record<string, string> = {
   admin: "Dashboard",
@@ -53,16 +54,18 @@ export default function AdminLayout() {
         <div className="size-12 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin mb-6" />
         
         {showTimeout ? (
-          <div className="animate-fade-up max-w-sm">
-            <h3 className="text-lg font-bold mb-2">A sincronização está demorando...</h3>
-            <p className="text-sm text-muted-foreground mb-6">Estamos com dificuldade para carregar seu perfil. Tente recarregar a página ou sair e entrar novamente.</p>
+          <div className="animate-fade-up max-w-sm px-4">
+            <h3 className="text-xl font-bold mb-2 text-foreground">Identificamos um atraso...</h3>
+            <p className="text-sm text-muted-foreground mb-8">
+              Não conseguimos carregar suas permissões a tempo. Pode ser instabilidade na conexão.
+            </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => window.location.reload()} className="btn-premium py-2 px-6 rounded-xl text-sm font-bold">
-                Recarregar Sistema
-              </button>
-              <button onClick={() => signOut()} className="text-sm font-medium text-muted-foreground hover:text-foreground underline">
-                Sair da conta
-              </button>
+              <Button onClick={() => window.location.reload()} size="lg" className="w-full">
+                <RefreshCcw className="size-4 mr-2" /> Tentar Novamente
+              </Button>
+              <Button onClick={() => signOut()} variant="ghost" size="lg" className="w-full text-muted-foreground hover:text-foreground">
+                <LogOut className="size-4 mr-2" /> Sair do sistema
+              </Button>
             </div>
           </div>
         ) : (
