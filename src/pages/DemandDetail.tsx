@@ -157,9 +157,18 @@ export default function DemandDetail() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                  <div className="space-y-1.5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Status Atual</p>
-                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
-                       {demand.status?.replace('_', ' ')}
-                    </Badge>
+                     <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
+                        {demand.status?.replace(/_/g, ' ')}
+                     </Badge>
+                     {demand.status === 'ajuste_solicitado' && (
+                       <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                         <p className="text-[9px] font-black uppercase text-amber-600 mb-1">Ajuste Solicitado</p>
+                         <p className="text-[11px] text-amber-700 font-medium italic">"{demand.adjustment_description}"</p>
+                         {demand.adjustment_due_date && (
+                           <p className="text-[9px] font-bold text-amber-600/60 mt-2">Prazo: {formatDate(demand.adjustment_due_date)}</p>
+                         )}
+                       </div>
+                     )}
                  </div>
                  <div className="space-y-1.5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Controle de SLA</p>
