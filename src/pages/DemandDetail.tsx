@@ -108,11 +108,19 @@ export default function DemandDetail() {
                     </Badge>
                  </div>
                  <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Prazo Fatal</p>
-                    <p className="text-sm font-bold text-foreground flex items-center gap-2">
-                       <Clock className="size-3.5 text-muted-foreground" />
-                       {demand.deadline ? formatDate(demand.deadline) : "Nenhum"}
-                    </p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Controle de SLA</p>
+                    <div className="flex flex-col gap-1">
+                      <AutoStatusBadge status={sla?.status} className="h-5 text-[9px] w-fit" />
+                      <p className={cn("text-sm font-bold flex items-center gap-2", sla?.isOverdue ? "text-rose-500" : "text-foreground")}>
+                         <Clock className="size-3.5" />
+                         {sla?.dueDate ? formatDate(sla.dueDate.toISOString()) : "Nenhum"}
+                      </p>
+                      {sla?.daysRemaining !== null && (
+                        <p className={cn("text-[9px] font-black uppercase tracking-tight", sla?.isOverdue ? "text-rose-500" : "text-muted-foreground")}>
+                           {sla.isOverdue ? `${Math.abs(sla.daysRemaining)} dias de atraso` : `${sla.daysRemaining} dias restantes`}
+                        </p>
+                      )}
+                    </div>
                  </div>
                  <div className="space-y-1.5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Valor Negociado</p>
