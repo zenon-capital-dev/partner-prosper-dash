@@ -344,6 +344,11 @@ export default function DemandDetail() {
         onOpenChange={setDelayDialogOpen} 
         demandId={demand.id} 
       />
+      <QualityApprovalDialog
+        open={qualityDialogOpen}
+        onOpenChange={setQualityDialogOpen}
+        demandId={demand.id}
+      />
     </div>
   );
 }
