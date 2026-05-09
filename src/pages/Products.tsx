@@ -571,6 +571,24 @@ export default function Products() {
               <Input value={form.standard_steps} onChange={(e) => setForm({ ...form, standard_steps: e.target.value })} placeholder="Ex: Triagem, Análise, Entrega" />
             </div>
 
+            <div className="space-y-1.5">
+              <Label>Status Inicial</Label>
+              <Input value={form.initial_status} onChange={(e) => setForm({ ...form, initial_status: e.target.value })} placeholder="Ex: aguardando_inicio" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Prestador Recomendado</Label>
+              <Input value={form.recommended_provider_type} onChange={(e) => setForm({ ...form, recommended_provider_type: e.target.value })} placeholder="Ex: Contador, Advogado" />
+            </div>
+
+            <div className="col-span-2 space-y-1.5">
+              <Label>Mensagem de Boas-vindas (Cliente)</Label>
+              <Textarea rows={2} value={form.client_welcome_message} onChange={(e) => setForm({ ...form, client_welcome_message: e.target.value })} placeholder="Olá! Começamos seu processo..." />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Instruções Padrão (Prestador)</Label>
+              <Textarea rows={2} value={form.provider_welcome_message} onChange={(e) => setForm({ ...form, provider_welcome_message: e.target.value })} placeholder="Uma nova demanda foi delegada..." />
+            </div>
+
             <div className="col-span-2 space-y-3">
               <Label>Configurações</Label>
               <div className="grid grid-cols-3 gap-3 p-3 rounded-md border border-border bg-muted/30">
