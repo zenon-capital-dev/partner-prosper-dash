@@ -198,7 +198,10 @@ export default function Contracts() {
                           </div>
                           <div className="min-w-0">
                             <p className="font-semibold text-foreground truncate">{c.name}</p>
-                            <p className="text-xs text-muted-foreground">{c.clients?.full_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {c.clients?.full_name || c.partners?.full_name || c.service_providers?.name || "Nenhum vínculo"}
+                              {c.contract_type && ` • ${c.contract_type.replace(/_/g, ' ')}`}
+                            </p>
                           </div>
                         </div>
                       </td>
