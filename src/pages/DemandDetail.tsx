@@ -320,6 +320,18 @@ export default function DemandDetail() {
           @apply absolute bottom-[-1px] left-0 right-0 h-[2px] bg-primary rounded-full;
         }
       `}</style>
+
+      <PauseDemandDialog 
+        open={pauseDialogOpen} 
+        onOpenChange={setPauseDialogOpen} 
+        demandId={demand.id} 
+        isPaused={demand.status === 'pausado'} 
+      />
+      <RecordDelayDialog 
+        open={delayDialogOpen} 
+        onOpenChange={setDelayDialogOpen} 
+        demandId={demand.id} 
+      />
     </div>
   );
 }
