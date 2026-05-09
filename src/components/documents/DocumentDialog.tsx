@@ -36,6 +36,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           product_id: editDoc.product_id || "none",
           due_date: editDoc.due_date || "",
           sale_id: editDoc.sale_id || "none",
+          is_required: editDoc.is_required ?? true,
         });
         setSelectedClientId(editDoc.client_id);
       } else {
