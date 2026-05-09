@@ -46,9 +46,10 @@ export default function PartnerPanel() {
       return {
         partner,
         clients: clients.data ?? [],
-        splits: splits.data ?? [],
+        commissions: commissions.data ?? [],
         contracts: contracts.data ?? [],
       };
+
     },
     enabled: !!user,
   });
