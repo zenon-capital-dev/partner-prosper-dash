@@ -90,15 +90,32 @@ export default function Commissions() {
     },
   });
 
+  const { data: rules = [], isLoading: loadingRules } = useQuery({
+    queryKey: ["commission-rules"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_rules")
+        .select("*, partners(full_name), products(name)")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   const { data: partners = [] } = useQuery({
     queryKey: ["partners-simple"],
     queryFn: async () => (await supabase.from("partners").select("id,full_name,pix_key").order("full_name")).data ?? [],
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["products-simple"],
+    queryFn: async () => (await supabase.from("products").select("id,name").order("name")).data ?? [],
   });
 
   const { data: sales = [] } = useQuery({
     queryKey: ["sales-simple"],
     queryFn: async () => (await supabase.from("sales").select("id,amount,sale_date,commission_percent,clients(full_name),products(name)").order("sale_date", { ascending: false }).limit(200)).data ?? [],
   });
+
 
   // ----- Filtering -----
   const filtered = useMemo(() => {
