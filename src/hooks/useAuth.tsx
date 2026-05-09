@@ -30,10 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchRoles = async (userId: string) => {
+    console.log("Fetching roles for user:", userId);
     try {
       const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
       if (error) throw error;
-      setRoles((data?.map((r) => r.role) as AppRole[]) ?? []);
+      const roleList = (data?.map((r) => r.role) as AppRole[]) ?? [];
+      console.log("Roles fetched:", roleList);
+      setRoles(roleList);
     } catch (error) {
       console.error("Error fetching roles:", error);
       setRoles([]);
@@ -44,16 +47,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let rolesFetched = false;
 
     const initAuth = async () => {
       try {
-        const { data: { session: sess } } = await supabase.auth.getSession();
+        const { data: { session: sess }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
         if (!mounted) return;
         
+        console.log("Auth initialized. Session:", sess ? "active" : "none");
         setSession(sess);
         setUser(sess?.user ?? null);
         
-        if (sess?.user) {
+        if (sess?.user && !rolesFetched) {
+          rolesFetched = true;
           await fetchRoles(sess.user.id);
         } else {
           setLoading(false);
@@ -68,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
       if (!mounted) return;
+      console.log("Auth state change:", event, sess?.user?.id);
       
       setSession(sess);
       setUser(sess?.user ?? null);
@@ -76,13 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (event === "SIGNED_IN") {
           logAudit("LOGIN", "auth", sess.user.id);
         }
-        setLoading(true);
-        await fetchRoles(sess.user.id);
-      } else {
-        if (event === "SIGNED_OUT") {
-          // Note: logAudit might fail if session is already gone, but we can try
-          // logAudit("LOGOUT", "auth");
+        
+        // Prevent re-fetching roles multiple times on same session mount
+        if (!rolesFetched || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          rolesFetched = true;
+          setLoading(true);
+          await fetchRoles(sess.user.id);
         }
+      } else {
         setRoles([]);
         setLoading(false);
       }
