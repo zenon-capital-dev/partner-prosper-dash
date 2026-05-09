@@ -38,13 +38,20 @@ type Product = {
   default_employee_commission: number | null;
   default_provider_value: number | null;
   billing_type: string;
-  required_documents: string[] | null;
-  standard_steps: { label: string; completed: boolean }[] | null;
+  required_documents: { name: string }[] | null;
+  standard_steps: { label: string; completed?: boolean }[] | null;
   avg_delivery_time: number | null;
   active: boolean;
   recurring: boolean;
   allow_partner: boolean;
   created_at: string;
+  default_sla_days?: number;
+  sla_day_type?: 'calendar' | 'working';
+  initial_status?: string;
+  client_welcome_message?: string;
+  provider_welcome_message?: string;
+  auto_tasks_template?: any[];
+  recommended_provider_type?: string;
   product_categories?: { id: string; name: string; color: string | null; icon: string | null } | null;
 };
 
