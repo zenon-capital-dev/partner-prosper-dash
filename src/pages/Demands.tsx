@@ -46,7 +46,7 @@ export default function Demands() {
           *,
           clients(id, full_name, company, partners(full_name)),
           products(id, name),
-          service_providers(id, name),
+          service_providers:service_provider_id(id, name),
           documents(id, status)
         `)
         .order("created_at", { ascending: false });
