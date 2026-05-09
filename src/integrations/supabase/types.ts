@@ -256,9 +256,14 @@ export type Database = {
           completed: boolean | null
           completed_at: string | null
           created_at: string | null
+          description: string | null
+          due_date: string | null
           id: string
           label: string
+          notes: string | null
           position: number | null
+          responsible_id: string | null
+          status: Database["public"]["Enums"]["step_status"] | null
           updated_at: string | null
         }
         Insert: {
@@ -266,9 +271,14 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string | null
+          description?: string | null
+          due_date?: string | null
           id?: string
           label: string
+          notes?: string | null
           position?: number | null
+          responsible_id?: string | null
+          status?: Database["public"]["Enums"]["step_status"] | null
           updated_at?: string | null
         }
         Update: {
@@ -276,9 +286,14 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string | null
+          description?: string | null
+          due_date?: string | null
           id?: string
           label?: string
+          notes?: string | null
           position?: number | null
+          responsible_id?: string | null
+          status?: Database["public"]["Enums"]["step_status"] | null
           updated_at?: string | null
         }
         Relationships: [
@@ -2684,6 +2699,12 @@ export type Database = {
         | "cancelado"
       sale_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
       split_status: "pendente" | "pago" | "cancelado"
+      step_status:
+        | "pendente"
+        | "em_andamento"
+        | "bloqueado"
+        | "concluido"
+        | "cancelado"
       subscription_status: "ativa" | "pausada" | "cancelada" | "inadimplente"
     }
     CompositeTypes: {
@@ -2879,6 +2900,13 @@ export const Constants = {
       ],
       sale_status: ["pendente", "em_andamento", "concluida", "cancelada"],
       split_status: ["pendente", "pago", "cancelado"],
+      step_status: [
+        "pendente",
+        "em_andamento",
+        "bloqueado",
+        "concluido",
+        "cancelado",
+      ],
       subscription_status: ["ativa", "pausada", "cancelada", "inadimplente"],
     },
   },
