@@ -61,6 +61,8 @@ export default function Contracts() {
         .select(`
           *,
           clients(id, full_name),
+          partners(id, full_name),
+          service_providers(id, name),
           products(id, name)
         `)
         .order("created_at", { ascending: false });
