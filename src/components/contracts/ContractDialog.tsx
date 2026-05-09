@@ -35,8 +35,12 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: editContract.internal_notes || "",
           product_id: editContract.product_id || "none",
           sale_id: editContract.sale_id || "none",
+          contract_type: editContract.contract_type || "none",
+          expires_at: editContract.expires_at ? editContract.expires_at.split('T')[0] : "",
+          partner_id: editContract.partner_id || "none",
+          provider_id: editContract.provider_id || "none",
         });
-        setSelectedClientId(editContract.client_id);
+        setSelectedClientId(editContract.client_id || "none");
       } else {
         setForm({
           name: "",
@@ -44,8 +48,12 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: "",
           product_id: "none",
           sale_id: "none",
+          contract_type: "none",
+          expires_at: "",
+          partner_id: "none",
+          provider_id: "none",
         });
-        setSelectedClientId(propClientId || "");
+        setSelectedClientId(propClientId || "none");
       }
     }
   }, [open, editContract, propClientId]);
