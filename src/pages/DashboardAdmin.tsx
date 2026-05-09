@@ -253,9 +253,19 @@ export default function DashboardAdmin() {
 
       {/* KPI GRID */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {stats.kpis.map((kpi, i) => (
-          <MetricTile key={i} {...kpi} />
-        ))}
+        {loadingClients || loadingDemands ? (
+          Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="vx-card p-5 space-y-3">
+              <Skeleton className="size-8 rounded-xl" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-6 w-1/2" />
+            </div>
+          ))
+        ) : (
+          stats.kpis.map((kpi, i) => (
+            <MetricTile key={i} {...kpi} />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
