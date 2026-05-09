@@ -17,9 +17,10 @@ interface Props {
   onSuccess?: () => void;
   clientId?: string;
   document?: any;
+  defaultProductId?: string | null;
 }
 
-export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc }: Props) {
+export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
@@ -41,9 +42,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         setForm({
           name: "",
           description: "",
-          product_id: "none",
+          product_id: defaultProductId || "none",
           due_date: "",
           sale_id: "none",
+          is_required: true,
         });
         setSelectedClientId(propClientId || "");
       }

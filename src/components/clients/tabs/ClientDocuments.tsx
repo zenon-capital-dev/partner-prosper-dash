@@ -58,7 +58,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
   const updateStatus = async (doc: any, status: string, extra: Record<string, any> = {}) => {
     const { error } = await supabase
       .from("documents")
-      .update({ status, reviewed_at: new Date().toISOString(), ...extra })
+      .update({ status: status as any, reviewed_at: new Date().toISOString(), ...extra })
       .eq("id", doc.id);
     if (error) return toast.error(error.message);
     await logTimeline(
