@@ -90,7 +90,7 @@ export default function ProviderPerformance() {
         .reverse()[0] || null;
 
       const docCount = (docs || []).filter(
-        (d: any) => d.approved_by === (p as any).user_id && d.reviewed_at
+        (d: any) => d.approved_by === p.user_id && d.reviewed_at
       ).length;
 
       map[p.id] = {
