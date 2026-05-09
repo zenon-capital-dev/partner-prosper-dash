@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { 
   ClipboardList, Search, Filter, ArrowUpRight, 
   Clock, AlertCircle, CheckCircle2, User, 
   Building2, Package, MoreHorizontal, Calendar,
-  ShieldAlert, LayoutGrid, List
+  ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
+  MessageSquare
 } from "lucide-react";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { toast } from "sonner";
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
