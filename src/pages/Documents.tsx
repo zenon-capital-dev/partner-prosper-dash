@@ -255,6 +255,7 @@ export default function Documents() {
                                         // Simple download implementation using signed URL to avoid CORS issues if any
                                         supabase.storage.from("documents").download(d.file_path).then(({ data, error }) => {
                                           if (error) return toast.error(error.message);
+                                          logAudit("DOCUMENT_DOWNLOAD", "documents", d.id, { name: d.name });
                                           const url = URL.createObjectURL(data);
                                           const a = document.createElement("a");
                                           a.href = url; a.download = d.name; a.click();
