@@ -194,6 +194,13 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_document_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
         ]
       }
       client_product_status_reports: {
@@ -394,6 +401,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_products_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "client_products_current_step_id_fkey"
             columns: ["current_step_id"]
             isOneToOne: false
@@ -488,6 +502,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "client_subscriptions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -541,6 +562,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_timeline_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
           },
         ]
       }
@@ -855,6 +883,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "commissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "commissions_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
@@ -984,6 +1019,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "contracts_partner_id_fkey"
@@ -1265,6 +1307,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "documents_client_product_id_fkey"
             columns: ["client_product_id"]
             isOneToOne: false
@@ -1421,6 +1470,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "financial_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "financial_alerts_commission_id_fkey"
             columns: ["commission_id"]
             isOneToOne: false
@@ -1536,6 +1592,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_to_client_id_fkey"
+            columns: ["converted_to_client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "leads_partner_id_fkey"
@@ -1654,6 +1717,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "notes_contract_id_fkey"
@@ -1955,6 +2025,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "payments_client_product_id_fkey"
@@ -2429,6 +2506,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "sales_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
@@ -2502,6 +2586,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_assignments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
           },
           {
             foreignKeyName: "service_assignments_product_id_fkey"
@@ -2671,6 +2762,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
             foreignKeyName: "tasks_client_product_id_fkey"
             columns: ["client_product_id"]
             isOneToOne: false
@@ -2761,6 +2859,18 @@ export type Database = {
       }
     }
     Views: {
+      view_client_financial_summary: {
+        Row: {
+          active_products: number | null
+          client_id: string | null
+          full_name: string | null
+          total_contracted: number | null
+          total_overdue: number | null
+          total_paid: number | null
+          total_pending: number | null
+        }
+        Relationships: []
+      }
       view_performance_by_product: {
         Row: {
           gross_revenue: number | null
@@ -2821,6 +2931,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_overdue_payments: { Args: never; Returns: undefined }
       notify_admins: {
         Args: {
           p_link: string
