@@ -112,9 +112,9 @@ export function ClientDocumentsTab({
   if (requests.length === 0) {
     return (
       <div className="vx-card bg-white dark:bg-slate-900/40 rounded-[24px] p-12 text-center border-slate-100 dark:border-white/5">
-        <FileText className="size-12 text-primary/30 mx-auto mb-4" />
-        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Nenhum documento solicitado</h3>
-        <p className="text-muted-foreground mt-2 text-sm">Quando sua equipe solicitar documentos, eles aparecerão aqui.</p>
+        <CheckCircle2 className="size-12 text-emerald-500/30 mx-auto mb-4" />
+        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Você está em dia!</h3>
+        <p className="text-muted-foreground mt-2 text-sm">Nenhum documento pendente de envio no momento.</p>
       </div>
     );
   }

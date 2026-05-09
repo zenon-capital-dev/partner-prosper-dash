@@ -113,10 +113,10 @@ export default function ClientPanel() {
         </section>
 
         {/* Navigation Tabs */}
-        <Tabs defaultValue="servicos" className="space-y-10">
+        <Tabs defaultValue="checklist" className="space-y-10">
           <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
+            <PremiumTabTrigger value="checklist" label="Documentos Pendentes" icon={ListChecks} count={pendingDocs} />
             <PremiumTabTrigger value="servicos" label="Soluções Contratadas" icon={Package} />
-            <PremiumTabTrigger value="checklist" label="Meu Checklist" icon={ListChecks} />
             <PremiumTabTrigger value="financeiro" label="Faturamento" icon={Receipt} />
             <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
             <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
