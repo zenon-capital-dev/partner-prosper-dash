@@ -236,7 +236,7 @@ export default function Commissions() {
       amount: Number(editForm.amount),
       percent: Number(editForm.percent),
       commission_type: editForm.commission_type,
-      status: editForm.status,
+      workflow_status: editForm.status,
       notes: editForm.notes || null,
       payment_method: editForm.payment_method || null,
       approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
