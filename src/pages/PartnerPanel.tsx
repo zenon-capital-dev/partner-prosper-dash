@@ -36,31 +36,33 @@ export default function PartnerPanel() {
         .maybeSingle();
       if (!partner) return null;
 
-      const [clients, splits, contracts] = await Promise.all([
+      const [clients, commissions, contracts] = await Promise.all([
         supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(id, amount, sale_date, status, products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
-        supabase.from("commission_splits").select("*, sales(id, amount, sale_date, clients(full_name), products(name))").eq("beneficiary_type", "partner").eq("beneficiary_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("commissions").select("*, sales(id, amount, sale_date, clients(full_name), products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+
         supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind").eq("partner_id", partner.id).eq("contract_kind", "parceiro").order("created_at", { ascending: false }),
       ]);
 
       return {
         partner,
         clients: clients.data ?? [],
-        splits: splits.data ?? [],
+        commissions: commissions.data ?? [],
         contracts: contracts.data ?? [],
       };
+
     },
     enabled: !!user,
   });
 
   const totals = useMemo(() => {
     if (!data) return { total: 0, paid: 0, pending: 0, cancelled: 0, thisMonth: 0, clientsActive: 0, clientsNeg: 0, clientsCancelled: 0, nextPayment: null as string | null };
-    const splits = data.splits;
-    const total = splits.reduce((s, x: any) => s + Number(x.amount), 0);
-    const paid = splits.filter((x: any) => x.status === "pago").reduce((s, x: any) => s + Number(x.amount), 0);
-    const pending = splits.filter((x: any) => x.status === "pendente").reduce((s, x: any) => s + Number(x.amount), 0);
-    const cancelled = splits.filter((x: any) => x.status === "cancelado").reduce((s, x: any) => s + Number(x.amount), 0);
+    const commissions = data.commissions;
+    const total = commissions.reduce((s, x: any) => s + Number(x.amount), 0);
+    const paid = commissions.filter((x: any) => x.workflow_status === "paga").reduce((s, x: any) => s + Number(x.amount), 0);
+    const pending = commissions.filter((x: any) => ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(x.workflow_status)).reduce((s, x: any) => s + Number(x.amount), 0);
+    const cancelled = commissions.filter((x: any) => x.workflow_status === "cancelada").reduce((s, x: any) => s + Number(x.amount), 0);
     const now = new Date();
-    const thisMonth = splits.filter((x: any) => {
+    const thisMonth = commissions.filter((x: any) => {
       const d = new Date(x.created_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).reduce((s, x: any) => s + Number(x.amount), 0);
@@ -69,16 +71,17 @@ export default function PartnerPanel() {
     const clientsNeg = data.clients.filter((c: any) => ["em_negociacao", "lead", "prospecto"].includes(c.status)).length;
     const clientsCancelled = data.clients.filter((c: any) => ["cancelado", "inativo"].includes(c.status)).length;
 
-    // Próximo pagamento previsto: split pendente mais antigo + 30 dias
-    const nextPending = [...splits].filter((s: any) => s.status === "pendente").sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
+    // Próximo pagamento previsto: comissão pendente mais antiga + 30 dias
+    const nextPending = [...commissions].filter((s: any) => ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(s.workflow_status)).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
     const nextPayment = nextPending ? new Date(new Date(nextPending.created_at).getTime() + 30 * 86400000).toISOString() : null;
 
     return { total, paid, pending, cancelled, thisMonth, clientsActive, clientsNeg, clientsCancelled, nextPayment };
+
   }, [data]);
 
   const filteredSplits = useMemo(() => {
     if (!data) return [];
-    return data.splits.filter((s: any) => {
+    return data.commissions.filter((s: any) => {
       if (statusFilter !== "todos" && s.status !== statusFilter) return false;
       if (clientFilter) {
         const name = (s.sales?.clients?.full_name || "").toLowerCase();
@@ -92,8 +95,9 @@ export default function PartnerPanel() {
 
   const paidHistory = useMemo(() => {
     if (!data) return [];
-    return data.splits
-      .filter((s: any) => s.status === "pago")
+    return data.commissions
+      .filter((s: any) => s.workflow_status === "paga")
+
       .sort((a: any, b: any) => new Date(b.paid_at || b.updated_at || b.created_at).getTime() - new Date(a.paid_at || a.updated_at || a.created_at).getTime());
   }, [data]);
 
@@ -123,7 +127,7 @@ export default function PartnerPanel() {
     </div>
   );
 
-  const { partner, clients, splits, contracts } = data;
+  const { partner, clients, commissions, contracts } = data;
 
   return (
     <div className="bg-premium min-h-screen">
@@ -185,7 +189,7 @@ export default function PartnerPanel() {
         <Tabs defaultValue="clientes" className="space-y-10">
            <TabsList className="bg-transparent h-auto p-0 flex gap-12 border-b border-slate-200 rounded-none pb-px flex-wrap">
               <PremiumTabTrigger value="clientes" label="Carteira Indicada" count={clients.length} />
-              <PremiumTabTrigger value="comissoes" label="Comissões" count={splits.length} />
+              <PremiumTabTrigger value="comissoes" label="Comissões" count={commissions.length} />
               <PremiumTabTrigger value="financeiro" label="Financeiro" />
               <PremiumTabTrigger value="contrato" label="Meu Contrato" count={contracts.length} />
            </TabsList>
@@ -323,13 +327,15 @@ export default function PartnerPanel() {
                              </td>
                              <td className="px-8 py-6 text-center">
                                 <span className={cn(
-                                  "vx-pill uppercase tracking-widest text-[9px] min-w-[80px]",
-                                  s.status === 'pago' && "vx-pill-success",
-                                  s.status === 'pendente' && "vx-pill-warning",
-                                  s.status === 'cancelado' && "vx-pill-muted",
+                                  "vx-pill uppercase tracking-widest text-[9px] min-w-[100px]",
+                                  s.workflow_status === 'paga' && "vx-pill-success",
+                                  ['aguardando_confirmacao', 'pendente', 'liberada', 'em_pagamento'].includes(s.workflow_status) && "vx-pill-warning",
+                                  s.workflow_status === 'cancelada' && "vx-pill-muted text-destructive",
+                                  s.workflow_status === 'estornada' && "vx-pill-muted",
                                 )}>
-                                  {s.status === 'pago' ? "Pago" : s.status === 'pendente' ? "Pendente" : "Cancelado"}
+                                  {String(s.workflow_status || 'aguardando_confirmacao').replace(/_/g, ' ')}
                                 </span>
+
                              </td>
                           </tr>
                         ))}

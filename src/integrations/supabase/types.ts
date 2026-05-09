@@ -751,6 +751,67 @@ export type Database = {
           },
         ]
       }
+      commission_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_recurring: boolean | null
+          partner_id: string | null
+          product_id: string | null
+          release_after_payment: boolean | null
+          rule_type: string
+          trigger_event: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_recurring?: boolean | null
+          partner_id?: string | null
+          product_id?: string | null
+          release_after_payment?: boolean | null
+          rule_type?: string
+          trigger_event?: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_recurring?: boolean | null
+          partner_id?: string | null
+          product_id?: string | null
+          release_after_payment?: boolean | null
+          rule_type?: string
+          trigger_event?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_rules_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_rules_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_rules_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       commission_splits: {
         Row: {
           amount: number
@@ -807,11 +868,14 @@ export type Database = {
       commissions: {
         Row: {
           amount: number
+          applied_rule_description: string | null
+          applied_rule_id: string | null
           approval_date: string | null
           approved_by: string | null
           client_id: string | null
           commission_type: string | null
           created_at: string
+          expected_date: string | null
           id: string
           is_recurring: boolean | null
           notes: string | null
@@ -822,19 +886,27 @@ export type Database = {
           percent: number
           product_id: string | null
           reason: string | null
+          receipt_url: string | null
           rule_type: string | null
           rule_value: number | null
           sale_id: string
+          sale_value: number | null
           status: string
           updated_at: string
+          workflow_status:
+            | Database["public"]["Enums"]["commission_workflow_status"]
+            | null
         }
         Insert: {
           amount: number
+          applied_rule_description?: string | null
+          applied_rule_id?: string | null
           approval_date?: string | null
           approved_by?: string | null
           client_id?: string | null
           commission_type?: string | null
           created_at?: string
+          expected_date?: string | null
           id?: string
           is_recurring?: boolean | null
           notes?: string | null
@@ -845,19 +917,27 @@ export type Database = {
           percent: number
           product_id?: string | null
           reason?: string | null
+          receipt_url?: string | null
           rule_type?: string | null
           rule_value?: number | null
           sale_id: string
+          sale_value?: number | null
           status?: string
           updated_at?: string
+          workflow_status?:
+            | Database["public"]["Enums"]["commission_workflow_status"]
+            | null
         }
         Update: {
           amount?: number
+          applied_rule_description?: string | null
+          applied_rule_id?: string | null
           approval_date?: string | null
           approved_by?: string | null
           client_id?: string | null
           commission_type?: string | null
           created_at?: string
+          expected_date?: string | null
           id?: string
           is_recurring?: boolean | null
           notes?: string | null
@@ -868,13 +948,25 @@ export type Database = {
           percent?: number
           product_id?: string | null
           reason?: string | null
+          receipt_url?: string | null
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string
+          sale_value?: number | null
           status?: string
           updated_at?: string
+          workflow_status?:
+            | Database["public"]["Enums"]["commission_workflow_status"]
+            | null
         }
         Relationships: [
+          {
+            foreignKeyName: "commissions_applied_rule_id_fkey"
+            columns: ["applied_rule_id"]
+            isOneToOne: false
+            referencedRelation: "commission_rules"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "commissions_client_id_fkey"
             columns: ["client_id"]
@@ -2966,6 +3058,14 @@ export type Database = {
         | "paga"
         | "cancelada"
         | "bloqueada"
+      commission_workflow_status:
+        | "aguardando_confirmacao"
+        | "pendente"
+        | "liberada"
+        | "em_pagamento"
+        | "paga"
+        | "cancelada"
+        | "estornada"
       contract_status:
         | "criado"
         | "enviado"
@@ -3173,6 +3273,15 @@ export const Constants = {
         "paga",
         "cancelada",
         "bloqueada",
+      ],
+      commission_workflow_status: [
+        "aguardando_confirmacao",
+        "pendente",
+        "liberada",
+        "em_pagamento",
+        "paga",
+        "cancelada",
+        "estornada",
       ],
       contract_status: [
         "criado",

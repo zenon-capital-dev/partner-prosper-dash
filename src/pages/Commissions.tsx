@@ -17,7 +17,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Wallet, Clock, CheckCircle2, XCircle, Plus, Search, Filter, MoreHorizontal,
   Pencil, Trash2, Check, Download, FileSpreadsheet, Sparkles, CalendarRange,
@@ -26,27 +26,29 @@ import {
 import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 
-type StatusFilter = "all" | "gerada" | "em_analise" | "aprovada" | "paga" | "cancelada" | "bloqueada";
+type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "cancelada" | "estornada";
 
 const statusBadge: Record<string, string> = {
-  gerada: "bg-blue-50 text-blue-600 border-blue-200",
-  em_analise: "bg-indigo-50 text-indigo-600 border-indigo-200",
-  aprovada: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  aguardando_confirmacao: "bg-blue-50 text-blue-600 border-blue-200",
+  pendente: "bg-amber-50 text-amber-600 border-amber-200",
+  liberada: "bg-indigo-50 text-indigo-600 border-indigo-200",
+  em_pagamento: "bg-purple-50 text-purple-600 border-purple-200",
   paga: "bg-emerald-100 text-emerald-800 border-emerald-300",
   cancelada: "bg-destructive/10 text-destructive border-destructive/20",
-  bloqueada: "bg-muted text-muted-foreground border-border",
+  estornada: "bg-slate-100 text-slate-600 border-slate-300",
 };
 
-const commissionTypes = [
-  { value: "percentual", label: "Percentual" },
-  { value: "valor_fixo", label: "Valor Fixo" },
-  { value: "recorrente", label: "Recorrente" },
-  { value: "unica", label: "Única" },
-  { value: "personalizada", label: "Personalizada" },
+const commissionTriggerEvents = [
+  { value: "first_sale", label: "Primeira Venda" },
+  { value: "renewal", label: "Renovação" },
+  { value: "recurrence", label: "Recorrência" },
+  { value: "single_payment", label: "Pagamento Único" },
 ];
+
 
 export default function Commissions() {
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<"list" | "rules">("list");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
@@ -55,12 +57,13 @@ export default function Commissions() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
 
   const [payOpen, setPayOpen] = useState(false);
-  const [payTarget, setPayTarget] = useState<any>(null); // single id or { ids: [...] }
+  const [payTarget, setPayTarget] = useState<any>(null);
   const [payForm, setPayForm] = useState({
     paid_at: new Date().toISOString().slice(0, 10),
     payment_method: "pix",
@@ -73,9 +76,20 @@ export default function Commissions() {
     amount: 0,
     percent: 10,
     commission_type: "percentual",
-    status: "gerada",
+    status: "aguardando_confirmacao",
     notes: "",
   });
+
+  const [ruleForm, setRuleForm] = useState<any>({
+    partner_id: "",
+    product_id: "",
+    rule_type: "percentage",
+    value: 0,
+    is_recurring: false,
+    trigger_event: "first_sale",
+    release_after_payment: true,
+  });
+
 
   // ----- Queries -----
   const { data: commissions = [], isLoading } = useQuery({
@@ -89,9 +103,25 @@ export default function Commissions() {
     },
   });
 
+  const { data: rules = [], isLoading: loadingRules } = useQuery({
+    queryKey: ["commission-rules"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_rules")
+        .select("*, partners(full_name), products(name)")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   const { data: partners = [] } = useQuery({
     queryKey: ["partners-simple"],
     queryFn: async () => (await supabase.from("partners").select("id,full_name,pix_key").order("full_name")).data ?? [],
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["products-simple"],
+    queryFn: async () => (await supabase.from("products").select("id,name").order("name")).data ?? [],
   });
 
   const { data: sales = [] } = useQuery({
@@ -99,10 +129,11 @@ export default function Commissions() {
     queryFn: async () => (await supabase.from("sales").select("id,amount,sale_date,commission_percent,clients(full_name),products(name)").order("sale_date", { ascending: false }).limit(200)).data ?? [],
   });
 
+
   // ----- Filtering -----
   const filtered = useMemo(() => {
     return commissions.filter((c: any) => {
-      if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (statusFilter !== "all" && c.workflow_status !== statusFilter) return false;
       if (partnerFilter !== "all" && c.partner_id !== partnerFilter) return false;
       if (dateFrom && c.created_at < dateFrom) return false;
       if (dateTo && c.created_at > `${dateTo}T23:59:59`) return false;
@@ -120,11 +151,12 @@ export default function Commissions() {
     filtered.forEach((c: any) => {
       const v = Number(c.amount || 0);
       acc.total += v;
-      if (c.status === "paga") acc.paid += v;
-      else if (["gerada", "em_analise", "aprovada"].includes(c.status)) acc.pending += v;
+      if (c.workflow_status === "paga") acc.paid += v;
+      else if (["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(c.workflow_status)) acc.pending += v;
     });
     return acc;
   }, [filtered]);
+
 
   const selectedIds = Object.entries(selected).filter(([, v]) => v).map(([k]) => k);
   const selectedTotals = useMemo(() => {
@@ -152,7 +184,7 @@ export default function Commissions() {
       amount: Number(createForm.amount),
       percent: Number(createForm.percent || 0),
       commission_type: createForm.commission_type,
-      status: createForm.status,
+      workflow_status: createForm.status,
       notes: createForm.notes || null,
       created_at: new Date().toISOString(),
     };
@@ -160,9 +192,29 @@ export default function Commissions() {
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão criada");
     setCreateOpen(false);
-    setCreateForm({ partner_id: "", sale_id: "", amount: 0, percent: 10, status: "pendente", notes: "" });
+    setCreateForm({ partner_id: "", sale_id: "", amount: 0, percent: 10, status: "aguardando_confirmacao", notes: "" });
     qc.invalidateQueries({ queryKey: ["commissions-list"] });
   };
+
+  const saveRule = async () => {
+    if (!ruleForm.rule_type) { toast.error("Selecione o tipo de regra"); return; }
+    const payload = {
+      partner_id: ruleForm.partner_id || null,
+      product_id: ruleForm.product_id || null,
+      rule_type: ruleForm.rule_type,
+      value: Number(ruleForm.value),
+      is_recurring: ruleForm.is_recurring,
+      trigger_event: ruleForm.trigger_event,
+      release_after_payment: ruleForm.release_after_payment,
+    };
+    const { error } = await supabase.from("commission_rules").insert(payload);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Regra de comissão salva");
+    setRuleCreateOpen(false);
+    setRuleForm({ partner_id: "", product_id: "", rule_type: "percentage", value: 0, is_recurring: false, trigger_event: "first_sale", release_after_payment: true });
+    qc.invalidateQueries({ queryKey: ["commission-rules"] });
+  };
+
 
   const openEdit = (c: any) => {
     setEditing(c);
@@ -170,7 +222,7 @@ export default function Commissions() {
       amount: c.amount,
       percent: c.percent,
       commission_type: c.commission_type || "percentual",
-      status: c.status,
+      status: c.workflow_status || "aguardando_confirmacao",
       notes: c.notes ?? "",
       payment_method: c.payment_method ?? "",
       paid_at: c.paid_at ? c.paid_at.slice(0, 10) : "",
@@ -185,7 +237,7 @@ export default function Commissions() {
       amount: Number(editForm.amount),
       percent: Number(editForm.percent),
       commission_type: editForm.commission_type,
-      status: editForm.status,
+      workflow_status: editForm.status,
       notes: editForm.notes || null,
       payment_method: editForm.payment_method || null,
       approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
@@ -206,16 +258,17 @@ export default function Commissions() {
   };
 
   const cancelOne = async (c: any) => {
-    const { error } = await supabase.from("commissions").update({ status: "cancelada", paid_at: null }).eq("id", c.id);
+    const { error } = await supabase.from("commissions").update({ workflow_status: "cancelada", paid_at: null }).eq("id", c.id);
     if (error) toast.error(error.message);
     else { toast.success("Comissão cancelada"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
 
   const reopenOne = async (c: any) => {
-    const { error } = await supabase.from("commissions").update({ status: "gerada", paid_at: null }).eq("id", c.id);
+    const { error } = await supabase.from("commissions").update({ workflow_status: "aguardando_confirmacao", paid_at: null }).eq("id", c.id);
     if (error) toast.error(error.message);
-    else { toast.success("Comissão redefinida para Gerada"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
+    else { toast.success("Comissão redefinida para Aguardando Confirmação"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
+
 
   const openPaySingle = (c: any) => { setPayTarget({ ids: [c.id] }); setPayOpen(true); };
   const openPayBulk = () => {
@@ -227,7 +280,7 @@ export default function Commissions() {
   const confirmPay = async () => {
     if (!payTarget?.ids?.length) return;
     const payload = {
-      status: "pago" as const,
+      workflow_status: "paga" as const,
       paid_at: new Date(payForm.paid_at).toISOString(),
       payment_method: payForm.payment_method,
       notes: payForm.notes || null,
@@ -242,7 +295,7 @@ export default function Commissions() {
   const bulkCancel = async () => {
     if (selectedIds.length === 0) return;
     if (!confirm(`Cancelar ${selectedIds.length} comissão(ões)?`)) return;
-    const { error } = await supabase.from("commissions").update({ status: "cancelada", paid_at: null }).in("id", selectedIds);
+    const { error } = await supabase.from("commissions").update({ workflow_status: "cancelada", paid_at: null }).in("id", selectedIds);
     if (error) toast.error(error.message);
     else { toast.success("Comissões canceladas"); setSelected({}); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
@@ -264,7 +317,7 @@ export default function Commissions() {
       valor_venda: c.sales?.amount ?? "",
       percentual: c.percent,
       comissao: c.amount,
-      status: c.status,
+      status: c.workflow_status || "aguardando_confirmacao",
       pago_em: c.paid_at ? formatDate(c.paid_at) : "",
       metodo: c.payment_method ?? "",
       criada_em: formatDate(c.created_at),
@@ -303,19 +356,28 @@ export default function Commissions() {
       <PageHero
         eyebrow="Financeiro"
         category="Commission Engine"
-        title="Comissões"
-        description="Gestão completa de comissões: criar, editar, pagar, cancelar e exportar."
+        title="Central de Comissões"
+        description="Gestão de regras e pagamentos para parceiros e indicadores."
         icon={<Wallet className="size-6" />}
         actions={
-          <>
-            <Button variant="outline" onClick={exportCSV} className="h-10 gap-2">
-              <FileSpreadsheet className="size-4" /> Exportar CSV
-            </Button>
-            <Button onClick={() => setCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
-              <Plus className="size-4" strokeWidth={2.5} /> Nova comissão
-            </Button>
-          </>
+          <div className="flex gap-2">
+            {activeTab === "rules" ? (
+              <Button onClick={() => setRuleCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+                <Plus className="size-4" strokeWidth={2.5} /> Nova Regra
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" onClick={exportCSV} className="h-10 gap-2">
+                  <FileSpreadsheet className="size-4" /> Exportar CSV
+                </Button>
+                <Button onClick={() => setCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
+                  <Plus className="size-4" strokeWidth={2.5} /> Nova Comissão
+                </Button>
+              </>
+            )}
+          </div>
         }
+
         kpis={[
           { label: "Total filtrado", value: formatBRL(totals.total), tone: "primary", hint: `${totals.count} registros`, icon: <CircleDollarSign className="size-4" /> },
           { label: "Pendente / Análise", value: formatBRL(totals.pending), tone: "warning", icon: <Clock className="size-4" /> },
@@ -325,47 +387,56 @@ export default function Commissions() {
       />
 
 
-      {/* Toolbar */}
-      <div className="vx-card p-4 space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Buscar indicador, cliente, produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Select value={partnerFilter} onValueChange={setPartnerFilter}>
-              <SelectTrigger className="w-[200px] h-10"><Filter className="size-3.5 mr-1" /><SelectValue placeholder="Indicador" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos indicadores</SelectItem>
-                {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-1.5 text-xs">
-              <CalendarRange className="size-4 text-muted-foreground" />
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-[150px]" />
-              <span className="text-muted-foreground">→</span>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-[150px]" />
-            </div>
-            {activeFiltersCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 h-10">
-                <X className="size-3.5" /> Limpar ({activeFiltersCount})
-              </Button>
-            )}
-          </div>
-        </div>
+      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="space-y-6">
+        <TabsList className="bg-white/50 backdrop-blur-sm border border-slate-200/60 p-1 h-12 rounded-2xl w-fit">
+          <TabsTrigger value="list" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Histórico de Comissões</TabsTrigger>
+          <TabsTrigger value="rules" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Regras de Comissionamento</TabsTrigger>
+        </TabsList>
 
-        <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
-          <TabsList className="h-10">
-            <TabsTrigger value="all">Todas <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
-            <TabsTrigger value="gerada" className="data-[state=active]:text-blue-500">Geradas</TabsTrigger>
-            <TabsTrigger value="em_analise" className="data-[state=active]:text-indigo-500">Em análise</TabsTrigger>
-            <TabsTrigger value="aprovada" className="data-[state=active]:text-emerald-500">Aprovadas</TabsTrigger>
-            <TabsTrigger value="paga" className="data-[state=active]:text-emerald-700">Pagas</TabsTrigger>
-            <TabsTrigger value="cancelada" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
-            <TabsTrigger value="bloqueada" className="data-[state=active]:text-muted-foreground">Bloqueadas</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+        <TabsContent value="list" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {/* Toolbar */}
+          <div className="vx-card p-4 space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Buscar indicador, cliente, produto..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select value={partnerFilter} onValueChange={setPartnerFilter}>
+                  <SelectTrigger className="w-[200px] h-10"><Filter className="size-3.5 mr-1" /><SelectValue placeholder="Indicador" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos indicadores</SelectItem>
+                    {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <CalendarRange className="size-4 text-muted-foreground" />
+                  <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 w-[150px]" />
+                  <span className="text-muted-foreground">→</span>
+                  <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 w-[150px]" />
+                </div>
+                {activeFiltersCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 h-10">
+                    <X className="size-3.5" /> Limpar ({activeFiltersCount})
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <Tabs value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+              <TabsList className="h-10 bg-slate-50/50">
+                <TabsTrigger value="all">Todas <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1">{commissions.length}</Badge></TabsTrigger>
+                <TabsTrigger value="aguardando_confirmacao" className="data-[state=active]:text-blue-500">Aguardando Confirmação</TabsTrigger>
+                <TabsTrigger value="pendente" className="data-[state=active]:text-amber-600">Pendentes</TabsTrigger>
+                <TabsTrigger value="liberada" className="data-[state=active]:text-indigo-500">Liberadas</TabsTrigger>
+                <TabsTrigger value="em_pagamento" className="data-[state=active]:text-purple-500">Em Pagamento</TabsTrigger>
+                <TabsTrigger value="paga" className="data-[state=active]:text-emerald-700">Pagas</TabsTrigger>
+                <TabsTrigger value="cancelada" className="data-[state=active]:text-destructive">Canceladas</TabsTrigger>
+                <TabsTrigger value="estornada" className="data-[state=active]:text-slate-600">Estornadas</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
 
       {/* Bulk action bar */}
       {selectedIds.length > 0 && (
@@ -436,9 +507,9 @@ export default function Commissions() {
                   <td className="px-4 py-3 text-right vx-mono">{formatPercent(c.percent)}</td>
                   <td className="px-4 py-3 text-right vx-mono font-bold text-success">{formatBRL(c.amount)}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge[c.status]}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge[c.workflow_status || "aguardando_confirmacao"]}`}>
                       <span className="size-1.5 rounded-full bg-current" />
-                      {c.status}
+                      {String(c.workflow_status || "aguardando_confirmacao").replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -451,7 +522,8 @@ export default function Commissions() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {["gerada", "em_analise", "aprovada"].includes(c.status) && (
+                      {["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(c.workflow_status) && (
+
                         <Button size="sm" variant="outline" onClick={() => openPaySingle(c)} className="h-7 gap-1 text-xs">
                           <Check className="size-3" /> Pagar
                         </Button>
@@ -462,16 +534,17 @@ export default function Commissions() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
-                          {c.status !== "gerada" && (
-                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Resetar (Gerada)</DropdownMenuItem>
+                          {c.workflow_status !== "aguardando_confirmacao" && (
+                            <DropdownMenuItem onClick={() => reopenOne(c)}><Clock className="size-3.5 mr-2" /> Resetar (Aguardando)</DropdownMenuItem>
                           )}
-                          {c.status !== "cancelada" && (
+                          {c.workflow_status !== "cancelada" && (
                             <DropdownMenuItem onClick={() => cancelOne(c)}><XCircle className="size-3.5 mr-2" /> Cancelar</DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => removeOne(c)} className="text-destructive">
                             <Trash2 className="size-3.5 mr-2" /> Excluir
                           </DropdownMenuItem>
+
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -491,10 +564,76 @@ export default function Commissions() {
           </table>
         </div>
       </div>
+    </TabsContent>
 
-      {/* CREATE Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-xl">
+
+    <TabsContent value="rules" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="vx-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40">
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-6 py-4 text-left font-semibold">Regra Aplicada</th>
+                <th className="px-6 py-4 text-left font-semibold">Evento Disparador</th>
+                <th className="px-6 py-4 text-right font-semibold">Valor</th>
+                <th className="px-6 py-4 text-center font-semibold">Recorrência</th>
+                <th className="px-6 py-4 text-center font-semibold">Liberação</th>
+                <th className="px-6 py-4 text-right font-semibold w-24"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {loadingRules ? (
+                <tr><td colSpan={6} className="px-6 py-16 text-center text-muted-foreground text-sm">Carregando regras...</td></tr>
+              ) : rules.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-16 text-center text-muted-foreground">Nenhuma regra de comissão configurada</td></tr>
+              ) : rules.map((r: any) => (
+                <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-900">
+                        {r.partners?.full_name ?? "Todos Parceiros"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {r.products?.name ?? "Todos os Produtos"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-slate-200 text-slate-600">
+                      {commissionTriggerEvents.find(e => e.value === r.trigger_event)?.label ?? r.trigger_event}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4 text-right vx-mono font-bold">
+                    {r.rule_type === 'percentage' ? formatPercent(r.value) : formatBRL(r.value)}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {r.is_recurring ? (
+                      <Badge className="bg-blue-50 text-blue-600 border-blue-200">Recorrente</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center text-xs">
+                    {r.release_after_payment ? "Pós Pagamento" : "Imediata"}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </TabsContent>
+  </Tabs>
+
+  {/* DIALOGS */}
+  <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+    <DialogContent className="max-w-xl">
+
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Nova comissão manual</DialogTitle>
             <DialogDescription>Bônus, ajuste ou comissão avulsa fora de uma venda.</DialogDescription>
@@ -536,12 +675,13 @@ export default function Commissions() {
               <Select value={createForm.status} onValueChange={(v) => setCreateForm({ ...createForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gerada">Gerada</SelectItem>
-                  <SelectItem value="em_analise">Em análise</SelectItem>
-                  <SelectItem value="aprovada">Aprovada</SelectItem>
-                  <SelectItem value="pago">Paga</SelectItem>
+                  <SelectItem value="aguardando_confirmacao">Aguardando Confirmação</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="liberada">Liberada</SelectItem>
+                  <SelectItem value="em_pagamento">Em Pagamento</SelectItem>
+                  <SelectItem value="paga">Paga</SelectItem>
                   <SelectItem value="cancelada">Cancelada</SelectItem>
-                  <SelectItem value="bloqueada">Bloqueada</SelectItem>
+                  <SelectItem value="estornada">Estornada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -578,12 +718,13 @@ export default function Commissions() {
               <Select value={editForm.status} onValueChange={(v) => setEditForm({ ...editForm, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gerada">Gerada</SelectItem>
-                  <SelectItem value="em_analise">Em análise</SelectItem>
-                  <SelectItem value="aprovada">Aprovada</SelectItem>
-                  <SelectItem value="pago">Paga</SelectItem>
+                  <SelectItem value="aguardando_confirmacao">Aguardando Confirmação</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="liberada">Liberada</SelectItem>
+                  <SelectItem value="em_pagamento">Em Pagamento</SelectItem>
+                  <SelectItem value="paga">Paga</SelectItem>
                   <SelectItem value="cancelada">Cancelada</SelectItem>
-                  <SelectItem value="bloqueada">Bloqueada</SelectItem>
+                  <SelectItem value="estornada">Estornada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -674,9 +815,84 @@ export default function Commissions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* RULE CREATE Dialog */}
+      <Dialog open={ruleCreateOpen} onOpenChange={setRuleCreateOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Nova Regra de Comissionamento</DialogTitle>
+            <DialogDescription>Defina como o sistema deve calcular as comissões automaticamente.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Parceiro / Indicador (opcional)</Label>
+              <Select value={ruleForm.partner_id || "all"} onValueChange={(v) => setRuleForm({ ...ruleForm, partner_id: v === "all" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Todos os parceiros" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os parceiros</SelectItem>
+                  {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">Deixe vazio para regra geral.</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Produto (opcional)</Label>
+              <Select value={ruleForm.product_id || "all"} onValueChange={(v) => setRuleForm({ ...ruleForm, product_id: v === "all" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Todos os produtos" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os produtos</SelectItem>
+                  {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Tipo de Valor</Label>
+              <Select value={ruleForm.rule_type} onValueChange={(v) => setRuleForm({ ...ruleForm, rule_type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Percentual (%)</SelectItem>
+                  <SelectItem value="fixed">Valor Fixo (R$)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Valor</Label>
+              <Input type="number" step="0.01" value={ruleForm.value} onChange={(e) => setRuleForm({ ...ruleForm, value: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Evento de Disparo</Label>
+              <Select value={ruleForm.trigger_event} onValueChange={(v) => setRuleForm({ ...ruleForm, trigger_event: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {commissionTriggerEvents.map(e => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col justify-center space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="is_recurring" checked={ruleForm.is_recurring} onCheckedChange={(v) => setRuleForm({ ...ruleForm, is_recurring: !!v })} />
+                <Label htmlFor="is_recurring" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Comissão Recorrente?
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="release_after_payment" checked={ruleForm.release_after_payment} onCheckedChange={(v) => setRuleForm({ ...ruleForm, release_after_payment: !!v })} />
+                <Label htmlFor="release_after_payment" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Liberar só após pagamento do cliente?
+                </Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRuleCreateOpen(false)}>Cancelar</Button>
+            <Button onClick={saveRule} className="bg-gradient-primary gap-2"><Sparkles className="size-4" /> Salvar Regra</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
 
 function KpiCard({ icon: Icon, label, value, sub, tone }: any) {
   const map: any = {
