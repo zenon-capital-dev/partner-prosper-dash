@@ -133,7 +133,7 @@ export default function Commissions() {
   // ----- Filtering -----
   const filtered = useMemo(() => {
     return commissions.filter((c: any) => {
-      if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (statusFilter !== "all" && c.workflow_status !== statusFilter) return false;
       if (partnerFilter !== "all" && c.partner_id !== partnerFilter) return false;
       if (dateFrom && c.created_at < dateFrom) return false;
       if (dateTo && c.created_at > `${dateTo}T23:59:59`) return false;
@@ -151,11 +151,12 @@ export default function Commissions() {
     filtered.forEach((c: any) => {
       const v = Number(c.amount || 0);
       acc.total += v;
-      if (c.status === "paga") acc.paid += v;
-      else if (["gerada", "em_analise", "aprovada"].includes(c.status)) acc.pending += v;
+      if (c.workflow_status === "paga") acc.paid += v;
+      else if (["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(c.workflow_status)) acc.pending += v;
     });
     return acc;
   }, [filtered]);
+
 
   const selectedIds = Object.entries(selected).filter(([, v]) => v).map(([k]) => k);
   const selectedTotals = useMemo(() => {
