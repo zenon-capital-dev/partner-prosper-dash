@@ -106,9 +106,34 @@ export default function DemandDetail() {
         </div>
 
         <div className="flex items-center gap-2">
-           <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
-              Ações da Demanda <ArrowRight className="size-4" />
-           </Button>
+           <DropdownMenu>
+             <DropdownMenuTrigger asChild>
+               <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
+                 Ações da Demanda <ArrowRight className="size-4" />
+               </Button>
+             </DropdownMenuTrigger>
+             <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-xl">
+               <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Operações</DropdownMenuLabel>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem 
+                 onClick={() => setPauseDialogOpen(true)}
+                 className={cn("gap-2 cursor-pointer", demand.status === 'pausado' ? "text-emerald-600 focus:text-emerald-700" : "text-amber-600 focus:text-amber-700")}
+               >
+                 {demand.status === 'pausado' ? <PlayCircle className="size-4" /> : <PauseCircle className="size-4" />}
+                 {demand.status === 'pausado' ? "Retomar Demanda" : "Pausar Demanda"}
+               </DropdownMenuItem>
+               <DropdownMenuItem 
+                 onClick={() => setDelayDialogOpen(true)}
+                 className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700"
+               >
+                 <AlertTriangle className="size-4" /> Registrar Atraso
+               </DropdownMenuItem>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem className="gap-2 cursor-pointer">
+                 <CheckCircle2 className="size-4" /> Finalizar Demanda
+               </DropdownMenuItem>
+             </DropdownMenuContent>
+           </DropdownMenu>
         </div>
       </div>
 
