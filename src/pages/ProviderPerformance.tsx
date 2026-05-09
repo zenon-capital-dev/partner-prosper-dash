@@ -19,6 +19,7 @@ interface Provider {
   internal_notes: string | null;
   internal_rating: number | null;
   active: boolean;
+  user_id?: string | null;
 }
 
 interface Metrics {
