@@ -30,17 +30,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchRoles = async (userId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    
     console.log("Fetching roles for user:", userId);
     try {
-      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+      // Use a timeout for the fetchRoles request
+      const rolesPromise = supabase.from("user_roles").select("role").eq("user_id", userId);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Timeout fetching roles")), 5000)
+      );
+      
+      const { data, error } = await Promise.race([rolesPromise, timeoutPromise]) as any;
+      
       if (error) throw error;
-      const roleList = (data?.map((r) => r.role) as AppRole[]) ?? [];
+      const roleList = (data?.map((r: any) => r.role) as AppRole[]) ?? [];
       console.log("Roles fetched:", roleList);
       setRoles(roleList);
     } catch (error) {
       console.error("Error fetching roles:", error);
-      // Don't clear roles on error, just log it
     } finally {
       setLoading(false);
     }
@@ -48,40 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let initialized = false;
     let currentUserId: string | null = null;
 
-    const initAuth = async () => {
-      try {
-        const { data: { session: sess }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        if (!mounted) return;
-        
-        console.log("Auth initialized. Session:", sess ? "active" : "none");
-        setSession(sess);
-        setUser(sess?.user ?? null);
-        
-        if (sess?.user) {
-          currentUserId = sess.user.id;
-          await fetchRoles(sess.user.id);
-        } else {
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error("Auth init error:", error);
-        if (mounted) setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
+    const handleSession = async (sess: Session | null, event?: string) => {
       if (!mounted) return;
       
       const newUserId = sess?.user?.id ?? null;
-      console.log("Auth state change:", event, newUserId);
+      console.log("Handling session:", event || "initial", newUserId);
 
-      // Only re-fetch if user ID changed or explicitly signed in/token refreshed
       const userChanged = newUserId !== currentUserId;
       currentUserId = newUserId;
       
@@ -93,7 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           logAudit("LOGIN", "auth", sess.user.id);
         }
         
-        if (userChanged || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        // Fetch roles if user changed or it's a critical auth event
+        if (userChanged || event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || !initialized) {
           setLoading(true);
           await fetchRoles(sess.user.id);
         } else {
@@ -103,15 +89,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
         setLoading(false);
       }
+      
+      initialized = true;
+    };
+
+    // 1. Initial session check
+    supabase.auth.getSession().then(({ data: { session: sess }, error }) => {
+      if (error) {
+        console.error("Get session error:", error);
+        if (mounted) setLoading(false);
+      } else {
+        handleSession(sess);
+      }
     });
 
-    // Safety fallback: force loading false after 20s no matter what
+    // 2. Auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
+      handleSession(sess, event);
+    });
+
+    // 3. Safety fallback: force loading false after 10s
     const fallbackTimer = setTimeout(() => {
       if (mounted && loading) {
         console.warn("Auth loading fallback triggered");
         setLoading(false);
       }
-    }, 20000);
+    }, 10000);
 
     return () => {
       mounted = false;
