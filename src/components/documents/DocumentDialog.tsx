@@ -209,6 +209,22 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             </div>
           </div>
 
+          <div className="flex items-center gap-3 rounded-lg border border-border px-4 py-3">
+            <input
+              id="is_required"
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={form.is_required ?? true}
+              onChange={(e) => setForm({ ...form, is_required: e.target.checked })}
+            />
+            <Label htmlFor="is_required" className="cursor-pointer flex-1">
+              Documento obrigatório
+              <span className="block text-[11px] font-normal text-muted-foreground">
+                Desmarque para tornar este documento opcional.
+              </span>
+            </Label>
+          </div>
+
           {clientId && (sales?.length ?? 0) > 0 && (
             <div className="space-y-2">
               <Label>Vincular a uma venda (opcional)</Label>
