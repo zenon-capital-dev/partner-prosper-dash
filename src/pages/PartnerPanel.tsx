@@ -189,7 +189,7 @@ export default function PartnerPanel() {
         <Tabs defaultValue="clientes" className="space-y-10">
            <TabsList className="bg-transparent h-auto p-0 flex gap-12 border-b border-slate-200 rounded-none pb-px flex-wrap">
               <PremiumTabTrigger value="clientes" label="Carteira Indicada" count={clients.length} />
-              <PremiumTabTrigger value="comissoes" label="Comissões" count={splits.length} />
+              <PremiumTabTrigger value="comissoes" label="Comissões" count={commissions.length} />
               <PremiumTabTrigger value="financeiro" label="Financeiro" />
               <PremiumTabTrigger value="contrato" label="Meu Contrato" count={contracts.length} />
            </TabsList>
