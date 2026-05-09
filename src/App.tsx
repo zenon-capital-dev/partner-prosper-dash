@@ -47,6 +47,7 @@ import ProviderReports from "./pages/ProviderReports";
 import ProviderPerformance from "./pages/ProviderPerformance";
 import Demands from "./pages/Demands";
 import DemandDetail from "./pages/DemandDetail";
+import SLAPages from "./pages/SLAPages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
