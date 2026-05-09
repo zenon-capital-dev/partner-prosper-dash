@@ -507,9 +507,9 @@ export default function Commissions() {
                   <td className="px-4 py-3 text-right vx-mono">{formatPercent(c.percent)}</td>
                   <td className="px-4 py-3 text-right vx-mono font-bold text-success">{formatBRL(c.amount)}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge[c.status]}`}>
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusBadge[c.workflow_status || "aguardando_confirmacao"]}`}>
                       <span className="size-1.5 rounded-full bg-current" />
-                      {c.status}
+                      {String(c.workflow_status || "aguardando_confirmacao").replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -522,7 +522,8 @@ export default function Commissions() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      {["gerada", "em_analise", "aprovada"].includes(c.status) && (
+                      {["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(c.workflow_status) && (
+
                         <Button size="sm" variant="outline" onClick={() => openPaySingle(c)} className="h-7 gap-1 text-xs">
                           <Check className="size-3" /> Pagar
                         </Button>
