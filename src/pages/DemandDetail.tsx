@@ -27,7 +27,7 @@ export default function DemandDetail() {
           *,
           clients(id, full_name, email, phone, company, document),
           products(id, name, description),
-          service_providers(id, name, specialty),
+          service_providers:service_provider_id(id, name, specialty),
           documents(*)
         `)
         .eq("id", id!)
