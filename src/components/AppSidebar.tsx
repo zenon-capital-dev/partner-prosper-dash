@@ -319,8 +319,8 @@ export function AppSidebar() {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-white/5 !bg-[#020617] transition-all duration-500">
-        <SidebarHeader className="!bg-transparent px-5 pt-8 pb-6">
+      <Sidebar collapsible="icon" className="border-r border-border/5 !bg-[#09090b] transition-all duration-500">
+        <SidebarHeader className="!bg-transparent px-5 pt-10 pb-6">
           <div className={cn("flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-1")}>
             <div className="relative shrink-0 active:scale-95 transition-all duration-300 cursor-pointer group" onClick={() => navigate("/")}>
               <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
