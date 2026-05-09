@@ -48,6 +48,7 @@ const commissionTriggerEvents = [
 
 export default function Commissions() {
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<"list" | "rules">("list");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
@@ -56,12 +57,13 @@ export default function Commissions() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
 
   const [payOpen, setPayOpen] = useState(false);
-  const [payTarget, setPayTarget] = useState<any>(null); // single id or { ids: [...] }
+  const [payTarget, setPayTarget] = useState<any>(null);
   const [payForm, setPayForm] = useState({
     paid_at: new Date().toISOString().slice(0, 10),
     payment_method: "pix",
@@ -74,9 +76,20 @@ export default function Commissions() {
     amount: 0,
     percent: 10,
     commission_type: "percentual",
-    status: "gerada",
+    status: "aguardando_confirmacao",
     notes: "",
   });
+
+  const [ruleForm, setRuleForm] = useState<any>({
+    partner_id: "",
+    product_id: "",
+    rule_type: "percentage",
+    value: 0,
+    is_recurring: false,
+    trigger_event: "first_sale",
+    release_after_payment: true,
+  });
+
 
   // ----- Queries -----
   const { data: commissions = [], isLoading } = useQuery({
