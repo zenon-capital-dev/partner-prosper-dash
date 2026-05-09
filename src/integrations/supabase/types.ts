@@ -1117,6 +1117,7 @@ export type Database = {
           file_size: number | null
           id: string
           internal_notes: string | null
+          is_required: boolean
           mime_type: string | null
           name: string
           product_id: string | null
@@ -1140,6 +1141,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           internal_notes?: string | null
+          is_required?: boolean
           mime_type?: string | null
           name: string
           product_id?: string | null
@@ -1163,6 +1165,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           internal_notes?: string | null
+          is_required?: boolean
           mime_type?: string | null
           name?: string
           product_id?: string | null

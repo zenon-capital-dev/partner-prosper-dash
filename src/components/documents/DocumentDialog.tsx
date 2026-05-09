@@ -17,9 +17,10 @@ interface Props {
   onSuccess?: () => void;
   clientId?: string;
   document?: any;
+  defaultProductId?: string | null;
 }
 
-export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc }: Props) {
+export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
@@ -35,15 +36,17 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           product_id: editDoc.product_id || "none",
           due_date: editDoc.due_date || "",
           sale_id: editDoc.sale_id || "none",
+          is_required: editDoc.is_required ?? true,
         });
         setSelectedClientId(editDoc.client_id);
       } else {
         setForm({
           name: "",
           description: "",
-          product_id: "none",
+          product_id: defaultProductId || "none",
           due_date: "",
           sale_id: "none",
+          is_required: true,
         });
         setSelectedClientId(propClientId || "");
       }
@@ -114,6 +117,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       product_id: form.product_id === "none" ? null : form.product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
+      is_required: form.is_required ?? true,
       status,
       file_path,
       file_size,
@@ -203,6 +207,22 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                 />
               </div>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-lg border border-border px-4 py-3">
+            <input
+              id="is_required"
+              type="checkbox"
+              className="size-4 accent-primary"
+              checked={form.is_required ?? true}
+              onChange={(e) => setForm({ ...form, is_required: e.target.checked })}
+            />
+            <Label htmlFor="is_required" className="cursor-pointer flex-1">
+              Documento obrigatório
+              <span className="block text-[11px] font-normal text-muted-foreground">
+                Desmarque para tornar este documento opcional.
+              </span>
+            </Label>
           </div>
 
           {clientId && (sales?.length ?? 0) > 0 && (
