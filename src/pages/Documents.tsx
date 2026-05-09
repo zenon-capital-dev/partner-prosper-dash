@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatCard } from "@/components/StatCard";
+import { logAudit } from "@/lib/audit";
 
 export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'reprovado' | 'pendente_correcao' | 'vencido';
 
@@ -62,9 +63,11 @@ export default function Documents() {
     refetch();
   };
 
-  const viewFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
+  const viewFile = async (doc: any) => {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
     if (error) { toast.error(error.message); return; }
+    
+    logAudit("DOCUMENT_VIEW", "documents", doc.id, { name: doc.name });
     window.open(data.signedUrl, "_blank");
   };
 
@@ -232,7 +235,7 @@ export default function Documents() {
                                       size="icon" 
                                       variant="ghost" 
                                       className="size-8 text-muted-foreground hover:text-primary"
-                                      onClick={() => viewFile(d.file_path)}
+                                      onClick={() => viewFile(d)}
                                     >
                                       <Eye className="size-4" />
                                     </Button>
@@ -252,6 +255,7 @@ export default function Documents() {
                                         // Simple download implementation using signed URL to avoid CORS issues if any
                                         supabase.storage.from("documents").download(d.file_path).then(({ data, error }) => {
                                           if (error) return toast.error(error.message);
+                                          logAudit("DOCUMENT_DOWNLOAD", "documents", d.id, { name: d.name });
                                           const url = URL.createObjectURL(data);
                                           const a = document.createElement("a");
                                           a.href = url; a.download = d.name; a.click();

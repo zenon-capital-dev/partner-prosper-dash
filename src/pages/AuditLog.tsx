@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAudit } from "@/lib/audit";
 import { PageHeader } from "@/components/PageHeader";
 import { 
   History, 
@@ -14,7 +15,8 @@ import {
   Info,
   Database,
   Activity,
-  Download
+  Download,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +80,7 @@ export default function AuditLog() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    logAudit("EXPORT_DATA", "audit_logs", undefined, { format: "csv", count: filteredLogs.length });
   };
 
   const { data: users = [] } = useQuery({
@@ -134,7 +137,7 @@ export default function AuditLog() {
             Governança e Transparência
           </div>
           <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
-            Logs de Auditoria
+            Logs e Auditoria
           </h1>
           <p className="text-sm text-muted-foreground">Monitoramento detalhado de todas as alterações críticas na base de dados.</p>
         </div>
@@ -253,6 +256,12 @@ export default function AuditLog() {
                           <CalendarIcon className="size-3" />
                           {format(new Date(log.created_at), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
                         </div>
+                        {log.ip_address && (
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Globe className="size-3" />
+                            {log.ip_address}
+                          </div>
+                        )}
                         {log.entity_id && (
                           <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground/60 bg-muted/30 px-1.5 rounded">
                             ID: {log.entity_id.slice(0, 8)}
@@ -297,8 +306,14 @@ export default function AuditLog() {
                             </div>
                             <div>
                               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID da Entidade</p>
-                              <p className="text-[11px] font-mono bg-muted p-1.5 rounded break-all">{log.entity_id || "—"}</p>
+                               <p className="text-[11px] font-mono bg-muted p-1.5 rounded break-all">{log.entity_id || "—"}</p>
                             </div>
+                            {log.ip_address && (
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Endereço IP</p>
+                                <p className="text-sm font-mono">{log.ip_address}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
 

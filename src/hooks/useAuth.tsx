@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logAudit } from "@/lib/audit";
 
 type AppRole = "admin" | "admin_secondary" | "colaborador" | "parceiro" | "prestador" | "cliente" | "lead" | "indicador";
 
@@ -65,16 +66,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, sess) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
       if (!mounted) return;
       
       setSession(sess);
       setUser(sess?.user ?? null);
       
       if (sess?.user) {
+        if (event === "SIGNED_IN") {
+          logAudit("LOGIN", "auth", sess.user.id);
+        }
         setLoading(true);
         await fetchRoles(sess.user.id);
       } else {
+        if (event === "SIGNED_OUT") {
+          // Note: logAudit might fail if session is already gone, but we can try
+          // logAudit("LOGOUT", "auth");
+        }
         setRoles([]);
         setLoading(false);
       }
