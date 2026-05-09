@@ -181,7 +181,7 @@ export default function Documents() {
                              <Badge variant="secondary" className="text-[9px] font-bold py-0 h-4 border-none opacity-60">
                                {d.is_required ? "OBRIGATÓRIO" : "OPCIONAL"}
                              </Badge>
-                             <Badge variant="ghost" className="text-[9px] font-bold py-0 h-4 border-none opacity-40">
+                             <Badge variant="outline" className="text-[9px] font-bold py-0 h-4 border-none opacity-40">
                                {d.is_public ? "PÚBLICO" : "INTERNO"}
                              </Badge>
                           </div>
