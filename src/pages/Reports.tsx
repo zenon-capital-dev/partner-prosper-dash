@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell, PieChart, Pie } from "recharts";
 import { formatBRL, formatDate } from "@/lib/format";
 import { exportToPDF, exportToExcel } from "@/lib/exports";
-import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2 } from "lucide-react";
+import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2, Search as SearchIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type ReportType = 
   | "clients_status" 
@@ -78,7 +79,7 @@ export default function Reports() {
 
   // Base Data Fetching
   const { data: sales = [] } = useQuery({
-    queryKey: ["report-data-sales", from, to, filterProduct, filterPartner, filterClient],
+    queryKey: ["report-data-sales", from, to, filterProduct, filterPartner, filterClient, filterStatus],
     queryFn: async () => {
       let q = supabase.from("sales")
         .select("*, clients(full_name), products(name, product_categories(name, color)), partners(full_name)")
@@ -86,7 +87,7 @@ export default function Reports() {
       if (filterProduct !== "all") q = q.eq("product_id", filterProduct);
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
       if (filterClient !== "all") q = q.eq("client_id", filterClient);
-      if (filterStatus !== "all") q = q.eq("status", filterStatus);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
       return (await q).data ?? [];
     }
   });
@@ -105,12 +106,13 @@ export default function Reports() {
   });
 
   const { data: commissions = [] } = useQuery({
-    queryKey: ["report-data-commissions", from, to, filterPartner],
+    queryKey: ["report-data-commissions", from, to, filterPartner, filterStatus],
     queryFn: async () => {
       let q = supabase.from("commissions")
         .select("*, partners(full_name)")
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
       return (await q).data ?? [];
     }
   });
@@ -122,7 +124,7 @@ export default function Reports() {
         .select("*, partners(full_name)")
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
-      if (filterStatus !== "all") q = q.eq("status", filterStatus);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
       return (await q).data ?? [];
     }
   });
@@ -134,7 +136,7 @@ export default function Reports() {
         .select("*, clients(full_name)")
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterClient !== "all") q = q.eq("client_id", filterClient);
-      if (filterStatus !== "all") q = q.eq("status", filterStatus);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
       return (await q).data ?? [];
     }
   });
@@ -145,7 +147,7 @@ export default function Reports() {
       let q = supabase.from("payments")
         .select("*, clients(full_name), products(name)")
         .gte("due_date", from).lte("due_date", to);
-      if (filterStatus !== "all") q = q.eq("status", filterStatus);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
       return (await q).data ?? [];
     }
   });
@@ -166,8 +168,8 @@ export default function Reports() {
           ],
           rows: sales.map(s => ({
             data: formatDate(s.sale_date),
-            cliente: s.clients?.full_name ?? "—",
-            produto: s.products?.name ?? "—",
+            cliente: (s.clients as any)?.full_name ?? "—",
+            produto: (s.products as any)?.name ?? "—",
             valor: formatBRL(s.amount),
             status: s.status,
           })),
@@ -186,7 +188,7 @@ export default function Reports() {
       }
       case "revenue_product": {
         const byProd = sales.reduce((acc: any, s) => {
-          const name = s.products?.name ?? "Outros";
+          const name = (s.products as any)?.name ?? "Outros";
           acc[name] = (acc[name] || 0) + Number(s.amount);
           return acc;
         }, {});
@@ -247,8 +249,8 @@ export default function Reports() {
             { header: "Status", dataKey: "status" },
           ],
           rows: delayed.map(p => ({
-            cliente: p.clients?.full_name ?? "—",
-            produto: p.products?.name ?? "—",
+            cliente: (p.clients as any)?.full_name ?? "—",
+            produto: (p.products as any)?.name ?? "—",
             prazo: formatDate(p.deadline),
             status: p.status,
           })),
@@ -267,8 +269,8 @@ export default function Reports() {
             { header: "Valor", dataKey: "valor" },
           ],
           rows: unpaid.map(p => ({
-            cliente: p.clients?.full_name ?? "—",
-            produto: p.products?.name ?? "—",
+            cliente: (p.clients as any)?.full_name ?? "—",
+            produto: (p.products as any)?.name ?? "—",
             vencimento: formatDate(p.due_date),
             valor: formatBRL(p.amount),
           })),
@@ -280,7 +282,7 @@ export default function Reports() {
       }
       case "commissions_partner": {
         const byPartner = commissions.reduce((acc: any, c) => {
-          const name = c.partners?.full_name || "Direto";
+          const name = (c.partners as any)?.full_name || "Direto";
           acc[name] = (acc[name] || 0) + Number(c.amount);
           return acc;
         }, {});
@@ -296,7 +298,7 @@ export default function Reports() {
         };
       }
       case "pending_docs": {
-        const pending = docs.filter(d => d.status === 'solicitado' || d.status === 'rejeitado');
+        const pending = docs.filter(d => d.status === 'solicitado' || d.status === 'reprovado' || (d.status as string) === 'rejeitado');
         return {
           title: "Documentos Pendentes",
           columns: [
@@ -306,8 +308,8 @@ export default function Reports() {
             { header: "Solicitado em", dataKey: "data" },
           ],
           rows: pending.map(d => ({
-            cliente: d.clients?.full_name ?? "—",
-            titulo: d.title || d.file_name,
+            cliente: (d.clients as any)?.full_name ?? "—",
+            titulo: d.name,
             status: d.status,
             data: formatDate(d.created_at),
           })),
@@ -325,7 +327,7 @@ export default function Reports() {
       title: reportConfig.title,
       subtitle: `Período: ${formatDate(from)} a ${formatDate(to)}`,
       columns: reportConfig.columns,
-      rows: reportConfig.rows,
+      rows: reportConfig.rows as any[],
       totals: reportConfig.totals,
       filename: `Relatorio-${reportType}-${from}.pdf`,
     });
@@ -337,7 +339,7 @@ export default function Reports() {
       sheetName: "Relatório",
       title: reportConfig.title,
       columns: reportConfig.columns,
-      rows: reportConfig.rows,
+      rows: reportConfig.rows as any[],
       filename: `Relatorio-${reportType}-${from}.xlsx`,
     });
   };
@@ -443,12 +445,12 @@ export default function Reports() {
               label={t.label} 
               value={t.value} 
               icon={t.label.toLowerCase().includes("total") ? DollarSign : TrendingUp} 
-              tone={i === 0 ? "primary" : "info"} 
+              iconColor={i === 0 ? "primary" : "info"} 
             />
           ))}
-          {reportType === "delayed_demands" && <StatCard label="Urgência" value="Alta" icon={Clock} tone="danger" />}
-          {reportType === "pending_docs" && <StatCard label="Compliance" value="Crítico" icon={FileText} tone="warning" />}
-          {reportType === "revenue_period" && <StatCard label="Taxa de Conversão" value="12%" icon={CheckCircle2} tone="success" />}
+          {reportType === "delayed_demands" && <StatCard label="Urgência" value="Alta" icon={Clock} iconColor="destructive" />}
+          {reportType === "pending_docs" && <StatCard label="Compliance" value="Crítico" icon={FileText} iconColor="warning" />}
+          {reportType === "revenue_period" && <StatCard label="Taxa de Conversão" value="12%" icon={CheckCircle2} iconColor="success" />}
         </div>
       </div>
 
@@ -468,7 +470,7 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {reportConfig?.rows.map((r, i) => (
+              {reportConfig?.rows.map((r: any, i) => (
                 <tr key={i} className="group border-b border-slate-50 dark:border-white/5 hover:bg-slate-50/50 transition-colors">
                   {reportConfig?.columns.map(c => (
                     <td key={c.dataKey} className="py-4 text-sm text-slate-600 dark:text-slate-300">
@@ -481,20 +483,12 @@ export default function Reports() {
           </table>
           {(!reportConfig?.rows || reportConfig.rows.length === 0) && (
             <div className="py-20 text-center space-y-3 opacity-40">
-              <Search className="size-10 mx-auto" />
+              <SearchIcon className="size-10 mx-auto" />
               <p className="text-sm font-medium">Nenhum dado encontrado para os filtros selecionados.</p>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-function Badge({ children, variant = "default", className = "" }: any) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${className}`}>
-      {children}
-    </span>
   );
 }
