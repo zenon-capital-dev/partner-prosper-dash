@@ -56,13 +56,13 @@ export default function PartnerPanel() {
 
   const totals = useMemo(() => {
     if (!data) return { total: 0, paid: 0, pending: 0, cancelled: 0, thisMonth: 0, clientsActive: 0, clientsNeg: 0, clientsCancelled: 0, nextPayment: null as string | null };
-    const splits = data.splits;
-    const total = splits.reduce((s, x: any) => s + Number(x.amount), 0);
-    const paid = splits.filter((x: any) => x.status === "pago").reduce((s, x: any) => s + Number(x.amount), 0);
-    const pending = splits.filter((x: any) => x.status === "pendente").reduce((s, x: any) => s + Number(x.amount), 0);
-    const cancelled = splits.filter((x: any) => x.status === "cancelado").reduce((s, x: any) => s + Number(x.amount), 0);
+    const commissions = data.commissions;
+    const total = commissions.reduce((s, x: any) => s + Number(x.amount), 0);
+    const paid = commissions.filter((x: any) => x.workflow_status === "paga").reduce((s, x: any) => s + Number(x.amount), 0);
+    const pending = commissions.filter((x: any) => ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(x.workflow_status)).reduce((s, x: any) => s + Number(x.amount), 0);
+    const cancelled = commissions.filter((x: any) => x.workflow_status === "cancelada").reduce((s, x: any) => s + Number(x.amount), 0);
     const now = new Date();
-    const thisMonth = splits.filter((x: any) => {
+    const thisMonth = commissions.filter((x: any) => {
       const d = new Date(x.created_at);
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).reduce((s, x: any) => s + Number(x.amount), 0);
@@ -71,11 +71,12 @@ export default function PartnerPanel() {
     const clientsNeg = data.clients.filter((c: any) => ["em_negociacao", "lead", "prospecto"].includes(c.status)).length;
     const clientsCancelled = data.clients.filter((c: any) => ["cancelado", "inativo"].includes(c.status)).length;
 
-    // Próximo pagamento previsto: split pendente mais antigo + 30 dias
-    const nextPending = [...splits].filter((s: any) => s.status === "pendente").sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
+    // Próximo pagamento previsto: comissão pendente mais antiga + 30 dias
+    const nextPending = [...commissions].filter((s: any) => ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(s.workflow_status)).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
     const nextPayment = nextPending ? new Date(new Date(nextPending.created_at).getTime() + 30 * 86400000).toISOString() : null;
 
     return { total, paid, pending, cancelled, thisMonth, clientsActive, clientsNeg, clientsCancelled, nextPayment };
+
   }, [data]);
 
   const filteredSplits = useMemo(() => {
