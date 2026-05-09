@@ -229,6 +229,11 @@ export default function Contracts() {
                               <CheckCircle2 className="size-2.5" /> Assinado: {formatDate(c.signed_at)}
                             </p>
                           )}
+                          {c.expires_at && (
+                            <p className="text-[11px] text-orange-600 flex items-center gap-1">
+                              <AlertCircle className="size-2.5" /> Validade: {formatDate(c.expires_at)}
+                            </p>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
