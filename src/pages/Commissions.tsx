@@ -561,12 +561,75 @@ export default function Commissions() {
                 </tr>
               </tfoot>
             )}
+        </div>
+      </div>
+    </TabsContent>
+
+    <TabsContent value="rules" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <div className="vx-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40">
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-6 py-4 text-left font-semibold">Regra Aplicada</th>
+                <th className="px-6 py-4 text-left font-semibold">Evento Disparador</th>
+                <th className="px-6 py-4 text-right font-semibold">Valor</th>
+                <th className="px-6 py-4 text-center font-semibold">Recorrência</th>
+                <th className="px-6 py-4 text-center font-semibold">Liberação</th>
+                <th className="px-6 py-4 text-right font-semibold w-24"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {loadingRules ? (
+                <tr><td colSpan={6} className="px-6 py-16 text-center text-muted-foreground text-sm">Carregando regras...</td></tr>
+              ) : rules.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-16 text-center text-muted-foreground">Nenhuma regra de comissão configurada</td></tr>
+              ) : rules.map((r: any) => (
+                <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-900">
+                        {r.partners?.full_name ?? "Todos Parceiros"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {r.products?.name ?? "Todos os Produtos"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border-slate-200 text-slate-600">
+                      {commissionTriggerEvents.find(e => e.value === r.trigger_event)?.label ?? r.trigger_event}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4 text-right vx-mono font-bold">
+                    {r.rule_type === 'percentage' ? formatPercent(r.value) : formatBRL(r.value)}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {r.is_recurring ? (
+                      <Badge className="bg-blue-50 text-blue-600 border-blue-200">Recorrente</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center text-xs">
+                    {r.release_after_payment ? "Pós Pagamento" : "Imediata"}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       </div>
+    </TabsContent>
+  </Tabs>
 
-      {/* CREATE Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+  {/* DIALOGS */}
+
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">Nova comissão manual</DialogTitle>
