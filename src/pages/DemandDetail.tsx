@@ -221,14 +221,14 @@ export default function DemandDetail() {
                  </div>
                  <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none mb-1">Responsável Técnico</p>
-                    <h3 className="font-bold truncate text-foreground">{demand.service_providers?.name || "Não Delegado"}</h3>
+                    <h3 className="font-bold truncate text-foreground">{(demand.service_providers as any)?.name || "Não Delegado"}</h3>
                  </div>
               </div>
               {demand.service_providers ? (
                 <div className="space-y-4">
                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground font-medium">Especialidade</span>
-                      <span className="font-bold text-foreground">{demand.service_providers.specialty || "—"}</span>
+                      <span className="font-bold text-foreground">{(demand.service_providers as any).specialty || "—"}</span>
                    </div>
                    <Button variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>
                 </div>
