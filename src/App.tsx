@@ -20,6 +20,7 @@ import Commissions from "./pages/Commissions";
 import Documents from "./pages/Documents";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Automations from "./pages/Automations";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
@@ -82,6 +83,7 @@ const App = () => (
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/auditoria" element={<AuditLog />} />
               <Route path="/configuracoes" element={<Settings />} />
+              <Route path="/automacoes" element={<Automations />} />
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Support />} />
               <Route path="/templates" element={<MessageTemplates />} />
