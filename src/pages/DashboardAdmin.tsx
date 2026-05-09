@@ -10,6 +10,7 @@ import {
 import { formatBRL, formatPercent } from "@/lib/format";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -19,12 +20,12 @@ import {
 
 export default function DashboardAdmin() {
   // --- Data Fetching ---
-  const { data: clients = [] } = useQuery({
+  const { data: clients = [], isLoading: loadingClients } = useQuery({
     queryKey: ["admin-dashboard-clients"],
     queryFn: async () => (await supabase.from("clients").select("id, status, source, origin, created_at")).data ?? []
   });
 
-  const { data: clientProducts = [] } = useQuery({
+  const { data: clientProducts = [], isLoading: loadingDemands } = useQuery({
     queryKey: ["admin-dashboard-client-products"],
     queryFn: async () => (await supabase.from("client_products").select("id, status, deadline, service_provider_id, product_id, value, created_at")).data ?? []
   });
@@ -252,9 +253,19 @@ export default function DashboardAdmin() {
 
       {/* KPI GRID */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {stats.kpis.map((kpi, i) => (
-          <MetricTile key={i} {...kpi} />
-        ))}
+        {loadingClients || loadingDemands ? (
+          Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="vx-card p-5 space-y-3">
+              <Skeleton className="size-8 rounded-xl" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-6 w-1/2" />
+            </div>
+          ))
+        ) : (
+          stats.kpis.map((kpi, i) => (
+            <MetricTile key={i} {...kpi} />
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

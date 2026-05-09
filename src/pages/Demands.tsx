@@ -9,6 +9,7 @@ import {
   ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
   MessageSquare
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,7 +231,21 @@ export default function Demands() {
       </div>
 
       {isLoading ? (
-        <div className="p-20 text-center text-muted-foreground animate-pulse">Sincronizando central de operações...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="vx-card p-4 space-y-4">
+              <div className="flex justify-between items-center">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-3 w-2/3" />
+              <div className="pt-2 border-t border-border/40">
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
         <div className="vx-card p-20 text-center border-dashed border-2">
            <ClipboardList className="size-12 text-muted-foreground/20 mx-auto mb-4" />

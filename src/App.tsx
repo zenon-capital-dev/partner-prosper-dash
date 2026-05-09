@@ -48,7 +48,15 @@ import ProviderPerformance from "./pages/ProviderPerformance";
 import Demands from "./pages/Demands";
 import DemandDetail from "./pages/DemandDetail";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
