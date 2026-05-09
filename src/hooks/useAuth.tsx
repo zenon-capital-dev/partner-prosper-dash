@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchRoles = async (userId: string) => {
+    if (!userId) return;
     console.log("Fetching roles for user:", userId);
     try {
       const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
@@ -39,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(roleList);
     } catch (error) {
       console.error("Error fetching roles:", error);
-      setRoles([]);
+      // Don't clear roles on error, just log it
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    let rolesFetched = false;
+    let currentUserId: string | null = null;
 
     const initAuth = async () => {
       try {
@@ -60,8 +61,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(sess);
         setUser(sess?.user ?? null);
         
-        if (sess?.user && !rolesFetched) {
-          rolesFetched = true;
+        if (sess?.user) {
+          currentUserId = sess.user.id;
           await fetchRoles(sess.user.id);
         } else {
           setLoading(false);
@@ -76,7 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
       if (!mounted) return;
-      console.log("Auth state change:", event, sess?.user?.id);
+      
+      const newUserId = sess?.user?.id ?? null;
+      console.log("Auth state change:", event, newUserId);
+
+      // Only re-fetch if user ID changed or explicitly signed in/token refreshed
+      const userChanged = newUserId !== currentUserId;
+      currentUserId = newUserId;
       
       setSession(sess);
       setUser(sess?.user ?? null);
@@ -86,11 +93,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           logAudit("LOGIN", "auth", sess.user.id);
         }
         
-        // Prevent re-fetching roles multiple times on same session mount
-        if (!rolesFetched || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          rolesFetched = true;
+        if (userChanged || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
           setLoading(true);
           await fetchRoles(sess.user.id);
+        } else {
+          setLoading(false);
         }
       } else {
         setRoles([]);
@@ -98,9 +105,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Safety fallback: force loading false after 20s no matter what
+    const fallbackTimer = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn("Auth loading fallback triggered");
+        setLoading(false);
+      }
+    }, 20000);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(fallbackTimer);
     };
   }, []);
 
