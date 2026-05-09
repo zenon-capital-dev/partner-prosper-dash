@@ -327,13 +327,15 @@ export default function PartnerPanel() {
                              </td>
                              <td className="px-8 py-6 text-center">
                                 <span className={cn(
-                                  "vx-pill uppercase tracking-widest text-[9px] min-w-[80px]",
-                                  s.status === 'pago' && "vx-pill-success",
-                                  s.status === 'pendente' && "vx-pill-warning",
-                                  s.status === 'cancelado' && "vx-pill-muted",
+                                  "vx-pill uppercase tracking-widest text-[9px] min-w-[100px]",
+                                  s.workflow_status === 'paga' && "vx-pill-success",
+                                  ['aguardando_confirmacao', 'pendente', 'liberada', 'em_pagamento'].includes(s.workflow_status) && "vx-pill-warning",
+                                  s.workflow_status === 'cancelada' && "vx-pill-muted text-destructive",
+                                  s.workflow_status === 'estornada' && "vx-pill-muted",
                                 )}>
-                                  {s.status === 'pago' ? "Pago" : s.status === 'pendente' ? "Pendente" : "Cancelado"}
+                                  {String(s.workflow_status || 'aguardando_confirmacao').replace(/_/g, ' ')}
                                 </span>
+
                              </td>
                           </tr>
                         ))}
