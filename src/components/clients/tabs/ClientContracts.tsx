@@ -50,6 +50,18 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                   <p className="text-[11px] font-mono font-bold text-emerald-500 tracking-tight">{formatBRL(contract.amount || 0)}</p>
                   <span className="text-[10px] text-muted-foreground">•</span>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{formatDate(contract.created_at)}</p>
+                  {contract.contract_type && (
+                    <>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <p className="text-[10px] text-primary uppercase tracking-widest font-bold">{contract.contract_type.replace(/_/g, ' ')}</p>
+                    </>
+                  )}
+                  {contract.expires_at && (
+                    <>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <p className="text-[10px] text-rose-500 uppercase tracking-widest font-bold">Expira: {formatDate(contract.expires_at)}</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
