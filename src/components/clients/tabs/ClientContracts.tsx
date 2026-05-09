@@ -77,13 +77,17 @@ export function ClientContracts({ clientId }: { clientId: string }) {
 
 function StatusPill({ status }: { status: string }) {
   const map: any = {
+    rascunho: { label: "RASCUNHO", color: "text-slate-500 bg-slate-50" },
     criado: { label: "CRIADO", color: "text-slate-500 bg-slate-50" },
     enviado: { label: "ENVIADO", color: "text-blue-500 bg-blue-50" },
     aguardando_assinatura: { label: "AGUARDANDO", color: "text-amber-500 bg-amber-50" },
     assinado: { label: "ASSINADO", color: "text-emerald-500 bg-emerald-50" },
+    vencido: { label: "VENCIDO", color: "text-rose-500 bg-rose-50" },
     cancelado: { label: "CANCELADO", color: "text-rose-500 bg-rose-50" },
+    finalizado: { label: "FINALIZADO", color: "text-emerald-500 bg-emerald-50" },
+    pendente_correcao: { label: "PENDENTE CORREÇÃO", color: "text-orange-500 bg-orange-50" },
   };
-  const config = map[status] || { label: status, color: "text-slate-500 bg-slate-50" };
+  const config = map[status] || { label: status?.toUpperCase() || "INDEFINIDO", color: "text-slate-500 bg-slate-50" };
   return (
     <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest border border-current", config.color)}>
       {config.label}
