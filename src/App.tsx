@@ -40,6 +40,8 @@ import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 import MessageTemplates from "./pages/MessageTemplates";
 import ProviderReports from "./pages/ProviderReports";
+import Demands from "./pages/Demands";
+import DemandDetail from "./pages/DemandDetail";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,8 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<Dashboard />} />
+              <Route path="/demandas" element={<Demands />} />
+              <Route path="/demandas/:id" element={<DemandDetail />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="/parceiros" element={<Partners />} />
