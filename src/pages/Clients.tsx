@@ -9,7 +9,7 @@ import {
   Filter, Calendar, Building2, MapPin, CreditCard,
   User, Mail, Phone, ShoppingBag
 } from "lucide-react";
-import { formatBRL, initials } from "@/lib/format";
+import { formatBRL, initials, formatDoc } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { PageHero } from "@/components/PageHero";
@@ -397,7 +397,7 @@ export default function Clients() {
                   </td>
                   <td className="px-6 py-5">
                     <div className="space-y-1">
-                      <p className="text-white/60 font-mono text-[11px]">{c.document || "N/A"}</p>
+                      <p className="text-white/60 font-mono text-[11px]">{formatDoc(c.document)}</p>
                       <div className="flex items-center gap-3">
                          <div className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/60 transition-colors cursor-pointer">
                             <Phone className="size-3" /> {c.phone || "N/A"}
