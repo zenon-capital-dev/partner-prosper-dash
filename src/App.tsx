@@ -40,6 +40,7 @@ import NotFound from "./pages/NotFound.tsx";
 import RoleHome from "./components/RoleHome";
 import MessageTemplates from "./pages/MessageTemplates";
 import ProviderReports from "./pages/ProviderReports";
+import ProviderPerformance from "./pages/ProviderPerformance";
 import Demands from "./pages/Demands";
 import DemandDetail from "./pages/DemandDetail";
 
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/colaboradores" element={<Collaborators />} />
               <Route path="/prestadores" element={<Providers />} />
               <Route path="/prestadores/reportes" element={<ProviderReports />} />
+              <Route path="/prestadores/performance" element={<ProviderPerformance />} />
               <Route path="/tarefas" element={<Tasks />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/comissoes" element={<Commissions />} />

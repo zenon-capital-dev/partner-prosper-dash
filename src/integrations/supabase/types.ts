@@ -2732,6 +2732,8 @@ export type Database = {
           document_number: string | null
           email: string | null
           id: string
+          internal_notes: string | null
+          internal_rating: number | null
           name: string
           phone: string | null
           specialty: string | null
@@ -2744,6 +2746,8 @@ export type Database = {
           document_number?: string | null
           email?: string | null
           id?: string
+          internal_notes?: string | null
+          internal_rating?: number | null
           name: string
           phone?: string | null
           specialty?: string | null
@@ -2756,6 +2760,8 @@ export type Database = {
           document_number?: string | null
           email?: string | null
           id?: string
+          internal_notes?: string | null
+          internal_rating?: number | null
           name?: string
           phone?: string | null
           specialty?: string | null
