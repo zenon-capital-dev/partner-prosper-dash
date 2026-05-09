@@ -91,7 +91,53 @@ export default function Demands() {
     };
   }, [demands]);
 
-  return (
+  const KANBAN_COLUMNS = [
+    { id: "aguardando_inicio", label: "Aguardando início" },
+    { id: "aguardando_documentos", label: "Aguardando documentos" },
+    { id: "em_analise", label: "Em análise" },
+    { id: "em_execucao", label: "Em execução" },
+    { id: "pendente_cliente", label: "Pendente com cliente" },
+    { id: "pendente_prestador", label: "Pendente com prestador" },
+    { id: "aguardando_aprovacao", label: "Aguardando aprovação" },
+    { id: "concluido", label: "Concluído" },
+  ];
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const updateData: any = { status };
+      if (status === 'concluido') {
+        updateData.completed_at = new Date().toISOString();
+      }
+      const { error } = await supabase
+        .from("client_products")
+        .update(updateData)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      toast.success("Status atualizado com sucesso");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar status: " + error.message);
+    }
+  });
+
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const { draggableId, destination } = result;
+    const newStatus = destination.droppableId;
+    
+    const demand = demands.find((d: any) => d.id === draggableId);
+    if (!demand || demand.status === newStatus) return;
+
+    if (newStatus === 'concluido') {
+      if (!window.confirm("Deseja marcar esta demanda como concluída?")) return;
+    }
+
+    updateStatusMutation.mutate({ id: draggableId, status: newStatus });
+  };
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
         eyebrow="Operations"
