@@ -254,6 +254,12 @@ export default function AuditLog() {
                           <CalendarIcon className="size-3" />
                           {format(new Date(log.created_at), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
                         </div>
+                        {log.ip_address && (
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Globe className="size-3" />
+                            {log.ip_address}
+                          </div>
+                        )}
                         {log.entity_id && (
                           <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground/60 bg-muted/30 px-1.5 rounded">
                             ID: {log.entity_id.slice(0, 8)}
