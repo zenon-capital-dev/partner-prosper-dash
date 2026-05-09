@@ -36,6 +36,7 @@ export default function DemandDetail() {
   const navigate = useNavigate();
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
+  const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
 
