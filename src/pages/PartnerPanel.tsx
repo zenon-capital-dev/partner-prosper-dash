@@ -456,6 +456,20 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
+function MiniKpi({ label, value, tone }: { label: string; value: number; tone?: "emerald" | "amber" | "rose" }) {
+  const tones: any = {
+    emerald: "text-emerald-600",
+    amber: "text-amber-600",
+    rose: "text-rose-600",
+  };
+  return (
+    <div className="vx-card p-4 bg-white rounded-2xl border-slate-100">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className={cn("text-2xl font-bold mt-1 tabular-nums", tone ? tones[tone] : "text-slate-900")}>{value}</p>
+    </div>
+  );
+}
+
 function PartnerStat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <div className="space-y-2">
