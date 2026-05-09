@@ -31,13 +31,15 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatCard } from "@/components/StatCard";
 
-export type ContractStatus = 'criado' | 'enviado' | 'aguardando_assinatura' | 'assinado' | 'pendente_correcao' | 'cancelado' | 'finalizado';
+export type ContractStatus = 'rascunho' | 'enviado' | 'aguardando_assinatura' | 'assinado' | 'vencido' | 'cancelado' | 'finalizado' | 'criado' | 'pendente_correcao';
 
 const statusConfig: Record<ContractStatus, { label: string; color: string; icon: any }> = {
+  rascunho: { label: "Rascunho", color: "bg-slate-100 text-slate-600 border-slate-200", icon: FileText },
   criado: { label: "Criado", color: "bg-slate-100 text-slate-600 border-slate-200", icon: FileText },
   enviado: { label: "Enviado", color: "bg-info-muted text-info border-info/20", icon: Clock },
   aguardando_assinatura: { label: "Aguar. Assinatura", color: "bg-warning-muted text-warning border-warning/20", icon: FileSignature },
   assinado: { label: "Assinado", color: "bg-success-muted text-success border-success/20", icon: FileCheck2 },
+  vencido: { label: "Vencido", color: "bg-destructive-muted text-destructive border-destructive/20", icon: AlertCircle },
   pendente_correcao: { label: "Pendente correção", color: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
   cancelado: { label: "Cancelado", color: "bg-destructive-muted text-destructive border-destructive/20", icon: Ban },
   finalizado: { label: "Finalizado", color: "bg-primary-muted text-primary border-primary/20", icon: CheckCircle2 },
@@ -59,6 +61,8 @@ export default function Contracts() {
         .select(`
           *,
           clients(id, full_name),
+          partners(id, full_name),
+          service_providers(id, name),
           products(id, name)
         `)
         .order("created_at", { ascending: false });
@@ -172,7 +176,7 @@ export default function Contracts() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  <th className="px-6 py-4 text-left">Contrato / Cliente</th>
+                  <th className="px-6 py-4 text-left">Contrato / Relacionado</th>
                   <th className="px-6 py-4 text-left">Produto</th>
                   <th className="px-6 py-4 text-left">Valor</th>
                   <th className="px-6 py-4 text-left">Status</th>
@@ -194,7 +198,10 @@ export default function Contracts() {
                           </div>
                           <div className="min-w-0">
                             <p className="font-semibold text-foreground truncate">{c.name}</p>
-                            <p className="text-xs text-muted-foreground">{c.clients?.full_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {c.clients?.full_name || c.partners?.full_name || c.service_providers?.name || "Nenhum vínculo"}
+                              {c.contract_type && ` • ${c.contract_type.replace(/_/g, ' ')}`}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -220,6 +227,11 @@ export default function Contracts() {
                           {c.signed_at && (
                             <p className="text-[11px] text-success flex items-center gap-1 font-semibold">
                               <CheckCircle2 className="size-2.5" /> Assinado: {formatDate(c.signed_at)}
+                            </p>
+                          )}
+                          {c.expires_at && (
+                            <p className="text-[11px] text-orange-600 flex items-center gap-1">
+                              <AlertCircle className="size-2.5" /> Validade: {formatDate(c.expires_at)}
                             </p>
                           )}
                         </div>

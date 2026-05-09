@@ -50,6 +50,18 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                   <p className="text-[11px] font-mono font-bold text-emerald-500 tracking-tight">{formatBRL(contract.amount || 0)}</p>
                   <span className="text-[10px] text-muted-foreground">•</span>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{formatDate(contract.created_at)}</p>
+                  {contract.contract_type && (
+                    <>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <p className="text-[10px] text-primary uppercase tracking-widest font-bold">{contract.contract_type.replace(/_/g, ' ')}</p>
+                    </>
+                  )}
+                  {contract.expires_at && (
+                    <>
+                      <span className="text-[10px] text-muted-foreground">•</span>
+                      <p className="text-[10px] text-rose-500 uppercase tracking-widest font-bold">Expira: {formatDate(contract.expires_at)}</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -77,13 +89,17 @@ export function ClientContracts({ clientId }: { clientId: string }) {
 
 function StatusPill({ status }: { status: string }) {
   const map: any = {
+    rascunho: { label: "RASCUNHO", color: "text-slate-500 bg-slate-50" },
     criado: { label: "CRIADO", color: "text-slate-500 bg-slate-50" },
     enviado: { label: "ENVIADO", color: "text-blue-500 bg-blue-50" },
     aguardando_assinatura: { label: "AGUARDANDO", color: "text-amber-500 bg-amber-50" },
     assinado: { label: "ASSINADO", color: "text-emerald-500 bg-emerald-50" },
+    vencido: { label: "VENCIDO", color: "text-rose-500 bg-rose-50" },
     cancelado: { label: "CANCELADO", color: "text-rose-500 bg-rose-50" },
+    finalizado: { label: "FINALIZADO", color: "text-emerald-500 bg-emerald-50" },
+    pendente_correcao: { label: "PENDENTE CORREÇÃO", color: "text-orange-500 bg-orange-50" },
   };
-  const config = map[status] || { label: status, color: "text-slate-500 bg-slate-50" };
+  const config = map[status] || { label: status?.toUpperCase() || "INDEFINIDO", color: "text-slate-500 bg-slate-50" };
   return (
     <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest border border-current", config.color)}>
       {config.label}

@@ -66,7 +66,7 @@ export default function DashboardAdmin() {
 
   const { data: contracts = [] } = useQuery({
     queryKey: ["admin-dashboard-contracts"],
-    queryFn: async () => (await supabase.from("contracts").select("id, client_id")).data ?? []
+    queryFn: async () => (await supabase.from("contracts").select("id, client_id, status")).data ?? []
   });
 
   // --- Statistics Calculation ---
@@ -183,6 +183,14 @@ export default function DashboardAdmin() {
         icon: FileSignature,
         link: '/contratos',
         color: 'text-blue-500'
+      },
+      {
+        id: 'contracts-sign',
+        label: 'Contratos Aguardando Assinatura',
+        count: contracts.filter(c => c.status === 'aguardando_assinatura' || c.status === 'enviado').length,
+        icon: FileSignature,
+        link: '/contratos',
+        color: 'text-orange-500'
       },
       {
         id: 'awaiting',

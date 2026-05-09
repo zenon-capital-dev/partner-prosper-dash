@@ -40,7 +40,7 @@ export default function PartnerPanel() {
         supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(id, amount, sale_date, status, products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
         supabase.from("commissions").select("*, sales(id, amount, sale_date, clients(full_name), products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
 
-        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind").eq("partner_id", partner.id).eq("contract_kind", "parceiro").order("created_at", { ascending: false }),
+        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind, contract_type, expires_at").eq("partner_id", partner.id).order("created_at", { ascending: false }),
       ]);
 
       return {
@@ -413,9 +413,10 @@ export default function PartnerPanel() {
                         <div className="min-w-0">
                           <p className="font-bold truncate">{c.name}</p>
                           <div className="flex gap-2 items-center text-xs text-muted-foreground mt-1">
-                            <Badge variant="outline" className="text-[9px]">{c.status}</Badge>
+                            <Badge variant="outline" className="text-[9px] uppercase tracking-widest">{c.status.replace(/_/g, ' ')}</Badge>
                             <span>·</span>
-                            <span>{formatDate(c.created_at)}</span>
+                            <span>Criado em: {formatDate(c.created_at)}</span>
+                            {c.expires_at && <><span>·</span><span className="text-rose-500 font-bold">Expira: {formatDate(c.expires_at)}</span></>}
                             {c.amount && <><span>·</span><span className="font-bold">{formatBRL(c.amount)}</span></>}
                           </div>
                         </div>

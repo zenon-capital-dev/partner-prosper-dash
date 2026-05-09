@@ -104,6 +104,19 @@ export default function ProviderPanel() {
     },
   });
 
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["provider-contracts", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contracts")
+        .select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_type, expires_at")
+        .eq("provider_id", providerId!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   const stats = useMemo(() => {
     const total = clientProducts.length;
     const concluidos = clientProducts.filter((c: any) => c.status === "concluido" || c.status === "finalizado").length;
@@ -275,6 +288,9 @@ export default function ProviderPanel() {
                 <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
                    Reportes
                 </TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Meus Contratos ({contracts.length})
+                </TabsTrigger>
               </TabsList>
 
               <div className="relative group">
@@ -408,6 +424,57 @@ export default function ProviderPanel() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="contratos" className="animate-fade-up">
+              {contracts.length === 0 ? (
+                <EmptyState message="Nenhum contrato disponível no momento." />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {contracts.map((c: any) => (
+                    <div key={c.id} className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <FileText className="size-5" />
+                        </div>
+                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest">{c.status.replace(/_/g, ' ')}</Badge>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white truncate">{c.name}</h4>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">
+                          {c.contract_type?.replace(/_/g, ' ') || "Contrato Geral"}
+                        </p>
+                      </div>
+                      <div className="pt-4 border-t border-slate-50 dark:border-white/5 space-y-2">
+                        <p className="text-xs text-muted-foreground flex items-center justify-between">
+                          <span>Criado em:</span>
+                          <span className="font-bold text-slate-700 dark:text-slate-300">{formatDate(c.created_at)}</span>
+                        </p>
+                        {c.expires_at && (
+                          <p className="text-xs text-rose-500 flex items-center justify-between">
+                            <span>Vencimento:</span>
+                            <span className="font-bold">{formatDate(c.expires_at)}</span>
+                          </p>
+                        )}
+                        {c.amount && (
+                          <p className="text-xs text-emerald-500 flex items-center justify-between">
+                            <span>Valor:</span>
+                            <span className="font-bold">{formatBRL(c.amount)}</span>
+                          </p>
+                        )}
+                      </div>
+                      {c.file_path && (
+                        <Button 
+                          className="w-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-white transition-all rounded-xl"
+                          onClick={() => handleDownload(c.file_path, c.name)}
+                        >
+                          <Download className="size-4 mr-2" /> Baixar Contrato
+                        </Button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </TabsContent>

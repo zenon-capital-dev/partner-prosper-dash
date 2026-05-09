@@ -35,8 +35,12 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: editContract.internal_notes || "",
           product_id: editContract.product_id || "none",
           sale_id: editContract.sale_id || "none",
+          contract_type: editContract.contract_type || "none",
+          expires_at: editContract.expires_at ? editContract.expires_at.split('T')[0] : "",
+          partner_id: editContract.partner_id || "none",
+          provider_id: editContract.provider_id || "none",
         });
-        setSelectedClientId(editContract.client_id);
+        setSelectedClientId(editContract.client_id || "none");
       } else {
         setForm({
           name: "",
@@ -44,8 +48,12 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
           description: "",
           product_id: "none",
           sale_id: "none",
+          contract_type: "none",
+          expires_at: "",
+          partner_id: "none",
+          provider_id: "none",
         });
-        setSelectedClientId(propClientId || "");
+        setSelectedClientId(propClientId || "none");
       }
     }
   }, [open, editContract, propClientId]);
@@ -82,8 +90,25 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
     enabled: open,
   });
 
+  const { data: partners } = useQuery({
+    queryKey: ["partners-list-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name");
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
+  const { data: providers } = useQuery({
+    queryKey: ["providers-list-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name");
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
   const submit = async () => {
-    if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do contrato é obrigatório"); return; }
     
     setSubmitting(true);
@@ -92,25 +117,30 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     const file = fileRef.current?.files?.[0];
     if (file) {
-      const path = `${clientId}/${Date.now()}-${file.name}`;
+      const targetId = selectedClientId !== "none" ? selectedClientId : (form.partner_id !== "none" ? form.partner_id : (form.provider_id !== "none" ? form.provider_id : "general"));
+      const path = `${targetId}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("contracts").upload(path, file);
       if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
       file_path = path;
     }
 
-    const payload = {
-      client_id: clientId,
+    const payload: any = {
+      client_id: selectedClientId === "none" ? null : selectedClientId,
+      partner_id: form.partner_id === "none" ? null : form.partner_id,
+      provider_id: form.provider_id === "none" ? null : form.provider_id,
       name: form.name,
       amount: form.amount ? Number(form.amount) : null,
       internal_notes: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
+      contract_type: form.contract_type === "none" ? null : form.contract_type,
+      expires_at: form.expires_at || null,
       file_path,
     };
 
     const { error } = editContract 
       ? await supabase.from("contracts").update(payload).eq("id", editContract.id)
-      : await supabase.from("contracts").insert({ ...payload, status: 'criado' });
+      : await supabase.from("contracts").insert({ ...payload, status: 'rascunho' });
 
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
@@ -132,19 +162,86 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
         </DialogHeader>
         
         <div className="space-y-4 py-2">
-          {!propClientId && !editContract && (
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Cliente *</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <Label>Tipo de Contrato</Label>
+              <Select 
+                value={form.contract_type || "none"} 
+                onValueChange={(v) => setForm({ ...form, contract_type: v })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
-                  ))}
+                  <SelectItem value="none">Não definido</SelectItem>
+                  <SelectItem value="cliente">Contrato com cliente</SelectItem>
+                  <SelectItem value="parceiro">Contrato com parceiro</SelectItem>
+                  <SelectItem value="prestador">Contrato com prestador</SelectItem>
+                  <SelectItem value="produto">Contrato por produto</SelectItem>
+                  <SelectItem value="termo_servico">Termo de prestação de serviço</SelectItem>
+                  <SelectItem value="procuracao">Procuração</SelectItem>
+                  <SelectItem value="termo_confidencialidade">Termo de confidencialidade</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Validade / Expiração</Label>
+              <Input 
+                type="date" 
+                value={form.expires_at || ""} 
+                onChange={(e) => setForm({ ...form, expires_at: e.target.value })} 
+              />
+            </div>
+          </div>
+
+          {!editContract && (
+            <div className="space-y-4 border-y py-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Relacionado a:</p>
+              
+              <div className="space-y-2">
+                <Label>Cliente</Label>
+                <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cliente (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {clients?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Parceiro</Label>
+                <Select value={form.partner_id || "none"} onValueChange={(v) => setForm({ ...form, partner_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o parceiro (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {partners?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Prestador</Label>
+                <Select value={form.provider_id || "none"} onValueChange={(v) => setForm({ ...form, provider_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o prestador (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhum</SelectItem>
+                    {providers?.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 
