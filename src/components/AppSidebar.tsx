@@ -142,6 +142,7 @@ const adminSections: NavSection[] = [
     icon: Cog,
     items: [
       { title: "Usuários e Acessos", url: "/usuarios", icon: UserCog },
+      { title: "Automações", url: "/automacoes", icon: Zap },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },
