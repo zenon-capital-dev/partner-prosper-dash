@@ -8,7 +8,7 @@ import {
   AlertCircle, CheckCircle2, FileText, 
   MessageSquare, History, ListChecks, 
   Calendar, ShieldAlert, Paperclip, ArrowRight,
-  PauseCircle, PlayCircle, AlertTriangle
+  PauseCircle, PlayCircle, AlertTriangle, FileCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
