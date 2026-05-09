@@ -21,6 +21,9 @@ import Documents from "./pages/Documents";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Automations from "./pages/Automations";
+import ProviderDetail from "./pages/ProviderDetail";
+import PartnerDetail from "./pages/PartnerDetail";
+import AdminProfile from "./pages/AdminProfile";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
@@ -66,6 +69,7 @@ const App = () => (
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="/parceiros" element={<Partners />} />
+              <Route path="/parceiros/:id" element={<PartnerDetail />} />
               <Route path="/produtos" element={<Products />} />
               <Route path="/indicadores" element={<Indicators />} />
               <Route path="/projetos" element={<Projects />} />
@@ -74,6 +78,8 @@ const App = () => (
               <Route path="/prestadores" element={<Providers />} />
               <Route path="/prestadores/reportes" element={<ProviderReports />} />
               <Route path="/prestadores/performance" element={<ProviderPerformance />} />
+              <Route path="/prestadores/:id" element={<ProviderDetail />} />
+              <Route path="/perfil" element={<AdminProfile />} />
               <Route path="/tarefas" element={<Tasks />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/comissoes" element={<Commissions />} />
