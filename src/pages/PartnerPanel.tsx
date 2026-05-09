@@ -95,8 +95,9 @@ export default function PartnerPanel() {
 
   const paidHistory = useMemo(() => {
     if (!data) return [];
-    return data.splits
-      .filter((s: any) => s.status === "pago")
+    return data.commissions
+      .filter((s: any) => s.workflow_status === "paga")
+
       .sort((a: any, b: any) => new Date(b.paid_at || b.updated_at || b.created_at).getTime() - new Date(a.paid_at || a.updated_at || a.created_at).getTime());
   }, [data]);
 
