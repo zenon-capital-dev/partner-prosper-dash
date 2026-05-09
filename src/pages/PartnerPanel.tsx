@@ -413,9 +413,10 @@ export default function PartnerPanel() {
                         <div className="min-w-0">
                           <p className="font-bold truncate">{c.name}</p>
                           <div className="flex gap-2 items-center text-xs text-muted-foreground mt-1">
-                            <Badge variant="outline" className="text-[9px]">{c.status}</Badge>
+                            <Badge variant="outline" className="text-[9px] uppercase tracking-widest">{c.status.replace(/_/g, ' ')}</Badge>
                             <span>·</span>
-                            <span>{formatDate(c.created_at)}</span>
+                            <span>Criado em: {formatDate(c.created_at)}</span>
+                            {c.expires_at && <><span>·</span><span className="text-rose-500 font-bold">Expira: {formatDate(c.expires_at)}</span></>}
                             {c.amount && <><span>·</span><span className="font-bold">{formatBRL(c.amount)}</span></>}
                           </div>
                         </div>
