@@ -288,6 +288,9 @@ export default function ProviderPanel() {
                 <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
                    Reportes
                 </TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Meus Contratos ({contracts.length})
+                </TabsTrigger>
               </TabsList>
 
               <div className="relative group">
