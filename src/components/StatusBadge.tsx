@@ -28,6 +28,9 @@ export function statusTone(status?: string | null): Tone {
   if (/(andamento|analise|an[áa]lise|enviado|em_revisao|processando|aguardando)/.test(s)) return "info";
   if (/(pendente|aguardando_inicio|solicitado|rascunho|criado|aguardando_documentos)/.test(s)) return "warning";
   if (/(atrasado|reprovado|rejeitado|cancelado|inadimplente|expirado|vencido|falha|erro|bloqueado|pendente_correcao)/.test(s)) return "danger";
+  if (/(atencao|atenção|alerta|vence_hoje)/.test(s)) return "warning";
+  if (/(no_prazo|dentro_do_prazo|regular)/.test(s)) return "success";
+  if (/(pausado|suspenso|interrompido)/.test(s)) return "neutral";
   if (/(prioridade_alta|destaque|premium)/.test(s)) return "primary";
   return "neutral";
 }

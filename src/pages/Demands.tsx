@@ -372,9 +372,11 @@ export default function Demands() {
               {filtered.map((d: any) => {
                 const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
                 const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
+                const isOverdue = d.sla_due_date && new Date(d.sla_due_date) < new Date() && d.status !== 'concluido';
+                const daysLeft = d.sla_due_date ? Math.ceil((new Date(d.sla_due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
                 
                 return (
-                  <tr key={d.id} className="vx-table-row group">
+                  <tr key={d.id} className={cn("vx-table-row group", isOverdue && "bg-rose-500/[0.02]")}>
                     <td className="vx-table-cell">
                       <div className="flex flex-col">
                         <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer" onClick={() => navigate(`/demandas/${d.id}`)}>
@@ -415,8 +417,14 @@ export default function Demands() {
                     </td>
                     <td className="vx-table-cell">
                       <div className="flex flex-col">
-                        <span className="text-xs font-mono">{d.deadline ? formatDate(d.deadline) : "Sem prazo"}</span>
-                        <span className="text-[9px] text-muted-foreground">Início: {formatDate(d.created_at)}</span>
+                        <span className={cn("text-xs font-bold tabular-nums", isOverdue ? "text-rose-500" : "text-foreground")}>
+                          {d.sla_due_date ? formatDate(d.sla_due_date) : "—"}
+                        </span>
+                        {daysLeft !== null && (
+                          <span className={cn("text-[9px] font-black uppercase", isOverdue ? "text-rose-500" : "text-muted-foreground")}>
+                            {isOverdue ? `${Math.abs(daysLeft)} dias de atraso` : `${daysLeft} dias restantes`}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="vx-table-cell text-right">

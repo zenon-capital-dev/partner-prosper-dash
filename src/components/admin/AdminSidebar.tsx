@@ -27,6 +27,7 @@ const SECTIONS: NavSection[] = [
     items: [
       { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "SLA e Prazos", url: "/sla", icon: Zap },
       { title: "Logs e Auditoria", url: "/auditoria", icon: History },
     ],
   },

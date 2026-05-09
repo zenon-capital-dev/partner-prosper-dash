@@ -14,6 +14,9 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 
+import { calculateSLA } from "@/lib/sla";
+import { AutoStatusBadge } from "@/components/StatusBadge";
+
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,7 +29,7 @@ export default function DemandDetail() {
         .select(`
           *,
           clients(id, full_name, email, phone, company, document),
-          products(id, name, description),
+          products(id, name, description, sla_day_type),
           service_providers:service_provider_id(id, name, specialty),
           documents(*)
         `)
@@ -60,6 +63,13 @@ export default function DemandDetail() {
     alta: "bg-orange-50 text-orange-600",
     urgente: "bg-rose-50 text-rose-600",
   };
+
+  const sla = calculateSLA(
+    demand.sla_start_date || demand.created_at,
+    demand.sla_due_date,
+    demand.status,
+    (demand.products as any)?.sla_day_type || 'working'
+  );
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
@@ -98,11 +108,19 @@ export default function DemandDetail() {
                     </Badge>
                  </div>
                  <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Prazo Fatal</p>
-                    <p className="text-sm font-bold text-foreground flex items-center gap-2">
-                       <Clock className="size-3.5 text-muted-foreground" />
-                       {demand.deadline ? formatDate(demand.deadline) : "Nenhum"}
-                    </p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Controle de SLA</p>
+                    <div className="flex flex-col gap-1">
+                      <AutoStatusBadge status={sla?.status} className="h-5 text-[9px] w-fit" />
+                      <p className={cn("text-sm font-bold flex items-center gap-2", sla?.isOverdue ? "text-rose-500" : "text-foreground")}>
+                         <Clock className="size-3.5" />
+                         {sla?.dueDate ? formatDate(sla.dueDate.toISOString()) : "Nenhum"}
+                      </p>
+                      {sla?.daysRemaining !== null && (
+                        <p className={cn("text-[9px] font-black uppercase tracking-tight", sla?.isOverdue ? "text-rose-500" : "text-muted-foreground")}>
+                           {sla.isOverdue ? `${Math.abs(sla.daysRemaining)} dias de atraso` : `${sla.daysRemaining} dias restantes`}
+                        </p>
+                      )}
+                    </div>
                  </div>
                  <div className="space-y-1.5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Valor Negociado</p>

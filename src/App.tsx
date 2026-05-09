@@ -47,6 +47,7 @@ import ProviderReports from "./pages/ProviderReports";
 import ProviderPerformance from "./pages/ProviderPerformance";
 import Demands from "./pages/Demands";
 import DemandDetail from "./pages/DemandDetail";
+import SLAPages from "./pages/SLAPages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/financeiro" element={<Finance />} />
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/auditoria" element={<AuditLog />} />
+              <Route path="/sla" element={<SLAPages />} />
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="/automacoes" element={<Automations />} />
               <Route path="/usuarios" element={<UsersPage />} />
