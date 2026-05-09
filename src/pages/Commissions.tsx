@@ -26,24 +26,25 @@ import {
 import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 
-type StatusFilter = "all" | "gerada" | "em_analise" | "aprovada" | "paga" | "cancelada" | "bloqueada";
+type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "cancelada" | "estornada";
 
 const statusBadge: Record<string, string> = {
-  gerada: "bg-blue-50 text-blue-600 border-blue-200",
-  em_analise: "bg-indigo-50 text-indigo-600 border-indigo-200",
-  aprovada: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  aguardando_confirmacao: "bg-blue-50 text-blue-600 border-blue-200",
+  pendente: "bg-amber-50 text-amber-600 border-amber-200",
+  liberada: "bg-indigo-50 text-indigo-600 border-indigo-200",
+  em_pagamento: "bg-purple-50 text-purple-600 border-purple-200",
   paga: "bg-emerald-100 text-emerald-800 border-emerald-300",
   cancelada: "bg-destructive/10 text-destructive border-destructive/20",
-  bloqueada: "bg-muted text-muted-foreground border-border",
+  estornada: "bg-slate-100 text-slate-600 border-slate-300",
 };
 
-const commissionTypes = [
-  { value: "percentual", label: "Percentual" },
-  { value: "valor_fixo", label: "Valor Fixo" },
-  { value: "recorrente", label: "Recorrente" },
-  { value: "unica", label: "Única" },
-  { value: "personalizada", label: "Personalizada" },
+const commissionTriggerEvents = [
+  { value: "first_sale", label: "Primeira Venda" },
+  { value: "renewal", label: "Renovação" },
+  { value: "recurrence", label: "Recorrência" },
+  { value: "single_payment", label: "Pagamento Único" },
 ];
+
 
 export default function Commissions() {
   const qc = useQueryClient();
