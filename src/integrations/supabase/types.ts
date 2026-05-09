@@ -1372,6 +1372,70 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_alerts: {
+        Row: {
+          alert_type: string
+          client_id: string | null
+          commission_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string | null
+          payment_id: string | null
+          resolved_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          client_id?: string | null
+          commission_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          payment_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          client_id?: string | null
+          commission_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          payment_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_alerts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_alerts_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_alerts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_history: {
         Row: {
           action: string
@@ -1815,6 +1879,7 @@ export type Database = {
         Row: {
           amount: number
           amount_paid: number | null
+          cancellation_reason: string | null
           client_id: string
           client_product_id: string | null
           created_at: string | null
@@ -1822,9 +1887,15 @@ export type Database = {
           id: string
           installment_number: number | null
           installments_count: number | null
+          is_recurring: boolean | null
           notes: string | null
           paid_at: string | null
           payment_method: string | null
+          product_id: string | null
+          receipt_url: string | null
+          recurrence_period: string | null
+          refund_amount: number | null
+          refunded_at: string | null
           sale_id: string
           status: Database["public"]["Enums"]["payment_status"]
           updated_at: string | null
@@ -1832,6 +1903,7 @@ export type Database = {
         Insert: {
           amount: number
           amount_paid?: number | null
+          cancellation_reason?: string | null
           client_id: string
           client_product_id?: string | null
           created_at?: string | null
@@ -1839,9 +1911,15 @@ export type Database = {
           id?: string
           installment_number?: number | null
           installments_count?: number | null
+          is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
           payment_method?: string | null
+          product_id?: string | null
+          receipt_url?: string | null
+          recurrence_period?: string | null
+          refund_amount?: number | null
+          refunded_at?: string | null
           sale_id: string
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string | null
@@ -1849,6 +1927,7 @@ export type Database = {
         Update: {
           amount?: number
           amount_paid?: number | null
+          cancellation_reason?: string | null
           client_id?: string
           client_product_id?: string | null
           created_at?: string | null
@@ -1856,9 +1935,15 @@ export type Database = {
           id?: string
           installment_number?: number | null
           installments_count?: number | null
+          is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
           payment_method?: string | null
+          product_id?: string | null
+          receipt_url?: string | null
+          recurrence_period?: string | null
+          refund_amount?: number | null
+          refunded_at?: string | null
           sale_id?: string
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string | null
@@ -1877,6 +1962,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "client_products"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "payments_sale_id_fkey"
@@ -2788,6 +2887,9 @@ export type Database = {
         | "atrasado"
         | "cancelado"
         | "reembolsado"
+        | "parcial"
+        | "vencido"
+        | "em_aberto"
       project_status:
         | "previsto"
         | "ativo"
@@ -2996,6 +3098,9 @@ export const Constants = {
         "atrasado",
         "cancelado",
         "reembolsado",
+        "parcial",
+        "vencido",
+        "em_aberto",
       ],
       project_status: [
         "previsto",
