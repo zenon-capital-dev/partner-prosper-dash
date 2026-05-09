@@ -359,6 +359,47 @@ export type Database = {
           },
         ]
       }
+      client_product_quality_checks: {
+        Row: {
+          adjustment_deadline: string | null
+          client_product_id: string | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          internal_notes: string | null
+          reviewer_id: string | null
+          status: string
+        }
+        Insert: {
+          adjustment_deadline?: string | null
+          client_product_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          internal_notes?: string | null
+          reviewer_id?: string | null
+          status: string
+        }
+        Update: {
+          adjustment_deadline?: string | null
+          client_product_id?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          internal_notes?: string | null
+          reviewer_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_quality_checks_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_product_status_reports: {
         Row: {
           attachments: Json
@@ -471,6 +512,9 @@ export type Database = {
       }
       client_products: {
         Row: {
+          adjustment_description: string | null
+          adjustment_due_date: string | null
+          adjustment_notes: string | null
           client_id: string
           created_at: string | null
           current_step_id: string | null
@@ -502,6 +546,9 @@ export type Database = {
           value: number | null
         }
         Insert: {
+          adjustment_description?: string | null
+          adjustment_due_date?: string | null
+          adjustment_notes?: string | null
           client_id: string
           created_at?: string | null
           current_step_id?: string | null
@@ -533,6 +580,9 @@ export type Database = {
           value?: number | null
         }
         Update: {
+          adjustment_description?: string | null
+          adjustment_due_date?: string | null
+          adjustment_notes?: string | null
           client_id?: string
           created_at?: string | null
           current_step_id?: string | null

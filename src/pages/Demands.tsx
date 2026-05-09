@@ -97,9 +97,8 @@ export default function Demands() {
     { id: "aguardando_documentos", label: "Aguardando documentos" },
     { id: "em_analise", label: "Em análise" },
     { id: "em_execucao", label: "Em execução" },
-    { id: "pendente_cliente", label: "Pendente com cliente" },
-    { id: "pendente_prestador", label: "Pendente com prestador" },
-    { id: "aguardando_aprovacao", label: "Aguardando aprovação" },
+    { id: "ajuste_solicitado", label: "Ajuste Solicitado" },
+    { id: "aguardando_aprovacao_final", label: "Revisão Final" },
     { id: "concluido", label: "Concluído" },
   ];
 

@@ -8,7 +8,7 @@ import {
   AlertCircle, CheckCircle2, FileText, 
   MessageSquare, History, ListChecks, 
   Calendar, ShieldAlert, Paperclip, ArrowRight,
-  PauseCircle, PlayCircle, AlertTriangle
+  PauseCircle, PlayCircle, AlertTriangle, FileCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
+import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -35,6 +36,7 @@ export default function DemandDetail() {
   const navigate = useNavigate();
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
+  const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
 
@@ -123,6 +125,16 @@ export default function DemandDetail() {
                  {demand.status === 'pausado' ? <PlayCircle className="size-4" /> : <PauseCircle className="size-4" />}
                  {demand.status === 'pausado' ? "Retomar Demanda" : "Pausar Demanda"}
                </DropdownMenuItem>
+
+               {(demand.status === 'aguardando_aprovacao_final' || demand.status === 'em_execucao' || demand.status === 'ajuste_solicitado') && (
+                 <DropdownMenuItem 
+                   onClick={() => setQualityDialogOpen(true)}
+                   className="gap-2 cursor-pointer text-primary focus:text-primary/80"
+                 >
+                   <FileCheck className="size-4" /> Controle de Qualidade
+                 </DropdownMenuItem>
+               )}
+
                <DropdownMenuItem 
                  onClick={() => setDelayDialogOpen(true)}
                  className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700"
@@ -145,9 +157,18 @@ export default function DemandDetail() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                  <div className="space-y-1.5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Status Atual</p>
-                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
-                       {demand.status?.replace('_', ' ')}
-                    </Badge>
+                     <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
+                        {demand.status?.replace(/_/g, ' ')}
+                     </Badge>
+                     {demand.status === 'ajuste_solicitado' && (
+                       <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                         <p className="text-[9px] font-black uppercase text-amber-600 mb-1">Ajuste Solicitado</p>
+                         <p className="text-[11px] text-amber-700 font-medium italic">"{demand.adjustment_description}"</p>
+                         {demand.adjustment_due_date && (
+                           <p className="text-[9px] font-bold text-amber-600/60 mt-2">Prazo: {formatDate(demand.adjustment_due_date)}</p>
+                         )}
+                       </div>
+                     )}
                  </div>
                  <div className="space-y-1.5">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Controle de SLA</p>
@@ -331,6 +352,11 @@ export default function DemandDetail() {
         open={delayDialogOpen} 
         onOpenChange={setDelayDialogOpen} 
         demandId={demand.id} 
+      />
+      <QualityApprovalDialog
+        open={qualityDialogOpen}
+        onOpenChange={setQualityDialogOpen}
+        demandId={demand.id}
       />
     </div>
   );
