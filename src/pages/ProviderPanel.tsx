@@ -104,6 +104,19 @@ export default function ProviderPanel() {
     },
   });
 
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["provider-contracts", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contracts")
+        .select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_type, expires_at")
+        .eq("provider_id", providerId!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   const stats = useMemo(() => {
     const total = clientProducts.length;
     const concluidos = clientProducts.filter((c: any) => c.status === "concluido" || c.status === "finalizado").length;
