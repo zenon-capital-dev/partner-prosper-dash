@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { LogOut, RefreshCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
@@ -35,15 +37,17 @@ export default function AppLayout() {
         
         {showTimeout ? (
           <div className="animate-fade-up max-w-sm">
-            <h3 className="text-lg font-bold mb-2">Identificamos um atraso...</h3>
-            <p className="text-sm text-muted-foreground mb-6">Não conseguimos carregar suas permissões a tempo. Pode ser instabilidade na conexão.</p>
+            <h3 className="text-xl font-bold mb-2 text-foreground">Identificamos um atraso...</h3>
+            <p className="text-sm text-muted-foreground mb-8 px-4">
+              Não conseguimos carregar suas permissões a tempo. Pode ser instabilidade na conexão.
+            </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => window.location.reload()} className="btn-premium py-2 px-6 rounded-xl text-sm font-bold">
-                Tentar Novamente
-              </button>
-              <button onClick={() => signOut()} className="text-sm font-medium text-muted-foreground hover:text-foreground underline">
-                Sair do sistema
-              </button>
+              <Button onClick={() => window.location.reload()} size="lg" className="w-full">
+                <RefreshCcw className="size-4 mr-2" /> Tentar Novamente
+              </Button>
+              <Button onClick={() => signOut()} variant="ghost" size="lg" className="w-full text-muted-foreground hover:text-foreground">
+                <LogOut className="size-4 mr-2" /> Sair do sistema
+              </Button>
             </div>
           </div>
         ) : (
