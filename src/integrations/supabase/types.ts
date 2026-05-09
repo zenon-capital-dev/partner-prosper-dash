@@ -396,6 +396,7 @@ export type Database = {
           custom_product_name: string | null
           custom_value: number | null
           deadline: string | null
+          delay_reason: string | null
           discount: number | null
           employee_commission: number | null
           end_date: string | null
@@ -409,6 +410,9 @@ export type Database = {
           responsible_employee_id: string | null
           responsible_provider_id: string | null
           service_provider_id: string | null
+          sla_due_date: string | null
+          sla_start_date: string | null
+          sla_status: string | null
           start_date: string | null
           status: string | null
           updated_at: string | null
@@ -422,6 +426,7 @@ export type Database = {
           custom_product_name?: string | null
           custom_value?: number | null
           deadline?: string | null
+          delay_reason?: string | null
           discount?: number | null
           employee_commission?: number | null
           end_date?: string | null
@@ -435,6 +440,9 @@ export type Database = {
           responsible_employee_id?: string | null
           responsible_provider_id?: string | null
           service_provider_id?: string | null
+          sla_due_date?: string | null
+          sla_start_date?: string | null
+          sla_status?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
@@ -448,6 +456,7 @@ export type Database = {
           custom_product_name?: string | null
           custom_value?: number | null
           deadline?: string | null
+          delay_reason?: string | null
           discount?: number | null
           employee_commission?: number | null
           end_date?: string | null
@@ -461,6 +470,9 @@ export type Database = {
           responsible_employee_id?: string | null
           responsible_provider_id?: string | null
           service_provider_id?: string | null
+          sla_due_date?: string | null
+          sla_start_date?: string | null
+          sla_status?: string | null
           start_date?: string | null
           status?: string | null
           updated_at?: string | null
@@ -2380,6 +2392,7 @@ export type Database = {
           default_commission_percent: number | null
           default_employee_commission: number | null
           default_provider_value: number | null
+          default_sla_days: number | null
           description: string | null
           doc_allowed_types: string[] | null
           doc_max_size_mb: number | null
@@ -2387,6 +2400,7 @@ export type Database = {
           name: string
           recurring: boolean
           required_documents: Json | null
+          sla_day_type: string | null
           standard_steps: Json | null
           updated_at: string
         }
@@ -2401,6 +2415,7 @@ export type Database = {
           default_commission_percent?: number | null
           default_employee_commission?: number | null
           default_provider_value?: number | null
+          default_sla_days?: number | null
           description?: string | null
           doc_allowed_types?: string[] | null
           doc_max_size_mb?: number | null
@@ -2408,6 +2423,7 @@ export type Database = {
           name: string
           recurring?: boolean
           required_documents?: Json | null
+          sla_day_type?: string | null
           standard_steps?: Json | null
           updated_at?: string
         }
@@ -2422,6 +2438,7 @@ export type Database = {
           default_commission_percent?: number | null
           default_employee_commission?: number | null
           default_provider_value?: number | null
+          default_sla_days?: number | null
           description?: string | null
           doc_allowed_types?: string[] | null
           doc_max_size_mb?: number | null
@@ -2429,6 +2446,7 @@ export type Database = {
           name?: string
           recurring?: boolean
           required_documents?: Json | null
+          sla_day_type?: string | null
           standard_steps?: Json | null
           updated_at?: string
         }
@@ -3090,6 +3108,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_sla_due_date: {
+        Args: { day_type: string; days_to_add: number; start_date: string }
+        Returns: string
+      }
       check_overdue_documents: { Args: never; Returns: undefined }
       check_pending_commissions: { Args: never; Returns: undefined }
       create_notification: {
