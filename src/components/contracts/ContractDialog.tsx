@@ -124,19 +124,23 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
       file_path = path;
     }
 
-    const payload = {
-      client_id: clientId,
+    const payload: any = {
+      client_id: selectedClientId === "none" ? null : selectedClientId,
+      partner_id: form.partner_id === "none" ? null : form.partner_id,
+      provider_id: form.provider_id === "none" ? null : form.provider_id,
       name: form.name,
       amount: form.amount ? Number(form.amount) : null,
       internal_notes: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
+      contract_type: form.contract_type === "none" ? null : form.contract_type,
+      expires_at: form.expires_at || null,
       file_path,
     };
 
     const { error } = editContract 
       ? await supabase.from("contracts").update(payload).eq("id", editContract.id)
-      : await supabase.from("contracts").insert({ ...payload, status: 'criado' });
+      : await supabase.from("contracts").insert({ ...payload, status: 'rascunho' });
 
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
