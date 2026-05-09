@@ -1138,6 +1138,7 @@ export type Database = {
       }
       documents: {
         Row: {
+          approved_by: string | null
           client_id: string
           client_product_id: string | null
           created_at: string
@@ -1147,6 +1148,7 @@ export type Database = {
           file_size: number | null
           id: string
           internal_notes: string | null
+          is_public: boolean | null
           is_required: boolean
           mime_type: string | null
           name: string
@@ -1162,6 +1164,7 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          approved_by?: string | null
           client_id: string
           client_product_id?: string | null
           created_at?: string
@@ -1171,6 +1174,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           internal_notes?: string | null
+          is_public?: boolean | null
           is_required?: boolean
           mime_type?: string | null
           name: string
@@ -1186,6 +1190,7 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          approved_by?: string | null
           client_id?: string
           client_product_id?: string | null
           created_at?: string
@@ -1195,6 +1200,7 @@ export type Database = {
           file_size?: number | null
           id?: string
           internal_notes?: string | null
+          is_public?: boolean | null
           is_required?: boolean
           mime_type?: string | null
           name?: string
