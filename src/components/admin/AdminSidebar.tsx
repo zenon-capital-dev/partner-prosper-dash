@@ -259,30 +259,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       </aside>
 
 
-      <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
-        <CommandInput placeholder="Comandos, páginas, ações..." />
-        <CommandList>
-          <CommandEmpty>Nenhum resultado.</CommandEmpty>
-          <CommandGroup heading="Navegação">
-            {allItems.map((item) => (
-              <CommandItem
-                key={item.url}
-                onSelect={() => {
-                  navigate(item.url);
-                  setCmdOpen(false);
-                }}
-                className="gap-3"
-              >
-                <item.icon className="size-4 text-muted-foreground" />
-                <span className="flex-1">{item.title}</span>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">
-                  {item.group}
-                </span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
-      </CommandDialog>
+      <GlobalSearch open={cmdOpen} onOpenChange={setCmdOpen} navItems={allItems} />
     </>
   );
 }
