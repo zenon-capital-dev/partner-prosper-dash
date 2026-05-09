@@ -1015,6 +1015,47 @@ export type Database = {
           },
         ]
       }
+      demand_comments: {
+        Row: {
+          attachments: Json | null
+          author_id: string
+          client_product_id: string
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["comment_visibility"]
+        }
+        Insert: {
+          attachments?: Json | null
+          author_id: string
+          client_product_id: string
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["comment_visibility"]
+        }
+        Update: {
+          attachments?: Json | null
+          author_id?: string
+          client_product_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["comment_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_comments_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_history: {
         Row: {
           created_at: string | null
@@ -2657,6 +2698,7 @@ export type Database = {
       beneficiary_type: "partner" | "referrer" | "collaborator"
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status: "ativo" | "inativo" | "prospecto"
+      comment_visibility: "internal" | "provider" | "client" | "system"
       commission_status: "pendente" | "pago" | "cancelado"
       commission_status_enum:
         | "gerada"
@@ -2852,6 +2894,7 @@ export const Constants = {
       beneficiary_type: ["partner", "referrer", "collaborator"],
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
       client_status: ["ativo", "inativo", "prospecto"],
+      comment_visibility: ["internal", "provider", "client", "system"],
       commission_status: ["pendente", "pago", "cancelado"],
       commission_status_enum: [
         "gerada",
