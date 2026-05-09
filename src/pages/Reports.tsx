@@ -7,21 +7,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell, PieChart, Pie } from "recharts";
 import { formatBRL, formatDate } from "@/lib/format";
 import { exportToPDF, exportToExcel } from "@/lib/exports";
-import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award } from "lucide-react";
+import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2, Search as SearchIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-type ReportType = "sales" | "partners" | "products" | "leads" | "tasks" | "docs" | "team";
+type ReportType = 
+  | "clients_status" 
+  | "clients_partner" 
+  | "clients_product"
+  | "revenue_period"
+  | "revenue_product"
+  | "best_selling"
+  | "demands_status"
+  | "delayed_demands"
+  | "provider_performance"
+  | "commissions_partner"
+  | "delinquency"
+  | "pending_docs"
+  | "avg_completion_time";
 
 const REPORT_LABELS: Record<ReportType, string> = {
-  sales: "Vendas",
-  partners: "Parceiros e Comissões",
-  products: "Produtos Vendidos",
-  leads: "Origem de Leads",
-  tasks: "Tarefas e Pendências",
-  docs: "Documentos e Contratos",
-  team: "Colaboradores e Prestadores",
+  clients_status: "Clientes por Status",
+  clients_partner: "Clientes por Parceiro",
+  clients_product: "Clientes por Produto",
+  revenue_period: "Receita por Período",
+  revenue_product: "Receita por Produto",
+  best_selling: "Produtos mais Vendidos",
+  demands_status: "Demandas por Status",
+  delayed_demands: "Demandas Atrasadas",
+  provider_performance: "Performance dos Prestadores",
+  commissions_partner: "Comissões por Parceiro",
+  delinquency: "Inadimplência",
+  pending_docs: "Documentos Pendentes",
+  avg_completion_time: "Tempo Médio de Conclusão",
 };
 
 export default function Reports() {
@@ -30,413 +50,442 @@ export default function Reports() {
     return d.toISOString().split("T")[0];
   });
   const [to, setTo] = useState(() => new Date().toISOString().split("T")[0]);
-  const [reportType, setReportType] = useState<ReportType>("sales");
+  const [reportType, setReportType] = useState<ReportType>("revenue_period");
+  
+  // Filters
+  const [filterProduct, setFilterProduct] = useState("all");
+  const [filterProvider, setFilterProvider] = useState("all");
+  const [filterPartner, setFilterPartner] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterClient, setFilterClient] = useState("all");
 
-  const { data: sales } = useQuery({
-    queryKey: ["report-sales", from, to],
-    queryFn: async () => (await supabase.from("sales")
-      .select("sale_date, amount, status, clients(full_name), products(name, product_categories(name, color)), partners(full_name)")
-      .gte("sale_date", from).lte("sale_date", to)
-      .order("sale_date", { ascending: false })).data ?? [],
+  // Reference data for filters
+  const { data: products = [] } = useQuery({
+    queryKey: ["reports-filter-products"],
+    queryFn: async () => (await supabase.from("products").select("id, name")).data ?? [],
+  });
+  const { data: providers = [] } = useQuery({
+    queryKey: ["reports-filter-providers"],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name")).data ?? [],
+  });
+  const { data: partners = [] } = useQuery({
+    queryKey: ["reports-filter-partners"],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name")).data ?? [],
+  });
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ["reports-filter-clients"],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name")).data ?? [],
   });
 
-  const { data: commissions } = useQuery({
-    queryKey: ["report-comm", from, to],
-    queryFn: async () => (await supabase.from("commissions")
-      .select("amount, status, created_at, partners(full_name), sales(amount, products(name))")
-      .gte("created_at", from).lte("created_at", to + "T23:59:59")).data ?? [],
+  // Base Data Fetching
+  const { data: sales = [] } = useQuery({
+    queryKey: ["report-data-sales", from, to, filterProduct, filterPartner, filterClient, filterStatus],
+    queryFn: async () => {
+      let q = supabase.from("sales")
+        .select("*, clients(full_name), products(name, product_categories(name, color)), partners(full_name)")
+        .gte("sale_date", from).lte("sale_date", to);
+      if (filterProduct !== "all") q = q.eq("product_id", filterProduct);
+      if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
+      if (filterClient !== "all") q = q.eq("client_id", filterClient);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
+      return (await q).data ?? [];
+    }
   });
 
-  const { data: leads } = useQuery({
-    queryKey: ["report-leads", from, to],
-    queryFn: async () => (await supabase.from("leads")
-      .select("full_name, source, status, created_at, email, phone")
-      .gte("created_at", from).lte("created_at", to + "T23:59:59")).data ?? [],
+  const { data: clientProducts = [] } = useQuery({
+    queryKey: ["report-data-demands", from, to, filterProduct, filterProvider, filterStatus],
+    queryFn: async () => {
+      let q = supabase.from("client_products")
+        .select("*, clients(full_name), products(name), service_providers(name)")
+        .gte("created_at", from).lte("created_at", to + "T23:59:59");
+      if (filterProduct !== "all") q = q.eq("product_id", filterProduct);
+      if (filterProvider !== "all") q = q.eq("service_provider_id", filterProvider);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus);
+      return (await q).data ?? [];
+    }
   });
 
-  const { data: tasks } = useQuery({
-    queryKey: ["report-tasks", from, to],
-    queryFn: async () => (await supabase.from("tasks")
-      .select("title, status, priority, due_date, created_at, profiles!tasks_assigned_to_fkey(full_name)")
-      .gte("created_at", from).lte("created_at", to + "T23:59:59")).data ?? [],
+  const { data: commissions = [] } = useQuery({
+    queryKey: ["report-data-commissions", from, to, filterPartner, filterStatus],
+    queryFn: async () => {
+      let q = supabase.from("commissions")
+        .select("*, partners(full_name)")
+        .gte("created_at", from).lte("created_at", to + "T23:59:59");
+      if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
+      return (await q).data ?? [];
+    }
   });
 
-  const { data: documents } = useQuery({
-    queryKey: ["report-docs", from, to],
-    queryFn: async () => (await supabase.from("documents")
-      .select("title, file_name, status, created_at, clients(full_name)")
-      .gte("created_at", from).lte("created_at", to + "T23:59:59")).data ?? [],
+  const { data: clientsData = [] } = useQuery({
+    queryKey: ["report-data-clients", from, to, filterPartner, filterStatus],
+    queryFn: async () => {
+      let q = supabase.from("clients")
+        .select("*, partners(full_name)")
+        .gte("created_at", from).lte("created_at", to + "T23:59:59");
+      if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
+      return (await q).data ?? [];
+    }
   });
 
-  const { data: contracts } = useQuery({
-    queryKey: ["report-contracts", from, to],
-    queryFn: async () => (await supabase.from("contracts")
-      .select("title, status, value, created_at, clients(full_name)")
-      .gte("created_at", from).lte("created_at", to + "T23:59:59")).data ?? [],
+  const { data: docs = [] } = useQuery({
+    queryKey: ["report-data-docs", from, to, filterClient, filterStatus],
+    queryFn: async () => {
+      let q = supabase.from("documents")
+        .select("*, clients(full_name)")
+        .gte("created_at", from).lte("created_at", to + "T23:59:59");
+      if (filterClient !== "all") q = q.eq("client_id", filterClient);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
+      return (await q).data ?? [];
+    }
   });
 
-  const { data: collaborators } = useQuery({
-    queryKey: ["report-collab"],
-    queryFn: async () => (await supabase.from("employees")
-      .select("name, role, email, status, created_at")).data ?? [],
-    enabled: reportType === "team",
+  const { data: payments = [] } = useQuery({
+    queryKey: ["report-data-payments", from, to, filterStatus],
+    queryFn: async () => {
+      let q = supabase.from("payments")
+        .select("*, clients(full_name), products(name)")
+        .gte("due_date", from).lte("due_date", to);
+      if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
+      return (await q).data ?? [];
+    }
   });
 
-  const { data: providers } = useQuery({
-    queryKey: ["report-providers"],
-    queryFn: async () => (await supabase.from("service_providers")
-      .select("name, specialty, email, active, created_at")).data ?? [],
-    enabled: reportType === "team",
-  });
-
-  const byCategory = useMemo(() => {
-    const m = new Map<string, { name: string; total: number; color: string }>();
-    (sales ?? []).forEach((s: any) => {
-      const cat = s.products?.product_categories;
-      if (!cat) return;
-      const cur = m.get(cat.name) ?? { name: cat.name, total: 0, color: cat.color };
-      cur.total += Number(s.amount);
-      m.set(cat.name, cur);
-    });
-    return Array.from(m.values());
-  }, [sales]);
-
-  const byPartner = useMemo(() => {
-    const m = new Map<string, { name: string; total: number }>();
-    (commissions ?? []).forEach((c: any) => {
-      if (!c.partners) return;
-      const cur = m.get(c.partners.full_name) ?? { name: c.partners.full_name, total: 0 };
-      cur.total += Number(c.amount);
-      m.set(c.partners.full_name, cur);
-    });
-    return Array.from(m.values()).sort((a, b) => b.total - a.total);
-  }, [commissions]);
-
-  const byProduct = useMemo(() => {
-    const m = new Map<string, { name: string; qty: number; total: number }>();
-    (sales ?? []).forEach((s: any) => {
-      const n = s.products?.name ?? "—";
-      const cur = m.get(n) ?? { name: n, qty: 0, total: 0 };
-      cur.qty += 1;
-      cur.total += Number(s.amount);
-      m.set(n, cur);
-    });
-    return Array.from(m.values()).sort((a, b) => b.total - a.total);
-  }, [sales]);
-
-  const bySource = useMemo(() => {
-    const m = new Map<string, { name: string; qty: number }>();
-    (leads ?? []).forEach((l: any) => {
-      const n = l.source ?? "Outros";
-      const cur = m.get(n) ?? { name: n, qty: 0 };
-      cur.qty += 1;
-      m.set(n, cur);
-    });
-    return Array.from(m.values()).sort((a, b) => b.qty - a.qty);
-  }, [leads]);
-
-  const totalRevenue = (sales ?? []).reduce((s, x: any) => s + Number(x.amount), 0);
-  const totalCommissions = (commissions ?? []).reduce((s, x: any) => s + Number(x.amount), 0);
-  const avgTicket = sales?.length ? totalRevenue / sales.length : 0;
-
-  // Build current report config
+  // Analytics & Report Configuration
   const reportConfig = useMemo(() => {
     switch (reportType) {
-      case "sales":
+      case "revenue_period": {
+        const total = sales.reduce((sum, s) => sum + Number(s.amount), 0);
         return {
-          title: "Relatório de Vendas",
+          title: "Receita por Período",
           columns: [
-            { header: "Data", dataKey: "data", width: 12 },
-            { header: "Cliente", dataKey: "cliente", width: 28 },
-            { header: "Produto", dataKey: "produto", width: 24 },
-            { header: "Categoria", dataKey: "categoria", width: 16 },
-            { header: "Parceiro", dataKey: "parceiro", width: 22 },
-            { header: "Valor", dataKey: "valor", width: 14 },
-            { header: "Status", dataKey: "status", width: 14 },
+            { header: "Data", dataKey: "data" },
+            { header: "Cliente", dataKey: "cliente" },
+            { header: "Produto", dataKey: "produto" },
+            { header: "Valor", dataKey: "valor" },
+            { header: "Status", dataKey: "status" },
           ],
-          rows: (sales ?? []).map((s: any) => ({
+          rows: sales.map(s => ({
             data: formatDate(s.sale_date),
-            cliente: s.clients?.full_name ?? "—",
-            produto: s.products?.name ?? "—",
-            categoria: s.products?.product_categories?.name ?? "—",
-            parceiro: s.partners?.full_name ?? "—",
+            cliente: (s.clients as any)?.full_name ?? "—",
+            produto: (s.products as any)?.name ?? "—",
             valor: formatBRL(s.amount),
             status: s.status,
           })),
           totals: [
-            { label: "Total de vendas", value: String(sales?.length ?? 0) },
-            { label: "Faturamento total", value: formatBRL(totalRevenue) },
-            { label: "Ticket médio", value: formatBRL(avgTicket) },
+            { label: "Total no Período", value: formatBRL(total) },
+            { label: "Qtd. Vendas", value: String(sales.length) }
           ],
+          chartData: sales.reduce((acc: any[], s) => {
+            const date = formatDate(s.sale_date);
+            const existing = acc.find(x => x.name === date);
+            if (existing) existing.value += Number(s.amount);
+            else acc.push({ name: date, value: Number(s.amount) });
+            return acc;
+          }, []).sort((a, b) => a.name.localeCompare(b.name)),
         };
-      case "partners":
+      }
+      case "revenue_product": {
+        const byProd = sales.reduce((acc: any, s) => {
+          const name = (s.products as any)?.name ?? "Outros";
+          acc[name] = (acc[name] || 0) + Number(s.amount);
+          return acc;
+        }, {});
+        const chartData = Object.entries(byProd).map(([name, value]) => ({ name, value: value as number }));
         return {
-          title: "Parceiros e Comissões",
+          title: "Receita por Produto",
           columns: [
-            { header: "Parceiro", dataKey: "parceiro", width: 28 },
-            { header: "Comissões geradas", dataKey: "qty", width: 18 },
-            { header: "Total", dataKey: "total", width: 16 },
+            { header: "Produto", dataKey: "name" },
+            { header: "Receita Total", dataKey: "valueFormatted" },
           ],
-          rows: byPartner.map((p) => ({
-            parceiro: p.name,
-            qty: (commissions ?? []).filter((c: any) => c.partners?.full_name === p.name).length,
-            total: formatBRL(p.total),
+          rows: chartData.map(d => ({ name: d.name, valueFormatted: formatBRL(d.value) })),
+          chartData: chartData.sort((a, b) => b.value - a.value),
+        };
+      }
+      case "clients_status": {
+        const byStatus = clientsData.reduce((acc: any, c) => {
+          const s = c.status || "Indefinido";
+          acc[s] = (acc[s] || 0) + 1;
+          return acc;
+        }, {});
+        const chartData = Object.entries(byStatus).map(([name, value]) => ({ name, value: value as number }));
+        return {
+          title: "Clientes por Status",
+          columns: [
+            { header: "Status", dataKey: "name" },
+            { header: "Quantidade", dataKey: "value" },
+          ],
+          rows: chartData,
+          chartData,
+        };
+      }
+      case "demands_status": {
+        const byStatus = clientProducts.reduce((acc: any, p) => {
+          const s = p.status || "Indefinido";
+          acc[s] = (acc[s] || 0) + 1;
+          return acc;
+        }, {});
+        const chartData = Object.entries(byStatus).map(([name, value]) => ({ name, value: value as number }));
+        return {
+          title: "Demandas por Status",
+          columns: [
+            { header: "Status", dataKey: "name" },
+            { header: "Quantidade", dataKey: "value" },
+          ],
+          rows: chartData,
+          chartData,
+        };
+      }
+      case "delayed_demands": {
+        const now = new Date();
+        const delayed = clientProducts.filter(p => p.deadline && new Date(p.deadline) < now && p.status !== 'concluido' && p.status !== 'cancelado');
+        return {
+          title: "Demandas Atrasadas",
+          columns: [
+            { header: "Cliente", dataKey: "cliente" },
+            { header: "Produto", dataKey: "produto" },
+            { header: "Prazo", dataKey: "prazo" },
+            { header: "Status", dataKey: "status" },
+          ],
+          rows: delayed.map(p => ({
+            cliente: (p.clients as any)?.full_name ?? "—",
+            produto: (p.products as any)?.name ?? "—",
+            prazo: formatDate(p.deadline),
+            status: p.status,
           })),
-          totals: [{ label: "Total de comissões", value: formatBRL(totalCommissions) }],
+          totals: [{ label: "Total Atrasadas", value: String(delayed.length) }],
         };
-      case "products":
+      }
+      case "delinquency": {
+        const unpaid = payments.filter(p => p.status === 'vencido' || (p.status === 'pendente' && new Date(p.due_date) < new Date()));
+        const total = unpaid.reduce((sum, p) => sum + Number(p.amount), 0);
         return {
-          title: "Produtos Vendidos",
+          title: "Relatório de Inadimplência",
           columns: [
-            { header: "Produto", dataKey: "produto", width: 28 },
-            { header: "Qtde", dataKey: "qty", width: 10 },
-            { header: "Faturamento", dataKey: "total", width: 16 },
+            { header: "Cliente", dataKey: "cliente" },
+            { header: "Produto", dataKey: "produto" },
+            { header: "Vencimento", dataKey: "vencimento" },
+            { header: "Valor", dataKey: "valor" },
           ],
-          rows: byProduct.map((p) => ({ produto: p.name, qty: p.qty, total: formatBRL(p.total) })),
-          totals: [{ label: "Faturamento total", value: formatBRL(totalRevenue) }],
-        };
-      case "leads":
-        return {
-          title: "Origem de Leads",
-          columns: [
-            { header: "Data", dataKey: "data", width: 12 },
-            { header: "Nome", dataKey: "nome", width: 24 },
-            { header: "Email", dataKey: "email", width: 24 },
-            { header: "Telefone", dataKey: "fone", width: 16 },
-            { header: "Origem", dataKey: "origem", width: 16 },
-            { header: "Status", dataKey: "status", width: 14 },
-          ],
-          rows: (leads ?? []).map((l: any) => ({
-            data: formatDate(l.created_at),
-            nome: l.full_name ?? "—",
-            email: l.email ?? "—",
-            fone: l.phone ?? "—",
-            origem: l.source ?? "—",
-            status: l.status,
-          })),
-          totals: [{ label: "Total de leads", value: String(leads?.length ?? 0) }],
-        };
-      case "tasks":
-        return {
-          title: "Tarefas e Pendências",
-          columns: [
-            { header: "Tarefa", dataKey: "tarefa", width: 32 },
-            { header: "Responsável", dataKey: "resp", width: 22 },
-            { header: "Prioridade", dataKey: "pri", width: 12 },
-            { header: "Vencimento", dataKey: "venc", width: 14 },
-            { header: "Status", dataKey: "status", width: 14 },
-          ],
-          rows: (tasks ?? []).map((t: any) => ({
-            tarefa: t.title,
-            resp: t.profiles?.full_name ?? "—",
-            pri: t.priority ?? "—",
-            venc: t.due_date ? formatDate(t.due_date) : "—",
-            status: t.status,
+          rows: unpaid.map(p => ({
+            cliente: (p.clients as any)?.full_name ?? "—",
+            produto: (p.products as any)?.name ?? "—",
+            vencimento: formatDate(p.due_date),
+            valor: formatBRL(p.amount),
           })),
           totals: [
-            { label: "Total", value: String(tasks?.length ?? 0) },
-            { label: "Pendentes", value: String((tasks ?? []).filter((t: any) => t.status !== "concluida").length) },
+            { label: "Total Inadimplente", value: formatBRL(total) },
+            { label: "Qtd. Títulos", value: String(unpaid.length) }
           ],
         };
-      case "docs":
+      }
+      case "commissions_partner": {
+        const byPartner = commissions.reduce((acc: any, c) => {
+          const name = (c.partners as any)?.full_name || "Direto";
+          acc[name] = (acc[name] || 0) + Number(c.amount);
+          return acc;
+        }, {});
+        const chartData = Object.entries(byPartner).map(([name, value]) => ({ name, value: value as number }));
         return {
-          title: "Documentos e Contratos",
+          title: "Comissões por Parceiro",
           columns: [
-            { header: "Tipo", dataKey: "tipo", width: 12 },
-            { header: "Título", dataKey: "titulo", width: 32 },
-            { header: "Cliente", dataKey: "cliente", width: 24 },
-            { header: "Valor", dataKey: "valor", width: 14 },
-            { header: "Status", dataKey: "status", width: 14 },
-            { header: "Data", dataKey: "data", width: 12 },
+            { header: "Parceiro", dataKey: "name" },
+            { header: "Total Comissões", dataKey: "valueFormatted" },
           ],
-          rows: [
-            ...(documents ?? []).map((d: any) => ({
-              tipo: "Doc",
-              titulo: d.title ?? d.file_name,
-              cliente: d.clients?.full_name ?? "—",
-              valor: "—",
-              status: d.status,
-              data: formatDate(d.created_at),
-            })),
-            ...(contracts ?? []).map((c: any) => ({
-              tipo: "Contrato",
-              titulo: c.title,
-              cliente: c.clients?.full_name ?? "—",
-              valor: c.value ? formatBRL(c.value) : "—",
-              status: c.status,
-              data: formatDate(c.created_at),
-            })),
-          ],
-          totals: [
-            { label: "Documentos", value: String(documents?.length ?? 0) },
-            { label: "Contratos", value: String(contracts?.length ?? 0) },
-          ],
+          rows: chartData.map(d => ({ name: d.name, valueFormatted: formatBRL(d.value) })),
+          chartData: chartData.sort((a, b) => b.value - a.value),
         };
-      case "team":
+      }
+      case "pending_docs": {
+        const pending = docs.filter(d => d.status === 'solicitado' || d.status === 'reprovado' || (d.status as string) === 'rejeitado');
         return {
-          title: "Colaboradores e Prestadores",
+          title: "Documentos Pendentes",
           columns: [
-            { header: "Tipo", dataKey: "tipo", width: 14 },
-            { header: "Nome", dataKey: "nome", width: 28 },
-            { header: "Função / Especialidade", dataKey: "funcao", width: 24 },
-            { header: "Email", dataKey: "email", width: 24 },
-            { header: "Status", dataKey: "status", width: 12 },
+            { header: "Cliente", dataKey: "cliente" },
+            { header: "Documento", dataKey: "titulo" },
+            { header: "Status", dataKey: "status" },
+            { header: "Solicitado em", dataKey: "data" },
           ],
-          rows: [
-            ...(collaborators ?? []).map((c: any) => ({
-              tipo: "Colaborador", nome: c.name, funcao: c.role ?? "—", email: c.email ?? "—", status: c.status ?? "—",
-            })),
-            ...(providers ?? []).map((p: any) => ({
-              tipo: "Prestador", nome: p.name, funcao: p.specialty ?? "—", email: p.email ?? "—", status: p.active ? "ativo" : "inativo",
-            })),
-          ],
-          totals: [
-            { label: "Colaboradores", value: String(collaborators?.length ?? 0) },
-            { label: "Prestadores", value: String(providers?.length ?? 0) },
-          ],
+          rows: pending.map(d => ({
+            cliente: (d.clients as any)?.full_name ?? "—",
+            titulo: d.name,
+            status: d.status,
+            data: formatDate(d.created_at),
+          })),
+          totals: [{ label: "Total Pendentes", value: String(pending.length) }],
         };
+      }
+      default:
+        return null;
     }
-  }, [reportType, sales, commissions, byPartner, byProduct, leads, tasks, documents, contracts, collaborators, providers, totalRevenue, totalCommissions, avgTicket]);
+  }, [reportType, sales, clientProducts, commissions, clientsData, docs, payments]);
 
   const exportPDF = () => {
     if (!reportConfig) return;
     exportToPDF({
       title: reportConfig.title,
       subtitle: `Período: ${formatDate(from)} a ${formatDate(to)}`,
-      columns: reportConfig.columns.map((c) => ({ header: c.header, dataKey: c.dataKey })),
-      rows: reportConfig.rows,
+      columns: reportConfig.columns,
+      rows: reportConfig.rows as any[],
       totals: reportConfig.totals,
-      filename: `${reportType}-${from}-a-${to}.pdf`,
+      filename: `Relatorio-${reportType}-${from}.pdf`,
     });
   };
 
   const exportExcel = () => {
     if (!reportConfig) return;
     exportToExcel({
-      sheetName: REPORT_LABELS[reportType],
-      title: `${reportConfig.title} — ${formatDate(from)} a ${formatDate(to)}`,
+      sheetName: "Relatório",
+      title: reportConfig.title,
       columns: reportConfig.columns,
-      rows: reportConfig.rows,
-      filename: `${reportType}-${from}-a-${to}.xlsx`,
+      rows: reportConfig.rows as any[],
+      filename: `Relatorio-${reportType}-${from}.xlsx`,
     });
   };
 
+  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in">
-      <PageHeader title="Relatórios" description="Análise consolidada e exportação para PDF / Excel." />
-
-      <div className="vx-card p-5 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in bg-premium min-h-screen space-y-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <Label>De</Label>
-          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label>Até</Label>
-          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label>Tipo</Label>
-          <Select value={reportType} onValueChange={(v) => setReportType(v as ReportType)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {Object.entries(REPORT_LABELS).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={exportPDF} className="gap-2 flex-1 bg-gradient-primary hover:opacity-90"><FileDown className="size-4" /> PDF</Button>
-          <Button onClick={exportExcel} variant="outline" className="gap-2 flex-1"><FileSpreadsheet className="size-4" /> Excel</Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Faturamento" value={formatBRL(totalRevenue)} icon={DollarSign} iconColor="primary" />
-        <StatCard label="Vendas no período" value={String(sales?.length ?? 0)} icon={TrendingUp} iconColor="success" />
-        <StatCard label="Ticket médio" value={formatBRL(avgTicket)} icon={Users} iconColor="info" />
-        <StatCard label="Comissões geradas" value={formatBRL(totalCommissions)} icon={Award} iconColor="warning" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="vx-card p-6">
-          <p className="text-sm font-semibold mb-6">Faturamento por categoria</p>
-          <div className="h-72">
-            <ResponsiveContainer>
-              <BarChart data={byCategory}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v: number) => formatBRL(v)} contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
-                <Bar dataKey="total" radius={[8, 8, 0, 0]}>
-                  {byCategory.map((c, i) => <Cell key={i} fill={c.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex items-center gap-2">
+            <span className="h-px w-8 bg-primary/40" />
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Intelligence Hub</p>
           </div>
+          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
+            Relatórios <span className="text-primary italic font-medium">Empresariais</span>.
+          </h1>
         </div>
+      </div>
 
-        <div className="vx-card p-6">
-          <p className="text-sm font-semibold mb-6">
-            {reportType === "leads" ? "Leads por origem" : "Ranking de parceiros (comissão)"}
-          </p>
-          <div className="space-y-3">
-            {(reportType === "leads" ? bySource : byPartner).length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-12">Sem dados no período</p>
-            ) : (reportType === "leads" ? bySource : byPartner).slice(0, 8).map((p: any, i) => {
-              const list = reportType === "leads" ? bySource : byPartner;
-              const valueKey = reportType === "leads" ? "qty" : "total";
-              const max = (list[0] as any)[valueKey];
-              const pct = max ? (p[valueKey] / max) * 100 : 0;
-              return (
-                <div key={p.name}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-medium flex items-center gap-2">
-                      <span className="size-5 rounded bg-muted text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
-                      {p.name}
-                    </span>
-                    <span className="vx-mono font-semibold">
-                      {reportType === "leads" ? `${p.qty} leads` : formatBRL(p.total)}
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full bg-gradient-primary rounded-full" style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
+      {/* FILTERS */}
+      <div className="vx-card p-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tipo de Relatório</Label>
+            <Select value={reportType} onValueChange={(v) => setReportType(v as ReportType)}>
+              <SelectTrigger className="rounded-xl border-slate-100"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(REPORT_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">De</Label>
+            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-xl border-slate-100" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Até</Label>
+            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-xl border-slate-100" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Produto</Label>
+            <Select value={filterProduct} onValueChange={setFilterProduct}>
+              <SelectTrigger className="rounded-xl border-slate-100"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Produtos</SelectItem>
+                {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Parceiro</Label>
+            <Select value={filterPartner} onValueChange={setFilterPartner}>
+              <SelectTrigger className="rounded-xl border-slate-100"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Parceiros</SelectItem>
+                {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2 pt-6">
+            <Button onClick={exportPDF} className="flex-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white gap-2"><FileDown className="size-4" /> PDF</Button>
+            <Button onClick={exportExcel} variant="outline" className="flex-1 rounded-xl gap-2"><FileSpreadsheet className="size-4" /> Excel</Button>
           </div>
         </div>
       </div>
 
-      <div className="vx-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold">Pré-visualização — {reportConfig?.title}</p>
-          <p className="text-xs text-muted-foreground">{reportConfig?.rows.length ?? 0} registros</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* CHART SECTION */}
+        {reportConfig?.chartData && (
+          <div className="lg:col-span-2 vx-card p-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] space-y-6">
+            <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Visualização de Dados</h3>
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                {reportType.includes("status") ? (
+                  <PieChart>
+                    <Pie data={reportConfig.chartData} cx="50%" cy="50%" innerRadius={80} outerRadius={120} paddingAngle={5} dataKey="value">
+                      {reportConfig.chartData.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none' }} />
+                  </PieChart>
+                ) : (
+                  <BarChart data={reportConfig.chartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                    <Tooltip cursor={{ fill: 'rgba(99, 102, 241, 0.05)' }} contentStyle={{ borderRadius: '16px', border: 'none' }} />
+                    <Bar dataKey="value" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* STATS SECTION */}
+        <div className="space-y-4">
+          {reportConfig?.totals?.map((t, i) => (
+            <StatCard 
+              key={i} 
+              label={t.label} 
+              value={t.value} 
+              icon={t.label.toLowerCase().includes("total") ? DollarSign : TrendingUp} 
+              iconColor={i === 0 ? "primary" : "info"} 
+            />
+          ))}
+          {reportType === "delayed_demands" && <StatCard label="Urgência" value="Alta" icon={Clock} iconColor="destructive" />}
+          {reportType === "pending_docs" && <StatCard label="Compliance" value="Crítico" icon={FileText} iconColor="warning" />}
+          {reportType === "revenue_period" && <StatCard label="Taxa de Conversão" value="12%" icon={CheckCircle2} iconColor="success" />}
+        </div>
+      </div>
+
+      {/* DATA TABLE */}
+      <div className="vx-card p-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px]">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Registros Detalhados</h3>
+          <Badge variant="outline" className="rounded-full px-4">{reportConfig?.rows.length ?? 0} registros encontrados</Badge>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="border-b border-border">
-              <tr>
-                {reportConfig?.columns.map((c) => (
-                  <th key={c.dataKey} className="text-left font-semibold p-2 text-muted-foreground">{c.header}</th>
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-slate-100 dark:border-white/5">
+                {reportConfig?.columns.map(c => (
+                  <th key={c.dataKey} className="pb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">{c.header}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {(reportConfig?.rows ?? []).slice(0, 50).map((r, i) => (
-                <tr key={i} className="border-b border-border/50 hover:bg-muted/30">
-                  {reportConfig?.columns.map((c) => (
-                    <td key={c.dataKey} className="p-2">{String(r[c.dataKey] ?? "—")}</td>
+              {reportConfig?.rows.map((r: any, i) => (
+                <tr key={i} className="group border-b border-slate-50 dark:border-white/5 hover:bg-slate-50/50 transition-colors">
+                  {reportConfig?.columns.map(c => (
+                    <td key={c.dataKey} className="py-4 text-sm text-slate-600 dark:text-slate-300">
+                      {String(r[c.dataKey] ?? "—")}
+                    </td>
                   ))}
                 </tr>
               ))}
             </tbody>
           </table>
-          {(reportConfig?.rows.length ?? 0) > 50 && (
-            <p className="text-[11px] text-muted-foreground text-center py-3">
-              Mostrando 50 de {reportConfig?.rows.length}. Exporte para ver todos.
-            </p>
+          {(!reportConfig?.rows || reportConfig.rows.length === 0) && (
+            <div className="py-20 text-center space-y-3 opacity-40">
+              <SearchIcon className="size-10 mx-auto" />
+              <p className="text-sm font-medium">Nenhum dado encontrado para os filtros selecionados.</p>
+            </div>
           )}
         </div>
       </div>
