@@ -12,7 +12,7 @@
 @layer base {
   :root {
     /* Neutral surface — warm-tinted for premium feel */
-    --background: 0 0% 100%;
+    --background: 210 20% 98%;
     --foreground: 224 45% 4%;
 
     --card: 0 0% 100%;
@@ -21,28 +21,28 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 38% 12%;
 
-    /* Brand — Vibrant Indigo */
-    --primary: 243 75% 59%;
+    /* Brand — Professional Indigo */
+    --primary: 243 75% 50%;
     --primary-foreground: 0 0% 100%;
     --primary-muted: 243 80% 96%;
     --primary-glow: 250 90% 70%;
 
-    --secondary: 220 18% 96%;
+    --secondary: 210 20% 96%;
     --secondary-foreground: 224 38% 14%;
 
-    --muted: 220 18% 95.5%;
+    --muted: 210 15% 94%;
     --muted-foreground: 220 12% 44%;
 
-    --accent: 243 75% 96%;
+    --accent: 210 20% 96%;
     --accent-foreground: 243 75% 35%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
     --destructive-muted: 0 84% 96%;
 
-    --border: 220 18% 90%;
-    --input: 220 18% 90%;
-    --ring: 243 75% 59%;
+    --border: 210 15% 88%;
+    --input: 210 15% 88%;
+    --ring: 243 75% 50%;
 
     --radius: 0.875rem;
 
@@ -196,54 +196,58 @@
 }
 
 @layer components {
-  .section-divider { @apply h-px bg-border/60; }
+  .section-divider { @apply h-px bg-border/50; }
 
   .page-shell {
-    @apply mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-10;
+    @apply mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-10 space-y-8;
   }
 
   /* Premium Card */
   .vx-card {
-    @apply relative rounded-2xl border border-border bg-card transition-all duration-300;
-    box-shadow: var(--shadow-sm);
+    @apply relative rounded-xl border border-border bg-card transition-all duration-300;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.02), 0 1px 2px -1px rgb(0 0 0 / 0.02);
   }
   .vx-card-hover { @apply transition-all duration-300; }
   .vx-card-hover:hover {
-    @apply border-primary/30 -translate-y-0.5;
-    box-shadow: var(--shadow-lg);
+    @apply border-border/80 shadow-md;
   }
 
-  .vx-card-premium {
-    @apply vx-card overflow-hidden;
-  }
-  .vx-card-premium::after {
-    content: "";
-    @apply absolute inset-0 opacity-0 transition-opacity duration-500 pointer-events-none;
-    background: var(--gradient-hero);
-  }
-  .vx-card-premium:hover::after { @apply opacity-100; }
-
-  /* Pills */
+  /* Pills/Badges */
   .vx-pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-all;
+    @apply inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-all;
   }
-  .vx-pill-success { @apply border-success/25 bg-success-muted text-success; }
-  .vx-pill-info    { @apply border-info/25 bg-info-muted text-info; }
-  .vx-pill-warning { @apply border-warning/25 bg-warning-muted text-warning; }
-  .vx-pill-danger  { @apply border-destructive/25 bg-destructive-muted text-destructive; }
-  .vx-pill-primary { @apply border-primary/25 bg-primary-muted text-primary; }
+  .vx-pill-success { @apply border-emerald-500/20 bg-emerald-50 text-emerald-600; }
+  .vx-pill-info    { @apply border-blue-500/20 bg-blue-50 text-blue-600; }
+  .vx-pill-warning { @apply border-amber-500/20 bg-amber-50 text-amber-600; }
+  .vx-pill-danger  { @apply border-rose-500/20 bg-rose-50 text-rose-600; }
+  .vx-pill-primary { @apply border-primary/20 bg-primary-muted text-primary; }
+
+  /* Tables */
+  .vx-table-wrap {
+    @apply overflow-hidden rounded-xl border border-border bg-card;
+  }
+  .vx-table {
+    @apply w-full text-left text-sm;
+  }
+  .vx-table-head {
+    @apply bg-muted/30 border-b border-border text-[11px] font-bold uppercase tracking-widest text-muted-foreground;
+  }
+  .vx-table-row {
+    @apply border-b border-border/50 transition-colors hover:bg-muted/10 last:border-0;
+  }
+  .vx-table-cell {
+    @apply px-6 py-4;
+  }
 
   /* Sidebar items */
   .vx-nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium text-sidebar-foreground/70 transition-all duration-200 hover:text-sidebar-foreground hover:bg-sidebar-accent active:scale-[0.98];
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium text-sidebar-foreground/60 transition-all duration-200 hover:text-sidebar-foreground hover:bg-white/[0.03] active:scale-[0.98];
   }
   .vx-nav-item[data-active="true"] {
-    @apply text-sidebar-primary-foreground;
-    background: var(--gradient-primary);
-    box-shadow: 0 4px 14px -4px hsl(var(--primary) / 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    @apply text-white bg-white/[0.08] shadow-none;
   }
   .vx-nav-icon-wrap {
-    @apply size-8 rounded-lg flex items-center justify-center transition-all duration-200;
+    @apply size-5 flex items-center justify-center transition-all duration-200;
   }
 
   /* KPI */
