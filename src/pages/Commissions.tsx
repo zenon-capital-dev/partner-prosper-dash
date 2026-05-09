@@ -294,7 +294,7 @@ export default function Commissions() {
   const bulkCancel = async () => {
     if (selectedIds.length === 0) return;
     if (!confirm(`Cancelar ${selectedIds.length} comissão(ões)?`)) return;
-    const { error } = await supabase.from("commissions").update({ status: "cancelada", paid_at: null }).in("id", selectedIds);
+    const { error } = await supabase.from("commissions").update({ workflow_status: "cancelada", paid_at: null }).in("id", selectedIds);
     if (error) toast.error(error.message);
     else { toast.success("Comissões canceladas"); setSelected({}); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
   };
