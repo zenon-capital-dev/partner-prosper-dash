@@ -176,7 +176,7 @@ export default function Contracts() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  <th className="px-6 py-4 text-left">Contrato / Cliente</th>
+                  <th className="px-6 py-4 text-left">Contrato / Relacionado</th>
                   <th className="px-6 py-4 text-left">Produto</th>
                   <th className="px-6 py-4 text-left">Valor</th>
                   <th className="px-6 py-4 text-left">Status</th>
