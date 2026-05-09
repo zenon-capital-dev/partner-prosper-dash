@@ -13,6 +13,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
+import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 import { calculateSLA } from "@/lib/sla";
 import { AutoStatusBadge } from "@/components/StatusBadge";
