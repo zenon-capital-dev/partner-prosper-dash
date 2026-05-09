@@ -153,21 +153,32 @@ export default function PartnerPanel() {
            </div>
         </section>
 
-        {/* Dashboard Grid */}
+        {/* Dashboard Grid - Comissões */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-           <SimpleKpi label="Ganhos este mês" value={formatBRL(totals.thisMonth)} tone="info" icon={TrendingUp} />
-           <SimpleKpi label="Comissões Pendentes" value={formatBRL(totals.pending)} tone="warning" icon={Clock} />
-           <SimpleKpi label="Total Recebido" value={formatBRL(totals.paid)} tone="success" icon={CheckCircle2} />
+           <SimpleKpi label="Comissão gerada" value={formatBRL(totals.total)} tone="info" icon={TrendingUp} />
+           <SimpleKpi label="Comissões pendentes" value={formatBRL(totals.pending)} tone="warning" icon={Clock} />
+           <SimpleKpi label="Total recebido" value={formatBRL(totals.paid)} tone="success" icon={CheckCircle2} />
            <div className="vx-card p-6 bg-slate-900 text-white rounded-[28px] border-slate-900 shadow-xl flex flex-col justify-between">
               <div className="flex items-center justify-between mb-2">
                  <Wallet className="size-6 text-primary" />
                  <Button variant="ghost" className="h-7 text-[10px] uppercase font-bold text-primary hover:bg-white/5" onClick={() => toast.info("Solicitação enviada ao financeiro")}>Solicitar Saque</Button>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Saldo Disponível</p>
-                <p className="font-editorial text-2xl font-bold text-white mt-1">{formatBRL(totals.pending)}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Próximo pagamento previsto</p>
+                <p className="font-editorial text-2xl font-bold text-white mt-1">
+                  {totals.nextPayment ? formatDate(totals.nextPayment) : "—"}
+                </p>
+                <p className="text-[10px] text-white/40 mt-1">Saldo: {formatBRL(totals.pending)}</p>
               </div>
            </div>
+        </div>
+
+        {/* KPIs de carteira */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <MiniKpi label="Indicados" value={clients.length} />
+          <MiniKpi label="Ativos" value={totals.clientsActive} tone="emerald" />
+          <MiniKpi label="Em negociação" value={totals.clientsNeg} tone="amber" />
+          <MiniKpi label="Cancelados" value={totals.clientsCancelled} tone="rose" />
         </div>
 
         <Tabs defaultValue="clientes" className="space-y-10">
