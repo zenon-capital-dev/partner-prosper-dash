@@ -142,7 +142,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         )}
 
         {/* Search */}
-        <div className="px-3 pt-3 pb-2">
+        <div className="px-2.5 pt-3 pb-2">
           {!collapsed ? (
             <button
               onClick={() => setCmdOpen(true)}
