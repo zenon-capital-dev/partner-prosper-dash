@@ -443,6 +443,14 @@ export default function DemandDetail() {
         onOpenChange={setQualityDialogOpen}
         demandId={demand.id}
       />
+      <DocumentDialog
+        open={docDialogOpen}
+        onOpenChange={setDocDialogOpen}
+        clientId={demand.client_id}
+        clientProductId={demand.id}
+        defaultProductId={demand.product_id}
+        onSuccess={() => qc.invalidateQueries({ queryKey: ["demand-detail", id] })}
+      />
     </div>
   );
 }
