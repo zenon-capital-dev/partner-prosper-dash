@@ -375,6 +375,7 @@ export default function Products() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-44">
                         <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setChecklistTarget(p)}><ListChecks className="size-3.5 mr-2" /> Checklist Operacional</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => toggleActive(p)}>
                           {p.active ? <><PowerOff className="size-3.5 mr-2" /> Desativar</> : <><Power className="size-3.5 mr-2" /> Ativar</>}
                         </DropdownMenuItem>
