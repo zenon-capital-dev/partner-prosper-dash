@@ -169,7 +169,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           {SECTIONS.map((section) => (
             <div key={section.label}>
               {!collapsed && (
-                <div className="px-3 mb-2 text-[9.5px] font-bold uppercase tracking-[0.22em] text-sidebar-foreground/30">
+                <div className="px-3 mb-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-sidebar-foreground/25">
                   {section.label}
                 </div>
               )}
