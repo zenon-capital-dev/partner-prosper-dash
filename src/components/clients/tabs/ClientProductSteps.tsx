@@ -6,8 +6,9 @@ import { Loader2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function ClientProductSteps({ clientProductId }: { clientProductId: string }) {
+export function ClientProductSteps({ clientProductId, showDetails = false }: { clientProductId: string; showDetails?: boolean }) {
   const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(showDetails);
 
   const { data: steps, isLoading } = useQuery({
     queryKey: ["product-steps", clientProductId],
