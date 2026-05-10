@@ -6,10 +6,12 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { QuickCreateButton } from "@/components/QuickCreateButton";
+import { EnvBadge } from "@/components/EnvBadge";
 import { initials } from "@/lib/format";
 
 export default function AppLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin, isAdminSecondary, isColaborador } = useAuth();
 
   if (loading) {
     return <LoadingScreen message="Preparando seu painel..." />;
@@ -22,6 +24,9 @@ export default function AppLayout() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
+  // QuickCreate is only meaningful for staff/admin profiles
+  const showQuickCreate = isAdmin || isAdminSecondary || isColaborador;
+
   return (
     <SidebarProvider style={{ "--sidebar-width": "17rem" } as React.CSSProperties}>
       <div className="min-h-screen flex w-full bg-background selection:bg-primary/15 selection:text-primary relative">
@@ -30,8 +35,7 @@ export default function AppLayout() {
           <header className="glass-header h-14 flex items-center px-5 lg:px-7 gap-5 no-print">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors -ml-1" />
 
-            {/* Greeting block — corporate identity strip */}
-            <div className="hidden md:flex items-center gap-2.5 min-w-0 pl-1 border-l border-border/70 pl-4">
+            <div className="hidden md:flex items-center gap-2.5 min-w-0 pl-4 border-l border-border">
               <div className="size-8 rounded-md bg-muted border border-border flex items-center justify-center text-[10.5px] font-bold text-muted-foreground shrink-0">
                 {initials(fullName)}
               </div>
@@ -43,14 +47,22 @@ export default function AppLayout() {
                   {firstName}
                 </p>
               </div>
+              <EnvBadge />
             </div>
 
             <div className="flex-1 max-w-xl mx-auto">
               <GlobalSearch />
             </div>
-            <div className="flex items-center gap-1.5">
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              {showQuickCreate && (
+                <>
+                  <QuickCreateButton />
+                  <div className="h-5 w-px bg-border mx-1.5 hidden sm:block" />
+                </>
+              )}
               <NotificationBell />
-              <div className="h-5 w-px bg-border/70 mx-1 hidden sm:block" />
+              <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
               <ThemeToggle />
             </div>
           </header>
