@@ -32,6 +32,7 @@ import Indicators from "./pages/Indicators";
 import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
+import ClientOnboarding from "./pages/ClientOnboarding";
 import Leads from "./pages/Leads";
 import Collaborators from "./pages/Collaborators";
 import Providers from "./pages/Providers";
