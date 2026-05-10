@@ -112,6 +112,7 @@ const App = () => (
               <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
               <Route path="/cliente" element={<ClientPanel />} />
               <Route path="/cliente/documentos" element={<ClientPanel />} />
+              <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/prestador" element={<ProviderPanel />} />
