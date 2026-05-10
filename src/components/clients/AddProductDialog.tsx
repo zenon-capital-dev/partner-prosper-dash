@@ -176,7 +176,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           client_id: clientId,
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
-          value: form.value,
+          custom_fields: (form as any).custom_fields || {},
           notes: form.notes || null,
         })
         .select("id")
