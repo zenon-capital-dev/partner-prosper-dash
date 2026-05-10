@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export function ClientProductSteps({ clientProductId }: { clientProductId: string }) {
   const qc = useQueryClient();
