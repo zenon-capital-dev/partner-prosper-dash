@@ -5,7 +5,8 @@ import {
   Wallet, FileSignature, CheckCircle2, MessageSquare,
   Zap, MoreHorizontal, ExternalLink,
   PlusCircle, CheckSquare, UserCheck, DollarSign,
-  RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle
+  RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle,
+  Search, History as HistoryIcon, ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
