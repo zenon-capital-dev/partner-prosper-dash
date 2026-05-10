@@ -117,7 +117,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             </div>
             {!collapsed && (
               <div className="flex flex-col leading-none">
-                <span className="font-display text-[14px] font-bold tracking-tight text-white">Prosper</span>
+                <span className="font-display text-[14px] font-bold tracking-tight text-white truncate">Prosper</span>
                 <span className="text-[9px] font-semibold tracking-[0.28em] text-indigo-300/70 uppercase mt-1">Operations</span>
               </div>
             )}
