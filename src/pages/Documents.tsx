@@ -344,13 +344,15 @@ export default function Documents() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  <th className="px-4 py-4 text-left">Documento / Cliente</th>
+                  <th className="px-4 py-4 text-left">Cliente</th>
                   <th className="px-4 py-4 text-left">Produto / Demanda</th>
+                  <th className="px-4 py-4 text-left">Nome do Documento</th>
+                  <th className="px-4 py-4 text-left">Tipo</th>
                   <th className="px-4 py-4 text-left">Status</th>
-                  <th className="px-4 py-4 text-left">Enviado por</th>
-                  <th className="px-4 py-4 text-left">Aprovado por</th>
-                  <th className="px-4 py-4 text-left">Prestador</th>
-                  <th className="px-4 py-4 text-left">Datas</th>
+                  <th className="px-4 py-4 text-left">Última Versão</th>
+                  <th className="px-4 py-4 text-left">Quem Enviou</th>
+                  <th className="px-4 py-4 text-left">Quem pode Acessar</th>
+                  <th className="px-4 py-4 text-left">Data</th>
                   <th className="px-4 py-4 text-right">Ações</th>
                 </tr>
               </thead>
