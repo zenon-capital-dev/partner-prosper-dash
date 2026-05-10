@@ -292,6 +292,12 @@ export default function Leads() {
         onOpenChange={setFollowUpOpen}
         lead={followUpLead}
       />
+      <ConvertLeadDialog
+        open={convertOpen}
+        onOpenChange={setConvertOpen}
+        lead={convertLead}
+        onConverted={() => qc.invalidateQueries({ queryKey: ["leads"] })}
+      />
     </div>
   );
 }
