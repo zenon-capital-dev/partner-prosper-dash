@@ -147,16 +147,19 @@ export default function Demands() {
     { id: "aguardando_documentos", label: "Aguardando documentos" },
     { id: "em_analise", label: "Em análise" },
     { id: "em_execucao", label: "Em execução" },
-    { id: "ajuste_solicitado", label: "Ajuste Solicitado" },
-    { id: "aguardando_aprovacao_final", label: "Revisão Final" },
+    { id: "pendente_cliente", label: "Pendente com cliente" },
+    { id: "pendente_prestador", label: "Pendente com prestador" },
+    { id: "aguardando_aprovacao_final", label: "Aguardando aprovação" },
     { id: "concluido", label: "Concluído" },
   ];
 
+  const [completeDialog, setCompleteDialog] = useState<{ id: string; date: string } | null>(null);
+
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, completedAt }: { id: string; status: string; completedAt?: string }) => {
       const updateData: any = { status };
       if (status === 'concluido') {
-        updateData.completed_at = new Date().toISOString();
+        updateData.completed_at = completedAt ?? new Date().toISOString();
       }
       const { error } = await supabase
         .from("client_products")
@@ -180,7 +183,8 @@ export default function Demands() {
     const demand = demands.find((d: any) => d.id === draggableId);
     if (!demand || demand.status === newStatus) return;
     if (newStatus === 'concluido') {
-      if (!window.confirm("Deseja marcar esta demanda como concluída?")) return;
+      setCompleteDialog({ id: draggableId, date: new Date().toISOString().split("T")[0] });
+      return;
     }
     updateStatusMutation.mutate({ id: draggableId, status: newStatus });
   };
