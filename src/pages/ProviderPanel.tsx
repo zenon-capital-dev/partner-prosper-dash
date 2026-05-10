@@ -607,6 +607,43 @@ export default function ProviderPanel() {
   );
 }
 
+function DashboardCard({ 
+  label, 
+  value, 
+  icon: Icon, 
+  description, 
+  tone = "default" 
+}: { 
+  label: string; 
+  value: string | number; 
+  icon: any; 
+  description: string;
+  tone?: "default" | "warning" | "success" | "destructive" 
+}) {
+  const tones: any = {
+    default: "text-primary bg-primary/5 border-primary/10",
+    warning: "text-amber-500 bg-amber-500/5 border-amber-500/10",
+    success: "text-emerald-500 bg-emerald-500/5 border-emerald-500/10",
+    destructive: "text-rose-500 bg-rose-500/5 border-rose-500/10",
+  };
+  
+  return (
+    <div className="vx-card p-6 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
+       <div className="flex items-center justify-between mb-4">
+          <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone])}>
+             <Icon className="size-5" />
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+       </div>
+       <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
+          <p className="text-2xl font-bold font-editorial text-slate-900 dark:text-white mt-1">{value}</p>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
+       </div>
+    </div>
+  );
+}
+
 function StatItem({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" | "success" }) {
   const colors: any = {
     default: "text-slate-900 dark:text-white",
