@@ -194,7 +194,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       {active && !collapsed && (
                         <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-indigo-400" />
                       )}
-                      <Icon className={cn("size-[16px] shrink-0 transition-colors", active ? "text-indigo-300" : "group-hover:text-white/90")} strokeWidth={active ? 2.25 : 1.75} />
+                      <Icon className={cn("size-[15px] shrink-0 transition-colors", active ? "text-indigo-300" : "group-hover:text-white/90")} strokeWidth={active ? 2.25 : 1.75} />
                       {!collapsed && <span className="truncate">{item.title}</span>}
                     </NavLink>
                   );
