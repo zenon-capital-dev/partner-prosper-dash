@@ -242,26 +242,85 @@ export default function DemandDetail() {
               </TabsContent>
 
               <TabsContent value="docs" className="animate-fade-up space-y-6">
+                 <div className="flex items-center justify-between">
+                    <div>
+                       <h3 className="text-base font-bold text-foreground">Documentos da Demanda</h3>
+                       <p className="text-xs text-muted-foreground">Solicite e acompanhe os documentos vinculados a esta demanda.</p>
+                    </div>
+                    <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
+                       <FilePlus className="size-4" /> Solicitar Documento
+                    </Button>
+                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {demand.documents?.length === 0 ? (
+                    {!demand.documents || demand.documents.length === 0 ? (
                       <div className="col-span-2 p-12 text-center border-dashed border-2 rounded-2xl">
                          <Paperclip className="size-10 text-muted-foreground/20 mx-auto mb-4" />
                          <p className="text-sm text-muted-foreground">Nenhum documento vinculado a esta demanda.</p>
+                         <Button variant="outline" size="sm" className="mt-4 gap-2" onClick={() => setDocDialogOpen(true)}>
+                            <FilePlus className="size-4" /> Solicitar primeiro documento
+                         </Button>
                       </div>
-                    ) : demand.documents?.map((doc: any) => (
-                      <div key={doc.id} className="vx-card p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
-                         <div className="flex items-center gap-4 min-w-0">
-                            <div className="size-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0">
-                               <FileText className="size-5" />
-                            </div>
-                            <div className="min-w-0">
-                               <p className="text-sm font-bold truncate">{doc.name}</p>
-                               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{doc.status}</p>
-                            </div>
-                         </div>
-                         <Button variant="ghost" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-wider">Ver Arquivo</Button>
-                      </div>
-                    ))}
+                    ) : demand.documents.map((doc: any) => {
+                      const isOverdue = doc.due_date && new Date(doc.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise'].includes(doc.status);
+                      const computedStatus = isOverdue ? 'atrasado' : doc.status;
+                      const statusTone: Record<string, string> = {
+                        solicitado: "bg-amber-50 text-amber-700 border-amber-200",
+                        enviado: "bg-blue-50 text-blue-700 border-blue-200",
+                        em_analise: "bg-primary-muted text-primary border-primary/20",
+                        aprovado: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                        reprovado: "bg-rose-50 text-rose-700 border-rose-200",
+                        pendente_correcao: "bg-orange-50 text-orange-700 border-orange-200",
+                        atrasado: "bg-rose-100 text-rose-700 border-rose-200",
+                        vencido: "bg-slate-100 text-slate-500 border-slate-200",
+                      };
+                      const tone = statusTone[computedStatus] || statusTone.solicitado;
+                      return (
+                        <div key={doc.id} className="vx-card p-5 hover:bg-muted/10 transition-colors space-y-3">
+                           <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-start gap-3 min-w-0">
+                                 <div className="size-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0">
+                                    <FileText className="size-5" />
+                                 </div>
+                                 <div className="min-w-0">
+                                    <p className="text-sm font-bold truncate">{doc.name}</p>
+                                    {doc.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{doc.description}</p>}
+                                 </div>
+                              </div>
+                              <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider shrink-0", tone)}>
+                                 {computedStatus.replace(/_/g, ' ')}
+                              </Badge>
+                           </div>
+                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                              <span>{doc.is_required ? "Obrigatório" : "Opcional"}</span>
+                              {doc.due_date && (
+                                 <span className={isOverdue ? "text-rose-600 font-bold" : ""}>
+                                    Prazo: {formatDate(doc.due_date)}
+                                 </span>
+                              )}
+                              {doc.uploaded_at && <span className="text-emerald-600">Enviado: {formatDate(doc.uploaded_at)}</span>}
+                           </div>
+                           {doc.rejection_reason && (
+                              <p className="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100">
+                                 <strong>Motivo:</strong> {doc.rejection_reason}
+                              </p>
+                           )}
+                           {doc.file_path && (
+                              <Button
+                                 variant="outline"
+                                 size="sm"
+                                 className="gap-1.5 h-8 text-xs"
+                                 onClick={async () => {
+                                   const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
+                                   if (error) return toast.error(error.message);
+                                   window.open(data.signedUrl, "_blank");
+                                 }}
+                              >
+                                 <Download className="size-3.5" /> Ver arquivo
+                              </Button>
+                           )}
+                        </div>
+                      );
+                    })}
                  </div>
               </TabsContent>
 
