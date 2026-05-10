@@ -35,12 +35,13 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
         .eq("id", clientId)
         .single();
       
+      let responsible_name = null;
       if (data?.responsible_id) {
         const { data: resp } = await supabase.from("profiles").select("full_name").eq("id", data.responsible_id).single();
-        data.responsible_name = resp?.full_name;
+        responsible_name = resp?.full_name;
       }
       
-      return data;
+      return { ...data, responsible_name };
     }
   });
 
