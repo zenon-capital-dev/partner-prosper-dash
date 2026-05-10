@@ -201,6 +201,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Próxima ação</Label>
+            <Input value={form.next_action ?? ""} onChange={(e) => setForm({ ...form, next_action: e.target.value })} placeholder="Ex: Ligar para agendar reunião" />
+          </div>
+          <div className="space-y-2">
+            <Label>Data da próxima ação</Label>
+            <Input type="date" value={form.next_action_date ?? ""} onChange={(e) => setForm({ ...form, next_action_date: e.target.value })} />
+          </div>
           <div className="col-span-2 space-y-2">
             <Label>Observações</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
