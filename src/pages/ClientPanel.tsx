@@ -9,7 +9,7 @@ import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
   Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
   FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity,
-  ChevronLeft, Sparkles, MessageSquare, Zap
+  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -34,13 +34,14 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [docs, catalog, requests, contracts, payments, granularProducts] = await Promise.all([
+      const [docs, catalog, requests, contracts, payments, granularProducts, reports] = await Promise.all([
         supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true),
         supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
         supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false }),
         supabase.from("client_products").select("*, products(name, description)").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
       ]);
 
       return {
@@ -51,6 +52,7 @@ export default function ClientPanel() {
         contracts: contracts.data ?? [],
         payments: payments.data ?? [],
         granularProducts: granularProducts.data ?? [],
+        reports: reports.data ?? [],
       };
     },
     enabled: !!user,
@@ -70,10 +72,14 @@ export default function ClientPanel() {
     </div>
   );
 
-  const { client, docs, catalog, requests, contracts, payments, granularProducts } = data;
+  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports } = data;
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
-  const pendingDocs = docs.filter((d: any) => d.status === "solicitado" || d.status === "reprovado" || d.status === "pendente_correcao").length;
+  const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
+  const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
+  const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
+  const deliveries = docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido');
+  
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
   return (
@@ -91,98 +97,112 @@ export default function ClientPanel() {
              </Button>
 
              <PageHero 
-               eyebrow="Solution"
+               eyebrow="Solução em Execução"
                category={selectedProduct.products?.name}
                title={selectedProduct.products?.name}
                description={selectedProduct.products?.description || "Acompanhe o progresso e as entregas desta demanda em tempo real."}
                icon={<Package className="size-6" />}
                actions={
                  <div className="flex gap-2">
-                   <Button variant="outline" className="rounded-xl h-11 border-border/40">
+                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(`https://wa.me/5511999999999`, '_blank')}>
                      <MessageSquare className="size-4 mr-2" /> Falar com Equipe
                    </Button>
-                   <Button className="btn-premium h-11 rounded-xl">
-                     Baixar Relatórios
+                   <Button className="btn-premium h-11 rounded-xl" onClick={() => toast.info("Relatório sendo gerado...")}>
+                     Baixar Relatório
                    </Button>
                  </div>
                }
                kpis={[
                  { label: "Status", value: selectedProduct.status?.replace(/_/g, ' '), tone: "info", icon: <Activity className="size-4" /> },
-                 { label: "Início", value: formatDate(selectedProduct.created_at), tone: "default", icon: <Calendar className="size-4" /> },
                  { label: "Prazo Estimado", value: selectedProduct.deadline ? formatDate(selectedProduct.deadline) : "Em definição", tone: "warning", icon: <Clock className="size-4" /> },
-                 { label: "Progresso", value: "Acompanhe abaixo", tone: "primary", icon: <Zap className="size-4" /> },
+                 { label: "Documentos", value: `${docs.filter((d: any) => d.client_product_id === selectedProductId && d.file_path).length} enviados`, tone: "success", icon: <FileText className="size-4" /> },
                ]}
              />
 
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                <div className="lg:col-span-2 space-y-8">
                   <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
-                    <h3 className="font-editorial text-2xl font-bold mb-8">Fluxo de Execução</h3>
+                    <h3 className="font-editorial text-2xl font-bold mb-8">Checklist de Execução</h3>
                     <ClientProductSteps clientProductId={selectedProduct.id} showDetails={true} />
                   </div>
 
-                  {/* Custom Fields if any */}
-                  {selectedProduct.custom_fields && Object.keys(selectedProduct.custom_fields).length > 0 && (
-                    <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
-                      <h3 className="font-editorial text-2xl font-bold mb-8">Dados do Processo</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {Object.entries(selectedProduct.custom_fields).map(([key, val]: [string, any]) => (
-                          <div key={key} className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{key.replace(/_/g, ' ')}</p>
-                            <p className="font-bold text-slate-900 dark:text-white">{String(val)}</p>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
+                    <h3 className="font-editorial text-2xl font-bold mb-8">Documentos da Demanda</h3>
+                    <div className="space-y-4">
+                       {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 ? (
+                         <p className="text-sm text-muted-foreground italic">Nenhum documento específico solicitado para esta demanda.</p>
+                       ) : (
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
+                             <div key={d.id} className="p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-between group hover:border-primary/20 transition-all">
+                                <div className="flex items-center gap-4 min-w-0">
+                                   <div className={cn(
+                                     "size-10 rounded-xl flex items-center justify-center shrink-0",
+                                     d.file_path ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/5 text-primary"
+                                   )}>
+                                      <FileText className="size-5" />
+                                   </div>
+                                   <div className="min-w-0">
+                                      <p className="text-sm font-bold truncate">{d.name}</p>
+                                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
+                                         {d.file_path ? "Enviado" : "Pendente"}
+                                      </p>
+                                   </div>
+                                </div>
+                                {d.file_path ? (
+                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => window.open(d.file_path, '_blank')}>
+                                      <Download className="size-4" />
+                                   </Button>
+                                ) : (
+                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => toast.info("Funcionalidade de upload na aba Documentos")}>
+                                      <Upload className="size-3 mr-1.5" /> Upload
+                                   </Button>
+                                )}
+                             </div>
+                           ))}
+                         </div>
+                       )}
                     </div>
-                  )}
+                  </div>
                </div>
 
                <div className="space-y-8">
                   <div className="vx-card p-8 bg-slate-900 text-white rounded-[40px] space-y-6 relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="size-20" /></div>
-                    <h3 className="font-editorial text-xl font-bold">Histórico & Updates</h3>
+                    <h3 className="font-editorial text-xl font-bold">Mensagens & Atualizações</h3>
                     <div className="space-y-6 relative">
-                       {[
-                         { date: new Date().toISOString(), text: "Análise técnica em andamento pelo prestador." },
-                         { date: selectedProduct.created_at, text: "Demanda iniciada e checklist gerado automaticamente." }
-                       ].map((h, i) => (
-                         <div key={i} className="flex gap-4 group">
-                           <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                           <div className="space-y-1">
-                             <p className="text-xs font-medium text-white/90">{h.text}</p>
-                             <p className="text-[10px] font-bold text-white/30 uppercase">{formatDate(h.date)}</p>
+                       {reports.filter((r: any) => r.client_product_id === selectedProductId).length === 0 ? (
+                         <p className="text-xs text-white/40 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
+                       ) : (
+                         reports.filter((r: any) => r.client_product_id === selectedProductId).slice(0, 5).map((r: any) => (
+                           <div key={r.id} className="flex gap-4 group">
+                             <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                             <div className="space-y-1">
+                               <p className="text-xs font-medium text-white/90 leading-relaxed">{r.notes}</p>
+                               <div className="flex items-center gap-2 pt-1">
+                                  <p className="text-[9px] font-bold text-white/30 uppercase">{formatDate(r.created_at)}</p>
+                                  <span className="text-[9px] font-bold text-primary italic lowercase">por {r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
+                               </div>
+                             </div>
                            </div>
-                         </div>
-                       ))}
+                         ))
+                       )}
                     </div>
                   </div>
 
                   <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] space-y-6">
-                    <h3 className="font-editorial text-xl font-bold">Documentos da Demanda</h3>
-                    <div className="space-y-3">
-                       {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
-                         <div key={d.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-primary/20 transition-all">
-                            <div className="flex items-center gap-3 min-w-0">
-                               <FileText className="size-4 text-primary shrink-0" />
-                               <p className="text-xs font-bold truncate">{d.name}</p>
-                            </div>
-                            {d.file_path ? <CheckCircle2 className="size-4 text-emerald-500" /> : <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary" />}
-                         </div>
-                       ))}
-                       {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 && (
-                         <p className="text-xs text-muted-foreground italic text-center py-4">Sem documentos específicos.</p>
-                       )}
+                    <h3 className="font-editorial text-xl font-bold">Histórico de Atividades</h3>
+                    <div className="space-y-4">
+                       <div className="flex items-start gap-4">
+                          <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                             <CheckCircle2 className="size-4" />
+                          </div>
+                          <div>
+                             <p className="text-xs font-bold text-slate-900 dark:text-white">Demanda Criada</p>
+                             <p className="text-[10px] text-muted-foreground mt-0.5">{formatDate(selectedProduct.created_at)}</p>
+                          </div>
+                       </div>
                     </div>
-                    <Button 
-                      className="w-full rounded-2xl h-12 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white border border-slate-100 dark:border-white/10 hover:bg-primary hover:text-white"
-                      onClick={() => {
-                        const tab = document.querySelector('[data-value="checklist"]') as HTMLElement;
-                        tab?.click();
-                        setSelectedProductId(null);
-                      }}
-                    >
-                       Central de Documentos
-                    </Button>
                   </div>
                </div>
              </div>
@@ -218,55 +238,165 @@ export default function ClientPanel() {
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
-                    <PremiumStat label="Serviços" value={String(activeProducts.length)} />
-                    <PremiumStat label="Faturamento" value={formatBRL(monthlyTotal)} sub="Total" />
-                    <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
-                 </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                     <PremiumStat label="Serviços" value={String(activeProducts.length)} />
+                     <PremiumStat label="Progresso" value={`${Math.round(client.onboarding_progress || 0)}%`} sub="Geral" />
+                     <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
+                     <PremiumStat label="A Pagar" value={formatBRL(payments.filter((p: any) => p.status !== 'pago').reduce((s, p) => s + Number(p.amount), 0))} sub="Abertas" />
+                  </div>
               </div>
             </section>
 
-            {/* Navigation Tabs */}
-            <Tabs defaultValue="checklist" className="space-y-10">
+            <Tabs defaultValue="home" className="space-y-10">
               <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
-                <PremiumTabTrigger value="checklist" label="Documentos Pendentes" icon={ListChecks} count={pendingDocs} />
-                <PremiumTabTrigger value="servicos" label="Soluções Contratadas" icon={Package} />
-                <PremiumTabTrigger value="financeiro" label="Faturamento" icon={Receipt} />
-                <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
+                <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
+                <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />
+                <PremiumTabTrigger value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} />
+                <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} />
+                <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} />
                 <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-                <PremiumTabTrigger value="descobrir" label="Descobrir" icon={ShoppingBag} />
+                <PremiumTabTrigger value="descobrir" label="Novas Soluções" icon={ShoppingBag} />
               </TabsList>
+
+              <TabsContent value="home" className="animate-fade-up space-y-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-8">
+                    {/* Próximas Etapas */}
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                      <h3 className="font-editorial text-2xl font-bold mb-6">Próximas Etapas</h3>
+                      <div className="space-y-4">
+                        {activeProducts.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">Nenhuma etapa pendente no momento.</p>
+                        ) : (
+                          activeProducts.slice(0, 3).map((p: any) => (
+                            <div key={p.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+                               <div className="flex items-center gap-4">
+                                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                     <Activity className="size-5" />
+                                  </div>
+                                  <div>
+                                     <p className="font-bold text-slate-900 dark:text-white">{p.products?.name}</p>
+                                     <p className="text-xs text-muted-foreground">Etapa: {p.status?.replace(/_/g, ' ')}</p>
+                                  </div>
+                               </div>
+                               <Button variant="ghost" size="sm" className="text-primary font-bold" onClick={() => setSelectedProductId(p.id)}>Ver Detalhes</Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Entregas Recentes */}
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                      <h3 className="font-editorial text-2xl font-bold mb-6">Entregas Disponíveis</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {deliveries.length === 0 ? (
+                          <div className="col-span-full py-8 text-center bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                            <p className="text-sm text-muted-foreground italic">Suas entregas aparecerão aqui assim que forem concluídas.</p>
+                          </div>
+                        ) : (
+                          deliveries.slice(0, 4).map((d: any) => (
+                            <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20">
+                               <div className="flex items-center gap-3 min-w-0">
+                                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                                  <p className="text-xs font-bold truncate">{d.name}</p>
+                               </div>
+                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path, '_blank')}>
+                                  <Download className="size-4" />
+                               </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* Ações Necessárias */}
+                    <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
+                       <h3 className="font-editorial text-xl font-bold mb-6 relative">Ações Necessárias</h3>
+                       <div className="space-y-4 relative">
+                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
+                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
+                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => {}} />
+                       </div>
+                    </div>
+
+                    {/* Canal de Suporte */}
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                       <h3 className="font-editorial text-xl font-bold mb-6">Suporte & Sucesso</h3>
+                       <div className="space-y-6">
+                          <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
+                          <div className="space-y-3">
+                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                                <MessageSquare className="size-4 mr-2" /> Iniciar Chat
+                             </Button>
+                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
+                                <Mail className="size-4 mr-2" /> Enviar E-mail
+                             </Button>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
 
               <TabsContent value="servicos" className="animate-fade-up">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {granularProducts.map((p: any) => (
-                    <div 
-                      key={p.id} 
-                      className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer"
-                      onClick={() => setSelectedProductId(p.id)}
-                    >
-                      <div className="flex justify-between items-start mb-8">
-                        <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
-                           <Package className="size-7" />
+                  {granularProducts.map((p: any) => {
+                    const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
+                    const latestReport = reports.find((r: any) => r.client_product_id === p.id);
+                    return (
+                      <div 
+                        key={p.id} 
+                        className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer flex flex-col h-full"
+                        onClick={() => setSelectedProductId(p.id)}
+                      >
+                        <div className="flex justify-between items-start mb-8">
+                          <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
+                             <Package className="size-7" />
+                          </div>
+                          <StatusBadge status={p.status} />
                         </div>
-                        <StatusBadge status={p.status} />
+                        
+                        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                          {p.products?.name}
+                        </h3>
+                        <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
+                          {p.products?.description}
+                        </p>
+                        
+                        <div className="mt-auto pt-8 space-y-5">
+                           <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+                              <div>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Última Atualização</p>
+                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{latestReport ? formatDate(latestReport.created_at) : formatDate(p.created_at)}</p>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Estimado</p>
+                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
+                              </div>
+                              <div>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Pendências</p>
+                                 <p className={cn("text-xs font-bold", productPendingDocs > 0 ? "text-amber-500" : "text-emerald-500")}>
+                                    {productPendingDocs > 0 ? `${productPendingDocs} documentos` : "Tudo em dia"}
+                                 </p>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
+                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(p.created_at)}</p>
+                              </div>
+                           </div>
+
+                           <div className="pt-6 border-t border-slate-50 dark:border-white/5 flex items-center justify-between group/link">
+                              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Ver detalhes da execução</span>
+                              <ArrowRight className="size-4 text-primary group-hover/link:translate-x-1 transition-transform" />
+                           </div>
+                        </div>
                       </div>
-                      <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
-                        {p.products?.name}
-                      </h3>
-                      <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 min-h-[42px] leading-relaxed">
-                        {p.products?.description || "Consultoria técnica e estratégica para o crescimento do seu negócio."}
-                      </p>
-                      
-                      <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5">
-                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Progresso da Entrega</span>
-                            <ArrowRight className="size-4 text-primary opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-1" />
-                         </div>
-                         <ClientProductSteps clientProductId={p.id} />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </TabsContent>
 
@@ -423,5 +553,27 @@ function StatusBadge({ status }: { status: string }) {
     <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border px-2 py-0.5 rounded-lg", cfg.className)}>
       {cfg.label}
     </Badge>
+  );
+}
+
+function ActionItem({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick: () => void }) {
+  return (
+    <div 
+      className={cn(
+        "flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer",
+        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-40 grayscale pointer-events-none"
+      )}
+      onClick={onClick}
+    >
+       <div className="flex items-center gap-3">
+          <Icon className="size-4 text-primary" />
+          <span className="text-[13px] font-bold">{label}</span>
+       </div>
+       {count > 0 && (
+         <div className="size-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+            {count}
+         </div>
+       )}
+    </div>
   );
 }
