@@ -3,15 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   AlertCircle, Clock, Users, FileText, Banknote, 
   Wallet, FileSignature, CheckCircle2, MessageSquare,
-  Bell, UserPlus, History, MoreHorizontal, ExternalLink,
-  PlusCircle, CheckSquare, UserCheck, DollarSign, Zap,
-  ArrowRight, Search, Filter, RefreshCcw, Loader2,
-  CalendarDays, UserMinus, ShieldAlert, PauseCircle,
-  PlayCircle, Trash2, Send, Paperclip, MessageCircle
+  Zap, MoreHorizontal, ExternalLink,
+  PlusCircle, CheckSquare, UserCheck, DollarSign,
+  RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -20,17 +17,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { format, isToday, isBefore, subDays, startOfDay, endOfDay } from "date-fns";
+import { format, isToday, isBefore, subDays, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CockpitItem {
   id: string;
@@ -89,7 +85,6 @@ export default function OperationalCockpit() {
     queryKey: ["cockpit-stagnant-clients"],
     queryFn: async () => {
       const sevenDaysAgo = subDays(new Date(), 7).toISOString();
-      // This is a simplified check, ideally we'd use a join with activities
       const { data, error } = await supabase
         .from("clients")
         .select("id, full_name, updated_at, status, user_id")
@@ -111,28 +106,28 @@ export default function OperationalCockpit() {
     }
   });
 
-  // 3. Documentos aguardando análise/rejeitados
+  // 3. Documentos aguardando análise/reprovados
   const { data: docs = [], isLoading: loadingDocs } = useQuery({
     queryKey: ["cockpit-docs"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
         .select(`
-          id, status, title, created_at,
+          id, status, name, created_at,
           client:clients(id, full_name)
         `)
-        .in("status", ["enviado", "rejeitado", "em_analise"]);
+        .in("status", ["enviado", "reprovado", "em_analise"]);
       
       if (error) throw error;
       
-      return data.map(d => ({
+      return (data as any[]).map(d => ({
         id: d.id,
         type: 'document',
-        title: d.title || "Documento",
-        subtitle: `${(d.client as any)?.full_name} - ${d.status === 'enviado' ? 'Aguardando Análise' : 'Rejeitado / Reenvio'}`,
+        title: d.name || "Documento",
+        subtitle: `${d.client?.full_name || 'Cliente desconhecido'} - ${d.status === 'enviado' ? 'Aguardando Análise' : 'Reprovado / Reenvio'}`,
         status: d.status,
         date: d.created_at,
-        severity: d.status === 'rejeitado' ? 'high' : 'medium',
+        severity: d.status === 'reprovado' ? 'high' : 'medium',
         metadata: d
       })) as CockpitItem[];
     }
@@ -200,18 +195,18 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("contracts")
         .select(`
-          id, status, title, created_at,
+          id, status, name, created_at,
           client:clients(id, full_name)
         `)
-        .in("status", ["pendente", "aguardando_assinatura", "enviado"]);
+        .in("status", ["criado", "aguardando_assinatura", "enviado"]);
       
       if (error) throw error;
       
-      return data.map(c => ({
+      return (data as any[]).map(c => ({
         id: c.id,
         type: 'contract',
-        title: c.title || "Contrato",
-        subtitle: (c.client as any)?.full_name,
+        title: c.name || "Contrato",
+        subtitle: c.client?.full_name || 'Cliente desconhecido',
         status: c.status,
         date: c.created_at,
         severity: 'high',
@@ -245,27 +240,27 @@ export default function OperationalCockpit() {
     }
   });
 
-  // 8. Solicitações abertas (usando document_requests como proxy)
+  // 8. Solicitações abertas
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
     queryKey: ["cockpit-requests"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("document_requests")
         .select(`
-          id, status, title, created_at,
+          id, status, request_title, requested_at,
           client:clients(id, full_name)
         `)
         .eq("status", "pendente");
       
       if (error) throw error;
       
-      return data.map(r => ({
+      return (data as any[]).map(r => ({
         id: r.id,
         type: 'request',
-        title: r.title || "Solicitação de Documento",
-        subtitle: (r.client as any)?.full_name,
+        title: r.request_title || "Solicitação de Documento",
+        subtitle: r.client?.full_name || 'Cliente desconhecido',
         status: r.status,
-        date: r.created_at,
+        date: r.requested_at,
         severity: 'medium',
         metadata: r
       })) as CockpitItem[];
@@ -290,9 +285,6 @@ export default function OperationalCockpit() {
       
       if (error) throw error;
       
-      // Filter those who haven't sent a report in the last 3 days
-      // This is a bit complex in a single query without subqueries in JS,
-      // so we'll fetch all and filter manually for this demo context.
       const { data: recentReports } = await supabase
         .from("client_product_status_reports")
         .select("client_product_id, created_at")
@@ -329,7 +321,7 @@ export default function OperationalCockpit() {
     onSuccess: () => {
       toast.success("Notificação enviada com sucesso!");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error("Erro ao enviar notificação: " + error.message);
     }
   });
@@ -416,7 +408,7 @@ export default function OperationalCockpit() {
   if (loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports) {
     return (
       <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up">
-        <PageHeader title="Cockpit Operacional" subtitle="Carregando sua central de comando..." />
+        <PageHeader title="Cockpit Operacional" description="Carregando sua central de comando..." />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-32 rounded-3xl" />
@@ -433,26 +425,21 @@ export default function OperationalCockpit() {
 
   return (
     <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up pb-20">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="h-px w-8 bg-primary/40" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Daily Control Center</p>
+      <PageHeader 
+        eyebrow="Daily Control Center"
+        title="Cockpit Operacional"
+        description="Gestão diária de pendências e ações prioritárias."
+        actions={
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="rounded-2xl gap-2 border-slate-200 dark:border-white/10" onClick={() => queryClient.invalidateQueries()}>
+              <RefreshCcw className="size-4" /> Atualizar
+            </Button>
+            <Button className="btn-premium rounded-2xl gap-2" onClick={() => navigate("/tarefas")}>
+              <PlusCircle className="size-4" /> Nova Tarefa
+            </Button>
           </div>
-          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
-            Cockpit <span className="text-primary italic font-medium">Operacional</span>.
-          </h1>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-2xl gap-2 border-slate-200 dark:border-white/10" onClick={() => queryClient.invalidateQueries()}>
-            <RefreshCcw className="size-4" /> Atualizar
-          </Button>
-          <Button className="btn-premium rounded-2xl gap-2" onClick={() => navigate("/tarefas")}>
-            <PlusCircle className="size-4" /> Nova Tarefa
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* KPI GRID */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -565,6 +552,7 @@ function StatTile({ label, value, icon: Icon, tone, onClick }: any) {
 }
 
 function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: string) => void }) {
+  const navigate = useNavigate();
   const typeConfig = {
     demand: { icon: Zap, label: 'Demanda', color: 'bg-indigo-500/10 text-indigo-500' },
     client: { icon: Users, label: 'Cliente', color: 'bg-blue-500/10 text-blue-500' },
