@@ -13,7 +13,9 @@ import {
   User,
   ArrowRight,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Sparkles,
+  ShoppingBag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -29,7 +31,7 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("clients")
-        .select("*, partners(full_name), responsible:users!clients_responsible_id_fkey(full_name)")
+        .select("*, partners(full_name), responsible:profiles(full_name)")
         .eq("id", clientId)
         .single();
       return data;
