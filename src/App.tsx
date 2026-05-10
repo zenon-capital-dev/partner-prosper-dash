@@ -49,6 +49,7 @@ import ProviderPerformance from "./pages/ProviderPerformance";
 import Demands from "./pages/Demands";
 import DemandDetail from "./pages/DemandDetail";
 import SLAPages from "./pages/SLAPages";
+import OperationalCockpit from "./pages/OperationalCockpit";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<Dashboard />} />
+              <Route path="/cockpit" element={<OperationalCockpit />} />
               <Route path="/demandas" element={<Demands />} />
               <Route path="/demandas/:id" element={<DemandDetail />} />
               <Route path="/clientes" element={<Clients />} />

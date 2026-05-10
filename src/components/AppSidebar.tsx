@@ -101,6 +101,7 @@ const adminSections: NavSection[] = [
     icon: LayoutDashboard,
     items: [
       { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+      { title: "Cockpit Operacional", url: "/cockpit", icon: Zap },
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
       { title: "Histórico / Auditoria", url: "/auditoria", icon: History },
