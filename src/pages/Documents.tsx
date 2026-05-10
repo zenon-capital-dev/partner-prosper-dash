@@ -358,86 +358,65 @@ export default function Documents() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredDocs.map((d: any) => {
-                  const config = statusConfig[d.status as DocumentStatus] || statusConfig.solicitado;
+                  const effectiveStatus = (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status))) ? 'atrasado' : d.status;
+                  const config = statusConfig[effectiveStatus as DocumentStatus] || statusConfig.solicitado;
                   const StatusIcon = config.icon;
                   const productName = d.products?.name || d.client_products?.products?.name || d.client_products?.custom_product_name || "Geral";
-                  const provider = d.client_products?.service_providers;
                   const uploader = d.uploaded_by ? profileMap.get(d.uploaded_by) : null;
-                  const approver = d.approved_by ? profileMap.get(d.approved_by) : null;
 
                   return (
                     <tr key={d.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`size-10 rounded-lg ${config.color.split(' ')[0]} flex items-center justify-center shrink-0`}>
-                            <FileText className="size-5" />
+                        <div className="flex items-center gap-2">
+                          <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold border border-primary/20">
+                            {d.clients?.full_name?.substring(0, 2).toUpperCase() || "??"}
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-foreground truncate">{d.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{d.clients?.full_name || "—"}</p>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <Badge variant="secondary" className="text-[9px] font-bold py-0 h-4 border-none opacity-70">
-                                {d.is_required ? "OBRIGATÓRIO" : "OPCIONAL"}
-                              </Badge>
-                              <Badge variant="outline" className="text-[9px] font-bold py-0 h-4 border-none opacity-50">
-                                {d.is_public ? "PÚBLICO" : "INTERNO"}
-                              </Badge>
-                            </div>
-                          </div>
+                          <span className="text-xs font-medium text-foreground truncate max-w-[120px]">{d.clients?.full_name || "—"}</span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-xs font-medium text-foreground">{productName}</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[150px]">{productName}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold text-foreground truncate max-w-[200px]">{d.name}</span>
+                          {d.is_required && <span className="text-[9px] text-rose-500 font-bold uppercase tracking-wider">Obrigatório</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          {getFileIcon(d.file_path || d.name)}
+                          <span className="text-[10px] text-muted-foreground uppercase">{d.file_path?.split('.').pop() || 'Solic.'}</span>
+                        </div>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex flex-col gap-1">
-                          <Badge variant="outline" className={`w-fit gap-1 text-[10px] font-bold uppercase py-0.5 ${config.color}`}>
+                          <Badge variant="outline" className={`gap-1 text-[10px] font-bold uppercase py-0.5 whitespace-nowrap ${config.color}`}>
                             <StatusIcon className="size-2.5" />
                             {config.label}
                           </Badge>
-                          {d.rejection_reason && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger className="flex items-center gap-1 text-[10px] text-destructive hover:underline text-left mt-1">
-                                  <AlertCircle className="size-2.5" /> Ver motivo
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs">{d.rejection_reason}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                          {effectiveStatus === 'atrasado' && d.due_date && (
+                            <span className="text-[9px] text-destructive font-medium">Venceu em {formatDate(d.due_date)}</span>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
+                          {d.uploaded_at ? formatDate(d.uploaded_at) : "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-xs text-muted-foreground truncate max-w-[100px]">
                           {uploader?.full_name || uploader?.email || (d.uploaded_at ? "—" : "Não enviado")}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-xs text-muted-foreground">
-                          {approver?.full_name || approver?.email || "—"}
-                        </span>
+                        <Badge variant="secondary" className="text-[9px] font-bold py-0 h-4 border-none opacity-70">
+                          {d.is_public ? "CLIENTE" : "INTERNO"}
+                        </Badge>
                       </td>
-                      <td className="px-4 py-4">
-                        <span className="text-xs font-medium text-foreground">{provider?.name || "—"}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex flex-col gap-0.5">
-                          <p className="text-[11px] text-muted-foreground">
-                            <span className="font-medium">Solic.:</span> {formatDate(d.requested_at || d.created_at)}
-                          </p>
-                          {d.due_date && (
-                            <p className="text-[11px] text-muted-foreground">
-                              <span className="font-medium">Prazo:</span> {formatDate(d.due_date)}
-                            </p>
-                          )}
-                          {d.uploaded_at && (
-                            <p className="text-[11px] text-success">
-                              <span className="font-medium">Enviado:</span> {formatDate(d.uploaded_at)}
-                            </p>
-                          )}
-                        </div>
+                      <td className="px-4 py-4 text-[11px] text-muted-foreground">
+                        {formatDate(d.created_at)}
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-end gap-1">
