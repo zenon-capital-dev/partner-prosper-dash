@@ -101,42 +101,9 @@ export default function Leads() {
     }
   };
 
-  const convertToClient = async (lead: any) => {
-    if (!confirm(`Converter ${lead.full_name} em cliente?`)) return;
-    
-    setSubmitting(true);
-    try {
-      const { data: client, error: clientError } = await supabase.from("clients").insert({
-        full_name: lead.full_name,
-        email: lead.email,
-        phone: lead.phone,
-        whatsapp: lead.whatsapp,
-        origin: lead.source,
-        status: "ativo",
-        partner_id: lead.partner_id,
-        collaborator_id: lead.responsible_id,
-        notes: lead.notes,
-      }).select().single();
-
-      if (clientError) throw clientError;
-
-      // Mark lead as converted
-      const { error: updateError } = await supabase.from("leads").update({
-        status: "Virou cliente",
-        converted_to_client_id: client.id,
-        conversion_date: new Date().toISOString()
-      }).eq("id", lead.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Lead convertido em cliente com sucesso!");
-      qc.invalidateQueries({ queryKey: ["leads"] });
-      navigate(`/clientes/${client.id}`);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setSubmitting(false);
-    }
+  const convertToClient = (lead: any) => {
+    setConvertLead(lead);
+    setConvertOpen(true);
   };
 
   return (
