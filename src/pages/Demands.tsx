@@ -290,7 +290,7 @@ export default function Demands() {
             <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Parceiro" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Parceiros</SelectItem>
-              {partnersList.map(p => <SelectItem key={p.id} value={p.full_name}>{p.full_name}</SelectItem>)}
+              {partnersList.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
             </SelectContent>
           </Select>
 
