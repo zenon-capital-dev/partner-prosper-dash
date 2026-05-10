@@ -246,7 +246,7 @@ export default function Leads() {
                           <DropdownMenuItem onClick={() => openFollowUp(lead)}>
                             <CalendarClock className="size-3.5 mr-2" /> Agendar Follow-up
                           </DropdownMenuItem>
-                          {lead.status !== "Virou cliente" && (
+                          {lead.status !== "Fechado" && (
                             <DropdownMenuItem onClick={() => convertToClient(lead)} className="text-primary font-bold">
                               <UserPlus className="size-3.5 mr-2" /> Converter em Cliente
                             </DropdownMenuItem>
