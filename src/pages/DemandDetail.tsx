@@ -327,6 +327,15 @@ export default function DemandDetail() {
                  </div>
               </TabsContent>
 
+              <TabsContent value="comments" className="animate-fade-up">
+                 <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5">
+                    <DemandComments
+                      clientProductId={demand.id}
+                      role={isAdmin ? "admin" : "provider"}
+                    />
+                 </div>
+              </TabsContent>
+
               <TabsContent value="history" className="animate-fade-up space-y-6">
                  <div className="space-y-6">
                     {reports.length === 0 ? (
