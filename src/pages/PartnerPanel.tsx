@@ -410,16 +410,7 @@ export default function PartnerPanel() {
                                 {formatBRL(s.amount)}
                              </td>
                              <td className="px-8 py-6 text-center">
-                                <span className={cn(
-                                  "vx-pill uppercase tracking-widest text-[9px] min-w-[100px]",
-                                  s.workflow_status === 'paga' && "vx-pill-success",
-                                  ['aguardando_confirmacao', 'pendente', 'liberada', 'em_pagamento'].includes(s.workflow_status) && "vx-pill-warning",
-                                  s.workflow_status === 'cancelada' && "vx-pill-muted text-destructive",
-                                  s.workflow_status === 'estornada' && "vx-pill-muted",
-                                )}>
-                                  {String(s.workflow_status || 'aguardando_confirmacao').replace(/_/g, ' ')}
-                                </span>
-
+                                <CommissionStatusBadge status={s.workflow_status || 'pendente'} />
                              </td>
                           </tr>
                         ))}
