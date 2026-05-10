@@ -519,6 +519,7 @@ export type Database = {
           created_at: string | null
           current_step_id: string | null
           current_steps: Json | null
+          custom_fields: Json | null
           custom_product_name: string | null
           custom_value: number | null
           deadline: string | null
@@ -553,6 +554,7 @@ export type Database = {
           created_at?: string | null
           current_step_id?: string | null
           current_steps?: Json | null
+          custom_fields?: Json | null
           custom_product_name?: string | null
           custom_value?: number | null
           deadline?: string | null
@@ -587,6 +589,7 @@ export type Database = {
           created_at?: string | null
           current_step_id?: string | null
           current_steps?: Json | null
+          custom_fields?: Json | null
           custom_product_name?: string | null
           custom_value?: number | null
           deadline?: string | null
@@ -822,6 +825,9 @@ export type Database = {
           indicator_id: string | null
           internal_notes: string | null
           notes: string | null
+          onboarding_completed_at: string | null
+          onboarding_progress: number | null
+          onboarding_status: string | null
           origin: string | null
           partner_id: string | null
           payment_method: string | null
@@ -871,6 +877,9 @@ export type Database = {
           indicator_id?: string | null
           internal_notes?: string | null
           notes?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_progress?: number | null
+          onboarding_status?: string | null
           origin?: string | null
           partner_id?: string | null
           payment_method?: string | null
@@ -920,6 +929,9 @@ export type Database = {
           indicator_id?: string | null
           internal_notes?: string | null
           notes?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_progress?: number | null
+          onboarding_status?: string | null
           origin?: string | null
           partner_id?: string | null
           payment_method?: string | null

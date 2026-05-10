@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -32,6 +33,62 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   clientId: string;
+}
+
+function CustomFieldsForm({ productId, onChange }: { productId: string, onChange: (val: any) => void }) {
+  const [values, setValues] = useState<any>({});
+  
+  const { data: product } = useQuery({
+    queryKey: ["product-fields", productId],
+    queryFn: async () => {
+      const { data } = await supabase.from("products").select("custom_fields_template").eq("id", productId).single();
+      return data;
+    },
+    enabled: !!productId
+  });
+
+  const fields = (product?.custom_fields_template as any[]) || [];
+
+  const handleFieldChange = (name: string, value: any) => {
+    const next = { ...values, [name]: value };
+    setValues(next);
+    onChange(next);
+  };
+
+  if (!fields.length) return <p className="text-[11px] text-white/20 italic">Este produto não possui campos adicionais.</p>;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {fields.map((f: any) => (
+        <div key={f.name} className="space-y-1.5">
+          <Label className="text-[10px] uppercase tracking-wider text-white/40">{f.label}</Label>
+          {f.type === 'select' ? (
+            <Select onValueChange={(v) => handleFieldChange(f.name, v)}>
+              <SelectTrigger className="h-10 bg-white/[0.03] border-white/10 rounded-lg">
+                <SelectValue placeholder="Selecionar..." />
+              </SelectTrigger>
+              <SelectContent>
+                {f.options?.map((opt: string) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : f.type === 'boolean' ? (
+            <div className="flex items-center gap-2 h-10 px-3 bg-white/[0.03] border border-white/10 rounded-lg">
+              <Switch onCheckedChange={(v) => handleFieldChange(f.name, v)} />
+              <span className="text-xs text-white/60">Sim</span>
+            </div>
+          ) : (
+            <Input 
+              type={f.type || 'text'}
+              className="h-10 bg-white/[0.03] border-white/10 rounded-lg"
+              onChange={(e) => handleFieldChange(f.name, e.target.value)}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
@@ -119,7 +176,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           client_id: clientId,
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
-          value: form.value,
+          custom_fields: (form as any).custom_fields || {},
           notes: form.notes || null,
         })
         .select("id")
@@ -312,7 +369,19 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                        <span className="font-mono text-xl font-bold text-emerald-400">{formatBRL(companyShare)}</span>
                     </div>
                  </div>
-               </div>
+              {/* CAMPOS PERSONALIZADOS */}
+              {form.product_id && (
+                <div className="space-y-4">
+                  <p className="editorial-label text-primary flex items-center gap-2">
+                     04. Informações Específicas
+                  </p>
+                  <CustomFieldsForm 
+                    productId={form.product_id} 
+                    onChange={(fields) => setForm({ ...form, custom_fields: fields } as any)} 
+                  />
+                </div>
+              )}
+            </div>
 
                <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">Internal Note</p>

@@ -32,6 +32,7 @@ import Indicators from "./pages/Indicators";
 import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
+import ClientOnboarding from "./pages/ClientOnboarding";
 import Leads from "./pages/Leads";
 import Collaborators from "./pages/Collaborators";
 import Providers from "./pages/Providers";
@@ -111,6 +112,7 @@ const App = () => (
               <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
               <Route path="/cliente" element={<ClientPanel />} />
               <Route path="/cliente/documentos" element={<ClientPanel />} />
+              <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/prestador" element={<ProviderPanel />} />
