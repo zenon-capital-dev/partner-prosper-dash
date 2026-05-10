@@ -401,57 +401,85 @@ export default function Demands() {
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                     className={cn(
-                                      "vx-card p-4 bg-background hover:border-primary/30 transition-all select-none group relative",
-                                      snapshot.isDragging && "shadow-xl border-primary/50 rotate-2 scale-[1.02] z-50",
+                                      "vx-card p-4 bg-background hover:border-primary/40 transition-all select-none group relative shadow-sm",
+                                      snapshot.isDragging && "shadow-2xl border-primary/50 rotate-[2deg] scale-[1.05] z-50 ring-4 ring-primary/10",
                                       priority.label === "Urgente" && "border-l-4 border-l-rose-500"
                                     )}
                                     onClick={() => navigate(`/demandas/${demand.id}`)}
                                   >
-                                    <div className="flex items-start justify-between mb-2">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-1.5 py-0.5 rounded border border-primary/10">
-                                        {demand.products?.name}
-                                      </span>
-                                      <Badge variant="outline" className={cn("h-4 text-[8px] font-black uppercase border-none px-0", priority.color.replace('border-slate-200', '').replace('bg-', 'text-'))}>
+                                    <div className="flex items-start justify-between mb-3">
+                                      <div className="flex flex-col gap-1">
+                                        <h4 className="text-[11px] font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+                                          {demand.clients?.full_name}
+                                        </h4>
+                                        <p className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-wider truncate max-w-[150px]">
+                                          {demand.products?.name}
+                                        </p>
+                                      </div>
+                                      <Badge variant="outline" className={cn("h-4 text-[8px] font-black uppercase border-none px-1.5", priority.color)}>
                                         {priority.label}
                                       </Badge>
                                     </div>
                                     
-                                    <h4 className="text-xs font-bold text-foreground mb-0.5 leading-tight group-hover:text-primary transition-colors">
-                                      {demand.clients?.full_name}
-                                    </h4>
-                                    <p className="text-[9px] text-muted-foreground/60 font-medium mb-3 truncate">
-                                      {demand.clients?.company || "Pessoa Física"}
-                                    </p>
-                                    
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground/60">
-                                        <span className="flex items-center gap-1">
-                                          <UserRound className="size-2.5" />
-                                          {demand.service_providers?.name || "N/A"}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                          <Calendar className="size-2.5" />
-                                          {demand.deadline ? formatDate(demand.deadline) : "—"}
-                                        </span>
+                                    <div className="space-y-3">
+                                      <div className="flex flex-col gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className="text-muted-foreground/60 flex items-center gap-1">
+                                            <UserRound className="size-2.5" /> Prestador
+                                          </span>
+                                          <span className="text-foreground truncate max-w-[100px]">
+                                            {demand.service_providers?.name || "N/A"}
+                                          </span>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className="text-muted-foreground/60 flex items-center gap-1">
+                                            <Calendar className="size-2.5" /> Prazo
+                                          </span>
+                                          <span className={cn(
+                                            "tabular-nums",
+                                            demand.deadline && new Date(demand.deadline) < new Date() ? "text-rose-500" : "text-foreground"
+                                          )}>
+                                            {demand.deadline ? formatDate(demand.deadline) : "—"}
+                                          </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className="text-muted-foreground/60 flex items-center gap-1">
+                                            <Timer className="size-2.5" /> SLA
+                                          </span>
+                                          <span className="text-foreground">
+                                            {demand.sla_due_date ? formatDate(demand.sla_due_date) : "—"}
+                                          </span>
+                                        </div>
                                       </div>
                                       
-                                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                                      <div className="flex items-center justify-between pt-2">
                                         {pendingDocs > 0 ? (
-                                          <div className="flex items-center gap-1 text-[8px] font-black text-amber-600 bg-amber-500/5 px-1 rounded">
-                                            <AlertCircle className="size-2" /> {pendingDocs} DOCS
+                                          <div className="flex items-center gap-1 text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                            <FileClock className="size-2.5" /> {pendingDocs} DOCS PENDENTES
                                           </div>
                                         ) : (
-                                          <div className="flex items-center gap-1 text-[8px] font-black text-emerald-600 bg-emerald-500/5 px-1 rounded">
-                                            <CheckCircle2 className="size-2" /> DOCS OK
+                                          <div className="flex items-center gap-1 text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                            <CheckCircle2 className="size-2.5" /> DOCS OK
                                           </div>
                                         )}
                                         
-                                        <div className="flex items-center gap-1 text-[8px] font-bold text-muted-foreground/40 italic truncate max-w-[120px]">
-                                           <History className="size-2" /> {demand.last_report?.notes || "Sem reporte"}
+                                        <div className="flex items-center gap-1">
+                                          {demand.deadline && new Date(demand.deadline) < new Date() && (
+                                            <AlertCircle className="size-3 text-rose-500 animate-pulse" title="Prazo vencido" />
+                                          )}
+                                          {pendingDocs > 0 && (
+                                            <FileText className="size-3 text-amber-500" title="Documentos pendentes" />
+                                          )}
+                                          {demand.priority === 'urgente' && (
+                                            <ShieldAlert className="size-3 text-rose-600" title="Urgência crítica" />
+                                          )}
                                         </div>
                                       </div>
                                     </div>
                                   </div>
+
                                 )}
                               </Draggable>
                             );
