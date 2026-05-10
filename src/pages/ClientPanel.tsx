@@ -231,16 +231,100 @@ export default function ClientPanel() {
               </div>
             </section>
 
-            {/* Navigation Tabs */}
-            <Tabs defaultValue="checklist" className="space-y-10">
+            <Tabs defaultValue="home" className="space-y-10">
               <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
-                <PremiumTabTrigger value="checklist" label="Documentos Pendentes" icon={ListChecks} count={pendingDocs} />
-                <PremiumTabTrigger value="servicos" label="Soluções Contratadas" icon={Package} />
-                <PremiumTabTrigger value="financeiro" label="Faturamento" icon={Receipt} />
-                <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
+                <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
+                <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />
+                <PremiumTabTrigger value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} />
+                <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} />
+                <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} />
                 <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-                <PremiumTabTrigger value="descobrir" label="Descobrir" icon={ShoppingBag} />
+                <PremiumTabTrigger value="descobrir" label="Novas Soluções" icon={ShoppingBag} />
               </TabsList>
+
+              <TabsContent value="home" className="animate-fade-up space-y-10">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-8">
+                    {/* Próximas Etapas */}
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                      <h3 className="font-editorial text-2xl font-bold mb-6">Próximas Etapas</h3>
+                      <div className="space-y-4">
+                        {activeProducts.length === 0 ? (
+                          <p className="text-sm text-muted-foreground italic">Nenhuma etapa pendente no momento.</p>
+                        ) : (
+                          activeProducts.slice(0, 3).map((p: any) => (
+                            <div key={p.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+                               <div className="flex items-center gap-4">
+                                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                     <Activity className="size-5" />
+                                  </div>
+                                  <div>
+                                     <p className="font-bold text-slate-900 dark:text-white">{p.products?.name}</p>
+                                     <p className="text-xs text-muted-foreground">Etapa: {p.status?.replace(/_/g, ' ')}</p>
+                                  </div>
+                               </div>
+                               <Button variant="ghost" size="sm" className="text-primary font-bold" onClick={() => setSelectedProductId(p.id)}>Ver Detalhes</Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Entregas Recentes */}
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                      <h3 className="font-editorial text-2xl font-bold mb-6">Entregas Disponíveis</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {deliveries.length === 0 ? (
+                          <div className="col-span-full py-8 text-center bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                            <p className="text-sm text-muted-foreground italic">Suas entregas aparecerão aqui assim que forem concluídas.</p>
+                          </div>
+                        ) : (
+                          deliveries.slice(0, 4).map((d: any) => (
+                            <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20">
+                               <div className="flex items-center gap-3 min-w-0">
+                                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+                                  <p className="text-xs font-bold truncate">{d.name}</p>
+                               </div>
+                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path, '_blank')}>
+                                  <Download className="size-4" />
+                               </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* Ações Necessárias */}
+                    <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
+                       <h3 className="font-editorial text-xl font-bold mb-6 relative">Ações Necessárias</h3>
+                       <div className="space-y-4 relative">
+                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
+                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
+                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => {}} />
+                       </div>
+                    </div>
+
+                    {/* Canal de Suporte */}
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                       <h3 className="font-editorial text-xl font-bold mb-6">Suporte & Sucesso</h3>
+                       <div className="space-y-6">
+                          <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
+                          <div className="space-y-3">
+                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                                <MessageSquare className="size-4 mr-2" /> Iniciar Chat
+                             </Button>
+                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
+                                <Mail className="size-4 mr-2" /> Enviar E-mail
+                             </Button>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
 
               <TabsContent value="servicos" className="animate-fade-up">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
