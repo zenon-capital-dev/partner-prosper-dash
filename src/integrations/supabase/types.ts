@@ -3374,7 +3374,12 @@ export type Database = {
       beneficiary_type: "partner" | "referrer" | "collaborator"
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status: "ativo" | "inativo" | "prospecto"
-      comment_visibility: "internal" | "provider" | "client" | "system"
+      comment_visibility:
+        | "internal"
+        | "provider"
+        | "client"
+        | "system"
+        | "admin"
       commission_status: "pendente" | "pago" | "cancelado"
       commission_status_enum:
         | "gerada"
@@ -3591,7 +3596,7 @@ export const Constants = {
       beneficiary_type: ["partner", "referrer", "collaborator"],
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
       client_status: ["ativo", "inativo", "prospecto"],
-      comment_visibility: ["internal", "provider", "client", "system"],
+      comment_visibility: ["internal", "provider", "client", "system", "admin"],
       commission_status: ["pendente", "pago", "cancelado"],
       commission_status_enum: [
         "gerada",
