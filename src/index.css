@@ -223,7 +223,7 @@
 
   /* Tables — dense, professional */
   .vx-table-wrap {
-    @apply overflow-hidden rounded-lg border border-border bg-card;
+    @apply overflow-hidden rounded-xl border border-border bg-card shadow-sm;
   }
   .vx-table {
     @apply w-full text-left text-[13px];
