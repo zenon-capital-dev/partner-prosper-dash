@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { OperationalChecklist } from "@/components/clients/OperationalChecklist";
+import { DemandComments } from "@/components/demands/DemandComments";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { toast } from "sonner";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
@@ -230,6 +231,9 @@ export default function DemandDetail() {
                  <TabsTrigger value="docs" className="tab-trigger">
                     <FileText className="size-4 mr-2" /> Documentação
                  </TabsTrigger>
+                 <TabsTrigger value="comments" className="tab-trigger">
+                    <MessageSquare className="size-4 mr-2" /> Comentários
+                 </TabsTrigger>
                  <TabsTrigger value="history" className="tab-trigger">
                     <History className="size-4 mr-2" /> Histórico & Reportes
                  </TabsTrigger>
@@ -321,6 +325,15 @@ export default function DemandDetail() {
                         </div>
                       );
                     })}
+                 </div>
+              </TabsContent>
+
+              <TabsContent value="comments" className="animate-fade-up">
+                 <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5">
+                    <DemandComments
+                      clientProductId={demand.id}
+                      role={isAdmin ? "admin" : "provider"}
+                    />
                  </div>
               </TabsContent>
 
