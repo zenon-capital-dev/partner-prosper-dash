@@ -240,7 +240,11 @@ export default function ClientPanel() {
           <TabsContent value="servicos" className="animate-fade-up">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {granularProducts.map((p: any) => (
-                <div key={p.id} className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item">
+                <div 
+                  key={p.id} 
+                  className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer"
+                  onClick={() => setSelectedProductId(p.id)}
+                >
                   <div className="flex justify-between items-start mb-8">
                     <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
                        <Package className="size-7" />
@@ -255,9 +259,9 @@ export default function ClientPanel() {
                   </p>
                   
                   <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5">
-                     <div className="flex items-center justify-between mb-6">
+                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Progresso da Entrega</span>
-                        <span className="text-[10px] font-bold text-primary">Operacional</span>
+                        <ArrowRight className="size-4 text-primary opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-1" />
                      </div>
                      <ClientProductSteps clientProductId={p.id} />
                   </div>
