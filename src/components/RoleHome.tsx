@@ -31,7 +31,10 @@ export default function RoleHome() {
   if (isParceiro) return <Navigate to="/parceiro" replace />;
   if (isIndicador) return <Navigate to="/indicador" replace />;
   if (isPrestador) return <Navigate to="/prestador" replace />;
-  if (isCliente || isLead) return <Navigate to="/cliente" replace />;
+  if (isCliente || isLead) {
+    // Check if onboarding is completed
+    return <RoleClientRedirect />;
+  }
 
   // fallback
   return <Navigate to="/cliente" replace />;
