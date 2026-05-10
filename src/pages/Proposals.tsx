@@ -117,7 +117,7 @@ export default function Proposals() {
         eyebrow="Comercial"
         title="Propostas Comerciais"
         description="Monte propostas profissionais para leads e clientes, acompanhe o status e converta em vendas."
-        icon={FileText}
+        icon={<FileText className="h-5 w-5" />}
         actions={
           <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" /> Nova proposta
