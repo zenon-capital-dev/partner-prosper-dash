@@ -28,6 +28,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
@@ -147,16 +148,19 @@ export default function Demands() {
     { id: "aguardando_documentos", label: "Aguardando documentos" },
     { id: "em_analise", label: "Em análise" },
     { id: "em_execucao", label: "Em execução" },
-    { id: "ajuste_solicitado", label: "Ajuste Solicitado" },
-    { id: "aguardando_aprovacao_final", label: "Revisão Final" },
+    { id: "pendente_cliente", label: "Pendente com cliente" },
+    { id: "pendente_prestador", label: "Pendente com prestador" },
+    { id: "aguardando_aprovacao_final", label: "Aguardando aprovação" },
     { id: "concluido", label: "Concluído" },
   ];
 
+  const [completeDialog, setCompleteDialog] = useState<{ id: string; date: string } | null>(null);
+
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+    mutationFn: async ({ id, status, completedAt }: { id: string; status: string; completedAt?: string }) => {
       const updateData: any = { status };
       if (status === 'concluido') {
-        updateData.completed_at = new Date().toISOString();
+        updateData.completed_at = completedAt ?? new Date().toISOString();
       }
       const { error } = await supabase
         .from("client_products")
@@ -180,7 +184,8 @@ export default function Demands() {
     const demand = demands.find((d: any) => d.id === draggableId);
     if (!demand || demand.status === newStatus) return;
     if (newStatus === 'concluido') {
-      if (!window.confirm("Deseja marcar esta demanda como concluída?")) return;
+      setCompleteDialog({ id: draggableId, date: new Date().toISOString().split("T")[0] });
+      return;
     }
     updateStatusMutation.mutate({ id: draggableId, status: newStatus });
   };
@@ -587,6 +592,45 @@ export default function Demands() {
           })}
         </div>
       )}
+
+      <Dialog open={!!completeDialog} onOpenChange={(v) => { if (!v) setCompleteDialog(null); }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Concluir demanda</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Confirme a data de conclusão. Essa ação atualiza o status para Concluído e registra a finalização.
+            </p>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Data de conclusão</label>
+              <Input
+                type="date"
+                value={completeDialog?.date ?? ""}
+                onChange={(e) => completeDialog && setCompleteDialog({ ...completeDialog, date: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCompleteDialog(null)}>Cancelar</Button>
+            <Button
+              className="bg-gradient-primary"
+              onClick={() => {
+                if (!completeDialog) return;
+                updateStatusMutation.mutate({
+                  id: completeDialog.id,
+                  status: "concluido",
+                  completedAt: new Date(completeDialog.date).toISOString(),
+                });
+                setCompleteDialog(null);
+              }}
+            >
+              Confirmar conclusão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 }
