@@ -8,7 +8,8 @@ import {
   AlertCircle, CheckCircle2, FileText, 
   MessageSquare, History, ListChecks, 
   Calendar, ShieldAlert, Paperclip, ArrowRight,
-  PauseCircle, PlayCircle, AlertTriangle, FileCheck
+  PauseCircle, PlayCircle, AlertTriangle, FileCheck,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,8 @@ export default function DemandDetail() {
           clients(id, full_name, email, phone, company, document),
           products(id, name, description, sla_day_type),
           service_providers:service_provider_id(id, name, specialty),
-          documents(*)
+          documents(*),
+          steps:client_product_steps(*)
         `)
         .eq("id", id!)
         .single();
@@ -59,6 +61,9 @@ export default function DemandDetail() {
     },
     enabled: !!id,
   });
+
+  const nextAction = demand?.steps?.find((s: any) => !s.completed);
+
 
   const { data: reports = [] } = useQuery({
     queryKey: ["demand-reports", id],
@@ -196,7 +201,24 @@ export default function DemandDetail() {
               </div>
            </div>
 
-           <Tabs defaultValue="checklist" className="space-y-6">
+            {nextAction && (
+              <div className="vx-card p-6 bg-primary/[0.03] border-primary/20 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 animate-pulse">
+                    <Zap className="size-6" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-0.5">Próxima Ação Recomendada</p>
+                    <h3 className="text-base font-bold text-foreground">{nextAction.label}</h3>
+                  </div>
+                </div>
+                <Button className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                  Executar Agora <ArrowRight className="size-4" />
+                </Button>
+              </div>
+            )}
+
+            <Tabs defaultValue="checklist" className="space-y-6">
               <TabsList className="bg-transparent border-b border-border rounded-none h-auto p-0 gap-8">
                  <TabsTrigger value="checklist" className="tab-trigger">
                     <ListChecks className="size-4 mr-2" /> Checklist Operacional
