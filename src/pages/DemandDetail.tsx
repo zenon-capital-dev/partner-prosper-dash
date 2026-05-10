@@ -233,7 +233,7 @@ export default function DemandDetail() {
 
               <TabsContent value="checklist" className="animate-fade-up">
                  <div className="vx-card p-8 bg-card border-slate-100 dark:border-white/5">
-                    <ClientProductSteps clientProductId={demand.id} />
+                    <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
                  </div>
               </TabsContent>
 
