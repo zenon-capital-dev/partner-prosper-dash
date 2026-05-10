@@ -34,13 +34,14 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [docs, catalog, requests, contracts, payments, granularProducts] = await Promise.all([
+      const [docs, catalog, requests, contracts, payments, granularProducts, reports] = await Promise.all([
         supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true),
         supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
         supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false }),
         supabase.from("client_products").select("*, products(name, description)").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
       ]);
 
       return {
@@ -51,6 +52,7 @@ export default function ClientPanel() {
         contracts: contracts.data ?? [],
         payments: payments.data ?? [],
         granularProducts: granularProducts.data ?? [],
+        reports: reports.data ?? [],
       };
     },
     enabled: !!user,
