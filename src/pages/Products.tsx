@@ -677,6 +677,15 @@ export default function Products() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {checklistTarget && (
+        <ProductChecklistDialog
+          open={!!checklistTarget}
+          onOpenChange={(v) => !v && setChecklistTarget(null)}
+          productId={checklistTarget.id}
+          productName={checklistTarget.name}
+        />
+      )}
     </div>
   );
 }
