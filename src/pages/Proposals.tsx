@@ -112,7 +112,7 @@ export default function Proposals() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell space-y-6 animate-fade-up">
       <PageHero
         eyebrow="Comercial"
         title="Propostas Comerciais"

@@ -98,7 +98,7 @@ export default function FinanceCenter() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell space-y-6 animate-fade-up">
       <PageHero
         eyebrow="Financeiro"
         title="Central Financeira"
@@ -335,7 +335,7 @@ function CommissionsTable({ commissions }: { commissions: any[] }) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell space-y-6 animate-fade-up">
       <Block rows={pending} title="Pendentes" action />
       <Block rows={paid} title="Pagas" action={false} />
     </div>
