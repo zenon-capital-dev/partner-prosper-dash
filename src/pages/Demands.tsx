@@ -466,106 +466,126 @@ export default function Demands() {
           </DragDropContext>
         </div>
       ) : viewMode === 'list' ? (
-        <div className="vx-table-wrap">
+        <div className="vx-table-wrap overflow-visible">
           <table className="vx-table">
             <thead className="vx-table-head">
               <tr>
-                <th className="vx-table-cell">Cliente / Empresa</th>
-                <th className="vx-table-cell">Produto</th>
-                <th className="vx-table-cell">Responsável</th>
-                <th className="vx-table-cell">Status</th>
-                <th className="vx-table-cell">Prioridade</th>
-                <th className="vx-table-cell">Prazo / Docs</th>
-                <th className="vx-table-cell">Último Reporte</th>
-                <th className="vx-table-cell text-right">Ações</th>
+                <Th>Cliente</Th>
+                <Th>Empresa</Th>
+                <Th>Produto</Th>
+                <Th>Prestador</Th>
+                <Th>Status</Th>
+                <Th>Prioridade</Th>
+                <Th>SLA</Th>
+                <Th>Prazo</Th>
+                <Th>Docs Pendentes</Th>
+                <Th>Última Atualização</Th>
+                <Th className="text-right">Ações</Th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-card">
               {filtered.map((d: any) => {
                 const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
                 const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
-                const isOverdue = d.sla_due_date && new Date(d.sla_due_date) < new Date() && d.status !== 'concluido';
-                const daysLeft = d.sla_due_date ? Math.ceil((new Date(d.sla_due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const isOverdue = d.deadline && new Date(d.deadline) < new Date() && d.status !== 'concluido';
+                const initials = d.clients?.full_name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "??";
                 
                 return (
-                  <tr key={d.id} className={cn("vx-table-row group", isOverdue && "bg-rose-500/[0.02]")}>
-                    <td className="vx-table-cell">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer" onClick={() => navigate(`/demandas/${d.id}`)}>
+                  <tr key={d.id} className="vx-table-row group border-b border-border/40 hover:bg-muted/30 transition-colors">
+                    <td className="vx-table-cell py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-8 border border-border/50 shadow-sm">
+                          <AvatarFallback className="text-[10px] font-bold bg-primary/5 text-primary">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer text-xs" onClick={() => navigate(`/demandas/${d.id}`)}>
                           {d.clients?.full_name}
                         </span>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider">
-                          {d.clients?.company || "Pessoa Física"}
-                        </span>
+                      </div>
+                    </td>
+                    <td className="vx-table-cell">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">
+                        {d.clients?.company || "Pessoa Física"}
+                      </span>
+                    </td>
+                    <td className="vx-table-cell">
+                      <div className="flex items-center gap-2">
+                        <div className="size-6 rounded bg-primary/5 flex items-center justify-center">
+                          <Package className="size-3 text-primary/60" />
+                        </div>
+                        <span className="text-xs font-bold text-foreground truncate max-w-[150px]">{d.products?.name}</span>
                       </div>
                     </td>
                     <td className="vx-table-cell">
                       <div className="flex items-center gap-2">
-                        <Package className="size-3.5 text-primary/60" />
-                        <span className="text-xs font-bold text-foreground">{d.products?.name}</span>
+                        <UserRound className="size-3.5 text-muted-foreground/40" />
+                        <span className="text-xs font-medium text-muted-foreground/80">{d.service_providers?.name || "—"}</span>
                       </div>
                     </td>
                     <td className="vx-table-cell">
-                      <div className="flex items-center gap-2">
-                        <UserRound className="size-3.5 text-muted-foreground/60" />
-                        <span className="text-xs font-medium">{d.service_providers?.name || "—"}</span>
-                      </div>
-                    </td>
-                    <td className="vx-table-cell">
-                      <Badge variant="outline" className="capitalize text-[10px] font-bold tracking-wider bg-muted/30">
+                      <Badge variant="outline" className="capitalize text-[9px] font-black tracking-widest bg-muted/30 border-border/50 px-2 py-0">
                         {d.status?.replace('_', ' ')}
                       </Badge>
                     </td>
                     <td className="vx-table-cell">
-                      <Badge variant="outline" className={cn("gap-1 text-[10px] font-bold uppercase", priority.color)}>
-                        <priority.icon className="size-3" />
+                      <Badge variant="outline" className={cn("gap-1 text-[9px] font-black uppercase px-2 py-0 border-none", priority.color)}>
+                        <div className={cn("size-1.5 rounded-full shrink-0", priority.dot)} />
                         {priority.label}
                       </Badge>
                     </td>
                     <td className="vx-table-cell">
-                      <div className="flex flex-col">
-                        <span className={cn("text-xs font-bold tabular-nums", isOverdue ? "text-rose-500" : "text-foreground")}>
-                          {d.sla_due_date ? formatDate(d.sla_due_date) : "—"}
+                      <SLAIndicator dueDate={d.sla_due_date} status={d.sla_status} />
+                    </td>
+                    <td className="vx-table-cell">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="size-3 text-muted-foreground/40" />
+                        <span className={cn("text-[11px] font-bold tabular-nums", isOverdue ? "text-rose-500" : "text-muted-foreground/80")}>
+                          {d.deadline ? formatDate(d.deadline) : "—"}
                         </span>
-                        {pendingDocs > 0 ? (
-                          <span className="text-[9px] font-black uppercase text-amber-600">
-                             {pendingDocs} Docs Pendentes
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-black uppercase text-emerald-600">
-                             Docs em dia
+                      </div>
+                    </td>
+                    <td className="vx-table-cell">
+                      {pendingDocs > 0 ? (
+                        <div className="flex items-center gap-1 text-[10px] font-black text-amber-600 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/20">
+                           <FileClock className="size-3" /> {pendingDocs} DOCS
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/20">
+                           <FileCheck className="size-3" /> OK
+                        </div>
+                      )}
+                    </td>
+                    <td className="vx-table-cell">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-muted-foreground/80 tabular-nums">
+                          {formatDate(d.updated_at || d.created_at)}
+                        </span>
+                        {d.last_report && (
+                          <span className="text-[9px] text-muted-foreground/40 italic truncate max-w-[120px]">
+                            {d.last_report.notes}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="vx-table-cell max-w-[200px]">
-                       {d.last_report ? (
-                         <div className="flex flex-col">
-                            <span className="text-[11px] text-muted-foreground line-clamp-1 italic font-medium">"{d.last_report.notes}"</span>
-                            <span className="text-[9px] font-bold text-muted-foreground/40">{formatDate(d.last_report.created_at)}</span>
-                         </div>
-                       ) : (
-                         <span className="text-[10px] text-muted-foreground/40 italic">Sem reporte</span>
-                       )}
-                    </td>
                     <td className="vx-table-cell text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                          <Button variant="ghost" size="icon" className="size-8 rounded-lg hover:bg-primary/5 hover:text-primary transition-all">
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}`)} className="gap-2 cursor-pointer">
-                            <ArrowUpRight className="size-4" /> Abrir Demanda
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-border/50 animate-in fade-in zoom-in-95">
+                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}`)} className="gap-2 cursor-pointer font-medium py-2">
+                            <ArrowUpRight className="size-4 text-primary" /> Abrir Detalhes
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
-                            <MessageSquare className="size-4" /> Notificar Cliente
+                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
+                            <MessageSquare className="size-4 text-blue-500" /> Notificar Cliente
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
-                            <UserRound className="size-4" /> Delegar Prestador
+                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
+                            <UserRound className="size-4 text-emerald-500" /> Delegar Prestador
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer text-amber-600 focus:text-amber-700">
+                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2 text-rose-600 focus:text-rose-700">
                             <ShieldAlert className="size-4" /> Alterar Status
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -577,6 +597,7 @@ export default function Demands() {
             </tbody>
           </table>
         </div>
+
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((d: any) => {
