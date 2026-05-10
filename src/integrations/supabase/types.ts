@@ -808,6 +808,7 @@ export type Database = {
           address_street: string | null
           address_zip_code: string | null
           birth_date: string | null
+          churn_risk: string | null
           city: string | null
           collaborator_id: string | null
           commission_value: number | null
@@ -821,6 +822,7 @@ export type Database = {
           email: string | null
           entry_date: string | null
           full_name: string
+          health_score: number | null
           id: string
           indicator_id: string | null
           internal_notes: string | null
@@ -860,6 +862,7 @@ export type Database = {
           address_street?: string | null
           address_zip_code?: string | null
           birth_date?: string | null
+          churn_risk?: string | null
           city?: string | null
           collaborator_id?: string | null
           commission_value?: number | null
@@ -873,6 +876,7 @@ export type Database = {
           email?: string | null
           entry_date?: string | null
           full_name: string
+          health_score?: number | null
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
@@ -912,6 +916,7 @@ export type Database = {
           address_street?: string | null
           address_zip_code?: string | null
           birth_date?: string | null
+          churn_risk?: string | null
           city?: string | null
           collaborator_id?: string | null
           commission_value?: number | null
@@ -925,6 +930,7 @@ export type Database = {
           email?: string | null
           entry_date?: string | null
           full_name?: string
+          health_score?: number | null
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null

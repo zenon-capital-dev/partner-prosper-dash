@@ -18,6 +18,7 @@ import { ClientContracts } from "@/components/clients/tabs/ClientContracts";
 import { ClientFinancial } from "@/components/clients/tabs/ClientFinancial";
 import { ClientTasks } from "@/components/clients/tabs/ClientTasks";
 import { ClientHistory } from "@/components/clients/tabs/ClientHistory";
+import { IntelligentSummary } from "@/components/clients/IntelligentSummary";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -124,6 +125,9 @@ export default function ClientDetail() {
            </button>
         </div>
       </div>
+
+      {/* Intelligent Summary Block */}
+      <IntelligentSummary clientId={id!} />
 
       {/* Stats Strip */}
       <div className="stats-strip">
