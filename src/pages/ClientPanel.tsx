@@ -122,72 +122,87 @@ export default function ClientPanel() {
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                <div className="lg:col-span-2 space-y-8">
                   <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
-                    <h3 className="font-editorial text-2xl font-bold mb-8">Fluxo de Execução</h3>
+                    <h3 className="font-editorial text-2xl font-bold mb-8">Checklist de Execução</h3>
                     <ClientProductSteps clientProductId={selectedProduct.id} showDetails={true} />
                   </div>
 
-                  {/* Custom Fields if any */}
-                  {selectedProduct.custom_fields && Object.keys(selectedProduct.custom_fields).length > 0 && (
-                    <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
-                      <h3 className="font-editorial text-2xl font-bold mb-8">Dados do Processo</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {Object.entries(selectedProduct.custom_fields).map(([key, val]: [string, any]) => (
-                          <div key={key} className="space-y-1">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{key.replace(/_/g, ' ')}</p>
-                            <p className="font-bold text-slate-900 dark:text-white">{String(val)}</p>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
+                    <h3 className="font-editorial text-2xl font-bold mb-8">Documentos da Demanda</h3>
+                    <div className="space-y-4">
+                       {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 ? (
+                         <p className="text-sm text-muted-foreground italic">Nenhum documento específico solicitado para esta demanda.</p>
+                       ) : (
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
+                             <div key={d.id} className="p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-between group hover:border-primary/20 transition-all">
+                                <div className="flex items-center gap-4 min-w-0">
+                                   <div className={cn(
+                                     "size-10 rounded-xl flex items-center justify-center shrink-0",
+                                     d.file_path ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/5 text-primary"
+                                   )}>
+                                      <FileText className="size-5" />
+                                   </div>
+                                   <div className="min-w-0">
+                                      <p className="text-sm font-bold truncate">{d.name}</p>
+                                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
+                                         {d.file_path ? "Enviado" : "Pendente"}
+                                      </p>
+                                   </div>
+                                </div>
+                                {d.file_path ? (
+                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => window.open(d.file_path, '_blank')}>
+                                      <Download className="size-4" />
+                                   </Button>
+                                ) : (
+                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => toast.info("Funcionalidade de upload na aba Documentos")}>
+                                      <Upload className="size-3 mr-1.5" /> Upload
+                                   </Button>
+                                )}
+                             </div>
+                           ))}
+                         </div>
+                       )}
                     </div>
-                  )}
+                  </div>
                </div>
 
                <div className="space-y-8">
                   <div className="vx-card p-8 bg-slate-900 text-white rounded-[40px] space-y-6 relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="size-20" /></div>
-                    <h3 className="font-editorial text-xl font-bold">Histórico & Updates</h3>
+                    <h3 className="font-editorial text-xl font-bold">Mensagens & Atualizações</h3>
                     <div className="space-y-6 relative">
-                       {[
-                         { date: new Date().toISOString(), text: "Análise técnica em andamento pelo prestador." },
-                         { date: selectedProduct.created_at, text: "Demanda iniciada e checklist gerado automaticamente." }
-                       ].map((h, i) => (
-                         <div key={i} className="flex gap-4 group">
-                           <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                           <div className="space-y-1">
-                             <p className="text-xs font-medium text-white/90">{h.text}</p>
-                             <p className="text-[10px] font-bold text-white/30 uppercase">{formatDate(h.date)}</p>
+                       {reports.filter((r: any) => r.client_product_id === selectedProductId).length === 0 ? (
+                         <p className="text-xs text-white/40 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
+                       ) : (
+                         reports.filter((r: any) => r.client_product_id === selectedProductId).slice(0, 5).map((r: any) => (
+                           <div key={r.id} className="flex gap-4 group">
+                             <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                             <div className="space-y-1">
+                               <p className="text-xs font-medium text-white/90 leading-relaxed">{r.notes}</p>
+                               <div className="flex items-center gap-2 pt-1">
+                                  <p className="text-[9px] font-bold text-white/30 uppercase">{formatDate(r.created_at)}</p>
+                                  <span className="text-[9px] font-bold text-primary italic lowercase">por {r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
+                               </div>
+                             </div>
                            </div>
-                         </div>
-                       ))}
+                         ))
+                       )}
                     </div>
                   </div>
 
                   <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] space-y-6">
-                    <h3 className="font-editorial text-xl font-bold">Documentos da Demanda</h3>
-                    <div className="space-y-3">
-                       {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
-                         <div key={d.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-primary/20 transition-all">
-                            <div className="flex items-center gap-3 min-w-0">
-                               <FileText className="size-4 text-primary shrink-0" />
-                               <p className="text-xs font-bold truncate">{d.name}</p>
-                            </div>
-                            {d.file_path ? <CheckCircle2 className="size-4 text-emerald-500" /> : <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary" />}
-                         </div>
-                       ))}
-                       {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 && (
-                         <p className="text-xs text-muted-foreground italic text-center py-4">Sem documentos específicos.</p>
-                       )}
+                    <h3 className="font-editorial text-xl font-bold">Histórico de Atividades</h3>
+                    <div className="space-y-4">
+                       <div className="flex items-start gap-4">
+                          <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                             <CheckCircle2 className="size-4" />
+                          </div>
+                          <div>
+                             <p className="text-xs font-bold text-slate-900 dark:text-white">Demanda Criada</p>
+                             <p className="text-[10px] text-muted-foreground mt-0.5">{formatDate(selectedProduct.created_at)}</p>
+                          </div>
+                       </div>
                     </div>
-                    <Button 
-                      className="w-full rounded-2xl h-12 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white border border-slate-100 dark:border-white/10 hover:bg-primary hover:text-white"
-                      onClick={() => {
-                        const tab = document.querySelector('[data-value="checklist"]') as HTMLElement;
-                        tab?.click();
-                        setSelectedProductId(null);
-                      }}
-                    >
-                       Central de Documentos
-                    </Button>
                   </div>
                </div>
              </div>
