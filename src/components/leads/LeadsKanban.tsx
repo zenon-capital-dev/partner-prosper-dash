@@ -7,13 +7,14 @@ import { initials, formatPhone, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 const COLUMNS: { key: string; label: string; accent: string }[] = [
-  { key: "Novo", label: "Novo", accent: "from-sky-500/20 to-sky-500/5 border-sky-500/30" },
-  { key: "Em contato", label: "Em contato", accent: "from-indigo-500/20 to-indigo-500/5 border-indigo-500/30" },
-  { key: "Interessado", label: "Interessado", accent: "from-amber-500/20 to-amber-500/5 border-amber-500/30" },
-  { key: "Proposta enviada", label: "Proposta", accent: "from-violet-500/20 to-violet-500/5 border-violet-500/30" },
+  { key: "Novo", label: "Novo lead", accent: "from-sky-500/20 to-sky-500/5 border-sky-500/30" },
+  { key: "Primeiro contato", label: "Primeiro contato", accent: "from-cyan-500/20 to-cyan-500/5 border-cyan-500/30" },
+  { key: "Diagnóstico", label: "Diagnóstico", accent: "from-indigo-500/20 to-indigo-500/5 border-indigo-500/30" },
+  { key: "Proposta enviada", label: "Proposta enviada", accent: "from-violet-500/20 to-violet-500/5 border-violet-500/30" },
   { key: "Negociação", label: "Negociação", accent: "from-orange-500/20 to-orange-500/5 border-orange-500/30" },
-  { key: "Virou cliente", label: "Ganhos", accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30" },
-  { key: "Perdido", label: "Perdidos", accent: "from-rose-500/20 to-rose-500/5 border-rose-500/30" },
+  { key: "Contrato enviado", label: "Contrato enviado", accent: "from-amber-500/20 to-amber-500/5 border-amber-500/30" },
+  { key: "Fechado", label: "Fechado", accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30" },
+  { key: "Perdido", label: "Perdido", accent: "from-rose-500/20 to-rose-500/5 border-rose-500/30" },
 ];
 
 interface Props {
