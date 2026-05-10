@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -9,7 +9,7 @@ import {
   MessageSquare, History, ListChecks, 
   Calendar, ShieldAlert, Paperclip, ArrowRight,
   PauseCircle, PlayCircle, AlertTriangle, FileCheck,
-  Zap
+  Zap, FilePlus, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { OperationalChecklist } from "@/components/clients/OperationalChecklist";
+import { DocumentDialog } from "@/components/documents/DocumentDialog";
+import { toast } from "sonner";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
 import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
