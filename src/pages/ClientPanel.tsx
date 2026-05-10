@@ -72,10 +72,14 @@ export default function ClientPanel() {
     </div>
   );
 
-  const { client, docs, catalog, requests, contracts, payments, granularProducts } = data;
+  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports } = data;
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
-  const pendingDocs = docs.filter((d: any) => d.status === "solicitado" || d.status === "reprovado" || d.status === "pendente_correcao").length;
+  const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
+  const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
+  const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
+  const deliveries = docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido');
+  
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
   return (
