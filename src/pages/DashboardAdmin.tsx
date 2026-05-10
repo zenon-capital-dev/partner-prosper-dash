@@ -1,593 +1,595 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  TrendingUp, CircleDollarSign, Users, Package, 
-  Activity, Wallet, Clock, CheckCircle2, 
-  AlertCircle, FileWarning, UserPlus, CreditCard,
-  FileSignature, MessageSquare, ArrowRight,
-  BarChart3, Target, PieChart, Info
+import {
+  TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Wallet, Clock,
+  CheckCircle2, AlertCircle, FileWarning, CreditCard, FileSignature,
+  ArrowRight, BarChart3, Heart, Plus, Calendar, Bell, ArrowUpRight,
 } from "lucide-react";
-import { formatBRL, formatPercent } from "@/lib/format";
+import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart as RePieChart, Pie, Cell, LineChart, Line, AreaChart, Area
-} from 'recharts';
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, PieChart as RePieChart, Pie, Cell,
+} from "recharts";
+
+/* ============================================================
+   Premium Executive Dashboard
+   ============================================================ */
+
+type Tone = "primary" | "success" | "warning" | "danger" | "info" | "neutral";
+
+const toneStyles: Record<Tone, { bg: string; fg: string; ring: string; bar: string }> = {
+  primary: { bg: "bg-primary/8", fg: "text-primary", ring: "ring-primary/15", bar: "bg-primary" },
+  success: { bg: "bg-success-muted", fg: "text-success", ring: "ring-success/20", bar: "bg-success" },
+  warning: { bg: "bg-warning-muted", fg: "text-warning", ring: "ring-warning/20", bar: "bg-warning" },
+  danger:  { bg: "bg-destructive-muted", fg: "text-destructive", ring: "ring-destructive/20", bar: "bg-destructive" },
+  info:    { bg: "bg-info-muted", fg: "text-info", ring: "ring-info/20", bar: "bg-info" },
+  neutral: { bg: "bg-muted", fg: "text-foreground", ring: "ring-border", bar: "bg-foreground/40" },
+};
 
 export default function DashboardAdmin() {
-  // --- Data Fetching ---
+  const { user } = useAuth();
+  const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
+  const firstName = String(fullName).split(/[ @]/)[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const today = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long", day: "2-digit", month: "long", year: "numeric",
+  });
+
+  // ===== Queries =====
   const { data: clients = [], isLoading: loadingClients } = useQuery({
-    queryKey: ["admin-dashboard-clients"],
-    queryFn: async () => (await supabase.from("clients").select("id, status, source, origin, created_at")).data ?? []
+    queryKey: ["dash-clients"],
+    queryFn: async () => (await supabase.from("clients").select("id, status, source, origin, created_at, health_score")).data ?? [],
   });
-
   const { data: clientProducts = [], isLoading: loadingDemands } = useQuery({
-    queryKey: ["admin-dashboard-client-products"],
-    queryFn: async () => (await supabase.from("client_products").select("id, status, deadline, service_provider_id, product_id, value, created_at")).data ?? []
+    queryKey: ["dash-demands"],
+    queryFn: async () => (await supabase.from("client_products").select("id, status, deadline, service_provider_id, product_id, value, created_at")).data ?? [],
   });
-
-  const { data: products = [] } = useQuery({
-    queryKey: ["admin-dashboard-products"],
-    queryFn: async () => (await supabase.from("products").select("id, name")).data ?? []
-  });
-
   const { data: sales = [] } = useQuery({
-    queryKey: ["admin-dashboard-sales"],
-    queryFn: async () => (await supabase.from("sales").select("amount, sale_date, status, product_id, partner_id")).data ?? []
+    queryKey: ["dash-sales"],
+    queryFn: async () => (await supabase.from("sales").select("amount, sale_date, status, product_id, partner_id")).data ?? [],
   });
-
   const { data: payments = [] } = useQuery({
-    queryKey: ["admin-dashboard-payments"],
-    queryFn: async () => (await supabase.from("payments").select("amount, status, due_date")).data ?? []
+    queryKey: ["dash-payments"],
+    queryFn: async () => (await supabase.from("payments").select("amount, status, due_date")).data ?? [],
   });
-
   const { data: commissions = [] } = useQuery({
-    queryKey: ["admin-dashboard-commissions"],
-    queryFn: async () => (await supabase.from("commissions").select("amount, status, partner_id, partner:partners(full_name)")).data ?? []
+    queryKey: ["dash-commissions"],
+    queryFn: async () => (await supabase.from("commissions").select("amount, status, partner_id, partner:partners(full_name)")).data ?? [],
   });
-
-  const { data: providers = [] } = useQuery({
-    queryKey: ["admin-dashboard-providers"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, active")).data ?? []
-  });
-
-  const { data: partners = [] } = useQuery({
-    queryKey: ["admin-dashboard-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, active, full_name")).data ?? []
-  });
-
   const { data: documents = [] } = useQuery({
-    queryKey: ["admin-dashboard-documents"],
-    queryFn: async () => (await supabase.from("documents").select("id, status, client_id")).data ?? []
+    queryKey: ["dash-documents"],
+    queryFn: async () => (await supabase.from("documents").select("id, status, name, created_at, client_id").order("created_at", { ascending: false }).limit(50)).data ?? [],
   });
-
   const { data: contracts = [] } = useQuery({
-    queryKey: ["admin-dashboard-contracts"],
-    queryFn: async () => (await supabase.from("contracts").select("id, client_id, status")).data ?? []
+    queryKey: ["dash-contracts"],
+    queryFn: async () => (await supabase.from("contracts").select("id, status, client_id")).data ?? [],
   });
-
   const { data: dashTasks = [] } = useQuery({
-    queryKey: ["admin-dashboard-tasks"],
-    queryFn: async () => (await supabase.from("tasks").select("id, title, due_date, priority, status_new, assigned_to").order("due_date", { ascending: true, nullsFirst: false }).limit(200)).data ?? []
+    queryKey: ["dash-tasks"],
+    queryFn: async () =>
+      (await supabase
+        .from("tasks")
+        .select("id, title, due_date, priority, status_new, assigned_to, created_at")
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .limit(60)
+      ).data ?? [],
   });
 
-  // --- Statistics Calculation ---
+  // ===== Stats =====
   const stats = useMemo(() => {
     const now = new Date();
-    
-    // KPI Data
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const lastMonth = new Date(thisYear, thisMonth - 1, 1);
+
+    // Receita do mês
+    const monthRevenue = sales
+      .filter((s: any) => {
+        if (!s.sale_date) return false;
+        const d = new Date(s.sale_date);
+        return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+      })
+      .reduce((acc, s: any) => acc + Number(s.amount || 0), 0);
+
+    const lastMonthRevenue = sales
+      .filter((s: any) => {
+        if (!s.sale_date) return false;
+        const d = new Date(s.sale_date);
+        return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
+      })
+      .reduce((acc, s: any) => acc + Number(s.amount || 0), 0);
+
+    const revenueDelta = lastMonthRevenue > 0
+      ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
+      : null;
+
+    const activeClients = clients.filter((c: any) => c.status === "ativo").length;
     const totalClients = clients.length;
-    const activeClients = clients.filter((c: any) => c.status === 'ativo').length;
-    const pendingClients = clients.filter((c: any) => c.status === 'prospecto').length;
-    
-    const inProgressProducts = clientProducts.filter(p => p.status === 'em_andamento').length;
-    const completedProducts = clientProducts.filter(p => p.status === 'concluido').length;
-    const delayedProducts = clientProducts.filter(p => 
-      (p.status === 'atrasado') || 
-      (p.deadline && new Date(p.deadline) < now && p.status !== 'concluido' && p.status !== 'cancelado')
+
+    const inProgress = clientProducts.filter((p: any) => p.status === "em_andamento").length;
+    const delayed = clientProducts.filter((p: any) =>
+      p.status === "atrasado" ||
+      (p.deadline && new Date(p.deadline) < now && !["concluido", "cancelado"].includes(p.status))
     ).length;
 
-    const totalSold = sales.reduce((acc, s) => acc + Number(s.amount || 0), 0);
-    const totalReceived = payments.filter(p => p.status === 'pago').reduce((acc, p) => acc + Number(p.amount || 0), 0);
-    const totalPending = totalSold - totalReceived;
-    
-    const commissionsToPay = commissions.filter(c => c.status === 'pendente').reduce((acc, c) => acc + Number(c.amount || 0), 0);
-    
-    const activeProvidersCount = providers.filter(p => p.active).length;
-    const activePartnersCount = partners.filter(p => p.active).length;
+    const docsPending = documents.filter((d: any) => ["solicitado", "enviado", "em_analise"].includes(d.status)).length;
+    const commissionsToPay = commissions.filter((c: any) => c.status === "pendente")
+      .reduce((acc, c: any) => acc + Number(c.amount || 0), 0);
+    const overduePayments = payments.filter((p: any) =>
+      p.status === "vencido" ||
+      (["em_aberto", "pendente", "parcial"].includes(p.status) && p.due_date && new Date(p.due_date) < now)
+    );
+    const overdueAmount = overduePayments.reduce((a, p: any) => a + Number(p.amount || 0), 0);
 
-    // Chart Data: Monthly Revenue
-    const monthlyRevenue: Record<string, number> = {};
-    sales.forEach(s => {
-      if (!s.sale_date) return;
-      const date = new Date(s.sale_date);
-      const month = date.toLocaleString('pt-BR', { month: 'short' });
-      monthlyRevenue[month] = (monthlyRevenue[month] || 0) + Number(s.amount || 0);
+    const healthScores = clients.map((c: any) => Number(c.health_score || 0)).filter((v) => v > 0);
+    const avgHealth = healthScores.length
+      ? healthScores.reduce((a, v) => a + v, 0) / healthScores.length
+      : 0;
+
+    // Revenue chart — últimos 6 meses
+    const revenue6m = Array.from({ length: 6 }).map((_, i) => {
+      const d = new Date(thisYear, thisMonth - (5 - i), 1);
+      const label = d.toLocaleString("pt-BR", { month: "short" }).replace(".", "");
+      const total = sales
+        .filter((s: any) => s.sale_date && new Date(s.sale_date).getMonth() === d.getMonth() && new Date(s.sale_date).getFullYear() === d.getFullYear())
+        .reduce((acc, s: any) => acc + Number(s.amount || 0), 0);
+      return { name: label, value: total };
     });
-    const revenueChartData = Object.entries(monthlyRevenue).map(([name, value]) => ({ name, value }));
 
-    // Chart Data: Best Selling Products
-    const productSales: Record<string, number> = {};
-    clientProducts.forEach(cp => {
-      const p = products.find(x => x.id === cp.product_id)?.name || "Outros";
-      productSales[p] = (productSales[p] || 0) + 1;
+    // Status distribution
+    const statusMap: Record<string, number> = {};
+    clientProducts.forEach((p: any) => {
+      const k = p.status || "indefinido";
+      statusMap[k] = (statusMap[k] || 0) + 1;
     });
-    const bestSellingChartData = Object.entries(productSales)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, value]) => ({ name, value }));
+    const statusData = Object.entries(statusMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
 
-    // Chart Data: Status of Demands
-    const statusCounts: Record<string, number> = {};
-    clientProducts.forEach(cp => {
-      const s = cp.status || "Indefinido";
-      statusCounts[s] = (statusCounts[s] || 0) + 1;
-    });
-    const statusChartData = Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
+    // Critical alerts
+    const alerts: Array<{ id: string; title: string; sub: string; tone: Tone; link: string; icon: any }> = [];
+    if (delayed > 0) alerts.push({ id: "delayed", title: `${delayed} demandas atrasadas`, sub: "Prazo vencido sem conclusão", tone: "danger", link: "/demandas", icon: Clock });
+    if (overduePayments.length > 0) alerts.push({ id: "overdue", title: `${overduePayments.length} pagamentos vencidos`, sub: formatBRL(overdueAmount) + " em atraso", tone: "danger", link: "/financeiro", icon: CreditCard });
+    if (docsPending > 0) alerts.push({ id: "docs", title: `${docsPending} documentos pendentes`, sub: "Aguardando análise", tone: "warning", link: "/documentos", icon: FileWarning });
+    const noProvider = clientProducts.filter((p: any) => !p.service_provider_id && !["concluido", "cancelado"].includes(p.status)).length;
+    if (noProvider > 0) alerts.push({ id: "noprov", title: `${noProvider} demandas sem prestador`, sub: "Necessária delegação", tone: "warning", link: "/demandas", icon: AlertCircle });
+    const contractsAwaiting = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
+    if (contractsAwaiting > 0) alerts.push({ id: "contracts", title: `${contractsAwaiting} contratos aguardando`, sub: "Assinatura pendente", tone: "info", link: "/contratos", icon: FileSignature });
 
-    // Chart Data: Commissions by Partner
-    const partnerCommissions: Record<string, number> = {};
-    commissions.forEach(c => {
-      const p = (c.partner as any)?.full_name || "Direto";
-      partnerCommissions[p] = (partnerCommissions[p] || 0) + Number(c.amount || 0);
-    });
-    const commissionsPartnerChartData = Object.entries(partnerCommissions)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, value]) => ({ name, value }));
+    // Urgent demands (priority urgente or close to deadline)
+    const urgentDemands = clientProducts
+      .filter((p: any) => !["concluido", "cancelado"].includes(p.status))
+      .map((p: any) => {
+        const dl = p.deadline ? new Date(p.deadline) : null;
+        const daysLeft = dl ? Math.floor((dl.getTime() - now.getTime()) / 86400000) : 999;
+        return { ...p, daysLeft };
+      })
+      .sort((a: any, b: any) => a.daysLeft - b.daysLeft)
+      .slice(0, 6);
 
-    // Chart Data: Clients by Origin
-    const originCounts: Record<string, number> = {};
-    clients.forEach((c: any) => {
-      const o = c.source || c.origin || "Outros";
-      originCounts[o] = (originCounts[o] || 0) + 1;
-    });
-    const originChartData = Object.entries(originCounts).map(([name, value]) => ({ name, value }));
+    // Recent activity (mix from tasks, documents, demands)
+    const activity = [
+      ...documents.slice(0, 5).map((d: any) => ({
+        id: `doc-${d.id}`, type: "Documento", title: d.name || "Documento", at: d.created_at, icon: FileWarning, tone: "info" as Tone,
+      })),
+      ...clientProducts
+        .slice()
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5)
+        .map((d: any) => ({
+          id: `dem-${d.id}`, type: "Demanda", title: d.status || "Nova demanda", at: d.created_at, icon: Activity, tone: "primary" as Tone,
+        })),
+    ]
+      .sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime())
+      .slice(0, 8);
 
-    // Urgent Tasks
-    const urgentTasks = [
-      {
-        id: 'onboarding',
-        label: 'Onboarding Pendente',
-        count: clients.filter((c: any) => c.onboarding_status !== 'completo').length,
-        icon: UserPlus,
-        link: '/clientes',
-        color: 'text-primary'
-      },
-      {
-        id: 'docs',
-        label: 'Documentos Pendentes',
-        count: documents.filter(d => d.status === 'solicitado' || d.status === 'enviado').length,
-        icon: FileWarning,
-        link: '/documentos',
-        color: 'text-amber-500'
-      },
-      {
-        id: 'late',
-        label: 'Produtos Atrasados',
-        count: delayedProducts,
-        icon: Clock,
-        link: '/vendas',
-        color: 'text-rose-500'
-      },
-      {
-        id: 'no-provider',
-        label: 'Sem Prestador Delegado',
-        count: clientProducts.filter(p => !p.service_provider_id && p.status !== 'concluido' && p.status !== 'cancelado').length,
-        icon: UserPlus,
-        link: '/vendas',
-        color: 'text-indigo-500'
-      },
-      {
-        id: 'payments',
-        label: 'Pagamentos Pendentes',
-        count: payments.filter(p => p.status === 'pendente').length,
-        icon: CreditCard,
-        link: '/financeiro',
-        color: 'text-emerald-500'
-      },
-      {
-        id: 'contracts',
-        label: 'Contratos não Anexados',
-        count: clients.filter(c => !contracts.some(con => con.client_id === c.id)).length,
-        icon: FileSignature,
-        link: '/contratos',
-        color: 'text-blue-500'
-      },
-      {
-        id: 'contracts-sign',
-        label: 'Contratos Aguardando Assinatura',
-        count: contracts.filter(c => c.status === 'aguardando_assinatura' || c.status === 'enviado').length,
-        icon: FileSignature,
-        link: '/contratos',
-        color: 'text-orange-500'
-      },
-      {
-        id: 'awaiting',
-        label: 'Aguardando Resposta',
-        count: clientProducts.filter(p => p.status === 'em_revisao').length,
-        icon: MessageSquare,
-        link: '/vendas',
-        color: 'text-violet-500'
-      }
-    ].filter(t => t.count > 0);
+    // Tasks overdue & urgent
+    const tasksOverdue = dashTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now && !["concluida", "cancelada"].includes(t.status_new));
+    const tasksUrgent = dashTasks.filter((t: any) => t.priority === "urgente" && !["concluida", "cancelada"].includes(t.status_new));
 
     return {
       kpis: [
-        { label: "Total de Clientes", value: String(totalClients), icon: Users, tone: "info" },
-        { label: "Clientes Ativos", value: String(activeClients), icon: CheckCircle2, tone: "success" },
-        { label: "Clientes Pendentes", value: String(pendingClients), icon: Clock, tone: "warning" },
-        { label: "Produtos em Andamento", value: String(inProgressProducts), icon: Activity, tone: "primary" },
-        { label: "Produtos Concluídos", value: String(completedProducts), icon: CheckCircle2, tone: "success" },
-        { label: "Produtos Atrasados", value: String(delayedProducts), icon: AlertCircle, tone: "danger" },
-        { label: "Total Vendido", value: formatBRL(totalSold), raw: totalSold, icon: TrendingUp, tone: "primary" },
-        { label: "Total Recebido", value: formatBRL(totalReceived), raw: totalReceived, icon: CircleDollarSign, tone: "success" },
-        { label: "Total Pendente", value: formatBRL(totalPending), raw: totalPending, icon: Wallet, tone: "warning" },
-        { label: "Comissões a Pagar", value: formatBRL(commissionsToPay), raw: commissionsToPay, icon: CreditCard, tone: "danger" },
-        { label: "Prestadores Ativos", value: String(activeProvidersCount), icon: Users, tone: "info" },
-        { label: "Parceiros Ativos", value: String(activePartnersCount), icon: Users, tone: "info" },
+        { label: "Receita do mês", value: formatBRL(monthRevenue), delta: revenueDelta, icon: CircleDollarSign, tone: "primary" as Tone, hint: "vs. mês anterior" },
+        { label: "Clientes ativos", value: String(activeClients), delta: null, icon: Users, tone: "success" as Tone, hint: `de ${totalClients} totais` },
+        { label: "Demandas em andamento", value: String(inProgress), delta: null, icon: Activity, tone: "info" as Tone, hint: "operação ativa" },
+        { label: "Demandas atrasadas", value: String(delayed), delta: null, icon: Clock, tone: "danger" as Tone, hint: "prazo vencido" },
+        { label: "Documentos pendentes", value: String(docsPending), delta: null, icon: FileWarning, tone: "warning" as Tone, hint: "aguardando análise" },
+        { label: "Comissões a pagar", value: formatBRL(commissionsToPay), delta: null, icon: Wallet, tone: "warning" as Tone, hint: `${commissions.filter((c: any) => c.status === "pendente").length} pendentes` },
+        { label: "Pagamentos vencidos", value: formatBRL(overdueAmount), delta: null, icon: CreditCard, tone: "danger" as Tone, hint: `${overduePayments.length} cobranças` },
+        { label: "Health score médio", value: avgHealth ? avgHealth.toFixed(1) : "—", delta: null, icon: Heart, tone: avgHealth >= 7 ? "success" : avgHealth >= 4 ? "warning" : "danger", hint: "saúde da carteira" },
       ],
-      revenueChartData,
-      bestSellingChartData,
-      statusChartData,
-      commissionsPartnerChartData,
-      originChartData,
-      urgentTasks,
-      totalSold,
-      totalReceived,
-      totalPending
+      revenue6m,
+      statusData,
+      alerts,
+      urgentDemands,
+      activity,
+      tasksOverdue,
+      tasksUrgent,
+      monthRevenue,
+      activeClients,
+      delayed,
+      docsPending,
     };
-  }, [clients, clientProducts, products, sales, payments, commissions, providers, partners, documents, contracts]);
+  }, [clients, clientProducts, sales, payments, commissions, documents, contracts, dashTasks]);
 
-  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+  const PIE_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--chart-6))"];
+
+  const isLoading = loadingClients || loadingDemands;
 
   return (
-    <div className="page-shell space-y-12 animate-fade-up bg-premium min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="h-px w-8 bg-primary/40" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Executive Cockpit</p>
-          </div>
-          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
-            Dashboard <span className="text-primary italic font-medium">Admin</span>.
+    <div className="page-shell space-y-7 animate-fade-up">
+      <Breadcrumbs />
+
+      {/* ===== Executive Header ===== */}
+      <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 pb-5 border-b border-border">
+        <div className="space-y-2 min-w-0">
+          <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/90">
+            <span className="size-1 rounded-full bg-primary" /> Executive Cockpit
+          </span>
+          <h1 className="font-display text-[28px] lg:text-[32px] font-semibold tracking-tight text-foreground leading-tight">
+            {greeting}, <span className="text-primary capitalize">{firstName}</span>.
           </h1>
+          <p className="text-[13.5px] text-muted-foreground capitalize flex items-center gap-2">
+            <Calendar className="size-3.5" /> {today}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/vendas" className="btn-premium px-6 py-3 rounded-2xl flex items-center gap-2 text-sm font-bold transition-all">
-            <CircleDollarSign className="size-4" /> Nova Venda
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/relatorios"
+            className="h-9 px-3 inline-flex items-center gap-2 rounded-md border border-border bg-card hover:border-foreground/20 transition-colors text-[12.5px] font-semibold text-foreground"
+          >
+            <BarChart3 className="size-4 text-muted-foreground" /> Relatórios
+          </Link>
+          <Link
+            to="/vendas?new=1"
+            className="h-9 px-3 inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-[12.5px] font-semibold shadow-sm"
+          >
+            <Plus className="size-4" strokeWidth={2.4} /> Nova venda
           </Link>
         </div>
-      </div>
+      </header>
 
-      {/* KPI GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-        {loadingClients || loadingDemands ? (
-          Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="vx-card p-5 space-y-3">
-              <Skeleton className="size-8 rounded-xl" />
-              <Skeleton className="h-4 w-2/3" />
-              <Skeleton className="h-6 w-1/2" />
-            </div>
-          ))
-        ) : (
-          stats.kpis.map((kpi, i) => (
-            <MetricTile key={i} {...kpi} />
-          ))
-        )}
-      </div>
+      {/* ===== Day Summary Strip ===== */}
+      <DaySummary
+        summary={[
+          { label: "Receita hoje", value: formatBRL(
+            sales.filter((s: any) => s.sale_date && new Date(s.sale_date).toDateString() === new Date().toDateString())
+                 .reduce((a, s: any) => a + Number(s.amount || 0), 0)
+          ), tone: "primary" },
+          { label: "Tarefas vencidas", value: String(stats.tasksOverdue.length), tone: stats.tasksOverdue.length ? "danger" : "neutral" },
+          { label: "Tarefas urgentes", value: String(stats.tasksUrgent.length), tone: stats.tasksUrgent.length ? "warning" : "neutral" },
+          { label: "Alertas críticos", value: String(stats.alerts.filter(a => a.tone === "danger").length), tone: stats.alerts.filter(a => a.tone === "danger").length ? "danger" : "neutral" },
+        ]}
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* REVENUE CHART */}
-        <div className="lg:col-span-2 vx-card p-8 space-y-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px]">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Receita Mensal</h3>
-              <p className="text-xs text-muted-foreground">Evolução financeira dos últimos meses</p>
-            </div>
-            <TrendingUp className="size-6 text-primary/30" />
-          </div>
-          <div className="h-[300px] w-full">
+      {/* ===== KPI GRID ===== */}
+      <section>
+        <SectionTitle title="Indicadores principais" hint="Visão consolidada da operação" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {isLoading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="vx-card p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="size-7 rounded-md" />
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                  <Skeleton className="h-3 w-2/3" />
+                  <Skeleton className="h-6 w-1/2" />
+                </div>
+              ))
+            : stats.kpis.map((kpi, i) => <KpiCard key={i} {...kpi} />)}
+        </div>
+      </section>
+
+      {/* ===== Revenue + Critical Alerts ===== */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 vx-card p-5">
+          <CardHeader
+            title="Receita mensal"
+            subtitle="Evolução dos últimos 6 meses"
+            icon={<TrendingUp className="size-4" />}
+            right={<span className="text-[11px] font-semibold text-foreground tabular-nums">{formatBRL(stats.monthRevenue)}<span className="text-muted-foreground/70 font-normal ml-1">este mês</span></span>}
+          />
+          <div className="h-[260px] -ml-2">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.revenueChartData}>
+              <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.18} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#64748b'}} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: any) => formatBRL(Number(value))}
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} dy={6} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                  formatter={(v: any) => formatBRL(Number(v))}
                 />
-                <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
+                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* URGENT TASKS */}
-        <div className="vx-card p-8 bg-slate-900 dark:bg-slate-950 text-white rounded-[32px] border-none flex flex-col">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="size-6 text-amber-400" />
-              <h3 className="font-editorial text-2xl font-bold">Tarefas Urgentes</h3>
-            </div>
-            <Badge variant="outline" className="text-white border-white/20 bg-white/5">
-              {stats.urgentTasks.reduce((acc, t) => acc + t.count, 0)} total
-            </Badge>
-          </div>
-          
-          <div className="flex-1 space-y-4 overflow-y-auto pr-2 max-h-[400px]">
-            {stats.urgentTasks.length > 0 ? (
-              stats.urgentTasks.map((task) => (
-                <Link 
-                  key={task.id}
-                  to={task.link}
-                  className="group flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
+        <div className="vx-card p-5 flex flex-col">
+          <CardHeader
+            title="Alertas críticos"
+            subtitle="Situações que exigem atenção"
+            icon={<Bell className="size-4 text-destructive" />}
+            right={<span className="vx-pill vx-pill-danger">{stats.alerts.length}</span>}
+          />
+          <div className="flex-1 space-y-1.5 overflow-y-auto max-h-[260px] pr-1">
+            {stats.alerts.length === 0 ? (
+              <EmptyState icon={CheckCircle2} title="Tudo em dia" subtitle="Sem alertas críticos no momento" />
+            ) : (
+              stats.alerts.map((a) => (
+                <Link
+                  key={a.id}
+                  to={a.link}
+                  className={cn(
+                    "group flex items-center gap-3 px-3 py-2.5 rounded-md border border-border hover:border-foreground/20 bg-card transition-colors"
+                  )}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={cn("p-2 rounded-xl bg-white/5", task.color)}>
-                      <task.icon className="size-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{task.label}</p>
-                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{task.count} pendências</p>
-                    </div>
+                  <div className={cn("size-7 rounded-md flex items-center justify-center shrink-0", toneStyles[a.tone].bg, toneStyles[a.tone].fg)}>
+                    <a.icon className="size-3.5" strokeWidth={2.2} />
                   </div>
-                  <ArrowRight className="size-4 text-white/20 group-hover:text-white transition-all group-hover:translate-x-1" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] font-semibold text-foreground truncate">{a.title}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{a.sub}</p>
+                  </div>
+                  <ArrowUpRight className="size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </Link>
               ))
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full space-y-3 opacity-40 py-12">
-                <CheckCircle2 className="size-10" />
-                <p className="text-sm font-medium">Tudo em dia por aqui!</p>
-              </div>
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* INTERNAL TASKS — overdue & urgent */}
-      {(() => {
-        const now2 = new Date();
-        const overdueTasks = dashTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now2 && !["concluida", "cancelada"].includes(t.status_new));
-        const urgentTasksReal = dashTasks.filter((t: any) => t.priority === "urgente" && !["concluida", "cancelada"].includes(t.status_new));
-        const renderTask = (t: any, badgeTone: string) => (
-          <Link key={t.id} to="/tarefas" className="flex items-center justify-between p-3 rounded-xl border bg-card hover:border-primary/40 transition-all">
-            <div className="min-w-0">
-              <p className="text-sm font-bold truncate">{t.title}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
-                {t.due_date ? `Prazo ${new Date(t.due_date).toLocaleDateString("pt-BR")}` : "Sem prazo"}
-              </p>
-            </div>
-            <Badge variant="outline" className={cn("text-[9px] uppercase shrink-0", badgeTone)}>{t.priority}</Badge>
-          </Link>
-        );
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="vx-card p-6 border">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="size-5 text-destructive" />
-                  <h3 className="font-bold text-lg">Tarefas Vencidas</h3>
-                </div>
-                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">{overdueTasks.length}</Badge>
-              </div>
-              <div className="space-y-2 max-h-[320px] overflow-y-auto">
-                {overdueTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma tarefa vencida.</p>
-                ) : overdueTasks.slice(0, 8).map((t: any) => renderTask(t, "bg-destructive/10 text-destructive border-destructive/20"))}
-              </div>
-            </div>
-            <div className="vx-card p-6 border">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="size-5 text-amber-500" />
-                  <h3 className="font-bold text-lg">Tarefas Urgentes</h3>
-                </div>
-                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900">{urgentTasksReal.length}</Badge>
-              </div>
-              <div className="space-y-2 max-h-[320px] overflow-y-auto">
-                {urgentTasksReal.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma tarefa urgente.</p>
-                ) : urgentTasksReal.slice(0, 8).map((t: any) => renderTask(t, "bg-amber-50 text-amber-700 border-amber-200"))}
-              </div>
-            </div>
+      {/* ===== Urgent Demands + Status Distribution ===== */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 vx-card p-5">
+          <CardHeader
+            title="Demandas urgentes"
+            subtitle="Próximas do prazo ou em atraso"
+            icon={<Clock className="size-4 text-warning" />}
+            right={<Link to="/demandas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}
+          />
+          <div className="vx-table-wrap !rounded-md">
+            <table className="vx-table">
+              <thead className="vx-table-head">
+                <tr>
+                  <th className="vx-table-cell !py-2.5">Demanda</th>
+                  <th className="vx-table-cell !py-2.5">Status</th>
+                  <th className="vx-table-cell !py-2.5 text-right">Prazo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.urgentDemands.length === 0 ? (
+                  <tr><td colSpan={3} className="vx-table-cell text-center text-muted-foreground py-8">Nenhuma demanda urgente.</td></tr>
+                ) : (
+                  stats.urgentDemands.map((d: any) => {
+                    const tone: Tone = d.daysLeft < 0 ? "danger" : d.daysLeft <= 3 ? "warning" : "info";
+                    return (
+                      <tr key={d.id} className="vx-table-row">
+                        <td className="vx-table-cell !py-2.5">
+                          <Link to={`/demandas/${d.id}`} className="text-[13px] font-medium text-foreground hover:text-primary truncate block max-w-[280px]">
+                            #{String(d.id).slice(0, 8)}
+                          </Link>
+                        </td>
+                        <td className="vx-table-cell !py-2.5">
+                          <span className="vx-pill capitalize">{String(d.status || "").replace(/_/g, " ")}</span>
+                        </td>
+                        <td className={cn("vx-table-cell !py-2.5 text-right text-[12.5px] font-semibold tabular-nums", toneStyles[tone].fg)}>
+                          {d.deadline ? (d.daysLeft < 0 ? `${Math.abs(d.daysLeft)}d em atraso` : d.daysLeft === 0 ? "Hoje" : `${d.daysLeft}d`) : "Sem prazo"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
-        );
-      })()}
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* BEST SELLING PRODUCTS */}
-        <ChartCard title="Produtos mais Vendidos" subtitle="Volume por categoria de serviço" icon={Package}>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={stats.bestSellingChartData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-              <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" width={100} axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#64748b'}} />
-              <Tooltip 
-                cursor={{fill: 'transparent'}}
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-              />
-              <Bar dataKey="value" fill="#6366f1" radius={[0, 8, 8, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* STATUS DISTRIBUTION */}
-        <ChartCard title="Status das Demandas" subtitle="Distribuição operacional atual" icon={Activity}>
-          <ResponsiveContainer width="100%" height={250}>
-            <RePieChart>
-              <Pie
-                data={stats.statusChartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {stats.statusChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-              />
-            </RePieChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-4">
-            {stats.statusChartData.map((entry, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div className="size-2 rounded-full" style={{backgroundColor: COLORS[index % COLORS.length]}} />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{entry.name}</span>
+        <div className="vx-card p-5">
+          <CardHeader
+            title="Distribuição de status"
+            subtitle="Demandas por estágio"
+            icon={<Activity className="size-4 text-info" />}
+          />
+          <div className="h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RePieChart>
+                <Pie data={stats.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={2}>
+                  {stats.statusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }} />
+              </RePieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 space-y-1.5">
+            {stats.statusData.slice(0, 5).map((s, i) => (
+              <div key={s.name} className="flex items-center gap-2 text-[11.5px]">
+                <span className="size-2 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                <span className="capitalize text-muted-foreground flex-1 truncate">{s.name.replace(/_/g, " ")}</span>
+                <span className="font-semibold tabular-nums text-foreground">{s.value}</span>
               </div>
             ))}
           </div>
-        </ChartCard>
+        </div>
+      </section>
 
-        {/* COMMISSIONS BY PARTNER */}
-        <ChartCard title="Comissões por Parceiro" subtitle="Repasses acumulados por canal" icon={Users}>
-          <div className="space-y-4">
-            {stats.commissionsPartnerChartData.length > 0 ? (
-              stats.commissionsPartnerChartData.map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                      {item.name.charAt(0)}
-                    </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{item.name}</span>
+      {/* ===== Recent Activity + Next Tasks ===== */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="vx-card p-5">
+          <CardHeader
+            title="Atividade recente"
+            subtitle="Eventos das últimas horas"
+            icon={<Activity className="size-4 text-primary" />}
+          />
+          <div className="space-y-1">
+            {stats.activity.length === 0 ? (
+              <EmptyState icon={Activity} title="Sem atividade recente" />
+            ) : (
+              stats.activity.map((a) => (
+                <div key={a.id} className="flex items-center gap-3 py-2 border-b border-border/60 last:border-0">
+                  <div className={cn("size-7 rounded-md flex items-center justify-center shrink-0", toneStyles[a.tone].bg, toneStyles[a.tone].fg)}>
+                    <a.icon className="size-3.5" />
                   </div>
-                  <span className="font-mono text-sm font-bold text-slate-900 dark:text-white">{formatBRL(item.value)}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12.5px] font-medium text-foreground truncate capitalize">{String(a.title).replace(/_/g, " ")}</p>
+                    <p className="text-[10.5px] text-muted-foreground uppercase tracking-wider">{a.type}</p>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                    {a.at ? new Date(a.at).toLocaleDateString("pt-BR") : "—"}
+                  </span>
                 </div>
               ))
-            ) : (
-              <p className="text-center py-12 text-sm text-muted-foreground">Sem dados de comissões.</p>
             )}
           </div>
-        </ChartCard>
+        </div>
 
-        {/* CLIENTS BY ORIGIN */}
-        <ChartCard title="Clientes por Origem" subtitle="Canais de aquisição de leads" icon={BarChart3}>
-          <ResponsiveContainer width="100%" height={250}>
-            <RePieChart>
-              <Pie
-                data={stats.originChartData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                dataKey="value"
-                label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {stats.originChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-              />
-            </RePieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <div className="vx-card p-5">
+          <CardHeader
+            title="Próximas ações"
+            subtitle="Tarefas vencidas e urgentes"
+            icon={<AlertCircle className="size-4 text-warning" />}
+            right={<Link to="/tarefas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}
+          />
+          <div className="space-y-1">
+            {[...stats.tasksOverdue, ...stats.tasksUrgent].slice(0, 7).length === 0 ? (
+              <EmptyState icon={CheckCircle2} title="Sem ações pendentes" subtitle="Você está em dia" />
+            ) : (
+              [...stats.tasksOverdue.map((t: any) => ({ ...t, _tone: "danger" as Tone })),
+               ...stats.tasksUrgent.filter((t: any) => !stats.tasksOverdue.find((o: any) => o.id === t.id))
+                                  .map((t: any) => ({ ...t, _tone: "warning" as Tone }))]
+                .slice(0, 7)
+                .map((t: any) => (
+                  <Link key={t.id} to="/tarefas" className="flex items-center gap-3 py-2 border-b border-border/60 last:border-0 hover:bg-muted/40 -mx-2 px-2 rounded-md transition-colors">
+                    <span className={cn("size-1.5 rounded-full shrink-0", toneStyles[t._tone].bar)} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12.5px] font-medium text-foreground truncate">{t.title}</p>
+                      <p className="text-[10.5px] text-muted-foreground tabular-nums">
+                        {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "Sem prazo"} · <span className="capitalize">{t.priority}</span>
+                      </p>
+                    </div>
+                    <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
+                  </Link>
+                ))
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
-        {/* CUSTOM KPI SECTION: Financial Overview */}
-        <div className="md:col-span-2 vx-card p-8 space-y-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px]">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Panorama Financeiro</h3>
-              <p className="text-xs text-muted-foreground">Comparativo entre faturamento e recebíveis</p>
+/* ============================================================
+   Sub-components — premium, compact, dense
+   ============================================================ */
+
+function SectionTitle({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="flex items-end justify-between mb-3">
+      <h2 className="text-[13px] font-semibold text-foreground tracking-tight">{title}</h2>
+      {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
+    </div>
+  );
+}
+
+function CardHeader({
+  title, subtitle, icon, right,
+}: { title: string; subtitle?: string; icon?: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-border">
+      <div className="flex items-start gap-2.5 min-w-0">
+        {icon && <div className="size-7 rounded-md bg-muted/70 border border-border flex items-center justify-center text-muted-foreground shrink-0 mt-0.5">{icon}</div>}
+        <div className="min-w-0">
+          <h3 className="text-[13.5px] font-semibold text-foreground tracking-tight leading-tight">{title}</h3>
+          {subtitle && <p className="text-[11.5px] text-muted-foreground mt-0.5">{subtitle}</p>}
+        </div>
+      </div>
+      {right && <div className="shrink-0 mt-0.5">{right}</div>}
+    </div>
+  );
+}
+
+function KpiCard({
+  label, value, icon: Icon, tone, hint, delta,
+}: {
+  label: string; value: string; icon: any; tone: Tone; hint?: string; delta?: number | null;
+}) {
+  const ts = toneStyles[tone];
+  const positive = delta != null && delta > 0;
+  const negative = delta != null && delta < 0;
+  return (
+    <div className={cn(
+      "relative vx-card p-4 transition-colors hover:border-foreground/15 overflow-hidden group"
+    )}>
+      <span className={cn("absolute left-0 top-3 bottom-3 w-[2px] rounded-r opacity-60 group-hover:opacity-100 transition-opacity", ts.bar)} />
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80 truncate pr-2">{label}</p>
+        <div className={cn("size-7 rounded-md flex items-center justify-center shrink-0", ts.bg, ts.fg)}>
+          <Icon className="size-3.5" strokeWidth={2.2} />
+        </div>
+      </div>
+      <p className="font-display text-[22px] font-semibold tracking-tight text-foreground tabular-nums leading-none truncate">{value}</p>
+      <div className="mt-2 flex items-center gap-1.5 text-[11px] min-h-[16px]">
+        {delta != null ? (
+          <span className={cn(
+            "inline-flex items-center gap-0.5 font-semibold tabular-nums",
+            positive && "text-success",
+            negative && "text-destructive",
+            !positive && !negative && "text-muted-foreground"
+          )}>
+            {positive ? <TrendingUp className="size-3" /> : negative ? <TrendingDown className="size-3" /> : null}
+            {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
+          </span>
+        ) : null}
+        {hint && <span className="text-muted-foreground truncate">{hint}</span>}
+      </div>
+    </div>
+  );
+}
+
+function DaySummary({
+  summary,
+}: {
+  summary: Array<{ label: string; value: string; tone: Tone }>;
+}) {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden border border-border">
+      {summary.map((s, i) => {
+        const ts = toneStyles[s.tone];
+        return (
+          <div key={i} className="bg-card px-4 py-3 flex items-center gap-3">
+            <span className={cn("size-1.5 rounded-full shrink-0", ts.bar)} />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80 truncate">{s.label}</p>
+              <p className={cn("text-[15px] font-semibold tabular-nums leading-tight mt-0.5 truncate", ts.fg)}>{s.value}</p>
             </div>
-            <Wallet className="size-6 text-primary/30" />
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <FinancialStat 
-              label="Total Vendido" 
-              value={formatBRL(stats.totalSold)} 
-              sub="Faturamento Bruto"
-              color="text-primary"
-            />
-            <FinancialStat 
-              label="Total Recebido" 
-              value={formatBRL(stats.totalReceived)} 
-              sub="Dinheiro em Caixa"
-              color="text-emerald-500"
-            />
-            <FinancialStat 
-              label="Total Pendente" 
-              value={formatBRL(stats.totalPending)} 
-              sub="A Receber"
-              color="text-amber-500"
-            />
-          </div>
-
-          <div className="h-4 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden flex">
-            <div 
-              className="h-full bg-emerald-500 transition-all duration-1000" 
-              style={{ width: `${(stats.totalReceived / (stats.totalSold || 1)) * 100}%` }} 
-            />
-            <div className="h-full bg-amber-500/20" style={{flex: 1}} />
-          </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
 
-function MetricTile({ label, value, icon: Icon, tone }: any) {
-  const tones: any = {
-    primary: "bg-primary/5 text-primary border-primary/10",
-    success: "bg-emerald-500/5 text-emerald-500 border-emerald-500/10",
-    warning: "bg-amber-500/5 text-amber-500 border-amber-500/10",
-    info: "bg-blue-500/5 text-blue-500 border-blue-500/10",
-    danger: "bg-rose-500/5 text-rose-500 border-rose-500/10",
-  };
-
+function EmptyState({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle?: string }) {
   return (
-    <div className="vx-card p-5 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-3xl space-y-3 hover:border-primary/20 transition-all group shadow-none">
-      <div className={cn("size-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", tones[tone])}>
-        <Icon className="size-5" />
-      </div>
-      <div className="space-y-1">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60 leading-none">{label}</p>
-        <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none truncate">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function ChartCard({ title, subtitle, icon: Icon, children }: any) {
-  return (
-    <div className="vx-card p-8 space-y-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px]">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">{title}</h3>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
-        </div>
-        <Icon className="size-6 text-primary/30" />
-      </div>
-      <div className="pt-2">
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function FinancialStat({ label, value, sub, color }: any) {
-  return (
-    <div className="space-y-1">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
-      <p className={cn("text-2xl font-bold tabular-nums", color)}>{value}</p>
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{sub}</p>
+    <div className="flex flex-col items-center justify-center text-center py-10 px-4 text-muted-foreground">
+      <Icon className="size-8 mb-2 opacity-40" />
+      <p className="text-[13px] font-medium text-foreground">{title}</p>
+      {subtitle && <p className="text-[11.5px] mt-0.5">{subtitle}</p>}
     </div>
   );
 }
