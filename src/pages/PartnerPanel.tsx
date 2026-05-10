@@ -189,13 +189,94 @@ export default function PartnerPanel() {
           <MiniKpi label="Cancelados" value={totals.clientsCancelled} tone="rose" />
         </div>
 
-        <Tabs defaultValue="clientes" className="space-y-10">
-           <TabsList className="bg-transparent h-auto p-0 flex gap-12 border-b border-slate-200 rounded-none pb-px flex-wrap">
-              <PremiumTabTrigger value="clientes" label="Carteira Indicada" count={clients.length} />
-              <PremiumTabTrigger value="comissoes" label="Comissões" count={commissions.length} />
-              <PremiumTabTrigger value="financeiro" label="Financeiro" />
-              <PremiumTabTrigger value="contrato" label="Meu Contrato" count={contracts.length} />
+        <Tabs defaultValue="home" className="space-y-10">
+           <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 inline-flex">
+              <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">
+                 Visão Geral
+              </TabsTrigger>
+              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">
+                 Indicados ({clients.length})
+              </TabsTrigger>
+              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">
+                 Comissões ({commissions.length})
+              </TabsTrigger>
+              <TabsTrigger value="contrato" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">
+                 Meu Contrato
+              </TabsTrigger>
            </TabsList>
+
+           <TabsContent value="home" className="animate-fade-up space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div className="md:col-span-2 space-y-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                       <KpiCard label="Saldo Disponível" value={formatBRL(totals.pending)} icon={Wallet} tone="info" description="Aguardando liberação ou em processamento" />
+                       <KpiCard label="Total Recebido" value={formatBRL(totals.paid)} icon={CheckCircle2} tone="success" description="Comissões já pagas em sua conta" />
+                       <KpiCard label="Taxa de Conversão" value={`${totals.conversionRate.toFixed(1)}%`} icon={TrendingUp} tone="warning" description="Indicados que se tornaram clientes ativos" />
+                       <KpiCard label="Próximo Pagamento" value={totals.nextPayment ? formatDate(totals.nextPayment) : "A definir"} icon={Calendar} description="Previsão baseada no ciclo de faturamento" />
+                    </div>
+
+                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                          <Share2 className="size-24" />
+                       </div>
+                       <div className="relative space-y-6">
+                          <div>
+                             <h3 className="font-editorial text-2xl font-bold">Ferramentas de Indicação</h3>
+                             <p className="text-sm text-muted-foreground mt-1">Use seu link exclusivo para rastrear novas indicações automaticamente.</p>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-4">
+                             <div className="flex-1 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 font-mono text-xs flex items-center justify-between group/link">
+                                <span className="truncate mr-4">https://app.crm.com/cadastro?ref={partner.id.slice(0,8)}</span>
+                                <Button variant="ghost" size="icon" className="size-8 text-primary shrink-0 hover:bg-primary/10" onClick={() => {
+                                   navigator.clipboard.writeText(`https://app.crm.com/cadastro?ref=${partner.id.slice(0,8)}`);
+                                   toast.success("Link copiado!");
+                                }}>
+                                   <Copy className="size-4" />
+                                </Button>
+                             </div>
+                             <Button className="h-12 px-8 rounded-2xl font-bold gap-2">
+                                <Zap className="size-4" /> Criar Campanha
+                             </Button>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="space-y-6">
+                    <div className="vx-card p-6 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
+                       <h3 className="font-editorial text-xl font-bold mb-6 flex items-center gap-2">
+                          <Award className="size-5 text-primary" /> Seu Contrato
+                       </h3>
+                       {contracts.length > 0 ? (
+                          <div className="space-y-4">
+                             <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-white/40">Contrato Ativo</p>
+                                <p className="font-bold text-sm mt-1">{contracts[0].name}</p>
+                                <p className="text-[10px] text-white/40 mt-1">Vigente até {contracts[0].expires_at ? formatDate(contracts[0].expires_at) : "tempo indeterminado"}</p>
+                             </div>
+                             <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 h-11 rounded-xl gap-2 font-bold" onClick={() => handleDownloadContract(contracts[0].file_path, contracts[0].name)}>
+                                <Download className="size-4" /> Baixar PDF
+                             </Button>
+                          </div>
+                       ) : (
+                          <p className="text-sm text-white/40 italic">Contrato em fase de elaboração.</p>
+                       )}
+                    </div>
+
+                    <div className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
+                       <h4 className="font-bold text-sm mb-4">Dados Bancários para Crédito</h4>
+                       <div className="space-y-3">
+                          <DetailRow label="Banco" value={partner.bank_name || "—"} />
+                          <DetailRow label="Agência" value={partner.bank_agency || "—"} />
+                          <DetailRow label="Conta" value={partner.bank_account || "—"} />
+                          <DetailRow label="Chave PIX" value={partner.pix_key || "—"} />
+                       </div>
+                       <Button variant="ghost" className="w-full text-primary text-[10px] font-bold uppercase tracking-widest mt-6" onClick={() => toast.info("Solicite a alteração ao suporte")}>Alterar Dados</Button>
+                    </div>
+                 </div>
+              </div>
+           </TabsContent>
 
            <TabsContent value="clientes" className="animate-fade-up">
               {clients.length === 0 ? (
