@@ -8,7 +8,8 @@ import {
   Building2, Package, MoreHorizontal, Calendar,
   ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
   MessageSquare, UserRound, Users, Briefcase, 
-  FileCheck, FileClock, History, Plus
+  FileCheck, FileClock, History, Plus,
+  FileText, Activity, Timer
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHero } from "@/components/PageHero";
@@ -18,6 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -32,12 +34,46 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
-const PRIORITY_META: Record<Priority, { label: string; color: string; icon: any }> = {
-  baixa: { label: "Baixa", color: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock },
-  normal: { label: "Normal", color: "bg-blue-50 text-blue-600 border-blue-200", icon: Clock },
-  alta: { label: "Alta", color: "bg-orange-50 text-orange-600 border-orange-200", icon: AlertCircle },
-  urgente: { label: "Urgente", color: "bg-rose-50 text-rose-600 border-rose-200", icon: ShieldAlert },
+const PRIORITY_META: Record<Priority, { label: string; color: string; icon: any; dot: string }> = {
+  baixa: { label: "Baixa", color: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock, dot: "bg-slate-400" },
+  normal: { label: "Normal", color: "bg-blue-50 text-blue-600 border-blue-200", icon: Clock, dot: "bg-blue-500" },
+  alta: { label: "Alta", color: "bg-orange-50 text-orange-600 border-orange-200", icon: AlertCircle, dot: "bg-orange-500" },
+  urgente: { label: "Urgente", color: "bg-rose-50 text-rose-600 border-rose-200", icon: ShieldAlert, dot: "bg-rose-500" },
 };
+
+const Th = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <th className={cn("px-4 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 border-b border-border/50 bg-muted/5", className)}>
+    {children}
+  </th>
+);
+
+const SLAIndicator = ({ dueDate, status }: { dueDate: string | null, status: string | null }) => {
+  if (!dueDate) return <span className="text-[10px] text-muted-foreground/40 italic font-medium">Não definido</span>;
+  
+  const today = new Date();
+  const due = new Date(dueDate);
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  let color = "text-emerald-600 bg-emerald-500/10 border-emerald-500/20";
+  let label = `${diffDays}d restantes`;
+  
+  if (diffDays < 0) {
+    color = "text-rose-600 bg-rose-500/10 border-rose-500/20";
+    label = `${Math.abs(diffDays)}d atrasado`;
+  } else if (diffDays <= 2) {
+    color = "text-amber-600 bg-amber-500/10 border-amber-500/20";
+    label = "Vence em breve";
+  }
+
+  return (
+    <div className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold", color)}>
+      <Timer className="size-3" />
+      {label}
+    </div>
+  );
+};
+
 
 export default function Demands() {
   const navigate = useNavigate();
