@@ -203,7 +203,7 @@ export default function DashboardAdmin() {
         { label: "Documentos pendentes", value: String(docsPending), delta: null, icon: FileWarning, tone: "warning" as Tone, hint: "aguardando análise" },
         { label: "Comissões a pagar", value: formatBRL(commissionsToPay), delta: null, icon: Wallet, tone: "warning" as Tone, hint: `${commissions.filter((c: any) => c.status === "pendente").length} pendentes` },
         { label: "Pagamentos vencidos", value: formatBRL(overdueAmount), delta: null, icon: CreditCard, tone: "danger" as Tone, hint: `${overduePayments.length} cobranças` },
-        { label: "Health score médio", value: avgHealth ? avgHealth.toFixed(1) : "—", delta: null, icon: Heart, tone: avgHealth >= 7 ? "success" : avgHealth >= 4 ? "warning" : "danger", hint: "saúde da carteira" },
+        { label: "Health score médio", value: avgHealth ? avgHealth.toFixed(1) : "—", delta: null, icon: Heart, tone: (avgHealth >= 7 ? "success" : avgHealth >= 4 ? "warning" : "danger") as Tone, hint: "saúde da carteira" },
       ],
       revenue6m,
       statusData,
