@@ -146,6 +146,14 @@ export default function DashboardAdmin() {
     // Urgent Tasks
     const urgentTasks = [
       {
+        id: 'onboarding',
+        label: 'Onboarding Pendente',
+        count: clients.filter((c: any) => c.onboarding_status !== 'completo').length,
+        icon: UserPlus,
+        link: '/clientes',
+        color: 'text-primary'
+      },
+      {
         id: 'docs',
         label: 'Documentos Pendentes',
         count: documents.filter(d => d.status === 'solicitado' || d.status === 'enviado').length,
