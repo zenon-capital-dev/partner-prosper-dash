@@ -79,41 +79,152 @@ export default function ClientPanel() {
   return (
     <div className="bg-premium min-h-screen dark:bg-[#020617]">
       <div className="page-shell space-y-12 py-12">
-        {/* Header Section */}
-        <section className="relative overflow-hidden rounded-[40px] bg-white dark:bg-card p-10 lg:p-16 border border-slate-100 dark:border-white/5 shadow-sm group">
-          <div className="absolute top-0 right-0 size-[500px] bg-primary/5 blur-[120px] -mr-64 -mt-64 rounded-full transition-all group-hover:bg-primary/10" />
-          
-          <div className="flex flex-col lg:flex-row lg:items-center gap-12 relative">
-             <div className="relative group">
-                <div className="size-28 lg:size-32 rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50 dark:ring-white/5 transition-transform duration-500 group-hover:scale-105">
-                   {initials(client.full_name)}
-                </div>
-                <div className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-900">
-                   <CheckCircle2 className="size-5" />
-                </div>
-             </div>
-             
-             <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-4">
-                   <span className="h-px w-12 bg-primary/30" />
-                   <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary/60 dark:text-primary/80">Private Client Portal</span>
-                </div>
-                <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-[0.95]">
-                   Bem-vindo, <br/><span className="text-primary italic">{client.full_name.split(' ')[0]}</span>.
-                </h1>
-                <div className="flex flex-wrap items-center gap-8 text-[13px] text-muted-foreground font-medium pt-4">
-                   <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default font-bold uppercase tracking-widest text-[10px] opacity-60"><Mail className="size-3.5" /> {client.email}</span>
-                   {client.phone && <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default font-bold uppercase tracking-widest text-[10px] opacity-60"><Phone className="size-3.5" /> {client.phone}</span>}
-                </div>
-             </div>
+        {selectedProductId && selectedProduct ? (
+          /* SINGLE PRODUCT VIEW */
+          <div className="animate-fade-up space-y-8">
+             <Button 
+               variant="ghost" 
+               onClick={() => setSelectedProductId(null)} 
+               className="group text-muted-foreground hover:text-primary transition-colors h-10 px-0"
+             >
+               <ChevronLeft className="size-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar para o Painel
+             </Button>
 
-             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
-                <PremiumStat label="Serviços" value={String(activeProducts.length)} />
-                <PremiumStat label="Investimento" value={formatBRL(monthlyTotal)} sub="Total" />
-                <PremiumStat label="Checklist" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
+             <PageHero 
+               eyebrow="Solution"
+               category={selectedProduct.products?.name}
+               title={selectedProduct.products?.name}
+               description={selectedProduct.products?.description || "Acompanhe o progresso e as entregas desta demanda em tempo real."}
+               icon={<Package className="size-6" />}
+               actions={
+                 <div className="flex gap-2">
+                   <Button variant="outline" className="rounded-xl h-11 border-border/40">
+                     <MessageSquare className="size-4 mr-2" /> Falar com Equipe
+                   </Button>
+                   <Button className="btn-premium h-11 rounded-xl">
+                     Baixar Relatórios
+                   </Button>
+                 </div>
+               }
+               kpis={[
+                 { label: "Status", value: selectedProduct.status?.replace(/_/g, ' '), tone: "info", icon: <Activity className="size-4" /> },
+                 { label: "Início", value: formatDate(selectedProduct.created_at), tone: "default", icon: <Calendar className="size-4" /> },
+                 { label: "Prazo Estimado", value: selectedProduct.deadline ? formatDate(selectedProduct.deadline) : "Em definição", tone: "warning", icon: <Clock className="size-4" /> },
+                 { label: "Progresso", value: "Acompanhe abaixo", tone: "primary", icon: <Zap className="size-4" /> },
+               ]}
+             />
+
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               <div className="lg:col-span-2 space-y-8">
+                  <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
+                    <h3 className="font-editorial text-2xl font-bold mb-8">Fluxo de Execução</h3>
+                    <ClientProductSteps clientProductId={selectedProduct.id} showDetails={true} />
+                  </div>
+
+                  {/* Custom Fields if any */}
+                  {selectedProduct.custom_fields && Object.keys(selectedProduct.custom_fields).length > 0 && (
+                    <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
+                      <h3 className="font-editorial text-2xl font-bold mb-8">Dados do Processo</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {Object.entries(selectedProduct.custom_fields).map(([key, val]: [string, any]) => (
+                          <div key={key} className="space-y-1">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{key.replace(/_/g, ' ')}</p>
+                            <p className="font-bold text-slate-900 dark:text-white">{String(val)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+               </div>
+
+               <div className="space-y-8">
+                  <div className="vx-card p-8 bg-slate-900 text-white rounded-[40px] space-y-6 relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="size-20" /></div>
+                    <h3 className="font-editorial text-xl font-bold">Histórico & Updates</h3>
+                    <div className="space-y-6 relative">
+                       {[
+                         { date: new Date().toISOString(), text: "Análise técnica em andamento pelo prestador." },
+                         { date: selectedProduct.created_at, text: "Demanda iniciada e checklist gerado automaticamente." }
+                       ].map((h, i) => (
+                         <div key={i} className="flex gap-4 group">
+                           <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                           <div className="space-y-1">
+                             <p className="text-xs font-medium text-white/90">{h.text}</p>
+                             <p className="text-[10px] font-bold text-white/30 uppercase">{formatDate(h.date)}</p>
+                           </div>
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+
+                  <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] space-y-6">
+                    <h3 className="font-editorial text-xl font-bold">Documentos da Demanda</h3>
+                    <div className="space-y-3">
+                       {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
+                         <div key={d.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 group hover:border-primary/20 transition-all">
+                            <div className="flex items-center gap-3 min-w-0">
+                               <FileText className="size-4 text-primary shrink-0" />
+                               <p className="text-xs font-bold truncate">{d.name}</p>
+                            </div>
+                            {d.file_path ? <CheckCircle2 className="size-4 text-emerald-500" /> : <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary" />}
+                         </div>
+                       ))}
+                       {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 && (
+                         <p className="text-xs text-muted-foreground italic text-center py-4">Sem documentos específicos.</p>
+                       )}
+                    </div>
+                    <Button 
+                      className="w-full rounded-2xl h-12 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white border border-slate-100 dark:border-white/10 hover:bg-primary hover:text-white"
+                      onClick={() => {
+                        const tab = document.querySelector('[data-value="checklist"]') as HTMLElement;
+                        tab?.click();
+                        setSelectedProductId(null);
+                      }}
+                    >
+                       Central de Documentos
+                    </Button>
+                  </div>
+               </div>
              </div>
           </div>
-        </section>
+        ) : (
+          /* MAIN HOME VIEW */
+          <>
+            {/* Header Section */}
+            <section className="relative overflow-hidden rounded-[40px] bg-white dark:bg-card p-10 lg:p-16 border border-slate-100 dark:border-white/5 shadow-sm group">
+              <div className="absolute top-0 right-0 size-[500px] bg-primary/5 blur-[120px] -mr-64 -mt-64 rounded-full transition-all group-hover:bg-primary/10" />
+              
+              <div className="flex flex-col lg:flex-row lg:items-center gap-12 relative">
+                 <div className="relative group">
+                    <div className="size-28 lg:size-32 rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50 dark:ring-white/5 transition-transform duration-500 group-hover:scale-105">
+                       {initials(client.full_name)}
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-900">
+                       <CheckCircle2 className="size-5" />
+                    </div>
+                 </div>
+                 
+                 <div className="flex-1 space-y-4">
+                    <div className="flex items-center gap-4">
+                       <span className="h-px w-12 bg-primary/30" />
+                       <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary/60 dark:text-primary/80">Private Client Portal</span>
+                    </div>
+                    <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-[0.95]">
+                       Bem-vindo, <br/><span className="text-primary italic">{client.full_name.split(' ')[0]}</span>.
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-8 text-[13px] text-muted-foreground font-medium pt-4">
+                       <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default font-bold uppercase tracking-widest text-[10px] opacity-60"><Mail className="size-3.5" /> {client.email}</span>
+                       {client.phone && <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default font-bold uppercase tracking-widest text-[10px] opacity-60"><Phone className="size-3.5" /> {client.phone}</span>}
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                    <PremiumStat label="Serviços" value={String(activeProducts.length)} />
+                    <PremiumStat label="Faturamento" value={formatBRL(monthlyTotal)} sub="Total" />
+                    <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
+                 </div>
+              </div>
+            </section>
 
         {/* Navigation Tabs */}
         <Tabs defaultValue="checklist" className="space-y-10">
