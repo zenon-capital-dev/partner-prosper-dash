@@ -149,7 +149,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               className="w-full h-8.5 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.05] flex items-center gap-2.5 px-3 text-[12px] text-sidebar-foreground/55 transition-all duration-200 group"
             >
               <Search className="size-3.5 group-hover:text-white transition-colors" />
-              <span className="flex-1 text-left font-medium">Search</span>
+              <span className="flex-1 text-left font-medium truncate">Search</span>
               <kbd className="text-[10px] font-mono bg-white/[0.06] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5 opacity-70">
                 <Command className="size-2.5" />K
               </kbd>
