@@ -150,8 +150,8 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             >
               <Search className="size-3.5 group-hover:text-white transition-colors" />
               <span className="flex-1 text-left font-medium truncate">Search</span>
-              <kbd className="text-[10px] font-mono bg-white/[0.06] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5 opacity-70">
-                <Command className="size-2.5" />K
+              <kbd className="hidden lg:flex text-[9.5px] font-mono bg-white/[0.06] border border-white/[0.08] rounded px-1 py-0.5 items-center gap-0.5 opacity-70">
+                <Command className="size-2" />K
               </kbd>
             </button>
           ) : (
