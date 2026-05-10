@@ -312,7 +312,19 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                        <span className="font-mono text-xl font-bold text-emerald-400">{formatBRL(companyShare)}</span>
                     </div>
                  </div>
-               </div>
+              {/* CAMPOS PERSONALIZADOS */}
+              {form.product_id && (
+                <div className="space-y-4">
+                  <p className="editorial-label text-primary flex items-center gap-2">
+                     04. Informações Específicas
+                  </p>
+                  <CustomFieldsForm 
+                    productId={form.product_id} 
+                    onChange={(fields) => setForm({ ...form, custom_fields: fields } as any)} 
+                  />
+                </div>
+              )}
+            </div>
 
                <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2">Internal Note</p>
