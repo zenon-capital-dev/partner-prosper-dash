@@ -355,6 +355,56 @@ export default function DashboardAdmin() {
         </div>
       </div>
 
+      {/* INTERNAL TASKS — overdue & urgent */}
+      {(() => {
+        const now2 = new Date();
+        const overdueTasks = dashTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now2 && !["concluida", "cancelada"].includes(t.status_new));
+        const urgentTasksReal = dashTasks.filter((t: any) => t.priority === "urgente" && !["concluida", "cancelada"].includes(t.status_new));
+        const renderTask = (t: any, badgeTone: string) => (
+          <Link key={t.id} to="/tarefas" className="flex items-center justify-between p-3 rounded-xl border bg-card hover:border-primary/40 transition-all">
+            <div className="min-w-0">
+              <p className="text-sm font-bold truncate">{t.title}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                {t.due_date ? `Prazo ${new Date(t.due_date).toLocaleDateString("pt-BR")}` : "Sem prazo"}
+              </p>
+            </div>
+            <Badge variant="outline" className={cn("text-[9px] uppercase shrink-0", badgeTone)}>{t.priority}</Badge>
+          </Link>
+        );
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="vx-card p-6 border">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="size-5 text-destructive" />
+                  <h3 className="font-bold text-lg">Tarefas Vencidas</h3>
+                </div>
+                <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">{overdueTasks.length}</Badge>
+              </div>
+              <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                {overdueTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma tarefa vencida.</p>
+                ) : overdueTasks.slice(0, 8).map((t: any) => renderTask(t, "bg-destructive/10 text-destructive border-destructive/20"))}
+              </div>
+            </div>
+            <div className="vx-card p-6 border">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="size-5 text-amber-500" />
+                  <h3 className="font-bold text-lg">Tarefas Urgentes</h3>
+                </div>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900">{urgentTasksReal.length}</Badge>
+              </div>
+              <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                {urgentTasksReal.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhuma tarefa urgente.</p>
+                ) : urgentTasksReal.slice(0, 8).map((t: any) => renderTask(t, "bg-amber-50 text-amber-700 border-amber-200"))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {/* BEST SELLING PRODUCTS */}
         <ChartCard title="Produtos mais Vendidos" subtitle="Volume por categoria de serviço" icon={Package}>
