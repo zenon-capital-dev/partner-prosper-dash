@@ -64,6 +64,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
     setSubmitting(true);
     const payload = {
       full_name: form.full_name,
+      company: form.company || null,
       email: form.email || null,
       phone: form.phone || null,
       whatsapp: form.whatsapp || null,
@@ -74,6 +75,10 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
       partner_id: form.partner_id || null,
       responsible_id: form.responsible_id || null,
       referral_id: form.referral_id || null,
+      estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
+      close_probability: form.close_probability != null && form.close_probability !== "" ? Number(form.close_probability) : null,
+      next_action: form.next_action || null,
+      next_action_date: form.next_action_date || null,
     };
     
     const { error } = lead?.id
