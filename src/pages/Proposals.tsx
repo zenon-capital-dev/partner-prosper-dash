@@ -317,7 +317,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
   });
   const { data: products = [] } = useQuery({
     queryKey: ["products-min"],
-    queryFn: async () => (await supabase.from("products").select("id, name, default_price").order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").order("name")).data ?? [],
   });
 
   useEffect(() => {
@@ -478,7 +478,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
                         updateItem(idx, {
                           product_id: v,
                           product_name: prod?.name ?? it.product_name,
-                          unit_price: prod?.default_price ?? it.unit_price,
+                          unit_price: prod?.base_price ?? it.unit_price,
                         });
                       }}>
                       <SelectTrigger className="flex-1"><SelectValue placeholder="Produto" /></SelectTrigger>
