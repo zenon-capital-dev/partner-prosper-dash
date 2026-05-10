@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { OperationalChecklist } from "@/components/clients/OperationalChecklist";
+import { DemandComments } from "@/components/demands/DemandComments";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { toast } from "sonner";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
