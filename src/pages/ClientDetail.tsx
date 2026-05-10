@@ -9,7 +9,7 @@ import {
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
   ChevronRight, Phone, Mail, Globe, MapPin, 
-  Wallet, PieChart, Star
+  Wallet, PieChart, Star, Users
 } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
@@ -120,7 +120,7 @@ export default function ClientDetail() {
 
     const totalRevenue = clientProducts.reduce((s, x) => s + Number(x.value || 0), 0);
     const activeProducts = clientProducts.filter(p => p.status === 'ativo').length;
-    const pendingDocs = documents.filter(d => d.status === 'pendente' || d.status === 'aguardando_assinatura').length;
+    const pendingDocs = documents.filter(d => d.status === 'solicitado' || d.status === 'pendente_correcao').length;
     const pendingPayments = payments.filter(p => p.status === 'pendente').length;
     const overduePayments = payments.filter(p => p.status !== 'pago' && p.due_date && new Date(p.due_date) < new Date()).length;
     
@@ -140,7 +140,7 @@ export default function ClientDetail() {
 
     if (unfinishedStep) {
       nextAction = { 
-        title: unfinishedStep.title || "Próxima Etapa", 
+        title: (unfinishedStep as any).label || "Próxima Etapa", 
         desc: `Pendente em: ${clientProducts.find(p => p.id === unfinishedStep.client_product_id)?.products?.name || "Demanda"}`
       };
     } else if (pendingDocs > 0) {
@@ -160,6 +160,7 @@ export default function ClientDetail() {
       nextAction
     };
   }, [client, clientProducts, payments, documents]);
+
 
   if (isLoading) return (
     <div className="p-12 flex flex-col items-center justify-center min-h-[400px] animate-pulse">
