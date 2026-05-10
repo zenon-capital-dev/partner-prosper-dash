@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
   Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
-  FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity
+  FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity,
+  ChevronLeft, Sparkles, MessageSquare, Zap
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ import { NpsCard } from "@/components/nps/NpsCard";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { PageHero } from "@/components/PageHero";
 
 export default function ClientPanel() {
   const { user } = useAuth();
