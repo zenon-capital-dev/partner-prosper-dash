@@ -126,6 +126,9 @@ export default function ClientDetail() {
         </div>
       </div>
 
+      {/* Intelligent Summary Block */}
+      <IntelligentSummary clientId={id!} />
+
       {/* Stats Strip */}
       <div className="stats-strip">
         <div className="stats-item">
