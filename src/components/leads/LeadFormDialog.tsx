@@ -27,7 +27,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
 
   useEffect(() => {
     if (lead) setForm(lead);
-    else setForm({ status: "Novo", source: "Instagram" });
+    else setForm({ status: "Novo", source: "Instagram", close_probability: 50 });
   }, [lead, open]);
 
   const { data: partners } = useQuery({
