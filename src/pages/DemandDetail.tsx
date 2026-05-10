@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { OperationalChecklist } from "@/components/clients/OperationalChecklist";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
 import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
