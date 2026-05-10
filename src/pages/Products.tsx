@@ -96,6 +96,7 @@ export default function Products() {
 
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [catForm, setCatForm] = useState<any>({ name: "", color: "#6366f1" });
+  const [checklistTarget, setChecklistTarget] = useState<Product | null>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products-list"],
