@@ -320,22 +320,22 @@ export default function Documents() {
             </SelectContent>
           </Select>
           <Select value={productFilter} onValueChange={setProductFilter}>
-            <SelectTrigger><SelectValue placeholder="Produto" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Produto" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os produtos</SelectItem>
               {productOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={providerFilter} onValueChange={setProviderFilter}>
-            <SelectTrigger><SelectValue placeholder="Prestador" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Prestador" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os prestadores</SelectItem>
               {providerOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="flex gap-2">
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="De" />
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="Até" />
+            <Input type="date" className="h-10" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="De" />
+            <Input type="date" className="h-10" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="Até" />
           </div>
         </div>
       </div>
