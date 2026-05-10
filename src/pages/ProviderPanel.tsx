@@ -57,7 +57,8 @@ export default function ProviderPanel() {
       const { data } = await supabase
         .from("client_products")
         .select(`
-          id, status, value, deadline, created_at, notes,
+          id, status, value, deadline, created_at, notes, priority,
+          sla_due_date, sla_status,
           clients(id, full_name, email, phone, company),
           products(name, description)
         `)
@@ -118,12 +119,31 @@ export default function ProviderPanel() {
   });
 
   const stats = useMemo(() => {
+    const now = new Date();
     const total = clientProducts.length;
-    const concluidos = clientProducts.filter((c: any) => c.status === "concluido" || c.status === "finalizado").length;
-    const emAndamento = clientProducts.filter((c: any) => c.status === "em_andamento").length;
-    const pendentes = total - concluidos;
-    return { total, concluidos, emAndamento, pendentes };
-  }, [clientProducts]);
+    const active = clientProducts.filter((c: any) => c.status !== "concluido" && c.status !== "cancelado").length;
+    const urgent = clientProducts.filter((c: any) => (c.priority === "alta" || c.priority === "urgente") && c.status !== "concluido").length;
+    const delayed = clientProducts.filter((c: any) => {
+      if (c.status === "concluido") return false;
+      const deadline = c.deadline ? new Date(c.deadline) : null;
+      const sla = c.sla_due_date ? new Date(c.sla_due_date) : null;
+      return (deadline && deadline < now) || (sla && sla < now);
+    }).length;
+    
+    const docsAwaiting = documents.filter((d: any) => d.status === "enviado" || d.status === "em_analise").length;
+    const pendingReports = active; // Simplificação: toda demanda ativa precisa de reporte
+    
+    const valuesToReceive = clientProducts
+      .filter((c: any) => c.status !== "cancelado")
+      .reduce((acc: number, curr: any) => acc + (Number(curr.value) || 0), 0);
+
+    const nextDeadlines = clientProducts
+      .filter((c: any) => c.status !== "concluido" && c.deadline)
+      .sort((a: any, b: any) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+      .slice(0, 3);
+
+    return { total, active, urgent, delayed, docsAwaiting, pendingReports, valuesToReceive, nextDeadlines };
+  }, [clientProducts, documents]);
 
   async function handleDownload(filePath: string, name: string) {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 3600);
