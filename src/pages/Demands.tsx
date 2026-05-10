@@ -467,15 +467,22 @@ export default function Demands() {
                                         
                                         <div className="flex items-center gap-1">
                                           {demand.deadline && new Date(demand.deadline) < new Date() && (
-                                            <AlertCircle className="size-3 text-rose-500 animate-pulse" title="Prazo vencido" />
+                                            <span title="Prazo vencido">
+                                              <AlertCircle className="size-3 text-rose-500 animate-pulse" />
+                                            </span>
                                           )}
                                           {pendingDocs > 0 && (
-                                            <FileText className="size-3 text-amber-500" title="Documentos pendentes" />
+                                            <span title="Documentos pendentes">
+                                              <FileText className="size-3 text-amber-500" />
+                                            </span>
                                           )}
                                           {demand.priority === 'urgente' && (
-                                            <ShieldAlert className="size-3 text-rose-600" title="Urgência crítica" />
+                                            <span title="Urgência crítica">
+                                              <ShieldAlert className="size-3 text-rose-600" />
+                                            </span>
                                           )}
                                         </div>
+
                                       </div>
                                     </div>
                                   </div>
