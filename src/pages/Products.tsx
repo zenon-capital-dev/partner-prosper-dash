@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Plus, Search, Pencil, Trash2, Package, TrendingUp, Layers, RefreshCcw,
-  Tag, Users2, MoreHorizontal, Power, PowerOff, Filter, Sparkles, Boxes,
+  Tag, Users2, MoreHorizontal, Power, PowerOff, Filter, Sparkles, Boxes, ListChecks,
 } from "lucide-react";
+import { ProductChecklistDialog } from "@/components/products/ProductChecklistDialog";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import {
