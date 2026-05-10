@@ -88,9 +88,9 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
   const completedProducts = products.filter(p => p.status === "concluido");
   const delayedProducts = products.filter(p => p.sla_status === "atrasado");
   
-  const pendingDocs = documents.filter(d => d.status === "pendente" || d.status === "rejeitado");
+  const pendingDocs = documents.filter(d => d.status === "solicitado" || d.status === "reprovado");
   const pendingPayments = payments.filter(p => p.status === "pendente");
-  const pendingContracts = contracts.filter(c => c.status === "pendente" || c.status === "aguardando_assinatura");
+  const pendingContracts = contracts.filter(c => c.status === "criado" || c.status === "enviado" || c.status === "aguardando_assinatura");
 
   const lastUpdate = client.updated_at ? format(new Date(client.updated_at), "dd 'de' MMMM", { locale: ptBR }) : "Sem dados";
 
