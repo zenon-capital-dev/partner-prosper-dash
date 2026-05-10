@@ -591,6 +591,45 @@ export default function Demands() {
           })}
         </div>
       )}
+
+      <Dialog open={!!completeDialog} onOpenChange={(v) => { if (!v) setCompleteDialog(null); }}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Concluir demanda</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Confirme a data de conclusão. Essa ação atualiza o status para Concluído e registra a finalização.
+            </p>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Data de conclusão</label>
+              <Input
+                type="date"
+                value={completeDialog?.date ?? ""}
+                onChange={(e) => completeDialog && setCompleteDialog({ ...completeDialog, date: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCompleteDialog(null)}>Cancelar</Button>
+            <Button
+              className="bg-gradient-primary"
+              onClick={() => {
+                if (!completeDialog) return;
+                updateStatusMutation.mutate({
+                  id: completeDialog.id,
+                  status: "concluido",
+                  completedAt: new Date(completeDialog.date).toISOString(),
+                });
+                setCompleteDialog(null);
+              }}
+            >
+              Confirmar conclusão
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 }
