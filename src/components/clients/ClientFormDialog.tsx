@@ -80,6 +80,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       payment_status: form.payment_status || "pendente",
       notes: form.notes || null,
       tags: form.tags ?? [],
+      health_score: form.health_score || 100,
+      churn_risk: form.churn_risk || "Baixo",
       created_by: user?.id,
     };
     const { error } = client?.id
