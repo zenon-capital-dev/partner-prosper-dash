@@ -188,11 +188,12 @@ export default function ProviderPanel() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-8 lg:gap-12 relative">
-            <StatItem label="Ativos" value={String(stats.emAndamento)} />
-            <StatItem label="Pendentes" value={String(stats.pendentes)} tone="warning" />
-            <StatItem label="Concluídos" value={String(stats.concluidos)} tone="success" />
-          </div>
+           <div className="flex flex-wrap gap-8 lg:gap-12 relative">
+             <StatItem label="Ativos" value={String(stats.active)} />
+             <StatItem label="Urgent" value={String(stats.urgent)} tone="warning" />
+             <StatItem label="Atrasados" value={String(stats.delayed)} tone="warning" />
+             <StatItem label="A Receber" value={formatBRL(stats.valuesToReceive)} tone="success" />
+           </div>
         </div>
 
         {selectedProductId ? (
