@@ -8,7 +8,8 @@ import {
   Building2, Package, MoreHorizontal, Calendar,
   ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
   MessageSquare, UserRound, Users, Briefcase, 
-  FileCheck, FileClock, History, Plus
+  FileCheck, FileClock, History, Plus,
+  FileText, Activity, Timer
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHero } from "@/components/PageHero";
@@ -18,6 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -32,18 +34,52 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
-const PRIORITY_META: Record<Priority, { label: string; color: string; icon: any }> = {
-  baixa: { label: "Baixa", color: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock },
-  normal: { label: "Normal", color: "bg-blue-50 text-blue-600 border-blue-200", icon: Clock },
-  alta: { label: "Alta", color: "bg-orange-50 text-orange-600 border-orange-200", icon: AlertCircle },
-  urgente: { label: "Urgente", color: "bg-rose-50 text-rose-600 border-rose-200", icon: ShieldAlert },
+const PRIORITY_META: Record<Priority, { label: string; color: string; icon: any; dot: string }> = {
+  baixa: { label: "Baixa", color: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock, dot: "bg-slate-400" },
+  normal: { label: "Normal", color: "bg-blue-50 text-blue-600 border-blue-200", icon: Clock, dot: "bg-blue-500" },
+  alta: { label: "Alta", color: "bg-orange-50 text-orange-600 border-orange-200", icon: AlertCircle, dot: "bg-orange-500" },
+  urgente: { label: "Urgente", color: "bg-rose-50 text-rose-600 border-rose-200", icon: ShieldAlert, dot: "bg-rose-500" },
 };
+
+const Th = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+  <th className={cn("px-4 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 border-b border-border/50 bg-muted/5", className)}>
+    {children}
+  </th>
+);
+
+const SLAIndicator = ({ dueDate, status }: { dueDate: string | null, status: string | null }) => {
+  if (!dueDate) return <span className="text-[10px] text-muted-foreground/40 italic font-medium">Não definido</span>;
+  
+  const today = new Date();
+  const due = new Date(dueDate);
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  let color = "text-emerald-600 bg-emerald-500/10 border-emerald-500/20";
+  let label = `${diffDays}d restantes`;
+  
+  if (diffDays < 0) {
+    color = "text-rose-600 bg-rose-500/10 border-rose-500/20";
+    label = `${Math.abs(diffDays)}d atrasado`;
+  } else if (diffDays <= 2) {
+    color = "text-amber-600 bg-amber-500/10 border-amber-500/20";
+    label = "Vence em breve";
+  }
+
+  return (
+    <div className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold", color)}>
+      <Timer className="size-3" />
+      {label}
+    </div>
+  );
+};
+
 
 export default function Demands() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "grid" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -238,16 +274,8 @@ export default function Demands() {
               >
                 <List className="size-4" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className={cn("size-9 rounded-md", viewMode === 'grid' && "bg-background shadow-sm")} 
-                onClick={() => setViewMode('grid')}
-                title="Cards"
-              >
-                <LayoutGrid className="size-4" />
-              </Button>
             </div>
+
             
             <Button className="h-11 gap-2 rounded-xl" onClick={() => navigate("/clientes")}>
               <Plus className="size-4" /> Nova Demanda
@@ -365,57 +393,92 @@ export default function Demands() {
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                     className={cn(
-                                      "vx-card p-4 bg-background hover:border-primary/30 transition-all select-none group relative",
-                                      snapshot.isDragging && "shadow-xl border-primary/50 rotate-2 scale-[1.02] z-50",
+                                      "vx-card p-4 bg-background hover:border-primary/40 transition-all select-none group relative shadow-sm",
+                                      snapshot.isDragging && "shadow-2xl border-primary/50 rotate-[2deg] scale-[1.05] z-50 ring-4 ring-primary/10",
                                       priority.label === "Urgente" && "border-l-4 border-l-rose-500"
                                     )}
                                     onClick={() => navigate(`/demandas/${demand.id}`)}
                                   >
-                                    <div className="flex items-start justify-between mb-2">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-1.5 py-0.5 rounded border border-primary/10">
-                                        {demand.products?.name}
-                                      </span>
-                                      <Badge variant="outline" className={cn("h-4 text-[8px] font-black uppercase border-none px-0", priority.color.replace('border-slate-200', '').replace('bg-', 'text-'))}>
+                                    <div className="flex items-start justify-between mb-3">
+                                      <div className="flex flex-col gap-1">
+                                        <h4 className="text-[11px] font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+                                          {demand.clients?.full_name}
+                                        </h4>
+                                        <p className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-wider truncate max-w-[150px]">
+                                          {demand.products?.name}
+                                        </p>
+                                      </div>
+                                      <Badge variant="outline" className={cn("h-4 text-[8px] font-black uppercase border-none px-1.5", priority.color)}>
                                         {priority.label}
                                       </Badge>
                                     </div>
                                     
-                                    <h4 className="text-xs font-bold text-foreground mb-0.5 leading-tight group-hover:text-primary transition-colors">
-                                      {demand.clients?.full_name}
-                                    </h4>
-                                    <p className="text-[9px] text-muted-foreground/60 font-medium mb-3 truncate">
-                                      {demand.clients?.company || "Pessoa Física"}
-                                    </p>
-                                    
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between text-[9px] font-bold text-muted-foreground/60">
-                                        <span className="flex items-center gap-1">
-                                          <UserRound className="size-2.5" />
-                                          {demand.service_providers?.name || "N/A"}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                          <Calendar className="size-2.5" />
-                                          {demand.deadline ? formatDate(demand.deadline) : "—"}
-                                        </span>
+                                    <div className="space-y-3">
+                                      <div className="flex flex-col gap-2 p-2 rounded-lg bg-muted/30 border border-border/40">
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className="text-muted-foreground/60 flex items-center gap-1">
+                                            <UserRound className="size-2.5" /> Prestador
+                                          </span>
+                                          <span className="text-foreground truncate max-w-[100px]">
+                                            {demand.service_providers?.name || "N/A"}
+                                          </span>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className="text-muted-foreground/60 flex items-center gap-1">
+                                            <Calendar className="size-2.5" /> Prazo
+                                          </span>
+                                          <span className={cn(
+                                            "tabular-nums",
+                                            demand.deadline && new Date(demand.deadline) < new Date() ? "text-rose-500" : "text-foreground"
+                                          )}>
+                                            {demand.deadline ? formatDate(demand.deadline) : "—"}
+                                          </span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between text-[9px] font-bold">
+                                          <span className="text-muted-foreground/60 flex items-center gap-1">
+                                            <Timer className="size-2.5" /> SLA
+                                          </span>
+                                          <span className="text-foreground">
+                                            {demand.sla_due_date ? formatDate(demand.sla_due_date) : "—"}
+                                          </span>
+                                        </div>
                                       </div>
                                       
-                                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                                      <div className="flex items-center justify-between pt-2">
                                         {pendingDocs > 0 ? (
-                                          <div className="flex items-center gap-1 text-[8px] font-black text-amber-600 bg-amber-500/5 px-1 rounded">
-                                            <AlertCircle className="size-2" /> {pendingDocs} DOCS
+                                          <div className="flex items-center gap-1 text-[8px] font-black text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                            <FileClock className="size-2.5" /> {pendingDocs} DOCS PENDENTES
                                           </div>
                                         ) : (
-                                          <div className="flex items-center gap-1 text-[8px] font-black text-emerald-600 bg-emerald-500/5 px-1 rounded">
-                                            <CheckCircle2 className="size-2" /> DOCS OK
+                                          <div className="flex items-center gap-1 text-[8px] font-black text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                            <CheckCircle2 className="size-2.5" /> DOCS OK
                                           </div>
                                         )}
                                         
-                                        <div className="flex items-center gap-1 text-[8px] font-bold text-muted-foreground/40 italic truncate max-w-[120px]">
-                                           <History className="size-2" /> {demand.last_report?.notes || "Sem reporte"}
+                                        <div className="flex items-center gap-1">
+                                          {demand.deadline && new Date(demand.deadline) < new Date() && (
+                                            <span title="Prazo vencido">
+                                              <AlertCircle className="size-3 text-rose-500 animate-pulse" />
+                                            </span>
+                                          )}
+                                          {pendingDocs > 0 && (
+                                            <span title="Documentos pendentes">
+                                              <FileText className="size-3 text-amber-500" />
+                                            </span>
+                                          )}
+                                          {demand.priority === 'urgente' && (
+                                            <span title="Urgência crítica">
+                                              <ShieldAlert className="size-3 text-rose-600" />
+                                            </span>
+                                          )}
                                         </div>
+
                                       </div>
                                     </div>
                                   </div>
+
                                 )}
                               </Draggable>
                             );
@@ -430,106 +493,126 @@ export default function Demands() {
           </DragDropContext>
         </div>
       ) : viewMode === 'list' ? (
-        <div className="vx-table-wrap">
+        <div className="vx-table-wrap overflow-visible">
           <table className="vx-table">
             <thead className="vx-table-head">
               <tr>
-                <th className="vx-table-cell">Cliente / Empresa</th>
-                <th className="vx-table-cell">Produto</th>
-                <th className="vx-table-cell">Responsável</th>
-                <th className="vx-table-cell">Status</th>
-                <th className="vx-table-cell">Prioridade</th>
-                <th className="vx-table-cell">Prazo / Docs</th>
-                <th className="vx-table-cell">Último Reporte</th>
-                <th className="vx-table-cell text-right">Ações</th>
+                <Th>Cliente</Th>
+                <Th>Empresa</Th>
+                <Th>Produto</Th>
+                <Th>Prestador</Th>
+                <Th>Status</Th>
+                <Th>Prioridade</Th>
+                <Th>SLA</Th>
+                <Th>Prazo</Th>
+                <Th>Docs Pendentes</Th>
+                <Th>Última Atualização</Th>
+                <Th className="text-right">Ações</Th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-card">
               {filtered.map((d: any) => {
                 const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
                 const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
-                const isOverdue = d.sla_due_date && new Date(d.sla_due_date) < new Date() && d.status !== 'concluido';
-                const daysLeft = d.sla_due_date ? Math.ceil((new Date(d.sla_due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const isOverdue = d.deadline && new Date(d.deadline) < new Date() && d.status !== 'concluido';
+                const initials = d.clients?.full_name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || "??";
                 
                 return (
-                  <tr key={d.id} className={cn("vx-table-row group", isOverdue && "bg-rose-500/[0.02]")}>
-                    <td className="vx-table-cell">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer" onClick={() => navigate(`/demandas/${d.id}`)}>
+                  <tr key={d.id} className="vx-table-row group border-b border-border/40 hover:bg-muted/30 transition-colors">
+                    <td className="vx-table-cell py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-8 border border-border/50 shadow-sm">
+                          <AvatarFallback className="text-[10px] font-bold bg-primary/5 text-primary">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer text-xs" onClick={() => navigate(`/demandas/${d.id}`)}>
                           {d.clients?.full_name}
                         </span>
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground/50 tracking-wider">
-                          {d.clients?.company || "Pessoa Física"}
-                        </span>
+                      </div>
+                    </td>
+                    <td className="vx-table-cell">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">
+                        {d.clients?.company || "Pessoa Física"}
+                      </span>
+                    </td>
+                    <td className="vx-table-cell">
+                      <div className="flex items-center gap-2">
+                        <div className="size-6 rounded bg-primary/5 flex items-center justify-center">
+                          <Package className="size-3 text-primary/60" />
+                        </div>
+                        <span className="text-xs font-bold text-foreground truncate max-w-[150px]">{d.products?.name}</span>
                       </div>
                     </td>
                     <td className="vx-table-cell">
                       <div className="flex items-center gap-2">
-                        <Package className="size-3.5 text-primary/60" />
-                        <span className="text-xs font-bold text-foreground">{d.products?.name}</span>
+                        <UserRound className="size-3.5 text-muted-foreground/40" />
+                        <span className="text-xs font-medium text-muted-foreground/80">{d.service_providers?.name || "—"}</span>
                       </div>
                     </td>
                     <td className="vx-table-cell">
-                      <div className="flex items-center gap-2">
-                        <UserRound className="size-3.5 text-muted-foreground/60" />
-                        <span className="text-xs font-medium">{d.service_providers?.name || "—"}</span>
-                      </div>
-                    </td>
-                    <td className="vx-table-cell">
-                      <Badge variant="outline" className="capitalize text-[10px] font-bold tracking-wider bg-muted/30">
+                      <Badge variant="outline" className="capitalize text-[9px] font-black tracking-widest bg-muted/30 border-border/50 px-2 py-0">
                         {d.status?.replace('_', ' ')}
                       </Badge>
                     </td>
                     <td className="vx-table-cell">
-                      <Badge variant="outline" className={cn("gap-1 text-[10px] font-bold uppercase", priority.color)}>
-                        <priority.icon className="size-3" />
+                      <Badge variant="outline" className={cn("gap-1 text-[9px] font-black uppercase px-2 py-0 border-none", priority.color)}>
+                        <div className={cn("size-1.5 rounded-full shrink-0", priority.dot)} />
                         {priority.label}
                       </Badge>
                     </td>
                     <td className="vx-table-cell">
-                      <div className="flex flex-col">
-                        <span className={cn("text-xs font-bold tabular-nums", isOverdue ? "text-rose-500" : "text-foreground")}>
-                          {d.sla_due_date ? formatDate(d.sla_due_date) : "—"}
+                      <SLAIndicator dueDate={d.sla_due_date} status={d.sla_status} />
+                    </td>
+                    <td className="vx-table-cell">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="size-3 text-muted-foreground/40" />
+                        <span className={cn("text-[11px] font-bold tabular-nums", isOverdue ? "text-rose-500" : "text-muted-foreground/80")}>
+                          {d.deadline ? formatDate(d.deadline) : "—"}
                         </span>
-                        {pendingDocs > 0 ? (
-                          <span className="text-[9px] font-black uppercase text-amber-600">
-                             {pendingDocs} Docs Pendentes
-                          </span>
-                        ) : (
-                          <span className="text-[9px] font-black uppercase text-emerald-600">
-                             Docs em dia
+                      </div>
+                    </td>
+                    <td className="vx-table-cell">
+                      {pendingDocs > 0 ? (
+                        <div className="flex items-center gap-1 text-[10px] font-black text-amber-600 bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/20">
+                           <FileClock className="size-3" /> {pendingDocs} DOCS
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/20">
+                           <FileCheck className="size-3" /> OK
+                        </div>
+                      )}
+                    </td>
+                    <td className="vx-table-cell">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] font-bold text-muted-foreground/80 tabular-nums">
+                          {formatDate(d.updated_at || d.created_at)}
+                        </span>
+                        {d.last_report && (
+                          <span className="text-[9px] text-muted-foreground/40 italic truncate max-w-[120px]">
+                            {d.last_report.notes}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="vx-table-cell max-w-[200px]">
-                       {d.last_report ? (
-                         <div className="flex flex-col">
-                            <span className="text-[11px] text-muted-foreground line-clamp-1 italic font-medium">"{d.last_report.notes}"</span>
-                            <span className="text-[9px] font-bold text-muted-foreground/40">{formatDate(d.last_report.created_at)}</span>
-                         </div>
-                       ) : (
-                         <span className="text-[10px] text-muted-foreground/40 italic">Sem reporte</span>
-                       )}
-                    </td>
                     <td className="vx-table-cell text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                          <Button variant="ghost" size="icon" className="size-8 rounded-lg hover:bg-primary/5 hover:text-primary transition-all">
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 rounded-xl">
-                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}`)} className="gap-2 cursor-pointer">
-                            <ArrowUpRight className="size-4" /> Abrir Demanda
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-border/50 animate-in fade-in zoom-in-95">
+                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}`)} className="gap-2 cursor-pointer font-medium py-2">
+                            <ArrowUpRight className="size-4 text-primary" /> Abrir Detalhes
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
-                            <MessageSquare className="size-4" /> Notificar Cliente
+                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
+                            <MessageSquare className="size-4 text-blue-500" /> Notificar Cliente
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
-                            <UserRound className="size-4" /> Delegar Prestador
+                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
+                            <UserRound className="size-4 text-emerald-500" /> Delegar Prestador
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer text-amber-600 focus:text-amber-700">
+                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2 text-rose-600 focus:text-rose-700">
                             <ShieldAlert className="size-4" /> Alterar Status
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -541,6 +624,7 @@ export default function Demands() {
             </tbody>
           </table>
         </div>
+
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((d: any) => {
