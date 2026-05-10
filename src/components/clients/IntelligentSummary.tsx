@@ -183,7 +183,7 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
                 <p className="editorial-label text-[9px]">Responsável</p>
                 <div className="flex items-center gap-2">
                   <User className="size-3 text-white/40" />
-                  <p className="text-xs font-medium truncate">{client.responsible?.full_name || 'Não atribuído'}</p>
+                  <p className="text-xs font-medium truncate">{client.responsible_name || 'Não atribuído'}</p>
                 </div>
               </div>
               <div className="space-y-1">
