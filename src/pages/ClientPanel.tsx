@@ -514,3 +514,25 @@ function StatusBadge({ status }: { status: string }) {
     </Badge>
   );
 }
+
+function ActionItem({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick: () => void }) {
+  return (
+    <div 
+      className={cn(
+        "flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer",
+        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-40 grayscale pointer-events-none"
+      )}
+      onClick={onClick}
+    >
+       <div className="flex items-center gap-3">
+          <Icon className="size-4 text-primary" />
+          <span className="text-[13px] font-bold">{label}</span>
+       </div>
+       {count > 0 && (
+         <div className="size-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+            {count}
+         </div>
+       )}
+    </div>
+  );
+}
