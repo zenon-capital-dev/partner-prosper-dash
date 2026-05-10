@@ -12,7 +12,7 @@
 @layer base {
   :root {
     /* Neutral surface — soft off-white, never harsh white */
-    --background: 220 20% 97%;
+    --background: 220 20% 98%;
     --foreground: 222 47% 8%;
 
     --card: 0 0% 100%;
