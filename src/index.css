@@ -261,7 +261,7 @@
   .btn-premium {
     background: hsl(var(--primary));
     @apply text-primary-foreground transition-colors duration-150;
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08), 0 1px 0 hsl(222 38% 8% / 0.4);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08), 0 2px 4px hsl(222 38% 8% / 0.15);
   }
   .btn-premium:hover {
     background: hsl(230 60% 28%);
