@@ -247,7 +247,7 @@ export default function Tasks() {
 
   const updateStatus = async (id: string, status_new: string) => {
     const { error } = await supabase.from("tasks").update({
-      status_new, status: status_new,
+      status_new: status_new as any, status: status_new,
       completed_at: status_new === "concluida" ? new Date().toISOString() : null,
     }).eq("id", id);
     if (error) toast.error(error.message);
