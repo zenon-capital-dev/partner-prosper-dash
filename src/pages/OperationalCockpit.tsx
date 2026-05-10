@@ -635,6 +635,12 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
                 <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
                   <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
+                  <RefreshCcw className="size-4 text-amber-500" /> Alterar Status
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
+                  <UserPlus className="size-4 text-indigo-500" /> Delegar Prestador
+                </DropdownMenuItem>
               </>
             )}
 
