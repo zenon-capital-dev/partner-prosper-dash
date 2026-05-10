@@ -11,10 +11,11 @@ import {
   Download, ArrowRight, CheckCircle2, Clock, 
   Search, Filter, ListChecks, MessageSquare,
   ShieldCheck, LayoutDashboard, ChevronLeft,
-  X, AlertCircle, Loader2
+  X, AlertCircle, Loader2, Wallet
 } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,8 @@ export default function ProviderPanel() {
       const { data } = await supabase
         .from("client_products")
         .select(`
-          id, status, value, deadline, created_at, notes,
+          id, status, value, deadline, created_at, notes, priority,
+          sla_due_date, sla_status,
           clients(id, full_name, email, phone, company),
           products(name, description)
         `)
@@ -118,12 +120,31 @@ export default function ProviderPanel() {
   });
 
   const stats = useMemo(() => {
+    const now = new Date();
     const total = clientProducts.length;
-    const concluidos = clientProducts.filter((c: any) => c.status === "concluido" || c.status === "finalizado").length;
-    const emAndamento = clientProducts.filter((c: any) => c.status === "em_andamento").length;
-    const pendentes = total - concluidos;
-    return { total, concluidos, emAndamento, pendentes };
-  }, [clientProducts]);
+    const active = clientProducts.filter((c: any) => c.status !== "concluido" && c.status !== "cancelado").length;
+    const urgent = clientProducts.filter((c: any) => (c.priority === "alta" || c.priority === "urgente") && c.status !== "concluido").length;
+    const delayed = clientProducts.filter((c: any) => {
+      if (c.status === "concluido") return false;
+      const deadline = c.deadline ? new Date(c.deadline) : null;
+      const sla = c.sla_due_date ? new Date(c.sla_due_date) : null;
+      return (deadline && deadline < now) || (sla && sla < now);
+    }).length;
+    
+    const docsAwaiting = documents.filter((d: any) => d.status === "enviado" || d.status === "em_analise").length;
+    const pendingReports = active; // Simplificação: toda demanda ativa precisa de reporte
+    
+    const valuesToReceive = clientProducts
+      .filter((c: any) => c.status !== "cancelado")
+      .reduce((acc: number, curr: any) => acc + (Number(curr.value) || 0), 0);
+
+    const nextDeadlines = clientProducts
+      .filter((c: any) => c.status !== "concluido" && c.deadline)
+      .sort((a: any, b: any) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
+      .slice(0, 3);
+
+    return { total, active, urgent, delayed, docsAwaiting, pendingReports, valuesToReceive, nextDeadlines };
+  }, [clientProducts, documents]);
 
   async function handleDownload(filePath: string, name: string) {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 3600);
@@ -168,11 +189,12 @@ export default function ProviderPanel() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-8 lg:gap-12 relative">
-            <StatItem label="Ativos" value={String(stats.emAndamento)} />
-            <StatItem label="Pendentes" value={String(stats.pendentes)} tone="warning" />
-            <StatItem label="Concluídos" value={String(stats.concluidos)} tone="success" />
-          </div>
+           <div className="flex flex-wrap gap-8 lg:gap-12 relative">
+             <StatItem label="Ativos" value={String(stats.active)} />
+             <StatItem label="Urgent" value={String(stats.urgent)} tone="warning" />
+             <StatItem label="Atrasados" value={String(stats.delayed)} tone="warning" />
+             <StatItem label="A Receber" value={formatBRL(stats.valuesToReceive)} tone="success" />
+           </div>
         </div>
 
         {selectedProductId ? (
@@ -188,6 +210,20 @@ export default function ProviderPanel() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
+                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                   <div className="flex items-center gap-3 mb-6">
+                      <div className="size-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                        <Briefcase className="size-5" />
+                      </div>
+                      <h3 className="font-editorial text-xl font-bold">Escopo do Serviço</h3>
+                   </div>
+                   <div className="space-y-4">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                         {selectedProduct.products?.description || "Descrição do serviço não disponível."}
+                      </p>
+                   </div>
+                </div>
+
                 <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
                    <div className="flex items-start justify-between mb-8">
                       <div className="space-y-1">
@@ -243,8 +279,11 @@ export default function ProviderPanel() {
                    >
                      <ClipboardCheck className="size-4 mr-2" /> Reportar Status
                    </Button>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5" disabled>
-                     <MessageSquare className="size-4 mr-2" /> Mensagem Admin
+                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.info("Funcionalidade em desenvolvimento: Solicitar Documento")}>
+                     <FileText className="size-4 mr-2" /> Solicitar Documento
+                   </Button>
+                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.success("Notificação enviada ao administrador solicitando conclusão")}>
+                     <CheckCircle2 className="size-4 mr-2" /> Enviar Conclusão
                    </Button>
                 </div>
 
@@ -276,11 +315,14 @@ export default function ProviderPanel() {
           </div>
         ) : (
           /* MAIN LIST VIEW */
-          <Tabs defaultValue="clientes" className="space-y-8 animate-fade-up">
+          <Tabs defaultValue="dashboard" className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12">
+                <TabsTrigger value="dashboard" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Home
+                </TabsTrigger>
                 <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Atendimentos ({clientProducts.length})
+                   Minhas Demandas ({clientProducts.length})
                 </TabsTrigger>
                 <TabsTrigger value="documentos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
                    Documentos
@@ -288,21 +330,109 @@ export default function ProviderPanel() {
                 <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
                    Reportes
                 </TabsTrigger>
-                <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Meus Contratos ({contracts.length})
-                </TabsTrigger>
               </TabsList>
 
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input 
-                  placeholder="Filtrar por cliente ou serviço..." 
+                  placeholder="Buscar demanda..." 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10 h-12 bg-white/50 dark:bg-card border-slate-200 dark:border-white/5 rounded-2xl w-full md:w-[320px] transition-all focus:ring-primary/20"
                 />
               </div>
             </div>
+
+            <TabsContent value="dashboard" className="space-y-8 outline-none animate-fade-up">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <DashboardCard 
+                  label="Documentos para Análise" 
+                  value={stats.docsAwaiting} 
+                  icon={FileText} 
+                  description="Aguardando sua validação"
+                  tone={stats.docsAwaiting > 0 ? "warning" : "default"}
+                />
+                <DashboardCard 
+                  label="Demandas Urgentes" 
+                  value={stats.urgent} 
+                  icon={AlertCircle} 
+                  description="Alta prioridade"
+                  tone={stats.urgent > 0 ? "destructive" : "default"}
+                />
+                <DashboardCard 
+                  label="Reportes Pendentes" 
+                  value={stats.pendingReports} 
+                  icon={ClipboardCheck} 
+                  description="Necessário atualizar status"
+                />
+                <DashboardCard 
+                  label="Total a Receber" 
+                  value={formatBRL(stats.valuesToReceive)} 
+                  icon={Wallet} 
+                  description="Contratos ativos"
+                  tone="success"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="vx-card p-8 bg-white dark:bg-card rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                       <h3 className="font-editorial text-2xl font-bold">Demandas com Prazo Próximo</h3>
+                       <Button variant="ghost" className="text-primary text-xs font-bold uppercase tracking-widest" onClick={() => navigate("/prestador")}>Ver todas</Button>
+                    </div>
+                    {stats.nextDeadlines.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic text-center py-10">Nenhum prazo próximo definido.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {stats.nextDeadlines.map((cp: any) => (
+                          <div 
+                            key={cp.id} 
+                            onClick={() => setSelectedProductId(cp.id)}
+                            className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/20 transition-all cursor-pointer group"
+                          >
+                             <div className="flex items-center gap-4">
+                                <div className="size-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 flex items-center justify-center">
+                                   <Clock className="size-5 text-slate-400 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div>
+                                   <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{cp.clients?.full_name}</p>
+                                   <p className="text-xs text-muted-foreground">{cp.products?.name}</p>
+                                </div>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(cp.deadline)}</p>
+                                <p className="text-[10px] text-rose-500 font-bold uppercase tracking-widest mt-1">Prazo Fatal</p>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="vx-card p-6 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
+                    <h3 className="font-editorial text-xl font-bold mb-6 relative">Central do Prestador</h3>
+                    <div className="space-y-4 relative">
+                       <p className="text-sm text-white/60 leading-relaxed">
+                         Mantenha seus reportes em dia para garantir a liberação dos pagamentos. 
+                         Em caso de dúvidas sobre o escopo, entre em contato com o gestor operacional.
+                       </p>
+                       <div className="pt-4 space-y-3">
+                          <Button className="w-full bg-white text-slate-900 hover:bg-primary hover:text-white font-bold h-11 rounded-xl">
+                             Manual de Procedimentos
+                          </Button>
+                          <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 h-11 rounded-xl">
+                             Suporte Operacional
+                          </Button>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
 
             <TabsContent value="clientes" className="space-y-4 outline-none">
               {isLoading ? (
@@ -491,6 +621,43 @@ export default function ProviderPanel() {
           clientName={reportTarget.clientName}
         />
       )}
+    </div>
+  );
+}
+
+function DashboardCard({ 
+  label, 
+  value, 
+  icon: Icon, 
+  description, 
+  tone = "default" 
+}: { 
+  label: string; 
+  value: string | number; 
+  icon: any; 
+  description: string;
+  tone?: "default" | "warning" | "success" | "destructive" 
+}) {
+  const tones: any = {
+    default: "text-primary bg-primary/5 border-primary/10",
+    warning: "text-amber-500 bg-amber-500/5 border-amber-500/10",
+    success: "text-emerald-500 bg-emerald-500/5 border-emerald-500/10",
+    destructive: "text-rose-500 bg-rose-500/5 border-rose-500/10",
+  };
+  
+  return (
+    <div className="vx-card p-6 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
+       <div className="flex items-center justify-between mb-4">
+          <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone])}>
+             <Icon className="size-5" />
+          </div>
+          <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+       </div>
+       <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
+          <p className="text-2xl font-bold font-editorial text-slate-900 dark:text-white mt-1">{value}</p>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
+       </div>
     </div>
   );
 }
