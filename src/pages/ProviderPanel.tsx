@@ -210,6 +210,20 @@ export default function ProviderPanel() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
                 <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                   <div className="flex items-center gap-3 mb-6">
+                      <div className="size-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                        <Briefcase className="size-5" />
+                      </div>
+                      <h3 className="font-editorial text-xl font-bold">Escopo do Serviço</h3>
+                   </div>
+                   <div className="space-y-4">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                         {selectedProduct.products?.description || "Descrição do serviço não disponível."}
+                      </p>
+                   </div>
+                </div>
+
+                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
                    <div className="flex items-start justify-between mb-8">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Atendimento em Curso</p>
