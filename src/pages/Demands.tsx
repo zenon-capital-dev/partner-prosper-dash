@@ -79,7 +79,7 @@ export default function Demands() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "grid" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
