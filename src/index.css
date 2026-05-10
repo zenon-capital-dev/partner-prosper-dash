@@ -202,41 +202,40 @@
     @apply mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-10 space-y-8;
   }
 
-  /* Premium Card */
+  /* Premium Card — flat, hairline border, no glow */
   .vx-card {
-    @apply relative rounded-xl border border-border bg-card transition-all duration-300;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.02), 0 1px 2px -1px rgb(0 0 0 / 0.02);
+    @apply relative rounded-lg border border-border bg-card transition-colors duration-200;
   }
-  .vx-card-hover { @apply transition-all duration-300; }
+  .vx-card-hover { @apply transition-colors duration-200; }
   .vx-card-hover:hover {
-    @apply border-border/80 shadow-md;
+    @apply border-foreground/15;
   }
 
-  /* Pills/Badges */
+  /* Pills/Badges — sober corporate tones */
   .vx-pill {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-all;
+    @apply inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-all;
   }
-  .vx-pill-success { @apply border-emerald-500/20 bg-emerald-50 text-emerald-600; }
-  .vx-pill-info    { @apply border-blue-500/20 bg-blue-50 text-blue-600; }
-  .vx-pill-warning { @apply border-amber-500/20 bg-amber-50 text-amber-600; }
-  .vx-pill-danger  { @apply border-rose-500/20 bg-rose-50 text-rose-600; }
-  .vx-pill-primary { @apply border-primary/20 bg-primary-muted text-primary; }
+  .vx-pill-success { @apply border-success/25 bg-success-muted text-success; }
+  .vx-pill-info    { @apply border-info/25 bg-info-muted text-info; }
+  .vx-pill-warning { @apply border-warning/25 bg-warning-muted text-warning; }
+  .vx-pill-danger  { @apply border-destructive/25 bg-destructive-muted text-destructive; }
+  .vx-pill-primary { @apply border-primary/25 bg-primary-muted text-primary; }
 
-  /* Tables */
+  /* Tables — dense, professional */
   .vx-table-wrap {
-    @apply overflow-hidden rounded-xl border border-border bg-card;
+    @apply overflow-hidden rounded-lg border border-border bg-card;
   }
   .vx-table {
-    @apply w-full text-left text-sm;
+    @apply w-full text-left text-[13px];
   }
   .vx-table-head {
-    @apply bg-muted/30 border-b border-border text-[11px] font-bold uppercase tracking-widest text-muted-foreground;
+    @apply bg-muted/40 border-b border-border text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
   }
   .vx-table-row {
-    @apply border-b border-border/50 transition-colors hover:bg-muted/10 last:border-0;
+    @apply border-b border-border/60 transition-colors hover:bg-muted/30 last:border-0;
   }
   .vx-table-cell {
-    @apply px-6 py-4;
+    @apply px-5 py-3.5;
   }
 
   /* Sidebar items */
