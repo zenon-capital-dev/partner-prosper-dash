@@ -81,6 +81,19 @@ export function ClientDocumentsTab({
       if (!map.has(key)) map.set(key, { product, items: [] });
       map.get(key)!.items.push(r);
     }
+    // Sort items inside each group by status priority then due date
+    map.forEach((group) => {
+      group.items.sort((a, b) => {
+        const ea = getEffectiveStatus(a);
+        const eb = getEffectiveStatus(b);
+        const oa = STATUS_ORDER[ea] ?? 99;
+        const ob = STATUS_ORDER[eb] ?? 99;
+        if (oa !== ob) return oa - ob;
+        const da = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+        const db = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+        return da - db;
+      });
+    });
     return Array.from(map.entries());
   }, [requests, products]);
 
