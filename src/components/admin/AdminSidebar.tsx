@@ -210,16 +210,16 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.04] transition-all duration-200 group",
+                  "w-full flex items-center gap-2.5 rounded-md p-2 hover:bg-white/[0.04] transition-all duration-200 group",
                   collapsed && "justify-center"
                 )}
               >
-                <div className="size-9 rounded-lg bg-gradient-to-tr from-sidebar-accent to-indigo-500/20 border border-white/[0.08] flex items-center justify-center text-[11px] font-bold text-indigo-300 shrink-0 group-hover:border-indigo-500/40 transition-colors">
+                <div className="size-8 rounded-md bg-gradient-to-tr from-sidebar-accent to-indigo-500/25 border border-white/[0.08] flex items-center justify-center text-[10.5px] font-bold text-indigo-200 shrink-0 group-hover:border-indigo-500/40 transition-colors">
                   {initials(user?.user_metadata?.full_name || user?.email || "A")}
                 </div>
                 {!collapsed && (
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[13px] font-bold text-white truncate leading-tight">
+                    <p className="text-[12.5px] font-semibold text-white truncate leading-tight">
                       {user?.user_metadata?.full_name || "Admin User"}
                     </p>
                     <p className="text-[11px] text-sidebar-foreground/40 truncate font-mono mt-0.5">{user?.email}</p>
