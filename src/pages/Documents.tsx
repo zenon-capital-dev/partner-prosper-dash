@@ -18,16 +18,36 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'reprovado' | 'pendente_correcao' | 'vencido';
+export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'rejeitado' | 'reprovado' | 'atrasado' | 'vencido' | 'pendente_correcao';
 
-const statusConfig: Record<DocumentStatus, { label: string; color: string; icon: any }> = {
-  solicitado: { label: "Solicitado", color: "bg-warning-muted text-warning border-warning/20", icon: Clock },
-  enviado: { label: "Enviado", color: "bg-info-muted text-info border-info/20", icon: FileText },
-  em_analise: { label: "Em análise", color: "bg-primary-muted text-primary border-primary/20", icon: Eye },
-  aprovado: { label: "Aprovado", color: "bg-success-muted text-success border-success/20", icon: Check },
-  reprovado: { label: "Reprovado", color: "bg-destructive-muted text-destructive border-destructive/20", icon: X },
-  pendente_correcao: { label: "Pendente correção", color: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
-  vencido: { label: "Vencido", color: "bg-slate-100 text-slate-500 border-slate-200", icon: History },
+const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  solicitado: { label: "Solicitado", color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
+  enviado: { label: "Enviado", color: "bg-blue-50 text-blue-700 border-blue-200", icon: FileText },
+  em_analise: { label: "Em análise", color: "bg-purple-50 text-purple-700 border-purple-200", icon: Eye },
+  aprovado: { label: "Aprovado", color: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: Check },
+  rejeitado: { label: "Rejeitado", color: "bg-rose-50 text-rose-700 border-rose-200", icon: X },
+  reprovado: { label: "Rejeitado", color: "bg-rose-50 text-rose-700 border-rose-200", icon: X },
+  atrasado: { label: "Atrasado", color: "bg-red-50 text-red-700 border-red-200", icon: AlertCircle },
+  vencido: { label: "Atrasado", color: "bg-red-50 text-red-700 border-red-200", icon: AlertCircle },
+  pendente_correcao: { label: "Pendente Correção", color: "bg-orange-50 text-orange-700 border-orange-200", icon: RefreshCw },
+};
+
+const getFileIcon = (fileName: string) => {
+  if (!fileName) return <FileText className="size-4 text-slate-400" />;
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'pdf': return <FileText className="size-4 text-rose-500" />;
+    case 'doc':
+    case 'docx': return <FileText className="size-4 text-blue-500" />;
+    case 'xls':
+    case 'xlsx': return <FileText className="size-4 text-emerald-500" />;
+    case 'jpg':
+    case 'jpeg':
+    case 'png': return <FileText className="size-4 text-purple-500" />;
+    case 'zip':
+    case 'rar': return <FileText className="size-4 text-amber-600" />;
+    default: return <FileText className="size-4 text-slate-400" />;
+  }
 };
 
 type ActionMode = "reject" | "request_resend" | "comment" | null;
@@ -197,11 +217,25 @@ export default function Documents() {
     total: allDocs.length,
     pendentes: allDocs.filter((d: any) => ['solicitado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status)).length,
     aprovados: allDocs.filter((d: any) => d.status === 'aprovado').length,
-    reprovados: allDocs.filter((d: any) => d.status === 'reprovado' || d.status === 'vencido').length,
+    rejeitados: allDocs.filter((d: any) => d.status === 'rejeitado' || d.status === 'reprovado').length,
+    atrasados: allDocs.filter((d: any) => {
+      const now = new Date();
+      return (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < now && !['aprovado', 'enviado', 'em_analise'].includes(d.status)));
+    }).length,
   }), [allDocs]);
 
   const filteredDocs = useMemo(() => allDocs.filter((d: any) => {
-    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    const effectiveStatus = (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status))) ? 'atrasado' : d.status;
+
+    if (statusFilter !== "all") {
+      if (statusFilter === 'atrasado') {
+        if (effectiveStatus !== 'atrasado') return false;
+      } else if (statusFilter === 'rejeitado') {
+        if (d.status !== 'rejeitado' && d.status !== 'reprovado') return false;
+      } else {
+        if (d.status !== statusFilter) return false;
+      }
+    }
     if (clientFilter !== "all" && d.clients?.id !== clientFilter) return false;
     if (productFilter !== "all") {
       const pid = d.product_id || d.client_products?.products?.id;
@@ -244,11 +278,12 @@ export default function Documents() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={String(kpis.total)} icon={FileText} iconColor="primary" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <StatCard label="Total de Docs" value={String(kpis.total)} icon={FileText} iconColor="primary" />
         <StatCard label="Pendentes" value={String(kpis.pendentes)} icon={Clock} iconColor="warning" />
         <StatCard label="Aprovados" value={String(kpis.aprovados)} icon={Check} iconColor="success" />
-        <StatCard label="Reprovados / vencidos" value={String(kpis.reprovados)} icon={X} iconColor="destructive" />
+        <StatCard label="Rejeitados" value={String(kpis.rejeitados)} icon={X} iconColor="destructive" />
+        <StatCard label="Atrasados" value={String(kpis.atrasados)} icon={AlertCircle} iconColor="destructive" />
       </div>
 
       {/* Filters */}
@@ -259,54 +294,48 @@ export default function Documents() {
           </div>
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">Limpar</Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="relative md:col-span-2 lg:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          <div className="relative md:col-span-2 lg:col-span-2 xl:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Buscar por documento, cliente ou produto..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-9 h-10" placeholder="Buscar por documento, cliente ou produto..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
-              {Object.entries(statusConfig).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={requiredFilter} onValueChange={setRequiredFilter}>
-            <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="required">Apenas obrigatórios</SelectItem>
-              <SelectItem value="optional">Apenas opcionais</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-              <SelectItem value="rejected">Rejeitados</SelectItem>
+              <SelectItem value="solicitado">Solicitado</SelectItem>
+              <SelectItem value="enviado">Enviado</SelectItem>
+              <SelectItem value="em_analise">Em análise</SelectItem>
+              <SelectItem value="aprovado">Aprovado</SelectItem>
+              <SelectItem value="rejeitado">Rejeitado</SelectItem>
+              <SelectItem value="atrasado">Atrasado</SelectItem>
+              <SelectItem value="pendente_correcao">Pendente Correção</SelectItem>
             </SelectContent>
           </Select>
           <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Cliente" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os clientes</SelectItem>
               {clientOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={productFilter} onValueChange={setProductFilter}>
-            <SelectTrigger><SelectValue placeholder="Produto" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Produto" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os produtos</SelectItem>
               {productOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={providerFilter} onValueChange={setProviderFilter}>
-            <SelectTrigger><SelectValue placeholder="Prestador" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Prestador" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os prestadores</SelectItem>
               {providerOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="flex gap-2">
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="De" />
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="Até" />
+            <Input type="date" className="h-10" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="De" />
+            <Input type="date" className="h-10" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="Até" />
           </div>
         </div>
       </div>
@@ -319,98 +348,79 @@ export default function Documents() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  <th className="px-4 py-4 text-left">Documento / Cliente</th>
+                  <th className="px-4 py-4 text-left">Cliente</th>
                   <th className="px-4 py-4 text-left">Produto / Demanda</th>
+                  <th className="px-4 py-4 text-left">Nome do Documento</th>
+                  <th className="px-4 py-4 text-left">Tipo</th>
                   <th className="px-4 py-4 text-left">Status</th>
-                  <th className="px-4 py-4 text-left">Enviado por</th>
-                  <th className="px-4 py-4 text-left">Aprovado por</th>
-                  <th className="px-4 py-4 text-left">Prestador</th>
-                  <th className="px-4 py-4 text-left">Datas</th>
+                  <th className="px-4 py-4 text-left">Última Versão</th>
+                  <th className="px-4 py-4 text-left">Quem Enviou</th>
+                  <th className="px-4 py-4 text-left">Quem pode Acessar</th>
+                  <th className="px-4 py-4 text-left">Data</th>
                   <th className="px-4 py-4 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredDocs.map((d: any) => {
-                  const config = statusConfig[d.status as DocumentStatus] || statusConfig.solicitado;
+                  const effectiveStatus = (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status))) ? 'atrasado' : d.status;
+                  const config = statusConfig[effectiveStatus as DocumentStatus] || statusConfig.solicitado;
                   const StatusIcon = config.icon;
                   const productName = d.products?.name || d.client_products?.products?.name || d.client_products?.custom_product_name || "Geral";
-                  const provider = d.client_products?.service_providers;
                   const uploader = d.uploaded_by ? profileMap.get(d.uploaded_by) : null;
-                  const approver = d.approved_by ? profileMap.get(d.approved_by) : null;
 
                   return (
                     <tr key={d.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`size-10 rounded-lg ${config.color.split(' ')[0]} flex items-center justify-center shrink-0`}>
-                            <FileText className="size-5" />
+                        <div className="flex items-center gap-2">
+                          <div className="size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold border border-primary/20">
+                            {d.clients?.full_name?.substring(0, 2).toUpperCase() || "??"}
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-foreground truncate">{d.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{d.clients?.full_name || "—"}</p>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <Badge variant="secondary" className="text-[9px] font-bold py-0 h-4 border-none opacity-70">
-                                {d.is_required ? "OBRIGATÓRIO" : "OPCIONAL"}
-                              </Badge>
-                              <Badge variant="outline" className="text-[9px] font-bold py-0 h-4 border-none opacity-50">
-                                {d.is_public ? "PÚBLICO" : "INTERNO"}
-                              </Badge>
-                            </div>
-                          </div>
+                          <span className="text-xs font-medium text-foreground truncate max-w-[120px]">{d.clients?.full_name || "—"}</span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-xs font-medium text-foreground">{productName}</span>
+                        <span className="text-xs text-muted-foreground truncate max-w-[150px]">{productName}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-xs font-semibold text-foreground truncate max-w-[200px]">{d.name}</span>
+                          {d.is_required && <span className="text-[9px] text-rose-500 font-bold uppercase tracking-wider">Obrigatório</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-2">
+                          {getFileIcon(d.file_path || d.name)}
+                          <span className="text-[10px] text-muted-foreground uppercase">{d.file_path?.split('.').pop() || 'Solic.'}</span>
+                        </div>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex flex-col gap-1">
-                          <Badge variant="outline" className={`w-fit gap-1 text-[10px] font-bold uppercase py-0.5 ${config.color}`}>
+                          <Badge variant="outline" className={`gap-1 text-[10px] font-bold uppercase py-0.5 whitespace-nowrap ${config.color}`}>
                             <StatusIcon className="size-2.5" />
                             {config.label}
                           </Badge>
-                          {d.rejection_reason && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger className="flex items-center gap-1 text-[10px] text-destructive hover:underline text-left mt-1">
-                                  <AlertCircle className="size-2.5" /> Ver motivo
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs">{d.rejection_reason}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                          {effectiveStatus === 'atrasado' && d.due_date && (
+                            <span className="text-[9px] text-destructive font-medium">Venceu em {formatDate(d.due_date)}</span>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] text-muted-foreground">
+                          {d.uploaded_at ? formatDate(d.uploaded_at) : "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-xs text-muted-foreground truncate max-w-[100px]">
                           {uploader?.full_name || uploader?.email || (d.uploaded_at ? "—" : "Não enviado")}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className="text-xs text-muted-foreground">
-                          {approver?.full_name || approver?.email || "—"}
-                        </span>
+                        <Badge variant="secondary" className="text-[9px] font-bold py-0 h-4 border-none opacity-70">
+                          {d.is_public ? "CLIENTE" : "INTERNO"}
+                        </Badge>
                       </td>
-                      <td className="px-4 py-4">
-                        <span className="text-xs font-medium text-foreground">{provider?.name || "—"}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex flex-col gap-0.5">
-                          <p className="text-[11px] text-muted-foreground">
-                            <span className="font-medium">Solic.:</span> {formatDate(d.requested_at || d.created_at)}
-                          </p>
-                          {d.due_date && (
-                            <p className="text-[11px] text-muted-foreground">
-                              <span className="font-medium">Prazo:</span> {formatDate(d.due_date)}
-                            </p>
-                          )}
-                          {d.uploaded_at && (
-                            <p className="text-[11px] text-success">
-                              <span className="font-medium">Enviado:</span> {formatDate(d.uploaded_at)}
-                            </p>
-                          )}
-                        </div>
+                      <td className="px-4 py-4 text-[11px] text-muted-foreground">
+                        {formatDate(d.created_at)}
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center justify-end gap-1">
