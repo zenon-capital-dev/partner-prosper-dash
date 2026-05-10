@@ -159,11 +159,11 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
               <h2 className="text-lg font-bold tracking-tight">Resumo Inteligente</h2>
               <span className={cn(
                 "ml-auto text-[10px] font-mono font-black uppercase tracking-wider px-2 py-0.5 rounded-full border",
-                (client.status === 'em_andamento' || client.status === 'finalizado' || client.status === 'documentos_aprovados' || client.status === 'pagamento_confirmado') 
+                client.status === 'ativo' 
                   ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20" 
                   : "bg-amber-400/10 text-amber-400 border-amber-400/20"
               )}>
-                {client.status?.replace(/_/g, " ") || 'Novo Cliente'}
+                {client.status || 'Prospecto'}
               </span>
             </div>
 
