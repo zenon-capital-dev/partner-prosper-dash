@@ -346,6 +346,7 @@ export default function ClientPanel() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {granularProducts.map((p: any) => {
                     const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
+                    const latestReport = reports.find((r: any) => r.client_product_id === p.id);
                     return (
                       <div 
                         key={p.id} 
@@ -367,16 +368,24 @@ export default function ClientPanel() {
                         </p>
                         
                         <div className="mt-auto pt-8 space-y-5">
-                           <div className="grid grid-cols-2 gap-4">
+                           <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                               <div>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Última Atualização</p>
+                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{latestReport ? formatDate(latestReport.created_at) : formatDate(p.created_at)}</p>
+                              </div>
+                              <div className="text-right">
                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Estimado</p>
                                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
                               </div>
-                              <div className="text-right">
+                              <div>
                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Pendências</p>
                                  <p className={cn("text-xs font-bold", productPendingDocs > 0 ? "text-amber-500" : "text-emerald-500")}>
-                                    {productPendingDocs > 0 ? `${productPendingDocs} docs` : "Tudo em dia"}
+                                    {productPendingDocs > 0 ? `${productPendingDocs} documentos` : "Tudo em dia"}
                                  </p>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
+                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(p.created_at)}</p>
                               </div>
                            </div>
 
