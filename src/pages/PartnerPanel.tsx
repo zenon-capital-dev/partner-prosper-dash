@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import {
   Users, Wallet, CheckCircle2, TrendingUp, Clock, Inbox,
   ArrowUpRight, FileText, Download, XCircle, Calendar, Search,
+  Copy, ExternalLink, Share2, Award, Zap
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
