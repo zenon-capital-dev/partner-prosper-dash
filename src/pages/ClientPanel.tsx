@@ -328,34 +328,50 @@ export default function ClientPanel() {
 
               <TabsContent value="servicos" className="animate-fade-up">
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {granularProducts.map((p: any) => (
-                    <div 
-                      key={p.id} 
-                      className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer"
-                      onClick={() => setSelectedProductId(p.id)}
-                    >
-                      <div className="flex justify-between items-start mb-8">
-                        <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
-                           <Package className="size-7" />
+                  {granularProducts.map((p: any) => {
+                    const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
+                    return (
+                      <div 
+                        key={p.id} 
+                        className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer flex flex-col h-full"
+                        onClick={() => setSelectedProductId(p.id)}
+                      >
+                        <div className="flex justify-between items-start mb-8">
+                          <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
+                             <Package className="size-7" />
+                          </div>
+                          <StatusBadge status={p.status} />
                         </div>
-                        <StatusBadge status={p.status} />
+                        
+                        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                          {p.products?.name}
+                        </h3>
+                        <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
+                          {p.products?.description}
+                        </p>
+                        
+                        <div className="mt-auto pt-8 space-y-5">
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Estimado</p>
+                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
+                              </div>
+                              <div className="text-right">
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Pendências</p>
+                                 <p className={cn("text-xs font-bold", productPendingDocs > 0 ? "text-amber-500" : "text-emerald-500")}>
+                                    {productPendingDocs > 0 ? `${productPendingDocs} docs` : "Tudo em dia"}
+                                 </p>
+                              </div>
+                           </div>
+
+                           <div className="pt-6 border-t border-slate-50 dark:border-white/5 flex items-center justify-between group/link">
+                              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Ver detalhes da execução</span>
+                              <ArrowRight className="size-4 text-primary group-hover/link:translate-x-1 transition-transform" />
+                           </div>
+                        </div>
                       </div>
-                      <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
-                        {p.products?.name}
-                      </h3>
-                      <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 min-h-[42px] leading-relaxed">
-                        {p.products?.description || "Consultoria técnica e estratégica para o crescimento do seu negócio."}
-                      </p>
-                      
-                      <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5">
-                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Progresso da Entrega</span>
-                            <ArrowRight className="size-4 text-primary opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-1" />
-                         </div>
-                         <ClientProductSteps clientProductId={p.id} />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </TabsContent>
 
