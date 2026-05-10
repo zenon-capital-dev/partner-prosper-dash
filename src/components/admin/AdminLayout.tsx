@@ -3,9 +3,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
-import { QuickCreateFab } from "@/components/QuickCreateFab";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { Bell, ChevronRight, Slash } from "lucide-react";
 
 const ROUTE_LABEL: Record<string, string> = {
   admin: "Dashboard",
