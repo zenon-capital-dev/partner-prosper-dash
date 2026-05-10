@@ -174,7 +174,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                 </div>
               )}
               {collapsed && <div className="h-px bg-white/[0.04] mx-2 mb-2" />}
-              <div className="space-y-0.5">
+              <div className="space-y-0.25">
                 {section.items.map((item) => {
                   const active = isActive(item.url);
                   const Icon = item.icon;
