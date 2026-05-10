@@ -73,7 +73,8 @@ export default function ClientPanel() {
   const { client, docs, catalog, requests, contracts, payments, granularProducts } = data;
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
-  const pendingDocs = docs.filter((d: any) => d.status === "solicitado" || d.status === "reprovado").length;
+  const pendingDocs = docs.filter((d: any) => d.status === "solicitado" || d.status === "reprovado" || d.status === "pendente_correcao").length;
+  const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
   return (
     <div className="bg-premium min-h-screen dark:bg-[#020617]">
