@@ -40,9 +40,23 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
   enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
   em_analise: { label: "Em Análise", tone: "bg-primary-muted text-primary border-primary/20", icon: Loader2 },
   aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
-  reprovado: { label: "Reprovado", tone: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300", icon: AlertCircle },
-  pendente_correcao: { label: "Pendente Correção", tone: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
+  reprovado: { label: "Rejeitado", tone: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300", icon: AlertCircle },
+  pendente_correcao: { label: "Reenvio Necessário", tone: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
+  atrasado: { label: "Atrasado", tone: "bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300", icon: AlertCircle },
   vencido: { label: "Vencido", tone: "bg-slate-100 text-slate-500 border-slate-200", icon: Clock },
+};
+
+function getEffectiveStatus(req: { status: string; due_date: string | null }): string {
+  const pending = ["solicitado", "reprovado", "pendente_correcao"].includes(req.status);
+  if (pending && req.due_date && new Date(req.due_date) < new Date(new Date().toDateString())) {
+    return "atrasado";
+  }
+  return req.status;
+}
+
+const STATUS_ORDER: Record<string, number> = {
+  atrasado: 0, reprovado: 1, pendente_correcao: 2, solicitado: 3,
+  enviado: 4, em_analise: 5, aprovado: 6, vencido: 7,
 };
 
 export function ClientDocumentsTab({
@@ -67,6 +81,19 @@ export function ClientDocumentsTab({
       if (!map.has(key)) map.set(key, { product, items: [] });
       map.get(key)!.items.push(r);
     }
+    // Sort items inside each group by status priority then due date
+    map.forEach((group) => {
+      group.items.sort((a, b) => {
+        const ea = getEffectiveStatus(a);
+        const eb = getEffectiveStatus(b);
+        const oa = STATUS_ORDER[ea] ?? 99;
+        const ob = STATUS_ORDER[eb] ?? 99;
+        if (oa !== ob) return oa - ob;
+        const da = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+        const db = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+        return da - db;
+      });
+    });
     return Array.from(map.entries());
   }, [requests, products]);
 
@@ -147,7 +174,8 @@ export function ClientDocumentsTab({
 
           <div className="divide-y divide-slate-50 dark:divide-white/5">
             {items.map((req) => {
-              const meta = STATUS_META[req.status] ?? STATUS_META.solicitado;
+              const effective = getEffectiveStatus(req);
+              const meta = STATUS_META[effective] ?? STATUS_META.solicitado;
               const Icon = meta.icon;
               const isUploading = uploadingId === req.id;
               
