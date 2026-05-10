@@ -201,7 +201,7 @@ export default function Clients() {
     <TooltipProvider delayDuration={200}>
       <div className="page-shell space-y-6 animate-fade-up">
         <PageHeader
-          breadcrumbs={[{ label: "CRM" }, { label: "Clientes" }]}
+          eyebrow="CRM"
           title="Clientes"
           description="Carteira completa, saúde financeira e risco de cancelamento."
           actions={
