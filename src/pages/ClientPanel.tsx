@@ -97,26 +97,25 @@ export default function ClientPanel() {
              </Button>
 
              <PageHero 
-               eyebrow="Solution"
+               eyebrow="Solução em Execução"
                category={selectedProduct.products?.name}
                title={selectedProduct.products?.name}
                description={selectedProduct.products?.description || "Acompanhe o progresso e as entregas desta demanda em tempo real."}
                icon={<Package className="size-6" />}
                actions={
                  <div className="flex gap-2">
-                   <Button variant="outline" className="rounded-xl h-11 border-border/40">
+                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(`https://wa.me/5511999999999`, '_blank')}>
                      <MessageSquare className="size-4 mr-2" /> Falar com Equipe
                    </Button>
-                   <Button className="btn-premium h-11 rounded-xl">
-                     Baixar Relatórios
+                   <Button className="btn-premium h-11 rounded-xl" onClick={() => toast.info("Relatório sendo gerado...")}>
+                     Baixar Relatório
                    </Button>
                  </div>
                }
                kpis={[
                  { label: "Status", value: selectedProduct.status?.replace(/_/g, ' '), tone: "info", icon: <Activity className="size-4" /> },
-                 { label: "Início", value: formatDate(selectedProduct.created_at), tone: "default", icon: <Calendar className="size-4" /> },
                  { label: "Prazo Estimado", value: selectedProduct.deadline ? formatDate(selectedProduct.deadline) : "Em definição", tone: "warning", icon: <Clock className="size-4" /> },
-                 { label: "Progresso", value: "Acompanhe abaixo", tone: "primary", icon: <Zap className="size-4" /> },
+                 { label: "Documentos", value: `${docs.filter((d: any) => d.client_product_id === selectedProductId && d.file_path).length} enviados`, tone: "success", icon: <FileText className="size-4" /> },
                ]}
              />
 
