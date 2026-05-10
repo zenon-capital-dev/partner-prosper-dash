@@ -4,8 +4,8 @@ import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, LogOut, Search,
   Briefcase, CircleDollarSign, Command, Zap, Target, ClipboardList, History,
-  Truck, TrendingUp, Star, Home, Boxes, Truck as DeliveryIcon, FileCheck2,
-  MessageSquare, BookOpen, FolderArchive, Receipt, BadgeCheck,
+  Truck, TrendingUp, Home, Boxes, PackageCheck, FileCheck2,
+  MessageSquare, FolderArchive, Receipt,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
