@@ -38,6 +38,7 @@ const SECTIONS: NavSection[] = [
       { title: "Leads", url: "/leads", icon: Target },
       { title: "Produtos", url: "/produtos", icon: Package },
       { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
+      { title: "Propostas", url: "/propostas", icon: FileText },
       { title: "Parceiros", url: "/parceiros", icon: Handshake },
     ],
   },
