@@ -160,15 +160,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Novo">Novo</SelectItem>
-                <SelectItem value="Em contato">Em contato</SelectItem>
-                <SelectItem value="Interessado">Interessado</SelectItem>
+                <SelectItem value="Novo">Novo lead</SelectItem>
+                <SelectItem value="Primeiro contato">Primeiro contato</SelectItem>
+                <SelectItem value="Diagnóstico">Diagnóstico</SelectItem>
                 <SelectItem value="Proposta enviada">Proposta enviada</SelectItem>
-                <SelectItem value="Aguardando resposta">Aguardando resposta</SelectItem>
                 <SelectItem value="Negociação">Negociação</SelectItem>
-                <SelectItem value="Virou cliente">Virou cliente</SelectItem>
+                <SelectItem value="Contrato enviado">Contrato enviado</SelectItem>
+                <SelectItem value="Fechado">Fechado</SelectItem>
                 <SelectItem value="Perdido">Perdido</SelectItem>
-                <SelectItem value="Sem resposta">Sem resposta</SelectItem>
               </SelectContent>
             </Select>
           </div>
