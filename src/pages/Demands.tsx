@@ -274,16 +274,8 @@ export default function Demands() {
               >
                 <List className="size-4" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className={cn("size-9 rounded-md", viewMode === 'grid' && "bg-background shadow-sm")} 
-                onClick={() => setViewMode('grid')}
-                title="Cards"
-              >
-                <LayoutGrid className="size-4" />
-              </Button>
             </div>
+
             
             <Button className="h-11 gap-2 rounded-xl" onClick={() => navigate("/clientes")}>
               <Plus className="size-4" /> Nova Demanda
