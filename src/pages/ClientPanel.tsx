@@ -22,7 +22,7 @@ import { PageHero } from "@/components/PageHero";
 
 export default function ClientPanel() {
   const { user } = useAuth();
-  const qc = useQueryClient();
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["client-panel", user?.id],
