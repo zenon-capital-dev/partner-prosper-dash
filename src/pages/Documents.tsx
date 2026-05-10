@@ -107,7 +107,7 @@ export default function Documents() {
     const { error } = await supabase.from("documents").update(updateData).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success(`Documento atualizado para ${statusConfig[status].label}`);
-    logAudit(`DOCUMENT_${status.toUpperCase()}`, "documents", id, extra);
+    logAudit("DOCUMENT_UPDATE" as any, "documents", id, { status, ...extra });
     refetch();
   };
 
