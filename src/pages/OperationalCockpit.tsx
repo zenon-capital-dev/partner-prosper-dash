@@ -6,7 +6,7 @@ import {
   Zap, MoreHorizontal, ExternalLink,
   PlusCircle, CheckSquare, UserCheck, DollarSign,
   RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle,
-  Search, History as HistoryIcon, ArrowRight
+  Search, History as HistoryIcon, ArrowRight, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
