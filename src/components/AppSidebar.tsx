@@ -117,7 +117,7 @@ const clientSections: NavSection[] = [
       { title: "Início", url: "/cliente", icon: Home },
       { title: "Meus Produtos", url: "/cliente/produtos", icon: Boxes },
       { title: "Documentos", url: "/cliente/documentos", icon: FileText },
-      { title: "Entregas", url: "/cliente/entregas", icon: DeliveryIcon },
+      { title: "Entregas", url: "/cliente/entregas", icon: PackageCheck },
       { title: "Financeiro", url: "/cliente/financeiro", icon: Banknote },
       { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
       { title: "Suporte", url: "/suporte", icon: LifeBuoy },
