@@ -223,145 +223,146 @@ export default function DemandDetail() {
               </div>
             )}
 
-            <Tabs defaultValue="checklist" className="space-y-6">
-              <TabsList className="bg-transparent border-b border-border rounded-none h-auto p-0 gap-8">
-                 <TabsTrigger value="checklist" className="tab-trigger">
-                    <ListChecks className="size-4 mr-2" /> Checklist Operacional
-                 </TabsTrigger>
-                 <TabsTrigger value="docs" className="tab-trigger">
-                    <FileText className="size-4 mr-2" /> Documentação
-                 </TabsTrigger>
-                 <TabsTrigger value="comments" className="tab-trigger">
-                    <MessageSquare className="size-4 mr-2" /> Comentários
-                 </TabsTrigger>
-                 <TabsTrigger value="history" className="tab-trigger">
-                    <History className="size-4 mr-2" /> Histórico & Reportes
-                 </TabsTrigger>
-              </TabsList>
+             <Tabs defaultValue="resumo" className="space-y-6">
+               <TabsList className="bg-transparent border-b border-border rounded-none h-auto p-0 gap-6">
+                  <TabsTrigger value="resumo" className="tab-trigger">
+                     <Info className="size-4 mr-2" /> Resumo
+                  </TabsTrigger>
+                  <TabsTrigger value="checklist" className="tab-trigger">
+                     <ListChecks className="size-4 mr-2" /> Checklist
+                  </TabsTrigger>
+                  <TabsTrigger value="docs" className="tab-trigger">
+                     <FileText className="size-4 mr-2" /> Documentos
+                  </TabsTrigger>
+                  <TabsTrigger value="reportes" className="tab-trigger">
+                     <FileCheck className="size-4 mr-2" /> Reportes
+                  </TabsTrigger>
+                  <TabsTrigger value="tarefas" className="tab-trigger">
+                     <ClipboardList className="size-4 mr-2" /> Tarefas
+                  </TabsTrigger>
+                  <TabsTrigger value="entregas" className="tab-trigger">
+                     <Package className="size-4 mr-2" /> Entregas
+                  </TabsTrigger>
+                  <TabsTrigger value="comments" className="tab-trigger">
+                     <MessageSquare className="size-4 mr-2" /> Comentários
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="tab-trigger">
+                     <History className="size-4 mr-2" /> Histórico
+                  </TabsTrigger>
+               </TabsList>
 
-              <TabsContent value="checklist" className="animate-fade-up">
-                 <div className="vx-card p-8 bg-card border-slate-100 dark:border-white/5">
-                    <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
-                 </div>
-              </TabsContent>
+               <TabsContent value="resumo" className="animate-fade-up">
+                  <div className="vx-card p-8 bg-card">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Sobre a demanda</h3>
+                    <p className="text-sm text-foreground leading-relaxed">{(demand.products as any)?.description || "Nenhuma descrição disponível para este produto."}</p>
+                  </div>
+               </TabsContent>
 
-              <TabsContent value="docs" className="animate-fade-up space-y-6">
-                 <div className="flex items-center justify-between">
-                    <div>
-                       <h3 className="text-base font-bold text-foreground">Documentos da Demanda</h3>
-                       <p className="text-xs text-muted-foreground">Solicite e acompanhe os documentos vinculados a esta demanda.</p>
-                    </div>
-                    <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
-                       <FilePlus className="size-4" /> Solicitar Documento
-                    </Button>
-                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {!demand.documents || demand.documents.length === 0 ? (
-                      <div className="col-span-2 p-12 text-center border-dashed border-2 rounded-2xl">
-                         <Paperclip className="size-10 text-muted-foreground/20 mx-auto mb-4" />
-                         <p className="text-sm text-muted-foreground">Nenhum documento vinculado a esta demanda.</p>
-                         <Button variant="outline" size="sm" className="mt-4 gap-2" onClick={() => setDocDialogOpen(true)}>
-                            <FilePlus className="size-4" /> Solicitar primeiro documento
-                         </Button>
-                      </div>
-                    ) : demand.documents.map((doc: any) => {
-                      const isOverdue = doc.due_date && new Date(doc.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise'].includes(doc.status);
-                      const computedStatus = isOverdue ? 'atrasado' : doc.status;
-                      const statusTone: Record<string, string> = {
-                        solicitado: "bg-amber-50 text-amber-700 border-amber-200",
-                        enviado: "bg-blue-50 text-blue-700 border-blue-200",
-                        em_analise: "bg-primary-muted text-primary border-primary/20",
-                        aprovado: "bg-emerald-50 text-emerald-700 border-emerald-200",
-                        reprovado: "bg-rose-50 text-rose-700 border-rose-200",
-                        pendente_correcao: "bg-orange-50 text-orange-700 border-orange-200",
-                        atrasado: "bg-rose-100 text-rose-700 border-rose-200",
-                        vencido: "bg-slate-100 text-slate-500 border-slate-200",
-                      };
-                      const tone = statusTone[computedStatus] || statusTone.solicitado;
-                      return (
-                        <div key={doc.id} className="vx-card p-5 hover:bg-muted/10 transition-colors space-y-3">
-                           <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 min-w-0">
-                                 <div className="size-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0">
-                                    <FileText className="size-5" />
-                                 </div>
-                                 <div className="min-w-0">
-                                    <p className="text-sm font-bold truncate">{doc.name}</p>
-                                    {doc.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{doc.description}</p>}
-                                 </div>
-                              </div>
-                              <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider shrink-0", tone)}>
-                                 {computedStatus.replace(/_/g, ' ')}
-                              </Badge>
-                           </div>
-                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                              <span>{doc.is_required ? "Obrigatório" : "Opcional"}</span>
-                              {doc.due_date && (
-                                 <span className={isOverdue ? "text-rose-600 font-bold" : ""}>
-                                    Prazo: {formatDate(doc.due_date)}
-                                 </span>
-                              )}
-                              {doc.uploaded_at && <span className="text-emerald-600">Enviado: {formatDate(doc.uploaded_at)}</span>}
-                           </div>
-                           {doc.rejection_reason && (
-                              <p className="text-xs text-rose-600 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100">
-                                 <strong>Motivo:</strong> {doc.rejection_reason}
-                              </p>
-                           )}
-                           {doc.file_path && (
-                              <Button
-                                 variant="outline"
-                                 size="sm"
-                                 className="gap-1.5 h-8 text-xs"
-                                 onClick={async () => {
-                                   const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
-                                   if (error) return toast.error(error.message);
-                                   window.open(data.signedUrl, "_blank");
-                                 }}
-                              >
-                                 <Download className="size-3.5" /> Ver arquivo
-                              </Button>
-                           )}
-                        </div>
-                      );
-                    })}
-                 </div>
-              </TabsContent>
-
-              <TabsContent value="comments" className="animate-fade-up">
-                 <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5">
-                    <DemandComments
-                      clientProductId={demand.id}
-                      role={isAdmin ? "admin" : "provider"}
-                    />
-                 </div>
-              </TabsContent>
-
-              <TabsContent value="history" className="animate-fade-up space-y-6">
-                 <div className="space-y-6">
-                    {reports.length === 0 ? (
-                      <div className="p-12 text-center border-dashed border-2 rounded-2xl">
-                         <MessageSquare className="size-10 text-muted-foreground/20 mx-auto mb-4" />
-                         <p className="text-sm text-muted-foreground">Nenhum reporte técnico registrado ainda.</p>
-                      </div>
-                    ) : reports.map((r: any) => (
-                      <div key={r.id} className="relative pl-8 group">
-                         <div className="absolute left-0 top-0 bottom-0 w-px bg-border group-last:h-4" />
-                         <div className="absolute left-[-4px] top-1.5 size-2 rounded-full bg-primary" />
-                         <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5">
-                            <div className="flex items-center justify-between mb-4">
-                               <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest bg-muted/50">
-                                  {r.status?.replace('_', ' ')}
+               <TabsContent value="checklist" className="animate-fade-up">
+                  <div className="vx-card p-8 bg-card border-slate-100 dark:border-white/5">
+                     <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
+                  </div>
+               </TabsContent>
+               
+               <TabsContent value="docs" className="animate-fade-up space-y-6">
+                  <div className="flex items-center justify-between">
+                     <div>
+                        <h3 className="text-base font-bold text-foreground">Documentação</h3>
+                        <p className="text-xs text-muted-foreground">Solicite e acompanhe os arquivos desta demanda.</p>
+                     </div>
+                     <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
+                        <FilePlus className="size-4" /> Solicitar Documento
+                     </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {!demand.documents || demand.documents.length === 0 ? (
+                       <div className="col-span-2 p-12 text-center border-dashed border-2 rounded-2xl">
+                          <Paperclip className="size-10 text-muted-foreground/20 mx-auto mb-4" />
+                          <p className="text-sm text-muted-foreground">Nenhum documento vinculado.</p>
+                       </div>
+                     ) : demand.documents.map((doc: any) => {
+                       const isOverdue = doc.due_date && new Date(doc.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise'].includes(doc.status);
+                       const computedStatus = isOverdue ? 'atrasado' : doc.status;
+                       const statusTone: Record<string, string> = {
+                         solicitado: "bg-amber-50 text-amber-700 border-amber-200",
+                         enviado: "bg-blue-50 text-blue-700 border-blue-200",
+                         em_analise: "bg-primary-muted text-primary border-primary/20",
+                         aprovado: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                         reprovado: "bg-rose-50 text-rose-700 border-rose-200",
+                         pendente_correcao: "bg-orange-50 text-orange-700 border-orange-200",
+                         atrasado: "bg-rose-100 text-rose-700 border-rose-200",
+                         vencido: "bg-slate-100 text-slate-500 border-slate-200",
+                       };
+                       const tone = statusTone[computedStatus] || statusTone.solicitado;
+                       return (
+                         <div key={doc.id} className="vx-card p-5 hover:bg-muted/10 transition-colors space-y-3">
+                            <div className="flex items-start justify-between gap-3">
+                               <div className="flex items-start gap-3 min-w-0">
+                                  <div className="size-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0">
+                                     <FileText className="size-5" />
+                                  </div>
+                                  <div className="min-w-0">
+                                     <p className="text-sm font-bold truncate">{doc.name}</p>
+                                  </div>
+                               </div>
+                               <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider shrink-0", tone)}>
+                                  {computedStatus.replace(/_/g, ' ')}
                                </Badge>
-                               <span className="text-[10px] font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
                             </div>
-                            <p className="text-sm text-foreground leading-relaxed italic">"{r.notes}"</p>
+                            {doc.file_path && (
+                               <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-1.5 h-8 text-xs w-full mt-2"
+                                  onClick={async () => {
+                                    const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
+                                    if (error) return toast.error(error.message);
+                                    window.open(data.signedUrl, "_blank");
+                                  }}
+                               >
+                                  <Download className="size-3.5" /> Ver arquivo
+                               </Button>
+                            )}
                          </div>
+                       );
+                     })}
+                  </div>
+               </TabsContent>
+               
+               <TabsContent value="reportes" className="animate-fade-up">
+                  <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5 space-y-6">
+                    {reports.length === 0 ? (
+                       <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
+                    ) : reports.map((r: any) => (
+                      <div key={r.id} className="p-4 rounded-xl bg-muted/40 border border-border">
+                         <div className="flex items-center justify-between mb-2">
+                           <Badge variant="outline">{r.status}</Badge>
+                           <span className="text-xs font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
+                         </div>
+                         <p className="text-sm">{r.notes}</p>
                       </div>
                     ))}
-                 </div>
-              </TabsContent>
-           </Tabs>
+                  </div>
+               </TabsContent>
+
+               <TabsContent value="tarefas" className="animate-fade-up">
+                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Em desenvolvimento...</div>
+               </TabsContent>
+
+               <TabsContent value="entregas" className="animate-fade-up">
+                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Em desenvolvimento...</div>
+               </TabsContent>
+
+               <TabsContent value="comments" className="animate-fade-up">
+                  <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5">
+                     <DemandComments clientProductId={demand.id} role={isAdmin ? "admin" : "provider"} />
+                  </div>
+               </TabsContent>
+               
+               <TabsContent value="history" className="animate-fade-up">
+                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Histórico de mudanças da demanda...</div>
+               </TabsContent>
+             </Tabs>
         </div>
 
         <div className="space-y-8">
