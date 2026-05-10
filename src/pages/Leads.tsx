@@ -10,6 +10,7 @@ import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { LeadsKanban } from "@/components/leads/LeadsKanban";
 import { LeadsCsvImport } from "@/components/leads/LeadsCsvImport";
 import { LeadFollowUpDialog } from "@/components/leads/LeadFollowUpDialog";
+import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
