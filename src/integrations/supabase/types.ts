@@ -2801,6 +2801,179 @@ export type Database = {
         }
         Relationships: []
       }
+      proposal_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount: number
+          id: string
+          position: number
+          product_id: string | null
+          product_name: string
+          proposal_id: string
+          quantity: number
+          total: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount?: number
+          id?: string
+          position?: number
+          product_id?: string | null
+          product_name: string
+          proposal_id: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount?: number
+          id?: string
+          position?: number
+          product_id?: string | null
+          product_name?: string
+          proposal_id?: string
+          quantity?: number
+          total?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "proposal_items_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          approved_at: string | null
+          client_id: string | null
+          converted_at: string | null
+          converted_sale_id: string | null
+          created_at: string
+          created_by: string | null
+          discount: number
+          id: string
+          internal_notes: string | null
+          lead_id: string | null
+          notes: string | null
+          payment_terms: string | null
+          proposal_number: string | null
+          recipient_company: string | null
+          recipient_document: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          rejected_at: string | null
+          rejected_reason: string | null
+          sent_at: string | null
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id?: string | null
+          converted_at?: string | null
+          converted_sale_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          id?: string
+          internal_notes?: string | null
+          lead_id?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          proposal_number?: string | null
+          recipient_company?: string | null
+          recipient_document?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          rejected_at?: string | null
+          rejected_reason?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string | null
+          converted_at?: string | null
+          converted_sale_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          id?: string
+          internal_notes?: string | null
+          lead_id?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          proposal_number?: string | null
+          recipient_company?: string | null
+          recipient_document?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          rejected_at?: string | null
+          rejected_reason?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "proposals_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrers: {
         Row: {
           active: boolean
