@@ -1,6 +1,32 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingScreen } from "./LoadingScreen";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+function RoleClientRedirect() {
+  const { user } = useAuth();
+  const { data: client, isLoading } = useQuery({
+    queryKey: ["client-redirect-check", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("onboarding_status")
+        .eq("user_id", user!.id)
+        .single();
+      return data;
+    },
+    enabled: !!user
+  });
+
+  if (isLoading) return <LoadingScreen message="Redirecionando..." />;
+
+  if (client?.onboarding_status !== 'completo') {
+    return <Navigate to="/cliente/onboarding" replace />;
+  }
+
+  return <Navigate to="/cliente" replace />;
+}
 
 /**
  * Redireciona o usuário para o painel certo baseado no papel,
