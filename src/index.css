@@ -294,15 +294,13 @@
   .admin-shell { @apply bg-background min-h-screen selection:bg-primary/15 selection:text-primary; }
 
   .cp-panel {
-    @apply rounded-2xl border border-border bg-card transition-all duration-300;
-    box-shadow: var(--shadow-sm);
+    @apply rounded-lg border border-border bg-card transition-colors duration-200;
   }
   .cp-panel-hover:hover {
-    @apply border-primary/25 -translate-y-0.5;
-    box-shadow: var(--shadow-lg);
+    @apply border-foreground/15;
   }
-  .cp-stat-label { @apply text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80; }
-  .cp-stat-value { @apply text-3xl font-bold tracking-tight text-foreground tabular-nums; }
+  .cp-stat-label { @apply text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground; }
+  .cp-stat-value { @apply text-[26px] font-semibold tracking-tight text-foreground tabular-nums leading-none; }
   .cp-divider { @apply h-px bg-border; }
 
   .cp-pill { @apply inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-bold border; }
