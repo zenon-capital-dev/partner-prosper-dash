@@ -293,9 +293,13 @@ export default function Documents() {
             <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
-              {Object.entries(statusConfig).map(([k, v]) => (
-                <SelectItem key={k} value={k}>{v.label}</SelectItem>
-              ))}
+              <SelectItem value="solicitado">Solicitado</SelectItem>
+              <SelectItem value="enviado">Enviado</SelectItem>
+              <SelectItem value="em_analise">Em análise</SelectItem>
+              <SelectItem value="aprovado">Aprovado</SelectItem>
+              <SelectItem value="rejeitado">Rejeitado</SelectItem>
+              <SelectItem value="atrasado">Atrasado</SelectItem>
+              <SelectItem value="pendente_correcao">Pendente Correção</SelectItem>
             </SelectContent>
           </Select>
           <Select value={requiredFilter} onValueChange={setRequiredFilter}>
