@@ -278,8 +278,11 @@ export default function ProviderPanel() {
                    >
                      <ClipboardCheck className="size-4 mr-2" /> Reportar Status
                    </Button>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5" disabled>
-                     <MessageSquare className="size-4 mr-2" /> Mensagem Admin
+                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.info("Funcionalidade em desenvolvimento: Solicitar Documento")}>
+                     <FileText className="size-4 mr-2" /> Solicitar Documento
+                   </Button>
+                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.success("Notificação enviada ao administrador solicitando conclusão")}>
+                     <CheckCircle2 className="size-4 mr-2" /> Enviar Conclusão
                    </Button>
                 </div>
 
