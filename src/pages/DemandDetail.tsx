@@ -50,7 +50,8 @@ export default function DemandDetail() {
           clients(id, full_name, email, phone, company, document),
           products(id, name, description, sla_day_type),
           service_providers:service_provider_id(id, name, specialty),
-          documents(*)
+          documents(*),
+          steps:client_product_steps(*)
         `)
         .eq("id", id!)
         .single();
@@ -59,6 +60,9 @@ export default function DemandDetail() {
     },
     enabled: !!id,
   });
+
+  const nextAction = demand?.steps?.find((s: any) => !s.completed);
+
 
   const { data: reports = [] } = useQuery({
     queryKey: ["demand-reports", id],
