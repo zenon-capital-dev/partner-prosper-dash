@@ -173,7 +173,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                   {section.label}
                 </div>
               )}
-              {collapsed && <div className="h-px bg-white/[0.04] mx-2 mb-3" />}
+              {collapsed && <div className="h-px bg-white/[0.04] mx-2 mb-2" />}
               <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const active = isActive(item.url);
