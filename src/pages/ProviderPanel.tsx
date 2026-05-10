@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { Input } from "@/components/ui/input";
