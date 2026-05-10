@@ -76,7 +76,9 @@ export default function PartnerPanel() {
     const nextPending = [...commissions].filter((s: any) => ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(s.workflow_status)).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
     const nextPayment = nextPending ? new Date(new Date(nextPending.created_at).getTime() + 30 * 86400000).toISOString() : null;
 
-    return { total, paid, pending, cancelled, thisMonth, clientsActive, clientsNeg, clientsCancelled, nextPayment };
+    const conversionRate = data.clients.length > 0 ? (clientsActive / data.clients.length) * 100 : 0;
+
+    return { total, paid, pending, cancelled, thisMonth, clientsActive, clientsNeg, clientsCancelled, nextPayment, conversionRate };
 
   }, [data]);
 
