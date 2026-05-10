@@ -226,149 +226,151 @@ export default function ClientPanel() {
               </div>
             </section>
 
-        {/* Navigation Tabs */}
-        <Tabs defaultValue="checklist" className="space-y-10">
-          <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
-            <PremiumTabTrigger value="checklist" label="Documentos Pendentes" icon={ListChecks} count={pendingDocs} />
-            <PremiumTabTrigger value="servicos" label="Soluções Contratadas" icon={Package} />
-            <PremiumTabTrigger value="financeiro" label="Faturamento" icon={Receipt} />
-            <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
-            <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-            <PremiumTabTrigger value="descobrir" label="Descobrir" icon={ShoppingBag} />
-          </TabsList>
+            {/* Navigation Tabs */}
+            <Tabs defaultValue="checklist" className="space-y-10">
+              <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
+                <PremiumTabTrigger value="checklist" label="Documentos Pendentes" icon={ListChecks} count={pendingDocs} />
+                <PremiumTabTrigger value="servicos" label="Soluções Contratadas" icon={Package} />
+                <PremiumTabTrigger value="financeiro" label="Faturamento" icon={Receipt} />
+                <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} />
+                <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
+                <PremiumTabTrigger value="descobrir" label="Descobrir" icon={ShoppingBag} />
+              </TabsList>
 
-          <TabsContent value="servicos" className="animate-fade-up">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {granularProducts.map((p: any) => (
-                <div 
-                  key={p.id} 
-                  className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer"
-                  onClick={() => setSelectedProductId(p.id)}
-                >
-                  <div className="flex justify-between items-start mb-8">
-                    <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
-                       <Package className="size-7" />
-                    </div>
-                    <StatusBadge status={p.status} />
-                  </div>
-                  <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
-                    {p.products?.name}
-                  </h3>
-                  <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 min-h-[42px] leading-relaxed">
-                    {p.products?.description || "Consultoria técnica e estratégica para o crescimento do seu negócio."}
-                  </p>
-                  
-                  <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5">
-                     <div className="flex items-center justify-between mb-4">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Progresso da Entrega</span>
-                        <ArrowRight className="size-4 text-primary opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-1" />
-                     </div>
-                     <ClientProductSteps clientProductId={p.id} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="checklist" className="animate-fade-up">
-            <ClientDocumentsTab clientId={client.id} requests={docs as any} products={catalog as any} />
-          </TabsContent>
-
-          <TabsContent value="descobrir" className="animate-fade-up">
-             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                  <div key={p.id} className="vx-card p-8 bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:bg-white transition-all rounded-[32px] border-dashed border-2">
-                    <h3 className="font-editorial text-2xl font-bold text-slate-800 dark:text-slate-100">{p.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
-                    <div className="mt-8 flex items-center justify-between">
-                       <p className="text-xl font-bold text-slate-900 dark:text-white">{formatBRL(p.base_price)}</p>
-                       <Button className="rounded-xl h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all">Saber mais</Button>
-                    </div>
-                  </div>
-                ))}
-             </div>
-          </TabsContent>
-
-          <TabsContent value="docs" className="animate-fade-up">
-             <div className="vx-card bg-white dark:bg-card rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
-                <div className="p-8 border-b border-slate-50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
-                   <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Repositório de Arquivos</h3>
-                </div>
-                <div className="divide-y divide-slate-50 dark:divide-white/5">
-                   {docs.map((d: any) => (
-                     <div key={d.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                        <div className="flex items-center gap-5">
-                           <div className="size-12 rounded-[18px] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
-                              <FileText className="size-6" />
-                           </div>
-                           <div>
-                              <p className="font-bold text-slate-900 dark:text-white">{d.name}</p>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">Enviado em {formatDate(d.created_at)}</p>
-                           </div>
+              <TabsContent value="servicos" className="animate-fade-up">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {granularProducts.map((p: any) => (
+                    <div 
+                      key={p.id} 
+                      className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer"
+                      onClick={() => setSelectedProductId(p.id)}
+                    >
+                      <div className="flex justify-between items-start mb-8">
+                        <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
+                           <Package className="size-7" />
                         </div>
-                        <Button variant="outline" size="sm" className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all">
-                           <Download className="size-4" /> Download
-                        </Button>
-                     </div>
-                   ))}
-                   {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-muted-foreground">Sua biblioteca de documentos está vazia.</p>}
+                        <StatusBadge status={p.status} />
+                      </div>
+                      <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                        {p.products?.name}
+                      </h3>
+                      <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 min-h-[42px] leading-relaxed">
+                        {p.products?.description || "Consultoria técnica e estratégica para o crescimento do seu negócio."}
+                      </p>
+                      
+                      <div className="mt-8 pt-6 border-t border-slate-50 dark:border-white/5">
+                         <div className="flex items-center justify-between mb-4">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Progresso da Entrega</span>
+                            <ArrowRight className="size-4 text-primary opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-1" />
+                         </div>
+                         <ClientProductSteps clientProductId={p.id} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-             </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="financeiro" className="animate-fade-up">
-             <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
-                   <div className="p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
-                      <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Extrato de Pagamentos</h3>
-                   </div>
-                   <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                         <thead>
-                            <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
-                               <th className="px-8 py-5 text-left">Vencimento</th>
-                               <th className="px-8 py-5 text-left">Status</th>
-                               <th className="px-8 py-5 text-right">Valor</th>
-                            </tr>
-                         </thead>
-                         <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                            {payments.map((p: any) => (
-                              <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
-                                 <td className="px-8 py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
-                                 <td className="px-8 py-6">
-                                    <span className={cn(
-                                      "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
-                                      p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
-                                    )}>{p.status}</span>
-                                 </td>
-                                 <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
-                              </tr>
-                            ))}
-                         </tbody>
-                      </table>
-                   </div>
-                </div>
-                <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-8 relative overflow-hidden shadow-2xl">
-                   <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                   <Receipt className="size-12 text-primary relative" />
-                   <div className="space-y-4 relative">
-                      <h3 className="font-editorial text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
-                      <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
-                   </div>
-                   <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
-                </div>
-             </div>
-          </TabsContent>
+              <TabsContent value="checklist" className="animate-fade-up">
+                <ClientDocumentsTab clientId={client.id} requests={docs as any} products={catalog as any} />
+              </TabsContent>
 
-          <TabsContent value="contratos" className="animate-fade-up">
-            <ClientContractsTab clientId={client.id} contracts={contracts as any} />
-          </TabsContent>
-        </Tabs>
+              <TabsContent value="descobrir" className="animate-fade-up">
+                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
+                      <div key={p.id} className="vx-card p-8 bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:bg-white transition-all rounded-[32px] border-dashed border-2">
+                        <h3 className="font-editorial text-2xl font-bold text-slate-800 dark:text-slate-100">{p.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
+                        <div className="mt-8 flex items-center justify-between">
+                           <p className="text-xl font-bold text-slate-900 dark:text-white">{formatBRL(p.base_price)}</p>
+                           <Button className="rounded-xl h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all">Saber mais</Button>
+                        </div>
+                      </div>
+                    ))}
+                 </div>
+              </TabsContent>
 
-        {/* NPS — pesquisa de satisfação */}
-        <section className="max-w-2xl mx-auto w-full pt-12">
-          <NpsCard clientId={client.id} />
-        </section>
+              <TabsContent value="docs" className="animate-fade-up">
+                 <div className="vx-card bg-white dark:bg-card rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
+                    <div className="p-8 border-b border-slate-50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
+                       <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Repositório de Arquivos</h3>
+                    </div>
+                    <div className="divide-y divide-slate-50 dark:divide-white/5">
+                       {docs.map((d: any) => (
+                         <div key={d.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                            <div className="flex items-center gap-5">
+                               <div className="size-12 rounded-[18px] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                  <FileText className="size-6" />
+                               </div>
+                               <div>
+                                  <p className="font-bold text-slate-900 dark:text-white">{d.name}</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">Enviado em {formatDate(d.created_at)}</p>
+                               </div>
+                            </div>
+                            <Button variant="outline" size="sm" className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all">
+                               <Download className="size-4" /> Download
+                            </Button>
+                         </div>
+                       ))}
+                       {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-muted-foreground">Sua biblioteca de documentos está vazia.</p>}
+                    </div>
+                 </div>
+              </TabsContent>
+
+              <TabsContent value="financeiro" className="animate-fade-up">
+                 <div className="grid lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
+                       <div className="p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
+                          <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Extrato de Pagamentos</h3>
+                       </div>
+                       <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                             <thead>
+                                <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
+                                   <th className="px-8 py-5 text-left">Vencimento</th>
+                                   <th className="px-8 py-5 text-left">Status</th>
+                                   <th className="px-8 py-5 text-right">Valor</th>
+                                </tr>
+                             </thead>
+                             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                {payments.map((p: any) => (
+                                  <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
+                                     <td className="px-8 py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
+                                     <td className="px-8 py-6">
+                                        <span className={cn(
+                                          "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
+                                          p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                        )}>{p.status}</span>
+                                     </td>
+                                     <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
+                                  </tr>
+                                ))}
+                             </tbody>
+                          </table>
+                       </div>
+                    </div>
+                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-8 relative overflow-hidden shadow-2xl">
+                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
+                       <Receipt className="size-12 text-primary relative" />
+                       <div className="space-y-4 relative">
+                          <h3 className="font-editorial text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
+                          <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
+                       </div>
+                       <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
+                    </div>
+                 </div>
+              </TabsContent>
+
+              <TabsContent value="contratos" className="animate-fade-up">
+                <ClientContractsTab clientId={client.id} contracts={contracts as any} />
+              </TabsContent>
+            </Tabs>
+
+            {/* NPS — pesquisa de satisfação */}
+            <section className="max-w-2xl mx-auto w-full pt-12">
+              <NpsCard clientId={client.id} />
+            </section>
+          </>
+        )}
       </div>
     </div>
   );
