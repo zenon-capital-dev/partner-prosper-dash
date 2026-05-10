@@ -107,6 +107,10 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
             <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
           <div className="space-y-2">
+            <Label>Empresa</Label>
+            <Input value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+          </div>
+          <div className="space-y-2">
             <Label>Email</Label>
             <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
@@ -117,6 +121,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
           <div className="space-y-2">
             <Label>Telefone</Label>
             <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor estimado (R$)</Label>
+            <Input type="number" step="0.01" value={form.estimated_value ?? ""} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Probabilidade de fechamento (%)</Label>
+            <Input type="number" min={0} max={100} value={form.close_probability ?? ""} onChange={(e) => setForm({ ...form, close_probability: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label>Produto de interesse</Label>
