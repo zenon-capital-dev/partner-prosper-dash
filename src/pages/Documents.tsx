@@ -312,18 +312,8 @@ export default function Documents() {
               <SelectItem value="pendente_correcao">Pendente Correção</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={requiredFilter} onValueChange={setRequiredFilter}>
-            <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="required">Apenas obrigatórios</SelectItem>
-              <SelectItem value="optional">Apenas opcionais</SelectItem>
-              <SelectItem value="pending">Pendentes</SelectItem>
-              <SelectItem value="rejected">Rejeitados</SelectItem>
-            </SelectContent>
-          </Select>
           <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Cliente" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os clientes</SelectItem>
               {clientOptions.map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
