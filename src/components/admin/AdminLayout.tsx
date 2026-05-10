@@ -50,7 +50,7 @@ export default function AdminLayout() {
 
       <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
         <AdminHeader onSearchClick={handleSearchClick} />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-background">
           <Outlet />
         </main>
         <QuickCreateFab />
