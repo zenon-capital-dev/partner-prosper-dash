@@ -9,7 +9,7 @@ import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
   Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
   FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity,
-  ChevronLeft, Sparkles, MessageSquare, Zap
+  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
