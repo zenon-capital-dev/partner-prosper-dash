@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { OperationalChecklist } from "@/components/clients/OperationalChecklist";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
 import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
@@ -233,7 +233,7 @@ export default function DemandDetail() {
 
               <TabsContent value="checklist" className="animate-fade-up">
                  <div className="vx-card p-8 bg-card border-slate-100 dark:border-white/5">
-                    <ClientProductSteps clientProductId={demand.id} />
+                    <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
                  </div>
               </TabsContent>
 

@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Plus, Search, Pencil, Trash2, Package, TrendingUp, Layers, RefreshCcw,
-  Tag, Users2, MoreHorizontal, Power, PowerOff, Filter, Sparkles, Boxes,
+  Tag, Users2, MoreHorizontal, Power, PowerOff, Filter, Sparkles, Boxes, ListChecks,
 } from "lucide-react";
+import { ProductChecklistDialog } from "@/components/products/ProductChecklistDialog";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import {
@@ -95,6 +96,7 @@ export default function Products() {
 
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [catForm, setCatForm] = useState<any>({ name: "", color: "#6366f1" });
+  const [checklistTarget, setChecklistTarget] = useState<Product | null>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products-list"],
@@ -373,6 +375,7 @@ export default function Products() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-44">
                         <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setChecklistTarget(p)}><ListChecks className="size-3.5 mr-2" /> Checklist Operacional</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => toggleActive(p)}>
                           {p.active ? <><PowerOff className="size-3.5 mr-2" /> Desativar</> : <><Power className="size-3.5 mr-2" /> Ativar</>}
                         </DropdownMenuItem>
@@ -469,6 +472,7 @@ export default function Products() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setChecklistTarget(p)}><ListChecks className="size-3.5 mr-2" /> Checklist Operacional</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => toggleActive(p)}>
                               {p.active ? <><PowerOff className="size-3.5 mr-2" /> Desativar</> : <><Power className="size-3.5 mr-2" /> Ativar</>}
                             </DropdownMenuItem>
@@ -673,6 +677,15 @@ export default function Products() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {checklistTarget && (
+        <ProductChecklistDialog
+          open={!!checklistTarget}
+          onOpenChange={(v) => !v && setChecklistTarget(null)}
+          productId={checklistTarget.id}
+          productName={checklistTarget.name}
+        />
+      )}
     </div>
   );
 }

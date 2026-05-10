@@ -460,9 +460,11 @@ export type Database = {
           completed: boolean | null
           completed_at: string | null
           created_at: string | null
+          default_responsible: string | null
           description: string | null
           due_date: string | null
           id: string
+          is_visible_to_client: boolean
           label: string
           notes: string | null
           position: number | null
@@ -475,9 +477,11 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string | null
+          default_responsible?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
+          is_visible_to_client?: boolean
           label: string
           notes?: string | null
           position?: number | null
@@ -490,9 +494,11 @@ export type Database = {
           completed?: boolean | null
           completed_at?: string | null
           created_at?: string | null
+          default_responsible?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
+          is_visible_to_client?: boolean
           label?: string
           notes?: string | null
           position?: number | null
@@ -2491,8 +2497,11 @@ export type Database = {
       product_steps: {
         Row: {
           created_at: string | null
+          default_due_offset_days: number | null
+          default_responsible: string
           description: string | null
           id: string
+          is_visible_to_client: boolean
           name: string
           product_id: string | null
           step_order: number
@@ -2500,8 +2509,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          default_due_offset_days?: number | null
+          default_responsible?: string
           description?: string | null
           id?: string
+          is_visible_to_client?: boolean
           name: string
           product_id?: string | null
           step_order: number
@@ -2509,8 +2521,11 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          default_due_offset_days?: number | null
+          default_responsible?: string
           description?: string | null
           id?: string
+          is_visible_to_client?: boolean
           name?: string
           product_id?: string | null
           step_order?: number
