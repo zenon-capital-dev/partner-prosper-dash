@@ -37,9 +37,11 @@ import { AutoStatusBadge } from "@/components/StatusBadge";
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
   const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
+  const [docDialogOpen, setDocDialogOpen] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
 
