@@ -7,13 +7,14 @@ import { initials, formatPhone, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 
 const COLUMNS: { key: string; label: string; accent: string }[] = [
-  { key: "Novo", label: "Novo", accent: "from-sky-500/20 to-sky-500/5 border-sky-500/30" },
-  { key: "Em contato", label: "Em contato", accent: "from-indigo-500/20 to-indigo-500/5 border-indigo-500/30" },
-  { key: "Interessado", label: "Interessado", accent: "from-amber-500/20 to-amber-500/5 border-amber-500/30" },
-  { key: "Proposta enviada", label: "Proposta", accent: "from-violet-500/20 to-violet-500/5 border-violet-500/30" },
+  { key: "Novo", label: "Novo lead", accent: "from-sky-500/20 to-sky-500/5 border-sky-500/30" },
+  { key: "Primeiro contato", label: "Primeiro contato", accent: "from-cyan-500/20 to-cyan-500/5 border-cyan-500/30" },
+  { key: "Diagnóstico", label: "Diagnóstico", accent: "from-indigo-500/20 to-indigo-500/5 border-indigo-500/30" },
+  { key: "Proposta enviada", label: "Proposta enviada", accent: "from-violet-500/20 to-violet-500/5 border-violet-500/30" },
   { key: "Negociação", label: "Negociação", accent: "from-orange-500/20 to-orange-500/5 border-orange-500/30" },
-  { key: "Virou cliente", label: "Ganhos", accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30" },
-  { key: "Perdido", label: "Perdidos", accent: "from-rose-500/20 to-rose-500/5 border-rose-500/30" },
+  { key: "Contrato enviado", label: "Contrato enviado", accent: "from-amber-500/20 to-amber-500/5 border-amber-500/30" },
+  { key: "Fechado", label: "Fechado", accent: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30" },
+  { key: "Perdido", label: "Perdido", accent: "from-rose-500/20 to-rose-500/5 border-rose-500/30" },
 ];
 
 interface Props {
@@ -105,11 +106,30 @@ export function LeadsKanban({ leads, onEdit, onConvert }: Props) {
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold truncate">{lead.full_name}</p>
                         <p className="text-[10px] text-muted-foreground truncate">
-                          {lead.products?.name || lead.source || "—"}
+                          {lead.company || lead.products?.name || lead.source || "—"}
                         </p>
                       </div>
                     </div>
                   </div>
+                  {(lead.estimated_value || lead.close_probability != null) && (
+                    <div className="flex items-center justify-between mt-2 pl-5 gap-2">
+                      {lead.estimated_value && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                          R$ {Number(lead.estimated_value).toLocaleString("pt-BR")}
+                        </span>
+                      )}
+                      {lead.close_probability != null && (
+                        <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                          {lead.close_probability}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {lead.next_action && (
+                    <p className="text-[10px] text-muted-foreground/80 mt-1.5 pl-5 truncate italic">
+                      → {lead.next_action}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-2 pl-5">
                     {lead.whatsapp && (
                       <span className="text-[9.5px] text-muted-foreground flex items-center gap-1">
@@ -135,7 +155,7 @@ export function LeadsKanban({ leads, onEdit, onConvert }: Props) {
                       >
                         Editar
                       </Button>
-                      {lead.status !== "Virou cliente" && (
+                      {lead.status !== "Fechado" && (
                         <Button
                           size="sm"
                           variant="ghost"

@@ -10,6 +10,7 @@ import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { LeadsKanban } from "@/components/leads/LeadsKanban";
 import { LeadsCsvImport } from "@/components/leads/LeadsCsvImport";
 import { LeadFollowUpDialog } from "@/components/leads/LeadFollowUpDialog";
+import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +29,10 @@ const statusColors: Record<string, string> = {
   "Proposta enviada": "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   "Aguardando resposta": "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400",
   "Negociação": "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  "Virou cliente": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  "Fechado": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  "Primeiro contato": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+  "Diagnóstico": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400",
+  "Contrato enviado": "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   "Perdido": "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   "Sem resposta": "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-400",
 };
@@ -42,6 +46,8 @@ export default function Leads() {
   const [csvOpen, setCsvOpen] = useState(false);
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [followUpLead, setFollowUpLead] = useState<any>(null);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [convertLead, setConvertLead] = useState<any>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -98,42 +104,9 @@ export default function Leads() {
     }
   };
 
-  const convertToClient = async (lead: any) => {
-    if (!confirm(`Converter ${lead.full_name} em cliente?`)) return;
-    
-    setSubmitting(true);
-    try {
-      const { data: client, error: clientError } = await supabase.from("clients").insert({
-        full_name: lead.full_name,
-        email: lead.email,
-        phone: lead.phone,
-        whatsapp: lead.whatsapp,
-        origin: lead.source,
-        status: "ativo",
-        partner_id: lead.partner_id,
-        collaborator_id: lead.responsible_id,
-        notes: lead.notes,
-      }).select().single();
-
-      if (clientError) throw clientError;
-
-      // Mark lead as converted
-      const { error: updateError } = await supabase.from("leads").update({
-        status: "Virou cliente",
-        converted_to_client_id: client.id,
-        conversion_date: new Date().toISOString()
-      }).eq("id", lead.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Lead convertido em cliente com sucesso!");
-      qc.invalidateQueries({ queryKey: ["leads"] });
-      navigate(`/clientes/${client.id}`);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setSubmitting(false);
-    }
+  const convertToClient = (lead: any) => {
+    setConvertLead(lead);
+    setConvertOpen(true);
   };
 
   return (
@@ -273,7 +246,7 @@ export default function Leads() {
                           <DropdownMenuItem onClick={() => openFollowUp(lead)}>
                             <CalendarClock className="size-3.5 mr-2" /> Agendar Follow-up
                           </DropdownMenuItem>
-                          {lead.status !== "Virou cliente" && (
+                          {lead.status !== "Fechado" && (
                             <DropdownMenuItem onClick={() => convertToClient(lead)} className="text-primary font-bold">
                               <UserPlus className="size-3.5 mr-2" /> Converter em Cliente
                             </DropdownMenuItem>
@@ -318,6 +291,12 @@ export default function Leads() {
         open={followUpOpen}
         onOpenChange={setFollowUpOpen}
         lead={followUpLead}
+      />
+      <ConvertLeadDialog
+        open={convertOpen}
+        onOpenChange={setConvertOpen}
+        lead={convertLead}
+        onConverted={() => qc.invalidateQueries({ queryKey: ["leads"] })}
       />
     </div>
   );

@@ -1891,12 +1891,17 @@ export type Database = {
       }
       leads: {
         Row: {
+          close_probability: number | null
+          company: string | null
           conversion_date: string | null
           converted_to_client_id: string | null
           created_at: string | null
           email: string | null
+          estimated_value: number | null
           full_name: string
           id: string
+          next_action: string | null
+          next_action_date: string | null
           notes: string | null
           partner_id: string | null
           phone: string | null
@@ -1909,12 +1914,17 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          close_probability?: number | null
+          company?: string | null
           conversion_date?: string | null
           converted_to_client_id?: string | null
           created_at?: string | null
           email?: string | null
+          estimated_value?: number | null
           full_name: string
           id?: string
+          next_action?: string | null
+          next_action_date?: string | null
           notes?: string | null
           partner_id?: string | null
           phone?: string | null
@@ -1927,12 +1937,17 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          close_probability?: number | null
+          company?: string | null
           conversion_date?: string | null
           converted_to_client_id?: string | null
           created_at?: string | null
           email?: string | null
+          estimated_value?: number | null
           full_name?: string
           id?: string
+          next_action?: string | null
+          next_action_date?: string | null
           notes?: string | null
           partner_id?: string | null
           phone?: string | null

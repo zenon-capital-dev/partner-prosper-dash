@@ -27,7 +27,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
 
   useEffect(() => {
     if (lead) setForm(lead);
-    else setForm({ status: "Novo", source: "Instagram" });
+    else setForm({ status: "Novo", source: "Instagram", close_probability: 50 });
   }, [lead, open]);
 
   const { data: partners } = useQuery({
@@ -64,6 +64,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
     setSubmitting(true);
     const payload = {
       full_name: form.full_name,
+      company: form.company || null,
       email: form.email || null,
       phone: form.phone || null,
       whatsapp: form.whatsapp || null,
@@ -74,6 +75,10 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
       partner_id: form.partner_id || null,
       responsible_id: form.responsible_id || null,
       referral_id: form.referral_id || null,
+      estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
+      close_probability: form.close_probability != null && form.close_probability !== "" ? Number(form.close_probability) : null,
+      next_action: form.next_action || null,
+      next_action_date: form.next_action_date || null,
     };
     
     const { error } = lead?.id
@@ -102,6 +107,10 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
             <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
           <div className="space-y-2">
+            <Label>Empresa</Label>
+            <Input value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+          </div>
+          <div className="space-y-2">
             <Label>Email</Label>
             <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
@@ -112,6 +121,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
           <div className="space-y-2">
             <Label>Telefone</Label>
             <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Valor estimado (R$)</Label>
+            <Input type="number" step="0.01" value={form.estimated_value ?? ""} onChange={(e) => setForm({ ...form, estimated_value: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Probabilidade de fechamento (%)</Label>
+            <Input type="number" min={0} max={100} value={form.close_probability ?? ""} onChange={(e) => setForm({ ...form, close_probability: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label>Produto de interesse</Label>
@@ -143,15 +160,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
             <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Novo">Novo</SelectItem>
-                <SelectItem value="Em contato">Em contato</SelectItem>
-                <SelectItem value="Interessado">Interessado</SelectItem>
+                <SelectItem value="Novo">Novo lead</SelectItem>
+                <SelectItem value="Primeiro contato">Primeiro contato</SelectItem>
+                <SelectItem value="Diagnóstico">Diagnóstico</SelectItem>
                 <SelectItem value="Proposta enviada">Proposta enviada</SelectItem>
-                <SelectItem value="Aguardando resposta">Aguardando resposta</SelectItem>
                 <SelectItem value="Negociação">Negociação</SelectItem>
-                <SelectItem value="Virou cliente">Virou cliente</SelectItem>
+                <SelectItem value="Contrato enviado">Contrato enviado</SelectItem>
+                <SelectItem value="Fechado">Fechado</SelectItem>
                 <SelectItem value="Perdido">Perdido</SelectItem>
-                <SelectItem value="Sem resposta">Sem resposta</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -184,6 +200,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
                 {collaborators?.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Próxima ação</Label>
+            <Input value={form.next_action ?? ""} onChange={(e) => setForm({ ...form, next_action: e.target.value })} placeholder="Ex: Ligar para agendar reunião" />
+          </div>
+          <div className="space-y-2">
+            <Label>Data da próxima ação</Label>
+            <Input type="date" value={form.next_action_date ?? ""} onChange={(e) => setForm({ ...form, next_action_date: e.target.value })} />
           </div>
           <div className="col-span-2 space-y-2">
             <Label>Observações</Label>
