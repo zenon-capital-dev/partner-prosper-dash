@@ -44,6 +44,7 @@ const SECTIONS: NavSection[] = [
   {
     label: "Operacional",
     items: [
+      { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
       { title: "Documentos", url: "/documentos", icon: FileText },
       { title: "Contratos", url: "/contratos", icon: FileSignature },
