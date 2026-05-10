@@ -230,6 +230,9 @@ export default function DemandDetail() {
                  <TabsTrigger value="docs" className="tab-trigger">
                     <FileText className="size-4 mr-2" /> Documentação
                  </TabsTrigger>
+                 <TabsTrigger value="comments" className="tab-trigger">
+                    <MessageSquare className="size-4 mr-2" /> Comentários
+                 </TabsTrigger>
                  <TabsTrigger value="history" className="tab-trigger">
                     <History className="size-4 mr-2" /> Histórico & Reportes
                  </TabsTrigger>
