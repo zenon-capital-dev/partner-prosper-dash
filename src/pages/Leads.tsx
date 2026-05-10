@@ -43,6 +43,8 @@ export default function Leads() {
   const [csvOpen, setCsvOpen] = useState(false);
   const [followUpOpen, setFollowUpOpen] = useState(false);
   const [followUpLead, setFollowUpLead] = useState<any>(null);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [convertLead, setConvertLead] = useState<any>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
