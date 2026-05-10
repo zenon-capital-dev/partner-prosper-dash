@@ -11,15 +11,15 @@
 
 @layer base {
   :root {
-    /* Neutral surface — warm-tinted for premium feel */
-    --background: 210 20% 98%;
-    --foreground: 224 45% 4%;
+    /* Neutral surface — cooler, premium SaaS */
+    --background: 220 24% 98.5%;
+    --foreground: 224 50% 6%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 38% 12%;
+    --card-foreground: 224 42% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 38% 12%;
+    --popover-foreground: 224 42% 10%;
 
     /* Brand — Professional Indigo */
     --primary: 243 75% 50%;
@@ -27,24 +27,24 @@
     --primary-muted: 243 80% 96%;
     --primary-glow: 250 90% 70%;
 
-    --secondary: 210 20% 96%;
+    --secondary: 220 18% 96%;
     --secondary-foreground: 224 38% 14%;
 
-    --muted: 210 15% 94%;
-    --muted-foreground: 220 12% 44%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 10% 42%;
 
-    --accent: 210 20% 96%;
+    --accent: 220 18% 96%;
     --accent-foreground: 243 75% 35%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
     --destructive-muted: 0 84% 96%;
 
-    --border: 210 15% 88%;
-    --input: 210 15% 88%;
+    --border: 220 14% 91%;
+    --input: 220 14% 89%;
     --ring: 243 75% 50%;
 
-    --radius: 0.875rem;
+    --radius: 0.625rem;
 
     /* Sidebar — Deep Slate */
     --sidebar-background: 224 45% 4%;
