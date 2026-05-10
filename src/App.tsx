@@ -51,6 +51,7 @@ import DemandDetail from "./pages/DemandDetail";
 import SLAPages from "./pages/SLAPages";
 import OperationalCockpit from "./pages/OperationalCockpit";
 import Proposals from "./pages/Proposals";
+import FinanceCenter from "./pages/FinanceCenter";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/documentos" element={<Documents />} />
               <Route path="/contratos" element={<Contracts />} />
               <Route path="/financeiro" element={<Finance />} />
+              <Route path="/financeiro/central" element={<FinanceCenter />} />
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/auditoria" element={<AuditLog />} />
               <Route path="/sla" element={<SLAPages />} />
