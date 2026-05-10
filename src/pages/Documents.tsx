@@ -294,13 +294,13 @@ export default function Documents() {
           </div>
           <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs">Limpar</Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="relative md:col-span-2 lg:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+          <div className="relative md:col-span-2 lg:col-span-2 xl:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input className="pl-9" placeholder="Buscar por documento, cliente ou produto..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input className="pl-9 h-10" placeholder="Buscar por documento, cliente ou produto..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="h-10"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="solicitado">Solicitado</SelectItem>
