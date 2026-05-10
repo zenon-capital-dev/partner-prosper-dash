@@ -256,6 +256,21 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Health Score (0-100)</Label>
+            <Input type="number" min="0" max="100" value={form.health_score ?? 100} onChange={(e) => setForm({ ...form, health_score: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Risco de Cancelamento</Label>
+            <Select value={form.churn_risk ?? "Baixo"} onValueChange={(v) => setForm({ ...form, churn_risk: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Baixo">Baixo</SelectItem>
+                <SelectItem value="Médio">Médio</SelectItem>
+                <SelectItem value="Alto">Alto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="col-span-2 space-y-2">
             <Label>Tags (separadas por vírgula)</Label>
             <Input
