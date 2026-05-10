@@ -174,7 +174,8 @@ export function ClientDocumentsTab({
 
           <div className="divide-y divide-slate-50 dark:divide-white/5">
             {items.map((req) => {
-              const meta = STATUS_META[req.status] ?? STATUS_META.solicitado;
+              const effective = getEffectiveStatus(req);
+              const meta = STATUS_META[effective] ?? STATUS_META.solicitado;
               const Icon = meta.icon;
               const isUploading = uploadingId === req.id;
               
