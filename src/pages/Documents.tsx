@@ -217,7 +217,11 @@ export default function Documents() {
     total: allDocs.length,
     pendentes: allDocs.filter((d: any) => ['solicitado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status)).length,
     aprovados: allDocs.filter((d: any) => d.status === 'aprovado').length,
-    reprovados: allDocs.filter((d: any) => d.status === 'reprovado' || d.status === 'vencido').length,
+    rejeitados: allDocs.filter((d: any) => d.status === 'rejeitado' || d.status === 'reprovado').length,
+    atrasados: allDocs.filter((d: any) => {
+      const now = new Date();
+      return (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < now && !['aprovado', 'enviado', 'em_analise'].includes(d.status)));
+    }).length,
   }), [allDocs]);
 
   const filteredDocs = useMemo(() => allDocs.filter((d: any) => {
