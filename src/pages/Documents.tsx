@@ -18,16 +18,36 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'reprovado' | 'pendente_correcao' | 'vencido';
+export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'rejeitado' | 'reprovado' | 'atrasado' | 'vencido' | 'pendente_correcao';
 
-const statusConfig: Record<DocumentStatus, { label: string; color: string; icon: any }> = {
-  solicitado: { label: "Solicitado", color: "bg-warning-muted text-warning border-warning/20", icon: Clock },
-  enviado: { label: "Enviado", color: "bg-info-muted text-info border-info/20", icon: FileText },
-  em_analise: { label: "Em análise", color: "bg-primary-muted text-primary border-primary/20", icon: Eye },
-  aprovado: { label: "Aprovado", color: "bg-success-muted text-success border-success/20", icon: Check },
-  reprovado: { label: "Reprovado", color: "bg-destructive-muted text-destructive border-destructive/20", icon: X },
-  pendente_correcao: { label: "Pendente correção", color: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
-  vencido: { label: "Vencido", color: "bg-slate-100 text-slate-500 border-slate-200", icon: History },
+const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  solicitado: { label: "Solicitado", color: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
+  enviado: { label: "Enviado", color: "bg-blue-50 text-blue-700 border-blue-200", icon: FileText },
+  em_analise: { label: "Em análise", color: "bg-purple-50 text-purple-700 border-purple-200", icon: Eye },
+  aprovado: { label: "Aprovado", color: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: Check },
+  rejeitado: { label: "Rejeitado", color: "bg-rose-50 text-rose-700 border-rose-200", icon: X },
+  reprovado: { label: "Rejeitado", color: "bg-rose-50 text-rose-700 border-rose-200", icon: X },
+  atrasado: { label: "Atrasado", color: "bg-red-50 text-red-700 border-red-200", icon: AlertCircle },
+  vencido: { label: "Atrasado", color: "bg-red-50 text-red-700 border-red-200", icon: AlertCircle },
+  pendente_correcao: { label: "Pendente Correção", color: "bg-orange-50 text-orange-700 border-orange-200", icon: RefreshCw },
+};
+
+const getFileIcon = (fileName: string) => {
+  if (!fileName) return <FileText className="size-4 text-slate-400" />;
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  switch (ext) {
+    case 'pdf': return <FileText className="size-4 text-rose-500" />;
+    case 'doc':
+    case 'docx': return <FileText className="size-4 text-blue-500" />;
+    case 'xls':
+    case 'xlsx': return <FileText className="size-4 text-emerald-500" />;
+    case 'jpg':
+    case 'jpeg':
+    case 'png': return <FileText className="size-4 text-purple-500" />;
+    case 'zip':
+    case 'rar': return <FileText className="size-4 text-amber-600" />;
+    default: return <FileText className="size-4 text-slate-400" />;
+  }
 };
 
 type ActionMode = "reject" | "request_resend" | "comment" | null;
