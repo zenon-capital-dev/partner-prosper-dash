@@ -379,22 +379,20 @@
     @apply inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground/50;
   }
 
-  /* Glass card — refined, less blur, more substance */
+  /* Glass card — flat corporate surface */
   .glass-card {
-    @apply relative rounded-2xl border border-border bg-card transition-all duration-300;
-    box-shadow: var(--shadow-sm);
+    @apply relative rounded-lg border border-border bg-card transition-colors duration-200;
   }
   .glass-card:hover {
-    @apply border-primary/25;
-    box-shadow: var(--shadow-md);
+    @apply border-foreground/15;
   }
 
-  /* Page hero — editorial layout, no curves, sharp definition */
+  /* Page hero — editorial, sober */
   .page-hero {
-    @apply relative rounded-2xl border border-border overflow-hidden bg-card;
+    @apply relative rounded-lg border border-border overflow-hidden bg-card;
   }
   .page-hero-inner {
-    @apply relative px-6 lg:px-8 py-7 lg:py-8;
+    @apply relative px-6 lg:px-8 py-6 lg:py-7;
   }
 
   @keyframes progress-glow {
