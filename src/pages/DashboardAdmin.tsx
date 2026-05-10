@@ -70,6 +70,11 @@ export default function DashboardAdmin() {
     queryFn: async () => (await supabase.from("contracts").select("id, client_id, status")).data ?? []
   });
 
+  const { data: dashTasks = [] } = useQuery({
+    queryKey: ["admin-dashboard-tasks"],
+    queryFn: async () => (await supabase.from("tasks").select("id, title, due_date, priority, status_new, assigned_to").order("due_date", { ascending: true, nullsFirst: false }).limit(200)).data ?? []
+  });
+
   // --- Statistics Calculation ---
   const stats = useMemo(() => {
     const now = new Date();
