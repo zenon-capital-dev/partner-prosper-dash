@@ -106,11 +106,30 @@ export function LeadsKanban({ leads, onEdit, onConvert }: Props) {
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold truncate">{lead.full_name}</p>
                         <p className="text-[10px] text-muted-foreground truncate">
-                          {lead.products?.name || lead.source || "—"}
+                          {lead.company || lead.products?.name || lead.source || "—"}
                         </p>
                       </div>
                     </div>
                   </div>
+                  {(lead.estimated_value || lead.close_probability != null) && (
+                    <div className="flex items-center justify-between mt-2 pl-5 gap-2">
+                      {lead.estimated_value && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                          R$ {Number(lead.estimated_value).toLocaleString("pt-BR")}
+                        </span>
+                      )}
+                      {lead.close_probability != null && (
+                        <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                          {lead.close_probability}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {lead.next_action && (
+                    <p className="text-[10px] text-muted-foreground/80 mt-1.5 pl-5 truncate italic">
+                      → {lead.next_action}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-2 pl-5">
                     {lead.whatsapp && (
                       <span className="text-[9.5px] text-muted-foreground flex items-center gap-1">
