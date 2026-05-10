@@ -155,7 +155,7 @@ export function LeadsKanban({ leads, onEdit, onConvert }: Props) {
                       >
                         Editar
                       </Button>
-                      {lead.status !== "Virou cliente" && (
+                      {lead.status !== "Fechado" && (
                         <Button
                           size="sm"
                           variant="ghost"
