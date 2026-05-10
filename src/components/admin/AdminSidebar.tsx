@@ -111,7 +111,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       >
         {/* Brand */}
         <div className={cn("h-14 flex items-center border-b border-white/[0.04] px-3.5 shrink-0", collapsed ? "justify-center" : "justify-between")}>
-          <button onClick={() => navigate("/admin")} className="flex items-center gap-2.5 group">
+          <button onClick={() => navigate("/admin")} className="flex items-center gap-2 min-w-0 group">
             <div className="size-7.5 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center ring-1 ring-white/10 shadow-[0_4px_16px_-4px_rgba(99,102,241,0.5)] group-hover:scale-[1.04] transition-transform duration-300 shrink-0">
               <Zap className="size-3.5 text-white fill-white" strokeWidth={2.5} />
             </div>
