@@ -223,11 +223,12 @@ export default function ClientPanel() {
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
-                    <PremiumStat label="Serviços" value={String(activeProducts.length)} />
-                    <PremiumStat label="Faturamento" value={formatBRL(monthlyTotal)} sub="Total" />
-                    <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
-                 </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                     <PremiumStat label="Serviços" value={String(activeProducts.length)} />
+                     <PremiumStat label="Progresso" value={`${Math.round(client.onboarding_progress || 0)}%`} sub="Geral" />
+                     <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
+                     <PremiumStat label="A Pagar" value={formatBRL(payments.filter((p: any) => p.status !== 'pago').reduce((s, p) => s + Number(p.amount), 0))} sub="Abertas" />
+                  </div>
               </div>
             </section>
 
