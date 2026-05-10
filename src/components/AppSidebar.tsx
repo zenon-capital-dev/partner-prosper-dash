@@ -1,162 +1,154 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { useTheme } from "next-themes";
 import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Handshake,
-  Wallet,
-  FileSignature,
-  FileText,
-  Banknote,
-  BarChart3,
-  Settings,
-  UserCog,
-  LifeBuoy,
-  ChevronDown,
-  LogOut,
-  Sparkles,
-  TrendingUp,
-  Search,
-  Briefcase,
-  CircleDollarSign,
-  Cog,
-  Command,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Sun,
-  Moon,
-  Bell,
-  ArrowUpRight,
-  Plus,
-  Zap,
-  Target,
-  ClipboardList,
-  History,
-  UserCircle,
-  Truck,
-  ShieldCheck,
-  Star,
+  LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
+  Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, LogOut, Search,
+  Briefcase, CircleDollarSign, Command, Zap, Target, ClipboardList, History,
+  Truck, TrendingUp, Home, Boxes, PackageCheck, FileCheck2,
+  MessageSquare, FolderArchive, Receipt,
 } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
-import { initials, formatBRL } from "@/lib/format";
+import { initials } from "@/lib/format";
 import { ProsperLogo as AppLogo } from "@/components/VendxLogo";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
+  CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-const demoSidebarLive = {
-  clients: 65,
-  pendingFinCount: 18,
-  pendingComCount: 22,
-  newDocs: 7,
-  pendingFinTotal: 248_900,
-  pendingComTotal: 73_940,
-  sparkline: [52_000, 78_500, 64_300, 112_800, 96_400, 138_700, 168_900].map((v, i) => ({ d: `demo-${i}`, v })),
-  monthRev: 1_351_923.39,
-};
+type NavItem = { title: string; url: string; icon: any };
+type NavSection = { label: string; items: NavItem[] };
 
-type NavItem = {
-  title: string;
-  url: string;
-  icon: any;
-  badge?: string;
-  counterKey?: "clients" | "pendingFin" | "pendingCom" | "newDocs";
-};
-type NavSection = { label: string; icon: any; items: NavItem[] };
+/* ============================================================
+   Menu structures — one block per group, exactly as requested.
+   ============================================================ */
 
 const adminSections: NavSection[] = [
   {
     label: "Visão Geral",
-    icon: LayoutDashboard,
     items: [
       { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-      { title: "Cockpit Operacional", url: "/cockpit", icon: Zap },
-      { title: "Demandas", url: "/demandas", icon: ClipboardList },
-      { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-      { title: "Histórico / Auditoria", url: "/auditoria", icon: History },
+      { title: "Cockpit", url: "/cockpit", icon: Zap },
+      { title: "SLA & Prazos", url: "/sla", icon: TrendingUp },
+      { title: "Auditoria", url: "/auditoria", icon: History },
     ],
   },
   {
     label: "Comercial",
-    icon: Briefcase,
     items: [
-      { title: "Clientes", url: "/clientes", icon: Users, counterKey: "clients" },
-      { title: "Leads / Convidados", url: "/leads", icon: Target },
-      { title: "Produtos / Serviços", url: "/produtos", icon: Package },
-      { title: "Parceiros", url: "/parceiros", icon: Handshake },
+      { title: "Leads", url: "/leads", icon: Target },
+      { title: "Propostas", url: "/propostas", icon: FileText },
+      { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
+      { title: "Produtos", url: "/produtos", icon: Package },
     ],
   },
   {
-    label: "Operacional",
-    icon: ClipboardList,
+    label: "Clientes",
     items: [
-      { title: "Tarefas / Pendências", url: "/tarefas", icon: ClipboardList },
-      { title: "Documentos", url: "/documentos", icon: FileText, counterKey: "newDocs" },
+      { title: "Clientes", url: "/clientes", icon: Users },
+    ],
+  },
+  {
+    label: "Operação",
+    items: [
+      { title: "Demandas", url: "/demandas", icon: ClipboardList },
+      { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
+      { title: "Projetos", url: "/projetos", icon: Briefcase },
+      { title: "Templates", url: "/templates", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Documentos",
+    items: [
+      { title: "Documentos", url: "/documentos", icon: FileText },
       { title: "Contratos", url: "/contratos", icon: FileSignature },
-      { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
-      { title: "Prestadores", url: "/prestadores", icon: Truck },
-      { title: "Reportes dos Prestadores", url: "/prestadores/reportes", icon: ClipboardList },
-      { title: "Performance dos Prestadores", url: "/prestadores/performance", icon: TrendingUp },
     ],
   },
   {
     label: "Financeiro",
-    icon: CircleDollarSign,
     items: [
-      { title: "Financeiro", url: "/financeiro", icon: Banknote, counterKey: "pendingFin" },
-      { title: "Comissões", url: "/comissoes", icon: Wallet, counterKey: "pendingCom" },
+      { title: "Financeiro", url: "/financeiro", icon: Banknote },
+      { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
+      { title: "Comissões", url: "/comissoes", icon: Wallet },
     ],
   },
   {
-    label: "Sistema",
-    icon: Cog,
+    label: "Parceiros",
     items: [
-      { title: "Usuários e Acessos", url: "/usuarios", icon: UserCog },
+      { title: "Parceiros", url: "/parceiros", icon: Handshake },
+    ],
+  },
+  {
+    label: "Prestadores",
+    items: [
+      { title: "Prestadores", url: "/prestadores", icon: Truck },
+      { title: "Reportes", url: "/prestadores/reportes", icon: ClipboardList },
+      { title: "Performance", url: "/prestadores/performance", icon: TrendingUp },
+    ],
+  },
+  {
+    label: "Relatórios",
+    items: [
+      { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "Indicadores", url: "/indicadores", icon: TrendingUp },
+    ],
+  },
+  {
+    label: "Configurações",
+    items: [
+      { title: "Usuários & Acessos", url: "/usuarios", icon: UserCog },
       { title: "Automações", url: "/automacoes", icon: Zap },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },
 ];
 
+const clientSections: NavSection[] = [
+  {
+    label: "Painel",
+    items: [
+      { title: "Início", url: "/cliente", icon: Home },
+      { title: "Meus Produtos", url: "/cliente/produtos", icon: Boxes },
+      { title: "Documentos", url: "/cliente/documentos", icon: FileText },
+      { title: "Entregas", url: "/cliente/entregas", icon: PackageCheck },
+      { title: "Financeiro", url: "/cliente/financeiro", icon: Banknote },
+      { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
+      { title: "Suporte", url: "/suporte", icon: LifeBuoy },
+    ],
+  },
+];
+
+const prestadorSections: NavSection[] = [
+  {
+    label: "Painel",
+    items: [
+      { title: "Início", url: "/prestador", icon: Home },
+      { title: "Minhas Demandas", url: "/prestador/demandas", icon: ClipboardList },
+      { title: "Documentos", url: "/prestador/documentos", icon: FileText },
+      { title: "Reportes", url: "/prestador/reportes", icon: FileCheck2 },
+      { title: "Pagamentos", url: "/prestador/pagamentos", icon: Receipt },
+      { title: "Histórico", url: "/prestador/historico", icon: History },
+    ],
+  },
+];
+
 const partnerSections: NavSection[] = [
   {
-    label: "Parceiro",
-    icon: Handshake,
+    label: "Painel",
     items: [
-      { title: "Painel", url: "/parceiro", icon: LayoutDashboard },
-      { title: "Minhas Indicações", url: "/parceiro/clientes", icon: Users },
-      { title: "Minhas Comissões", url: "/parceiro/comissoes", icon: Wallet },
+      { title: "Início", url: "/parceiro", icon: Home },
+      { title: "Meus Indicados", url: "/parceiro/clientes", icon: Users },
+      { title: "Comissões", url: "/parceiro/comissoes", icon: Wallet },
+      { title: "Pagamentos", url: "/parceiro/pagamentos", icon: Receipt },
+      { title: "Materiais", url: "/parceiro/materiais", icon: FolderArchive },
+      { title: "Contrato", url: "/parceiro/contrato", icon: FileSignature },
     ],
   },
 ];
@@ -164,7 +156,6 @@ const partnerSections: NavSection[] = [
 const referrerSections: NavSection[] = [
   {
     label: "Indicador",
-    icon: Star,
     items: [
       { title: "Painel", url: "/indicador", icon: LayoutDashboard },
       { title: "Indicações", url: "/indicador", icon: Users },
@@ -172,28 +163,18 @@ const referrerSections: NavSection[] = [
   },
 ];
 
-const clientSections: NavSection[] = [
-  {
-    label: "Cliente",
-    icon: Users,
-    items: [
-      { title: "Meu Painel", url: "/cliente", icon: LayoutDashboard },
-      { title: "Meus Documentos", url: "/cliente/documentos", icon: FileText },
-    ],
-  },
-];
-
 export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador, isPrestador, isLead, isIndicador, signOut } = useAuth();
+  const {
+    user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador,
+    isPrestador, isIndicador, signOut,
+  } = useAuth();
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
 
-  // ⌘K open
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -213,7 +194,7 @@ export function AppSidebar() {
   const showReferrer = isIndicador && !showAdmin && !showPartner;
   const showPrestador = isPrestador && !showAdmin && !showPartner && !showReferrer;
   const showClient = isCliente && !showAdmin && !showPartner && !showPrestador && !showReferrer;
-  
+
   const sections = showAdmin
     ? adminSections
     : showPartner
@@ -221,166 +202,96 @@ export function AppSidebar() {
       : showReferrer
         ? referrerSections
         : showPrestador
-          ? []
+          ? prestadorSections
           : showClient
             ? clientSections
             : adminSections;
 
-  // ===== Live counters & sparkline (admin/vendedor) =====
-  const { data: live } = useQuery({
-    queryKey: ["sidebar-live", showAdmin],
-    queryFn: async () => {
-      if (!showAdmin) return null;
-      const sevenAgo = new Date();
-      sevenAgo.setDate(sevenAgo.getDate() - 7);
-      const sevenIso = sevenAgo.toISOString().slice(0, 10);
+  const portalLabel = showAdmin
+    ? "Operations"
+    : showPartner
+      ? "Partner"
+      : showPrestador
+        ? "Provider"
+        : showClient
+          ? "Client"
+          : showReferrer
+            ? "Referrer"
+            : "Operations";
 
-      const [
-        { count: clients },
-        { data: salesPending },
-        { data: comsPending },
-        { count: newDocs },
-        { data: weekSales },
-      ] = await Promise.all([
-        supabase.from("clients").select("id", { count: "exact", head: true }).eq("status", "ativo"),
-        supabase.from("sales").select("amount").in("status", ["pendente", "em_andamento"]),
-        supabase.from("commissions").select("amount").eq("status", "pendente"),
-        supabase.from("documents").select("id", { count: "exact", head: true }).in("status", ["enviado", "em_analise"]),
-        supabase.from("sales").select("amount, sale_date").gte("sale_date", sevenIso),
-      ]);
+  const cmdItems = useMemo(
+    () => sections.flatMap((s) => s.items.map((i) => ({ ...i, group: s.label }))),
+    [sections]
+  );
 
-      if (!clients && !salesPending?.length && !weekSales?.length) return demoSidebarLive;
-
-      const pendingFinTotal = (salesPending ?? []).reduce((s, x: any) => s + Number(x.amount), 0);
-      const pendingComTotal = (comsPending ?? []).reduce((s, x: any) => s + Number(x.amount), 0);
-
-      // sparkline buckets (last 7 days)
-      const buckets = Array.from({ length: 7 }).map((_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (6 - i));
-        return { d: d.toISOString().slice(0, 10), v: 0 };
-      });
-      (weekSales ?? []).forEach((s: any) => {
-        const b = buckets.find((b) => b.d === s.sale_date);
-        if (b) b.v += Number(s.amount);
-      });
-
-      const monthRev = (weekSales ?? []).reduce((s, x: any) => {
-        const d = new Date(x.sale_date);
-        const now = new Date();
-        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-          return s + Number(x.amount);
-        }
-        return s;
-      }, 0);
-
-      return {
-        clients: clients ?? 0,
-        pendingFinCount: (salesPending ?? []).length,
-        pendingComCount: (comsPending ?? []).length,
-        newDocs: newDocs ?? 0,
-        pendingFinTotal,
-        pendingComTotal,
-        sparkline: buckets,
-        monthRev,
-      };
-    },
-    refetchInterval: 60_000,
-  });
-
-  const liveData = live ?? demoSidebarLive;
-
-  // command palette index
-  const cmdItems = useMemo(() => sections.flatMap((s) => s.items.map((i) => ({ ...i, group: s.label }))), [sections]);
-
-  function counterFor(key?: NavItem["counterKey"]) {
-    if (!key) return null;
-    const map: Record<string, number> = {
-      clients: liveData.clients,
-      pendingFin: liveData.pendingFinCount,
-      pendingCom: liveData.pendingComCount,
-      newDocs: liveData.newDocs,
-    };
-    const v = map[key];
-    return v && v > 0 ? v : null;
-  }
-
-  // sparkline path
-  const sparkPath = useMemo(() => {
-    if (!liveData?.sparkline) return "";
-    const max = Math.max(1, ...liveData.sparkline.map((b) => b.v));
-    const w = 100;
-    const h = 28;
-    const step = w / (liveData.sparkline.length - 1 || 1);
-    return liveData.sparkline
-      .map((b, i) => {
-        const x = i * step;
-        const y = h - (b.v / max) * h;
-        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(" ");
-  }, [liveData?.sparkline]);
+  const fullName = user?.user_metadata?.full_name || "Usuário";
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-border/5 !bg-[#09090b] transition-all duration-500">
-        <SidebarHeader className="!bg-transparent px-5 pt-10 pb-6">
-          <div className={cn("flex items-center gap-3 transition-all", collapsed ? "justify-center" : "px-1")}>
-            <div className="relative shrink-0 active:scale-95 transition-all duration-300 cursor-pointer group" onClick={() => navigate("/")}>
-              <div className="absolute inset-0 bg-primary/40 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative size-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center shadow-2xl">
-                <AppLogo size={24} />
+      <Sidebar
+        collapsible="icon"
+        className="border-r border-sidebar-border bg-sidebar-background transition-[width] duration-300"
+      >
+        {/* ===== Brand ===== */}
+        <SidebarHeader className="!bg-transparent px-4 pt-5 pb-4">
+          <button
+            onClick={() => navigate("/")}
+            className={cn(
+              "flex items-center gap-2.5 group w-full",
+              collapsed ? "justify-center" : ""
+            )}
+          >
+            <div className="relative shrink-0">
+              <div className="size-9 rounded-lg bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/[0.08] flex items-center justify-center shadow-sm">
+                <AppLogo size={20} />
               </div>
             </div>
             {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-col">
-                  <span className="font-display font-black tracking-tight text-white text-xl leading-none italic">
-                    PROSPER
-                  </span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-[10px] font-black tracking-[0.2em] text-primary uppercase opacity-90">
-                      OPERATIONS
-                    </span>
-                    <div className="size-1 rounded-full bg-primary/40 animate-pulse" />
-                  </div>
-                </div>
+              <div className="min-w-0 flex-1 text-left leading-none">
+                <p className="font-display text-[15px] font-bold tracking-tight text-white">
+                  Prosper
+                </p>
+                <p className="text-[9.5px] font-semibold tracking-[0.22em] uppercase text-white/35 mt-1">
+                  {portalLabel}
+                </p>
               </div>
             )}
-          </div>
+          </button>
 
           {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-10 w-full h-11 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] hover:border-white/[0.1] flex items-center gap-3 px-4 text-[13px] text-white/40 transition-all group relative overflow-hidden"
+              className="mt-4 w-full h-9 rounded-md bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.12] flex items-center gap-2.5 px-3 text-[12.5px] text-white/50 transition-colors group"
             >
-              <div className="absolute inset-0 animate-shimmer opacity-20" />
-              <Search className="size-4 group-hover:text-white transition-colors relative z-10" />
-              <span className="flex-1 text-left font-medium relative z-10">Buscar comando...</span>
-              <div className="flex items-center gap-1 rounded-md border border-white/5 bg-white/5 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white/20 relative z-10">
-                <span className="text-xs">⌘</span>K
-              </div>
+              <Search className="size-3.5 group-hover:text-white/80 transition-colors" />
+              <span className="flex-1 text-left font-medium">Buscar</span>
+              <kbd className="text-[10px] font-mono bg-white/[0.06] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-0.5 text-white/40">
+                <Command className="size-2.5" />K
+              </kbd>
             </button>
           )}
         </SidebarHeader>
 
-        <SidebarContent className="!bg-transparent px-4 pb-4 overflow-x-hidden vx-sidebar-scroll">
-          {sections.map((section, idx) => (idx === 0 || !collapsed) && (
-            <SidebarGroup key={section.label} className={cn("py-4", idx > 0 && "mt-2")}>
+        {/* ===== Navigation ===== */}
+        <SidebarContent className="!bg-transparent px-3 pb-4 overflow-x-hidden vx-sidebar-scroll">
+          {sections.map((section, idx) => (
+            <SidebarGroup
+              key={section.label}
+              className={cn("py-0", idx > 0 && "mt-4")}
+            >
               {!collapsed && (
-                <div className="px-3 mb-3 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/20">
-                    {section.label}
-                  </span>
+                <div className="px-3 mb-1.5 text-[9.5px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                  {section.label}
                 </div>
               )}
+              {collapsed && idx > 0 && (
+                <div className="h-px bg-white/[0.05] mx-2 mb-2" />
+              )}
               <SidebarGroupContent>
-                <SidebarMenu className="gap-1.5">
+                <SidebarMenu className="gap-0.5">
                   {section.items.map((item) => {
                     const active = isActive(item.url);
                     const Icon = item.icon;
-                    const counter = counterFor(item.counterKey);
-                    
                     return (
                       <SidebarMenuItem key={item.url}>
                         <SidebarMenuButton
@@ -389,21 +300,31 @@ export function AppSidebar() {
                           tooltip={collapsed ? item.title : undefined}
                           className="!h-auto !p-0 !bg-transparent"
                         >
-                          <NavLink to={item.url} end={item.url === "/"} data-active={active} className="vx-nav-item">
-                            <span className="vx-nav-icon-wrap">
-                              <Icon className={cn("size-4 transition-all", active ? "text-primary-foreground" : "text-inherit")} strokeWidth={active ? 2.5 : 2} />
-                            </span>
+                          <NavLink
+                            to={item.url}
+                            end={item.url === "/" || item.url.split("/").length === 2}
+                            className={cn(
+                              "group relative flex items-center rounded-md text-[13px] font-medium transition-colors duration-150",
+                              collapsed ? "justify-center h-9 w-9 mx-auto" : "h-9 px-3 gap-2.5",
+                              active
+                                ? "text-white bg-white/[0.07]"
+                                : "text-white/55 hover:text-white hover:bg-white/[0.035]"
+                            )}
+                          >
+                            {active && !collapsed && (
+                              <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-primary" />
+                            )}
+                            <Icon
+                              className={cn(
+                                "size-4 shrink-0 transition-colors",
+                                active ? "text-white" : "text-white/45 group-hover:text-white/85"
+                              )}
+                              strokeWidth={active ? 2.25 : 1.85}
+                            />
                             {!collapsed && (
-                              <>
-                                <span className={cn("flex-1 transition-colors tracking-tight", active ? "text-white font-bold" : "text-inherit")}>
-                                  {item.title}
-                                </span>
-                                {counter !== null && (
-                                  <span className="ml-auto flex items-center justify-center px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-black text-white/40 border border-white/5 group-hover:bg-white/10 group-hover:text-white transition-all">
-                                    {counter}
-                                  </span>
-                                )}
-                              </>
+                              <span className={cn("truncate", active && "font-semibold")}>
+                                {item.title}
+                              </span>
                             )}
                           </NavLink>
                         </SidebarMenuButton>
@@ -416,47 +337,65 @@ export function AppSidebar() {
           ))}
         </SidebarContent>
 
-
-        <SidebarFooter className="!bg-transparent p-4 mt-auto border-t border-white/5">
+        {/* ===== Footer: user + actions ===== */}
+        <SidebarFooter className="!bg-transparent p-3 mt-auto border-t border-white/[0.05]">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={cn(
-                "flex items-center gap-3 w-full p-2 rounded-xl transition-all hover:bg-white/5 group",
-                collapsed ? "justify-center" : "text-left"
-              )}>
-                <div className="size-8 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-[11px] font-bold text-primary shrink-0 transition-transform group-hover:scale-105">
-                  {initials(user?.user_metadata?.full_name || user?.email || "U")}
+              <button
+                className={cn(
+                  "w-full flex items-center gap-2.5 rounded-md p-2 hover:bg-white/[0.04] transition-colors group",
+                  collapsed && "justify-center"
+                )}
+              >
+                <div className="size-8 rounded-md bg-gradient-to-br from-primary/40 to-primary/15 border border-primary/25 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+                  {initials(fullName || user?.email || "U")}
                 </div>
                 {!collapsed && (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">
-                      {user?.user_metadata?.full_name || "Usuário"}
-                    </p>
-                    <p className="text-[10px] text-white/40 truncate font-medium">
-                      {user?.email}
-                    </p>
-                  </div>
+                  <>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-[12.5px] font-semibold text-white truncate leading-tight">
+                        {fullName}
+                      </p>
+                      <p className="text-[10.5px] text-white/40 truncate font-mono mt-0.5">
+                        {user?.email}
+                      </p>
+                    </div>
+                    <ChevronDown className="size-3.5 text-white/30 group-hover:text-white/60 transition-colors shrink-0" />
+                  </>
                 )}
-                {!collapsed && <ChevronDown className="size-3.5 text-white/20 group-hover:text-white/40 transition-colors" />}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl border-white/10 bg-[#09090b] text-white shadow-2xl">
-              <DropdownMenuLabel className="font-display font-bold px-3 py-2 text-xs uppercase tracking-widest text-white/30">
-                Minha Conta
+            <DropdownMenuContent
+              side={collapsed ? "right" : "top"}
+              align="end"
+              className="w-60 rounded-lg border-white/[0.08] bg-[#0c0d12] text-white shadow-2xl p-1.5"
+            >
+              <DropdownMenuLabel className="px-2.5 py-2">
+                <p className="text-[12px] font-semibold text-white truncate">{fullName}</p>
+                <p className="text-[10.5px] text-white/40 truncate font-mono mt-0.5">{user?.email}</p>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-white/5" />
-              <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-3 py-2.5 rounded-lg focus:bg-white/10 transition-colors cursor-pointer">
+              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuItem
+                onClick={() => navigate("/configuracoes")}
+                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md focus:bg-white/[0.06] cursor-pointer"
+              >
                 <Settings className="size-4 text-white/50" />
-                <span className="text-sm font-medium">Configurações</span>
+                Configurações
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/suporte")} className="gap-2.5 px-3 py-2.5 rounded-lg focus:bg-white/10 transition-colors cursor-pointer">
+              <DropdownMenuItem
+                onClick={() => navigate("/suporte")}
+                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md focus:bg-white/[0.06] cursor-pointer"
+              >
                 <LifeBuoy className="size-4 text-white/50" />
-                <span className="text-sm font-medium">Suporte</span>
+                Suporte
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/5" />
-              <DropdownMenuItem onClick={signOut} className="gap-2.5 px-3 py-2.5 rounded-lg focus:bg-destructive/10 text-destructive transition-colors cursor-pointer">
+              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuItem
+                onClick={signOut}
+                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md text-rose-400 focus:bg-rose-500/10 focus:text-rose-300 cursor-pointer"
+              >
                 <LogOut className="size-4" />
-                <span className="text-sm font-medium">Sair da conta</span>
+                Sair da conta
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -464,8 +403,8 @@ export function AppSidebar() {
       </Sidebar>
 
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
-        <CommandInput placeholder="Digite para buscar..." />
-        <CommandList className="max-h-[300px] vx-sidebar-scroll">
+        <CommandInput placeholder="Buscar..." />
+        <CommandList className="max-h-[320px] vx-sidebar-scroll">
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
           <CommandGroup heading="Navegação">
             {cmdItems.map((item) => (
@@ -475,12 +414,14 @@ export function AppSidebar() {
                   navigate(item.url);
                   setCmdOpen(false);
                 }}
-                className="gap-3 py-3 px-4 rounded-lg cursor-pointer"
+                className="gap-3 py-2.5 px-3 rounded-md cursor-pointer"
               >
                 <item.icon className="size-4 text-muted-foreground" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{item.title}</span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest">{item.group}</span>
+                  <span className="text-[13px] font-medium">{item.title}</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                    {item.group}
+                  </span>
                 </div>
               </CommandItem>
             ))}
