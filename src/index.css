@@ -204,7 +204,7 @@
 
   /* Premium Card — flat, hairline border, no glow */
   .vx-card {
-    @apply relative rounded-lg border border-border bg-card transition-colors duration-200;
+    @apply relative rounded-xl border border-border bg-card transition-all duration-200 shadow-sm;
   }
   .vx-card-hover { @apply transition-colors duration-200; }
   .vx-card-hover:hover {
