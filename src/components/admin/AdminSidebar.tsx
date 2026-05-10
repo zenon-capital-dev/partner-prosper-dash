@@ -185,7 +185,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       title={collapsed ? item.title : undefined}
                       className={cn(
                         "group relative flex items-center gap-3 h-8.5 rounded-md text-[12.5px] font-medium transition-all duration-200",
-                        collapsed ? "justify-center px-0" : "px-3",
+                        collapsed ? "justify-center px-0" : "px-2.5",
                         active
                           ? "bg-white/[0.06] text-white"
                           : "text-sidebar-foreground/55 hover:text-white hover:bg-white/[0.03]"
