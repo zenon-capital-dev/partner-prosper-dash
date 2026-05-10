@@ -225,7 +225,17 @@ export default function Documents() {
   }), [allDocs]);
 
   const filteredDocs = useMemo(() => allDocs.filter((d: any) => {
-    if (statusFilter !== "all" && d.status !== statusFilter) return false;
+    const effectiveStatus = (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status))) ? 'atrasado' : d.status;
+
+    if (statusFilter !== "all") {
+      if (statusFilter === 'atrasado') {
+        if (effectiveStatus !== 'atrasado') return false;
+      } else if (statusFilter === 'rejeitado') {
+        if (d.status !== 'rejeitado' && d.status !== 'reprovado') return false;
+      } else {
+        if (d.status !== statusFilter) return false;
+      }
+    }
     if (clientFilter !== "all" && d.clients?.id !== clientFilter) return false;
     if (productFilter !== "all") {
       const pid = d.product_id || d.client_products?.products?.id;
