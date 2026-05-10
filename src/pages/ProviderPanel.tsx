@@ -325,6 +325,97 @@ export default function ProviderPanel() {
               </div>
             </div>
 
+            <TabsContent value="dashboard" className="space-y-8 outline-none animate-fade-up">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <DashboardCard 
+                  label="Documentos para Análise" 
+                  value={stats.docsAwaiting} 
+                  icon={FileText} 
+                  description="Aguardando sua validação"
+                  tone={stats.docsAwaiting > 0 ? "warning" : "default"}
+                />
+                <DashboardCard 
+                  label="Demandas Urgentes" 
+                  value={stats.urgent} 
+                  icon={AlertCircle} 
+                  description="Alta prioridade"
+                  tone={stats.urgent > 0 ? "destructive" : "default"}
+                />
+                <DashboardCard 
+                  label="Reportes Pendentes" 
+                  value={stats.pendingReports} 
+                  icon={ClipboardCheck} 
+                  description="Necessário atualizar status"
+                />
+                <DashboardCard 
+                  label="Total a Receber" 
+                  value={formatBRL(stats.valuesToReceive)} 
+                  icon={Wallet} 
+                  description="Contratos ativos"
+                  tone="success"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="vx-card p-8 bg-white dark:bg-card rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center justify-between mb-8">
+                       <h3 className="font-editorial text-2xl font-bold">Demandas com Prazo Próximo</h3>
+                       <Button variant="ghost" className="text-primary text-xs font-bold uppercase tracking-widest" onClick={() => navigate("/prestador")}>Ver todas</Button>
+                    </div>
+                    {stats.nextDeadlines.length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic text-center py-10">Nenhum prazo próximo definido.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {stats.nextDeadlines.map((cp: any) => (
+                          <div 
+                            key={cp.id} 
+                            onClick={() => setSelectedProductId(cp.id)}
+                            className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/20 transition-all cursor-pointer group"
+                          >
+                             <div className="flex items-center gap-4">
+                                <div className="size-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 flex items-center justify-center">
+                                   <Clock className="size-5 text-slate-400 group-hover:text-primary transition-colors" />
+                                </div>
+                                <div>
+                                   <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{cp.clients?.full_name}</p>
+                                   <p className="text-xs text-muted-foreground">{cp.products?.name}</p>
+                                </div>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(cp.deadline)}</p>
+                                <p className="text-[10px] text-rose-500 font-bold uppercase tracking-widest mt-1">Prazo Fatal</p>
+                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="vx-card p-6 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
+                    <h3 className="font-editorial text-xl font-bold mb-6 relative">Central do Prestador</h3>
+                    <div className="space-y-4 relative">
+                       <p className="text-sm text-white/60 leading-relaxed">
+                         Mantenha seus reportes em dia para garantir a liberação dos pagamentos. 
+                         Em caso de dúvidas sobre o escopo, entre em contato com o gestor operacional.
+                       </p>
+                       <div className="pt-4 space-y-3">
+                          <Button className="w-full bg-white text-slate-900 hover:bg-primary hover:text-white font-bold h-11 rounded-xl">
+                             Manual de Procedimentos
+                          </Button>
+                          <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 h-11 rounded-xl">
+                             Suporte Operacional
+                          </Button>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="clientes" className="space-y-4 outline-none">
               {isLoading ? (
                 <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>
