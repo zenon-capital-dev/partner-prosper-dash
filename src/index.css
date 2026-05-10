@@ -11,84 +11,84 @@
 
 @layer base {
   :root {
-    /* Neutral surface — cooler, premium SaaS */
-    --background: 220 24% 98.5%;
-    --foreground: 224 50% 6%;
+    /* Neutral surface — soft off-white, never harsh white */
+    --background: 220 20% 97%;
+    --foreground: 222 47% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 42% 10%;
+    --card-foreground: 222 47% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 42% 10%;
+    --popover-foreground: 222 47% 9%;
 
-    /* Brand — Professional Indigo */
-    --primary: 243 75% 50%;
+    /* Brand — Deep Corporate Indigo (Stripe / Ramp tone) */
+    --primary: 230 60% 22%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 243 80% 96%;
-    --primary-glow: 250 90% 70%;
+    --primary-muted: 230 40% 95%;
+    --primary-glow: 230 70% 38%;
 
-    --secondary: 220 18% 96%;
-    --secondary-foreground: 224 38% 14%;
+    --secondary: 220 16% 95%;
+    --secondary-foreground: 222 40% 14%;
 
-    --muted: 220 14% 95%;
-    --muted-foreground: 220 10% 42%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 40%;
 
-    --accent: 220 18% 96%;
-    --accent-foreground: 243 75% 35%;
+    --accent: 220 16% 94%;
+    --accent-foreground: 230 60% 26%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 358 68% 48%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 84% 96%;
+    --destructive-muted: 358 70% 96%;
 
-    --border: 220 14% 91%;
-    --input: 220 14% 89%;
-    --ring: 243 75% 50%;
+    --border: 220 13% 88%;
+    --input: 220 13% 86%;
+    --ring: 230 60% 30%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
-    /* Sidebar — Deep Slate */
-    --sidebar-background: 224 45% 4%;
-    --sidebar-foreground: 220 10% 65%;
-    --sidebar-primary: 243 75% 59%;
+    /* Sidebar — Near-black corporate slate */
+    --sidebar-background: 222 38% 6%;
+    --sidebar-foreground: 220 10% 62%;
+    --sidebar-primary: 230 70% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 35% 8%;
+    --sidebar-accent: 222 30% 10%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 224 35% 8%;
-    --sidebar-ring: 243 75% 59%;
-    --sidebar-muted: 220 10% 45%;
+    --sidebar-border: 222 30% 11%;
+    --sidebar-ring: 230 70% 60%;
+    --sidebar-muted: 220 10% 42%;
 
-    /* Status palette */
-    --success: 152 70% 42%;
+    /* Status palette — corporate, desaturated */
+    --success: 158 58% 32%;
     --success-foreground: 0 0% 100%;
-    --success-muted: 152 70% 95%;
-    --warning: 35 92% 52%;
+    --success-muted: 158 50% 94%;
+    --warning: 32 78% 44%;
     --warning-foreground: 0 0% 100%;
-    --warning-muted: 35 92% 95%;
-    --info: 210 92% 56%;
+    --warning-muted: 36 80% 94%;
+    --info: 215 70% 42%;
     --info-foreground: 0 0% 100%;
-    --info-muted: 210 92% 95%;
+    --info-muted: 215 70% 95%;
 
-    /* Chart palette — vibrant + harmonized */
-    --chart-1: 243 75% 59%;
-    --chart-2: 174 72% 42%;
-    --chart-3: 35 92% 52%;
-    --chart-4: 320 70% 58%;
-    --chart-5: 152 70% 42%;
-    --chart-6: 210 92% 56%;
+    /* Chart palette — controlled corporate tones */
+    --chart-1: 230 60% 38%;
+    --chart-2: 195 55% 38%;
+    --chart-3: 32 78% 48%;
+    --chart-4: 280 35% 45%;
+    --chart-5: 158 50% 36%;
+    --chart-6: 215 65% 48%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(243 75% 59%) 0%, hsl(265 80% 64%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(152 70% 42%) 0%, hsl(174 72% 42%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 25% 98%) 100%);
-    --gradient-sidebar: linear-gradient(180deg, hsl(224 45% 6%) 0%, hsl(224 45% 4%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top, hsl(243 75% 59% / 0.15), transparent 60%);
+    /* Gradients — subtle, never neon */
+    --gradient-primary: linear-gradient(135deg, hsl(230 60% 22%) 0%, hsl(230 55% 32%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(158 58% 32%) 0%, hsl(170 50% 36%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98.5%) 100%);
+    --gradient-sidebar: linear-gradient(180deg, hsl(222 38% 7%) 0%, hsl(222 38% 5%) 100%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(230 60% 30% / 0.06), transparent 60%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px hsl(224 38% 12% / 0.04);
-    --shadow-md: 0 4px 12px -2px hsl(224 38% 12% / 0.06), 0 2px 4px -1px hsl(224 38% 12% / 0.04);
-    --shadow-lg: 0 12px 32px -8px hsl(224 38% 12% / 0.08), 0 4px 8px -2px hsl(224 38% 12% / 0.04);
-    --shadow-xl: 0 24px 48px -12px hsl(224 38% 12% / 0.12);
-    --shadow-glow: 0 0 0 1px hsl(243 75% 59% / 0.1), 0 8px 24px -4px hsl(243 75% 59% / 0.25);
+    /* Shadows — almost flat, just hairline depth */
+    --shadow-sm: 0 1px 0 hsl(220 20% 88% / 0.6);
+    --shadow-md: 0 1px 2px hsl(222 38% 12% / 0.04), 0 1px 0 hsl(220 20% 88% / 0.5);
+    --shadow-lg: 0 4px 16px -6px hsl(222 38% 12% / 0.06), 0 1px 0 hsl(220 20% 88% / 0.5);
+    --shadow-xl: 0 12px 32px -12px hsl(222 38% 12% / 0.10);
+    --shadow-glow: 0 0 0 1px hsl(230 60% 30% / 0.12);
   }
 
   .dark {
@@ -202,41 +202,40 @@
     @apply mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-10 space-y-8;
   }
 
-  /* Premium Card */
+  /* Premium Card — flat, hairline border, no glow */
   .vx-card {
-    @apply relative rounded-xl border border-border bg-card transition-all duration-300;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.02), 0 1px 2px -1px rgb(0 0 0 / 0.02);
+    @apply relative rounded-lg border border-border bg-card transition-colors duration-200;
   }
-  .vx-card-hover { @apply transition-all duration-300; }
+  .vx-card-hover { @apply transition-colors duration-200; }
   .vx-card-hover:hover {
-    @apply border-border/80 shadow-md;
+    @apply border-foreground/15;
   }
 
-  /* Pills/Badges */
+  /* Pills/Badges — sober corporate tones */
   .vx-pill {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground transition-all;
+    @apply inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground transition-all;
   }
-  .vx-pill-success { @apply border-emerald-500/20 bg-emerald-50 text-emerald-600; }
-  .vx-pill-info    { @apply border-blue-500/20 bg-blue-50 text-blue-600; }
-  .vx-pill-warning { @apply border-amber-500/20 bg-amber-50 text-amber-600; }
-  .vx-pill-danger  { @apply border-rose-500/20 bg-rose-50 text-rose-600; }
-  .vx-pill-primary { @apply border-primary/20 bg-primary-muted text-primary; }
+  .vx-pill-success { @apply border-success/25 bg-success-muted text-success; }
+  .vx-pill-info    { @apply border-info/25 bg-info-muted text-info; }
+  .vx-pill-warning { @apply border-warning/25 bg-warning-muted text-warning; }
+  .vx-pill-danger  { @apply border-destructive/25 bg-destructive-muted text-destructive; }
+  .vx-pill-primary { @apply border-primary/25 bg-primary-muted text-primary; }
 
-  /* Tables */
+  /* Tables — dense, professional */
   .vx-table-wrap {
-    @apply overflow-hidden rounded-xl border border-border bg-card;
+    @apply overflow-hidden rounded-lg border border-border bg-card;
   }
   .vx-table {
-    @apply w-full text-left text-sm;
+    @apply w-full text-left text-[13px];
   }
   .vx-table-head {
-    @apply bg-muted/30 border-b border-border text-[11px] font-bold uppercase tracking-widest text-muted-foreground;
+    @apply bg-muted/40 border-b border-border text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
   }
   .vx-table-row {
-    @apply border-b border-border/50 transition-colors hover:bg-muted/10 last:border-0;
+    @apply border-b border-border/60 transition-colors hover:bg-muted/30 last:border-0;
   }
   .vx-table-cell {
-    @apply px-6 py-4;
+    @apply px-5 py-3.5;
   }
 
   /* Sidebar items */
@@ -258,21 +257,20 @@
     @apply font-display text-2xl lg:text-4xl font-bold tracking-tight text-foreground tabular-nums;
   }
 
-  /* Premium button surface */
+  /* Premium button surface — flat, controlled, corporate */
   .btn-premium {
-    background: var(--gradient-primary);
-    @apply text-primary-foreground shadow-md transition-all duration-200;
-    box-shadow: 0 1px 2px hsl(var(--primary) / 0.2), 0 4px 14px -4px hsl(var(--primary) / 0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+    background: hsl(var(--primary));
+    @apply text-primary-foreground transition-colors duration-150;
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.08), 0 1px 0 hsl(222 38% 8% / 0.4);
   }
   .btn-premium:hover {
-    @apply -translate-y-0.5;
-    box-shadow: 0 1px 2px hsl(var(--primary) / 0.2), 0 8px 24px -4px hsl(var(--primary) / 0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+    background: hsl(230 60% 28%);
   }
-  .btn-premium:active { @apply translate-y-0 scale-[0.98]; }
+  .btn-premium:active { @apply scale-[0.99]; }
 
-  /* Glass header */
+  /* Glass header — subtle, no heavy blur */
   .glass-header {
-    @apply sticky top-0 z-40 w-full border-b border-border/40 bg-background/75 backdrop-blur-xl;
+    @apply sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur-md;
   }
 
   /* Animations */
@@ -296,15 +294,13 @@
   .admin-shell { @apply bg-background min-h-screen selection:bg-primary/15 selection:text-primary; }
 
   .cp-panel {
-    @apply rounded-2xl border border-border bg-card transition-all duration-300;
-    box-shadow: var(--shadow-sm);
+    @apply rounded-lg border border-border bg-card transition-colors duration-200;
   }
   .cp-panel-hover:hover {
-    @apply border-primary/25 -translate-y-0.5;
-    box-shadow: var(--shadow-lg);
+    @apply border-foreground/15;
   }
-  .cp-stat-label { @apply text-[11px] font-medium uppercase tracking-wider text-muted-foreground/80; }
-  .cp-stat-value { @apply text-3xl font-bold tracking-tight text-foreground tabular-nums; }
+  .cp-stat-label { @apply text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground; }
+  .cp-stat-value { @apply text-[26px] font-semibold tracking-tight text-foreground tabular-nums leading-none; }
   .cp-divider { @apply h-px bg-border; }
 
   .cp-pill { @apply inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-bold border; }
@@ -383,22 +379,20 @@
     @apply inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground/50;
   }
 
-  /* Glass card — refined, less blur, more substance */
+  /* Glass card — flat corporate surface */
   .glass-card {
-    @apply relative rounded-2xl border border-border bg-card transition-all duration-300;
-    box-shadow: var(--shadow-sm);
+    @apply relative rounded-lg border border-border bg-card transition-colors duration-200;
   }
   .glass-card:hover {
-    @apply border-primary/25;
-    box-shadow: var(--shadow-md);
+    @apply border-foreground/15;
   }
 
-  /* Page hero — editorial layout, no curves, sharp definition */
+  /* Page hero — editorial, sober */
   .page-hero {
-    @apply relative rounded-2xl border border-border overflow-hidden bg-card;
+    @apply relative rounded-lg border border-border overflow-hidden bg-card;
   }
   .page-hero-inner {
-    @apply relative px-6 lg:px-8 py-7 lg:py-8;
+    @apply relative px-6 lg:px-8 py-6 lg:py-7;
   }
 
   @keyframes progress-glow {
