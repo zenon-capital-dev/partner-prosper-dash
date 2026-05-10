@@ -563,7 +563,7 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
     contract: { icon: FileSignature, label: 'Contrato', color: 'bg-orange-500/10 text-orange-500' },
     task: { icon: CheckSquare, label: 'Tarefa', color: 'bg-rose-500/10 text-rose-500' },
     request: { icon: MessageSquare, label: 'Solicitação', color: 'bg-cyan-500/10 text-cyan-500' },
-    report: { icon: History, label: 'Reporte', color: 'bg-slate-500/10 text-slate-500' },
+    report: { icon: HistoryIcon, label: 'Reporte', color: 'bg-slate-500/10 text-slate-500' },
   };
 
   const severityColors = {
@@ -673,7 +673,7 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
             </DropdownMenuItem>
             
             <DropdownMenuItem onClick={() => onAction('view-history')} className="gap-2.5 cursor-pointer">
-              <History className="size-4" /> Ver Histórico
+              <HistoryIcon className="size-4" /> Ver Histórico
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
