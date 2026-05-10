@@ -106,7 +106,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       <aside
         className={cn(
           "h-svh sticky top-0 shrink-0 flex flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-[width] duration-500 ease-[cubic-bezier(0.2,0,0,1)] z-50 overflow-hidden",
-          collapsed ? "w-[72px]" : "w-[260px]"
+          collapsed ? "w-[68px]" : "w-[240px]"
         )}
       >
         {/* Brand */}
