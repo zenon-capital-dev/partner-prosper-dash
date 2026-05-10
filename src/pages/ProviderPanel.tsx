@@ -297,11 +297,14 @@ export default function ProviderPanel() {
           </div>
         ) : (
           /* MAIN LIST VIEW */
-          <Tabs defaultValue="clientes" className="space-y-8 animate-fade-up">
+          <Tabs defaultValue="dashboard" className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12">
+                <TabsTrigger value="dashboard" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
+                   Home
+                </TabsTrigger>
                 <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Atendimentos ({clientProducts.length})
+                   Minhas Demandas ({clientProducts.length})
                 </TabsTrigger>
                 <TabsTrigger value="documentos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
                    Documentos
@@ -309,15 +312,12 @@ export default function ProviderPanel() {
                 <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
                    Reportes
                 </TabsTrigger>
-                <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Meus Contratos ({contracts.length})
-                </TabsTrigger>
               </TabsList>
 
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input 
-                  placeholder="Filtrar por cliente ou serviço..." 
+                  placeholder="Buscar demanda..." 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10 h-12 bg-white/50 dark:bg-card border-slate-200 dark:border-white/5 rounded-2xl w-full md:w-[320px] transition-all focus:ring-primary/20"
