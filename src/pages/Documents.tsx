@@ -268,11 +268,12 @@ export default function Documents() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={String(kpis.total)} icon={FileText} iconColor="primary" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <StatCard label="Total de Docs" value={String(kpis.total)} icon={FileText} iconColor="primary" />
         <StatCard label="Pendentes" value={String(kpis.pendentes)} icon={Clock} iconColor="warning" />
         <StatCard label="Aprovados" value={String(kpis.aprovados)} icon={Check} iconColor="success" />
-        <StatCard label="Reprovados / vencidos" value={String(kpis.reprovados)} icon={X} iconColor="destructive" />
+        <StatCard label="Rejeitados" value={String(kpis.rejeitados)} icon={X} iconColor="destructive" />
+        <StatCard label="Atrasados" value={String(kpis.atrasados)} icon={AlertCircle} iconColor="destructive" />
       </div>
 
       {/* Filters */}
