@@ -176,26 +176,42 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, payments, leads, proposals, contracts]);
 
   return (
-    <div className="p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+    <div className="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto animate-in fade-in duration-700">
       
-      {/* === TOP BAR (EXECUTIVE HEADER) === */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* === TOP BAR (EXECUTIVE COCKPIT HEADER) === */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-4 border-b border-white/[0.03]">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{today} · Sistema Ativo</span>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Operação em Tempo Real</span>
+            </div>
+            <span className="text-[10px] font-medium text-zinc-500">{today}</span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
-            {greeting}, <span className="text-zinc-400 font-normal">{firstName}</span>.
+          <h1 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
+            {greeting}, {firstName}
+            <span className="text-zinc-600 font-normal">/ Visão Executiva</span>
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link to="/leads?new=1" className="h-9 px-4 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all text-[13px] font-medium text-white flex items-center gap-2">
-            <Plus className="size-3.5" /> Nova Negociação
+        <div className="flex flex-1 max-w-md mx-auto hidden xl:block">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
+            <input 
+              type="text"
+              placeholder="Pesquisar em toda a plataforma..."
+              className="w-full h-10 pl-9 pr-4 bg-zinc-900/40 border border-white/[0.05] rounded-xl text-[13px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 focus:border-indigo-500/30 transition-all"
+              onFocus={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }))}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <Link to="/leads?new=1" className="h-9 px-4 rounded-lg bg-zinc-900/50 border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all text-[12.5px] font-medium text-zinc-300 flex items-center gap-2">
+            <Target className="size-3.5" /> Negociação
           </Link>
-          <Link to="/vendas?new=1" className="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-all text-[13px] font-semibold text-white flex items-center gap-2 shadow-lg shadow-indigo-500/20">
-            <TrendingUp className="size-3.5" /> Registrar Venda
+          <Link to="/vendas?new=1" className="h-9 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-all text-[12.5px] font-semibold text-white flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+            <TrendingUp className="size-3.5" /> Fechamento
           </Link>
         </div>
       </div>
