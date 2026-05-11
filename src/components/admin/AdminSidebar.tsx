@@ -234,75 +234,55 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         </nav>
 
 
-        {/* Info Box */}
-        {!collapsed && (
-          <div className="relative px-3 pb-3">
-            <div className="relative overflow-hidden rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.04] to-transparent p-3.5">
-              <div className="absolute -top-8 -right-8 size-20 rounded-full bg-indigo-500/15 blur-2xl" />
-              <div className="relative flex items-start gap-2.5">
-                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center ring-1 ring-white/15 shrink-0">
-                  <Sparkles className="size-3.5 text-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-[Fraunces,serif] text-[12px] font-medium text-white leading-tight">Edição Executive</p>
-                  <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">
-                    Acesso total liberado · <Link to="/configuracoes" className="text-indigo-300 hover:text-indigo-200 font-semibold">gerenciar</Link>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* User */}
-        <div className="border-t border-white/[0.05] p-2">
+        <div className="border-t border-slate-100 dark:border-white/[0.05] p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-white/[0.04] transition-colors group",
+                  "w-full flex items-center gap-3 rounded-2xl p-2 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-all group",
                   collapsed && "justify-center"
                 )}
               >
                 <div className="relative shrink-0">
-                  <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[11px] font-bold text-zinc-300">
+                  <div className="size-10 rounded-xl bg-slate-900 dark:bg-zinc-800 border border-slate-700 dark:border-white/[0.1] flex items-center justify-center text-[12px] font-black text-white shadow-lg">
                     {initials(displayName)}
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 border-2 border-[#09090b]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#09090b] shadow-sm" />
                 </div>
                 {!collapsed && (
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-semibold text-white truncate leading-tight">
+                    <p className="text-[14px] font-bold text-slate-900 dark:text-white truncate leading-tight tracking-tight">
                       {String(displayName).split(/[@ ]/)[0]}
                     </p>
-                    <p className="text-[10.5px] text-white/40 truncate mt-0.5">{user?.email}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 dark:text-white/30 truncate mt-0.5 tracking-tight">{user?.email}</p>
                   </div>
                 )}
-                {!collapsed && <ChevronDown className="size-3.5 text-white/30 group-hover:text-white/60 transition-colors shrink-0" />}
+                {!collapsed && <ChevronDown className="size-4 text-slate-300 dark:text-white/20 group-hover:text-slate-500 transition-colors shrink-0" />}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               side={collapsed ? "right" : "top"}
               align="end"
-              className="w-60 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl"
+              className="w-64 bg-white dark:bg-[#0c0c14] border-slate-200 dark:border-white/[0.08] p-1.5 rounded-2xl shadow-2xl"
             >
-              <div className="px-2 py-2 flex items-center gap-2.5">
-                <div className="size-9 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[12px] font-bold text-white">{initials(displayName)}</div>
+              <div className="px-3 py-3 flex items-center gap-3">
+                <div className="size-10 rounded-xl bg-slate-900 dark:bg-zinc-800 flex items-center justify-center text-[13px] font-black text-white shadow-lg">{initials(displayName)}</div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-semibold truncate">{displayName}</p>
-                  <p className="text-[10.5px] text-white/45 truncate">{user?.email}</p>
+                  <p className="text-[14px] font-bold text-slate-900 dark:text-white truncate tracking-tight">{displayName}</p>
+                  <p className="text-[10.5px] font-medium text-slate-500 dark:text-white/45 truncate">{user?.email}</p>
                 </div>
               </div>
-              <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
-              <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
-                <Settings className="size-3.5 text-white/45" /> Preferências
+              <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/[0.06] my-1.5" />
+              <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-lg focus:bg-slate-50 dark:focus:bg-white/[0.06] cursor-pointer text-slate-700 dark:text-zinc-300">
+                <Settings className="size-4 opacity-50" /> Meu Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/suporte")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
-                <LifeBuoy className="size-3.5 text-white/45" /> Ajuda & suporte
+              <DropdownMenuItem onClick={() => navigate("/suporte")} className="gap-3 px-3 py-2.5 text-[13px] font-semibold rounded-lg focus:bg-slate-50 dark:focus:bg-white/[0.06] cursor-pointer text-slate-700 dark:text-zinc-300">
+                <LifeBuoy className="size-4 opacity-50" /> Suporte VIP
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
-              <DropdownMenuItem onClick={signOut} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md text-rose-300 focus:bg-rose-500/10 focus:text-rose-200 cursor-pointer">
-                <LogOut className="size-3.5" /> Sair
+              <DropdownMenuSeparator className="bg-slate-100 dark:bg-white/[0.06] my-1.5" />
+              <DropdownMenuItem onClick={signOut} className="gap-3 px-3 py-2.5 text-[13px] font-bold rounded-lg text-rose-500 focus:bg-rose-50 dark:focus:bg-rose-500/10 cursor-pointer">
+                <LogOut className="size-4" /> Finalizar Sessão
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
