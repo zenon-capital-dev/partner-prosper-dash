@@ -405,10 +405,10 @@ export default function Demands() {
                                     <div className="flex items-start justify-between mb-3">
                                       <div className="flex flex-col gap-1">
                                         <h4 className="text-[11px] font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
-                                          {demand.clients?.full_name}
+                                          {demand.companies?.trade_name || demand.companies?.name || demand.clients?.company || demand.clients?.full_name}
                                         </h4>
                                         <p className="text-[9px] text-muted-foreground/60 font-bold uppercase tracking-wider truncate max-w-[150px]">
-                                          {demand.products?.name}
+                                          {demand.products?.name} {demand.companies && <span className="text-[8px] opacity-40">({demand.clients?.full_name})</span>}
                                         </p>
                                       </div>
                                       <Badge variant="outline" className={cn("h-4 text-[8px] font-black uppercase border-none px-1.5", priority.color)}>
