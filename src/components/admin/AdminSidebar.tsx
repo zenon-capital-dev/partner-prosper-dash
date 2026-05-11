@@ -264,11 +264,20 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
 
         {/* Info Box */}
         {!collapsed && (
-          <div className="px-3 pb-4">
-            <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
-              <p className="text-[10px] text-zinc-500 leading-snug">
-                Você está usando a versão Pro. <Link to="/configuracoes" className="text-zinc-300 hover:text-white underline underline-offset-2">Ver detalhes</Link>
-              </p>
+          <div className="relative px-3 pb-3">
+            <div className="relative overflow-hidden rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.04] to-transparent p-3.5">
+              <div className="absolute -top-8 -right-8 size-20 rounded-full bg-indigo-500/15 blur-2xl" />
+              <div className="relative flex items-start gap-2.5">
+                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center ring-1 ring-white/15 shrink-0">
+                  <Sparkles className="size-3.5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-[Fraunces,serif] text-[12px] font-medium text-white leading-tight">Edição Executive</p>
+                  <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">
+                    Acesso total liberado · <Link to="/configuracoes" className="text-indigo-300 hover:text-indigo-200 font-semibold">gerenciar</Link>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
