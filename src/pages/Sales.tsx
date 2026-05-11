@@ -168,6 +168,97 @@ export default function Sales() {
         ]}
       />
 
+      {/* ============ INSIGHTS ROW ============ */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
+        <div className="lg:col-span-7 vx-card p-5 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+                <BarChart3 className="size-3 text-indigo-500" /> Performance · 30 dias
+              </div>
+              <h3 className="font-display text-base font-bold mt-1 text-slate-900 dark:text-white">Fluxo de Receita Diário</h3>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total no período</p>
+              <p className="font-display text-lg font-bold tabular-nums text-indigo-600 dark:text-indigo-300">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
+            </div>
+          </div>
+          <div className="h-[160px] -mx-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={series30d} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#94a3b8" }} interval={4} tickLine={false} axisLine={false} />
+                <Tooltip
+                  formatter={(v: any) => formatBRL(Number(v))}
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 12 }}
+                  labelStyle={{ fontSize: 10, fontWeight: 600 }}
+                />
+                <Area type="monotone" dataKey="v" stroke="#6366f1" strokeWidth={2} fill="url(#salesGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="lg:col-span-5 space-y-4">
+          <div className="vx-card p-5">
+            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600 mb-3">
+              <Sparkles className="size-3 text-violet-500" /> Distribuição por Status
+            </div>
+            <div className="space-y-2.5">
+              {statusBreakdown.map((row) => (
+                <div key={row.key}>
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="font-semibold text-slate-700 dark:text-zinc-300">{row.label}</span>
+                    <span className="tabular-nums font-bold text-slate-900 dark:text-white">{formatBRL(row.value)} <span className="text-muted-foreground font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                    <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="vx-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+                <Trophy className="size-3 text-amber-500" /> Top Parceiros
+              </div>
+              <Users className="size-3.5 text-muted-foreground/40" />
+            </div>
+            {topPartners.length === 0 ? (
+              <p className="text-[12px] text-muted-foreground text-center py-3">Sem vendas via parceiros ainda.</p>
+            ) : (
+              <div className="space-y-2">
+                {topPartners.map((p, i) => (
+                  <div key={p.name} className="flex items-center gap-3">
+                    <div className={cn(
+                      "size-7 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0",
+                      i === 0 && "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md",
+                      i === 1 && "bg-gradient-to-br from-slate-300 to-slate-500 text-white",
+                      i === 2 && "bg-gradient-to-br from-amber-700 to-amber-900 text-white",
+                      i > 2 && "bg-slate-100 dark:bg-white/5 text-slate-500",
+                    )}>
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12.5px] font-semibold text-slate-800 dark:text-white truncate">{p.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{p.deals} {p.deals === 1 ? "venda" : "vendas"}</p>
+                    </div>
+                    <p className="text-[12px] font-bold tabular-nums text-indigo-600 dark:text-indigo-300">{formatBRL(p.total)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Filter Bar */}
       <div className="toolbar">
         <div className="relative flex-1">
