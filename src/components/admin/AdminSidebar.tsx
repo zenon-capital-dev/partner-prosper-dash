@@ -134,11 +134,11 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl">
               <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Workspace</DropdownMenuLabel>
-              <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.04] mb-1">
-                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center"><Zap className="size-3.5 text-white" fill="white" /></div>
+              <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05] mb-1">
+                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center"><Zap className="size-4 text-zinc-300" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-semibold truncate">Prosper</p>
-                  <p className="text-[10.5px] text-white/45">Plano Pro · 12 usuários</p>
+                  <p className="text-[12.5px] font-semibold text-white">Prosper</p>
+                  <p className="text-[10.5px] text-zinc-500">Plano Pro · 12 usuários</p>
                 </div>
               </div>
               <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
