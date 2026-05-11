@@ -539,27 +539,36 @@ function KpiCard({
 }: {
   label: string; value: string; icon: any; tone: Tone; hint?: string; delta?: number | null;
 }) {
-  const ts = toneStyles[tone];
+  const toneAccent: Record<Tone, { bar: string; iconBg: string; iconFg: string }> = {
+    primary: { bar: "bg-indigo-400", iconBg: "bg-indigo-500/15 border-indigo-500/25", iconFg: "text-indigo-300" },
+    success: { bar: "bg-emerald-400", iconBg: "bg-emerald-500/15 border-emerald-500/25", iconFg: "text-emerald-300" },
+    warning: { bar: "bg-amber-400", iconBg: "bg-amber-500/15 border-amber-500/25", iconFg: "text-amber-300" },
+    danger:  { bar: "bg-rose-400", iconBg: "bg-rose-500/15 border-rose-500/25", iconFg: "text-rose-300" },
+    info:    { bar: "bg-sky-400", iconBg: "bg-sky-500/15 border-sky-500/25", iconFg: "text-sky-300" },
+    neutral: { bar: "bg-white/40", iconBg: "bg-white/[0.05] border-white/[0.08]", iconFg: "text-white/60" },
+  };
+  const acc = toneAccent[tone];
   const positive = delta != null && delta > 0;
   const negative = delta != null && delta < 0;
   return (
-    <div className="relative vx-card p-6 overflow-hidden group">
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40 truncate pr-2">{label}</p>
-        <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0 backdrop-blur-md border border-white/10", ts.bg, ts.fg)}>
-          <Icon className="size-4" strokeWidth={2.2} />
+    <div className="group relative rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.55)] backdrop-blur-xl p-4 transition-all duration-200 hover:border-white/[0.14] hover:bg-[hsl(240_30%_8%_/_0.7)] overflow-hidden">
+      <span className={cn("absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity", acc.bar)} />
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 truncate pr-2">{label}</p>
+        <div className={cn("size-7 rounded-lg flex items-center justify-center shrink-0 border", acc.iconBg, acc.iconFg)}>
+          <Icon className="size-3.5" strokeWidth={2.2} />
         </div>
       </div>
-      <p className="font-display text-[34px] lg:text-[40px] font-bold tracking-tighter text-white tabular-nums leading-none truncate">{value}</p>
-      <div className="mt-3 flex items-center gap-2 text-[12px] min-h-[18px]">
+      <p className="font-display text-[24px] lg:text-[26px] font-bold tracking-tight text-white tabular-nums leading-none truncate">{value}</p>
+      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] min-h-[16px]">
         {delta != null ? (
           <span className={cn(
-            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-2 py-0.5 rounded-md backdrop-blur",
+            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-1.5 py-0.5 rounded text-[10.5px]",
             positive && "text-emerald-300 bg-emerald-500/10",
             negative && "text-rose-300 bg-rose-500/10",
             !positive && !negative && "text-white/40 bg-white/[0.04]"
           )}>
-            {positive ? <TrendingUp className="size-3" /> : negative ? <TrendingDown className="size-3" /> : null}
+            {positive ? <TrendingUp className="size-2.5" /> : negative ? <TrendingDown className="size-2.5" /> : null}
             {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
           </span>
         ) : null}
