@@ -5,7 +5,7 @@ import {
   CheckCircle2, FileWarning, CreditCard, FileSignature, Target, Handshake,
   Plus, ArrowUpRight, Phone, CalendarClock, AlertTriangle, Bell,
   FileText, ChevronRight, Crown, Briefcase, ClipboardList, Sparkles,
-  Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter,
+  Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter, Zap,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
@@ -911,40 +911,46 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
 }) {
   const t = toneColor[tone];
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-5 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none">
-      <div className={cn("absolute -top-8 -right-8 size-24 rounded-full blur-3xl opacity-50 dark:opacity-40", t.bg)} />
-      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(to right, ${t.chart}, ${t.chart}90)` }} />
-      <div className="relative">
-        <div className="flex items-start justify-between mb-3">
-          <div className={cn("size-10 rounded-xl flex items-center justify-center border ring-4", t.bg, t.border, t.text, t.ring)}>
-            <Icon className="size-4.5" strokeWidth={2} />
-          </div>
-          <div className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border tabular-nums", up ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/25" : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/25")}>
-            {up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-            {delta}
-          </div>
+    <div className={cn(
+      "group relative p-6 rounded-[2rem] border transition-all duration-500",
+      "bg-white dark:bg-white/[0.03] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2",
+      t.border,
+      t.soft,
+      "overflow-hidden"
+    )}>
+      <div className="absolute bottom-0 right-0 w-3/4 h-24 opacity-5 group-hover:opacity-15 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={sparkData}>
+            <Area type="monotone" dataKey="v" stroke={t.chart} fill={t.chart} strokeWidth={4} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="relative flex items-start justify-between mb-6">
+        <div className={cn("p-4 rounded-2xl shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3", t.bg, t.text)}>
+          <Icon className="size-6" />
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-zinc-500 leading-tight">{label}</p>
-        <p className="text-[26px] lg:text-[28px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-1 leading-none">{value}</p>
-        <div className="h-10 mt-2 -mx-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sparkData} margin={{ top: 2, right: 2, left: 2, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`spark-${tone}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={t.chart} stopOpacity={0.4} />
-                  <stop offset="100%" stopColor={t.chart} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="v" stroke={t.chart} strokeWidth={1.8} fill={`url(#spark-${tone})`} />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className={cn(
+          "flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md",
+          up 
+            ? "text-emerald-600 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20" 
+            : "text-rose-600 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20"
+        )}>
+          {up ? <ArrowUpRight className="size-3.5" /> : <TrendingDown className="size-3.5" />}
+          {delta}
         </div>
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
-          <p className="text-[10px] text-slate-500 dark:text-zinc-500 truncate flex-1">{caption}</p>
-          <span className="text-[10px] font-bold tabular-nums" style={{ color: t.chart }}>{progress}%</span>
+      </div>
+      <div className="relative space-y-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">{label}</p>
+        <h3 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none tabular-nums">{value}</h3>
+        <p className="text-[11px] font-bold text-slate-400 dark:text-zinc-600 tracking-tight">{caption}</p>
+      </div>
+      <div className="relative mt-8 pt-5 border-t border-slate-100 dark:border-white/[0.03]">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Growth Index</span>
+          <span className="text-[11px] font-black text-slate-900 dark:text-white">{Math.round(progress)}%</span>
         </div>
-        <div className="mt-1.5 h-1 rounded-full bg-slate-100 dark:bg-white/[0.04] overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, progress)}%`, background: `linear-gradient(to right, ${t.chart}, ${t.chart}cc)` }} />
+        <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
+          <div className={cn("h-full rounded-full transition-all duration-1000 ease-out", t.grad)} style={{ width: `${Math.min(100, progress)}%` }} />
         </div>
       </div>
     </div>
