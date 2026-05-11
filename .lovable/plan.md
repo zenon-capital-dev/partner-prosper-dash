@@ -1,46 +1,36 @@
-# Plan: Executive Overhaul of Provider and Partner Panels
+Finalizar o CRM com uma revisão completa de arquitetura, funcionalidades, permissões, layout e experiência de uso para os 4 perfis de usuários.
 
-Improve the Provider (Prestador) and Partner (Parceiro) dashboards to provide a high-end, professional execution and referral management experience.
+### 1. Refinamento de Interface e Experiência (UX/UI Premium)
+- **Consistência Visual**: Garantir que todos os dashboards (Admin, Cliente, Prestador, Parceiro) utilizem os mesmos tokens de design premium (sombras vx-lg, gradientes sutis, PageHeader padronizado).
+- **Feedback Visual**: Implementar estados de carregamento (Skeletons) e estados vazios (Empty States) elegantes em todas as listagens.
+- **Micro-interações**: Adicionar animações suaves de fade-in e hover em cards e botões.
 
-## 1. Service Provider (Prestador) Panel
-Refactor `src/pages/ProviderPanel.tsx` to include a full operational console.
+### 2. Painel Administrativo (Equipe Interna)
+- **Dashboard Executivo**: Criar uma visão de alto nível com KPIs de faturamento, novos clientes, demandas críticas e performance da equipe.
+- **Cockpit Operacional**: Refinar a central de comando para que a equipe possa agir rapidamente em bloqueios (documentos reprovados, SLAs vencendo).
+- **Gestão de Usuários**: Garantir que a atribuição de papéis e permissões esteja intuitiva.
 
-### Dashboard (Home)
-- **Top Metrics**: Active demands, Urgent (High Priority), Overdue (Late SLA/Deadline), Documents awaiting analysis, Pending reports.
-- **Financial Summary**: Total values to receive from current contracts.
-- **Urgent Lists**: Quick access to high-priority items and upcoming deadlines.
+### 3. Portal do Cliente (Transparência e Confiança)
+- **Área do Produto**: Detalhar cada serviço contratado com checklist de progresso, documentos necessários e histórico de interações.
+- **Central de Suporte**: Facilitar o contato direto e a visualização de prazos.
+- **Simplificação**: Remover jargões internos e focar no que o cliente precisa saber para se sentir seguro.
 
-### "Minhas Demandas" (My Demands)
-- Clean table/grid view with status badges, SLA indicators, and quick actions.
-- Ability to search and filter demands.
+### 4. Portal do Prestador (Execução e Produtividade)
+- **Central de Demandas**: Focar na execução com cards claros, cronômetros de SLA e área de reporte simplificada.
+- **Financeiro**: Visualização clara de valores a receber por serviço executado.
 
-### Demand Detail View
-- **Scope & Checklist**: Clear view of delegated service scope and operational steps.
-- **Document Management**: Allowed documents, current attachments, and "Request Document" functionality.
-- **Reports & Conclusion**: History of reports and a dedicated button to submit the service conclusion.
-- **History**: Full audit trail of the specific demand.
+### 5. Portal do Parceiro/Afiliado (Crescimento e Conversão)
+- **Link de Indicação**: Área de cópia rápida do link e monitoramento de cliques/conversões.
+- **Extrato de Comissões**: Tabela detalhada com status de pagamento (Pendente, Liberada, Paga).
+
+### 6. Arquitetura e Segurança (Robustez SaaS)
+- **Revisão de Permissões (RLS)**: Garantir que as políticas do Supabase protejam os dados de forma que cada perfil só veja o que lhe compete.
+- **Otimização de Performance**: Revisar o uso de React Query para garantir que os dados sejam atualizados em tempo real sem excesso de chamadas.
 
 ---
 
-## 2. Partner (Parceiro) Panel
-Refactor `src/pages/PartnerPanel.tsx` to look like a premium affiliate/referral portal.
-
-### Dashboard (Home)
-- **Financial KPIs**: Available balance, Pending commissions, Paid commissions.
-- **Conversion Metrics**: Referred clients count, Conversion rate.
-- **Referral Tools**: Copyable referral link/code.
-- **Operational Info**: Next payment date, active partnership contract preview.
-
-### "Indicados" (Referrals)
-- Professional table showing Client/Company, Product, Commercial Status, Estimated Commission, and Date.
-
-### "Comissões" (Commissions)
-- Visual extrato/statement.
-- Filtering by date, status, and client.
-- Status badges: Pending, Released, In Payment, Paid, Canceled.
-
-## Technical Details
-- Use design system tokens (`vx-card`, `vx-pill`, `font-editorial`).
-- Leverage existing Supabase queries and hooks, adding necessary filtering and aggregations.
-- Ensure responsive design for mobile access (common for providers on the move).
-- Use `lucide-react` for consistent iconography.
+### Detalhes Técnicos (Para Desenvolvedores)
+- **Componentes**: Padronização do `PageHeader` e `PremiumCard`.
+- **Hooks**: Centralização da lógica de papéis no `useAuth`.
+- **Database**: Implementação de triggers para atualização de status e auditoria.
+- **Estilos**: Uso intensivo de classes customizadas no `tailwind.config.ts` e `index.css`.
