@@ -957,23 +957,33 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
   );
 }
 
-function MetricPill({ label, value, tone, icon: Icon, href }: {
-  label: string; value: string; tone: Tone; icon: any; href: string;
-}) {
+function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: string; value: string; tone: Tone; icon: any; href: string; pulse?: boolean }) {
   const t = toneColor[tone];
   return (
-    <Link to={href} className={cn("group relative overflow-hidden rounded-xl border bg-white dark:bg-white/[0.02] hover:shadow-md transition-all p-3", t.border)}>
-      <div className={cn("absolute top-0 left-0 w-1 h-full", t.bg.replace("bg-", "bg-").replace("100", "400").replace("/10", "/60"))} style={{ backgroundColor: t.chart }} />
-      <div className="flex items-center gap-2.5">
-        <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", t.bg, t.text)}>
-          <Icon className="size-3.5" strokeWidth={2.2} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500 truncate">{label}</p>
-          <p className={cn("text-[15px] font-bold tabular-nums leading-tight mt-0.5 truncate", t.text)}>{value}</p>
-        </div>
-        <ChevronRight className="size-3.5 text-slate-300 dark:text-zinc-700 group-hover:text-slate-500 dark:group-hover:text-zinc-400 transition-colors" />
+    <Link to={href} className={cn(
+      "group relative flex items-center gap-4 p-4 rounded-[1.5rem] border transition-all duration-300",
+      "bg-white dark:bg-white/[0.03] shadow-sm hover:shadow-xl hover:scale-[1.03]",
+      t.border, "hover:bg-slate-50 dark:hover:bg-white/[0.06]"
+    )}>
+      <div className={cn(
+        "size-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 group-hover:rotate-12 group-hover:shadow-lg",
+        t.bg, t.text
+      )}>
+        <Icon className={cn("size-6", pulse && "animate-pulse")} />
       </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-600 truncate">{label}</p>
+        <p className="text-xl font-black text-slate-900 dark:text-white tracking-tighter truncate tabular-nums">{value}</p>
+      </div>
+      <ChevronRight className="size-4 text-slate-300 dark:text-slate-700 group-hover:translate-x-1 transition-transform" />
+      {pulse && (
+        <div className="absolute top-3 right-3">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
+          </span>
+        </div>
+      )}
     </Link>
   );
 }
