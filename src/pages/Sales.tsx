@@ -75,6 +75,49 @@ export default function Sales() {
     return acc;
   }, [filtered]);
 
+  // 📈 Série de receita por dia (últimos 30 dias)
+  const series30d = useMemo(() => {
+    const days: { label: string; v: number; key: string }[] = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      days.push({ key, label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), v: 0 });
+    }
+    const idx = Object.fromEntries(days.map((d, i) => [d.key, i]));
+    filtered.forEach((s: any) => {
+      if (!s.sale_date) return;
+      const key = String(s.sale_date).slice(0, 10);
+      if (idx[key] !== undefined) days[idx[key]].v += Number(s.amount || 0);
+    });
+    return days;
+  }, [filtered]);
+
+  // 🏆 Top 5 parceiros por volume fechado
+  const topPartners = useMemo(() => {
+    const m = new Map<string, { name: string; total: number; deals: number }>();
+    filtered.forEach((s: any) => {
+      if (!s.partner_id || !s.partners?.full_name) return;
+      const cur = m.get(s.partner_id) || { name: s.partners.full_name, total: 0, deals: 0 };
+      cur.total += Number(s.amount || 0);
+      cur.deals += 1;
+      m.set(s.partner_id, cur);
+    });
+    return Array.from(m.values()).sort((a, b) => b.total - a.total).slice(0, 5);
+  }, [filtered]);
+
+  // 📊 Distribuição por status (%)
+  const statusBreakdown = useMemo(() => {
+    const total = kpis.total || 1;
+    return [
+      { key: "concluida", label: "Concluídas", value: kpis.concluida, pct: (kpis.concluida / total) * 100, color: "bg-emerald-500" },
+      { key: "em_andamento", label: "Em andamento", value: kpis.em_andamento, pct: (kpis.em_andamento / total) * 100, color: "bg-sky-500" },
+      { key: "pendente", label: "Pendentes", value: kpis.pendente, pct: (kpis.pendente / total) * 100, color: "bg-amber-500" },
+      { key: "cancelada", label: "Canceladas", value: kpis.cancelada, pct: (kpis.cancelada / total) * 100, color: "bg-rose-500" },
+    ];
+  }, [kpis]);
+
   const removeOne = async (s: any) => {
     if (!confirm(`Excluir venda de ${formatBRL(s.amount)}?`)) return;
     const { error } = await supabase.from("sales").delete().eq("id", s.id);
