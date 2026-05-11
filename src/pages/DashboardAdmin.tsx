@@ -488,31 +488,46 @@ function KpiCard({
   const positive = delta != null && delta > 0;
   const negative = delta != null && delta < 0;
   return (
-    <div className={cn(
-      "relative vx-card p-4 transition-colors hover:border-foreground/15 overflow-hidden group"
-    )}>
-      <span className={cn("absolute left-0 top-3 bottom-3 w-[2px] rounded-r opacity-60 group-hover:opacity-100 transition-opacity", ts.bar)} />
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80 truncate pr-2">{label}</p>
-        <div className={cn("size-7 rounded-md flex items-center justify-center shrink-0", ts.bg, ts.fg)}>
-          <Icon className="size-3.5" strokeWidth={2.2} />
+    <div className="relative vx-card p-6 overflow-hidden group">
+      <div className="flex items-center justify-between mb-5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40 truncate pr-2">{label}</p>
+        <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0 backdrop-blur-md border border-white/10", ts.bg, ts.fg)}>
+          <Icon className="size-4" strokeWidth={2.2} />
         </div>
       </div>
-      <p className="font-display text-[22px] font-semibold tracking-tight text-foreground tabular-nums leading-none truncate">{value}</p>
-      <div className="mt-2 flex items-center gap-1.5 text-[11px] min-h-[16px]">
+      <p className="font-display text-[34px] lg:text-[40px] font-bold tracking-tighter text-white tabular-nums leading-none truncate">{value}</p>
+      <div className="mt-3 flex items-center gap-2 text-[12px] min-h-[18px]">
         {delta != null ? (
           <span className={cn(
-            "inline-flex items-center gap-0.5 font-semibold tabular-nums",
-            positive && "text-success",
-            negative && "text-destructive",
-            !positive && !negative && "text-muted-foreground"
+            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-2 py-0.5 rounded-md backdrop-blur",
+            positive && "text-emerald-300 bg-emerald-500/10",
+            negative && "text-rose-300 bg-rose-500/10",
+            !positive && !negative && "text-white/40 bg-white/[0.04]"
           )}>
             {positive ? <TrendingUp className="size-3" /> : negative ? <TrendingDown className="size-3" /> : null}
             {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
           </span>
         ) : null}
-        {hint && <span className="text-muted-foreground truncate">{hint}</span>}
+        {hint && <span className="text-white/40 truncate">{hint}</span>}
       </div>
+    </div>
+  );
+}
+
+function HeroStat({ label, value, accent }: { label: string; value: string; accent: "indigo" | "rose" | "amber" | "emerald" | "slate" }) {
+  const accentMap: Record<string, string> = {
+    indigo: "from-indigo-400 to-purple-400 shadow-indigo-500/30",
+    rose: "from-rose-400 to-pink-400 shadow-rose-500/30",
+    amber: "from-amber-300 to-orange-400 shadow-amber-500/30",
+    emerald: "from-emerald-300 to-teal-400 shadow-emerald-500/30",
+    slate: "from-white/60 to-white/40 shadow-white/10",
+  };
+  return (
+    <div className="vx-card p-5 group">
+      <p className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-white/40 mb-2 truncate">{label}</p>
+      <p className={cn("font-display text-2xl lg:text-[28px] font-bold tracking-tight tabular-nums leading-none bg-gradient-to-br bg-clip-text text-transparent", accentMap[accent])}>
+        {value}
+      </p>
     </div>
   );
 }
