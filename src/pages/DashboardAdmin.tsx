@@ -377,18 +377,18 @@ export default function DashboardAdmin() {
               <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(250 90% 70%)" stopOpacity={0.45} />
-                    <stop offset="100%" stopColor="hsl(250 90% 70%)" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#fafafa" stopOpacity={0.15} />
+                    <stop offset="100%" stopColor="#fafafa" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 100% / 0.06)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.45)" }} dy={6} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.45)" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 100% / 0.03)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.3)" }} dy={6} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.3)" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.1)", background: "hsl(240 30% 8%)", fontSize: 12, color: "white" }}
+                  contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.05)", background: "#111116", fontSize: 12, color: "white" }}
                   formatter={(v: any) => formatBRL(Number(v))}
                 />
-                <Area type="monotone" dataKey="value" stroke="hsl(250 90% 75%)" strokeWidth={2.5} fill="url(#revGrad)" />
+                <Area type="monotone" dataKey="value" stroke="#fafafa" strokeWidth={2} fill="url(#revGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
