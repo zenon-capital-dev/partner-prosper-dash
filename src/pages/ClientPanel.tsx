@@ -305,10 +305,13 @@ export default function ClientPanel() {
                         ) : (
                           deliveries.slice(0, 4).map((d: any) => (
                             <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20">
-                               <div className="flex items-center gap-3 min-w-0">
-                                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                                  <p className="text-xs font-bold truncate">{d.name}</p>
-                               </div>
+                                <div className="flex items-center gap-3 min-w-0">
+                                   {d.type === 'document' ? <CheckCircle2 className="size-4 text-emerald-500 shrink-0" /> : <Package className="size-4 text-indigo-500 shrink-0" />}
+                                   <div className="min-w-0">
+                                      <p className="text-xs font-bold truncate">{d.name}</p>
+                                      {d.client_products?.products?.name && <p className="text-[9px] text-muted-foreground truncate">{d.client_products.products.name}</p>}
+                                   </div>
+                                </div>
                                <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path, '_blank')}>
                                   <Download className="size-4" />
                                </Button>
