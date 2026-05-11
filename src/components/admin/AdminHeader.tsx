@@ -12,34 +12,36 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
   return (
-    <header className="glass-header h-[56px] px-6 lg:px-8 flex items-center gap-4 sticky top-0 z-40 bg-zinc-950/50 backdrop-blur-md border-b border-white/[0.04]">
+    <header className="h-[56px] px-6 lg:px-10 flex items-center gap-6 sticky top-0 z-40 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/[0.04]">
       {/* Breadcrumb on left */}
-      <div className="hidden md:flex items-center gap-3 min-w-0 flex-1">
+      <div className="hidden lg:flex items-center gap-3 min-w-0 flex-1">
         <Breadcrumbs />
+        <div className="h-3 w-px bg-white/[0.08]" />
         <EnvBadge />
       </div>
 
-      {/* Search — center/right on desktop */}
-      <div className="flex-1 md:flex-none md:w-[420px]">
+      {/* Search — center */}
+      <div className="flex-1 max-w-[480px]">
         <button
           onClick={onSearchClick}
-          className="w-full h-9 pl-9 pr-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-white/[0.14] rounded-lg text-[12.5px] flex items-center justify-between transition-colors group relative"
+          className="w-full h-9 pl-9 pr-3 bg-zinc-900/40 hover:bg-zinc-900/60 border border-white/[0.05] hover:border-white/[0.1] rounded-xl text-[12px] flex items-center justify-between transition-all group relative"
         >
-          <Search className="absolute left-3 size-3.5 text-white/40 group-hover:text-white/70 transition-colors" />
-          <span className="font-medium text-white/45 truncate">Buscar clientes, demandas, documentos…</span>
-          <kbd className="text-[9.5px] font-mono font-semibold bg-white/[0.05] border border-white/[0.08] rounded px-1.5 py-0.5 flex items-center gap-1 text-white/55 shrink-0">
-            <Command className="size-2.5" />K
-          </kbd>
+          <Search className="absolute left-3 size-3.5 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
+          <span className="font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors truncate">Comando inteligente...</span>
+          <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
+            <kbd className="text-[9px] font-mono font-bold bg-white/[0.05] border border-white/[0.08] rounded px-1.5 py-0.5 text-zinc-400">
+              ⌘K
+            </kbd>
+          </div>
         </button>
       </div>
 
       {/* Right cluster */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2 shrink-0 flex-1 justify-end">
         <QuickCreateButton />
-        <div className="h-5 w-px bg-white/[0.08] mx-1.5 hidden sm:block" />
         <InternalChat />
         <NotificationBell />
-        <div className="h-5 w-px bg-white/[0.08] mx-1.5 hidden sm:block" />
+        <div className="h-4 w-px bg-white/[0.08] mx-1" />
         <ThemeToggle />
       </div>
     </header>

@@ -1,4 +1,4 @@
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
@@ -118,8 +118,8 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                   collapsed ? "w-10 justify-center" : "w-full px-2"
                 )}
               >
-                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center ring-1 ring-white/15 shrink-0">
-                  <Zap className="size-3.5 text-white" strokeWidth={2.5} fill="white" />
+                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center shrink-0 shadow-inner">
+                  <Zap className="size-4 text-zinc-300" strokeWidth={2} />
                 </div>
                 {!collapsed && (
                   <>
@@ -134,11 +134,11 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl">
               <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Workspace</DropdownMenuLabel>
-              <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.04] mb-1">
-                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center"><Zap className="size-3.5 text-white" fill="white" /></div>
+              <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05] mb-1">
+                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center"><Zap className="size-4 text-zinc-300" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-semibold truncate">Prosper</p>
-                  <p className="text-[10.5px] text-white/45">Plano Pro · 12 usuários</p>
+                  <p className="text-[12.5px] font-semibold text-white">Prosper</p>
+                  <p className="text-[10.5px] text-zinc-500">Plano Pro · 12 usuários</p>
                 </div>
               </div>
               <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
@@ -248,24 +248,13 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           ))}
         </nav>
 
-        {/* Upgrade hint */}
+        {/* Info Box */}
         {!collapsed && (
-          <div className="px-3 pb-2">
-            <div className="rounded-xl border border-white/[0.06] bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.05] to-transparent p-3 relative overflow-hidden">
-              <div className="absolute -top-6 -right-6 size-16 rounded-full bg-indigo-500/20 blur-2xl" />
-              <div className="relative">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Sparkles className="size-3 text-indigo-300" />
-                  <span className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-indigo-200">Plano Pro</span>
-                </div>
-                <p className="text-[11px] text-white/55 leading-snug mb-2">Convide sua equipe e tenha acesso a relatórios avançados.</p>
-                <button
-                  onClick={() => navigate("/usuarios")}
-                  className="w-full h-7 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-[11px] font-semibold text-white border border-white/[0.08] transition-colors"
-                >
-                  Convidar membros
-                </button>
-              </div>
+          <div className="px-3 pb-4">
+            <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
+              <p className="text-[10px] text-zinc-500 leading-snug">
+                Você está usando a versão Pro. <Link to="/configuracoes" className="text-zinc-300 hover:text-white underline underline-offset-2">Ver detalhes</Link>
+              </p>
             </div>
           </div>
         )}
@@ -281,10 +270,10 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                 )}
               >
                 <div className="relative shrink-0">
-                  <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-500/40 to-violet-500/30 border border-white/[0.1] flex items-center justify-center text-[11px] font-bold text-white">
+                  <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[11px] font-bold text-zinc-300">
                     {initials(displayName)}
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-400 border-2 border-[#0a0a14]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 border-2 border-[#09090b]" />
                 </div>
                 {!collapsed && (
                   <div className="flex-1 min-w-0 text-left">
@@ -303,7 +292,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               className="w-60 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl"
             >
               <div className="px-2 py-2 flex items-center gap-2.5">
-                <div className="size-9 rounded-lg bg-gradient-to-tr from-indigo-500/40 to-violet-500/30 border border-white/[0.1] flex items-center justify-center text-[12px] font-bold">{initials(displayName)}</div>
+                <div className="size-9 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[12px] font-bold text-white">{initials(displayName)}</div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] font-semibold truncate">{displayName}</p>
                   <p className="text-[10.5px] text-white/45 truncate">{user?.email}</p>

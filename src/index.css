@@ -302,10 +302,10 @@
     --card-foreground: 220 14% 96%;
     --popover: 224 35% 9%;
     --popover-foreground: 220 14% 96%;
-    --primary: 250 85% 65%;
+    --primary: 235 60% 60%;
     --primary-foreground: 224 45% 4%;
-    --primary-muted: 243 45% 12%;
-    --primary-glow: 250 90% 70%;
+    --primary-muted: 235 40% 12%;
+    --primary-glow: 235 60% 50%;
     --secondary: 224 30% 10%;
     --secondary-foreground: 220 14% 96%;
     --muted: 224 30% 9%;
@@ -328,7 +328,7 @@
     --destructive-foreground: 224 45% 4%;
     --destructive-muted: 0 45% 10%;
     @apply min-h-screen text-foreground selection:bg-primary/20 selection:text-primary relative isolate;
-    background: #09090b;
+    background: #0c0c0d;
   }
 
   /* Refined Grainy/Glass Background — subtle, not neon */
@@ -350,8 +350,8 @@
   .admin-shell .surface,
   .admin-shell .stat-card,
   .admin-shell .vx-table-wrap {
-    background: #111116;
-    border: 1px solid hsl(0 0% 100% / 0.05);
+    background: #141416;
+    border: 1px solid rgba(255, 255, 255, 0.04);
     box-shadow: 0 4px 20px -8px rgb(0 0 0 / 0.5);
     border-radius: 0.75rem;
   }
