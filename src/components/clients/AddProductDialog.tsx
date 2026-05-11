@@ -169,11 +169,12 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
     setSaving(true);
     try {
-      // 1. Insert Client Product (Database trigger tr_populate_client_product will handle templates)
+      // 1. Insert Client Product (Demands)
       const { data: cp, error: cpErr } = await supabase
         .from("client_products")
         .insert({
           client_id: clientId,
+          company_id: (form as any).company_id === "none" ? null : (form as any).company_id,
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
           custom_fields: (form as any).custom_fields || {},
