@@ -43,15 +43,14 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-background text-foreground admin-shell overflow-hidden">
+    <div className="min-h-screen flex w-full text-foreground admin-shell">
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
 
-      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         <AdminHeader onSearchClick={handleSearchClick} />
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
-        
       </div>
     </div>
   );
