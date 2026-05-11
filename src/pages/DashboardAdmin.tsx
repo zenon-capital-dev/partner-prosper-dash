@@ -2,21 +2,19 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Wallet, Clock,
-  CheckCircle2, FileWarning, CreditCard, FileSignature,
-  BarChart3, Plus, Calendar, Bell, ArrowUpRight, ArrowRight, AlertCircle, Heart,
+  CheckCircle2, FileWarning, CreditCard, FileSignature, Target, Handshake, Briefcase,
+  BarChart3, Plus, Bell, ArrowUpRight, ArrowRight, AlertCircle, Phone, MapPin, CalendarClock,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useAuth } from "@/hooks/useAuth";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RePieChart, Pie, Cell,
 } from "recharts";
-import { PremiumCard } from "@/components/ui/PremiumCard";
 
 /* ============================================================
    Premium Executive Dashboard
@@ -55,6 +53,14 @@ export default function DashboardAdmin() {
   const { data: sales = [] } = useQuery({
     queryKey: ["dash-sales"],
     queryFn: async () => (await supabase.from("sales").select("amount, sale_date, status, product_id, partner_id")).data ?? [],
+  });
+  const { data: leads = [] } = useQuery({
+    queryKey: ["dash-leads"],
+    queryFn: async () => (await supabase.from("leads").select("id, full_name, company, status, estimated_value, close_probability, next_action, next_action_date, source, created_at, converted_to_client_id").order("next_action_date", { ascending: true, nullsFirst: false }).limit(120)).data ?? [],
+  });
+  const { data: proposals = [] } = useQuery({
+    queryKey: ["dash-proposals"],
+    queryFn: async () => (await supabase.from("proposals").select("id, status, total, created_at, sent_at, approved_at, valid_until")).data ?? [],
   });
   const { data: payments = [] } = useQuery({
     queryKey: ["dash-payments"],
@@ -128,10 +134,65 @@ export default function DashboardAdmin() {
     );
     const overdueAmount = overduePayments.reduce((a, p: any) => a + Number(p.amount || 0), 0);
 
-    const healthScores = clients.map((c: any) => Number(c.health_score || 0)).filter((v) => v > 0);
-    const avgHealth = healthScores.length
-      ? healthScores.reduce((a, v) => a + v, 0) / healthScores.length
+    // ===== Pipeline & Negociações =====
+    const LOST_STATUSES = ["perdido", "lost", "descartado", "cancelado"];
+    const WON_STATUSES = ["ganho", "won", "convertido", "fechado"];
+    const activeLeads = leads.filter((l: any) =>
+      !LOST_STATUSES.includes(String(l.status || "").toLowerCase()) &&
+      !WON_STATUSES.includes(String(l.status || "").toLowerCase()) &&
+      !l.converted_to_client_id
+    );
+    const pipelineValue = activeLeads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
+    const weightedPipeline = activeLeads.reduce(
+      (a, l: any) => a + (Number(l.estimated_value || 0) * (Number(l.close_probability || 0) / 100)),
+      0
+    );
+
+    const wonLeads = leads.filter((l: any) =>
+      WON_STATUSES.includes(String(l.status || "").toLowerCase()) || l.converted_to_client_id
+    );
+    const lostLeads = leads.filter((l: any) => LOST_STATUSES.includes(String(l.status || "").toLowerCase()));
+    const closedDeals = wonLeads.length + lostLeads.length;
+    const winRate = closedDeals > 0 ? (wonLeads.length / closedDeals) * 100 : null;
+
+    const closedSales = sales.filter((s: any) => Number(s.amount || 0) > 0);
+    const avgTicket = closedSales.length > 0
+      ? closedSales.reduce((a, s: any) => a + Number(s.amount || 0), 0) / closedSales.length
       : 0;
+
+    // Proposals
+    const proposalsSentMonth = proposals.filter((p: any) => {
+      const d = p.sent_at ? new Date(p.sent_at) : null;
+      return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    const proposalsOpen = proposals.filter((p: any) =>
+      ["enviada", "enviado", "visualizada", "em_analise", "em_negociacao", "pending", "sent"].includes(String(p.status || "").toLowerCase())
+    );
+    const proposalsOpenValue = proposalsOpen.reduce((a, p: any) => a + Number(p.total || 0), 0);
+
+    // Reuniões / próximas ações do funil
+    const upcomingActions = activeLeads
+      .filter((l: any) => l.next_action_date)
+      .map((l: any) => {
+        const d = new Date(l.next_action_date);
+        const daysLeft = Math.floor((d.getTime() - now.getTime()) / 86400000);
+        return { ...l, daysLeft };
+      })
+      .sort((a: any, b: any) => a.daysLeft - b.daysLeft)
+      .slice(0, 7);
+
+    const thisWeekMeetings = activeLeads.filter((l: any) => {
+      if (!l.next_action_date) return false;
+      const d = new Date(l.next_action_date);
+      const diff = Math.floor((d.getTime() - now.getTime()) / 86400000);
+      return diff >= 0 && diff <= 7;
+    }).length;
+
+    const newClientsMonth = clients.filter((c: any) => {
+      if (!c.created_at) return false;
+      const d = new Date(c.created_at);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
 
     const revenue6m = Array.from({ length: 6 }).map((_, i) => {
       const d = new Date(thisYear, thisMonth - (5 - i), 1);
@@ -142,23 +203,43 @@ export default function DashboardAdmin() {
       return { name: label, value: total };
     });
 
-    const statusMap: Record<string, number> = {};
-    clientProducts.forEach((p: any) => {
-      const k = p.status || "indefinido";
-      statusMap[k] = (statusMap[k] || 0) + 1;
+    // Funil de vendas — agrupa leads por status
+    const FUNNEL_ORDER = ["novo", "contato", "qualificado", "reuniao", "proposta", "negociacao", "ganho"];
+    const funnelMap: Record<string, number> = {};
+    leads.forEach((l: any) => {
+      const k = String(l.status || "indefinido").toLowerCase();
+      if (LOST_STATUSES.includes(k)) return;
+      funnelMap[k] = (funnelMap[k] || 0) + 1;
     });
-    const statusData = Object.entries(statusMap)
+    const funnelData = Object.entries(funnelMap)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+      .sort((a, b) => {
+        const ai = FUNNEL_ORDER.indexOf(a.name);
+        const bi = FUNNEL_ORDER.indexOf(b.name);
+        if (ai === -1 && bi === -1) return b.value - a.value;
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
 
     const alerts: Array<{ id: string; title: string; sub: string; tone: Tone; link: string; icon: any }> = [];
-    if (delayed > 0) alerts.push({ id: "delayed", title: `${delayed} demandas atrasadas`, sub: "Prazo vencido sem conclusão", tone: "danger", link: "/demandas", icon: Clock });
-    if (overduePayments.length > 0) alerts.push({ id: "overdue", title: `${overduePayments.length} pagamentos vencidos`, sub: formatBRL(overdueAmount) + " em atraso", tone: "danger", link: "/financeiro", icon: CreditCard });
-    if (docsPending > 0) alerts.push({ id: "docs", title: `${docsPending} documentos pendentes`, sub: "Aguardando análise", tone: "warning", link: "/documentos", icon: FileWarning });
-    const noProvider = clientProducts.filter((p: any) => !p.service_provider_id && !["concluido", "cancelado"].includes(p.status)).length;
-    if (noProvider > 0) alerts.push({ id: "noprov", title: `${noProvider} demandas sem prestador`, sub: "Necessária delegação", tone: "warning", link: "/demandas", icon: AlertCircle });
     const contractsAwaiting = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
-    if (contractsAwaiting > 0) alerts.push({ id: "contracts", title: `${contractsAwaiting} contratos aguardando`, sub: "Assinatura pendente", tone: "info", link: "/contratos", icon: FileSignature });
+    if (contractsAwaiting > 0) alerts.push({ id: "contracts", title: `${contractsAwaiting} contratos para assinar`, sub: "Aguardando assinatura do cliente", tone: "warning", link: "/contratos", icon: FileSignature });
+    const proposalsExpiringSoon = proposals.filter((p: any) => {
+      if (!p.valid_until || ["aprovada", "rejeitada", "convertida"].includes(String(p.status || "").toLowerCase())) return false;
+      const d = new Date(p.valid_until);
+      const days = Math.floor((d.getTime() - now.getTime()) / 86400000);
+      return days >= 0 && days <= 5;
+    }).length;
+    if (proposalsExpiringSoon > 0) alerts.push({ id: "prop-exp", title: `${proposalsExpiringSoon} propostas expirando`, sub: "Validade < 5 dias", tone: "warning", link: "/propostas", icon: FileWarning });
+    const staleLeads = activeLeads.filter((l: any) => {
+      if (!l.next_action_date) return false;
+      return new Date(l.next_action_date) < now;
+    }).length;
+    if (staleLeads > 0) alerts.push({ id: "stale", title: `${staleLeads} negociações sem follow-up`, sub: "Próxima ação vencida", tone: "danger", link: "/leads", icon: CalendarClock });
+    if (delayed > 0) alerts.push({ id: "delayed", title: `${delayed} entregas atrasadas`, sub: "Pós-venda em risco", tone: "danger", link: "/demandas", icon: Clock });
+    if (overduePayments.length > 0) alerts.push({ id: "overdue", title: `${overduePayments.length} pagamentos vencidos`, sub: formatBRL(overdueAmount) + " em atraso", tone: "danger", link: "/financeiro", icon: CreditCard });
+    if (docsPending > 0) alerts.push({ id: "docs", title: `${docsPending} documentos pendentes`, sub: "Aguardando análise", tone: "info", link: "/documentos", icon: FileWarning });
 
     const urgentDemands = clientProducts
       .filter((p: any) => !["concluido", "cancelado"].includes(p.status))
@@ -171,16 +252,12 @@ export default function DashboardAdmin() {
       .slice(0, 6);
 
     const activity = [
-      ...documents.slice(0, 5).map((d: any) => ({
-        id: `doc-${d.id}`, type: "Documento", title: d.name || "Documento", at: d.created_at, icon: FileWarning, tone: "info" as Tone,
+      ...proposals.slice(0, 5).map((p: any) => ({
+        id: `prop-${p.id}`, type: "Proposta", title: `${String(p.status || "rascunho").replace(/_/g, " ")} · ${formatBRL(Number(p.total || 0))}`, at: p.sent_at || p.created_at, icon: FileWarning, tone: "info" as Tone,
       })),
-      ...clientProducts
-        .slice()
-        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 5)
-        .map((d: any) => ({
-          id: `dem-${d.id}`, type: "Demanda", title: d.status || "Nova demanda", at: d.created_at, icon: Activity, tone: "primary" as Tone,
-        })),
+      ...leads.slice(0, 5).map((l: any) => ({
+        id: `lead-${l.id}`, type: "Negociação", title: `${l.full_name || "Lead"}${l.company ? " · " + l.company : ""}`, at: l.created_at, icon: Target, tone: "primary" as Tone,
+      })),
     ]
       .sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime())
       .slice(0, 8);
@@ -190,25 +267,28 @@ export default function DashboardAdmin() {
 
     return {
       kpis: [
-        { label: "Receita do mês", value: formatBRL(monthRevenue), delta: revenueDelta, icon: CircleDollarSign, tone: "primary" as Tone, hint: "vs. mês anterior" },
-        { label: "Clientes ativos", value: String(activeClients), delta: null, icon: Users, tone: "success" as Tone, hint: `de ${totalClients} totais` },
-        { label: "Demandas em andamento", value: String(inProgress), delta: null, icon: Activity, tone: "info" as Tone, hint: "operação ativa" },
-        { label: "Demandas atrasadas", value: String(delayed), delta: null, icon: Clock, tone: "danger" as Tone, hint: "prazo vencido" },
-        { label: "Documentos pendentes", value: String(docsPending), delta: null, icon: FileWarning, tone: "warning" as Tone, hint: "aguardando análise" },
-        { label: "Comissões a pagar", value: formatBRL(commissionsToPay), delta: null, icon: Wallet, tone: "warning" as Tone, hint: `${commissions.filter((c: any) => c.status === "pendente").length} pendentes` },
+        { label: "Receita fechada (mês)", value: formatBRL(monthRevenue), delta: revenueDelta, icon: CircleDollarSign, tone: "primary" as Tone, hint: "vs. mês anterior" },
+        { label: "Pipeline ponderado", value: formatBRL(weightedPipeline), delta: null, icon: Target, tone: "info" as Tone, hint: `${formatBRL(pipelineValue)} bruto` },
+        { label: "Ticket médio", value: avgTicket > 0 ? formatBRL(avgTicket) : "—", delta: null, icon: Wallet, tone: "success" as Tone, hint: `${closedSales.length} fechamentos` },
+        { label: "Taxa de conversão", value: winRate != null ? winRate.toFixed(1) + "%" : "—", delta: null, icon: TrendingUp, tone: (winRate != null && winRate >= 30 ? "success" : winRate != null && winRate >= 15 ? "warning" : "danger") as Tone, hint: `${wonLeads.length} ganhos / ${closedDeals} fechados` },
+        { label: "Negociações ativas", value: String(activeLeads.length), delta: null, icon: Handshake, tone: "primary" as Tone, hint: `${thisWeekMeetings} reuniões nesta semana` },
+        { label: "Propostas em aberto", value: String(proposalsOpen.length), delta: null, icon: FileSignature, tone: "warning" as Tone, hint: formatBRL(proposalsOpenValue) },
+        { label: "Carteira ativa", value: String(activeClients), delta: null, icon: Users, tone: "info" as Tone, hint: `${newClientsMonth} novos este mês · ${totalClients} total` },
         { label: "Pagamentos vencidos", value: formatBRL(overdueAmount), delta: null, icon: CreditCard, tone: "danger" as Tone, hint: `${overduePayments.length} cobranças` },
-        { label: "Health score médio", value: avgHealth ? avgHealth.toFixed(1) : "—", delta: null, icon: Heart, tone: (avgHealth >= 7 ? "success" : avgHealth >= 4 ? "warning" : "danger") as Tone, hint: "saúde da carteira" },
       ],
       revenue6m,
-      statusData,
+      funnelData,
       alerts,
       urgentDemands,
+      upcomingActions,
       activity,
       tasksOverdue,
       tasksUrgent,
       monthRevenue,
+      proposalsSentMonth,
+      commissionsToPay,
     };
-  }, [clients, clientProducts, sales, payments, commissions, documents, contracts, dashTasks]);
+  }, [clients, clientProducts, sales, payments, commissions, documents, contracts, dashTasks, leads, proposals]);
 
   const PIE_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--chart-6))"];
 
@@ -234,22 +314,28 @@ export default function DashboardAdmin() {
             {greeting}, <span className="capitalize">{firstName}</span>.
           </h1>
           <p className="text-[13px] text-white/50 max-w-xl">
-            Visão consolidada da operação · {stats.alerts.length} alertas ativos · {stats.tasksOverdue.length} tarefas vencidas
+            Pipeline ponderado · {stats.upcomingActions.length} follow-ups na fila · {stats.alerts.length} alertas ativos
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Link
-            to="/relatorios"
+            to="/leads?new=1"
             className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
           >
-            <BarChart3 className="size-3.5 text-white/55" /> Relatórios
+            <Target className="size-3.5 text-white/55" /> Nova negociação
+          </Link>
+          <Link
+            to="/propostas?new=1"
+            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+          >
+            <FileSignature className="size-3.5 text-white/55" /> Nova proposta
           </Link>
           <Link
             to="/vendas?new=1"
             className="h-10 px-4 inline-flex items-center gap-2 rounded-lg text-[12.5px] font-semibold text-white transition-all bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 shadow-[0_4px_20px_-6px_rgba(129,140,248,0.6)]"
           >
-            <Plus className="size-3.5" strokeWidth={2.5} /> Nova venda
+            <Handshake className="size-3.5" strokeWidth={2.5} /> Registrar fechamento
           </Link>
         </div>
       </header>
@@ -276,8 +362,8 @@ export default function DashboardAdmin() {
                 <TrendingUp className="size-3.5 text-indigo-300" />
               </div>
               <div>
-                <h3 className="text-[13px] font-semibold text-white tracking-tight">Receita mensal</h3>
-                <p className="text-[11px] text-white/45">Últimos 6 meses</p>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Receita fechada</h3>
+                <p className="text-[11px] text-white/45">Fechamentos dos últimos 6 meses</p>
               </div>
             </div>
             <div className="text-right">
@@ -349,54 +435,61 @@ export default function DashboardAdmin() {
         </div>
       </section>
 
-      {/* === DEMANDS + PIPELINE === */}
+      {/* === FOLLOW-UPS + FUNIL === */}
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
             <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
-                <Clock className="size-3.5 text-amber-300" />
+              <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+                <CalendarClock className="size-3.5 text-indigo-300" />
               </div>
               <div>
-                <h3 className="text-[13px] font-semibold text-white tracking-tight">Demandas urgentes</h3>
-                <p className="text-[11px] text-white/45">Próximas do prazo ou em atraso</p>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Próximas reuniões & follow-ups</h3>
+                <p className="text-[11px] text-white/45">Negociações com ação programada</p>
               </div>
             </div>
-            <Link to="/demandas" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
-              Ver todas <ArrowRight className="size-3" />
+            <Link to="/leads" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
+              Ver pipeline <ArrowRight className="size-3" />
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-[12.5px]">
               <thead>
                 <tr className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40 border-b border-white/[0.05]">
-                  <th className="text-left px-5 py-2.5 font-bold">Demanda</th>
-                  <th className="text-left px-5 py-2.5 font-bold">Status</th>
-                  <th className="text-right px-5 py-2.5 font-bold">Prazo</th>
+                  <th className="text-left px-5 py-2.5 font-bold">Negociação</th>
+                  <th className="text-left px-5 py-2.5 font-bold">Próxima ação</th>
+                  <th className="text-right px-5 py-2.5 font-bold">Valor</th>
+                  <th className="text-right px-5 py-2.5 font-bold">Quando</th>
                 </tr>
               </thead>
               <tbody>
-                {stats.urgentDemands.length === 0 ? (
-                  <tr><td colSpan={3} className="px-5 py-8 text-center text-white/40 text-[12.5px]">Nenhuma demanda urgente.</td></tr>
+                {stats.upcomingActions.length === 0 ? (
+                  <tr><td colSpan={4} className="px-5 py-10 text-center text-white/40 text-[12.5px]">Nenhuma ação agendada. <Link to="/leads" className="text-indigo-300 hover:underline">Programar follow-up →</Link></td></tr>
                 ) : (
-                  stats.urgentDemands.map((d: any) => {
-                    const tone: Tone = d.daysLeft < 0 ? "danger" : d.daysLeft <= 3 ? "warning" : "info";
-                    const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/60" };
+                  stats.upcomingActions.map((l: any) => {
+                    const tone: Tone = l.daysLeft < 0 ? "danger" : l.daysLeft === 0 ? "warning" : l.daysLeft <= 3 ? "info" : "neutral";
+                    const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/55" };
+                    const value = Number(l.estimated_value || 0);
+                    const prob = Number(l.close_probability || 0);
                     return (
-                      <tr key={d.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+                      <tr key={l.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
                         <td className="px-5 py-3">
-                          <Link to={`/demandas/${d.id}`} className="text-[12.5px] font-semibold text-white hover:text-indigo-300 transition-colors font-mono">
-                            #{String(d.id).slice(0, 8)}
+                          <Link to={`/leads/${l.id}`} className="block min-w-0 max-w-[260px]">
+                            <p className="text-[12.5px] font-semibold text-white truncate hover:text-indigo-300 transition-colors">{l.full_name || "Lead"}</p>
+                            <p className="text-[11px] text-white/45 truncate">{l.company || "—"}</p>
                           </Link>
                         </td>
                         <td className="px-5 py-3">
-                          <span className="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-[10.5px] font-semibold bg-white/[0.04] border border-white/[0.08] text-white/70 capitalize">
-                            <span className="size-1.5 rounded-full bg-current opacity-70" />
-                            {String(d.status || "").replace(/_/g, " ")}
-                          </span>
+                          <p className="text-[12px] text-white/85 truncate max-w-[240px]">{l.next_action || "Follow-up"}</p>
+                          {prob > 0 && (
+                            <p className="text-[10.5px] text-white/45 mt-0.5">Prob. {prob}%</p>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          <p className="text-[12.5px] font-semibold tabular-nums text-white">{value > 0 ? formatBRL(value) : "—"}</p>
                         </td>
                         <td className={cn("px-5 py-3 text-right text-[12.5px] font-semibold tabular-nums", toneText[tone])}>
-                          {d.deadline ? (d.daysLeft < 0 ? `${Math.abs(d.daysLeft)}d em atraso` : d.daysLeft === 0 ? "Hoje" : `${d.daysLeft}d`) : "Sem prazo"}
+                          {l.daysLeft < 0 ? `${Math.abs(l.daysLeft)}d em atraso` : l.daysLeft === 0 ? "Hoje" : l.daysLeft === 1 ? "Amanhã" : `em ${l.daysLeft}d`}
                         </td>
                       </tr>
                     );
@@ -407,40 +500,84 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        {/* Pipeline / Distribution */}
+        {/* Funil de vendas */}
         <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="size-7 rounded-lg bg-sky-500/15 border border-sky-500/25 flex items-center justify-center">
-              <Activity className="size-3.5 text-sky-300" />
+            <div className="size-7 rounded-lg bg-violet-500/15 border border-violet-500/25 flex items-center justify-center">
+              <Target className="size-3.5 text-violet-300" />
             </div>
             <div>
-              <h3 className="text-[13px] font-semibold text-white tracking-tight">Pipeline</h3>
-              <p className="text-[11px] text-white/45">Demandas por estágio</p>
+              <h3 className="text-[13px] font-semibold text-white tracking-tight">Funil de vendas</h3>
+              <p className="text-[11px] text-white/45">Negociações por estágio</p>
             </div>
           </div>
           <div className="p-4">
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart>
-                  <Pie data={stats.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={2} stroke="none">
-                    {stats.statusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.1)", background: "hsl(240 30% 8%)", fontSize: 12, color: "white" }} />
-                </RePieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3 space-y-1.5">
-              {stats.statusData.slice(0, 5).map((s, i) => (
-                <div key={s.name} className="flex items-center gap-2 text-[11.5px]">
-                  <span className="size-2 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="capitalize text-white/60 flex-1 truncate">{s.name.replace(/_/g, " ")}</span>
-                  <span className="font-semibold tabular-nums text-white">{s.value}</span>
-                </div>
-              ))}
-            </div>
+            {stats.funnelData.length === 0 ? (
+              <EmptyState icon={Target} title="Sem negociações" subtitle="Cadastre seu primeiro lead" />
+            ) : (
+              <div className="space-y-2.5">
+                {(() => {
+                  const max = Math.max(...stats.funnelData.map((s: any) => s.value), 1);
+                  return stats.funnelData.map((s: any, i: number) => {
+                    const pct = (s.value / max) * 100;
+                    return (
+                      <div key={s.name} className="space-y-1">
+                        <div className="flex items-center justify-between text-[11.5px]">
+                          <span className="capitalize text-white/75 font-medium truncate">{s.name.replace(/_/g, " ")}</span>
+                          <span className="font-bold tabular-nums text-white">{s.value}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                            style={{ width: `${pct}%`, opacity: 0.4 + (i / stats.funnelData.length) * 0.6 }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      {/* === ENTREGAS PÓS-VENDA === */}
+      {stats.urgentDemands.length > 0 && (
+        <section className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                <Briefcase className="size-3.5 text-amber-300" />
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Entregas pós-venda em risco</h3>
+                <p className="text-[11px] text-white/45">Demandas próximas do prazo ou atrasadas</p>
+              </div>
+            </div>
+            <Link to="/demandas" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
+              Ver todas <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.04]">
+            {stats.urgentDemands.map((d: any) => {
+              const tone: Tone = d.daysLeft < 0 ? "danger" : d.daysLeft <= 3 ? "warning" : "info";
+              const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/55" };
+              return (
+                <Link key={d.id} to={`/demandas/${d.id}`} className="bg-[hsl(240_30%_7%)] hover:bg-white/[0.02] transition-colors p-4 flex items-center justify-between gap-3 group">
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-mono font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">#{String(d.id).slice(0, 8)}</p>
+                    <p className="text-[11px] text-white/45 capitalize truncate">{String(d.status || "").replace(/_/g, " ")}</p>
+                  </div>
+                  <span className={cn("text-[12px] font-semibold tabular-nums shrink-0", toneText[tone])}>
+                    {d.deadline ? (d.daysLeft < 0 ? `${Math.abs(d.daysLeft)}d atraso` : d.daysLeft === 0 ? "Hoje" : `${d.daysLeft}d`) : "—"}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* === ACTIVITY + TASKS === */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
