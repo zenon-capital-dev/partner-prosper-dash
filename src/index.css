@@ -302,10 +302,10 @@
     --card-foreground: 220 14% 96%;
     --popover: 224 35% 9%;
     --popover-foreground: 220 14% 96%;
-    --primary: 250 85% 65%;
+    --primary: 235 60% 60%;
     --primary-foreground: 224 45% 4%;
-    --primary-muted: 243 45% 12%;
-    --primary-glow: 250 90% 70%;
+    --primary-muted: 235 40% 12%;
+    --primary-glow: 235 60% 50%;
     --secondary: 224 30% 10%;
     --secondary-foreground: 220 14% 96%;
     --muted: 224 30% 9%;
