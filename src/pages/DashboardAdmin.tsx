@@ -2,21 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Wallet, Clock,
-  CheckCircle2, FileWarning, CreditCard, FileSignature,
-  BarChart3, Plus, Calendar, Bell, ArrowUpRight, ArrowRight, AlertCircle, Heart,
+  CheckCircle2, FileWarning, CreditCard, FileSignature, Target, Handshake, Briefcase,
+  BarChart3, Plus, Bell, ArrowUpRight, ArrowRight, AlertCircle, Phone, MapPin, CalendarClock,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useAuth } from "@/hooks/useAuth";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart as RePieChart, Pie, Cell,
 } from "recharts";
-import { PremiumCard } from "@/components/ui/PremiumCard";
 
 /* ============================================================
    Premium Executive Dashboard
@@ -55,6 +52,14 @@ export default function DashboardAdmin() {
   const { data: sales = [] } = useQuery({
     queryKey: ["dash-sales"],
     queryFn: async () => (await supabase.from("sales").select("amount, sale_date, status, product_id, partner_id")).data ?? [],
+  });
+  const { data: leads = [] } = useQuery({
+    queryKey: ["dash-leads"],
+    queryFn: async () => (await supabase.from("leads").select("id, full_name, company, status, estimated_value, close_probability, next_action, next_action_date, source, created_at, converted_to_client_id").order("next_action_date", { ascending: true, nullsFirst: false }).limit(120)).data ?? [],
+  });
+  const { data: proposals = [] } = useQuery({
+    queryKey: ["dash-proposals"],
+    queryFn: async () => (await supabase.from("proposals").select("id, status, total, created_at, sent_at, approved_at, valid_until")).data ?? [],
   });
   const { data: payments = [] } = useQuery({
     queryKey: ["dash-payments"],
