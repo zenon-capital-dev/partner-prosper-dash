@@ -672,45 +672,27 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-function KpiCard({
-  label, value, icon: Icon, tone, hint, delta,
-}: {
-  label: string; value: string; icon: any; tone: Tone; hint?: string; delta?: number | null;
-}) {
-  const toneAccent: Record<Tone, { bar: string; iconBg: string; iconFg: string }> = {
-    primary: { bar: "bg-indigo-400", iconBg: "bg-indigo-500/15 border-indigo-500/25", iconFg: "text-indigo-300" },
-    success: { bar: "bg-emerald-400", iconBg: "bg-emerald-500/15 border-emerald-500/25", iconFg: "text-emerald-300" },
-    warning: { bar: "bg-amber-400", iconBg: "bg-amber-500/15 border-amber-500/25", iconFg: "text-amber-300" },
-    danger:  { bar: "bg-rose-400", iconBg: "bg-rose-500/15 border-rose-500/25", iconFg: "text-rose-300" },
-    info:    { bar: "bg-sky-400", iconBg: "bg-sky-500/15 border-sky-500/25", iconFg: "text-sky-300" },
-    neutral: { bar: "bg-white/40", iconBg: "bg-white/[0.05] border-white/[0.08]", iconFg: "text-white/60" },
-  };
-  const acc = toneAccent[tone];
-  const positive = delta != null && delta > 0;
-  const negative = delta != null && delta < 0;
+function KpiCard({ label, value, delta, icon: Icon, hint }: any) {
   return (
-    <div className="group relative rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.55)] backdrop-blur-xl p-4 transition-all duration-200 hover:border-white/[0.14] hover:bg-[hsl(240_30%_8%_/_0.7)] overflow-hidden">
-      <span className={cn("absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity", acc.bar)} />
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 truncate pr-2">{label}</p>
-        <div className={cn("size-7 rounded-lg flex items-center justify-center shrink-0 border", acc.iconBg, acc.iconFg)}>
-          <Icon className="size-3.5" strokeWidth={2.2} />
+    <div className="rounded-xl border border-white/[0.04] bg-zinc-900/40 p-5 group hover:bg-zinc-900/60 transition-all border-zinc-800/50">
+      <div className="flex items-start justify-between mb-4">
+        <div className="size-9 rounded-lg bg-zinc-800/50 flex items-center justify-center text-zinc-400 group-hover:text-zinc-200 transition-colors">
+          <Icon className="size-4.5" />
         </div>
-      </div>
-      <p className="font-display text-[24px] lg:text-[26px] font-bold tracking-tight text-white tabular-nums leading-none truncate">{value}</p>
-      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] min-h-[16px]">
-        {delta != null ? (
+        {delta != null && (
           <span className={cn(
-            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-1.5 py-0.5 rounded text-[10.5px]",
-            positive && "text-emerald-300 bg-emerald-500/10",
-            negative && "text-rose-300 bg-rose-500/10",
-            !positive && !negative && "text-white/40 bg-white/[0.04]"
+            "text-[10.5px] font-bold tabular-nums px-2 py-0.5 rounded-full flex items-center gap-0.5",
+            delta >= 0 ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10"
           )}>
-            {positive ? <TrendingUp className="size-2.5" /> : negative ? <TrendingDown className="size-2.5" /> : null}
             {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
+            {delta >= 0 ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
           </span>
-        ) : null}
-        {hint && <span className="text-white/40 truncate">{hint}</span>}
+        )}
+      </div>
+      <div>
+        <p className="text-[11px] font-medium text-zinc-500 mb-1">{label}</p>
+        <h3 className="text-[24px] font-bold text-zinc-100 tracking-tight tabular-nums leading-tight">{value}</h3>
+        {hint && <p className="text-[10.5px] text-zinc-500 mt-2 truncate font-medium">{hint}</p>}
       </div>
     </div>
   );
