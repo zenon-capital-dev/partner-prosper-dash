@@ -111,7 +111,35 @@ export default function PartnerPanel() {
                  <KpiCard label="Conversão" value={`${totals.conversionRate.toFixed(1)}%`} icon={TrendingUp} tone="warning" description="Eficiência de indicação" />
                  <KpiCard label="Pagamento" value={totals.nextPayment ? formatDate(totals.nextPayment) : "—"} icon={Calendar} description="Próxima data prevista" />
               </div>
+
+              {/* Affiliate Link Section */}
+              <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 size-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full" />
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                  <div className="space-y-2">
+                    <h3 className="font-editorial text-2xl font-bold">Seu link de indicação</h3>
+                    <p className="text-white/60 text-sm max-w-md">
+                      Compartilhe seu link exclusivo. Cada cliente que se cadastrar através dele será automaticamente vinculado ao seu painel.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 font-mono text-sm text-white/80 min-w-[280px]">
+                      {window.location.origin}/cadastro?ref={partner.id.slice(0, 8)}
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/cadastro?ref=${partner.id.slice(0, 8)}`);
+                        toast.success("Link copiado!");
+                      }}
+                      className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-6 font-bold"
+                    >
+                      <Copy className="size-4 mr-2" /> Copiar Link
+                    </Button>
+                  </div>
+                </div>
+              </div>
            </TabsContent>
+
 
            <TabsContent value="comissoes" className="animate-fade-up space-y-6">
               <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
