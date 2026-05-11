@@ -57,6 +57,7 @@ export default function ClientPanel() {
         payments: payments.data ?? [],
         granularProducts: granularProducts.data ?? [],
         reports: reports.data ?? [],
+        formalDeliveries: formalDeliveries.data ?? [],
       };
     },
     enabled: !!user,
