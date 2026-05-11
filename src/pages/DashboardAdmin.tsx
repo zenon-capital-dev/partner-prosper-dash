@@ -299,64 +299,65 @@ export default function DashboardAdmin() {
     .reduce((a, s: any) => a + Number(s.amount || 0), 0);
 
   return (
-    <div className="px-5 lg:px-8 py-6 lg:py-8 space-y-6 animate-fade-up max-w-[1640px] mx-auto">
+    <div className="px-6 lg:px-10 py-8 lg:py-10 space-y-10 animate-fade-up max-w-[1600px] mx-auto">
       {/* === EXECUTIVE HEADER === */}
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div className="space-y-2 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-300">Ao vivo</span>
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider tabular-nums">{today}</span>
+            <div className="h-3 w-px bg-white/10" />
+            <span className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[11px] font-medium text-zinc-400">Sistema Online</span>
             </span>
-            <span className="text-[11px] text-white/40 capitalize tabular-nums">{today}</span>
           </div>
-          <h1 className="font-display text-[26px] lg:text-[30px] font-semibold tracking-tight text-white leading-tight">
-            {greeting}, <span className="capitalize">{firstName}</span>.
+          <h1 className="text-[28px] lg:text-[34px] font-bold tracking-tight text-zinc-100 leading-tight">
+            {greeting}, <span className="text-white">{firstName}</span>.
           </h1>
-          <p className="text-[13px] text-white/50 max-w-xl">
-            Pipeline ponderado · {stats.upcomingActions.length} follow-ups na fila · {stats.alerts.length} alertas ativos
+          <p className="text-[14px] text-zinc-400 max-w-xl">
+            Visão geral da sua operação de alto ticket hoje.
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Link
             to="/leads?new=1"
-            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-colors text-[13px] font-medium text-zinc-300"
           >
-            <Target className="size-3.5 text-white/55" /> Nova negociação
+            <Target className="size-3.5" /> Nova negociação
           </Link>
           <Link
             to="/propostas?new=1"
-            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-colors text-[13px] font-medium text-zinc-300"
           >
-            <FileSignature className="size-3.5 text-white/55" /> Nova proposta
+            <FileSignature className="size-3.5" /> Nova proposta
           </Link>
           <Link
             to="/vendas?new=1"
-            className="h-10 px-4 inline-flex items-center gap-2 rounded-lg text-[12.5px] font-semibold text-white transition-all bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 shadow-[0_4px_20px_-6px_rgba(129,140,248,0.6)]"
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-md bg-zinc-100 hover:bg-white text-[13px] font-bold text-zinc-950 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
           >
             <Handshake className="size-3.5" strokeWidth={2.5} /> Registrar fechamento
           </Link>
         </div>
       </header>
 
-      {/* === KPI STRIP === */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* === KPI GRID === */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-                <Skeleton className="h-3 w-2/3 bg-white/5" />
-                <Skeleton className="h-7 w-1/2 bg-white/5" />
-                <Skeleton className="h-3 w-3/4 bg-white/5" />
+              <div key={i} className="rounded-xl border border-white/[0.04] bg-zinc-900/40 p-5 space-y-3">
+                <Skeleton className="size-9 rounded-lg bg-zinc-800/50" />
+                <Skeleton className="h-4 w-1/3 bg-zinc-800/50" />
+                <Skeleton className="h-8 w-1/2 bg-zinc-800/50" />
               </div>
             ))
-          : stats.kpis.slice(0, 8).map((kpi, i) => <KpiCard key={i} {...kpi} />)}
+          : stats.kpis.map((kpi, i) => <KpiCard key={i} {...kpi} />)}
       </section>
 
       {/* === MAIN GRID: Chart + Alerts === */}
-      <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
             <div className="flex items-center gap-2.5">
               <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
                 <TrendingUp className="size-3.5 text-indigo-300" />
@@ -376,27 +377,27 @@ export default function DashboardAdmin() {
               <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(250 90% 70%)" stopOpacity={0.45} />
-                    <stop offset="100%" stopColor="hsl(250 90% 70%)" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#fafafa" stopOpacity={0.15} />
+                    <stop offset="100%" stopColor="#fafafa" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 100% / 0.06)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.45)" }} dy={6} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.45)" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 100% / 0.03)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.3)" }} dy={6} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.3)" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.1)", background: "hsl(240 30% 8%)", fontSize: 12, color: "white" }}
+                  contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.05)", background: "#111116", fontSize: 12, color: "white" }}
                   formatter={(v: any) => formatBRL(Number(v))}
                 />
-                <Area type="monotone" dataKey="value" stroke="hsl(250 90% 75%)" strokeWidth={2.5} fill="url(#revGrad)" />
+                <Area type="monotone" dataKey="value" stroke="#fafafa" strokeWidth={2} fill="url(#revGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Alerts */}
-        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2.5">
+        <div className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
+            <div className="flex items-center gap-3">
               <div className="size-7 rounded-lg bg-rose-500/15 border border-rose-500/25 flex items-center justify-center">
                 <Bell className="size-3.5 text-rose-300" />
               </div>
@@ -437,9 +438,9 @@ export default function DashboardAdmin() {
 
       {/* === FOLLOW-UPS + FUNIL === */}
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2.5">
+        <div className="xl:col-span-2 rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
+            <div className="flex items-center gap-3">
               <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
                 <CalendarClock className="size-3.5 text-indigo-300" />
               </div>
@@ -501,9 +502,9 @@ export default function DashboardAdmin() {
         </div>
 
         {/* Funil de vendas */}
-        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="size-7 rounded-lg bg-violet-500/15 border border-violet-500/25 flex items-center justify-center">
+        <div className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-white/[0.04]">
+            <div className="size-7 rounded-lg bg-zinc-800/50 flex items-center justify-center">
               <Target className="size-3.5 text-violet-300" />
             </div>
             <div>
@@ -528,7 +529,7 @@ export default function DashboardAdmin() {
                         </div>
                         <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                            className="h-full rounded-full bg-zinc-200 transition-all duration-700"
                             style={{ width: `${pct}%`, opacity: 0.4 + (i / stats.funnelData.length) * 0.6 }}
                           />
                         </div>
@@ -544,9 +545,9 @@ export default function DashboardAdmin() {
 
       {/* === ENTREGAS PÓS-VENDA === */}
       {stats.urgentDemands.length > 0 && (
-        <section className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2.5">
+        <section className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
+            <div className="flex items-center gap-3">
               <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
                 <Briefcase className="size-3.5 text-amber-300" />
               </div>
@@ -580,10 +581,10 @@ export default function DashboardAdmin() {
       )}
 
       {/* === ACTIVITY + TASKS === */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-white/[0.04]">
+            <div className="size-7 rounded-lg bg-zinc-800/50 flex items-center justify-center">
               <Activity className="size-3.5 text-indigo-300" />
             </div>
             <div className="flex-1">
@@ -616,9 +617,9 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2.5">
+        <div className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
+            <div className="flex items-center gap-3">
               <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
                 <AlertCircle className="size-3.5 text-amber-300" />
               </div>
@@ -671,45 +672,27 @@ function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
-function KpiCard({
-  label, value, icon: Icon, tone, hint, delta,
-}: {
-  label: string; value: string; icon: any; tone: Tone; hint?: string; delta?: number | null;
-}) {
-  const toneAccent: Record<Tone, { bar: string; iconBg: string; iconFg: string }> = {
-    primary: { bar: "bg-indigo-400", iconBg: "bg-indigo-500/15 border-indigo-500/25", iconFg: "text-indigo-300" },
-    success: { bar: "bg-emerald-400", iconBg: "bg-emerald-500/15 border-emerald-500/25", iconFg: "text-emerald-300" },
-    warning: { bar: "bg-amber-400", iconBg: "bg-amber-500/15 border-amber-500/25", iconFg: "text-amber-300" },
-    danger:  { bar: "bg-rose-400", iconBg: "bg-rose-500/15 border-rose-500/25", iconFg: "text-rose-300" },
-    info:    { bar: "bg-sky-400", iconBg: "bg-sky-500/15 border-sky-500/25", iconFg: "text-sky-300" },
-    neutral: { bar: "bg-white/40", iconBg: "bg-white/[0.05] border-white/[0.08]", iconFg: "text-white/60" },
-  };
-  const acc = toneAccent[tone];
-  const positive = delta != null && delta > 0;
-  const negative = delta != null && delta < 0;
+function KpiCard({ label, value, delta, icon: Icon, hint }: any) {
   return (
-    <div className="group relative rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.55)] backdrop-blur-xl p-4 transition-all duration-200 hover:border-white/[0.14] hover:bg-[hsl(240_30%_8%_/_0.7)] overflow-hidden">
-      <span className={cn("absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity", acc.bar)} />
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 truncate pr-2">{label}</p>
-        <div className={cn("size-7 rounded-lg flex items-center justify-center shrink-0 border", acc.iconBg, acc.iconFg)}>
-          <Icon className="size-3.5" strokeWidth={2.2} />
+    <div className="rounded-xl border border-white/[0.04] bg-zinc-900/40 p-5 group hover:bg-zinc-900/60 transition-all border-zinc-800/50">
+      <div className="flex items-start justify-between mb-4">
+        <div className="size-9 rounded-lg bg-zinc-800/50 flex items-center justify-center text-zinc-400 group-hover:text-zinc-200 transition-colors">
+          <Icon className="size-4.5" />
         </div>
-      </div>
-      <p className="font-display text-[24px] lg:text-[26px] font-bold tracking-tight text-white tabular-nums leading-none truncate">{value}</p>
-      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] min-h-[16px]">
-        {delta != null ? (
+        {delta != null && (
           <span className={cn(
-            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-1.5 py-0.5 rounded text-[10.5px]",
-            positive && "text-emerald-300 bg-emerald-500/10",
-            negative && "text-rose-300 bg-rose-500/10",
-            !positive && !negative && "text-white/40 bg-white/[0.04]"
+            "text-[10.5px] font-bold tabular-nums px-2 py-0.5 rounded-full flex items-center gap-0.5",
+            delta >= 0 ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10"
           )}>
-            {positive ? <TrendingUp className="size-2.5" /> : negative ? <TrendingDown className="size-2.5" /> : null}
             {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
+            {delta >= 0 ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
           </span>
-        ) : null}
-        {hint && <span className="text-white/40 truncate">{hint}</span>}
+        )}
+      </div>
+      <div>
+        <p className="text-[11px] font-medium text-zinc-500 mb-1">{label}</p>
+        <h3 className="text-[24px] font-bold text-zinc-100 tracking-tight tabular-nums leading-tight">{value}</h3>
+        {hint && <p className="text-[10.5px] text-zinc-500 mt-2 truncate font-medium">{hint}</p>}
       </div>
     </div>
   );
