@@ -246,6 +246,23 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
+                    <Label className="editorial-label text-white/40">Empresa (Opcional)</Label>
+                    <Select 
+                      value={(form as any).company_id || "none"} 
+                      onValueChange={(v) => setForm({ ...form, company_id: v } as any)}
+                    >
+                      <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl">
+                        <SelectValue placeholder="Selecione a empresa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Pessoa Física / Geral</SelectItem>
+                        {companies.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label className="editorial-label text-white/40">Produto</Label>
                     <Select value={form.product_id} onValueChange={handleProductChange}>
                       <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl"><SelectValue placeholder="Selecione o produto" /></SelectTrigger>
