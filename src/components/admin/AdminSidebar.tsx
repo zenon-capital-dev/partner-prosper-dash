@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Search, Command,
   Briefcase, CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
-  ChevronsLeft, ChevronsRight, Activity, Zap, MessageSquare,
+  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -12,23 +12,20 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
-} from "@/components/ui/command";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any };
+type NavItem = { title: string; url: string; icon: any; badge?: string };
 type NavSection = { label: string; items: NavItem[] };
 
 const SECTIONS: NavSection[] = [
   {
-    label: "Overview",
+    label: "Visão Geral",
     items: [
       { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-      { title: "SLA e Prazos", url: "/sla", icon: Zap },
-      { title: "Logs e Auditoria", url: "/auditoria", icon: History },
+      { title: "SLA & Prazos", url: "/sla", icon: Zap },
+      { title: "Auditoria", url: "/auditoria", icon: History },
     ],
   },
   {
@@ -43,7 +40,7 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Operacional",
+    label: "Operação",
     items: [
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
@@ -100,36 +97,90 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     path === "/admin" ? pathname === "/admin" : pathname === path || pathname.startsWith(path + "/");
 
   const allItems = SECTIONS.flatMap((s) => s.items.map((i) => ({ ...i, group: s.label })));
+  const displayName = user?.user_metadata?.full_name || user?.email || "Admin";
 
   return (
     <>
       <aside
         className={cn(
-          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-500 ease-[cubic-bezier(0.2,0,0,1)] z-50 overflow-hidden relative",
-          "bg-[hsl(240_30%_5%_/_0.65)] backdrop-blur-2xl border-r border-white/[0.06]",
-          "before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-b before:from-indigo-500/[0.06] before:via-transparent before:to-purple-500/[0.08] before:pointer-events-none",
-          collapsed ? "w-[72px]" : "w-[260px]"
+          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-300 ease-out z-50 relative",
+          "bg-[hsl(240_32%_4%_/_0.78)] backdrop-blur-2xl border-r border-white/[0.05]",
+          collapsed ? "w-[68px]" : "w-[248px]"
         )}
       >
-        {/* Brand */}
-        <div className={cn("h-14 flex items-center border-b border-white/[0.04] px-3.5 shrink-0", collapsed ? "justify-center" : "justify-between")}>
-          <button onClick={() => navigate("/admin")} className="flex items-center gap-2 min-w-0 group">
-            <div className="size-7 rounded-md bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center ring-1 ring-white/10 shadow-[0_4px_16px_-4px_rgba(99,102,241,0.5)] group-hover:scale-[1.04] transition-transform duration-300 shrink-0">
-              <Zap className="size-3.5 text-white fill-white" strokeWidth={2.5} />
-            </div>
-            {!collapsed && (
-              <div className="flex flex-col leading-none">
-                <span className="font-display text-[13.5px] font-bold tracking-tight text-white truncate">Prosper</span>
-                <span className="text-[8.5px] font-semibold tracking-[0.28em] text-indigo-300/70 uppercase mt-0.5 truncate">Operations</span>
+        {/* Workspace / Brand */}
+        <div className={cn("h-[60px] flex items-center border-b border-white/[0.05] shrink-0", collapsed ? "px-2 justify-center" : "px-3")}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  "h-10 flex items-center gap-2.5 rounded-lg hover:bg-white/[0.04] transition-colors group",
+                  collapsed ? "w-10 justify-center" : "w-full px-2"
+                )}
+              >
+                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center ring-1 ring-white/15 shrink-0">
+                  <Zap className="size-3.5 text-white" strokeWidth={2.5} fill="white" />
+                </div>
+                {!collapsed && (
+                  <>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-[13px] font-semibold text-white leading-tight truncate">Prosper</p>
+                      <p className="text-[10.5px] text-white/40 leading-tight truncate">Workspace · Pro</p>
+                    </div>
+                    <ChevronDown className="size-3.5 text-white/35 group-hover:text-white/70 transition-colors shrink-0" />
+                  </>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl">
+              <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Workspace</DropdownMenuLabel>
+              <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.04] mb-1">
+                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center"><Zap className="size-3.5 text-white" fill="white" /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-semibold truncate">Prosper</p>
+                  <p className="text-[10.5px] text-white/45">Plano Pro · 12 usuários</p>
+                </div>
               </div>
-            )}
-          </button>
+              <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
+              <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
+                <Settings className="size-3.5 text-white/45" /> Configurações da empresa
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/usuarios")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
+                <UserCog className="size-3.5 text-white/45" /> Membros & permissões
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/relatorios")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
+                <Sparkles className="size-3.5 text-white/45" /> Faturamento & plano
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Search & Collapse */}
+        <div className="px-2 pt-2.5 pb-1.5 flex items-center gap-1.5">
+          {!collapsed ? (
+            <button
+              onClick={() => setCmdOpen(true)}
+              className="flex-1 h-8 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.05] flex items-center gap-2 px-2.5 text-[12px] text-white/50 transition-colors group"
+            >
+              <Search className="size-3.5 group-hover:text-white/80 transition-colors" />
+              <span className="flex-1 text-left font-medium">Buscar...</span>
+              <kbd className="text-[9.5px] font-mono bg-white/[0.06] border border-white/[0.08] rounded px-1 py-0 leading-[14px] text-white/60">⌘K</kbd>
+            </button>
+          ) : (
+            <button
+              onClick={() => setCmdOpen(true)}
+              className="size-9 mx-auto rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] flex items-center justify-center text-white/55 hover:text-white transition-colors"
+            >
+              <Search className="size-3.5" />
+            </button>
+          )}
           {!collapsed && (
             <button
               onClick={onToggle}
-              className="size-7 rounded-md hover:bg-white/[0.06] flex items-center justify-center text-sidebar-foreground/40 hover:text-white transition-all duration-200"
+              className="size-8 rounded-lg hover:bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white transition-colors shrink-0"
+              title="Recolher"
             >
-              <ChevronsLeft className="size-4" />
+              <PanelLeftClose className="size-4" />
             </button>
           )}
         </div>
@@ -137,46 +188,25 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {collapsed && (
           <button
             onClick={onToggle}
-            className="mt-2 mx-auto size-7 rounded-md hover:bg-white/[0.06] flex items-center justify-center text-sidebar-foreground/40 hover:text-white transition-all"
+            className="mx-auto size-8 rounded-lg hover:bg-white/[0.06] flex items-center justify-center text-white/40 hover:text-white transition-colors mt-0.5"
+            title="Expandir"
           >
-            <ChevronsRight className="size-4" />
+            <PanelLeftOpen className="size-4" />
           </button>
         )}
 
-        {/* Search */}
-        <div className="px-2.5 pt-3 pb-2">
-          {!collapsed ? (
-            <button
-              onClick={() => setCmdOpen(true)}
-              className="w-full h-8.5 rounded-md bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.05] flex items-center gap-2.5 px-3 text-[12px] text-sidebar-foreground/55 transition-all duration-200 group"
-            >
-              <Search className="size-3.5 group-hover:text-white transition-colors" />
-              <span className="flex-1 text-left font-medium truncate">Search</span>
-              <kbd className="hidden lg:flex text-[9.5px] font-mono bg-white/[0.06] border border-white/[0.08] rounded px-1 py-0.5 items-center gap-0.5 opacity-70">
-                <Command className="size-2" />K
-              </kbd>
-            </button>
-          ) : (
-            <button
-              onClick={() => setCmdOpen(true)}
-              className="size-9 mx-auto rounded-md bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] flex items-center justify-center text-sidebar-foreground/55 hover:text-white transition-all"
-            >
-              <Search className="size-3.5" />
-            </button>
-          )}
-        </div>
-
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-4 admin-scroll">
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4 vx-sidebar-scroll">
           {SECTIONS.map((section) => (
             <div key={section.label}>
-              {!collapsed && (
-                <div className="px-3 mb-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-sidebar-foreground/25">
+              {!collapsed ? (
+                <div className="px-2.5 mb-1 text-[9.5px] font-bold uppercase tracking-[0.18em] text-white/30">
                   {section.label}
                 </div>
+              ) : (
+                <div className="h-px bg-white/[0.05] mx-3 mb-1.5" />
               )}
-              {collapsed && <div className="h-px bg-white/[0.04] mx-2 mb-2" />}
-              <div className="space-y-0.25">
+              <div className="space-y-px">
                 {section.items.map((item) => {
                   const active = isActive(item.url);
                   const Icon = item.icon;
@@ -186,18 +216,33 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       to={item.url}
                       title={collapsed ? item.title : undefined}
                       className={cn(
-                        "group relative flex items-center gap-3 h-8.5 rounded-md text-[12.5px] font-medium transition-all duration-200",
-                        collapsed ? "justify-center px-0" : "px-2.5",
+                        "group relative flex items-center gap-2.5 rounded-md text-[12.5px] font-medium transition-colors duration-150",
+                        collapsed ? "justify-center h-9 mx-1" : "px-2.5 h-8",
                         active
-                          ? "bg-white/[0.06] text-white"
-                          : "text-sidebar-foreground/55 hover:text-white hover:bg-white/[0.03]"
+                          ? "bg-white/[0.07] text-white"
+                          : "text-white/55 hover:text-white hover:bg-white/[0.035]"
                       )}
                     >
                       {active && !collapsed && (
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-indigo-400" />
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]" />
                       )}
-                      <Icon className={cn("size-[15px] shrink-0 transition-colors", active ? "text-indigo-300" : "group-hover:text-white/90")} strokeWidth={active ? 2.25 : 1.75} />
-                      {!collapsed && <span className="truncate">{item.title}</span>}
+                      <Icon
+                        className={cn(
+                          "size-[15px] shrink-0 transition-colors",
+                          active ? "text-indigo-300" : "text-white/45 group-hover:text-white/85"
+                        )}
+                        strokeWidth={active ? 2.25 : 1.8}
+                      />
+                      {!collapsed && (
+                        <>
+                          <span className="truncate flex-1">{item.title}</span>
+                          {item.badge && (
+                            <span className="text-[9.5px] font-bold tabular-nums px-1.5 h-[16px] rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center">
+                              {item.badge}
+                            </span>
+                          )}
+                        </>
+                      )}
                     </NavLink>
                   );
                 })}
@@ -206,65 +251,82 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           ))}
         </nav>
 
+        {/* Upgrade hint */}
+        {!collapsed && (
+          <div className="px-3 pb-2">
+            <div className="rounded-xl border border-white/[0.06] bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.05] to-transparent p-3 relative overflow-hidden">
+              <div className="absolute -top-6 -right-6 size-16 rounded-full bg-indigo-500/20 blur-2xl" />
+              <div className="relative">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Sparkles className="size-3 text-indigo-300" />
+                  <span className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-indigo-200">Plano Pro</span>
+                </div>
+                <p className="text-[11px] text-white/55 leading-snug mb-2">Convide sua equipe e tenha acesso a relatórios avançados.</p>
+                <button
+                  onClick={() => navigate("/usuarios")}
+                  className="w-full h-7 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-[11px] font-semibold text-white border border-white/[0.08] transition-colors"
+                >
+                  Convidar membros
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* User */}
-        <div className="mt-auto border-t border-white/[0.05] p-3">
+        <div className="border-t border-white/[0.05] p-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-2.5 rounded-md p-2 hover:bg-white/[0.04] transition-all duration-200 group",
+                  "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-white/[0.04] transition-colors group",
                   collapsed && "justify-center"
                 )}
               >
-                <div className="size-8 rounded-md bg-gradient-to-tr from-sidebar-accent to-indigo-500/25 border border-white/[0.08] flex items-center justify-center text-[10.5px] font-bold text-indigo-200 shrink-0 group-hover:border-indigo-500/40 transition-colors">
-                  {initials(user?.user_metadata?.full_name || user?.email || "A")}
+                <div className="relative shrink-0">
+                  <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-500/40 to-violet-500/30 border border-white/[0.1] flex items-center justify-center text-[11px] font-bold text-white">
+                    {initials(displayName)}
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-400 border-2 border-[#0a0a14]" />
                 </div>
                 {!collapsed && (
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-[12.5px] font-semibold text-white truncate leading-tight">
-                      {user?.user_metadata?.full_name || "Admin User"}
+                      {String(displayName).split(/[@ ]/)[0]}
                     </p>
-                    <p className="text-[11px] text-sidebar-foreground/40 truncate font-mono mt-0.5">{user?.email}</p>
+                    <p className="text-[10.5px] text-white/40 truncate mt-0.5">{user?.email}</p>
                   </div>
                 )}
-                {!collapsed && (
-                  <div className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                )}
+                {!collapsed && <ChevronDown className="size-3.5 text-white/30 group-hover:text-white/60 transition-colors shrink-0" />}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               side={collapsed ? "right" : "top"}
               align="end"
-              className="w-56 bg-[#0f172a] border-white/[0.08] text-white p-2 rounded-xl shadow-2xl"
+              className="w-60 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl"
             >
-              <DropdownMenuLabel className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white/30 font-display">
-                Management
-              </DropdownMenuLabel>
+              <div className="px-2 py-2 flex items-center gap-2.5">
+                <div className="size-9 rounded-lg bg-gradient-to-tr from-indigo-500/40 to-violet-500/30 border border-white/[0.1] flex items-center justify-center text-[12px] font-bold">{initials(displayName)}</div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12.5px] font-semibold truncate">{displayName}</p>
+                  <p className="text-[10.5px] text-white/45 truncate">{user?.email}</p>
+                </div>
+              </div>
               <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
-              <DropdownMenuItem
-                onClick={() => navigate("/configuracoes")}
-                className="gap-3 px-2 py-2 text-[13px] rounded-lg focus:bg-white/[0.08] cursor-pointer"
-              >
-                <Settings className="size-4 text-white/40" /> Profile Settings
+              <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
+                <Settings className="size-3.5 text-white/45" /> Preferências
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate("/suporte")}
-                className="gap-3 px-2 py-2 text-[13px] rounded-lg focus:bg-white/[0.08] cursor-pointer"
-              >
-                <LifeBuoy className="size-4 text-white/40" /> Help & Support
+              <DropdownMenuItem onClick={() => navigate("/suporte")} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md focus:bg-white/[0.06] cursor-pointer">
+                <LifeBuoy className="size-3.5 text-white/45" /> Ajuda & suporte
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/[0.06] my-1" />
-              <DropdownMenuItem
-                onClick={signOut}
-                className="gap-3 px-2 py-2 text-[13px] rounded-lg text-rose-400 focus:bg-rose-500/10 focus:text-rose-300 cursor-pointer"
-              >
-                <LogOut className="size-4" /> Sign Out
+              <DropdownMenuItem onClick={signOut} className="gap-2.5 px-2 py-2 text-[12.5px] rounded-md text-rose-300 focus:bg-rose-500/10 focus:text-rose-200 cursor-pointer">
+                <LogOut className="size-3.5" /> Sair
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </aside>
-
 
       <GlobalSearch open={cmdOpen} onOpenChange={setCmdOpen} navItems={allItems} />
     </>
