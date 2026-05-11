@@ -22,6 +22,7 @@ type DocRequest = {
   id: string;
   client_id: string;
   product_id: string | null;
+  client_product_id: string | null;
   name: string;
   description: string | null;
   status: string;
@@ -76,7 +77,7 @@ export function ClientDocumentsTab({
   const grouped = useMemo(() => {
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
     for (const r of requests) {
-      const key = r.product_id ?? "__sem_produto__";
+      const key = r.client_product_id ?? r.product_id ?? "__sem_produto__";
       const product = products.find((p) => p.id === r.product_id) ?? null;
       if (!map.has(key)) map.set(key, { product, items: [] });
       map.get(key)!.items.push(r);

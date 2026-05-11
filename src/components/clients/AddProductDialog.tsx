@@ -105,6 +105,15 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     notes: "",
   });
 
+  const { data: companies = [] } = useQuery({
+    queryKey: ["client-companies", clientId],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, name").eq("client_id", clientId);
+      return data ?? [];
+    },
+    enabled: !!clientId
+  });
+
   const { data: products = [] } = useQuery({
     queryKey: ["all-products"],
     queryFn: async () => {
@@ -169,11 +178,12 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
     setSaving(true);
     try {
-      // 1. Insert Client Product (Database trigger tr_populate_client_product will handle templates)
+      // 1. Insert Client Product (Demands)
       const { data: cp, error: cpErr } = await supabase
         .from("client_products")
         .insert({
           client_id: clientId,
+          company_id: (form as any).company_id === "none" ? null : (form as any).company_id,
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
           custom_fields: (form as any).custom_fields || {},
@@ -235,6 +245,23 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                    01. Seleção de Produto
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="editorial-label text-white/40">Empresa (Opcional)</Label>
+                    <Select 
+                      value={(form as any).company_id || "none"} 
+                      onValueChange={(v) => setForm({ ...form, company_id: v } as any)}
+                    >
+                      <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl">
+                        <SelectValue placeholder="Selecione a empresa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Pessoa Física / Geral</SelectItem>
+                        {companies.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="space-y-2">
                     <Label className="editorial-label text-white/40">Produto</Label>
                     <Select value={form.product_id} onValueChange={handleProductChange}>

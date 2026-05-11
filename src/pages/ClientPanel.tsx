@@ -29,19 +29,23 @@ export default function ClientPanel() {
     queryFn: async () => {
       const { data: client } = await supabase
         .from("clients")
-        .select("id, full_name, email, phone, company, status, created_at, onboarding_status, onboarding_progress")
+        .select(`
+          id, full_name, email, phone, company, status, created_at, onboarding_status, onboarding_progress,
+          companies(id, name, trade_name)
+        `)
         .eq("user_id", user!.id)
         .maybeSingle();
       if (!client) return null;
 
-      const [docs, catalog, requests, contracts, payments, granularProducts, reports] = await Promise.all([
+      const [docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries] = await Promise.all([
         supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true),
         supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
         supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false }),
-        supabase.from("client_products").select("*, products(name, description)").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("client_products").select("*, products(name, description), companies(id, name, trade_name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
+        supabase.from("demand_deliveries").select("*, client_products(id, products(name))").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
       ]);
 
       return {
@@ -53,6 +57,7 @@ export default function ClientPanel() {
         payments: payments.data ?? [],
         granularProducts: granularProducts.data ?? [],
         reports: reports.data ?? [],
+        formalDeliveries: formalDeliveries.data ?? [],
       };
     },
     enabled: !!user,
@@ -72,13 +77,16 @@ export default function ClientPanel() {
     </div>
   );
 
-  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports } = data;
+  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries } = data;
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
   const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
   const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
-  const deliveries = docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido');
+  const deliveries = [
+    ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
+    ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
+  ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
@@ -297,11 +305,14 @@ export default function ClientPanel() {
                         ) : (
                           deliveries.slice(0, 4).map((d: any) => (
                             <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20">
-                               <div className="flex items-center gap-3 min-w-0">
-                                  <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                                  <p className="text-xs font-bold truncate">{d.name}</p>
-                               </div>
-                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path, '_blank')}>
+                                <div className="flex items-center gap-3 min-w-0">
+                                   {d.type === 'document' ? <CheckCircle2 className="size-4 text-emerald-500 shrink-0" /> : <Package className="size-4 text-indigo-500 shrink-0" />}
+                                   <div className="min-w-0">
+                                      <p className="text-xs font-bold truncate">{d.name}</p>
+                                      {d.client_products?.products?.name && <p className="text-[9px] text-muted-foreground truncate">{d.client_products.products.name}</p>}
+                                   </div>
+                                </div>
+                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path || d.file_url, '_blank')}>
                                   <Download className="size-4" />
                                </Button>
                             </div>

@@ -522,6 +522,7 @@ export type Database = {
           adjustment_due_date: string | null
           adjustment_notes: string | null
           client_id: string
+          company_id: string | null
           created_at: string | null
           current_step_id: string | null
           current_steps: Json | null
@@ -557,6 +558,7 @@ export type Database = {
           adjustment_due_date?: string | null
           adjustment_notes?: string | null
           client_id: string
+          company_id?: string | null
           created_at?: string | null
           current_step_id?: string | null
           current_steps?: Json | null
@@ -592,6 +594,7 @@ export type Database = {
           adjustment_due_date?: string | null
           adjustment_notes?: string | null
           client_id?: string
+          company_id?: string | null
           created_at?: string | null
           current_step_id?: string | null
           current_steps?: Json | null
@@ -636,6 +639,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_client_financial_summary"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "client_products_current_step_id_fkey"
@@ -1259,6 +1269,132 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
+          client_id: string
+          created_at: string | null
+          document: string | null
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          trade_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
+          client_id: string
+          created_at?: string | null
+          document?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
+          client_id?: string
+          created_at?: string | null
+          document?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          trade_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      company_contacts: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          email: string
+          id: string
+          is_primary: boolean | null
+          name: string
+          permissions: Json | null
+          profile_id: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          email: string
+          id?: string
+          is_primary?: boolean | null
+          name: string
+          permissions?: Json | null
+          profile_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_primary?: boolean | null
+          name?: string
+          permissions?: Json | null
+          profile_id?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_history: {
         Row: {
           action_by: string | null
@@ -1450,6 +1586,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "demand_comments_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demand_deliveries: {
+        Row: {
+          client_product_id: string
+          created_at: string | null
+          description: string | null
+          file_url: string | null
+          id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_product_id: string
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_product_id?: string
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_deliveries_client_product_id_fkey"
             columns: ["client_product_id"]
             isOneToOne: false
             referencedRelation: "client_products"
