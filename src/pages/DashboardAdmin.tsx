@@ -284,101 +284,107 @@ export default function DashboardAdmin() {
         ))}
       </div>
 
-      {/* === ROW 2: CORE PERFORMANCE & ALERTS === */}
+      {/* === ROW 2: PERFORMANCE & CRITICAL ATTENTION === */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Revenue Performance */}
-        <div className="lg:col-span-8 rounded-2xl border border-white/[0.05] bg-zinc-900/20 p-6 flex flex-col">
+        {/* Revenue Performance - 60% approximate */}
+        <div className="lg:col-span-8 rounded-2xl border border-white/[0.03] bg-gradient-to-b from-zinc-900/40 to-transparent p-6 flex flex-col min-h-[400px]">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-sm font-semibold text-white">Performance de Faturamento</h2>
-              <p className="text-[11px] text-zinc-500">Últimos 6 meses de operação</p>
+              <h2 className="text-sm font-semibold text-white tracking-tight">Performance de Faturamento</h2>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Visão consolidada · 6 meses</p>
             </div>
-            <Link to="/financeiro" className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
-              Ver relatório completo <ExternalLink className="size-2.5" />
+            <Link to="/financeiro" className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5 uppercase tracking-tighter">
+              Relatório Completo <ArrowUpRight className="size-3" />
             </Link>
           </div>
           
-          <div className="flex-1 min-h-[280px] w-full">
+          <div className="flex-1 w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff03" vertical={false} />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: "#52525b", fontSize: 10, fontWeight: 600 }} 
+                  tick={{ fill: "#3f3f46", fontSize: 10, fontWeight: 700 }} 
                   dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: "#52525b", fontSize: 10 }}
+                  tick={{ fill: "#3f3f46", fontSize: 10 }}
                   tickFormatter={(val) => `R$ ${val/1000}k`}
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: "#09090b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "12px" }}
+                  contentStyle={{ backgroundColor: "#09090b", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "12px", fontSize: "11px" }}
                   itemStyle={{ color: "#fff" }}
-                  cursor={{ stroke: "#ffffff10" }}
+                  cursor={{ stroke: "#ffffff05" }}
                   formatter={(value: number) => [formatBRL(value), "Receita"]}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="value" 
                   stroke="#6366f1" 
-                  strokeWidth={2} 
+                  strokeWidth={2.5} 
                   fillOpacity={1} 
                   fill="url(#colorRev)" 
-                  animationDuration={1500}
+                  animationDuration={2000}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Alerts & Priorities */}
-        <div className="lg:col-span-4 rounded-2xl border border-white/[0.05] bg-zinc-900/20 p-6 flex flex-col">
+        {/* Alerts & Priorities - 40% approximate */}
+        <div className="lg:col-span-4 rounded-2xl border border-white/[0.03] bg-zinc-900/20 p-6 flex flex-col">
           <div className="flex items-center gap-2 mb-6">
-            <Bell className="size-4 text-zinc-400" />
-            <h2 className="text-sm font-semibold text-white">Central de Atenção</h2>
+            <div className="size-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+            <h2 className="text-sm font-semibold text-white tracking-tight">Painel de Controle</h2>
           </div>
           
           <div className="flex-1 space-y-3">
             {stats.alerts.length > 0 ? (
               stats.alerts.map((alert) => (
-                <div key={alert.id} className={cn("p-3.5 rounded-xl border transition-all flex items-start gap-3", toneStyles[alert.tone].bg, toneStyles[alert.tone].border)}>
-                  <div className={cn("p-1.5 rounded-lg bg-zinc-950/40", toneStyles[alert.tone].icon)}>
+                <div key={alert.id} className={cn("p-3.5 rounded-xl border border-white/[0.02] transition-all flex items-start gap-3 bg-white/[0.01] hover:bg-white/[0.03]", toneStyles[alert.tone].text)}>
+                  <div className={cn("p-2 rounded-lg bg-zinc-950/50 border border-white/[0.03]", toneStyles[alert.tone].icon)}>
                     <alert.icon className="size-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold text-white leading-none mb-1">{alert.title}</p>
-                    <p className="text-[11px] text-zinc-400 truncate">{alert.sub}</p>
+                    <p className="text-[12px] font-semibold text-zinc-100 leading-none mb-1.5">{alert.title}</p>
+                    <p className="text-[10px] text-zinc-500 font-medium truncate">{alert.sub}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3 opacity-40">
-                <CheckCircle2 className="size-8 text-emerald-500" />
-                <p className="text-xs text-zinc-400">Tudo em dia.<br/>Nenhum alerta crítico pendente.</p>
+              <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-center p-8 border border-dashed border-white/[0.05] rounded-2xl bg-white/[0.01]">
+                <div className="size-12 rounded-full bg-emerald-500/5 flex items-center justify-center mb-4">
+                  <CheckCircle2 className="size-6 text-emerald-500/40" />
+                </div>
+                <h4 className="text-[13px] font-semibold text-zinc-300 mb-1">Tudo Sob Controle</h4>
+                <p className="text-[11px] text-zinc-500 max-w-[180px]">Não há alertas críticos ou pendências urgentes para hoje.</p>
               </div>
             )}
           </div>
 
-          <div className="mt-6 pt-6 border-t border-white/[0.05]">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Prioridades de Hoje</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-400">Reuniões agendadas</span>
-                <span className="text-white font-medium">3</span>
+          <div className="mt-6 pt-6 border-t border-white/[0.03]">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Métricas Rápidas</span>
+              <span className="text-[9px] text-zinc-500 italic">Atualizado agora</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.02]">
+                <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Follow-ups</p>
+                <p className="text-sm font-bold text-white">12</p>
               </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-400">Follow-ups pendentes</span>
-                <span className="text-white font-medium">12</span>
+              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.02]">
+                <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Reuniões</p>
+                <p className="text-sm font-bold text-white">3</p>
               </div>
             </div>
           </div>
