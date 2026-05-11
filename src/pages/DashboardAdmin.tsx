@@ -219,170 +219,183 @@ export default function DashboardAdmin() {
     .reduce((a, s: any) => a + Number(s.amount || 0), 0);
 
   return (
-    <div className="px-6 lg:px-12 py-10 lg:py-14 space-y-14 animate-fade-up">
-      <Breadcrumbs />
-
-      {/* HERO — Editorial */}
-      <header className="grid grid-cols-12 gap-10 items-end">
-        <div className="col-span-12 lg:col-span-8 space-y-6">
-          <span className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md">
-            <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)] animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">Executive Cockpit · Ao vivo</span>
-          </span>
-          <h1 className="font-display text-[44px] lg:text-[68px] xl:text-[78px] font-bold tracking-tighter leading-[0.95] text-white">
-            {greeting},{" "}
-            <span className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent capitalize">
-              {firstName}
+    <div className="px-5 lg:px-8 py-6 lg:py-8 space-y-6 animate-fade-up max-w-[1640px] mx-auto">
+      {/* === EXECUTIVE HEADER === */}
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+        <div className="space-y-2 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-300">Ao vivo</span>
             </span>
-            <span className="text-white/40">.</span>
+            <span className="text-[11px] text-white/40 capitalize tabular-nums">{today}</span>
+          </div>
+          <h1 className="font-display text-[26px] lg:text-[30px] font-semibold tracking-tight text-white leading-tight">
+            {greeting}, <span className="capitalize">{firstName}</span>.
           </h1>
-          <p className="text-[15px] lg:text-[17px] text-white/55 max-w-2xl leading-relaxed capitalize flex items-center gap-3">
-            <Calendar className="size-4 shrink-0" /> {today}
+          <p className="text-[13px] text-white/50 max-w-xl">
+            Visão consolidada da operação · {stats.alerts.length} alertas ativos · {stats.tasksOverdue.length} tarefas vencidas
           </p>
         </div>
 
-        <div className="col-span-12 lg:col-span-4 flex flex-col lg:items-end gap-4">
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <Link
-              to="/relatorios"
-              className="flex-1 lg:flex-none h-12 px-5 inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all text-[13px] font-semibold text-white backdrop-blur-md"
-            >
-              <BarChart3 className="size-4 text-white/60" /> Relatórios
-            </Link>
-            <Link
-              to="/vendas?new=1"
-              className="flex-1 lg:flex-none h-12 px-6 inline-flex items-center justify-center gap-2 rounded-2xl text-[13px] font-bold text-white transition-all bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.6)] hover:shadow-[0_12px_40px_-8px_rgba(139,92,246,0.8)]"
-            >
-              <Plus className="size-4" strokeWidth={2.6} /> Nova venda
-            </Link>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/relatorios"
+            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+          >
+            <BarChart3 className="size-3.5 text-white/55" /> Relatórios
+          </Link>
+          <Link
+            to="/vendas?new=1"
+            className="h-10 px-4 inline-flex items-center gap-2 rounded-lg text-[12.5px] font-semibold text-white transition-all bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 shadow-[0_4px_20px_-6px_rgba(129,140,248,0.6)]"
+          >
+            <Plus className="size-3.5" strokeWidth={2.5} /> Nova venda
+          </Link>
         </div>
       </header>
 
-      {/* Manchete — Receita gigante */}
-      <section className="grid grid-cols-12 gap-8 items-end pt-4 border-t border-white/[0.06]">
-        <div className="col-span-12 lg:col-span-7 space-y-4 pt-6">
-          <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-indigo-300/80">
-            Receita do mês
-          </span>
-          <div className="flex items-start gap-3">
-            <span className="text-3xl lg:text-5xl font-light text-white/30 mt-3 lg:mt-5">R$</span>
-            <span className="font-display text-[72px] lg:text-[120px] xl:text-[140px] font-bold leading-[0.85] tracking-tighter text-white tabular-nums">
-              {(stats.monthRevenue / 1000).toFixed(1).replace(".", ",")}
-              <span className="text-white/30 text-[0.6em]">k</span>
-            </span>
+      {/* === KPI STRIP === */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {isLoading
+          ? Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+                <Skeleton className="h-3 w-2/3 bg-white/5" />
+                <Skeleton className="h-7 w-1/2 bg-white/5" />
+                <Skeleton className="h-3 w-3/4 bg-white/5" />
+              </div>
+            ))
+          : stats.kpis.slice(0, 8).map((kpi, i) => <KpiCard key={i} {...kpi} />)}
+      </section>
+
+      {/* === MAIN GRID: Chart + Alerts === */}
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+                <TrendingUp className="size-3.5 text-indigo-300" />
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Receita mensal</h3>
+                <p className="text-[11px] text-white/45">Últimos 6 meses</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Este mês</p>
+              <p className="text-[15px] font-bold text-white tabular-nums">{formatBRL(stats.monthRevenue)}</p>
+            </div>
           </div>
-          <p className="text-[14px] text-white/50 max-w-md leading-relaxed">
-            Faturamento consolidado do período corrente, atualizado em tempo real.
-          </p>
-        </div>
-
-        <div className="col-span-12 lg:col-span-5 grid grid-cols-2 gap-4 pt-6">
-          <HeroStat label="Hoje" value={formatBRL(todaysRevenue)} accent="indigo" />
-          <HeroStat label="Tarefas vencidas" value={String(stats.tasksOverdue.length)} accent={stats.tasksOverdue.length ? "rose" : "slate"} />
-          <HeroStat label="Tarefas urgentes" value={String(stats.tasksUrgent.length)} accent={stats.tasksUrgent.length ? "amber" : "slate"} />
-          <HeroStat label="Alertas críticos" value={String(stats.alerts.filter(a => a.tone === "danger").length)} accent={stats.alerts.filter(a => a.tone === "danger").length ? "rose" : "emerald"} />
-        </div>
-      </section>
-
-      <section>
-        <SectionTitle title="Indicadores principais" hint="Visão consolidada da operação" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {isLoading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="vx-card p-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="size-8 rounded-lg bg-white/5" />
-                    <Skeleton className="h-3 w-12 bg-white/5" />
-                  </div>
-                  <Skeleton className="h-3 w-2/3 bg-white/5" />
-                  <Skeleton className="h-7 w-1/2 bg-white/5" />
-                </div>
-              ))
-            : stats.kpis.map((kpi, i) => <KpiCard key={i} {...kpi} />)}
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <PremiumCard className="lg:col-span-2" title="Receita mensal" subtitle="Evolução dos últimos 6 meses" icon={<TrendingUp className="size-4" />} right={<span className="text-[11px] font-semibold text-foreground tabular-nums">{formatBRL(stats.monthRevenue)}<span className="text-muted-foreground/70 font-normal ml-1">este mês</span></span>}>
-          <div className="h-[260px] -ml-2">
+          <div className="h-[280px] p-3 pr-5">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+              <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.18} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    <stop offset="0%" stopColor="hsl(250 90% 70%)" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="hsl(250 90% 70%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} dy={6} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(0 0% 100% / 0.06)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.45)" }} dy={6} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(0 0% 100% / 0.45)" }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} width={48} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                  contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.1)", background: "hsl(240 30% 8%)", fontSize: 12, color: "white" }}
                   formatter={(v: any) => formatBRL(Number(v))}
                 />
-                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" />
+                <Area type="monotone" dataKey="value" stroke="hsl(250 90% 75%)" strokeWidth={2.5} fill="url(#revGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </PremiumCard>
+        </div>
 
-        <PremiumCard title="Alertas críticos" subtitle="Situações que exigem atenção" icon={<Bell className="size-4 text-destructive" />} right={<span className="vx-pill vx-pill-danger">{stats.alerts.length}</span>}>
-          <div className="flex-1 space-y-1.5 overflow-y-auto max-h-[260px] pr-1">
+        {/* Alerts */}
+        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-rose-500/15 border border-rose-500/25 flex items-center justify-center">
+                <Bell className="size-3.5 text-rose-300" />
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Alertas críticos</h3>
+                <p className="text-[11px] text-white/45">Atenção imediata</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold tabular-nums px-2 h-5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/25 flex items-center">{stats.alerts.length}</span>
+          </div>
+          <div className="p-2 space-y-1 overflow-y-auto max-h-[300px] flex-1">
             {stats.alerts.length === 0 ? (
-              <EmptyState icon={CheckCircle2} title="Tudo em dia" subtitle="Sem alertas críticos no momento" />
+              <EmptyState icon={CheckCircle2} title="Tudo em dia" subtitle="Sem alertas no momento" />
             ) : (
-              stats.alerts.map((a) => (
-                <Link
-                  key={a.id}
-                  to={a.link}
-                  className={cn(
-                    "group flex items-center gap-3 px-3 py-2.5 rounded-md border border-border hover:border-foreground/20 bg-card transition-colors"
-                  )}
-                >
-                  <div className={cn("size-7 rounded-md flex items-center justify-center shrink-0", toneStyles[a.tone].bg, toneStyles[a.tone].fg)}>
-                    <a.icon className="size-3.5" strokeWidth={2.2} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12.5px] font-semibold text-foreground truncate">{a.title}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{a.sub}</p>
-                  </div>
-                  <ArrowUpRight className="size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </Link>
-              ))
+              stats.alerts.map((a) => {
+                const toneBg: Record<Tone, string> = { primary: "bg-indigo-500/15 text-indigo-300 border-indigo-500/25", success: "bg-emerald-500/15 text-emerald-300 border-emerald-500/25", warning: "bg-amber-500/15 text-amber-300 border-amber-500/25", danger: "bg-rose-500/15 text-rose-300 border-rose-500/25", info: "bg-sky-500/15 text-sky-300 border-sky-500/25", neutral: "bg-white/[0.04] text-white/60 border-white/[0.08]" };
+                return (
+                  <Link
+                    key={a.id}
+                    to={a.link}
+                    className="group flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-white/[0.04] transition-colors"
+                  >
+                    <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0 border", toneBg[a.tone])}>
+                      <a.icon className="size-3.5" strokeWidth={2.2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12.5px] font-semibold text-white truncate">{a.title}</p>
+                      <p className="text-[11px] text-white/45 truncate">{a.sub}</p>
+                    </div>
+                    <ArrowUpRight className="size-3.5 text-white/30 group-hover:text-white/70 transition-colors shrink-0" />
+                  </Link>
+                );
+              })
             )}
           </div>
-        </PremiumCard>
+        </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <PremiumCard className="lg:col-span-2" title="Demandas urgentes" subtitle="Próximas do prazo ou em atraso" icon={<Clock className="size-4 text-warning" />} right={<Link to="/demandas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}>
-          <div className="vx-table-wrap !rounded-md">
-            <table className="vx-table">
-              <thead className="vx-table-head">
-                <tr>
-                  <th className="vx-table-cell !py-2.5">Demanda</th>
-                  <th className="vx-table-cell !py-2.5">Status</th>
-                  <th className="vx-table-cell !py-2.5 text-right">Prazo</th>
+      {/* === DEMANDS + PIPELINE === */}
+      <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                <Clock className="size-3.5 text-amber-300" />
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Demandas urgentes</h3>
+                <p className="text-[11px] text-white/45">Próximas do prazo ou em atraso</p>
+              </div>
+            </div>
+            <Link to="/demandas" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
+              Ver todas <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12.5px]">
+              <thead>
+                <tr className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40 border-b border-white/[0.05]">
+                  <th className="text-left px-5 py-2.5 font-bold">Demanda</th>
+                  <th className="text-left px-5 py-2.5 font-bold">Status</th>
+                  <th className="text-right px-5 py-2.5 font-bold">Prazo</th>
                 </tr>
               </thead>
               <tbody>
                 {stats.urgentDemands.length === 0 ? (
-                  <tr><td colSpan={3} className="vx-table-cell text-center text-muted-foreground py-8">Nenhuma demanda urgente.</td></tr>
+                  <tr><td colSpan={3} className="px-5 py-8 text-center text-white/40 text-[12.5px]">Nenhuma demanda urgente.</td></tr>
                 ) : (
                   stats.urgentDemands.map((d: any) => {
                     const tone: Tone = d.daysLeft < 0 ? "danger" : d.daysLeft <= 3 ? "warning" : "info";
+                    const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/60" };
                     return (
-                      <tr key={d.id} className="vx-table-row">
-                        <td className="vx-table-cell !py-2.5">
-                          <Link to={`/demandas/${d.id}`} className="text-[13px] font-medium text-foreground hover:text-primary truncate block max-w-[280px]">
+                      <tr key={d.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+                        <td className="px-5 py-3">
+                          <Link to={`/demandas/${d.id}`} className="text-[12.5px] font-semibold text-white hover:text-indigo-300 transition-colors font-mono">
                             #{String(d.id).slice(0, 8)}
                           </Link>
                         </td>
-                        <td className="vx-table-cell !py-2.5">
-                          <span className="vx-pill capitalize">{String(d.status || "").replace(/_/g, " ")}</span>
+                        <td className="px-5 py-3">
+                          <span className="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-[10.5px] font-semibold bg-white/[0.04] border border-white/[0.08] text-white/70 capitalize">
+                            <span className="size-1.5 rounded-full bg-current opacity-70" />
+                            {String(d.status || "").replace(/_/g, " ")}
+                          </span>
                         </td>
-                        <td className={cn("vx-table-cell !py-2.5 text-right text-[12.5px] font-semibold tabular-nums", toneStyles[tone].fg)}>
+                        <td className={cn("px-5 py-3 text-right text-[12.5px] font-semibold tabular-nums", toneText[tone])}>
                           {d.deadline ? (d.daysLeft < 0 ? `${Math.abs(d.daysLeft)}d em atraso` : d.daysLeft === 0 ? "Hoje" : `${d.daysLeft}d`) : "Sem prazo"}
                         </td>
                       </tr>
@@ -392,57 +405,96 @@ export default function DashboardAdmin() {
               </tbody>
             </table>
           </div>
-        </PremiumCard>
+        </div>
 
-        <PremiumCard title="Distribuição de status" subtitle="Demandas por estágio" icon={<Activity className="size-4 text-info" />}>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RePieChart>
-                <Pie data={stats.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={2}>
-                  {stats.statusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }} />
-              </RePieChart>
-            </ResponsiveContainer>
+        {/* Pipeline / Distribution */}
+        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="size-7 rounded-lg bg-sky-500/15 border border-sky-500/25 flex items-center justify-center">
+              <Activity className="size-3.5 text-sky-300" />
+            </div>
+            <div>
+              <h3 className="text-[13px] font-semibold text-white tracking-tight">Pipeline</h3>
+              <p className="text-[11px] text-white/45">Demandas por estágio</p>
+            </div>
           </div>
-          <div className="mt-3 space-y-1.5">
-            {stats.statusData.slice(0, 5).map((s, i) => (
-              <div key={s.name} className="flex items-center gap-2 text-[11.5px]">
-                <span className="size-2 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                <span className="capitalize text-muted-foreground flex-1 truncate">{s.name.replace(/_/g, " ")}</span>
-                <span className="font-semibold tabular-nums text-foreground">{s.value}</span>
-              </div>
-            ))}
+          <div className="p-4">
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RePieChart>
+                  <Pie data={stats.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={2} stroke="none">
+                    {stats.statusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.1)", background: "hsl(240 30% 8%)", fontSize: 12, color: "white" }} />
+                </RePieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-3 space-y-1.5">
+              {stats.statusData.slice(0, 5).map((s, i) => (
+                <div key={s.name} className="flex items-center gap-2 text-[11.5px]">
+                  <span className="size-2 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <span className="capitalize text-white/60 flex-1 truncate">{s.name.replace(/_/g, " ")}</span>
+                  <span className="font-semibold tabular-nums text-white">{s.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </PremiumCard>
+        </div>
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <PremiumCard title="Atividade recente" subtitle="Eventos das últimas horas" icon={<Activity className="size-4 text-primary" />}>
-          <div className="space-y-1">
+      {/* === ACTIVITY + TASKS === */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+              <Activity className="size-3.5 text-indigo-300" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-[13px] font-semibold text-white tracking-tight">Atividade recente</h3>
+              <p className="text-[11px] text-white/45">Eventos das últimas horas</p>
+            </div>
+          </div>
+          <div className="p-3 space-y-0.5">
             {stats.activity.length === 0 ? (
               <EmptyState icon={Activity} title="Sem atividade recente" />
             ) : (
-              stats.activity.map((a) => (
-                <div key={a.id} className="flex items-center gap-3 py-2 border-b border-border/60 last:border-0">
-                  <div className={cn("size-7 rounded-md flex items-center justify-center shrink-0", toneStyles[a.tone].bg, toneStyles[a.tone].fg)}>
-                    <a.icon className="size-3.5" />
+              stats.activity.map((a) => {
+                const toneBg: Record<Tone, string> = { primary: "bg-indigo-500/15 text-indigo-300", success: "bg-emerald-500/15 text-emerald-300", warning: "bg-amber-500/15 text-amber-300", danger: "bg-rose-500/15 text-rose-300", info: "bg-sky-500/15 text-sky-300", neutral: "bg-white/[0.04] text-white/60" };
+                return (
+                  <div key={a.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.03] transition-colors">
+                    <div className={cn("size-7 rounded-lg flex items-center justify-center shrink-0", toneBg[a.tone])}>
+                      <a.icon className="size-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12.5px] font-medium text-white truncate capitalize">{String(a.title).replace(/_/g, " ")}</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-wider">{a.type}</p>
+                    </div>
+                    <span className="text-[10.5px] text-white/40 tabular-nums shrink-0">
+                      {a.at ? new Date(a.at).toLocaleDateString("pt-BR") : "—"}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12.5px] font-medium text-foreground truncate capitalize">{String(a.title).replace(/_/g, " ")}</p>
-                    <p className="text-[10.5px] text-muted-foreground uppercase tracking-wider">{a.type}</p>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
-                    {a.at ? new Date(a.at).toLocaleDateString("pt-BR") : "—"}
-                  </span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
-        </PremiumCard>
+        </div>
 
-        <PremiumCard title="Próximas ações" subtitle="Tarefas vencidas e urgentes" icon={<AlertCircle className="size-4 text-warning" />} right={<Link to="/tarefas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}>
-          <div className="space-y-1">
+        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                <AlertCircle className="size-3.5 text-amber-300" />
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Próximas ações</h3>
+                <p className="text-[11px] text-white/45">Vencidas e urgentes</p>
+              </div>
+            </div>
+            <Link to="/tarefas" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
+              Ver todas <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <div className="p-3 space-y-0.5">
             {[...stats.tasksOverdue, ...stats.tasksUrgent].slice(0, 7).length === 0 ? (
               <EmptyState icon={CheckCircle2} title="Sem ações pendentes" subtitle="Você está em dia" />
             ) : (
@@ -450,21 +502,24 @@ export default function DashboardAdmin() {
                ...stats.tasksUrgent.filter((t: any) => !stats.tasksOverdue.find((o: any) => o.id === t.id))
                                   .map((t: any) => ({ ...t, _tone: "warning" as Tone }))]
                 .slice(0, 7)
-                .map((t: any) => (
-                  <Link key={t.id} to="/tarefas" className="flex items-center gap-3 py-2 border-b border-border/60 last:border-0 hover:bg-muted/40 -mx-2 px-2 rounded-md transition-colors">
-                    <span className={cn("size-1.5 rounded-full shrink-0", toneStyles[t._tone].bar)} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12.5px] font-medium text-foreground truncate">{t.title}</p>
-                      <p className="text-[10.5px] text-muted-foreground tabular-nums">
-                        {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "Sem prazo"} · <span className="capitalize">{t.priority}</span>
-                      </p>
-                    </div>
-                    <ArrowRight className="size-3.5 text-muted-foreground shrink-0" />
-                  </Link>
-                ))
+                .map((t: any) => {
+                  const bar: Record<Tone, string> = { danger: "bg-rose-400", warning: "bg-amber-400", info: "bg-sky-400", success: "bg-emerald-400", primary: "bg-indigo-400", neutral: "bg-white/40" };
+                  return (
+                    <Link key={t.id} to="/tarefas" className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/[0.03] transition-colors">
+                      <span className={cn("size-1.5 rounded-full shrink-0", bar[t._tone as Tone])} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12.5px] font-medium text-white truncate">{t.title}</p>
+                        <p className="text-[10.5px] text-white/40 tabular-nums">
+                          {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "Sem prazo"} · <span className="capitalize">{t.priority}</span>
+                        </p>
+                      </div>
+                      <ArrowRight className="size-3.5 text-white/30 shrink-0" />
+                    </Link>
+                  );
+                })
             )}
           </div>
-        </PremiumCard>
+        </div>
       </section>
     </div>
   );
@@ -484,27 +539,36 @@ function KpiCard({
 }: {
   label: string; value: string; icon: any; tone: Tone; hint?: string; delta?: number | null;
 }) {
-  const ts = toneStyles[tone];
+  const toneAccent: Record<Tone, { bar: string; iconBg: string; iconFg: string }> = {
+    primary: { bar: "bg-indigo-400", iconBg: "bg-indigo-500/15 border-indigo-500/25", iconFg: "text-indigo-300" },
+    success: { bar: "bg-emerald-400", iconBg: "bg-emerald-500/15 border-emerald-500/25", iconFg: "text-emerald-300" },
+    warning: { bar: "bg-amber-400", iconBg: "bg-amber-500/15 border-amber-500/25", iconFg: "text-amber-300" },
+    danger:  { bar: "bg-rose-400", iconBg: "bg-rose-500/15 border-rose-500/25", iconFg: "text-rose-300" },
+    info:    { bar: "bg-sky-400", iconBg: "bg-sky-500/15 border-sky-500/25", iconFg: "text-sky-300" },
+    neutral: { bar: "bg-white/40", iconBg: "bg-white/[0.05] border-white/[0.08]", iconFg: "text-white/60" },
+  };
+  const acc = toneAccent[tone];
   const positive = delta != null && delta > 0;
   const negative = delta != null && delta < 0;
   return (
-    <div className="relative vx-card p-6 overflow-hidden group">
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40 truncate pr-2">{label}</p>
-        <div className={cn("size-9 rounded-xl flex items-center justify-center shrink-0 backdrop-blur-md border border-white/10", ts.bg, ts.fg)}>
-          <Icon className="size-4" strokeWidth={2.2} />
+    <div className="group relative rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.55)] backdrop-blur-xl p-4 transition-all duration-200 hover:border-white/[0.14] hover:bg-[hsl(240_30%_8%_/_0.7)] overflow-hidden">
+      <span className={cn("absolute left-0 top-3 bottom-3 w-[2px] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity", acc.bar)} />
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45 truncate pr-2">{label}</p>
+        <div className={cn("size-7 rounded-lg flex items-center justify-center shrink-0 border", acc.iconBg, acc.iconFg)}>
+          <Icon className="size-3.5" strokeWidth={2.2} />
         </div>
       </div>
-      <p className="font-display text-[34px] lg:text-[40px] font-bold tracking-tighter text-white tabular-nums leading-none truncate">{value}</p>
-      <div className="mt-3 flex items-center gap-2 text-[12px] min-h-[18px]">
+      <p className="font-display text-[24px] lg:text-[26px] font-bold tracking-tight text-white tabular-nums leading-none truncate">{value}</p>
+      <div className="mt-2.5 flex items-center gap-1.5 text-[11px] min-h-[16px]">
         {delta != null ? (
           <span className={cn(
-            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-2 py-0.5 rounded-md backdrop-blur",
+            "inline-flex items-center gap-0.5 font-semibold tabular-nums px-1.5 py-0.5 rounded text-[10.5px]",
             positive && "text-emerald-300 bg-emerald-500/10",
             negative && "text-rose-300 bg-rose-500/10",
             !positive && !negative && "text-white/40 bg-white/[0.04]"
           )}>
-            {positive ? <TrendingUp className="size-3" /> : negative ? <TrendingDown className="size-3" /> : null}
+            {positive ? <TrendingUp className="size-2.5" /> : negative ? <TrendingDown className="size-2.5" /> : null}
             {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
           </span>
         ) : null}
