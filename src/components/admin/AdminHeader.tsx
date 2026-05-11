@@ -12,24 +12,24 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
   return (
-    <header className="h-[56px] px-6 lg:px-10 flex items-center gap-6 sticky top-0 z-40 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/[0.04]">
+    <header className="h-[52px] px-6 lg:px-8 flex items-center gap-4 sticky top-0 z-40 bg-[#09090b]/40 backdrop-blur-xl border-b border-white/[0.02]">
       {/* Breadcrumb on left */}
       <div className="hidden lg:flex items-center gap-3 min-w-0 flex-1">
         <Breadcrumbs />
-        <div className="h-3 w-px bg-white/[0.08]" />
+        <div className="h-3 w-px bg-white/[0.05]" />
         <EnvBadge />
       </div>
 
-      {/* Search — center */}
-      <div className="flex-1 max-w-[480px]">
+      {/* Global Command Center */}
+      <div className="flex-1 max-w-[400px]">
         <button
           onClick={onSearchClick}
-          className="w-full h-9 pl-9 pr-3 bg-zinc-900/40 hover:bg-zinc-900/60 border border-white/[0.05] hover:border-white/[0.1] rounded-xl text-[12px] flex items-center justify-between transition-all group relative"
+          className="w-full h-8 pl-8 pr-3 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.03] hover:border-white/[0.08] rounded-lg text-[11px] flex items-center justify-between transition-all group relative"
         >
-          <Search className="absolute left-3 size-3.5 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
-          <span className="font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors truncate">Comando inteligente...</span>
-          <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
-            <kbd className="text-[9px] font-mono font-bold bg-white/[0.05] border border-white/[0.08] rounded px-1.5 py-0.5 text-zinc-400">
+          <Search className="absolute left-2.5 size-3 text-zinc-600 group-hover:text-zinc-400 transition-colors" />
+          <span className="font-medium text-zinc-600 group-hover:text-zinc-500 transition-colors truncate">Comando Inteligente...</span>
+          <div className="flex items-center gap-1 opacity-20 group-hover:opacity-60 transition-opacity">
+            <kbd className="text-[8px] font-mono font-bold bg-zinc-900 border border-white/[0.05] rounded px-1 py-0.5 text-zinc-500">
               ⌘K
             </kbd>
           </div>
@@ -37,11 +37,15 @@ export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
       </div>
 
       {/* Right cluster */}
-      <div className="flex items-center gap-2 shrink-0 flex-1 justify-end">
+      <div className="flex items-center gap-1.5 shrink-0 flex-1 justify-end">
         <QuickCreateButton />
-        <InternalChat />
-        <NotificationBell />
-        <div className="h-4 w-px bg-white/[0.08] mx-1" />
+        <div className="size-8 flex items-center justify-center">
+          <InternalChat />
+        </div>
+        <div className="size-8 flex items-center justify-center">
+          <NotificationBell />
+        </div>
+        <div className="h-3 w-px bg-white/[0.05] mx-1" />
         <ThemeToggle />
       </div>
     </header>
