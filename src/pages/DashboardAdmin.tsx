@@ -777,10 +777,10 @@ export default function DashboardAdmin() {
           </Card>
         </section>
 
-        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-zinc-700">
-          <div className="h-px w-12 bg-gradient-to-r from-transparent to-zinc-800" />
+        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-slate-400 dark:text-zinc-700">
+          <div className="h-px w-12 bg-gradient-to-r from-transparent to-slate-300 dark:to-zinc-800" />
           Prosper CRM · {new Date().getFullYear()}
-          <div className="h-px w-12 bg-gradient-to-l from-transparent to-zinc-800" />
+          <div className="h-px w-12 bg-gradient-to-l from-transparent to-slate-300 dark:to-zinc-800" />
         </div>
       </div>
     </div>
@@ -788,19 +788,20 @@ export default function DashboardAdmin() {
 }
 
 const tooltipStyle = {
-  backgroundColor: "#09090b",
-  border: "1px solid rgba(255,255,255,0.08)",
+  backgroundColor: "rgba(255,255,255,0.98)",
+  border: "1px solid rgba(0,0,0,0.06)",
   borderRadius: "10px",
   fontSize: "11px",
-  boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+  color: "#0f172a",
+  boxShadow: "0 10px 40px rgba(15,23,42,0.12)",
 };
 
 /* ============ Components ============ */
 
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/40 to-zinc-950/30 p-4 backdrop-blur-sm", className)}>
-      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+    <div className={cn("relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/40 dark:to-zinc-950/30 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none backdrop-blur-sm", className)}>
+      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-white/[0.08] to-transparent" />
       {children}
     </div>
   );
@@ -808,34 +809,102 @@ function Card({ className, children }: { className?: string; children: React.Rea
 
 function CardHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/[0.04]">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
       <div>
-        <p className="text-[9px] font-bold tracking-[0.22em] uppercase text-indigo-300/60">{eyebrow}</p>
-        <h3 className="text-[12.5px] font-semibold text-zinc-100 mt-0.5">{title}</h3>
+        <p className="text-[9px] font-bold tracking-[0.22em] uppercase text-indigo-500/80 dark:text-indigo-300/60">{eyebrow}</p>
+        <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-zinc-100 mt-0.5 tracking-tight">{title}</h3>
       </div>
       {right}
     </div>
   );
 }
 
+function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, caption, progress }: {
+  label: string; value: string; delta: string; up: boolean; icon: any; tone: Tone;
+  sparkData: Array<{ v: number }>; caption: string; progress: number;
+}) {
+  const t = toneColor[tone];
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-5 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none">
+      <div className={cn("absolute -top-8 -right-8 size-24 rounded-full blur-3xl opacity-50 dark:opacity-40", t.bg)} />
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r", t.grad)} style={{ background: `linear-gradient(to right, ${t.chart}, ${t.chart}90)` }} />
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <div className={cn("size-10 rounded-xl flex items-center justify-center border ring-4", t.bg, t.border, t.text, t.ring)}>
+            <Icon className="size-4.5" strokeWidth={2} />
+          </div>
+          <div className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border tabular-nums", up ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/25" : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/25")}>
+            {up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+            {delta}
+          </div>
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-zinc-500 leading-tight">{label}</p>
+        <p className="text-[26px] lg:text-[28px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-1 leading-none">{value}</p>
+        <div className="h-10 mt-2 -mx-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sparkData} margin={{ top: 2, right: 2, left: 2, bottom: 0 }}>
+              <defs>
+                <linearGradient id={`spark-${tone}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={t.chart} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={t.chart} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="v" stroke={t.chart} strokeWidth={1.8} fill={`url(#spark-${tone})`} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
+          <p className="text-[10px] text-slate-500 dark:text-zinc-500 truncate flex-1">{caption}</p>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: t.chart }}>{progress}%</span>
+        </div>
+        <div className="mt-1.5 h-1 rounded-full bg-slate-100 dark:bg-white/[0.04] overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, progress)}%`, background: `linear-gradient(to right, ${t.chart}, ${t.chart}cc)` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricPill({ label, value, tone, icon: Icon, href }: {
+  label: string; value: string; tone: Tone; icon: any; href: string;
+}) {
+  const t = toneColor[tone];
+  return (
+    <Link to={href} className={cn("group relative overflow-hidden rounded-xl border bg-white dark:bg-white/[0.02] hover:shadow-md transition-all p-3", t.border)}>
+      <div className={cn("absolute top-0 left-0 w-1 h-full", t.bg.replace("bg-", "bg-").replace("100", "400").replace("/10", "/60"))} style={{ backgroundColor: t.chart }} />
+      <div className="flex items-center gap-2.5">
+        <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", t.bg, t.text)}>
+          <Icon className="size-3.5" strokeWidth={2.2} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500 truncate">{label}</p>
+          <p className={cn("text-[15px] font-bold tabular-nums leading-tight mt-0.5 truncate", t.text)}>{value}</p>
+        </div>
+        <ChevronRight className="size-3.5 text-slate-300 dark:text-zinc-700 group-hover:text-slate-500 dark:group-hover:text-zinc-400 transition-colors" />
+      </div>
+    </Link>
+  );
+}
+
 function Kpi({ label, value, delta, up, icon: Icon, tone }: {
   label: string; value: string; delta: string; up: boolean; icon: any; tone: Tone;
 }) {
+  const t = toneColor[tone];
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/50 to-zinc-950/30 p-3 hover:border-white/[0.1] transition-all">
-      <div className={cn("absolute -top-6 -right-6 size-16 rounded-full blur-2xl opacity-40", toneColor[tone].bg)} />
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-3 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-sm dark:shadow-none">
+      <div className={cn("absolute -top-6 -right-6 size-16 rounded-full blur-2xl opacity-40", t.bg)} />
       <div className="relative">
         <div className="flex items-center justify-between mb-2">
-          <div className={cn("size-7 rounded-lg flex items-center justify-center border", toneColor[tone].bg, toneColor[tone].border, toneColor[tone].text)}>
+          <div className={cn("size-7 rounded-lg flex items-center justify-center border", t.bg, t.border, t.text)}>
             <Icon className="size-3.5" strokeWidth={2} />
           </div>
-          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border-rose-500/20")}>
+          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20" : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/20")}>
             {up ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
             {delta}
           </div>
         </div>
-        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-500 leading-tight">{label}</p>
-        <p className="text-[16px] lg:text-[18px] font-bold text-white tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-zinc-500 leading-tight">{label}</p>
+        <p className="text-[16px] lg:text-[18px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
       </div>
     </div>
   );
@@ -844,32 +913,33 @@ function Kpi({ label, value, delta, up, icon: Icon, tone }: {
 function MiniMetric({ icon: Icon, label, value, sub, tone }: {
   icon: any; label: string; value: string; sub: string; tone: Tone;
 }) {
+  const t = toneColor[tone];
   return (
-    <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+    <div className={cn("p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border", t.border)}>
       <div className="flex items-center gap-2 mb-2">
-        <div className={cn("size-6 rounded-md flex items-center justify-center", toneColor[tone].bg, toneColor[tone].text)}>
+        <div className={cn("size-6 rounded-md flex items-center justify-center", t.bg, t.text)}>
           <Icon className="size-3" />
         </div>
-        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">{label}</p>
+        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">{label}</p>
       </div>
-      <p className="text-[15px] font-bold text-white tabular-nums leading-none">{value}</p>
-      <p className="text-[9.5px] text-zinc-500 mt-1">{sub}</p>
+      <p className="text-[16px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+      <p className="text-[9.5px] text-slate-500 dark:text-zinc-500 mt-1">{sub}</p>
     </div>
   );
 }
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
   return (
-    <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-indigo-500/[0.08] hover:border-indigo-500/30 transition-all">
-      <Icon className="size-4 text-zinc-400 group-hover:text-indigo-300 transition-colors" />
-      <span className="text-[10px] font-semibold text-zinc-300 group-hover:text-white text-center leading-tight">{label}</span>
+    <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.04] hover:bg-indigo-50 dark:hover:bg-indigo-500/[0.08] hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all">
+      <Icon className="size-4 text-slate-500 dark:text-zinc-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors" />
+      <span className="text-[10px] font-semibold text-slate-700 dark:text-zinc-300 group-hover:text-indigo-700 dark:group-hover:text-white text-center leading-tight">{label}</span>
     </Link>
   );
 }
 
 function Legend2({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
   return (
-    <span className="flex items-center gap-1.5 text-zinc-500">
+    <span className="flex items-center gap-1.5 text-slate-500 dark:text-zinc-500">
       <span className={cn("inline-block w-3 h-0.5 rounded", dashed && "border-t border-dashed bg-transparent")} style={{ backgroundColor: dashed ? "transparent" : color, borderColor: dashed ? color : "transparent" }} />
       {label}
     </span>
@@ -878,8 +948,9 @@ function Legend2({ color, label, dashed }: { color: string; label: string; dashe
 
 function Empty({ label }: { label: string }) {
   return (
-    <div className="py-6 text-center">
-      <p className="text-[10.5px] text-zinc-600 italic">{label}</p>
+    <div className="py-8 text-center">
+      <CheckCircle2 className="size-7 mx-auto text-slate-300 dark:text-zinc-700 mb-2" />
+      <p className="text-[10.5px] text-slate-500 dark:text-zinc-600 italic">{label}</p>
     </div>
   );
 }
