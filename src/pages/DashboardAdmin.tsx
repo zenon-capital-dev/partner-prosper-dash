@@ -372,96 +372,140 @@ export default function DashboardAdmin() {
         {/* ============ ROW: REVENUE CHART + ALERTS + CONVERSION GOAL ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Revenue 12m */}
-          <Card className="lg:col-span-7 min-h-[360px] flex flex-col">
+          <Card className="lg:col-span-8 min-h-[400px] flex flex-col p-6">
             <CardHeader
-              eyebrow="Performance Financeira"
-              title="Fluxo de receita × meta · 12 meses"
-
+              eyebrow="Business Intelligence"
+              title="Fluxo de Receita Mensal × Metas Projetadas"
               right={
-                <div className="flex items-center gap-3 text-[10px]">
-                  <Legend2 color="#a5b4fc" label="Receita" />
-                  <Legend2 color="#52525b" label="Meta" dashed />
+                <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+                    <span className="text-slate-600 dark:text-zinc-400">Receita Real</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-2 rounded-full border border-slate-400 dark:border-zinc-600" />
+                    <span className="text-slate-400 dark:text-zinc-500">Meta Estabelecida</span>
+                  </div>
                 </div>
               }
             />
-            <div className="flex-1 -mx-2">
+            <div className="flex-1 mt-4 -mx-4">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.revenue12m} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <AreaChart data={stats.revenue12m} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 6" stroke="#ffffff08" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#52525b", fontSize: 9.5, fontWeight: 700 }} dy={8} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#52525b", fontSize: 9.5 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#6366f140", strokeDasharray: "3 3" }} formatter={(v: number, n: string) => [formatBRL(v), n === "receita" ? "Receita" : "Meta"]} />
-                  <Area type="monotone" dataKey="meta" stroke="#52525b" strokeDasharray="4 4" strokeWidth={1.5} fill="none" />
-                  <Area type="monotone" dataKey="receita" stroke="#a5b4fc" strokeWidth={2.5} fill="url(#rev)" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-white/5" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "currentColor", fontSize: 10, fontWeight: 600 }} 
+                    className="text-slate-400 dark:text-zinc-500"
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "currentColor", fontSize: 10, fontWeight: 500 }}
+                    className="text-slate-400 dark:text-zinc-500"
+                    tickFormatter={(v) => `R$ ${v/1000}k`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                      borderRadius: '12px', 
+                      border: 'none', 
+                      boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' 
+                    }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="meta" 
+                    stroke="#94a3b8" 
+                    strokeWidth={2} 
+                    strokeDasharray="5 5" 
+                    fill="transparent" 
+                    dot={false}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="receita" 
+                    stroke="#6366f1" 
+                    strokeWidth={4} 
+                    fillOpacity={1} 
+                    fill="url(#colorRev)" 
+                    dot={{ r: 4, fill: "#6366f1", strokeWidth: 2, stroke: "#fff" }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </Card>
 
-          {/* Alerts panel */}
-          <Card className="lg:col-span-4 flex flex-col">
-            <CardHeader
-              eyebrow="Crítico"
-              title="Alertas & pendências"
-              right={<span className="text-[10px] text-slate-500 dark:text-zinc-500 tabular-nums">{stats.alerts.length} ativos</span>}
-            />
-            <div className="space-y-2 flex-1 overflow-auto pr-1 max-h-[340px]">
-              {stats.alerts.length > 0 ? stats.alerts.map((a) => (
-                <Link key={a.id} to={a.href} className={cn("group flex items-start gap-3 p-3 rounded-lg border transition-all hover:translate-x-0.5", toneColor[a.tone].soft, toneColor[a.tone].border, "hover:" + toneColor[a.tone].bg)}>
-                  <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", toneColor[a.tone].bg, toneColor[a.tone].text)}>
-                    <a.icon className="size-3.5" />
+          {/* Right Column: Status & Conversion */}
+          <div className="lg:col-span-4 flex flex-col gap-4">
+            <Card className="flex-1 p-6">
+              <CardHeader
+                eyebrow="Urgente"
+                title="Centro de Alertas"
+                right={<span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-tighter animate-pulse">{stats.alerts.length} Críticos</span>}
+              />
+              <div className="mt-4 space-y-3">
+                {stats.alerts.length > 0 ? stats.alerts.slice(0, 4).map((a) => (
+                  <Link key={a.id} to={a.href} className="group flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] hover:bg-white dark:hover:bg-white/[0.05] hover:shadow-lg transition-all">
+                    <div className={cn("size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", toneColor[a.tone].bg, toneColor[a.tone].text)}>
+                      <a.icon className="size-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-zinc-100 leading-none">{a.title}</h4>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-500 mt-1.5 truncate">{a.sub}</p>
+                    </div>
+                    <ChevronRight className="size-4 text-slate-300 dark:text-zinc-700 group-hover:text-indigo-500 transition-colors" />
+                  </Link>
+                )) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="size-16 rounded-full bg-emerald-50 dark:bg-emerald-500/5 flex items-center justify-center mb-4">
+                      <CheckCircle2 className="size-8 text-emerald-500" />
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Operação Saudável</p>
+                    <p className="text-xs text-slate-500 mt-1">Nenhum risco imediato detectado</p>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[11.5px] font-semibold text-slate-900 dark:text-zinc-100 leading-tight">{a.title}</p>
-                    <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5 truncate">{a.sub}</p>
-                  </div>
-                  <ChevronRight className="size-3.5 text-slate-400 dark:text-zinc-600 group-hover:text-slate-900 dark:text-white transition-colors mt-1" />
-                </Link>
-              )) : (
-                <div className="text-center py-10">
-                  <CheckCircle2 className="size-8 mx-auto text-emerald-400/60 mb-2" />
-                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">Tudo sob controle</p>
-                  <p className="text-[10px] text-slate-400 dark:text-zinc-600 mt-1">Nenhum alerta crítico no momento</p>
-                </div>
-              )}
-            </div>
-          </Card>
+                )}
+              </div>
+            </Card>
 
-          {/* Conversion goal radial */}
-          <Card className="lg:col-span-2 flex flex-col">
-            <CardHeader eyebrow="Meta" title="Conversão" />
-            <div className="flex-1 flex flex-col items-center justify-center -mt-2">
-              <div className="relative size-[140px]">
-                <ResponsiveContainer>
-                  <RadialBarChart innerRadius="75%" outerRadius="100%" data={stats.conversionGoal} startAngle={90} endAngle={-270}>
-                    <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                    <RadialBar background={{ fill: "#27272a" }} dataKey="value" cornerRadius={20} />
-                  </RadialBarChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{stats.conversionRate}<span className="text-sm text-slate-500 dark:text-zinc-500">%</span></p>
-                  <p className="text-[9px] uppercase tracking-widest text-slate-500 dark:text-zinc-500 font-bold mt-0.5">Meta 25%</p>
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-indigo-500">Taxa de Conversão</p>
+                <Target className="size-4 text-slate-300" />
+              </div>
+              <div className="flex items-end justify-between">
+                <div>
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white tabular-nums tracking-tighter">
+                    {stats.conversionRate}%
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Meta global: <span className="font-bold text-indigo-600">25.0%</span>
+                  </p>
+                </div>
+                <div className="size-16 relative">
+                  <ResponsiveContainer>
+                    <RadialBarChart innerRadius="70%" outerRadius="100%" data={stats.conversionGoal} startAngle={90} endAngle={-270}>
+                      <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                      <RadialBar background={{ fill: "#f1f5f9" }} dataKey="value" cornerRadius={10} />
+                    </RadialBarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div className="grid grid-cols-2 w-full gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.04]">
-                <div className="text-center">
-                  <p className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500">Ganhos</p>
-                  <p className="text-[13px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">{stats.wonLeads.length}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500">Ativos</p>
-                  <p className="text-[13px] font-bold text-indigo-600 dark:text-indigo-300 tabular-nums">{stats.activeLeads.length}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         </section>
+
 
         {/* ============ ROW: PIPELINE FUNNEL + DEMANDS DONUT + ORIGEM ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
