@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  TrendingUp, TrendingDown, CircleDollarSign, Activity, Clock,
-  CheckCircle2, FileWarning, CreditCard, FileSignature, Target,
-  Plus, ArrowUpRight, Phone, CalendarClock,
-  FileText, Sparkles, Crown, Flame, ChevronRight, Dot,
+  TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Clock,
+  CheckCircle2, FileWarning, CreditCard, FileSignature, Target, Handshake,
+  Plus, ArrowUpRight, Phone, CalendarClock, AlertTriangle, Bell,
+  FileText, ChevronRight, Crown, Briefcase, ClipboardList, Sparkles,
+  Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
@@ -13,48 +14,29 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line,
+  BarChart, Bar, Cell, RadialBarChart, RadialBar, PolarAngleAxis,
+  PieChart, Pie, Legend,
 } from "recharts";
 
-/* ============================================================
-   PROSPER — Executive Cockpit · Ultra Premium Edition
-   ============================================================ */
+type Tone = "primary" | "success" | "warning" | "danger" | "info" | "violet";
 
-type Tone = "primary" | "success" | "warning" | "danger" | "info";
-
-const toneRing: Record<Tone, string> = {
-  primary: "from-indigo-500/20 to-indigo-500/0 text-indigo-300",
-  success: "from-emerald-500/20 to-emerald-500/0 text-emerald-300",
-  warning: "from-amber-500/20 to-amber-500/0 text-amber-300",
-  danger: "from-rose-500/20 to-rose-500/0 text-rose-300",
-  info: "from-sky-500/20 to-sky-500/0 text-sky-300",
+const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string }> = {
+  primary: { text: "text-indigo-300", bg: "bg-indigo-500/10", border: "border-indigo-500/25", chart: "#818cf8", soft: "bg-indigo-500/5" },
+  success: { text: "text-emerald-300", bg: "bg-emerald-500/10", border: "border-emerald-500/25", chart: "#34d399", soft: "bg-emerald-500/5" },
+  warning: { text: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-500/25", chart: "#fbbf24", soft: "bg-amber-500/5" },
+  danger: { text: "text-rose-300", bg: "bg-rose-500/10", border: "border-rose-500/25", chart: "#fb7185", soft: "bg-rose-500/5" },
+  info: { text: "text-sky-300", bg: "bg-sky-500/10", border: "border-sky-500/25", chart: "#38bdf8", soft: "bg-sky-500/5" },
+  violet: { text: "text-violet-300", bg: "bg-violet-500/10", border: "border-violet-500/25", chart: "#a78bfa", soft: "bg-violet-500/5" },
 };
 
-const sparkStroke: Record<Tone, string> = {
-  primary: "#818cf8",
-  success: "#34d399",
-  warning: "#fbbf24",
-  danger: "#fb7185",
-  info: "#38bdf8",
+const statusLabel: Record<string, { label: string; tone: Tone }> = {
+  aguardando_inicio: { label: "Aguardando", tone: "warning" },
+  em_andamento: { label: "Em andamento", tone: "info" },
+  concluido: { label: "Concluído", tone: "success" },
+  atrasado: { label: "Atrasado", tone: "danger" },
+  cancelado: { label: "Cancelado", tone: "danger" },
+  pausado: { label: "Pausado", tone: "warning" },
 };
-
-function Sparkline({ data, tone }: { data: { v: number }[]; tone: Tone }) {
-  return (
-    <ResponsiveContainer width="100%" height={36}>
-      <LineChart data={data}>
-        <Line
-          type="monotone"
-          dataKey="v"
-          stroke={sparkStroke[tone]}
-          strokeWidth={1.75}
-          dot={false}
-          isAnimationActive
-          animationDuration={1400}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-}
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
@@ -62,21 +44,21 @@ export default function DashboardAdmin() {
   const firstName = String(fullName).split(/[ @]/)[0];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
   const timeNow = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
   // ===== Queries =====
   const { data: clients = [] } = useQuery({
     queryKey: ["dash-clients"],
-    queryFn: async () => (await supabase.from("clients").select("id, status, created_at, health_score")).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name, status, source, created_at, health_score, sale_value, contract_value, phone, email")).data ?? [],
   });
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["dash-demands"],
-    queryFn: async () => (await supabase.from("client_products").select("id, status, deadline, value, created_at")).data ?? [],
+    queryFn: async () => (await supabase.from("client_products").select("id, status, deadline, service_provider_id, product_id, value, created_at, client_id, priority, sla_status").order("deadline", { ascending: true, nullsFirst: false })).data ?? [],
   });
   const { data: sales = [] } = useQuery({
     queryKey: ["dash-sales"],
-    queryFn: async () => (await supabase.from("sales").select("amount, sale_date, status").order("sale_date", { ascending: false })).data ?? [],
+    queryFn: async () => (await supabase.from("sales").select("id, amount, sale_date, status, product_id, partner_id, client_id, created_at").order("sale_date", { ascending: false }).limit(200)).data ?? [],
   });
   const { data: leads = [] } = useQuery({
     queryKey: ["dash-leads"],
@@ -84,41 +66,57 @@ export default function DashboardAdmin() {
   });
   const { data: proposals = [] } = useQuery({
     queryKey: ["dash-proposals"],
-    queryFn: async () => (await supabase.from("proposals").select("id, status, total, created_at, sent_at, approved_at").order("created_at", { ascending: false }).limit(20)).data ?? [],
+    queryFn: async () => (await supabase.from("proposals").select("id, status, total, created_at, sent_at, approved_at, valid_until").order("created_at", { ascending: false }).limit(50)).data ?? [],
   });
   const { data: payments = [] } = useQuery({
     queryKey: ["dash-payments"],
-    queryFn: async () => (await supabase.from("payments").select("amount, status, due_date")).data ?? [],
+    queryFn: async () => (await supabase.from("payments").select("amount, status, due_date, client_id").order("due_date", { ascending: true })).data ?? [],
+  });
+  const { data: commissions = [] } = useQuery({
+    queryKey: ["dash-commissions"],
+    queryFn: async () => (await supabase.from("commissions").select("amount, status, partner_id, created_at")).data ?? [],
   });
   const { data: contracts = [] } = useQuery({
     queryKey: ["dash-contracts"],
-    queryFn: async () => (await supabase.from("contracts").select("id, status")).data ?? [],
+    queryFn: async () => (await supabase.from("contracts").select("id, status, client_id, name, amount, created_at").order("created_at", { ascending: false }).limit(20)).data ?? [],
+  });
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["dash-tasks"],
+    queryFn: async () => (await supabase.from("tasks").select("id, title, due_date, priority, status_new, assigned_to, created_at").order("due_date", { ascending: true, nullsFirst: false }).limit(20)).data ?? [],
+  });
+  const { data: partners = [] } = useQuery({
+    queryKey: ["dash-partners"],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name, active")).data ?? [],
   });
 
-  // ===== Stats & Logic =====
+  // ===== Stats =====
   const stats = useMemo(() => {
     const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
+    const M = now.getMonth();
+    const Y = now.getFullYear();
+    const startMonth = new Date(Y, M, 1);
+    const startLast = new Date(Y, M - 1, 1);
+    const endLast = new Date(Y, M, 0);
 
-    const monthRevenue = sales.filter((s: any) => {
-      if (!s.sale_date) return false;
-      const d = new Date(s.sale_date);
-      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).reduce((a, s: any) => a + Number(s.amount || 0), 0);
-
-    const lastMonthRevenue = sales.filter((s: any) => {
-      if (!s.sale_date) return false;
-      const d = new Date(s.sale_date);
-      const last = new Date(thisYear, thisMonth - 1, 1);
-      return d.getMonth() === last.getMonth() && d.getFullYear() === last.getFullYear();
-    }).reduce((a, s: any) => a + Number(s.amount || 0), 0);
-
+    const monthSales = sales.filter((s: any) => s.sale_date && new Date(s.sale_date) >= startMonth);
+    const lastMonthSales = sales.filter((s: any) => {
+      const d = s.sale_date ? new Date(s.sale_date) : null;
+      return d && d >= startLast && d <= endLast;
+    });
+    const monthRevenue = monthSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
+    const lastMonthRevenue = lastMonthSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
     const revenueDelta = lastMonthRevenue > 0
       ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
       : monthRevenue > 0 ? 100 : 0;
+    const avgTicket = monthSales.length > 0 ? monthRevenue / monthSales.length : 0;
 
     const activeClients = clients.filter((c: any) => c.status === "ativo").length;
+    const newClientsMonth = clients.filter((c: any) => c.created_at && new Date(c.created_at) >= startMonth).length;
+    const churnRisk = clients.filter((c: any) => (c.health_score ?? 100) < 50).length;
+
+    const inProgress = clientProducts.filter((p: any) => p.status === "em_andamento").length;
+    const awaiting = clientProducts.filter((p: any) => p.status === "aguardando_inicio").length;
+    const completed = clientProducts.filter((p: any) => p.status === "concluido").length;
     const delayed = clientProducts.filter((p: any) =>
       p.status === "atrasado" ||
       (p.deadline && new Date(p.deadline) < now && !["concluido", "cancelado"].includes(p.status))
@@ -131,499 +129,633 @@ export default function DashboardAdmin() {
       !WON.includes(String(l.status || "").toLowerCase()) &&
       !l.converted_to_client_id
     );
+    const wonLeads = leads.filter((l: any) => WON.includes(String(l.status || "").toLowerCase()) || l.converted_to_client_id);
     const weightedPipeline = activeLeads.reduce(
       (a, l: any) => a + (Number(l.estimated_value || 0) * (Number(l.close_probability || 0) / 100)), 0
     );
+    const totalPipeline = activeLeads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
+    const conversionRate = leads.length > 0 ? Math.round((wonLeads.length / leads.length) * 100) : 0;
 
     const overduePayments = payments.filter((p: any) =>
       p.status === "vencido" ||
       (["em_aberto", "pendente", "parcial"].includes(p.status) && p.due_date && new Date(p.due_date) < now)
     );
     const overdueAmount = overduePayments.reduce((a, p: any) => a + Number(p.amount || 0), 0);
+    const upcomingPayments = payments.filter((p: any) => {
+      if (!p.due_date || !["em_aberto", "pendente", "parcial"].includes(p.status)) return false;
+      const d = new Date(p.due_date);
+      const in7 = new Date(now.getTime() + 7 * 86400000);
+      return d >= now && d <= in7;
+    });
+    const upcomingAmount = upcomingPayments.reduce((a, p: any) => a + Number(p.amount || 0), 0);
 
-    const monthClosed = sales.filter((s: any) => {
-      const d = s.sale_date ? new Date(s.sale_date) : null;
-      return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
-    }).length;
+    const pendingCommissions = commissions
+      .filter((c: any) => c.status === "pendente")
+      .reduce((a, c: any) => a + Number(c.amount || 0), 0);
 
-    const conversionRate = leads.length > 0
-      ? Math.round((leads.filter((l: any) => WON.includes(String(l.status || "").toLowerCase()) || l.converted_to_client_id).length / leads.length) * 100)
-      : 0;
-
-    // 6-month revenue series
-    const revenue6m = Array.from({ length: 6 }).map((_, i) => {
-      const d = new Date(thisYear, thisMonth - (5 - i), 1);
+    // Revenue 12 months
+    const revenue12m = Array.from({ length: 12 }).map((_, i) => {
+      const d = new Date(Y, M - (11 - i), 1);
+      const next = new Date(Y, M - (11 - i) + 1, 1);
       const total = sales.filter((s: any) =>
-        s.sale_date &&
-        new Date(s.sale_date).getMonth() === d.getMonth() &&
-        new Date(s.sale_date).getFullYear() === d.getFullYear()
+        s.sale_date && new Date(s.sale_date) >= d && new Date(s.sale_date) < next
       ).reduce((a, s: any) => a + Number(s.amount || 0), 0);
       const count = sales.filter((s: any) =>
-        s.sale_date &&
-        new Date(s.sale_date).getMonth() === d.getMonth() &&
-        new Date(s.sale_date).getFullYear() === d.getFullYear()
+        s.sale_date && new Date(s.sale_date) >= d && new Date(s.sale_date) < next
       ).length;
       return {
         name: d.toLocaleString("pt-BR", { month: "short" }).replace(".", "").toUpperCase(),
-        value: total,
+        receita: total,
         deals: count,
+        meta: Math.round(total * 1.15 + 10000),
       };
     });
 
-    const sparkRevenue = revenue6m.map((m) => ({ v: m.value }));
-    const sparkPipeline = Array.from({ length: 8 }).map((_, i) => ({
-      v: Math.max(0, weightedPipeline * (0.6 + Math.sin(i * 0.9) * 0.2 + i * 0.04)),
-    }));
-    const sparkConv = Array.from({ length: 8 }).map((_, i) => ({
-      v: Math.max(2, conversionRate + Math.sin(i * 1.2) * 4 - i * 0.3),
-    }));
-    const sparkOverdue = Array.from({ length: 8 }).map((_, i) => ({
-      v: overdueAmount * (0.4 + Math.abs(Math.sin(i * 0.7)) * 0.7),
-    }));
+    // Pipeline by stage
+    const stageOrder = ["novo", "qualificado", "proposta", "negociacao", "ganho"];
+    const stageLabels: Record<string, string> = {
+      novo: "Novos", qualificado: "Qualificados", proposta: "Proposta enviada",
+      negociacao: "Negociação", ganho: "Fechados",
+    };
+    const pipelineByStage = stageOrder.map((s) => {
+      const filtered = leads.filter((l: any) => String(l.status || "").toLowerCase() === s);
+      return {
+        name: stageLabels[s],
+        value: filtered.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0),
+        count: filtered.length,
+      };
+    });
 
+    // Demands by status
+    const demandsByStatus = [
+      { name: "Em andamento", value: inProgress, tone: "info" as Tone, color: "#38bdf8" },
+      { name: "Aguardando", value: awaiting, tone: "warning" as Tone, color: "#fbbf24" },
+      { name: "Concluídas", value: completed, tone: "success" as Tone, color: "#34d399" },
+      { name: "Atrasadas", value: delayed, tone: "danger" as Tone, color: "#fb7185" },
+    ];
+
+    // Source breakdown
+    const sourceMap = new Map<string, number>();
+    clients.forEach((c: any) => {
+      const k = c.source || "manual";
+      sourceMap.set(k, (sourceMap.get(k) || 0) + 1);
+    });
+    const sourceData = Array.from(sourceMap.entries())
+      .map(([k, v]) => ({ name: k, value: v }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    // Alerts
     const alerts: Array<{ id: string; title: string; sub: string; tone: Tone; icon: any; href: string }> = [];
     const contractsAwaiting = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
-    if (contractsAwaiting > 0) alerts.push({ id: "c1", title: "Contratos pendentes", sub: `${contractsAwaiting} aguardam assinatura`, tone: "warning", icon: FileSignature, href: "/contratos" });
+    if (contractsAwaiting > 0) alerts.push({ id: "c1", title: "Contratos aguardando assinatura", sub: `${contractsAwaiting} contratos parados`, tone: "warning", icon: FileSignature, href: "/contratos" });
     const staleLeads = activeLeads.filter((l: any) => l.next_action_date && new Date(l.next_action_date) < now).length;
-    if (staleLeads > 0) alerts.push({ id: "l1", title: "Follow-ups atrasados", sub: `${staleLeads} negociações estagnadas`, tone: "danger", icon: CalendarClock, href: "/leads" });
-    if (delayed > 0) alerts.push({ id: "d1", title: "Entregas em atraso", sub: `${delayed} demandas críticas`, tone: "danger", icon: Clock, href: "/demandas" });
-    if (overdueAmount > 0) alerts.push({ id: "p1", title: "Inadimplência detectada", sub: `${formatBRL(overdueAmount)} em atraso`, tone: "danger", icon: CreditCard, href: "/financeiro" });
+    if (staleLeads > 0) alerts.push({ id: "l1", title: "Follow-ups atrasados", sub: `${staleLeads} negociações esfriando`, tone: "danger", icon: CalendarClock, href: "/leads" });
+    if (delayed > 0) alerts.push({ id: "d1", title: "Entregas em atraso", sub: `${delayed} demandas estouraram o prazo`, tone: "danger", icon: Clock, href: "/demandas" });
+    if (overdueAmount > 0) alerts.push({ id: "p1", title: "Inadimplência detectada", sub: `${formatBRL(overdueAmount)} em ${overduePayments.length} título(s)`, tone: "danger", icon: CreditCard, href: "/financeiro" });
+    if (churnRisk > 0) alerts.push({ id: "ch", title: "Clientes em risco de churn", sub: `${churnRisk} contas com health baixo`, tone: "warning", icon: AlertTriangle, href: "/clientes" });
+    if (upcomingPayments.length > 0) alerts.push({ id: "up", title: "Recebíveis nos próximos 7 dias", sub: `${formatBRL(upcomingAmount)} previstos`, tone: "info", icon: PiggyBank, href: "/financeiro" });
 
     const upcomingActions = activeLeads
       .filter((l: any) => l.next_action_date)
       .sort((a: any, b: any) => new Date(a.next_action_date).getTime() - new Date(b.next_action_date).getTime())
-      .slice(0, 5);
+      .slice(0, 6);
 
     const urgentDemands = clientProducts
       .filter((p: any) => !["concluido", "cancelado"].includes(p.status))
-      .sort((a: any, b: any) => (a.deadline ? new Date(a.deadline).getTime() : 0) - (b.deadline ? new Date(b.deadline).getTime() : 0))
-      .slice(0, 5);
+      .sort((a: any, b: any) => (a.deadline ? new Date(a.deadline).getTime() : Infinity) - (b.deadline ? new Date(b.deadline).getTime() : Infinity))
+      .slice(0, 7);
+
+    const recentSales = sales.slice(0, 6).map((s: any) => {
+      const client = clients.find((c: any) => c.id === s.client_id);
+      return { ...s, clientName: client?.full_name || "Cliente removido" };
+    });
+
+    const topClients = clients
+      .map((c: any) => ({ ...c, _value: Number(c.contract_value || c.sale_value || 0) }))
+      .filter((c: any) => c._value > 0)
+      .sort((a: any, b: any) => b._value - a._value)
+      .slice(0, 6);
 
     const recentActivity = [
-      ...proposals.slice(0, 5).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
-      ...leads.slice(0, 5).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
-    ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 6);
+      ...proposals.slice(0, 4).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
+      ...leads.slice(0, 4).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
+      ...sales.slice(0, 4).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
+      ...contracts.slice(0, 3).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "violet" as Tone })),
+    ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 9);
+
+    const todayTasks = tasks.filter((t: any) => {
+      if (t.status_new === "done") return false;
+      if (!t.due_date) return true;
+      const d = new Date(t.due_date);
+      return d.toDateString() === now.toDateString() || d < now;
+    }).slice(0, 6);
+
+    // Provider/partner performance: top partners by commissions
+    const partnerCommissionMap = new Map<string, number>();
+    commissions.forEach((c: any) => {
+      if (!c.partner_id) return;
+      partnerCommissionMap.set(c.partner_id, (partnerCommissionMap.get(c.partner_id) || 0) + Number(c.amount || 0));
+    });
+    const topPartners = Array.from(partnerCommissionMap.entries())
+      .map(([pid, amt]) => {
+        const p = partners.find((x: any) => x.id === pid);
+        return { id: pid, name: p?.full_name || "Parceiro", amount: amt };
+      })
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+
+    // Conversion goal radial
+    const conversionGoal = [{ name: "Conversão", value: conversionRate, fill: conversionRate >= 25 ? "#34d399" : "#fbbf24" }];
 
     return {
-      monthRevenue, revenueDelta, weightedPipeline, conversionRate, overdueAmount, overduePayments,
-      activeClients, monthClosed,
-      kpis: [
-        {
-          label: "Receita do mês",
-          value: formatBRL(monthRevenue),
-          change: `${revenueDelta >= 0 ? "+" : ""}${revenueDelta.toFixed(1)}%`,
-          up: revenueDelta >= 0,
-          icon: CircleDollarSign,
-          tone: "primary" as Tone,
-          context: "vs. mês anterior",
-          spark: sparkRevenue,
-          footnote: `${monthClosed} fechamentos · ticket médio ${monthClosed > 0 ? formatBRL(monthRevenue / monthClosed) : "—"}`,
-        },
-        {
-          label: "Pipeline ponderado",
-          value: formatBRL(weightedPipeline),
-          change: `${activeLeads.length} ativas`,
-          up: true,
-          icon: Target,
-          tone: "info" as Tone,
-          context: "Probabilidade × valor",
-          spark: sparkPipeline,
-          footnote: `Ticket potencial médio ${activeLeads.length > 0 ? formatBRL(weightedPipeline / activeLeads.length) : "—"}`,
-        },
-        {
-          label: "Taxa de conversão",
-          value: `${conversionRate}%`,
-          change: conversionRate >= 25 ? "Acima da meta" : "Abaixo da meta",
-          up: conversionRate >= 25,
-          icon: Activity,
-          tone: "success" as Tone,
-          context: "Meta interna: 25%",
-          spark: sparkConv,
-          footnote: `Base ${leads.length} negociações registradas`,
-        },
-        {
-          label: "Inadimplência",
-          value: formatBRL(overdueAmount),
-          change: overdueAmount > 0 ? "Atenção" : "Saudável",
-          up: overdueAmount === 0,
-          icon: FileWarning,
-          tone: overdueAmount > 0 ? "danger" : "success" as Tone,
-          context: `${overduePayments.length} títulos vencidos`,
-          spark: sparkOverdue,
-          footnote: overdueAmount > 0 ? "Acionar régua de cobrança" : "Nenhum título em atraso",
-        },
-      ],
-      revenue6m,
-      alerts,
-      upcomingActions,
-      urgentDemands,
-      recentActivity,
+      monthRevenue, lastMonthRevenue, revenueDelta, avgTicket,
+      activeClients, newClientsMonth, churnRisk,
+      inProgress, awaiting, completed, delayed,
+      weightedPipeline, totalPipeline, conversionRate,
+      activeLeads, wonLeads, monthSalesCount: monthSales.length,
+      overdueAmount, overduePayments, upcomingAmount, upcomingPayments,
+      pendingCommissions, contractsAwaiting,
+      revenue12m, pipelineByStage, demandsByStatus, sourceData,
+      alerts, upcomingActions, urgentDemands, recentSales, topClients, recentActivity, todayTasks, topPartners,
+      conversionGoal,
     };
-  }, [clients, clientProducts, sales, payments, leads, proposals, contracts]);
+  }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks]);
 
   return (
     <div className="relative min-h-full bg-[#08080b]">
-      {/* Ambient identity glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 size-[600px] rounded-full bg-indigo-600/[0.08] blur-[120px]" />
-        <div className="absolute top-40 right-0 size-[500px] rounded-full bg-violet-600/[0.05] blur-[140px]" />
+        <div className="absolute -top-40 -left-40 size-[500px] rounded-full bg-indigo-600/[0.06] blur-[120px]" />
       </div>
 
-      <div className="relative p-6 lg:p-10 space-y-10 max-w-[1680px] mx-auto animate-in fade-in duration-700">
+      <div className="relative p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
 
-        {/* ============ HERO BAND ============ */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/[0.06] bg-gradient-to-br from-zinc-950 via-[#0c0c14] to-zinc-950">
-          <div className="absolute inset-0 opacity-[0.4]" style={{
-            backgroundImage: "radial-gradient(circle at 20% 30%, rgba(99,102,241,0.18), transparent 45%), radial-gradient(circle at 85% 70%, rgba(139,92,246,0.12), transparent 50%)"
-          }} />
-          <div className="absolute inset-0 opacity-[0.04]" style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }} />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-
-          <div className="relative p-7 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left: identity + greeting */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center shadow-[0_8px_30px_rgba(99,102,241,0.35)] ring-1 ring-white/10">
-                    <Crown className="size-5 text-white" strokeWidth={2.2} />
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-500 ring-2 ring-[#0c0c14] shadow-[0_0_10px_rgba(16,185,129,0.6)]" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold tracking-[0.25em] text-indigo-300/80 uppercase">Prosper Cockpit</span>
-                    <Dot className="size-3 text-zinc-700" />
-                    <span className="text-[10px] tracking-[0.2em] uppercase text-zinc-500">{today}</span>
-                  </div>
-                  <div className="text-[10px] tracking-widest uppercase text-zinc-600 mt-0.5">Edição executiva · {timeNow}</div>
-                </div>
-              </div>
-
-              <div>
-                <h1 className="font-[Fraunces,serif] text-4xl lg:text-5xl font-light tracking-tight text-white leading-[1.05]">
-                  {greeting},
-                  <span className="italic font-medium bg-gradient-to-r from-indigo-300 via-violet-200 to-indigo-300 bg-clip-text text-transparent"> {firstName}</span>
-                </h1>
-                <p className="mt-3 text-[13px] text-zinc-400 max-w-xl leading-relaxed">
-                  Sua operação fechou <span className="text-white font-semibold tabular-nums">{formatBRL(stats.monthRevenue)}</span> este mês em
-                  <span className="text-white font-semibold"> {stats.monthClosed}</span> negócios. Pipeline ativo de
-                  <span className="text-white font-semibold tabular-nums"> {formatBRL(stats.weightedPipeline)}</span> aguardando ação.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <Link to="/vendas?new=1" className="group h-10 px-5 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-600 transition-all text-[12px] font-semibold text-white flex items-center gap-2 shadow-[0_8px_24px_rgba(99,102,241,0.35)] ring-1 ring-white/15">
-                  <TrendingUp className="size-3.5" /> Registrar fechamento
-                  <ArrowUpRight className="size-3.5 opacity-70 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-                <Link to="/leads?new=1" className="h-10 px-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition-all text-[12px] font-medium text-zinc-200 flex items-center gap-2 backdrop-blur">
-                  <Plus className="size-3.5" /> Nova negociação
-                </Link>
-                <Link to="/relatorios" className="h-10 px-4 rounded-xl hover:bg-white/[0.04] transition-all text-[12px] font-medium text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5">
-                  Relatório executivo <ChevronRight className="size-3.5" />
-                </Link>
-              </div>
+        {/* ============ COMPACT HEADER ============ */}
+        <header className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/[0.04]">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center shadow-[0_4px_16px_rgba(99,102,241,0.3)] ring-1 ring-white/15">
+              <Crown className="size-4 text-white" strokeWidth={2.2} />
             </div>
-
-            {/* Right: signature metric */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-2xl border border-white/[0.06] bg-zinc-950/60 backdrop-blur p-6 overflow-hidden">
-                <div className="absolute -right-8 -top-8 size-40 rounded-full bg-indigo-500/10 blur-2xl" />
-                <div className="relative flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-300/70">Receita acumulada</p>
-                    <p className="text-[11px] text-zinc-500 mt-1">Últimos 6 meses · consolidado</p>
-                  </div>
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-                    <Flame className="size-3 text-emerald-400" />
-                    <span className="text-[10px] font-bold text-emerald-300 tracking-wide">EM ALTA</span>
-                  </div>
-                </div>
-                <div className="relative">
-                  <p className="font-[Fraunces,serif] text-4xl lg:text-5xl font-light text-white tabular-nums tracking-tight">
-                    {formatBRL(stats.revenue6m.reduce((a, m) => a + m.value, 0))}
-                  </p>
-                  <div className="mt-4 h-16 -mx-2">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={stats.revenue6m}>
-                        <defs>
-                          <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#818cf8" stopOpacity={0.45} />
-                            <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <Area type="monotone" dataKey="value" stroke="#a5b4fc" strokeWidth={2} fill="url(#heroGrad)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/[0.04] mt-3">
-                    <div>
-                      <p className="text-[9.5px] tracking-widest uppercase text-zinc-500">Clientes ativos</p>
-                      <p className="text-[15px] font-semibold text-white tabular-nums mt-0.5">{stats.activeClients}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9.5px] tracking-widest uppercase text-zinc-500">Pipeline</p>
-                      <p className="text-[15px] font-semibold text-white tabular-nums mt-0.5">{formatBRL(stats.weightedPipeline).replace("R$", "").trim()}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9.5px] tracking-widest uppercase text-zinc-500">Conversão</p>
-                      <p className="text-[15px] font-semibold text-white tabular-nums mt-0.5">{stats.conversionRate}%</p>
-                    </div>
-                  </div>
-                </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-[15px] font-semibold text-white tracking-tight">
+                  {greeting}, <span className="text-indigo-300">{firstName}</span>
+                </h1>
+                <span className="size-1 rounded-full bg-zinc-700" />
+                <span className="text-[10.5px] text-zinc-500 capitalize">{today} · {timeNow}</span>
               </div>
+              <p className="text-[10.5px] text-zinc-500 mt-0.5">
+                <span className="text-emerald-400">●</span> {stats.activeClients} clientes ativos
+                <span className="text-zinc-700 mx-2">·</span>
+                <span className="text-indigo-300">{stats.activeLeads.length}</span> negociações
+                <span className="text-zinc-700 mx-2">·</span>
+                <span className="text-amber-300">{stats.delayed}</span> atrasos
+                <span className="text-zinc-700 mx-2">·</span>
+                <span className="text-rose-300">{stats.overduePayments.length}</span> inadimplentes
+              </p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <button className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 transition-colors">
+              <Filter className="size-3.5" /> Este mês
+            </button>
+            <Link to="/leads?new=1" className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[11px] font-medium text-zinc-200 flex items-center gap-1.5 transition-colors">
+              <Plus className="size-3.5" /> Negociação
+            </Link>
+            <Link to="/vendas?new=1" className="h-9 px-4 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 text-[11px] font-semibold text-white flex items-center gap-1.5 shadow-[0_4px_16px_rgba(99,102,241,0.3)] ring-1 ring-white/15 transition-all">
+              <TrendingUp className="size-3.5" /> Registrar fechamento
+            </Link>
+            <button className="size-9 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-colors relative">
+              <Bell className="size-3.5" />
+              {stats.alerts.length > 0 && (
+                <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[#08080b]">{stats.alerts.length}</span>
+              )}
+            </button>
+          </div>
+        </header>
+
+        {/* ============ KPI STRIP (8 KPIs) ============ */}
+        <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+          <Kpi label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" />
+          <Kpi label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="success" />
+          <Kpi label="Pipeline ponderado" value={formatBRL(stats.weightedPipeline)} delta={`${stats.activeLeads.length} ativas`} up icon={Target} tone="info" />
+          <Kpi label="Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Activity} tone="violet" />
+          <Kpi label="Clientes ativos" value={stats.activeClients.toString()} delta={`+${stats.newClientsMonth} novos`} up={stats.newClientsMonth > 0} icon={Users} tone="success" />
+          <Kpi label="Demandas em curso" value={stats.inProgress.toString()} delta={`${stats.delayed} atrasadas`} up={stats.delayed === 0} icon={Briefcase} tone="warning" />
+          <Kpi label="Inadimplência" value={formatBRL(stats.overdueAmount)} delta={`${stats.overduePayments.length} títulos`} up={stats.overdueAmount === 0} icon={FileWarning} tone="danger" />
+          <Kpi label="Comissões pendentes" value={formatBRL(stats.pendingCommissions)} delta={`${stats.topPartners.length} parceiros`} up icon={Handshake} tone="violet" />
         </section>
 
-        {/* ============ KPI GRID ============ */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-          {stats.kpis.map((kpi, i) => (
-            <div
-              key={i}
-              className="group relative overflow-hidden rounded-2xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/60 to-zinc-950/40 backdrop-blur-md p-5 hover:border-white/[0.12] transition-all duration-300"
-            >
-              <div className={cn("absolute -top-12 -right-12 size-32 rounded-full blur-3xl bg-gradient-to-br opacity-50 group-hover:opacity-80 transition-opacity", toneRing[kpi.tone])} />
-              <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-              <div className="relative">
-                <div className="flex items-center justify-between mb-5">
-                  <div className={cn("size-9 rounded-xl border border-white/[0.06] bg-zinc-950/60 flex items-center justify-center", toneRing[kpi.tone])}>
-                    <kpi.icon className="size-4" strokeWidth={2} />
-                  </div>
-                  <div className={cn(
-                    "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight border",
-                    kpi.up ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border-rose-500/20"
-                  )}>
-                    {kpi.up ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
-                    {kpi.change}
-                  </div>
+        {/* ============ ROW: REVENUE CHART + ALERTS + CONVERSION GOAL ============ */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Revenue 12m */}
+          <Card className="lg:col-span-6 min-h-[340px] flex flex-col">
+            <CardHeader
+              eyebrow="Performance"
+              title="Receita × meta (12 meses)"
+              right={
+                <div className="flex items-center gap-3 text-[10px]">
+                  <Legend2 color="#a5b4fc" label="Receita" />
+                  <Legend2 color="#52525b" label="Meta" dashed />
                 </div>
-
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">{kpi.label}</p>
-                <p className="font-[Fraunces,serif] text-3xl font-light text-white tabular-nums tracking-tight mt-1.5 leading-none">
-                  {kpi.value}
-                </p>
-                <p className="text-[10.5px] text-zinc-500 mt-2">{kpi.context}</p>
-
-                <div className="mt-4 -mx-1">
-                  <Sparkline data={kpi.spark} tone={kpi.tone} />
-                </div>
-
-                <div className="pt-3 mt-1 border-t border-white/[0.04]">
-                  <p className="text-[10px] text-zinc-500 leading-snug">{kpi.footnote}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* ============ MAIN CHART + ALERTS ============ */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Chart */}
-          <div className="lg:col-span-8 relative overflow-hidden rounded-2xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/50 to-zinc-950/30 p-6 lg:p-8 flex flex-col min-h-[460px]">
-            <div className="absolute -top-20 -left-20 size-72 rounded-full bg-indigo-600/[0.06] blur-3xl" />
-            <div className="relative flex items-start justify-between mb-6 gap-4 flex-wrap">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="size-3.5 text-indigo-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-300/80">Performance de faturamento</span>
-                </div>
-                <h2 className="font-[Fraunces,serif] text-2xl font-light text-white tracking-tight">Curva de receita consolidada</h2>
-                <p className="text-[11px] text-zinc-500 mt-1">Visão dos últimos 6 meses, em reais</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {[
-                  { label: "Médio", value: formatBRL(stats.revenue6m.reduce((a, m) => a + m.value, 0) / 6) },
-                  { label: "Pico", value: formatBRL(Math.max(...stats.revenue6m.map((m) => m.value))) },
-                ].map((chip) => (
-                  <div key={chip.label} className="px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                    <p className="text-[9px] tracking-[0.2em] uppercase text-zinc-500 leading-none">{chip.label}</p>
-                    <p className="text-[12px] font-semibold text-white tabular-nums mt-1">{chip.value}</p>
-                  </div>
-                ))}
-                <Link to="/financeiro" className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] flex items-center gap-1.5 text-[11px] font-medium text-zinc-300 transition-colors">
-                  Relatório <ArrowUpRight className="size-3" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full">
+              }
+            />
+            <div className="flex-1 -mx-2">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                <AreaChart data={stats.revenue12m} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
                       <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 6" stroke="#ffffff08" vertical={false} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#52525b", fontSize: 10, fontWeight: 700, letterSpacing: 1 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#52525b", fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#09090b", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", fontSize: "11px", boxShadow: "0 10px 40px rgba(0,0,0,0.5)" }}
-                    itemStyle={{ color: "#fff" }}
-                    labelStyle={{ color: "#a1a1aa", fontWeight: 600, letterSpacing: 1 }}
-                    cursor={{ stroke: "#6366f140", strokeWidth: 1, strokeDasharray: "3 3" }}
-                    formatter={(value: number) => [formatBRL(value), "Receita"]}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#a5b4fc" strokeWidth={2.5} fill="url(#colorRev)" animationDuration={1800} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#52525b", fontSize: 9.5, fontWeight: 700 }} dy={8} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#52525b", fontSize: 9.5 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: "#6366f140", strokeDasharray: "3 3" }} formatter={(v: number, n: string) => [formatBRL(v), n === "receita" ? "Receita" : "Meta"]} />
+                  <Area type="monotone" dataKey="meta" stroke="#52525b" strokeDasharray="4 4" strokeWidth={1.5} fill="none" />
+                  <Area type="monotone" dataKey="receita" stroke="#a5b4fc" strokeWidth={2.5} fill="url(#rev)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </Card>
 
-          {/* Alerts */}
-          <div className="lg:col-span-4 relative overflow-hidden rounded-2xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/40 to-zinc-950/30 p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <div className="size-2 rounded-full bg-indigo-500" />
-                  <div className="absolute inset-0 size-2 rounded-full bg-indigo-500 animate-ping opacity-60" />
-                </div>
-                <h3 className="text-[12px] font-bold uppercase tracking-[0.18em] text-zinc-200">Painel crítico</h3>
-              </div>
-              <span className="text-[10px] text-zinc-500 tabular-nums">{stats.alerts.length} eventos</span>
-            </div>
-
-            <div className="flex-1 space-y-2.5">
-              {stats.alerts.length > 0 ? (
-                stats.alerts.map((alert) => (
-                  <Link
-                    key={alert.id}
-                    to={alert.href}
-                    className="block group p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={cn("size-9 rounded-lg border border-white/[0.05] bg-zinc-950/70 flex items-center justify-center shrink-0 bg-gradient-to-br", toneRing[alert.tone])}>
-                        <alert.icon className="size-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-semibold text-zinc-100 leading-tight">{alert.title}</p>
-                        <p className="text-[10.5px] text-zinc-500 mt-1 truncate">{alert.sub}</p>
-                      </div>
-                      <ChevronRight className="size-3.5 text-zinc-600 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="h-full min-h-[240px] flex flex-col items-center justify-center text-center p-8">
-                  <div className="relative mb-4">
-                    <div className="size-16 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/0 flex items-center justify-center">
-                      <CheckCircle2 className="size-7 text-emerald-400" />
-                    </div>
-                    <div className="absolute inset-0 size-16 rounded-full ring-1 ring-emerald-500/20 animate-pulse" />
+          {/* Alerts panel */}
+          <Card className="lg:col-span-4 flex flex-col">
+            <CardHeader
+              eyebrow="Crítico"
+              title="Alertas & pendências"
+              right={<span className="text-[10px] text-zinc-500 tabular-nums">{stats.alerts.length} ativos</span>}
+            />
+            <div className="space-y-2 flex-1 overflow-auto pr-1 max-h-[340px]">
+              {stats.alerts.length > 0 ? stats.alerts.map((a) => (
+                <Link key={a.id} to={a.href} className={cn("group flex items-start gap-3 p-3 rounded-lg border transition-all hover:translate-x-0.5", toneColor[a.tone].soft, toneColor[a.tone].border, "hover:" + toneColor[a.tone].bg)}>
+                  <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", toneColor[a.tone].bg, toneColor[a.tone].text)}>
+                    <a.icon className="size-3.5" />
                   </div>
-                  <h4 className="font-[Fraunces,serif] text-lg font-light text-zinc-100 mb-1">Tudo sob controle</h4>
-                  <p className="text-[11px] text-zinc-500 max-w-[200px] leading-relaxed">Nenhum alerta crítico no momento. Sua operação está fluindo como deveria.</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11.5px] font-semibold text-zinc-100 leading-tight">{a.title}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{a.sub}</p>
+                  </div>
+                  <ChevronRight className="size-3.5 text-zinc-600 group-hover:text-white transition-colors mt-1" />
+                </Link>
+              )) : (
+                <div className="text-center py-10">
+                  <CheckCircle2 className="size-8 mx-auto text-emerald-400/60 mb-2" />
+                  <p className="text-[11px] text-zinc-400 font-medium">Tudo sob controle</p>
+                  <p className="text-[10px] text-zinc-600 mt-1">Nenhum alerta crítico no momento</p>
                 </div>
               )}
             </div>
+          </Card>
 
-            <div className="mt-5 pt-5 border-t border-white/[0.04] grid grid-cols-2 gap-2">
-              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                <p className="text-[9px] tracking-widest uppercase text-zinc-500 font-bold">Follow-ups</p>
-                <p className="font-[Fraunces,serif] text-xl font-light text-white tabular-nums mt-1">{stats.upcomingActions.length}</p>
+          {/* Conversion goal radial */}
+          <Card className="lg:col-span-2 flex flex-col">
+            <CardHeader eyebrow="Meta" title="Conversão" />
+            <div className="flex-1 flex flex-col items-center justify-center -mt-2">
+              <div className="relative size-[140px]">
+                <ResponsiveContainer>
+                  <RadialBarChart innerRadius="75%" outerRadius="100%" data={stats.conversionGoal} startAngle={90} endAngle={-270}>
+                    <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                    <RadialBar background={{ fill: "#27272a" }} dataKey="value" cornerRadius={20} />
+                  </RadialBarChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <p className="text-2xl font-bold text-white tabular-nums">{stats.conversionRate}<span className="text-sm text-zinc-500">%</span></p>
+                  <p className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold mt-0.5">Meta 25%</p>
+                </div>
               </div>
-              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                <p className="text-[9px] tracking-widest uppercase text-zinc-500 font-bold">Demandas</p>
-                <p className="font-[Fraunces,serif] text-xl font-light text-white tabular-nums mt-1">{stats.urgentDemands.length}</p>
+              <div className="grid grid-cols-2 w-full gap-2 mt-3 pt-3 border-t border-white/[0.04]">
+                <div className="text-center">
+                  <p className="text-[9px] uppercase tracking-wider text-zinc-500">Ganhos</p>
+                  <p className="text-[13px] font-bold text-emerald-300 tabular-nums">{stats.wonLeads.length}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[9px] uppercase tracking-wider text-zinc-500">Ativos</p>
+                  <p className="text-[13px] font-bold text-indigo-300 tabular-nums">{stats.activeLeads.length}</p>
+                </div>
               </div>
             </div>
-          </div>
+          </Card>
         </section>
 
-        {/* ============ OPERATIONAL ROW ============ */}
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {/* Próximas Reuniões */}
-          <Panel title="Próximas reuniões" hint="Agenda" link="/leads">
-            {stats.upcomingActions.length > 0 ? stats.upcomingActions.map((l: any) => (
-              <div key={l.id} className="group flex items-start gap-3 p-2.5 -mx-2.5 rounded-lg hover:bg-white/[0.03] transition-colors">
-                <div className="size-11 rounded-xl bg-gradient-to-br from-indigo-500/15 to-indigo-500/5 border border-indigo-500/20 flex flex-col items-center justify-center shrink-0">
-                  <span className="text-[8px] font-bold text-indigo-300/80 uppercase leading-none">{new Date(l.next_action_date).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
-                  <span className="text-[14px] font-bold text-white leading-none mt-0.5 tabular-nums">{new Date(l.next_action_date).getDate()}</span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-semibold text-zinc-100 truncate">{l.full_name}</p>
-                  <p className="text-[10.5px] text-zinc-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"}</p>
-                  {l.estimated_value > 0 && (
-                    <p className="text-[10px] font-medium text-emerald-300/80 mt-1 tabular-nums">{formatBRL(l.estimated_value)}</p>
-                  )}
+        {/* ============ ROW: PIPELINE FUNNEL + DEMANDS DONUT + ORIGEM ============ */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <Card className="lg:col-span-5 min-h-[280px]">
+            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Abrir CRM</Link>} />
+            <div className="space-y-2 mt-1">
+              {stats.pipelineByStage.map((stage, i) => {
+                const max = Math.max(...stats.pipelineByStage.map((s) => s.value), 1);
+                const pct = (stage.value / max) * 100;
+                const tones: Tone[] = ["info", "primary", "violet", "warning", "success"];
+                return (
+                  <div key={stage.name} className="group">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[11px] font-medium text-zinc-300">{stage.name}</span>
+                      <span className="text-[10.5px] text-zinc-500 tabular-nums">{stage.count} · <span className="text-zinc-300 font-semibold">{formatBRL(stage.value)}</span></span>
+                    </div>
+                    <div className="h-7 rounded-md bg-white/[0.02] border border-white/[0.04] overflow-hidden relative">
+                      <div
+                        className={cn("h-full transition-all duration-1000", toneColor[tones[i]].bg)}
+                        style={{ width: `${Math.max(pct, 4)}%` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          <Card className="lg:col-span-4 min-h-[280px] flex flex-col">
+            <CardHeader eyebrow="Operação" title="Demandas por status" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Ver todas</Link>} />
+            <div className="flex-1 flex items-center gap-4">
+              <div className="w-[140px] h-[140px] shrink-0">
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={stats.demandsByStatus}
+                      innerRadius={42}
+                      outerRadius={62}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {stats.demandsByStatus.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={tooltipStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-2">
+                {stats.demandsByStatus.map((d) => (
+                  <div key={d.name} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
+                      <span className="text-[11px] text-zinc-300 truncate">{d.name}</span>
+                    </div>
+                    <span className="text-[11.5px] font-bold text-white tabular-nums">{d.value}</span>
+                  </div>
+                ))}
+                <div className="pt-2 border-t border-white/[0.04] mt-2">
+                  <p className="text-[9.5px] uppercase tracking-widest text-zinc-500 font-bold">Total</p>
+                  <p className="text-lg font-bold text-white tabular-nums">{stats.demandsByStatus.reduce((a, d) => a + d.value, 0)}</p>
                 </div>
               </div>
-            )) : <Empty label="Sem reuniões agendadas" />}
-          </Panel>
+            </div>
+          </Card>
 
-          {/* Demandas Críticas */}
-          <Panel title="Demandas críticas" hint="Operação" link="/demandas">
-            {stats.urgentDemands.length > 0 ? stats.urgentDemands.map((d: any) => {
-              const overdue = d.deadline && new Date(d.deadline) < new Date();
-              return (
-                <div key={d.id} className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className={cn("size-2 rounded-full shrink-0", overdue ? "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] animate-pulse" : "bg-zinc-600")} />
-                      <p className="text-[11.5px] font-medium text-zinc-200 truncate">Demanda #{d.id.slice(0, 6)}</p>
+          <Card className="lg:col-span-3 min-h-[280px]">
+            <CardHeader eyebrow="Aquisição" title="Origem dos clientes" />
+            <div className="space-y-2.5 mt-1">
+              {stats.sourceData.length > 0 ? stats.sourceData.map((s, i) => {
+                const max = stats.sourceData[0].value;
+                const pct = (s.value / max) * 100;
+                return (
+                  <div key={s.name}>
+                    <div className="flex items-center justify-between text-[10.5px] mb-1">
+                      <span className="text-zinc-300 capitalize truncate">{s.name.replace(/_/g, " ")}</span>
+                      <span className="font-bold text-white tabular-nums">{s.value}</span>
                     </div>
-                    <span className={cn("text-[9.5px] font-bold uppercase tabular-nums", overdue ? "text-rose-400" : "text-zinc-500")}>
-                      {d.deadline ? new Date(d.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "—"}
+                    <div className="h-1.5 rounded-full bg-white/[0.03] overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              }) : <Empty label="Sem dados de origem" />}
+            </div>
+          </Card>
+        </section>
+
+        {/* ============ ROW: TABLES — RECENT SALES + URGENT DEMANDS + TASKS ============ */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Recent sales table */}
+          <Card className="lg:col-span-5">
+            <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Ver tudo</Link>} />
+            <div className="overflow-hidden -mx-1">
+              <table className="w-full text-[11px]">
+                <thead>
+                  <tr className="text-[9.5px] uppercase tracking-widest text-zinc-500 font-bold">
+                    <th className="text-left py-2 px-2 font-bold">Cliente</th>
+                    <th className="text-left py-2 px-2 font-bold">Data</th>
+                    <th className="text-right py-2 px-2 font-bold">Valor</th>
+                    <th className="text-right py-2 px-2 font-bold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.recentSales.length > 0 ? stats.recentSales.map((s: any) => (
+                    <tr key={s.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                      <td className="py-2.5 px-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-200">
+                            {s.clientName.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-zinc-200 font-medium truncate max-w-[120px]">{s.clientName}</span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-2 text-zinc-500 tabular-nums">
+                        {s.sale_date ? new Date(s.sale_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—"}
+                      </td>
+                      <td className="py-2.5 px-2 text-right text-white font-semibold tabular-nums">{formatBRL(s.amount)}</td>
+                      <td className="py-2.5 px-2 text-right">
+                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/25" : "bg-amber-500/10 text-amber-300 border-amber-500/25")}>
+                          {s.status || "pendente"}
+                        </span>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={4}><Empty label="Nenhuma venda registrada" /></td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          {/* Urgent demands */}
+          <Card className="lg:col-span-4">
+            <CardHeader eyebrow="Operação" title="Demandas urgentes" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Gerenciar</Link>} />
+            <div className="space-y-1.5">
+              {stats.urgentDemands.length > 0 ? stats.urgentDemands.map((d: any) => {
+                const overdue = d.deadline && new Date(d.deadline) < new Date();
+                const client = clients.find((c: any) => c.id === d.client_id);
+                const st = statusLabel[d.status] || { label: d.status, tone: "info" as Tone };
+                return (
+                  <div key={d.id} className="group flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.025] transition-colors">
+                    <div className={cn("size-2 rounded-full shrink-0", overdue ? "bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(244,63,94,0.6)]" : "bg-zinc-600")} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-semibold text-zinc-100 truncate">{client?.full_name || `Demanda #${d.id.slice(0, 6)}`}</p>
+                      <p className="text-[9.5px] text-zinc-500 truncate">
+                        Prazo {d.deadline ? new Date(d.deadline).toLocaleDateString("pt-BR") : "—"} · {formatBRL(d.value || 0)}
+                      </p>
+                    </div>
+                    <span className={cn("text-[9px] px-1.5 py-0.5 rounded border font-bold uppercase tracking-wider shrink-0", toneColor[st.tone].bg, toneColor[st.tone].text, toneColor[st.tone].border)}>
+                      {st.label}
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-white/[0.04] rounded-full overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all duration-1000", overdue ? "w-3/4 bg-gradient-to-r from-rose-500 to-rose-400" : "w-1/3 bg-gradient-to-r from-indigo-500 to-indigo-400")} />
+                );
+              }) : <Empty label="Nenhuma demanda urgente" />}
+            </div>
+          </Card>
+
+          {/* Today tasks / reminders */}
+          <Card className="lg:col-span-3">
+            <CardHeader eyebrow="Hoje" title="Tarefas & lembretes" right={<Link to="/tarefas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Tudo</Link>} />
+            <div className="space-y-1.5">
+              {stats.todayTasks.length > 0 ? stats.todayTasks.map((t: any) => {
+                const overdue = t.due_date && new Date(t.due_date) < new Date();
+                const pTone: Tone = t.priority === "alta" ? "danger" : t.priority === "media" ? "warning" : "info";
+                return (
+                  <div key={t.id} className="flex items-start gap-2 p-1.5 rounded-md hover:bg-white/[0.025] transition-colors">
+                    <button className="size-4 rounded border border-white/[0.15] hover:border-indigo-400 hover:bg-indigo-500/10 transition-colors shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <p className={cn("text-[11px] font-medium truncate", overdue ? "text-rose-200" : "text-zinc-200")}>{t.title}</p>
+                      <p className="text-[9px] text-zinc-500 mt-0.5 flex items-center gap-1.5">
+                        {t.due_date && <><CalendarClock className="size-2.5" />{new Date(t.due_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</>}
+                        {t.priority && <span className={cn("size-1 rounded-full ml-1", toneColor[pTone].bg.replace("/10", "/60"))} />}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            }) : <Empty label="Nenhuma demanda crítica" />}
-          </Panel>
+                );
+              }) : <Empty label="Nenhuma tarefa pendente" />}
+            </div>
+          </Card>
+        </section>
 
-          {/* Follow-ups Ativos */}
-          <Panel title="Follow-ups ativos" hint="Comercial" link="/leads">
-            {stats.upcomingActions.slice(0, 5).length > 0 ? stats.upcomingActions.slice(0, 5).map((l: any) => (
-              <div key={`fu-${l.id}`} className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-white/[0.03] transition-colors group">
-                <div className="size-9 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 border border-white/[0.08] flex items-center justify-center text-[11px] font-bold text-zinc-200 shrink-0">
-                  {String(l.full_name || "?").charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11.5px] font-semibold text-zinc-100 truncate">{l.full_name}</p>
-                  <p className="text-[10px] text-zinc-500 truncate">{l.company || l.source || "Lead direto"}</p>
-                </div>
-                <button className="size-7 rounded-lg bg-white/[0.03] hover:bg-indigo-500/20 border border-white/[0.05] hover:border-indigo-500/30 flex items-center justify-center transition-all">
-                  <Phone className="size-3 text-zinc-400 group-hover:text-indigo-300" />
-                </button>
-              </div>
-            )) : <Empty label="Nada para contatar agora" />}
-          </Panel>
+        {/* ============ ROW: FOLLOW-UPS + TOP CLIENTS + ACTIVITY ============ */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Follow-ups / próximas ações */}
+          <Card className="lg:col-span-4">
+            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Agenda</Link>} />
+            <div className="space-y-2">
+              {stats.upcomingActions.length > 0 ? stats.upcomingActions.map((l: any) => {
+                const d = new Date(l.next_action_date);
+                const overdue = d < new Date();
+                return (
+                  <div key={l.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.025] transition-colors">
+                    <div className={cn("size-10 rounded-lg flex flex-col items-center justify-center shrink-0 border", overdue ? "bg-rose-500/10 border-rose-500/25" : "bg-indigo-500/10 border-indigo-500/25")}>
+                      <span className={cn("text-[8px] font-bold uppercase leading-none", overdue ? "text-rose-300" : "text-indigo-300")}>{d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                      <span className="text-[12px] font-bold text-white leading-none mt-0.5 tabular-nums">{d.getDate()}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] font-semibold text-zinc-100 truncate">{l.full_name}</p>
+                      <p className="text-[10px] text-zinc-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"} · {l.company || "—"}</p>
+                      {l.estimated_value > 0 && (
+                        <p className="text-[10px] text-emerald-300/80 font-medium tabular-nums mt-0.5">{formatBRL(l.estimated_value)} · {l.close_probability}% prob.</p>
+                      )}
+                    </div>
+                    <button className="size-7 rounded-md bg-white/[0.03] hover:bg-indigo-500/20 border border-white/[0.05] flex items-center justify-center text-zinc-400 hover:text-indigo-300 transition-colors shrink-0 opacity-0 group-hover:opacity-100">
+                      <Phone className="size-3" />
+                    </button>
+                  </div>
+                );
+              }) : <Empty label="Sem follow-ups agendados" />}
+            </div>
+          </Card>
 
-          {/* Fluxo Recente */}
-          <Panel title="Fluxo recente" hint="Atividade" link="/auditoria">
+          {/* Top clients */}
+          <Card className="lg:col-span-4">
+            <CardHeader eyebrow="Carteira" title="Top clientes por valor" right={<Link to="/clientes" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Carteira</Link>} />
+            <div className="space-y-1.5">
+              {stats.topClients.length > 0 ? stats.topClients.map((c: any, i: number) => (
+                <Link to={`/clientes/${c.id}`} key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.025] transition-colors">
+                  <span className="text-[10px] font-bold text-zinc-600 tabular-nums w-4">{(i + 1).toString().padStart(2, "0")}</span>
+                  <div className="size-7 rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-200 shrink-0">
+                    {c.full_name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-semibold text-zinc-100 truncate">{c.full_name}</p>
+                    <p className="text-[9.5px] text-zinc-500 truncate">Health {c.health_score ?? "—"}/100 · {c.status}</p>
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-300 tabular-nums">{formatBRL(c._value)}</span>
+                </Link>
+              )) : <Empty label="Sem clientes com valor" />}
+            </div>
+          </Card>
+
+          {/* Activity feed */}
+          <Card className="lg:col-span-4">
+            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Histórico</Link>} />
             <div className="relative">
               {stats.recentActivity.length > 0 ? (
-                <div className="space-y-3.5">
+                <div className="space-y-3">
                   {stats.recentActivity.map((act, idx) => (
-                    <div key={act.id} className="relative pl-5">
-                      <div className={cn("absolute left-0 top-1.5 size-2 rounded-full bg-gradient-to-br", toneRing[act.tone])} />
+                    <div key={act.id} className="relative pl-6">
+                      <div className={cn("absolute left-0.5 top-1 size-2.5 rounded-full ring-4 ring-[#08080b]", toneColor[act.tone].bg)}>
+                        <div className={cn("size-1 rounded-full mx-auto mt-0.5", toneColor[act.tone].text.replace("text-", "bg-"))} />
+                      </div>
                       {idx !== stats.recentActivity.length - 1 && (
-                        <div className="absolute left-[3.5px] top-3.5 bottom-[-14px] w-px bg-gradient-to-b from-white/10 to-transparent" />
+                        <div className="absolute left-[7px] top-3.5 bottom-[-12px] w-px bg-white/[0.06]" />
                       )}
-                      <p className="text-[11.5px] font-semibold text-zinc-100 leading-tight">{act.title}</p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{act.sub}</p>
-                      <p className="text-[9px] text-zinc-600 mt-0.5 tabular-nums">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-semibold text-zinc-200 truncate">{act.title}</p>
+                        <span className="text-[9px] text-zinc-600 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+                      </div>
+                      <p className="text-[10px] text-zinc-500 truncate">{act.sub}</p>
                     </div>
                   ))}
                 </div>
               ) : <Empty label="Sem atividade recente" />}
             </div>
-          </Panel>
+          </Card>
         </section>
 
-        {/* Footer mark */}
-        <div className="pt-4 flex items-center justify-center gap-2 text-[9.5px] tracking-[0.3em] uppercase text-zinc-700">
+        {/* ============ ROW: FINANCIAL SUMMARY + TOP PARTNERS + QUICK ACTIONS ============ */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Financial summary */}
+          <Card className="lg:col-span-5">
+            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Central</Link>} />
+            <div className="grid grid-cols-2 gap-3">
+              <MiniMetric icon={PiggyBank} label="A receber 7 dias" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
+              <MiniMetric icon={FileWarning} label="Inadimplente" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
+              <MiniMetric icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="violet" />
+              <MiniMetric icon={FileSignature} label="Contratos pendentes" value={stats.contractsAwaiting.toString()} sub="Aguardando assinatura" tone="warning" />
+            </div>
+          </Card>
+
+          {/* Top partners */}
+          <Card className="lg:col-span-4">
+            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Rede</Link>} />
+            <div className="space-y-2">
+              {stats.topPartners.length > 0 ? stats.topPartners.map((p, i) => {
+                const max = stats.topPartners[0].amount;
+                const pct = (p.amount / max) * 100;
+                return (
+                  <div key={p.id}>
+                    <div className="flex items-center justify-between text-[11px] mb-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[9px] font-bold text-zinc-600 tabular-nums w-3">{i + 1}</span>
+                        <span className="text-zinc-200 font-medium truncate">{p.name}</span>
+                      </div>
+                      <span className="text-emerald-300 font-bold tabular-nums">{formatBRL(p.amount)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/[0.03]">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              }) : <Empty label="Sem comissões registradas" />}
+            </div>
+          </Card>
+
+          {/* Quick actions */}
+          <Card className="lg:col-span-3">
+            <CardHeader eyebrow="Atalhos" title="Ações rápidas" />
+            <div className="grid grid-cols-2 gap-2">
+              <QuickAction to="/leads?new=1" icon={UserPlus} label="Novo lead" />
+              <QuickAction to="/vendas?new=1" icon={CircleDollarSign} label="Venda" />
+              <QuickAction to="/propostas?new=1" icon={FileText} label="Proposta" />
+              <QuickAction to="/contratos?new=1" icon={FileSignature} label="Contrato" />
+              <QuickAction to="/tarefas?new=1" icon={ClipboardList} label="Tarefa" />
+              <QuickAction to="/templates" icon={MessageSquare} label="Templates" />
+            </div>
+          </Card>
+        </section>
+
+        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-zinc-700">
           <div className="h-px w-12 bg-gradient-to-r from-transparent to-zinc-800" />
-          Prosper Executive Cockpit
+          Prosper CRM · {new Date().getFullYear()}
           <div className="h-px w-12 bg-gradient-to-l from-transparent to-zinc-800" />
         </div>
       </div>
@@ -631,32 +763,98 @@ export default function DashboardAdmin() {
   );
 }
 
-function Panel({ title, hint, link, children }: { title: string; hint: string; link: string; children: React.ReactNode }) {
+const tooltipStyle = {
+  backgroundColor: "#09090b",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: "10px",
+  fontSize: "11px",
+  boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+};
+
+/* ============ Components ============ */
+
+function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/40 to-zinc-950/20 p-5 backdrop-blur-sm">
-      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.04]">
-        <div>
-          <p className="text-[9.5px] font-bold tracking-[0.22em] uppercase text-indigo-300/60 mb-0.5">{hint}</p>
-          <h3 className="text-[13px] font-semibold text-zinc-100">{title}</h3>
-        </div>
-        <Link to={link} className="size-7 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.05] flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
-          <ChevronRight className="size-3.5" />
-        </Link>
+    <div className={cn("relative overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/40 to-zinc-950/30 p-4 backdrop-blur-sm", className)}>
+      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+      {children}
+    </div>
+  );
+}
+
+function CardHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/[0.04]">
+      <div>
+        <p className="text-[9px] font-bold tracking-[0.22em] uppercase text-indigo-300/60">{eyebrow}</p>
+        <h3 className="text-[12.5px] font-semibold text-zinc-100 mt-0.5">{title}</h3>
       </div>
-      <div className="space-y-2">
-        {children}
+      {right}
+    </div>
+  );
+}
+
+function Kpi({ label, value, delta, up, icon: Icon, tone }: {
+  label: string; value: string; delta: string; up: boolean; icon: any; tone: Tone;
+}) {
+  return (
+    <div className="group relative overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/50 to-zinc-950/30 p-3 hover:border-white/[0.1] transition-all">
+      <div className={cn("absolute -top-6 -right-6 size-16 rounded-full blur-2xl opacity-40", toneColor[tone].bg)} />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          <div className={cn("size-7 rounded-lg flex items-center justify-center border", toneColor[tone].bg, toneColor[tone].border, toneColor[tone].text)}>
+            <Icon className="size-3.5" strokeWidth={2} />
+          </div>
+          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border-rose-500/20")}>
+            {up ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
+            {delta}
+          </div>
+        </div>
+        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-500 leading-tight">{label}</p>
+        <p className="text-[16px] lg:text-[18px] font-bold text-white tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
       </div>
     </div>
   );
 }
 
+function MiniMetric({ icon: Icon, label, value, sub, tone }: {
+  icon: any; label: string; value: string; sub: string; tone: Tone;
+}) {
+  return (
+    <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn("size-6 rounded-md flex items-center justify-center", toneColor[tone].bg, toneColor[tone].text)}>
+          <Icon className="size-3" />
+        </div>
+        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">{label}</p>
+      </div>
+      <p className="text-[15px] font-bold text-white tabular-nums leading-none">{value}</p>
+      <p className="text-[9.5px] text-zinc-500 mt-1">{sub}</p>
+    </div>
+  );
+}
+
+function QuickAction({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
+  return (
+    <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-indigo-500/[0.08] hover:border-indigo-500/30 transition-all">
+      <Icon className="size-4 text-zinc-400 group-hover:text-indigo-300 transition-colors" />
+      <span className="text-[10px] font-semibold text-zinc-300 group-hover:text-white text-center leading-tight">{label}</span>
+    </Link>
+  );
+}
+
+function Legend2({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
+  return (
+    <span className="flex items-center gap-1.5 text-zinc-500">
+      <span className={cn("inline-block w-3 h-0.5 rounded", dashed && "border-t border-dashed bg-transparent")} style={{ backgroundColor: dashed ? "transparent" : color, borderColor: dashed ? color : "transparent" }} />
+      {label}
+    </span>
+  );
+}
+
 function Empty({ label }: { label: string }) {
   return (
-    <div className="py-8 text-center">
-      <div className="size-8 rounded-full bg-white/[0.03] border border-white/[0.05] mx-auto mb-3 flex items-center justify-center">
-        <Dot className="size-4 text-zinc-600" />
-      </div>
+    <div className="py-6 text-center">
       <p className="text-[10.5px] text-zinc-600 italic">{label}</p>
     </div>
   );
