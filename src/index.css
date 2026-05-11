@@ -328,7 +328,7 @@
     --destructive-foreground: 224 45% 4%;
     --destructive-muted: 0 45% 10%;
     @apply min-h-screen text-foreground selection:bg-primary/20 selection:text-primary relative isolate;
-    background: #09090b;
+    background: #0c0c0d;
   }
 
   /* Refined Grainy/Glass Background — subtle, not neon */
