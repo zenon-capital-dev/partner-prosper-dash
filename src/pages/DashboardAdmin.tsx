@@ -314,22 +314,28 @@ export default function DashboardAdmin() {
             {greeting}, <span className="capitalize">{firstName}</span>.
           </h1>
           <p className="text-[13px] text-white/50 max-w-xl">
-            Visão consolidada da operação · {stats.alerts.length} alertas ativos · {stats.tasksOverdue.length} tarefas vencidas
+            Pipeline ponderado · {stats.upcomingActions.length} follow-ups na fila · {stats.alerts.length} alertas ativos
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Link
-            to="/relatorios"
+            to="/leads?new=1"
             className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
           >
-            <BarChart3 className="size-3.5 text-white/55" /> Relatórios
+            <Target className="size-3.5 text-white/55" /> Nova negociação
+          </Link>
+          <Link
+            to="/propostas?new=1"
+            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+          >
+            <FileSignature className="size-3.5 text-white/55" /> Nova proposta
           </Link>
           <Link
             to="/vendas?new=1"
             className="h-10 px-4 inline-flex items-center gap-2 rounded-lg text-[12.5px] font-semibold text-white transition-all bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 shadow-[0_4px_20px_-6px_rgba(129,140,248,0.6)]"
           >
-            <Plus className="size-3.5" strokeWidth={2.5} /> Nova venda
+            <Handshake className="size-3.5" strokeWidth={2.5} /> Registrar fechamento
           </Link>
         </div>
       </header>
@@ -356,8 +362,8 @@ export default function DashboardAdmin() {
                 <TrendingUp className="size-3.5 text-indigo-300" />
               </div>
               <div>
-                <h3 className="text-[13px] font-semibold text-white tracking-tight">Receita mensal</h3>
-                <p className="text-[11px] text-white/45">Últimos 6 meses</p>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Receita fechada</h3>
+                <p className="text-[11px] text-white/45">Fechamentos dos últimos 6 meses</p>
               </div>
             </div>
             <div className="text-right">
