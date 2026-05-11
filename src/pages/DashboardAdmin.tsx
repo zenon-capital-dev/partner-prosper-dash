@@ -351,12 +351,54 @@ export default function DashboardAdmin() {
           </div>
         </header>
 
+        {/* ============ QUICK ACTIONS BAR ============ */}
+        <div className="flex flex-wrap items-center gap-4 p-4 lg:p-5 rounded-[2rem] bg-slate-950 dark:bg-white/[0.03] text-white overflow-hidden relative group">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.2),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <Zap className="size-32 text-indigo-500 -rotate-12" />
+          </div>
+          
+          <div className="relative flex items-center gap-3 pr-5 border-r border-white/10">
+            <div className="size-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+              <Zap className="size-5 text-indigo-400" />
+            </div>
+            <div className="hidden sm:block">
+              <span className="block text-[9px] font-black uppercase tracking-[0.3em] text-indigo-400/80">Command</span>
+              <span className="block text-xs font-black tracking-tight">Quick Terminal</span>
+            </div>
+          </div>
+          
+          <div className="relative flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar">
+            {[
+              { label: "New Lead", icon: UserPlus, href: "/leads?new=true", color: "bg-indigo-500" },
+              { label: "Draft Proposal", icon: FileText, href: "/propostas?new=true", color: "bg-violet-500" },
+              { label: "Log Revenue", icon: CircleDollarSign, href: "/vendas?new=true", color: "bg-emerald-500" },
+              { label: "System Sync", icon: Activity, href: "#", color: "bg-amber-500" },
+            ].map((action) => (
+              <Link
+                key={action.label}
+                to={action.href}
+                className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/5 hover:border-white/10 transition-all whitespace-nowrap group/item"
+              >
+                <div className={cn("size-2 rounded-full", action.color)} />
+                <span className="text-xs font-black tracking-widest uppercase opacity-80 group-hover/item:opacity-100">{action.label}</span>
+                <ArrowUpRight className="size-3 opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+
+          <button className="relative px-6 py-2.5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 flex items-center gap-2 shadow-[0_10px_30px_-5px_rgba(99,102,241,0.4)] transition-all font-black text-xs uppercase tracking-widest">
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">Add Entry</span>
+          </button>
+        </div>
+
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <KpiPremium label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`vs anterior · ${formatBRL(stats.lastMonthRevenue)}`} progress={Math.min(100, Math.round((stats.monthRevenue / Math.max(stats.lastMonthRevenue * 1.15, 1)) * 100))} />
-          <KpiPremium label="Novos clientes" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="success" sparkData={dealsSpark} caption={`${stats.activeClients} na carteira`} progress={Math.min(100, stats.newClientsMonth * 10)} />
-          <KpiPremium label="Conv. leads" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Target} tone="warning" sparkData={dealsSpark} caption={`${stats.wonLeads.length}/${leads.length} fechados`} progress={stats.conversionRate} />
-          <KpiPremium label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="violet" sparkData={revSpark} caption="Por fechamento" progress={Math.min(100, Math.round((stats.avgTicket / 50000) * 100))} />
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+          <KpiPremium label="Gross Revenue" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`MTD vs Prev`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
+          <KpiPremium label="Acquisition" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`New closed contracts`} progress={78} />
+          <KpiPremium label="Conversion Rate" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Optimal" : "Review"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads to customers`} progress={stats.conversionRate} />
+          <KpiPremium label="Avg. Ticket" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} deals`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Per transaction" progress={65} />
         </section>
 
         {/* ============ MINI METRIC PILLS ============ */}
