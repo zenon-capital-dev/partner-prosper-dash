@@ -162,10 +162,46 @@ export default function DashboardAdmin() {
 
     return {
       kpis: [
-        { label: "Receita Fechada", value: formatBRL(monthRevenue), sub: "Faturamento mensal", icon: CircleDollarSign, tone: "primary" as Tone },
-        { label: "Pipeline Ponderado", value: formatBRL(weightedPipeline), sub: "Valor provável de fechamento", icon: Target, tone: "info" as Tone },
-        { label: "Negociações Ativas", value: String(activeLeads.length), sub: "Oportunidades no funil", icon: Handshake, tone: "success" as Tone },
-        { label: "Carteira Ativa", value: String(activeClients), sub: "Clientes com contrato", icon: Users, tone: "neutral" as Tone },
+        { 
+          label: "Receita Fechada", 
+          value: formatBRL(monthRevenue), 
+          change: "+12.5%", 
+          changeType: "up", 
+          sub: "Faturamento mensal", 
+          icon: CircleDollarSign, 
+          tone: "primary" as Tone,
+          context: "vs. mês anterior"
+        },
+        { 
+          label: "Pipeline Ponderado", 
+          value: formatBRL(weightedPipeline), 
+          change: "+8.2%", 
+          changeType: "up", 
+          sub: "Probabilidade de fechamento", 
+          icon: Target, 
+          tone: "info" as Tone,
+          context: "8 negociações ativas"
+        },
+        { 
+          label: "Taxa de Conversão", 
+          value: "24%", 
+          change: "-2.1%", 
+          changeType: "down", 
+          sub: "Leads para fechamento", 
+          icon: Activity, 
+          tone: "success" as Tone,
+          context: "Meta: 30%"
+        },
+        { 
+          label: "Pagamentos em Atraso", 
+          value: formatBRL(overdueAmount), 
+          change: overdueAmount > 0 ? "Crítico" : "Saudável", 
+          changeType: overdueAmount > 0 ? "down" : "up", 
+          sub: "Inadimplência total", 
+          icon: FileWarning, 
+          tone: "danger" as Tone,
+          context: `${overduePayments.length} títulos vencidos`
+        },
       ],
       revenue6m,
       alerts,
@@ -176,59 +212,72 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, payments, leads, proposals, contracts]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+    <div className="p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
       
-      {/* === TOP BAR (EXECUTIVE COCKPIT HEADER) === */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-4 border-b border-white/[0.03]">
-        <div className="space-y-1">
+      {/* === TOP BAR: EXECUTIVE COCKPIT HEADER === */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-white/[0.02]">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2 mb-1">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Operação em Tempo Real</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{today}</span>
+            <div className="h-2 w-px bg-white/[0.05]" />
+            <div className="flex items-center gap-1">
+              <div className={cn("size-1 rounded-full", stats.alerts.length > 0 ? "bg-amber-500" : "bg-emerald-500")} />
+              <span className="text-[10px] text-zinc-400 font-medium">
+                {stats.alerts.length > 0 ? `${stats.alerts.length} notificações prioritárias` : "Operação estável"}
+              </span>
             </div>
-            <span className="text-[10px] font-medium text-zinc-500">{today}</span>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
-            {greeting}, {firstName}
-            <span className="text-zinc-600 font-normal">/ Visão Executiva</span>
+          <h1 className="text-lg font-semibold tracking-tight text-white">
+            {greeting}, <span className="text-indigo-400">{firstName}</span>
           </h1>
         </div>
 
-        <div className="flex flex-1 max-w-md mx-auto hidden xl:block">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="relative hidden lg:block mr-2 w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-zinc-500" />
             <input 
               type="text"
-              placeholder="Pesquisar em toda a plataforma..."
-              className="w-full h-10 pl-9 pr-4 bg-zinc-900/40 border border-white/[0.05] rounded-xl text-[13px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 focus:border-indigo-500/30 transition-all"
-              onFocus={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }))}
+              placeholder="Busca global..."
+              className="w-full h-8 pl-8 pr-4 bg-white/[0.02] border border-white/[0.05] rounded-lg text-[11px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/30 transition-all"
             />
           </div>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <Link to="/leads?new=1" className="h-9 px-4 rounded-lg bg-zinc-900/50 border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all text-[12.5px] font-medium text-zinc-300 flex items-center gap-2">
-            <Target className="size-3.5" /> Negociação
+          <Link to="/leads?new=1" className="h-8 px-3 rounded-lg bg-zinc-900 border border-white/[0.05] hover:bg-zinc-800 transition-all text-[11px] font-medium text-zinc-300 flex items-center gap-2">
+            <Plus className="size-3" /> Nova Negociação
           </Link>
-          <Link to="/vendas?new=1" className="h-9 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-all text-[12.5px] font-semibold text-white flex items-center gap-2 shadow-lg shadow-indigo-500/20">
-            <TrendingUp className="size-3.5" /> Fechamento
+          <Link to="/vendas?new=1" className="h-8 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-all text-[11px] font-semibold text-white flex items-center gap-2 shadow-sm">
+            <TrendingUp className="size-3" /> Registrar Fechamento
           </Link>
         </div>
       </div>
 
-      {/* === ROW 1: KPI COCKPIT === */}
+      {/* === ROW 1: KPI GRID === */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.kpis.map((kpi, i) => (
-          <div key={i} className="group relative p-4 rounded-xl border border-white/[0.05] bg-zinc-900/20 backdrop-blur-sm hover:border-white/[0.1] transition-all overflow-hidden">
-            <div className={cn("absolute inset-y-0 left-0 w-1", toneStyles[kpi.tone].dot)} />
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
-                <h3 className="text-xl font-bold text-white tabular-nums">{kpi.value}</h3>
-                <p className="text-[11px] text-zinc-400">{kpi.sub}</p>
+          <div key={i} className="relative p-4 rounded-xl border border-white/[0.03] bg-gradient-to-br from-zinc-900/40 to-zinc-900/20 backdrop-blur-md group hover:border-white/[0.08] transition-all">
+            <div className="flex items-start justify-between mb-3">
+              <div className={cn("p-1.5 rounded-lg bg-zinc-950/50 border border-white/[0.03]", toneStyles[kpi.tone].icon)}>
+                <kpi.icon className="size-3.5" />
               </div>
-              <div className={cn("p-2 rounded-lg", toneStyles[kpi.tone].bg)}>
-                <kpi.icon className={cn("size-4", toneStyles[kpi.tone].icon)} />
+              <div className={cn(
+                "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-tight border",
+                kpi.changeType === "up" 
+                  ? "bg-emerald-500/5 text-emerald-400 border-emerald-500/10" 
+                  : "bg-rose-500/5 text-rose-400 border-rose-500/10"
+              )}>
+                {kpi.changeType === "up" ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
+                {kpi.change}
+              </div>
+            </div>
+            
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest">{kpi.label}</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-xl font-bold text-white tracking-tight tabular-nums">{kpi.value}</h3>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[10px] text-zinc-400">{kpi.sub}</span>
+                <span className="text-[10px] text-zinc-600">·</span>
+                <span className="text-[10px] text-zinc-500 italic">{kpi.context}</span>
               </div>
             </div>
           </div>
