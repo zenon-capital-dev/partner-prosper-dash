@@ -116,7 +116,9 @@ export default function DemandDetail() {
                </Badge>
                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Demand Management</span>
             </div>
-            <h1 className="text-3xl font-bold text-foreground">{demand.clients?.full_name} / {demand.products?.name}</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              {demand.companies?.trade_name || demand.companies?.name || demand.clients?.company || demand.clients?.full_name} / {demand.products?.name}
+            </h1>
           </div>
         </div>
 
