@@ -350,11 +350,52 @@ export default function DemandDetail() {
                </TabsContent>
 
                <TabsContent value="tarefas" className="animate-fade-up">
-                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Em desenvolvimento...</div>
+                  <div className="vx-card p-8 bg-card">
+                    <div className="flex items-center justify-between mb-6">
+                       <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Tarefas Internas</h3>
+                       <Button size="sm" className="h-8 gap-2">
+                          <Plus className="size-3.5" /> Adicionar Tarefa
+                       </Button>
+                    </div>
+                    <div className="space-y-3">
+                       {/* Simplified task list view for demand-specific tasks */}
+                       <p className="text-sm text-center text-muted-foreground py-10">Use a aba de checklist para gerenciar as etapas principais do processo.</p>
+                    </div>
+                  </div>
                </TabsContent>
 
                <TabsContent value="entregas" className="animate-fade-up">
-                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Em desenvolvimento...</div>
+                  <div className="vx-card p-8 bg-card">
+                    <div className="flex items-center justify-between mb-6">
+                       <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Entregas de Valor</h3>
+                       <Button size="sm" className="h-8 gap-2">
+                          <Plus className="size-3.5" /> Registrar Entrega
+                       </Button>
+                    </div>
+                    {(!demand.deliveries || demand.deliveries.length === 0) ? (
+                       <div className="text-center py-12 text-muted-foreground/60">
+                          <Package className="size-10 mx-auto mb-3 opacity-20" />
+                          <p className="text-sm">Nenhuma entrega formalizada para este produto.</p>
+                       </div>
+                    ) : (
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {demand.deliveries.map((delivery: any) => (
+                             <div key={delivery.id} className="p-4 rounded-xl border border-border bg-muted/20 hover:border-primary/30 transition-colors">
+                                <div className="flex items-center justify-between mb-2">
+                                   <h4 className="font-bold text-sm">{delivery.title}</h4>
+                                   <Badge variant="outline" className="text-[9px] uppercase">{delivery.status}</Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground line-clamp-2 mb-4">{delivery.description}</p>
+                                {delivery.file_url && (
+                                   <Button variant="outline" size="sm" className="w-full h-8 text-[11px] gap-2">
+                                      <Download className="size-3" /> Baixar Entrega
+                                   </Button>
+                                )}
+                             </div>
+                          ))}
+                       </div>
+                    )}
+                  </div>
                </TabsContent>
 
                <TabsContent value="comments" className="animate-fade-up">
