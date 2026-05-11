@@ -3489,8 +3489,13 @@ export type Database = {
         Args: { day_type: string; days_to_add: number; start_date: string }
         Returns: string
       }
+      check_is_admin: { Args: { _user_id?: string }; Returns: boolean }
       check_overdue_documents: { Args: never; Returns: undefined }
       check_pending_commissions: { Args: never; Returns: undefined }
+      check_user_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           p_link?: string
