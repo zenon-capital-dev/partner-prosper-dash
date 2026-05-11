@@ -5,7 +5,7 @@ import {
   CheckCircle2, FileWarning, CreditCard, FileSignature, Target, Handshake,
   Plus, ArrowUpRight, Phone, CalendarClock, AlertTriangle, Bell,
   FileText, ChevronRight, Crown, Briefcase, ClipboardList, Sparkles,
-  Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter,
+  Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter, Zap,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
@@ -351,12 +351,54 @@ export default function DashboardAdmin() {
           </div>
         </header>
 
+        {/* ============ QUICK ACTIONS BAR ============ */}
+        <div className="flex flex-wrap items-center gap-4 p-4 lg:p-5 rounded-[2rem] bg-slate-950 dark:bg-white/[0.03] text-white overflow-hidden relative group">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.2),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+            <Zap className="size-32 text-indigo-500 -rotate-12" />
+          </div>
+          
+          <div className="relative flex items-center gap-3 pr-5 border-r border-white/10">
+            <div className="size-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+              <Zap className="size-5 text-indigo-400" />
+            </div>
+            <div className="hidden sm:block">
+              <span className="block text-[9px] font-black uppercase tracking-[0.3em] text-indigo-400/80">Command</span>
+              <span className="block text-xs font-black tracking-tight">Quick Terminal</span>
+            </div>
+          </div>
+          
+          <div className="relative flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar">
+            {[
+              { label: "New Lead", icon: UserPlus, href: "/leads?new=true", color: "bg-indigo-500" },
+              { label: "Draft Proposal", icon: FileText, href: "/propostas?new=true", color: "bg-violet-500" },
+              { label: "Log Revenue", icon: CircleDollarSign, href: "/vendas?new=true", color: "bg-emerald-500" },
+              { label: "System Sync", icon: Activity, href: "#", color: "bg-amber-500" },
+            ].map((action) => (
+              <Link
+                key={action.label}
+                to={action.href}
+                className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/5 hover:border-white/10 transition-all whitespace-nowrap group/item"
+              >
+                <div className={cn("size-2 rounded-full", action.color)} />
+                <span className="text-xs font-black tracking-widest uppercase opacity-80 group-hover/item:opacity-100">{action.label}</span>
+                <ArrowUpRight className="size-3 opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+
+          <button className="relative px-6 py-2.5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 flex items-center gap-2 shadow-[0_10px_30px_-5px_rgba(99,102,241,0.4)] transition-all font-black text-xs uppercase tracking-widest">
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">Add Entry</span>
+          </button>
+        </div>
+
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <KpiPremium label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`vs anterior · ${formatBRL(stats.lastMonthRevenue)}`} progress={Math.min(100, Math.round((stats.monthRevenue / Math.max(stats.lastMonthRevenue * 1.15, 1)) * 100))} />
-          <KpiPremium label="Novos clientes" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="success" sparkData={dealsSpark} caption={`${stats.activeClients} na carteira`} progress={Math.min(100, stats.newClientsMonth * 10)} />
-          <KpiPremium label="Conv. leads" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Target} tone="warning" sparkData={dealsSpark} caption={`${stats.wonLeads.length}/${leads.length} fechados`} progress={stats.conversionRate} />
-          <KpiPremium label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="violet" sparkData={revSpark} caption="Por fechamento" progress={Math.min(100, Math.round((stats.avgTicket / 50000) * 100))} />
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+          <KpiPremium label="Gross Revenue" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`MTD vs Prev`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
+          <KpiPremium label="Acquisition" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`New closed contracts`} progress={78} />
+          <KpiPremium label="Conversion Rate" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Optimal" : "Review"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads to customers`} progress={stats.conversionRate} />
+          <KpiPremium label="Avg. Ticket" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} deals`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Per transaction" progress={65} />
         </section>
 
         {/* ============ MINI METRIC PILLS ============ */}
@@ -869,63 +911,79 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
 }) {
   const t = toneColor[tone];
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-5 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none">
-      <div className={cn("absolute -top-8 -right-8 size-24 rounded-full blur-3xl opacity-50 dark:opacity-40", t.bg)} />
-      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(to right, ${t.chart}, ${t.chart}90)` }} />
-      <div className="relative">
-        <div className="flex items-start justify-between mb-3">
-          <div className={cn("size-10 rounded-xl flex items-center justify-center border ring-4", t.bg, t.border, t.text, t.ring)}>
-            <Icon className="size-4.5" strokeWidth={2} />
-          </div>
-          <div className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border tabular-nums", up ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/25" : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/25")}>
-            {up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-            {delta}
-          </div>
+    <div className={cn(
+      "group relative p-6 rounded-[2rem] border transition-all duration-500",
+      "bg-white dark:bg-white/[0.03] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2",
+      t.border,
+      t.soft,
+      "overflow-hidden"
+    )}>
+      <div className="absolute bottom-0 right-0 w-3/4 h-24 opacity-5 group-hover:opacity-15 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={sparkData}>
+            <Area type="monotone" dataKey="v" stroke={t.chart} fill={t.chart} strokeWidth={4} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="relative flex items-start justify-between mb-6">
+        <div className={cn("p-4 rounded-2xl shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3", t.bg, t.text)}>
+          <Icon className="size-6" />
         </div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-zinc-500 leading-tight">{label}</p>
-        <p className="text-[26px] lg:text-[28px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-1 leading-none">{value}</p>
-        <div className="h-10 mt-2 -mx-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sparkData} margin={{ top: 2, right: 2, left: 2, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`spark-${tone}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={t.chart} stopOpacity={0.4} />
-                  <stop offset="100%" stopColor={t.chart} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="v" stroke={t.chart} strokeWidth={1.8} fill={`url(#spark-${tone})`} />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className={cn(
+          "flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md",
+          up 
+            ? "text-emerald-600 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20" 
+            : "text-rose-600 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20"
+        )}>
+          {up ? <ArrowUpRight className="size-3.5" /> : <TrendingDown className="size-3.5" />}
+          {delta}
         </div>
-        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
-          <p className="text-[10px] text-slate-500 dark:text-zinc-500 truncate flex-1">{caption}</p>
-          <span className="text-[10px] font-bold tabular-nums" style={{ color: t.chart }}>{progress}%</span>
+      </div>
+      <div className="relative space-y-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-500">{label}</p>
+        <h3 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-none tabular-nums">{value}</h3>
+        <p className="text-[11px] font-bold text-slate-400 dark:text-zinc-600 tracking-tight">{caption}</p>
+      </div>
+      <div className="relative mt-8 pt-5 border-t border-slate-100 dark:border-white/[0.03]">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Growth Index</span>
+          <span className="text-[11px] font-black text-slate-900 dark:text-white">{Math.round(progress)}%</span>
         </div>
-        <div className="mt-1.5 h-1 rounded-full bg-slate-100 dark:bg-white/[0.04] overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, progress)}%`, background: `linear-gradient(to right, ${t.chart}, ${t.chart}cc)` }} />
+        <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
+          <div className={cn("h-full rounded-full transition-all duration-1000 ease-out", t.grad)} style={{ width: `${Math.min(100, progress)}%` }} />
         </div>
       </div>
     </div>
   );
 }
 
-function MetricPill({ label, value, tone, icon: Icon, href }: {
-  label: string; value: string; tone: Tone; icon: any; href: string;
-}) {
+function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: string; value: string; tone: Tone; icon: any; href: string; pulse?: boolean }) {
   const t = toneColor[tone];
   return (
-    <Link to={href} className={cn("group relative overflow-hidden rounded-xl border bg-white dark:bg-white/[0.02] hover:shadow-md transition-all p-3", t.border)}>
-      <div className={cn("absolute top-0 left-0 w-1 h-full", t.bg.replace("bg-", "bg-").replace("100", "400").replace("/10", "/60"))} style={{ backgroundColor: t.chart }} />
-      <div className="flex items-center gap-2.5">
-        <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", t.bg, t.text)}>
-          <Icon className="size-3.5" strokeWidth={2.2} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500 truncate">{label}</p>
-          <p className={cn("text-[15px] font-bold tabular-nums leading-tight mt-0.5 truncate", t.text)}>{value}</p>
-        </div>
-        <ChevronRight className="size-3.5 text-slate-300 dark:text-zinc-700 group-hover:text-slate-500 dark:group-hover:text-zinc-400 transition-colors" />
+    <Link to={href} className={cn(
+      "group relative flex items-center gap-4 p-4 rounded-[1.5rem] border transition-all duration-300",
+      "bg-white dark:bg-white/[0.03] shadow-sm hover:shadow-xl hover:scale-[1.03]",
+      t.border, "hover:bg-slate-50 dark:hover:bg-white/[0.06]"
+    )}>
+      <div className={cn(
+        "size-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 group-hover:rotate-12 group-hover:shadow-lg",
+        t.bg, t.text
+      )}>
+        <Icon className={cn("size-6", pulse && "animate-pulse")} />
       </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-zinc-600 truncate">{label}</p>
+        <p className="text-xl font-black text-slate-900 dark:text-white tracking-tighter truncate tabular-nums">{value}</p>
+      </div>
+      <ChevronRight className="size-4 text-slate-300 dark:text-slate-700 group-hover:translate-x-1 transition-transform" />
+      {pulse && (
+        <div className="absolute top-3 right-3">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]"></span>
+          </span>
+        </div>
+      )}
     </Link>
   );
 }
