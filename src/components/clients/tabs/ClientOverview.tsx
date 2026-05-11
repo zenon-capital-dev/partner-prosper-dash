@@ -1,5 +1,5 @@
 import { formatBRL, formatDate, formatPhone, formatDoc } from "@/lib/format";
-import { Mail, Phone, IdCard, MapPin, Calendar, User, Briefcase, Globe } from "lucide-react";
+import { Mail, Phone, IdCard, MapPin, Calendar, User, Briefcase, Globe, Building2 } from "lucide-react";
 
 export function ClientOverview({ client, stats }: any) {
   return (
