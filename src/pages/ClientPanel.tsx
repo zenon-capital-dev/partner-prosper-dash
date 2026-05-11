@@ -37,7 +37,7 @@ export default function ClientPanel() {
         .maybeSingle();
       if (!client) return null;
 
-      const [docs, catalog, requests, contracts, payments, granularProducts, reports] = await Promise.all([
+      const [docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries] = await Promise.all([
         supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true),
         supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
