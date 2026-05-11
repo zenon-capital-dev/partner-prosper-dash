@@ -312,7 +312,7 @@ export default function ClientPanel() {
                                       {d.client_products?.products?.name && <p className="text-[9px] text-muted-foreground truncate">{d.client_products.products.name}</p>}
                                    </div>
                                 </div>
-                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path, '_blank')}>
+                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path || d.file_url, '_blank')}>
                                   <Download className="size-4" />
                                </Button>
                             </div>
