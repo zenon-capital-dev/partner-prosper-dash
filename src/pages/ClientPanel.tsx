@@ -83,7 +83,10 @@ export default function ClientPanel() {
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
   const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
   const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
-  const deliveries = docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido');
+  const deliveries = [
+    ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
+    ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
+  ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
