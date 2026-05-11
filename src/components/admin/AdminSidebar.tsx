@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Search, Command,
   Briefcase, CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
-  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown, Sparkles,
+  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown, Sparkles, Crown,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -103,29 +103,36 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-200 ease-in-out z-50",
-          "bg-[#09090b] border-r border-white/[0.04]",
-          collapsed ? "w-[64px]" : "w-[240px]"
+          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-200 ease-in-out z-50 relative",
+          "bg-[#08080b] border-r border-white/[0.05]",
+          collapsed ? "w-[68px]" : "w-[252px]"
         )}
       >
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[220px] bg-gradient-to-b from-indigo-600/[0.07] via-violet-600/[0.03] to-transparent" />
+        </div>
+
         {/* Workspace / Brand */}
-        <div className={cn("h-[60px] flex items-center border-b border-white/[0.05] shrink-0", collapsed ? "px-2 justify-center" : "px-3")}>
+        <div className={cn("relative h-[68px] flex items-center border-b border-white/[0.05] shrink-0", collapsed ? "px-2 justify-center" : "px-3")}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "h-10 flex items-center gap-2.5 rounded-lg hover:bg-white/[0.04] transition-colors group",
-                  collapsed ? "w-10 justify-center" : "w-full px-2"
+                  "h-12 flex items-center gap-3 rounded-xl hover:bg-white/[0.04] transition-colors group",
+                  collapsed ? "w-12 justify-center" : "w-full px-2"
                 )}
               >
-                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center shrink-0 shadow-inner">
-                  <Zap className="size-4 text-zinc-300" strokeWidth={2} />
+                <div className="relative shrink-0">
+                  <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center shadow-[0_6px_20px_rgba(99,102,241,0.35)] ring-1 ring-white/15">
+                    <Crown className="size-4 text-white" strokeWidth={2.2} />
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-[#08080b]" />
                 </div>
                 {!collapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[13px] font-semibold text-white leading-tight truncate">Prosper</p>
-                      <p className="text-[10.5px] text-white/40 leading-tight truncate">Workspace · Pro</p>
+                      <p className="font-[Fraunces,serif] text-[16px] font-medium text-white leading-tight truncate">Prosper</p>
+                      <p className="text-[9.5px] text-indigo-300/70 leading-tight truncate tracking-[0.18em] uppercase font-bold mt-0.5">Executive · Pro</p>
                     </div>
                     <ChevronDown className="size-3.5 text-white/35 group-hover:text-white/70 transition-colors shrink-0" />
                   </>
@@ -135,9 +142,9 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             <DropdownMenuContent align="start" className="w-64 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl">
               <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Workspace</DropdownMenuLabel>
               <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05] mb-1">
-                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center"><Zap className="size-4 text-zinc-300" /></div>
+                <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center ring-1 ring-white/15"><Crown className="size-4 text-white" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-semibold text-white">Prosper</p>
+                  <p className="font-[Fraunces,serif] text-[14px] font-medium text-white">Prosper</p>
                   <p className="text-[10.5px] text-zinc-500">Plano Pro · 12 usuários</p>
                 </div>
               </div>
@@ -196,17 +203,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         )}
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4 vx-sidebar-scroll">
+        <nav className="relative flex-1 overflow-y-auto px-2 py-3 space-y-5 vx-sidebar-scroll">
           {SECTIONS.map((section) => (
             <div key={section.label}>
               {!collapsed ? (
-                <div className="px-2.5 mb-1 text-[9.5px] font-bold uppercase tracking-[0.18em] text-white/30">
-                  {section.label}
+                <div className="px-3 mb-2 flex items-center gap-2">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-indigo-300/50">{section.label}</span>
+                  <div className="flex-1 h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
                 </div>
               ) : (
-                <div className="h-px bg-white/[0.05] mx-3 mb-1.5" />
+                <div className="h-px bg-white/[0.05] mx-3 mb-2" />
               )}
-              <div className="space-y-px">
+              <div className="space-y-0.5">
                 {section.items.map((item) => {
                   const active = isActive(item.url);
                   const Icon = item.icon;
@@ -216,27 +224,33 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       to={item.url}
                       title={collapsed ? item.title : undefined}
                       className={cn(
-                        "group relative flex items-center gap-2.5 rounded-md text-[13px] font-medium transition-all duration-150 px-2.5 h-8",
-                        collapsed ? "justify-center h-9 mx-1" : "mx-2",
+                        "group relative flex items-center gap-2.5 rounded-lg text-[12.5px] font-medium transition-all duration-200 h-9",
+                        collapsed ? "justify-center mx-1.5" : "mx-1.5 px-2.5",
                         active
-                          ? "bg-white/[0.06] text-white"
-                          : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]"
+                          ? "bg-gradient-to-r from-indigo-500/15 via-indigo-500/[0.06] to-transparent text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                          : "text-zinc-400 hover:text-white hover:bg-white/[0.035]"
                       )}
                     >
+                      {active && !collapsed && (
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-gradient-to-b from-indigo-400 to-violet-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      )}
                       <Icon
                         className={cn(
-                          "size-[16px] shrink-0 transition-colors",
-                          active ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"
+                          "size-[16px] shrink-0 transition-all",
+                          active ? "text-indigo-300" : "text-zinc-500 group-hover:text-zinc-200"
                         )}
-                        strokeWidth={active ? 2 : 1.5}
+                        strokeWidth={active ? 2.2 : 1.6}
                       />
                       {!collapsed && (
                         <>
-                          <span className="truncate flex-1">{item.title}</span>
+                          <span className="truncate flex-1 tracking-tight">{item.title}</span>
                           {item.badge && (
                             <span className="text-[9.5px] font-bold tabular-nums px-1.5 h-[16px] rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center">
                               {item.badge}
                             </span>
+                          )}
+                          {active && (
+                            <span className="size-1.5 rounded-full bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.7)]" />
                           )}
                         </>
                       )}
@@ -250,11 +264,20 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
 
         {/* Info Box */}
         {!collapsed && (
-          <div className="px-3 pb-4">
-            <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
-              <p className="text-[10px] text-zinc-500 leading-snug">
-                Você está usando a versão Pro. <Link to="/configuracoes" className="text-zinc-300 hover:text-white underline underline-offset-2">Ver detalhes</Link>
-              </p>
+          <div className="relative px-3 pb-3">
+            <div className="relative overflow-hidden rounded-xl border border-indigo-500/15 bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.04] to-transparent p-3.5">
+              <div className="absolute -top-8 -right-8 size-20 rounded-full bg-indigo-500/15 blur-2xl" />
+              <div className="relative flex items-start gap-2.5">
+                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center ring-1 ring-white/15 shrink-0">
+                  <Sparkles className="size-3.5 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-[Fraunces,serif] text-[12px] font-medium text-white leading-tight">Edição Executive</p>
+                  <p className="text-[10px] text-zinc-400 leading-snug mt-0.5">
+                    Acesso total liberado · <Link to="/configuracoes" className="text-indigo-300 hover:text-indigo-200 font-semibold">gerenciar</Link>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
