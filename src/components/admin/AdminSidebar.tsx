@@ -105,8 +105,10 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-svh sticky top-0 shrink-0 flex flex-col border-r border-sidebar-border bg-sidebar-background text-sidebar-foreground transition-[width] duration-500 ease-[cubic-bezier(0.2,0,0,1)] z-50 overflow-hidden",
-          collapsed ? "w-[68px]" : "w-[240px]"
+          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-500 ease-[cubic-bezier(0.2,0,0,1)] z-50 overflow-hidden relative",
+          "bg-[hsl(240_30%_5%_/_0.65)] backdrop-blur-2xl border-r border-white/[0.06]",
+          "before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-b before:from-indigo-500/[0.06] before:via-transparent before:to-purple-500/[0.08] before:pointer-events-none",
+          collapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
         {/* Brand */}

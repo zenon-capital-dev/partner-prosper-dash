@@ -19,17 +19,18 @@ export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   return (
-    <header className="h-14 glass-header px-5 lg:px-7 flex items-center justify-between gap-5">
+    <header className="glass-header px-6 lg:px-10 flex items-center justify-between gap-6">
       {/* Greeting + Identity */}
-      <div className="hidden md:flex items-center gap-2.5 min-w-0 shrink-0">
-        <div className="size-8 rounded-md bg-muted border border-border flex items-center justify-center text-[10.5px] font-bold text-muted-foreground">
+      <div className="hidden md:flex items-center gap-3 min-w-0 shrink-0">
+        <div className="relative size-9 rounded-xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-[11px] font-bold text-white shadow-[0_4px_20px_-6px_rgba(139,92,246,0.6)]">
           {initials(fullName)}
+          <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 border-2 border-[#0a0a14] shadow-[0_0_10px_rgba(52,211,153,0.6)]" />
         </div>
         <div className="leading-tight min-w-0">
-          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-muted-foreground/60">
+          <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-white/40">
             {greeting}
           </p>
-          <p className="text-[12.5px] font-semibold text-foreground truncate capitalize">
+          <p className="text-[13.5px] font-semibold text-white truncate capitalize">
             {firstName}
           </p>
         </div>
@@ -37,28 +38,28 @@ export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
       </div>
 
       {/* Global Search */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-2xl">
         <button
           onClick={onSearchClick}
-          className="w-full h-9 pl-9 pr-2 bg-muted/50 hover:bg-muted/80 border border-border hover:border-foreground/20 rounded-md text-[13px] flex items-center justify-between transition-colors group relative"
+          className="w-full h-11 pl-11 pr-3 bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 hover:border-white/20 rounded-2xl text-[13px] flex items-center justify-between transition-all group relative backdrop-blur-md"
         >
-          <Search className="absolute left-3 size-3.5 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-          <span className="font-medium text-muted-foreground/80 truncate">
-            Buscar clientes, empresas, demandas, documentos...
+          <Search className="absolute left-4 size-4 text-white/40 group-hover:text-white/80 transition-colors" />
+          <span className="font-medium text-white/50 truncate">
+            Buscar clientes, empresas, demandas, documentos…
           </span>
-          <kbd className="text-[10px] font-mono font-semibold bg-background border border-border rounded px-1.5 py-0.5 flex items-center gap-1 text-muted-foreground/70 shrink-0">
+          <kbd className="text-[10px] font-mono font-semibold bg-white/[0.06] border border-white/10 rounded-md px-1.5 py-0.5 flex items-center gap-1 text-white/50 shrink-0">
             <Command className="size-2.5" /> K
           </kbd>
         </button>
       </div>
 
       {/* Right cluster — actions */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <QuickCreateButton />
-        <div className="h-5 w-px bg-border mx-1.5 hidden sm:block" />
+        <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block" />
         <InternalChat />
         <NotificationBell />
-        <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
+        <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block" />
         <ThemeToggle />
       </div>
     </header>
