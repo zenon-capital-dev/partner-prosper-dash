@@ -20,13 +20,13 @@ import {
 
 type Tone = "primary" | "success" | "warning" | "danger" | "info" | "violet";
 
-const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string }> = {
-  primary: { text: "text-indigo-300", bg: "bg-indigo-500/10", border: "border-indigo-500/25", chart: "#818cf8", soft: "bg-indigo-500/5" },
-  success: { text: "text-emerald-300", bg: "bg-emerald-500/10", border: "border-emerald-500/25", chart: "#34d399", soft: "bg-emerald-500/5" },
-  warning: { text: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-500/25", chart: "#fbbf24", soft: "bg-amber-500/5" },
-  danger: { text: "text-rose-300", bg: "bg-rose-500/10", border: "border-rose-500/25", chart: "#fb7185", soft: "bg-rose-500/5" },
-  info: { text: "text-sky-300", bg: "bg-sky-500/10", border: "border-sky-500/25", chart: "#38bdf8", soft: "bg-sky-500/5" },
-  violet: { text: "text-violet-300", bg: "bg-violet-500/10", border: "border-violet-500/25", chart: "#a78bfa", soft: "bg-violet-500/5" },
+const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string; grad: string; ring: string }> = {
+  primary: { text: "text-indigo-600 dark:text-indigo-300", bg: "bg-indigo-100 dark:bg-indigo-500/10", border: "border-indigo-200 dark:border-indigo-500/25", chart: "#6366f1", soft: "bg-indigo-50 dark:bg-indigo-500/5", grad: "from-indigo-500 to-indigo-600", ring: "ring-indigo-200/60 dark:ring-indigo-500/20" },
+  success: { text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-100 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/25", chart: "#10b981", soft: "bg-emerald-50 dark:bg-emerald-500/5", grad: "from-emerald-500 to-emerald-600", ring: "ring-emerald-200/60 dark:ring-emerald-500/20" },
+  warning: { text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-100 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/25", chart: "#f59e0b", soft: "bg-amber-50 dark:bg-amber-500/5", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60 dark:ring-amber-500/20" },
+  danger: { text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-100 dark:bg-rose-500/10", border: "border-rose-200 dark:border-rose-500/25", chart: "#f43f5e", soft: "bg-rose-50 dark:bg-rose-500/5", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60 dark:ring-rose-500/20" },
+  info: { text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-100 dark:bg-sky-500/10", border: "border-sky-200 dark:border-sky-500/25", chart: "#0ea5e9", soft: "bg-sky-50 dark:bg-sky-500/5", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60 dark:ring-sky-500/20" },
+  violet: { text: "text-violet-600 dark:text-violet-300", bg: "bg-violet-100 dark:bg-violet-500/10", border: "border-violet-200 dark:border-violet-500/25", chart: "#8b5cf6", soft: "bg-violet-50 dark:bg-violet-500/5", grad: "from-violet-500 to-violet-600", ring: "ring-violet-200/60 dark:ring-violet-500/20" },
 };
 
 const statusLabel: Record<string, { label: string; tone: Tone }> = {
@@ -282,77 +282,101 @@ export default function DashboardAdmin() {
     };
   }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks]);
 
+  // Sparkline data per KPI
+  const revSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.receita }));
+  const dealsSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.deals }));
+
   return (
-    <div className="relative min-h-full bg-[#08080b]">
+    <div className="relative min-h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-[#08080b] dark:via-[#0a0a0f] dark:to-[#08080b]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 size-[500px] rounded-full bg-indigo-600/[0.06] blur-[120px]" />
+        <div className="absolute -top-40 -left-40 size-[600px] rounded-full bg-indigo-200/40 dark:bg-indigo-600/[0.06] blur-[140px]" />
+        <div className="absolute top-1/3 -right-40 size-[500px] rounded-full bg-violet-200/30 dark:bg-violet-600/[0.04] blur-[140px]" />
       </div>
 
-      <div className="relative p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
+      <div className="relative p-5 lg:p-8 space-y-6 max-w-[1720px] mx-auto animate-in fade-in duration-500">
 
-        {/* ============ COMPACT HEADER ============ */}
-        <header className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/[0.04]">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center shadow-[0_4px_16px_rgba(99,102,241,0.3)] ring-1 ring-white/15">
-              <Crown className="size-4 text-white" strokeWidth={2.2} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-[15px] font-semibold text-white tracking-tight">
-                  {greeting}, <span className="text-indigo-300">{firstName}</span>
-                </h1>
-                <span className="size-1 rounded-full bg-zinc-700" />
-                <span className="text-[10.5px] text-zinc-500 capitalize">{today} · {timeNow}</span>
+        {/* ============ EXECUTIVE HEADER ============ */}
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="relative">
+                <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(99,102,241,0.5)] ring-1 ring-white/40">
+                  <Crown className="size-5 text-white" strokeWidth={2.2} />
+                </div>
+                <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-[#08080b] shadow-md" />
               </div>
-              <p className="text-[10.5px] text-zinc-500 mt-0.5">
-                <span className="text-emerald-400">●</span> {stats.activeClients} clientes ativos
-                <span className="text-zinc-700 mx-2">·</span>
-                <span className="text-indigo-300">{stats.activeLeads.length}</span> negociações
-                <span className="text-zinc-700 mx-2">·</span>
-                <span className="text-amber-300">{stats.delayed}</span> atrasos
-                <span className="text-zinc-700 mx-2">·</span>
-                <span className="text-rose-300">{stats.overduePayments.length}</span> inadimplentes
-              </p>
+              <div>
+                <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+                  <CalendarClock className="size-3" />
+                  <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
+                  <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
+                  <Sparkles className="size-3 text-indigo-500" />
+                  <span className="text-indigo-500 dark:text-indigo-400">Painel de Comando</span>
+                </div>
+                <h1 className="text-[22px] lg:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight">
+                  {greeting}, <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 dark:from-indigo-300 dark:via-violet-300 dark:to-fuchsia-300 bg-clip-text text-transparent">{firstName}</span>
+                </h1>
+                <p className="text-[12px] text-slate-500 dark:text-zinc-500 mt-1 flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{stats.activeLeads.length}</span> negociações
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-amber-600 dark:text-amber-300 font-semibold">{stats.delayed}</span> atrasos
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-rose-600 dark:text-rose-300 font-semibold">{stats.overduePayments.length}</span> inadimplentes
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-slate-500 dark:text-zinc-500 capitalize">{today}</span>
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 transition-colors">
-              <Filter className="size-3.5" /> Este mês
-            </button>
-            <Link to="/leads?new=1" className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[11px] font-medium text-zinc-200 flex items-center gap-1.5 transition-colors">
-              <Plus className="size-3.5" /> Negociação
-            </Link>
-            <Link to="/vendas?new=1" className="h-9 px-4 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 text-[11px] font-semibold text-white flex items-center gap-1.5 shadow-[0_4px_16px_rgba(99,102,241,0.3)] ring-1 ring-white/15 transition-all">
-              <TrendingUp className="size-3.5" /> Registrar fechamento
-            </Link>
-            <button className="size-9 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-colors relative">
-              <Bell className="size-3.5" />
-              {stats.alerts.length > 0 && (
-                <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[#08080b]">{stats.alerts.length}</span>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] p-1 shadow-sm">
+                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
+                  <button key={p} className={cn("px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all", i === 3 ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm" : "text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white")}>{p}</button>
+                ))}
+              </div>
+              <Link to="/leads?new=1" className="h-10 px-3.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] text-[11.5px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5 transition-all shadow-sm">
+                <Plus className="size-3.5" /> Negociação
+              </Link>
+              <Link to="/vendas?new=1" className="h-10 px-4 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-[11.5px] font-bold text-white flex items-center gap-1.5 shadow-[0_6px_20px_-4px_rgba(99,102,241,0.5)] ring-1 ring-white/20 transition-all">
+                <TrendingUp className="size-3.5" /> Registrar fechamento
+              </Link>
+              <button className="size-10 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-all relative shadow-sm">
+                <Bell className="size-4" />
+                {stats.alerts.length > 0 && (
+                  <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[#08080b]">{stats.alerts.length}</span>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* ============ KPI STRIP (8 KPIs) ============ */}
-        <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-          <Kpi label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" />
-          <Kpi label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="success" />
-          <Kpi label="Pipeline ponderado" value={formatBRL(stats.weightedPipeline)} delta={`${stats.activeLeads.length} ativas`} up icon={Target} tone="info" />
-          <Kpi label="Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Activity} tone="violet" />
-          <Kpi label="Clientes ativos" value={stats.activeClients.toString()} delta={`+${stats.newClientsMonth} novos`} up={stats.newClientsMonth > 0} icon={Users} tone="success" />
-          <Kpi label="Demandas em curso" value={stats.inProgress.toString()} delta={`${stats.delayed} atrasadas`} up={stats.delayed === 0} icon={Briefcase} tone="warning" />
-          <Kpi label="Inadimplência" value={formatBRL(stats.overdueAmount)} delta={`${stats.overduePayments.length} títulos`} up={stats.overdueAmount === 0} icon={FileWarning} tone="danger" />
-          <Kpi label="Comissões pendentes" value={formatBRL(stats.pendingCommissions)} delta={`${stats.topPartners.length} parceiros`} up icon={Handshake} tone="violet" />
+        {/* ============ KPI HERO (4 PREMIUM) ============ */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <KpiPremium label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`vs anterior · ${formatBRL(stats.lastMonthRevenue)}`} progress={Math.min(100, Math.round((stats.monthRevenue / Math.max(stats.lastMonthRevenue * 1.15, 1)) * 100))} />
+          <KpiPremium label="Novos clientes" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="success" sparkData={dealsSpark} caption={`${stats.activeClients} na carteira`} progress={Math.min(100, stats.newClientsMonth * 10)} />
+          <KpiPremium label="Conv. leads" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Target} tone="warning" sparkData={dealsSpark} caption={`${stats.wonLeads.length}/${leads.length} fechados`} progress={stats.conversionRate} />
+          <KpiPremium label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="violet" sparkData={revSpark} caption="Por fechamento" progress={Math.min(100, Math.round((stats.avgTicket / 50000) * 100))} />
+        </section>
+
+        {/* ============ MINI METRIC PILLS ============ */}
+        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <MetricPill label="Contratos abertos" value={stats.contractsAwaiting.toString()} tone="primary" icon={FileSignature} href="/contratos" />
+          <MetricPill label="Docs pendentes" value={(clientProducts.filter((p: any) => p.status === "aguardando_inicio").length).toString()} tone="warning" icon={FileText} href="/documentos" />
+          <MetricPill label="Tarefas em atraso" value={stats.todayTasks.length.toString()} tone="danger" icon={Clock} href="/tarefas" />
+          <MetricPill label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} tone="success" icon={Handshake} href="/comissoes" />
+          <MetricPill label="Pipeline ponderado" value={formatBRL(stats.weightedPipeline)} tone="info" icon={Activity} href="/leads" />
+          <MetricPill label="Total clientes" value={clients.length.toString()} tone="violet" icon={Users} href="/clientes" />
         </section>
 
         {/* ============ ROW: REVENUE CHART + ALERTS + CONVERSION GOAL ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Revenue 12m */}
-          <Card className="lg:col-span-6 min-h-[340px] flex flex-col">
+          <Card className="lg:col-span-7 min-h-[360px] flex flex-col">
             <CardHeader
-              eyebrow="Performance"
-              title="Receita × meta (12 meses)"
+              eyebrow="Performance Financeira"
+              title="Fluxo de receita × meta · 12 meses"
+
               right={
                 <div className="flex items-center gap-3 text-[10px]">
                   <Legend2 color="#a5b4fc" label="Receita" />
@@ -385,7 +409,7 @@ export default function DashboardAdmin() {
             <CardHeader
               eyebrow="Crítico"
               title="Alertas & pendências"
-              right={<span className="text-[10px] text-zinc-500 tabular-nums">{stats.alerts.length} ativos</span>}
+              right={<span className="text-[10px] text-slate-500 dark:text-zinc-500 tabular-nums">{stats.alerts.length} ativos</span>}
             />
             <div className="space-y-2 flex-1 overflow-auto pr-1 max-h-[340px]">
               {stats.alerts.length > 0 ? stats.alerts.map((a) => (
@@ -394,16 +418,16 @@ export default function DashboardAdmin() {
                     <a.icon className="size-3.5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11.5px] font-semibold text-zinc-100 leading-tight">{a.title}</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{a.sub}</p>
+                    <p className="text-[11.5px] font-semibold text-slate-900 dark:text-zinc-100 leading-tight">{a.title}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-0.5 truncate">{a.sub}</p>
                   </div>
-                  <ChevronRight className="size-3.5 text-zinc-600 group-hover:text-white transition-colors mt-1" />
+                  <ChevronRight className="size-3.5 text-slate-400 dark:text-zinc-600 group-hover:text-slate-900 dark:text-white transition-colors mt-1" />
                 </Link>
               )) : (
                 <div className="text-center py-10">
                   <CheckCircle2 className="size-8 mx-auto text-emerald-400/60 mb-2" />
-                  <p className="text-[11px] text-zinc-400 font-medium">Tudo sob controle</p>
-                  <p className="text-[10px] text-zinc-600 mt-1">Nenhum alerta crítico no momento</p>
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">Tudo sob controle</p>
+                  <p className="text-[10px] text-slate-400 dark:text-zinc-600 mt-1">Nenhum alerta crítico no momento</p>
                 </div>
               )}
             </div>
@@ -421,18 +445,18 @@ export default function DashboardAdmin() {
                   </RadialBarChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-2xl font-bold text-white tabular-nums">{stats.conversionRate}<span className="text-sm text-zinc-500">%</span></p>
-                  <p className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold mt-0.5">Meta 25%</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{stats.conversionRate}<span className="text-sm text-slate-500 dark:text-zinc-500">%</span></p>
+                  <p className="text-[9px] uppercase tracking-widest text-slate-500 dark:text-zinc-500 font-bold mt-0.5">Meta 25%</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 w-full gap-2 mt-3 pt-3 border-t border-white/[0.04]">
+              <div className="grid grid-cols-2 w-full gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.04]">
                 <div className="text-center">
-                  <p className="text-[9px] uppercase tracking-wider text-zinc-500">Ganhos</p>
-                  <p className="text-[13px] font-bold text-emerald-300 tabular-nums">{stats.wonLeads.length}</p>
+                  <p className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500">Ganhos</p>
+                  <p className="text-[13px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">{stats.wonLeads.length}</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-[9px] uppercase tracking-wider text-zinc-500">Ativos</p>
-                  <p className="text-[13px] font-bold text-indigo-300 tabular-nums">{stats.activeLeads.length}</p>
+                  <p className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-zinc-500">Ativos</p>
+                  <p className="text-[13px] font-bold text-indigo-600 dark:text-indigo-300 tabular-nums">{stats.activeLeads.length}</p>
                 </div>
               </div>
             </div>
@@ -442,7 +466,7 @@ export default function DashboardAdmin() {
         {/* ============ ROW: PIPELINE FUNNEL + DEMANDS DONUT + ORIGEM ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <Card className="lg:col-span-5 min-h-[280px]">
-            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Abrir CRM</Link>} />
+            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Abrir CRM</Link>} />
             <div className="space-y-2 mt-1">
               {stats.pipelineByStage.map((stage, i) => {
                 const max = Math.max(...stats.pipelineByStage.map((s) => s.value), 1);
@@ -451,10 +475,10 @@ export default function DashboardAdmin() {
                 return (
                   <div key={stage.name} className="group">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-medium text-zinc-300">{stage.name}</span>
-                      <span className="text-[10.5px] text-zinc-500 tabular-nums">{stage.count} · <span className="text-zinc-300 font-semibold">{formatBRL(stage.value)}</span></span>
+                      <span className="text-[11px] font-medium text-slate-700 dark:text-zinc-300">{stage.name}</span>
+                      <span className="text-[10.5px] text-slate-500 dark:text-zinc-500 tabular-nums">{stage.count} · <span className="text-slate-700 dark:text-zinc-300 font-semibold">{formatBRL(stage.value)}</span></span>
                     </div>
-                    <div className="h-7 rounded-md bg-white/[0.02] border border-white/[0.04] overflow-hidden relative">
+                    <div className="h-7 rounded-md bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] overflow-hidden relative">
                       <div
                         className={cn("h-full transition-all duration-1000", toneColor[tones[i]].bg)}
                         style={{ width: `${Math.max(pct, 4)}%` }}
@@ -469,7 +493,7 @@ export default function DashboardAdmin() {
           </Card>
 
           <Card className="lg:col-span-4 min-h-[280px] flex flex-col">
-            <CardHeader eyebrow="Operação" title="Demandas por status" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Ver todas</Link>} />
+            <CardHeader eyebrow="Operação" title="Demandas por status" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Ver todas</Link>} />
             <div className="flex-1 flex items-center gap-4">
               <div className="w-[140px] h-[140px] shrink-0">
                 <ResponsiveContainer>
@@ -494,14 +518,14 @@ export default function DashboardAdmin() {
                   <div key={d.name} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                      <span className="text-[11px] text-zinc-300 truncate">{d.name}</span>
+                      <span className="text-[11px] text-slate-700 dark:text-zinc-300 truncate">{d.name}</span>
                     </div>
-                    <span className="text-[11.5px] font-bold text-white tabular-nums">{d.value}</span>
+                    <span className="text-[11.5px] font-bold text-slate-900 dark:text-white tabular-nums">{d.value}</span>
                   </div>
                 ))}
-                <div className="pt-2 border-t border-white/[0.04] mt-2">
-                  <p className="text-[9.5px] uppercase tracking-widest text-zinc-500 font-bold">Total</p>
-                  <p className="text-lg font-bold text-white tabular-nums">{stats.demandsByStatus.reduce((a, d) => a + d.value, 0)}</p>
+                <div className="pt-2 border-t border-slate-100 dark:border-white/[0.04] mt-2">
+                  <p className="text-[9.5px] uppercase tracking-widest text-slate-500 dark:text-zinc-500 font-bold">Total</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white tabular-nums">{stats.demandsByStatus.reduce((a, d) => a + d.value, 0)}</p>
                 </div>
               </div>
             </div>
@@ -516,10 +540,10 @@ export default function DashboardAdmin() {
                 return (
                   <div key={s.name}>
                     <div className="flex items-center justify-between text-[10.5px] mb-1">
-                      <span className="text-zinc-300 capitalize truncate">{s.name.replace(/_/g, " ")}</span>
-                      <span className="font-bold text-white tabular-nums">{s.value}</span>
+                      <span className="text-slate-700 dark:text-zinc-300 capitalize truncate">{s.name.replace(/_/g, " ")}</span>
+                      <span className="font-bold text-slate-900 dark:text-white tabular-nums">{s.value}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.03] overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-slate-50 dark:bg-white/[0.03] overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -533,11 +557,11 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Recent sales table */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Ver tudo</Link>} />
+            <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Ver tudo</Link>} />
             <div className="overflow-hidden -mx-1">
               <table className="w-full text-[11px]">
                 <thead>
-                  <tr className="text-[9.5px] uppercase tracking-widest text-zinc-500 font-bold">
+                  <tr className="text-[9.5px] uppercase tracking-widest text-slate-500 dark:text-zinc-500 font-bold">
                     <th className="text-left py-2 px-2 font-bold">Cliente</th>
                     <th className="text-left py-2 px-2 font-bold">Data</th>
                     <th className="text-right py-2 px-2 font-bold">Valor</th>
@@ -546,21 +570,21 @@ export default function DashboardAdmin() {
                 </thead>
                 <tbody>
                   {stats.recentSales.length > 0 ? stats.recentSales.map((s: any) => (
-                    <tr key={s.id} className="border-t border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                    <tr key={s.id} className="border-t border-slate-100 dark:border-white/[0.04] hover:bg-slate-50 dark:hover:bg-slate-50 dark:bg-white/[0.02] transition-colors">
                       <td className="py-2.5 px-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-200">
+                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-700 dark:text-indigo-200">
                             {s.clientName.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-zinc-200 font-medium truncate max-w-[120px]">{s.clientName}</span>
+                          <span className="text-slate-800 dark:text-zinc-200 font-medium truncate max-w-[120px]">{s.clientName}</span>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2 text-zinc-500 tabular-nums">
+                      <td className="py-2.5 px-2 text-slate-500 dark:text-zinc-500 tabular-nums">
                         {s.sale_date ? new Date(s.sale_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—"}
                       </td>
-                      <td className="py-2.5 px-2 text-right text-white font-semibold tabular-nums">{formatBRL(s.amount)}</td>
+                      <td className="py-2.5 px-2 text-right text-slate-900 dark:text-white font-semibold tabular-nums">{formatBRL(s.amount)}</td>
                       <td className="py-2.5 px-2 text-right">
-                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/25" : "bg-amber-500/10 text-amber-300 border-amber-500/25")}>
+                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/25" : "bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/25")}>
                           {s.status || "pendente"}
                         </span>
                       </td>
@@ -575,18 +599,18 @@ export default function DashboardAdmin() {
 
           {/* Urgent demands */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Operação" title="Demandas urgentes" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Gerenciar</Link>} />
+            <CardHeader eyebrow="Operação" title="Demandas urgentes" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Gerenciar</Link>} />
             <div className="space-y-1.5">
               {stats.urgentDemands.length > 0 ? stats.urgentDemands.map((d: any) => {
                 const overdue = d.deadline && new Date(d.deadline) < new Date();
                 const client = clients.find((c: any) => c.id === d.client_id);
                 const st = statusLabel[d.status] || { label: d.status, tone: "info" as Tone };
                 return (
-                  <div key={d.id} className="group flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.025] transition-colors">
+                  <div key={d.id} className="group flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/[0.025] transition-colors">
                     <div className={cn("size-2 rounded-full shrink-0", overdue ? "bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(244,63,94,0.6)]" : "bg-zinc-600")} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold text-zinc-100 truncate">{client?.full_name || `Demanda #${d.id.slice(0, 6)}`}</p>
-                      <p className="text-[9.5px] text-zinc-500 truncate">
+                      <p className="text-[11px] font-semibold text-slate-900 dark:text-zinc-100 truncate">{client?.full_name || `Demanda #${d.id.slice(0, 6)}`}</p>
+                      <p className="text-[9.5px] text-slate-500 dark:text-zinc-500 truncate">
                         Prazo {d.deadline ? new Date(d.deadline).toLocaleDateString("pt-BR") : "—"} · {formatBRL(d.value || 0)}
                       </p>
                     </div>
@@ -601,17 +625,17 @@ export default function DashboardAdmin() {
 
           {/* Today tasks / reminders */}
           <Card className="lg:col-span-3">
-            <CardHeader eyebrow="Hoje" title="Tarefas & lembretes" right={<Link to="/tarefas" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Tudo</Link>} />
+            <CardHeader eyebrow="Hoje" title="Tarefas & lembretes" right={<Link to="/tarefas" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Tudo</Link>} />
             <div className="space-y-1.5">
               {stats.todayTasks.length > 0 ? stats.todayTasks.map((t: any) => {
                 const overdue = t.due_date && new Date(t.due_date) < new Date();
                 const pTone: Tone = t.priority === "alta" ? "danger" : t.priority === "media" ? "warning" : "info";
                 return (
-                  <div key={t.id} className="flex items-start gap-2 p-1.5 rounded-md hover:bg-white/[0.025] transition-colors">
-                    <button className="size-4 rounded border border-white/[0.15] hover:border-indigo-400 hover:bg-indigo-500/10 transition-colors shrink-0 mt-0.5" />
+                  <div key={t.id} className="flex items-start gap-2 p-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-white/[0.025] transition-colors">
+                    <button className="size-4 rounded border border-slate-300 dark:border-white/[0.15] hover:border-indigo-400 hover:bg-indigo-500/10 transition-colors shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
-                      <p className={cn("text-[11px] font-medium truncate", overdue ? "text-rose-200" : "text-zinc-200")}>{t.title}</p>
-                      <p className="text-[9px] text-zinc-500 mt-0.5 flex items-center gap-1.5">
+                      <p className={cn("text-[11px] font-medium truncate", overdue ? "text-rose-700 dark:text-rose-200" : "text-slate-800 dark:text-zinc-200")}>{t.title}</p>
+                      <p className="text-[9px] text-slate-500 dark:text-zinc-500 mt-0.5 flex items-center gap-1.5">
                         {t.due_date && <><CalendarClock className="size-2.5" />{new Date(t.due_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</>}
                         {t.priority && <span className={cn("size-1 rounded-full ml-1", toneColor[pTone].bg.replace("/10", "/60"))} />}
                       </p>
@@ -627,25 +651,25 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Follow-ups / próximas ações */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Agenda</Link>} />
+            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Agenda</Link>} />
             <div className="space-y-2">
               {stats.upcomingActions.length > 0 ? stats.upcomingActions.map((l: any) => {
                 const d = new Date(l.next_action_date);
                 const overdue = d < new Date();
                 return (
-                  <div key={l.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.025] transition-colors">
+                  <div key={l.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/[0.025] transition-colors">
                     <div className={cn("size-10 rounded-lg flex flex-col items-center justify-center shrink-0 border", overdue ? "bg-rose-500/10 border-rose-500/25" : "bg-indigo-500/10 border-indigo-500/25")}>
-                      <span className={cn("text-[8px] font-bold uppercase leading-none", overdue ? "text-rose-300" : "text-indigo-300")}>{d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
-                      <span className="text-[12px] font-bold text-white leading-none mt-0.5 tabular-nums">{d.getDate()}</span>
+                      <span className={cn("text-[8px] font-bold uppercase leading-none", overdue ? "text-rose-600 dark:text-rose-300" : "text-indigo-600 dark:text-indigo-300")}>{d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                      <span className="text-[12px] font-bold text-slate-900 dark:text-white leading-none mt-0.5 tabular-nums">{d.getDate()}</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11.5px] font-semibold text-zinc-100 truncate">{l.full_name}</p>
-                      <p className="text-[10px] text-zinc-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"} · {l.company || "—"}</p>
+                      <p className="text-[11.5px] font-semibold text-slate-900 dark:text-zinc-100 truncate">{l.full_name}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-zinc-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"} · {l.company || "—"}</p>
                       {l.estimated_value > 0 && (
-                        <p className="text-[10px] text-emerald-300/80 font-medium tabular-nums mt-0.5">{formatBRL(l.estimated_value)} · {l.close_probability}% prob.</p>
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-300/80 font-medium tabular-nums mt-0.5">{formatBRL(l.estimated_value)} · {l.close_probability}% prob.</p>
                       )}
                     </div>
-                    <button className="size-7 rounded-md bg-white/[0.03] hover:bg-indigo-500/20 border border-white/[0.05] flex items-center justify-center text-zinc-400 hover:text-indigo-300 transition-colors shrink-0 opacity-0 group-hover:opacity-100">
+                    <button className="size-7 rounded-md bg-slate-50 dark:bg-white/[0.03] hover:bg-indigo-500/20 border border-slate-200 dark:border-white/[0.05] flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-indigo-600 dark:text-indigo-300 transition-colors shrink-0 opacity-0 group-hover:opacity-100">
                       <Phone className="size-3" />
                     </button>
                   </div>
@@ -656,19 +680,19 @@ export default function DashboardAdmin() {
 
           {/* Top clients */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Carteira" title="Top clientes por valor" right={<Link to="/clientes" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Carteira</Link>} />
+            <CardHeader eyebrow="Carteira" title="Top clientes por valor" right={<Link to="/clientes" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Carteira</Link>} />
             <div className="space-y-1.5">
               {stats.topClients.length > 0 ? stats.topClients.map((c: any, i: number) => (
-                <Link to={`/clientes/${c.id}`} key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.025] transition-colors">
-                  <span className="text-[10px] font-bold text-zinc-600 tabular-nums w-4">{(i + 1).toString().padStart(2, "0")}</span>
-                  <div className="size-7 rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-200 shrink-0">
+                <Link to={`/clientes/${c.id}`} key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/[0.025] transition-colors">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-600 tabular-nums w-4">{(i + 1).toString().padStart(2, "0")}</span>
+                  <div className="size-7 rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-700 dark:text-indigo-200 shrink-0">
                     {c.full_name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold text-zinc-100 truncate">{c.full_name}</p>
-                    <p className="text-[9.5px] text-zinc-500 truncate">Health {c.health_score ?? "—"}/100 · {c.status}</p>
+                    <p className="text-[11px] font-semibold text-slate-900 dark:text-zinc-100 truncate">{c.full_name}</p>
+                    <p className="text-[9.5px] text-slate-500 dark:text-zinc-500 truncate">Health {c.health_score ?? "—"}/100 · {c.status}</p>
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-300 tabular-nums">{formatBRL(c._value)}</span>
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">{formatBRL(c._value)}</span>
                 </Link>
               )) : <Empty label="Sem clientes com valor" />}
             </div>
@@ -676,23 +700,23 @@ export default function DashboardAdmin() {
 
           {/* Activity feed */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Histórico</Link>} />
+            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Histórico</Link>} />
             <div className="relative">
               {stats.recentActivity.length > 0 ? (
                 <div className="space-y-3">
                   {stats.recentActivity.map((act, idx) => (
                     <div key={act.id} className="relative pl-6">
-                      <div className={cn("absolute left-0.5 top-1 size-2.5 rounded-full ring-4 ring-[#08080b]", toneColor[act.tone].bg)}>
+                      <div className={cn("absolute left-0.5 top-1 size-2.5 rounded-full ring-4 ring-white dark:ring-[#08080b]", toneColor[act.tone].bg)}>
                         <div className={cn("size-1 rounded-full mx-auto mt-0.5", toneColor[act.tone].text.replace("text-", "bg-"))} />
                       </div>
                       {idx !== stats.recentActivity.length - 1 && (
-                        <div className="absolute left-[7px] top-3.5 bottom-[-12px] w-px bg-white/[0.06]" />
+                        <div className="absolute left-[7px] top-3.5 bottom-[-12px] w-px bg-slate-200 dark:bg-white/[0.06]" />
                       )}
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-[11px] font-semibold text-zinc-200 truncate">{act.title}</p>
-                        <span className="text-[9px] text-zinc-600 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+                        <p className="text-[11px] font-semibold text-slate-800 dark:text-zinc-200 truncate">{act.title}</p>
+                        <span className="text-[9px] text-slate-400 dark:text-zinc-600 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
                       </div>
-                      <p className="text-[10px] text-zinc-500 truncate">{act.sub}</p>
+                      <p className="text-[10px] text-slate-500 dark:text-zinc-500 truncate">{act.sub}</p>
                     </div>
                   ))}
                 </div>
@@ -705,7 +729,7 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Financial summary */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Central</Link>} />
+            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Central</Link>} />
             <div className="grid grid-cols-2 gap-3">
               <MiniMetric icon={PiggyBank} label="A receber 7 dias" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
               <MiniMetric icon={FileWarning} label="Inadimplente" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
@@ -716,7 +740,7 @@ export default function DashboardAdmin() {
 
           {/* Top partners */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-300 hover:text-indigo-200 uppercase tracking-wider">Rede</Link>} />
+            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Rede</Link>} />
             <div className="space-y-2">
               {stats.topPartners.length > 0 ? stats.topPartners.map((p, i) => {
                 const max = stats.topPartners[0].amount;
@@ -725,12 +749,12 @@ export default function DashboardAdmin() {
                   <div key={p.id}>
                     <div className="flex items-center justify-between text-[11px] mb-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[9px] font-bold text-zinc-600 tabular-nums w-3">{i + 1}</span>
-                        <span className="text-zinc-200 font-medium truncate">{p.name}</span>
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-zinc-600 tabular-nums w-3">{i + 1}</span>
+                        <span className="text-slate-800 dark:text-zinc-200 font-medium truncate">{p.name}</span>
                       </div>
-                      <span className="text-emerald-300 font-bold tabular-nums">{formatBRL(p.amount)}</span>
+                      <span className="text-emerald-600 dark:text-emerald-300 font-bold tabular-nums">{formatBRL(p.amount)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.03]">
+                    <div className="h-1.5 rounded-full bg-slate-50 dark:bg-white/[0.03]">
                       <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -753,10 +777,10 @@ export default function DashboardAdmin() {
           </Card>
         </section>
 
-        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-zinc-700">
-          <div className="h-px w-12 bg-gradient-to-r from-transparent to-zinc-800" />
+        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-slate-400 dark:text-zinc-700">
+          <div className="h-px w-12 bg-gradient-to-r from-transparent to-slate-300 dark:to-zinc-800" />
           Prosper CRM · {new Date().getFullYear()}
-          <div className="h-px w-12 bg-gradient-to-l from-transparent to-zinc-800" />
+          <div className="h-px w-12 bg-gradient-to-l from-transparent to-slate-300 dark:to-zinc-800" />
         </div>
       </div>
     </div>
@@ -764,19 +788,20 @@ export default function DashboardAdmin() {
 }
 
 const tooltipStyle = {
-  backgroundColor: "#09090b",
-  border: "1px solid rgba(255,255,255,0.08)",
+  backgroundColor: "rgba(255,255,255,0.98)",
+  border: "1px solid rgba(0,0,0,0.06)",
   borderRadius: "10px",
   fontSize: "11px",
-  boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+  color: "#0f172a",
+  boxShadow: "0 10px 40px rgba(15,23,42,0.12)",
 };
 
 /* ============ Components ============ */
 
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/40 to-zinc-950/30 p-4 backdrop-blur-sm", className)}>
-      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+    <div className={cn("relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/40 dark:to-zinc-950/30 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none backdrop-blur-sm", className)}>
+      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-white/[0.08] to-transparent" />
       {children}
     </div>
   );
@@ -784,34 +809,102 @@ function Card({ className, children }: { className?: string; children: React.Rea
 
 function CardHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/[0.04]">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
       <div>
-        <p className="text-[9px] font-bold tracking-[0.22em] uppercase text-indigo-300/60">{eyebrow}</p>
-        <h3 className="text-[12.5px] font-semibold text-zinc-100 mt-0.5">{title}</h3>
+        <p className="text-[9px] font-bold tracking-[0.22em] uppercase text-indigo-500/80 dark:text-indigo-300/60">{eyebrow}</p>
+        <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-zinc-100 mt-0.5 tracking-tight">{title}</h3>
       </div>
       {right}
     </div>
   );
 }
 
+function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, caption, progress }: {
+  label: string; value: string; delta: string; up: boolean; icon: any; tone: Tone;
+  sparkData: Array<{ v: number }>; caption: string; progress: number;
+}) {
+  const t = toneColor[tone];
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-5 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none">
+      <div className={cn("absolute -top-8 -right-8 size-24 rounded-full blur-3xl opacity-50 dark:opacity-40", t.bg)} />
+      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(to right, ${t.chart}, ${t.chart}90)` }} />
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <div className={cn("size-10 rounded-xl flex items-center justify-center border ring-4", t.bg, t.border, t.text, t.ring)}>
+            <Icon className="size-4.5" strokeWidth={2} />
+          </div>
+          <div className={cn("flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border tabular-nums", up ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/25" : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/25")}>
+            {up ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
+            {delta}
+          </div>
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-zinc-500 leading-tight">{label}</p>
+        <p className="text-[26px] lg:text-[28px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-1 leading-none">{value}</p>
+        <div className="h-10 mt-2 -mx-1">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sparkData} margin={{ top: 2, right: 2, left: 2, bottom: 0 }}>
+              <defs>
+                <linearGradient id={`spark-${tone}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={t.chart} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={t.chart} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="v" stroke={t.chart} strokeWidth={1.8} fill={`url(#spark-${tone})`} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
+          <p className="text-[10px] text-slate-500 dark:text-zinc-500 truncate flex-1">{caption}</p>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: t.chart }}>{progress}%</span>
+        </div>
+        <div className="mt-1.5 h-1 rounded-full bg-slate-100 dark:bg-white/[0.04] overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, progress)}%`, background: `linear-gradient(to right, ${t.chart}, ${t.chart}cc)` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricPill({ label, value, tone, icon: Icon, href }: {
+  label: string; value: string; tone: Tone; icon: any; href: string;
+}) {
+  const t = toneColor[tone];
+  return (
+    <Link to={href} className={cn("group relative overflow-hidden rounded-xl border bg-white dark:bg-white/[0.02] hover:shadow-md transition-all p-3", t.border)}>
+      <div className={cn("absolute top-0 left-0 w-1 h-full", t.bg.replace("bg-", "bg-").replace("100", "400").replace("/10", "/60"))} style={{ backgroundColor: t.chart }} />
+      <div className="flex items-center gap-2.5">
+        <div className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", t.bg, t.text)}>
+          <Icon className="size-3.5" strokeWidth={2.2} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500 truncate">{label}</p>
+          <p className={cn("text-[15px] font-bold tabular-nums leading-tight mt-0.5 truncate", t.text)}>{value}</p>
+        </div>
+        <ChevronRight className="size-3.5 text-slate-300 dark:text-zinc-700 group-hover:text-slate-500 dark:group-hover:text-zinc-400 transition-colors" />
+      </div>
+    </Link>
+  );
+}
+
 function Kpi({ label, value, delta, up, icon: Icon, tone }: {
   label: string; value: string; delta: string; up: boolean; icon: any; tone: Tone;
 }) {
+  const t = toneColor[tone];
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-white/[0.05] bg-gradient-to-b from-zinc-900/50 to-zinc-950/30 p-3 hover:border-white/[0.1] transition-all">
-      <div className={cn("absolute -top-6 -right-6 size-16 rounded-full blur-2xl opacity-40", toneColor[tone].bg)} />
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-3 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-sm dark:shadow-none">
+      <div className={cn("absolute -top-6 -right-6 size-16 rounded-full blur-2xl opacity-40", t.bg)} />
       <div className="relative">
         <div className="flex items-center justify-between mb-2">
-          <div className={cn("size-7 rounded-lg flex items-center justify-center border", toneColor[tone].bg, toneColor[tone].border, toneColor[tone].text)}>
+          <div className={cn("size-7 rounded-lg flex items-center justify-center border", t.bg, t.border, t.text)}>
             <Icon className="size-3.5" strokeWidth={2} />
           </div>
-          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border-rose-500/20")}>
+          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/20" : "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/20")}>
             {up ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
             {delta}
           </div>
         </div>
-        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-500 leading-tight">{label}</p>
-        <p className="text-[16px] lg:text-[18px] font-bold text-white tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-zinc-500 leading-tight">{label}</p>
+        <p className="text-[16px] lg:text-[18px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
       </div>
     </div>
   );
@@ -820,32 +913,33 @@ function Kpi({ label, value, delta, up, icon: Icon, tone }: {
 function MiniMetric({ icon: Icon, label, value, sub, tone }: {
   icon: any; label: string; value: string; sub: string; tone: Tone;
 }) {
+  const t = toneColor[tone];
   return (
-    <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+    <div className={cn("p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border", t.border)}>
       <div className="flex items-center gap-2 mb-2">
-        <div className={cn("size-6 rounded-md flex items-center justify-center", toneColor[tone].bg, toneColor[tone].text)}>
+        <div className={cn("size-6 rounded-md flex items-center justify-center", t.bg, t.text)}>
           <Icon className="size-3" />
         </div>
-        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500">{label}</p>
+        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">{label}</p>
       </div>
-      <p className="text-[15px] font-bold text-white tabular-nums leading-none">{value}</p>
-      <p className="text-[9.5px] text-zinc-500 mt-1">{sub}</p>
+      <p className="text-[16px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+      <p className="text-[9.5px] text-slate-500 dark:text-zinc-500 mt-1">{sub}</p>
     </div>
   );
 }
 
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
   return (
-    <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-indigo-500/[0.08] hover:border-indigo-500/30 transition-all">
-      <Icon className="size-4 text-zinc-400 group-hover:text-indigo-300 transition-colors" />
-      <span className="text-[10px] font-semibold text-zinc-300 group-hover:text-white text-center leading-tight">{label}</span>
+    <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.04] hover:bg-indigo-50 dark:hover:bg-indigo-500/[0.08] hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-all">
+      <Icon className="size-4 text-slate-500 dark:text-zinc-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors" />
+      <span className="text-[10px] font-semibold text-slate-700 dark:text-zinc-300 group-hover:text-indigo-700 dark:group-hover:text-white text-center leading-tight">{label}</span>
     </Link>
   );
 }
 
 function Legend2({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
   return (
-    <span className="flex items-center gap-1.5 text-zinc-500">
+    <span className="flex items-center gap-1.5 text-slate-500 dark:text-zinc-500">
       <span className={cn("inline-block w-3 h-0.5 rounded", dashed && "border-t border-dashed bg-transparent")} style={{ backgroundColor: dashed ? "transparent" : color, borderColor: dashed ? color : "transparent" }} />
       {label}
     </span>
@@ -854,8 +948,9 @@ function Legend2({ color, label, dashed }: { color: string; label: string; dashe
 
 function Empty({ label }: { label: string }) {
   return (
-    <div className="py-6 text-center">
-      <p className="text-[10.5px] text-zinc-600 italic">{label}</p>
+    <div className="py-8 text-center">
+      <CheckCircle2 className="size-7 mx-auto text-slate-300 dark:text-zinc-700 mb-2" />
+      <p className="text-[10.5px] text-slate-500 dark:text-zinc-600 italic">{label}</p>
     </div>
   );
 }
