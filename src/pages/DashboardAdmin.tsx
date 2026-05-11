@@ -529,7 +529,7 @@ export default function DashboardAdmin() {
                         </div>
                         <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                            className="h-full rounded-full bg-zinc-200 transition-all duration-700"
                             style={{ width: `${pct}%`, opacity: 0.4 + (i / stats.funnelData.length) * 0.6 }}
                           />
                         </div>
