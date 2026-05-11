@@ -134,10 +134,65 @@ export default function DashboardAdmin() {
     );
     const overdueAmount = overduePayments.reduce((a, p: any) => a + Number(p.amount || 0), 0);
 
-    const healthScores = clients.map((c: any) => Number(c.health_score || 0)).filter((v) => v > 0);
-    const avgHealth = healthScores.length
-      ? healthScores.reduce((a, v) => a + v, 0) / healthScores.length
+    // ===== Pipeline & Negociações =====
+    const LOST_STATUSES = ["perdido", "lost", "descartado", "cancelado"];
+    const WON_STATUSES = ["ganho", "won", "convertido", "fechado"];
+    const activeLeads = leads.filter((l: any) =>
+      !LOST_STATUSES.includes(String(l.status || "").toLowerCase()) &&
+      !WON_STATUSES.includes(String(l.status || "").toLowerCase()) &&
+      !l.converted_to_client_id
+    );
+    const pipelineValue = activeLeads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
+    const weightedPipeline = activeLeads.reduce(
+      (a, l: any) => a + (Number(l.estimated_value || 0) * (Number(l.close_probability || 0) / 100)),
+      0
+    );
+
+    const wonLeads = leads.filter((l: any) =>
+      WON_STATUSES.includes(String(l.status || "").toLowerCase()) || l.converted_to_client_id
+    );
+    const lostLeads = leads.filter((l: any) => LOST_STATUSES.includes(String(l.status || "").toLowerCase()));
+    const closedDeals = wonLeads.length + lostLeads.length;
+    const winRate = closedDeals > 0 ? (wonLeads.length / closedDeals) * 100 : null;
+
+    const closedSales = sales.filter((s: any) => Number(s.amount || 0) > 0);
+    const avgTicket = closedSales.length > 0
+      ? closedSales.reduce((a, s: any) => a + Number(s.amount || 0), 0) / closedSales.length
       : 0;
+
+    // Proposals
+    const proposalsSentMonth = proposals.filter((p: any) => {
+      const d = p.sent_at ? new Date(p.sent_at) : null;
+      return d && d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
+    const proposalsOpen = proposals.filter((p: any) =>
+      ["enviada", "enviado", "visualizada", "em_analise", "em_negociacao", "pending", "sent"].includes(String(p.status || "").toLowerCase())
+    );
+    const proposalsOpenValue = proposalsOpen.reduce((a, p: any) => a + Number(p.total || 0), 0);
+
+    // Reuniões / próximas ações do funil
+    const upcomingActions = activeLeads
+      .filter((l: any) => l.next_action_date)
+      .map((l: any) => {
+        const d = new Date(l.next_action_date);
+        const daysLeft = Math.floor((d.getTime() - now.getTime()) / 86400000);
+        return { ...l, daysLeft };
+      })
+      .sort((a: any, b: any) => a.daysLeft - b.daysLeft)
+      .slice(0, 7);
+
+    const thisWeekMeetings = activeLeads.filter((l: any) => {
+      if (!l.next_action_date) return false;
+      const d = new Date(l.next_action_date);
+      const diff = Math.floor((d.getTime() - now.getTime()) / 86400000);
+      return diff >= 0 && diff <= 7;
+    }).length;
+
+    const newClientsMonth = clients.filter((c: any) => {
+      if (!c.created_at) return false;
+      const d = new Date(c.created_at);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    }).length;
 
     const revenue6m = Array.from({ length: 6 }).map((_, i) => {
       const d = new Date(thisYear, thisMonth - (5 - i), 1);
@@ -148,23 +203,43 @@ export default function DashboardAdmin() {
       return { name: label, value: total };
     });
 
-    const statusMap: Record<string, number> = {};
-    clientProducts.forEach((p: any) => {
-      const k = p.status || "indefinido";
-      statusMap[k] = (statusMap[k] || 0) + 1;
+    // Funil de vendas — agrupa leads por status
+    const FUNNEL_ORDER = ["novo", "contato", "qualificado", "reuniao", "proposta", "negociacao", "ganho"];
+    const funnelMap: Record<string, number> = {};
+    leads.forEach((l: any) => {
+      const k = String(l.status || "indefinido").toLowerCase();
+      if (LOST_STATUSES.includes(k)) return;
+      funnelMap[k] = (funnelMap[k] || 0) + 1;
     });
-    const statusData = Object.entries(statusMap)
+    const funnelData = Object.entries(funnelMap)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+      .sort((a, b) => {
+        const ai = FUNNEL_ORDER.indexOf(a.name);
+        const bi = FUNNEL_ORDER.indexOf(b.name);
+        if (ai === -1 && bi === -1) return b.value - a.value;
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      });
 
     const alerts: Array<{ id: string; title: string; sub: string; tone: Tone; link: string; icon: any }> = [];
-    if (delayed > 0) alerts.push({ id: "delayed", title: `${delayed} demandas atrasadas`, sub: "Prazo vencido sem conclusão", tone: "danger", link: "/demandas", icon: Clock });
-    if (overduePayments.length > 0) alerts.push({ id: "overdue", title: `${overduePayments.length} pagamentos vencidos`, sub: formatBRL(overdueAmount) + " em atraso", tone: "danger", link: "/financeiro", icon: CreditCard });
-    if (docsPending > 0) alerts.push({ id: "docs", title: `${docsPending} documentos pendentes`, sub: "Aguardando análise", tone: "warning", link: "/documentos", icon: FileWarning });
-    const noProvider = clientProducts.filter((p: any) => !p.service_provider_id && !["concluido", "cancelado"].includes(p.status)).length;
-    if (noProvider > 0) alerts.push({ id: "noprov", title: `${noProvider} demandas sem prestador`, sub: "Necessária delegação", tone: "warning", link: "/demandas", icon: AlertCircle });
     const contractsAwaiting = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
-    if (contractsAwaiting > 0) alerts.push({ id: "contracts", title: `${contractsAwaiting} contratos aguardando`, sub: "Assinatura pendente", tone: "info", link: "/contratos", icon: FileSignature });
+    if (contractsAwaiting > 0) alerts.push({ id: "contracts", title: `${contractsAwaiting} contratos para assinar`, sub: "Aguardando assinatura do cliente", tone: "warning", link: "/contratos", icon: FileSignature });
+    const proposalsExpiringSoon = proposals.filter((p: any) => {
+      if (!p.valid_until || ["aprovada", "rejeitada", "convertida"].includes(String(p.status || "").toLowerCase())) return false;
+      const d = new Date(p.valid_until);
+      const days = Math.floor((d.getTime() - now.getTime()) / 86400000);
+      return days >= 0 && days <= 5;
+    }).length;
+    if (proposalsExpiringSoon > 0) alerts.push({ id: "prop-exp", title: `${proposalsExpiringSoon} propostas expirando`, sub: "Validade < 5 dias", tone: "warning", link: "/propostas", icon: FileWarning });
+    const staleLeads = activeLeads.filter((l: any) => {
+      if (!l.next_action_date) return false;
+      return new Date(l.next_action_date) < now;
+    }).length;
+    if (staleLeads > 0) alerts.push({ id: "stale", title: `${staleLeads} negociações sem follow-up`, sub: "Próxima ação vencida", tone: "danger", link: "/leads", icon: CalendarClock });
+    if (delayed > 0) alerts.push({ id: "delayed", title: `${delayed} entregas atrasadas`, sub: "Pós-venda em risco", tone: "danger", link: "/demandas", icon: Clock });
+    if (overduePayments.length > 0) alerts.push({ id: "overdue", title: `${overduePayments.length} pagamentos vencidos`, sub: formatBRL(overdueAmount) + " em atraso", tone: "danger", link: "/financeiro", icon: CreditCard });
+    if (docsPending > 0) alerts.push({ id: "docs", title: `${docsPending} documentos pendentes`, sub: "Aguardando análise", tone: "info", link: "/documentos", icon: FileWarning });
 
     const urgentDemands = clientProducts
       .filter((p: any) => !["concluido", "cancelado"].includes(p.status))
@@ -177,16 +252,12 @@ export default function DashboardAdmin() {
       .slice(0, 6);
 
     const activity = [
-      ...documents.slice(0, 5).map((d: any) => ({
-        id: `doc-${d.id}`, type: "Documento", title: d.name || "Documento", at: d.created_at, icon: FileWarning, tone: "info" as Tone,
+      ...proposals.slice(0, 5).map((p: any) => ({
+        id: `prop-${p.id}`, type: "Proposta", title: `${String(p.status || "rascunho").replace(/_/g, " ")} · ${formatBRL(Number(p.total || 0))}`, at: p.sent_at || p.created_at, icon: FileWarning, tone: "info" as Tone,
       })),
-      ...clientProducts
-        .slice()
-        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 5)
-        .map((d: any) => ({
-          id: `dem-${d.id}`, type: "Demanda", title: d.status || "Nova demanda", at: d.created_at, icon: Activity, tone: "primary" as Tone,
-        })),
+      ...leads.slice(0, 5).map((l: any) => ({
+        id: `lead-${l.id}`, type: "Negociação", title: `${l.full_name || "Lead"}${l.company ? " · " + l.company : ""}`, at: l.created_at, icon: Target, tone: "primary" as Tone,
+      })),
     ]
       .sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime())
       .slice(0, 8);
@@ -196,25 +267,28 @@ export default function DashboardAdmin() {
 
     return {
       kpis: [
-        { label: "Receita do mês", value: formatBRL(monthRevenue), delta: revenueDelta, icon: CircleDollarSign, tone: "primary" as Tone, hint: "vs. mês anterior" },
-        { label: "Clientes ativos", value: String(activeClients), delta: null, icon: Users, tone: "success" as Tone, hint: `de ${totalClients} totais` },
-        { label: "Demandas em andamento", value: String(inProgress), delta: null, icon: Activity, tone: "info" as Tone, hint: "operação ativa" },
-        { label: "Demandas atrasadas", value: String(delayed), delta: null, icon: Clock, tone: "danger" as Tone, hint: "prazo vencido" },
-        { label: "Documentos pendentes", value: String(docsPending), delta: null, icon: FileWarning, tone: "warning" as Tone, hint: "aguardando análise" },
-        { label: "Comissões a pagar", value: formatBRL(commissionsToPay), delta: null, icon: Wallet, tone: "warning" as Tone, hint: `${commissions.filter((c: any) => c.status === "pendente").length} pendentes` },
+        { label: "Receita fechada (mês)", value: formatBRL(monthRevenue), delta: revenueDelta, icon: CircleDollarSign, tone: "primary" as Tone, hint: "vs. mês anterior" },
+        { label: "Pipeline ponderado", value: formatBRL(weightedPipeline), delta: null, icon: Target, tone: "info" as Tone, hint: `${formatBRL(pipelineValue)} bruto` },
+        { label: "Ticket médio", value: avgTicket > 0 ? formatBRL(avgTicket) : "—", delta: null, icon: Wallet, tone: "success" as Tone, hint: `${closedSales.length} fechamentos` },
+        { label: "Taxa de conversão", value: winRate != null ? winRate.toFixed(1) + "%" : "—", delta: null, icon: TrendingUp, tone: (winRate != null && winRate >= 30 ? "success" : winRate != null && winRate >= 15 ? "warning" : "danger") as Tone, hint: `${wonLeads.length} ganhos / ${closedDeals} fechados` },
+        { label: "Negociações ativas", value: String(activeLeads.length), delta: null, icon: Handshake, tone: "primary" as Tone, hint: `${thisWeekMeetings} reuniões nesta semana` },
+        { label: "Propostas em aberto", value: String(proposalsOpen.length), delta: null, icon: FileSignature, tone: "warning" as Tone, hint: formatBRL(proposalsOpenValue) },
+        { label: "Carteira ativa", value: String(activeClients), delta: null, icon: Users, tone: "info" as Tone, hint: `${newClientsMonth} novos este mês · ${totalClients} total` },
         { label: "Pagamentos vencidos", value: formatBRL(overdueAmount), delta: null, icon: CreditCard, tone: "danger" as Tone, hint: `${overduePayments.length} cobranças` },
-        { label: "Health score médio", value: avgHealth ? avgHealth.toFixed(1) : "—", delta: null, icon: Heart, tone: (avgHealth >= 7 ? "success" : avgHealth >= 4 ? "warning" : "danger") as Tone, hint: "saúde da carteira" },
       ],
       revenue6m,
-      statusData,
+      funnelData,
       alerts,
       urgentDemands,
+      upcomingActions,
       activity,
       tasksOverdue,
       tasksUrgent,
       monthRevenue,
+      proposalsSentMonth,
+      commissionsToPay,
     };
-  }, [clients, clientProducts, sales, payments, commissions, documents, contracts, dashTasks]);
+  }, [clients, clientProducts, sales, payments, commissions, documents, contracts, dashTasks, leads, proposals]);
 
   const PIE_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--chart-6))"];
 
