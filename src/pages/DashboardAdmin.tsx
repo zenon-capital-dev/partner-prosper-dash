@@ -435,54 +435,61 @@ export default function DashboardAdmin() {
         </div>
       </section>
 
-      {/* === DEMANDS + PIPELINE === */}
+      {/* === FOLLOW-UPS + FUNIL === */}
       <section className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
             <div className="flex items-center gap-2.5">
-              <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
-                <Clock className="size-3.5 text-amber-300" />
+              <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+                <CalendarClock className="size-3.5 text-indigo-300" />
               </div>
               <div>
-                <h3 className="text-[13px] font-semibold text-white tracking-tight">Demandas urgentes</h3>
-                <p className="text-[11px] text-white/45">Próximas do prazo ou em atraso</p>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Próximas reuniões & follow-ups</h3>
+                <p className="text-[11px] text-white/45">Negociações com ação programada</p>
               </div>
             </div>
-            <Link to="/demandas" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
-              Ver todas <ArrowRight className="size-3" />
+            <Link to="/leads" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
+              Ver pipeline <ArrowRight className="size-3" />
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-[12.5px]">
               <thead>
                 <tr className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40 border-b border-white/[0.05]">
-                  <th className="text-left px-5 py-2.5 font-bold">Demanda</th>
-                  <th className="text-left px-5 py-2.5 font-bold">Status</th>
-                  <th className="text-right px-5 py-2.5 font-bold">Prazo</th>
+                  <th className="text-left px-5 py-2.5 font-bold">Negociação</th>
+                  <th className="text-left px-5 py-2.5 font-bold">Próxima ação</th>
+                  <th className="text-right px-5 py-2.5 font-bold">Valor</th>
+                  <th className="text-right px-5 py-2.5 font-bold">Quando</th>
                 </tr>
               </thead>
               <tbody>
-                {stats.urgentDemands.length === 0 ? (
-                  <tr><td colSpan={3} className="px-5 py-8 text-center text-white/40 text-[12.5px]">Nenhuma demanda urgente.</td></tr>
+                {stats.upcomingActions.length === 0 ? (
+                  <tr><td colSpan={4} className="px-5 py-10 text-center text-white/40 text-[12.5px]">Nenhuma ação agendada. <Link to="/leads" className="text-indigo-300 hover:underline">Programar follow-up →</Link></td></tr>
                 ) : (
-                  stats.urgentDemands.map((d: any) => {
-                    const tone: Tone = d.daysLeft < 0 ? "danger" : d.daysLeft <= 3 ? "warning" : "info";
-                    const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/60" };
+                  stats.upcomingActions.map((l: any) => {
+                    const tone: Tone = l.daysLeft < 0 ? "danger" : l.daysLeft === 0 ? "warning" : l.daysLeft <= 3 ? "info" : "neutral";
+                    const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/55" };
+                    const value = Number(l.estimated_value || 0);
+                    const prob = Number(l.close_probability || 0);
                     return (
-                      <tr key={d.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
+                      <tr key={l.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors last:border-0">
                         <td className="px-5 py-3">
-                          <Link to={`/demandas/${d.id}`} className="text-[12.5px] font-semibold text-white hover:text-indigo-300 transition-colors font-mono">
-                            #{String(d.id).slice(0, 8)}
+                          <Link to={`/leads/${l.id}`} className="block min-w-0 max-w-[260px]">
+                            <p className="text-[12.5px] font-semibold text-white truncate hover:text-indigo-300 transition-colors">{l.full_name || "Lead"}</p>
+                            <p className="text-[11px] text-white/45 truncate">{l.company || "—"}</p>
                           </Link>
                         </td>
                         <td className="px-5 py-3">
-                          <span className="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-[10.5px] font-semibold bg-white/[0.04] border border-white/[0.08] text-white/70 capitalize">
-                            <span className="size-1.5 rounded-full bg-current opacity-70" />
-                            {String(d.status || "").replace(/_/g, " ")}
-                          </span>
+                          <p className="text-[12px] text-white/85 truncate max-w-[240px]">{l.next_action || "Follow-up"}</p>
+                          {prob > 0 && (
+                            <p className="text-[10.5px] text-white/45 mt-0.5">Prob. {prob}%</p>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          <p className="text-[12.5px] font-semibold tabular-nums text-white">{value > 0 ? formatBRL(value) : "—"}</p>
                         </td>
                         <td className={cn("px-5 py-3 text-right text-[12.5px] font-semibold tabular-nums", toneText[tone])}>
-                          {d.deadline ? (d.daysLeft < 0 ? `${Math.abs(d.daysLeft)}d em atraso` : d.daysLeft === 0 ? "Hoje" : `${d.daysLeft}d`) : "Sem prazo"}
+                          {l.daysLeft < 0 ? `${Math.abs(l.daysLeft)}d em atraso` : l.daysLeft === 0 ? "Hoje" : l.daysLeft === 1 ? "Amanhã" : `em ${l.daysLeft}d`}
                         </td>
                       </tr>
                     );
@@ -493,40 +500,84 @@ export default function DashboardAdmin() {
           </div>
         </div>
 
-        {/* Pipeline / Distribution */}
+        {/* Funil de vendas */}
         <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
           <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="size-7 rounded-lg bg-sky-500/15 border border-sky-500/25 flex items-center justify-center">
-              <Activity className="size-3.5 text-sky-300" />
+            <div className="size-7 rounded-lg bg-violet-500/15 border border-violet-500/25 flex items-center justify-center">
+              <Target className="size-3.5 text-violet-300" />
             </div>
             <div>
-              <h3 className="text-[13px] font-semibold text-white tracking-tight">Pipeline</h3>
-              <p className="text-[11px] text-white/45">Demandas por estágio</p>
+              <h3 className="text-[13px] font-semibold text-white tracking-tight">Funil de vendas</h3>
+              <p className="text-[11px] text-white/45">Negociações por estágio</p>
             </div>
           </div>
           <div className="p-4">
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart>
-                  <Pie data={stats.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={72} paddingAngle={2} stroke="none">
-                    {stats.statusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid hsl(0 0% 100% / 0.1)", background: "hsl(240 30% 8%)", fontSize: 12, color: "white" }} />
-                </RePieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3 space-y-1.5">
-              {stats.statusData.slice(0, 5).map((s, i) => (
-                <div key={s.name} className="flex items-center gap-2 text-[11.5px]">
-                  <span className="size-2 rounded-sm shrink-0" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="capitalize text-white/60 flex-1 truncate">{s.name.replace(/_/g, " ")}</span>
-                  <span className="font-semibold tabular-nums text-white">{s.value}</span>
-                </div>
-              ))}
-            </div>
+            {stats.funnelData.length === 0 ? (
+              <EmptyState icon={Target} title="Sem negociações" subtitle="Cadastre seu primeiro lead" />
+            ) : (
+              <div className="space-y-2.5">
+                {(() => {
+                  const max = Math.max(...stats.funnelData.map((s: any) => s.value), 1);
+                  return stats.funnelData.map((s: any, i: number) => {
+                    const pct = (s.value / max) * 100;
+                    return (
+                      <div key={s.name} className="space-y-1">
+                        <div className="flex items-center justify-between text-[11.5px]">
+                          <span className="capitalize text-white/75 font-medium truncate">{s.name.replace(/_/g, " ")}</span>
+                          <span className="font-bold tabular-nums text-white">{s.value}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                            style={{ width: `${pct}%`, opacity: 0.4 + (i / stats.funnelData.length) * 0.6 }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      {/* === ENTREGAS PÓS-VENDA === */}
+      {stats.urgentDemands.length > 0 && (
+        <section className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-2.5">
+              <div className="size-7 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                <Briefcase className="size-3.5 text-amber-300" />
+              </div>
+              <div>
+                <h3 className="text-[13px] font-semibold text-white tracking-tight">Entregas pós-venda em risco</h3>
+                <p className="text-[11px] text-white/45">Demandas próximas do prazo ou atrasadas</p>
+              </div>
+            </div>
+            <Link to="/demandas" className="text-[11.5px] font-semibold text-indigo-300 hover:text-indigo-200 transition-colors flex items-center gap-1">
+              Ver todas <ArrowRight className="size-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.04]">
+            {stats.urgentDemands.map((d: any) => {
+              const tone: Tone = d.daysLeft < 0 ? "danger" : d.daysLeft <= 3 ? "warning" : "info";
+              const toneText: Record<Tone, string> = { danger: "text-rose-300", warning: "text-amber-300", info: "text-sky-300", success: "text-emerald-300", primary: "text-indigo-300", neutral: "text-white/55" };
+              return (
+                <Link key={d.id} to={`/demandas/${d.id}`} className="bg-[hsl(240_30%_7%)] hover:bg-white/[0.02] transition-colors p-4 flex items-center justify-between gap-3 group">
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-mono font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">#{String(d.id).slice(0, 8)}</p>
+                    <p className="text-[11px] text-white/45 capitalize truncate">{String(d.status || "").replace(/_/g, " ")}</p>
+                  </div>
+                  <span className={cn("text-[12px] font-semibold tabular-nums shrink-0", toneText[tone])}>
+                    {d.deadline ? (d.daysLeft < 0 ? `${Math.abs(d.daysLeft)}d atraso` : d.daysLeft === 0 ? "Hoje" : `${d.daysLeft}d`) : "—"}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* === ACTIVITY + TASKS === */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
