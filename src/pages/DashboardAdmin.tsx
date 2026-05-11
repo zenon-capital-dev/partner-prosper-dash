@@ -20,13 +20,13 @@ import {
 
 type Tone = "primary" | "success" | "warning" | "danger" | "info" | "violet";
 
-const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string }> = {
-  primary: { text: "text-indigo-300", bg: "bg-indigo-500/10", border: "border-indigo-500/25", chart: "#818cf8", soft: "bg-indigo-500/5" },
-  success: { text: "text-emerald-300", bg: "bg-emerald-500/10", border: "border-emerald-500/25", chart: "#34d399", soft: "bg-emerald-500/5" },
-  warning: { text: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-500/25", chart: "#fbbf24", soft: "bg-amber-500/5" },
-  danger: { text: "text-rose-300", bg: "bg-rose-500/10", border: "border-rose-500/25", chart: "#fb7185", soft: "bg-rose-500/5" },
-  info: { text: "text-sky-300", bg: "bg-sky-500/10", border: "border-sky-500/25", chart: "#38bdf8", soft: "bg-sky-500/5" },
-  violet: { text: "text-violet-300", bg: "bg-violet-500/10", border: "border-violet-500/25", chart: "#a78bfa", soft: "bg-violet-500/5" },
+const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string; grad: string; ring: string }> = {
+  primary: { text: "text-indigo-600 dark:text-indigo-300", bg: "bg-indigo-100 dark:bg-indigo-500/10", border: "border-indigo-200 dark:border-indigo-500/25", chart: "#6366f1", soft: "bg-indigo-50 dark:bg-indigo-500/5", grad: "from-indigo-500 to-indigo-600", ring: "ring-indigo-200/60 dark:ring-indigo-500/20" },
+  success: { text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-100 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/25", chart: "#10b981", soft: "bg-emerald-50 dark:bg-emerald-500/5", grad: "from-emerald-500 to-emerald-600", ring: "ring-emerald-200/60 dark:ring-emerald-500/20" },
+  warning: { text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-100 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/25", chart: "#f59e0b", soft: "bg-amber-50 dark:bg-amber-500/5", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60 dark:ring-amber-500/20" },
+  danger: { text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-100 dark:bg-rose-500/10", border: "border-rose-200 dark:border-rose-500/25", chart: "#f43f5e", soft: "bg-rose-50 dark:bg-rose-500/5", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60 dark:ring-rose-500/20" },
+  info: { text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-100 dark:bg-sky-500/10", border: "border-sky-200 dark:border-sky-500/25", chart: "#0ea5e9", soft: "bg-sky-50 dark:bg-sky-500/5", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60 dark:ring-sky-500/20" },
+  violet: { text: "text-violet-600 dark:text-violet-300", bg: "bg-violet-100 dark:bg-violet-500/10", border: "border-violet-200 dark:border-violet-500/25", chart: "#8b5cf6", soft: "bg-violet-50 dark:bg-violet-500/5", grad: "from-violet-500 to-violet-600", ring: "ring-violet-200/60 dark:ring-violet-500/20" },
 };
 
 const statusLabel: Record<string, { label: string; tone: Tone }> = {
