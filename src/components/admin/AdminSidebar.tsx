@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Search, Command,
   Briefcase, CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
-  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown, Sparkles,
+  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown, Sparkles, Crown,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
