@@ -4,7 +4,7 @@ import {
   TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Wallet, Clock,
   CheckCircle2, FileWarning, CreditCard, FileSignature, Target, Handshake, Briefcase,
   BarChart3, Plus, Bell, ArrowUpRight, ArrowRight, AlertCircle, Phone, MapPin, CalendarClock,
-  ExternalLink, Calendar, FileText,
+  ExternalLink, Calendar, FileText, Search,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
