@@ -118,8 +118,8 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                   collapsed ? "w-10 justify-center" : "w-full px-2"
                 )}
               >
-                <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center ring-1 ring-white/15 shrink-0">
-                  <Zap className="size-3.5 text-white" strokeWidth={2.5} fill="white" />
+                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center shrink-0 shadow-inner">
+                  <Zap className="size-4 text-zinc-300" strokeWidth={2} />
                 </div>
                 {!collapsed && (
                   <>
