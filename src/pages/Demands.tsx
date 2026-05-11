@@ -164,6 +164,8 @@ export default function Demands() {
         const matches = 
           d.clients?.full_name?.toLowerCase().includes(q) ||
           d.clients?.company?.toLowerCase().includes(q) ||
+          d.companies?.name?.toLowerCase().includes(q) ||
+          d.companies?.trade_name?.toLowerCase().includes(q) ||
           d.products?.name?.toLowerCase().includes(q);
         if (!matches) return false;
       }
