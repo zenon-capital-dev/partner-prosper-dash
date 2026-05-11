@@ -322,19 +322,19 @@ export default function DashboardAdmin() {
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <Link
             to="/leads?new=1"
-            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-colors text-[13px] font-medium text-zinc-300"
           >
-            <Target className="size-3.5 text-white/55" /> Nova negociação
+            <Target className="size-3.5" /> Nova negociação
           </Link>
           <Link
             to="/propostas?new=1"
-            className="h-10 px-3.5 inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.14] transition-colors text-[12.5px] font-semibold text-white/85"
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 transition-colors text-[13px] font-medium text-zinc-300"
           >
-            <FileSignature className="size-3.5 text-white/55" /> Nova proposta
+            <FileSignature className="size-3.5" /> Nova proposta
           </Link>
           <Link
             to="/vendas?new=1"
-            className="h-10 px-4 inline-flex items-center gap-2 rounded-lg text-[12.5px] font-semibold text-white transition-all bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 shadow-[0_4px_20px_-6px_rgba(129,140,248,0.6)]"
+            className="h-9 px-4 inline-flex items-center gap-2 rounded-md bg-zinc-100 hover:bg-white text-[13px] font-bold text-zinc-950 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
           >
             <Handshake className="size-3.5" strokeWidth={2.5} /> Registrar fechamento
           </Link>
