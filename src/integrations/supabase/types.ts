@@ -2862,7 +2862,6 @@ export type Database = {
           internal_notes: string | null
           phone: string | null
           referral_id: string | null
-          temp_password: string | null
           updated_at: string
         }
         Insert: {
@@ -2885,7 +2884,6 @@ export type Database = {
           internal_notes?: string | null
           phone?: string | null
           referral_id?: string | null
-          temp_password?: string | null
           updated_at?: string
         }
         Update: {
@@ -2908,7 +2906,6 @@ export type Database = {
           internal_notes?: string | null
           phone?: string | null
           referral_id?: string | null
-          temp_password?: string | null
           updated_at?: string
         }
         Relationships: [
