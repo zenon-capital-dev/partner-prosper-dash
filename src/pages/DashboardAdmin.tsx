@@ -282,13 +282,18 @@ export default function DashboardAdmin() {
     };
   }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks]);
 
+  // Sparkline data per KPI
+  const revSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.receita }));
+  const dealsSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.deals }));
+
   return (
-    <div className="relative min-h-full bg-[#08080b]">
+    <div className="relative min-h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-[#08080b] dark:via-[#0a0a0f] dark:to-[#08080b]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 size-[500px] rounded-full bg-indigo-600/[0.06] blur-[120px]" />
+        <div className="absolute -top-40 -left-40 size-[600px] rounded-full bg-indigo-200/40 dark:bg-indigo-600/[0.06] blur-[140px]" />
+        <div className="absolute top-1/3 -right-40 size-[500px] rounded-full bg-violet-200/30 dark:bg-violet-600/[0.04] blur-[140px]" />
       </div>
 
-      <div className="relative p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
+      <div className="relative p-5 lg:p-8 space-y-6 max-w-[1720px] mx-auto animate-in fade-in duration-500">
 
         {/* ============ COMPACT HEADER ============ */}
         <header className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/[0.04]">
