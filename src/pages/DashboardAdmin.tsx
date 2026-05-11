@@ -391,83 +391,109 @@ export default function DashboardAdmin() {
         </div>
       </div>
 
-      {/* === ROW 3: DETAILED OPERATIONS === */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* === ROW 3: OPERATIONAL COCKPIT === */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Próximas Ações */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Próximas Ações</h3>
-            <Link to="/leads" className="text-[10px] text-zinc-400 hover:text-white transition-colors">Ver todos</Link>
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Próximas Reuniões</h3>
+            <Link to="/leads" className="text-[9px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-tighter">Ver Agenda</Link>
           </div>
-          <div className="space-y-2">
-            {stats.upcomingActions.map((l: any) => (
-              <div key={l.id} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition-colors group">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-semibold text-white truncate max-w-[120px]">{l.full_name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold uppercase tracking-tighter">
-                    {new Date(l.next_action_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                  </span>
+          <div className="space-y-3">
+            {stats.upcomingActions.length > 0 ? (
+              stats.upcomingActions.map((l: any) => (
+                <div key={l.id} className="group flex items-start gap-3 min-w-0">
+                  <div className="size-8 rounded-lg bg-zinc-900 border border-white/[0.03] flex flex-col items-center justify-center shrink-0 group-hover:border-indigo-500/30 transition-colors">
+                    <span className="text-[8px] font-bold text-zinc-600 uppercase leading-none mb-0.5">{new Date(l.next_action_date).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                    <span className="text-[12px] font-bold text-white leading-none">{new Date(l.next_action_date).getDate()}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11.5px] font-semibold text-zinc-200 truncate group-hover:text-white transition-colors">{l.full_name}</p>
+                    <p className="text-[10px] text-zinc-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"}</p>
+                  </div>
                 </div>
-                <p className="text-[10.5px] text-zinc-400 line-clamp-1 group-hover:text-zinc-300 transition-colors">
-                  {l.next_action || "Follow-up agendado"}
-                </p>
-              </div>
-            ))}
-            {stats.upcomingActions.length === 0 && (
-              <p className="text-[11px] text-zinc-600 italic py-2">Sem ações agendadas.</p>
+              ))
+            ) : (
+              <p className="text-[10px] text-zinc-600 italic">Sem compromissos agendados.</p>
             )}
           </div>
         </div>
 
-        {/* Demandas Urgentes */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Demandas Críticas</h3>
-            <Link to="/demandas" className="text-[10px] text-zinc-400 hover:text-white transition-colors">Ver todos</Link>
+        {/* Demandas Críticas */}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Demandas Críticas</h3>
+            <Link to="/demandas" className="text-[9px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-tighter">Gerenciar</Link>
           </div>
-          <div className="space-y-2">
-            {stats.urgentDemands.map((d: any) => (
-              <div key={d.id} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition-colors group">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-semibold text-white truncate max-w-[120px]">Ref: {d.id.slice(0, 8)}</span>
-                  {d.deadline && (
-                    <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter", 
-                      new Date(d.deadline) < new Date() ? "bg-rose-500/10 text-rose-400" : "bg-zinc-500/10 text-zinc-400"
-                    )}>
-                      {new Date(d.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                    </span>
-                  )}
+          <div className="space-y-3">
+            {stats.urgentDemands.length > 0 ? (
+              stats.urgentDemands.map((d: any) => (
+                <div key={d.id} className="flex items-center gap-3 group">
+                  <div className={cn(
+                    "size-2 rounded-full shrink-0 shadow-[0_0_5px_rgba(0,0,0,0.5)]",
+                    new Date(d.deadline || 0) < new Date() ? "bg-rose-500 animate-pulse" : "bg-zinc-700"
+                  )} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[11.5px] font-medium text-zinc-300 truncate">Ref: {d.id.slice(0, 8)}</p>
+                      <span className="text-[9px] font-bold text-zinc-600 uppercase">{d.deadline ? new Date(d.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "--/--"}</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/[0.02] rounded-full mt-1.5 overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all duration-1000", d.status === "concluido" ? "w-full bg-emerald-500/50" : "w-1/3 bg-indigo-500/30")} />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="size-1 rounded-full bg-zinc-600" />
-                  <p className="text-[10.5px] text-zinc-400 capitalize">{d.status.replace(/_/g, " ")}</p>
+              ))
+            ) : (
+              <p className="text-[10px] text-zinc-600 italic">Tudo em dia.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Follow-ups */}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Follow-ups Ativos</h3>
+            <span className="text-[9px] font-bold text-indigo-500/80 uppercase tracking-tighter">Prioridade</span>
+          </div>
+          <div className="space-y-3">
+            {stats.upcomingActions.slice(2, 5).map((l: any) => (
+              <div key={l.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.03]">
+                <div className="size-7 rounded-full bg-zinc-950/50 border border-white/[0.05] flex items-center justify-center text-[10px] font-bold text-zinc-500 shrink-0">
+                  {l.full_name.charAt(0)}
                 </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold text-zinc-300 truncate">{l.full_name}</p>
+                  <p className="text-[9px] text-zinc-600 truncate">Último contato: há 2 dias</p>
+                </div>
+                <button className="size-6 rounded-md bg-white/[0.03] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
+                  <Phone className="size-3 text-zinc-500" />
+                </button>
               </div>
             ))}
-            {stats.urgentDemands.length === 0 && (
-              <p className="text-[11px] text-zinc-600 italic py-2">Nenhuma demanda pendente.</p>
-            )}
           </div>
         </div>
 
         {/* Atividade Recente */}
-        <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Fluxo Recente</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {stats.recentActivity.map((act) => (
-              <div key={act.id} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] flex items-center gap-3">
-                <div className="size-8 rounded-lg bg-zinc-950/40 border border-white/[0.05] flex items-center justify-center shrink-0">
-                  <act.icon className="size-3.5 text-zinc-500" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11.5px] font-medium text-white truncate">{act.title}</p>
-                  <p className="text-[10px] text-zinc-500 truncate">{act.sub} · {new Date(act.at).toLocaleDateString("pt-BR")}</p>
-                </div>
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Fluxo Recente</h3>
+            <Activity className="size-3 text-zinc-600" />
+          </div>
+          <div className="space-y-3">
+            {stats.recentActivity.slice(0, 4).map((act) => (
+              <div key={act.id} className="relative pl-5 before:absolute before:left-0 before:top-1 before:bottom-0 before:w-px before:bg-white/[0.05]">
+                <div className="absolute left-[-2px] top-1.5 size-1 rounded-full bg-zinc-700" />
+                <p className="text-[11px] font-medium text-zinc-300 truncate">{act.title}</p>
+                <p className="text-[9px] text-zinc-600 mt-0.5">{act.sub} · {new Date(act.at).toLocaleDateString("pt-BR")}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
     </div>
   );
 }
