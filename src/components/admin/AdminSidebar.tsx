@@ -248,24 +248,13 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           ))}
         </nav>
 
-        {/* Upgrade hint */}
+        {/* Info Box */}
         {!collapsed && (
-          <div className="px-3 pb-2">
-            <div className="rounded-xl border border-white/[0.06] bg-gradient-to-br from-indigo-500/[0.08] via-violet-500/[0.05] to-transparent p-3 relative overflow-hidden">
-              <div className="absolute -top-6 -right-6 size-16 rounded-full bg-indigo-500/20 blur-2xl" />
-              <div className="relative">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Sparkles className="size-3 text-indigo-300" />
-                  <span className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-indigo-200">Plano Pro</span>
-                </div>
-                <p className="text-[11px] text-white/55 leading-snug mb-2">Convide sua equipe e tenha acesso a relatórios avançados.</p>
-                <button
-                  onClick={() => navigate("/usuarios")}
-                  className="w-full h-7 rounded-md bg-white/[0.06] hover:bg-white/[0.1] text-[11px] font-semibold text-white border border-white/[0.08] transition-colors"
-                >
-                  Convidar membros
-                </button>
-              </div>
+          <div className="px-3 pb-4">
+            <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] p-3">
+              <p className="text-[10px] text-zinc-500 leading-snug">
+                Você está usando a versão Pro. <Link to="/configuracoes" className="text-zinc-300 hover:text-white underline underline-offset-2">Ver detalhes</Link>
+              </p>
             </div>
           </div>
         )}
