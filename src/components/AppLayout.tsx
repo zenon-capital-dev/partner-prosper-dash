@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,13 +11,39 @@ import { EnvBadge } from "@/components/EnvBadge";
 import { initials } from "@/lib/format";
 
 export default function AppLayout() {
-  const { user, loading, isAdmin, isAdminSecondary, isColaborador } = useAuth();
+  const {
+    user, loading,
+    isAdmin, isAdminSecondary, isColaborador,
+    isParceiro, isPrestador, isCliente, isLead, isIndicador,
+  } = useAuth();
+  const { pathname } = useLocation();
 
   if (loading) {
     return <LoadingScreen message="Preparando seu painel..." />;
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+
+  // 🔒 Cada role só pode entrar no seu próprio painel
+  const allowedPrefix = (() => {
+    if (isAdmin || isAdminSecondary) return "/admin";
+    if (isColaborador) return "/colaborador";
+    if (isParceiro) return "/parceiro";
+    if (isPrestador) return "/prestador";
+    if (isIndicador) return "/indicador";
+    if (isCliente || isLead) return "/cliente";
+    return null;
+  })();
+
+  // Admin sempre vai para /admin via AdminLayout
+  if ((isAdmin || isAdminSecondary) && !pathname.startsWith("/admin")) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // Bloqueia acesso a painéis de outras roles (mas permite "/" raiz para RoleHome)
+  if (allowedPrefix && pathname !== "/" && !pathname.startsWith(allowedPrefix)) {
+    return <Navigate to={allowedPrefix} replace />;
+  }
 
   const fullName = user?.user_metadata?.full_name || user?.email || "Usuário";
   const firstName = String(fullName).split(/[ @]/)[0];

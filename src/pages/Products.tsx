@@ -301,8 +301,81 @@ export default function Products() {
         ]}
       />
 
+      {/* ============ INSIGHTS ROW ============ */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
+        <div className="lg:col-span-7 vx-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+                <Sparkles className="size-3 text-indigo-500" /> Catálogo · Performance
+              </div>
+              <h3 className="font-display text-base font-bold mt-1 text-slate-900 dark:text-white">Top Produtos por Receita</h3>
+            </div>
+            <Badge variant="outline" className="text-[10px]">{products.length} produtos</Badge>
+          </div>
+          <div className="space-y-2.5">
+            {products
+              .map((p) => ({ p, u: (usageStats as any)[p.id] || { sales: 0, revenue: 0, partners: 0 } }))
+              .sort((a, b) => b.u.revenue - a.u.revenue)
+              .slice(0, 5)
+              .map(({ p, u }, idx) => {
+                const max = Math.max(1, ...products.map((q) => (usageStats as any)[q.id]?.revenue || 0));
+                const pct = (u.revenue / max) * 100;
+                const color = p.product_categories?.color ?? "#6366f1";
+                return (
+                  <div key={p.id}>
+                    <div className="flex items-center justify-between text-[11.5px] mb-1">
+                      <span className="flex items-center gap-2 truncate">
+                        <span className="size-5 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: `${color}22`, color }}>{idx + 1}</span>
+                        <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate">{p.name}</span>
+                      </span>
+                      <span className="tabular-nums font-bold text-slate-900 dark:text-white shrink-0">{formatBRL(u.revenue)} <span className="font-medium text-muted-foreground">· {u.sales} vendas</span></span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${Math.max(2, pct)}%`, background: `linear-gradient(90deg, ${color}, ${color}aa)` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            {products.length === 0 && <p className="text-center text-sm text-muted-foreground py-4">Nenhum produto cadastrado.</p>}
+          </div>
+        </div>
 
-      {/* Toolbar */}
+        <div className="lg:col-span-5 vx-card p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+              <Layers className="size-3 text-violet-500" /> Categorias
+            </div>
+            <Badge variant="outline" className="text-[10px]">{categories.length}</Badge>
+          </div>
+          {categories.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground py-6">Nenhuma categoria criada.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {categories.map((c) => {
+                const count = products.filter((p) => p.category_id === c.id).length;
+                const color = c.color ?? "#6366f1";
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setCategoryFilter(c.id)}
+                    className="text-left rounded-xl border border-slate-200 dark:border-white/[0.06] p-3 hover:border-indigo-400 hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="size-2 rounded-full shrink-0" style={{ background: color }} />
+                      <p className="text-[12px] font-bold text-slate-800 dark:text-white truncate">{c.name}</p>
+                    </div>
+                    <p className="text-[10.5px] text-muted-foreground">{count} {count === 1 ? "produto" : "produtos"}</p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+
+
       <div className="vx-card p-4 flex flex-col lg:flex-row lg:items-center gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

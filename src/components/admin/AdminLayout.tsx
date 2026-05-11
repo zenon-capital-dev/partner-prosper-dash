@@ -29,7 +29,7 @@ const ROUTE_LABEL: Record<string, string> = {
 };
 
 export default function AdminLayout() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin, isAdminSecondary } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
   if (loading) {
@@ -37,6 +37,11 @@ export default function AdminLayout() {
   }
 
   if (!user) return <Navigate to="/auth" replace />;
+
+  // 🔒 Bloqueia acesso ao painel admin para qualquer não-admin
+  if (!isAdmin && !isAdminSecondary) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSearchClick = () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
