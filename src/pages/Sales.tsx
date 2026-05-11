@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, SlidersHorizontal, CircleDollarSign,
-  CalendarRange, Sparkles, Filter, ArrowUpRight, TrendingUp,
+  CalendarRange, Sparkles, Filter, ArrowUpRight, TrendingUp, Award, BarChart3,
+  Users, Trophy,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
@@ -18,6 +19,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 
