@@ -214,63 +214,89 @@ export default function DashboardAdmin() {
 
   const isLoading = loadingClients || loadingDemands;
 
+  const todaysRevenue = sales
+    .filter((s: any) => s.sale_date && new Date(s.sale_date).toDateString() === new Date().toDateString())
+    .reduce((a, s: any) => a + Number(s.amount || 0), 0);
+
   return (
-    <div className="page-shell space-y-7 animate-fade-up">
+    <div className="px-6 lg:px-12 py-10 lg:py-14 space-y-14 animate-fade-up">
       <Breadcrumbs />
 
-      <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 pb-5 border-b border-border">
-        <div className="space-y-2 min-w-0">
-          <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/90">
-            <span className="size-1 rounded-full bg-primary" /> Executive Cockpit
+      {/* HERO — Editorial */}
+      <header className="grid grid-cols-12 gap-10 items-end">
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          <span className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md">
+            <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)] animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">Executive Cockpit · Ao vivo</span>
           </span>
-          <h1 className="font-display text-[28px] lg:text-[32px] font-semibold tracking-tight text-foreground leading-tight">
-            {greeting}, <span className="text-primary capitalize">{firstName}</span>.
+          <h1 className="font-display text-[44px] lg:text-[68px] xl:text-[78px] font-bold tracking-tighter leading-[0.95] text-white">
+            {greeting},{" "}
+            <span className="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 bg-clip-text text-transparent capitalize">
+              {firstName}
+            </span>
+            <span className="text-white/40">.</span>
           </h1>
-          <p className="text-[13.5px] text-muted-foreground capitalize flex items-center gap-2">
-            <Calendar className="size-3.5" /> {today}
+          <p className="text-[15px] lg:text-[17px] text-white/55 max-w-2xl leading-relaxed capitalize flex items-center gap-3">
+            <Calendar className="size-4 shrink-0" /> {today}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to="/relatorios"
-            className="h-9 px-3 inline-flex items-center gap-2 rounded-md border border-border bg-card hover:border-foreground/20 transition-colors text-[12.5px] font-semibold text-foreground"
-          >
-            <BarChart3 className="size-4 text-muted-foreground" /> Relatórios
-          </Link>
-          <Link
-            to="/vendas?new=1"
-            className="h-9 px-3 inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-[12.5px] font-semibold shadow-sm"
-          >
-            <Plus className="size-4" strokeWidth={2.4} /> Nova venda
-          </Link>
+        <div className="col-span-12 lg:col-span-4 flex flex-col lg:items-end gap-4">
+          <div className="flex items-center gap-3 w-full lg:w-auto">
+            <Link
+              to="/relatorios"
+              className="flex-1 lg:flex-none h-12 px-5 inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/20 transition-all text-[13px] font-semibold text-white backdrop-blur-md"
+            >
+              <BarChart3 className="size-4 text-white/60" /> Relatórios
+            </Link>
+            <Link
+              to="/vendas?new=1"
+              className="flex-1 lg:flex-none h-12 px-6 inline-flex items-center justify-center gap-2 rounded-2xl text-[13px] font-bold text-white transition-all bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-[0_8px_32px_-8px_rgba(139,92,246,0.6)] hover:shadow-[0_12px_40px_-8px_rgba(139,92,246,0.8)]"
+            >
+              <Plus className="size-4" strokeWidth={2.6} /> Nova venda
+            </Link>
+          </div>
         </div>
       </header>
 
-      <DaySummary
-        summary={[
-          { label: "Receita hoje", value: formatBRL(
-            sales.filter((s: any) => s.sale_date && new Date(s.sale_date).toDateString() === new Date().toDateString())
-                 .reduce((a, s: any) => a + Number(s.amount || 0), 0)
-          ), tone: "primary" },
-          { label: "Tarefas vencidas", value: String(stats.tasksOverdue.length), tone: stats.tasksOverdue.length ? "danger" : "neutral" },
-          { label: "Tarefas urgentes", value: String(stats.tasksUrgent.length), tone: stats.tasksUrgent.length ? "warning" : "neutral" },
-          { label: "Alertas críticos", value: String(stats.alerts.filter(a => a.tone === "danger").length), tone: stats.alerts.filter(a => a.tone === "danger").length ? "danger" : "neutral" },
-        ]}
-      />
+      {/* Manchete — Receita gigante */}
+      <section className="grid grid-cols-12 gap-8 items-end pt-4 border-t border-white/[0.06]">
+        <div className="col-span-12 lg:col-span-7 space-y-4 pt-6">
+          <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-indigo-300/80">
+            Receita do mês
+          </span>
+          <div className="flex items-start gap-3">
+            <span className="text-3xl lg:text-5xl font-light text-white/30 mt-3 lg:mt-5">R$</span>
+            <span className="font-display text-[72px] lg:text-[120px] xl:text-[140px] font-bold leading-[0.85] tracking-tighter text-white tabular-nums">
+              {(stats.monthRevenue / 1000).toFixed(1).replace(".", ",")}
+              <span className="text-white/30 text-[0.6em]">k</span>
+            </span>
+          </div>
+          <p className="text-[14px] text-white/50 max-w-md leading-relaxed">
+            Faturamento consolidado do período corrente, atualizado em tempo real.
+          </p>
+        </div>
+
+        <div className="col-span-12 lg:col-span-5 grid grid-cols-2 gap-4 pt-6">
+          <HeroStat label="Hoje" value={formatBRL(todaysRevenue)} accent="indigo" />
+          <HeroStat label="Tarefas vencidas" value={String(stats.tasksOverdue.length)} accent={stats.tasksOverdue.length ? "rose" : "slate"} />
+          <HeroStat label="Tarefas urgentes" value={String(stats.tasksUrgent.length)} accent={stats.tasksUrgent.length ? "amber" : "slate"} />
+          <HeroStat label="Alertas críticos" value={String(stats.alerts.filter(a => a.tone === "danger").length)} accent={stats.alerts.filter(a => a.tone === "danger").length ? "rose" : "emerald"} />
+        </div>
+      </section>
 
       <section>
         <SectionTitle title="Indicadores principais" hint="Visão consolidada da operação" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {isLoading
             ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="vx-card p-4 space-y-3">
+                <div key={i} className="vx-card p-6 space-y-3">
                   <div className="flex items-center justify-between">
-                    <Skeleton className="size-7 rounded-md" />
-                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="size-8 rounded-lg bg-white/5" />
+                    <Skeleton className="h-3 w-12 bg-white/5" />
                   </div>
-                  <Skeleton className="h-3 w-2/3" />
-                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-3 w-2/3 bg-white/5" />
+                  <Skeleton className="h-7 w-1/2 bg-white/5" />
                 </div>
               ))
             : stats.kpis.map((kpi, i) => <KpiCard key={i} {...kpi} />)}
