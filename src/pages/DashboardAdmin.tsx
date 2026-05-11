@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Wallet, Clock,
-  CheckCircle2, AlertCircle, FileWarning, CreditCard, FileSignature,
-  ArrowRight, BarChart3, Heart, Plus, Calendar, Bell, ArrowUpRight,
+  TrendingUp, CircleDollarSign, Users, Activity, Wallet, Clock,
+  CheckCircle2, FileWarning, CreditCard, FileSignature,
+  BarChart3, Plus, Calendar, Bell, 
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
@@ -13,24 +13,16 @@ import { Link } from "react-router-dom";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, PieChart as RePieChart, Pie, Cell,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart as RePieChart, Pie, Cell,
 } from "recharts";
+import { PremiumCard, KpiTile } from "@/components/ui/PremiumCard";
 
 /* ============================================================
    Premium Executive Dashboard
    ============================================================ */
 
 type Tone = "primary" | "success" | "warning" | "danger" | "info" | "neutral";
-
-const toneStyles: Record<Tone, { bg: string; fg: string; ring: string; bar: string }> = {
-  primary: { bg: "bg-primary/8", fg: "text-primary", ring: "ring-primary/15", bar: "bg-primary" },
-  success: { bg: "bg-success-muted", fg: "text-success", ring: "ring-success/20", bar: "bg-success" },
-  warning: { bg: "bg-warning-muted", fg: "text-warning", ring: "ring-warning/20", bar: "bg-warning" },
-  danger:  { bg: "bg-destructive-muted", fg: "text-destructive", ring: "ring-destructive/20", bar: "bg-destructive" },
-  info:    { bg: "bg-info-muted", fg: "text-info", ring: "ring-info/20", bar: "bg-info" },
-  neutral: { bg: "bg-muted", fg: "text-foreground", ring: "ring-border", bar: "bg-foreground/40" },
-};
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
@@ -41,6 +33,7 @@ export default function DashboardAdmin() {
   const today = new Date().toLocaleDateString("pt-BR", {
     weekday: "long", day: "2-digit", month: "long", year: "numeric",
   });
+
 
   // ===== Queries =====
   const { data: clients = [], isLoading: loadingClients } = useQuery({
