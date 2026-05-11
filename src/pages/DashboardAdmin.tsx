@@ -86,7 +86,7 @@ export default function DashboardAdmin() {
   });
   const { data: partners = [] } = useQuery({
     queryKey: ["dash-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name, status")).data ?? [],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name, active")).data ?? [],
   });
 
   // ===== Stats =====
