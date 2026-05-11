@@ -77,7 +77,7 @@ export default function ClientPanel() {
     </div>
   );
 
-  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports } = data;
+  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries } = data;
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
