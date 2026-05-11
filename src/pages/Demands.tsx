@@ -530,13 +530,13 @@ export default function Demands() {
                           </AvatarFallback>
                         </Avatar>
                         <span className="font-bold text-foreground group-hover:text-primary transition-colors cursor-pointer text-xs" onClick={() => navigate(`/demandas/${d.id}`)}>
-                          {d.clients?.full_name}
+                          {d.companies?.trade_name || d.companies?.name || d.clients?.company || d.clients?.full_name}
                         </span>
                       </div>
                     </td>
                     <td className="vx-table-cell">
                       <span className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider">
-                        {d.clients?.company || "Pessoa Física"}
+                        {d.companies ? d.clients?.full_name : (d.clients?.company ? d.clients?.full_name : "Pessoa Física")}
                       </span>
                     </td>
                     <td className="vx-table-cell">
