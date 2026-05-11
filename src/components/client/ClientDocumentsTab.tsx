@@ -22,6 +22,7 @@ type DocRequest = {
   id: string;
   client_id: string;
   product_id: string | null;
+  client_product_id: string | null;
   name: string;
   description: string | null;
   status: string;
