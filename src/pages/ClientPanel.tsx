@@ -29,7 +29,10 @@ export default function ClientPanel() {
     queryFn: async () => {
       const { data: client } = await supabase
         .from("clients")
-        .select("id, full_name, email, phone, company, status, created_at, onboarding_status, onboarding_progress")
+        .select(`
+          id, full_name, email, phone, company, status, created_at, onboarding_status, onboarding_progress,
+          companies(id, name, trade_name)
+        `)
         .eq("user_id", user!.id)
         .maybeSingle();
       if (!client) return null;
