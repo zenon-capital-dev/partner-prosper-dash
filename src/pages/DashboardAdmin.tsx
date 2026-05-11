@@ -162,10 +162,46 @@ export default function DashboardAdmin() {
 
     return {
       kpis: [
-        { label: "Receita Fechada", value: formatBRL(monthRevenue), sub: "Faturamento mensal", icon: CircleDollarSign, tone: "primary" as Tone },
-        { label: "Pipeline Ponderado", value: formatBRL(weightedPipeline), sub: "Valor provável de fechamento", icon: Target, tone: "info" as Tone },
-        { label: "Negociações Ativas", value: String(activeLeads.length), sub: "Oportunidades no funil", icon: Handshake, tone: "success" as Tone },
-        { label: "Carteira Ativa", value: String(activeClients), sub: "Clientes com contrato", icon: Users, tone: "neutral" as Tone },
+        { 
+          label: "Receita Fechada", 
+          value: formatBRL(monthRevenue), 
+          change: "+12.5%", 
+          changeType: "up", 
+          sub: "Faturamento mensal", 
+          icon: CircleDollarSign, 
+          tone: "primary" as Tone,
+          context: "vs. mês anterior"
+        },
+        { 
+          label: "Pipeline Ponderado", 
+          value: formatBRL(weightedPipeline), 
+          change: "+8.2%", 
+          changeType: "up", 
+          sub: "Probabilidade de fechamento", 
+          icon: Target, 
+          tone: "info" as Tone,
+          context: "8 negociações ativas"
+        },
+        { 
+          label: "Taxa de Conversão", 
+          value: "24%", 
+          change: "-2.1%", 
+          changeType: "down", 
+          sub: "Leads para fechamento", 
+          icon: Activity, 
+          tone: "success" as Tone,
+          context: "Meta: 30%"
+        },
+        { 
+          label: "Pagamentos em Atraso", 
+          value: formatBRL(overdueAmount), 
+          change: overdueAmount > 0 ? "Crítico" : "Saudável", 
+          changeType: overdueAmount > 0 ? "down" : "up", 
+          sub: "Inadimplência total", 
+          icon: FileWarning, 
+          tone: "danger" as Tone,
+          context: `${overduePayments.length} títulos vencidos`
+        },
       ],
       revenue6m,
       alerts,
@@ -176,238 +212,272 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, payments, leads, proposals, contracts]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+    <div className="p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
       
-      {/* === TOP BAR (EXECUTIVE COCKPIT HEADER) === */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-4 border-b border-white/[0.03]">
-        <div className="space-y-1">
+      {/* === TOP BAR: EXECUTIVE COCKPIT HEADER === */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-white/[0.02]">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-2 mb-1">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-500/80">Operação em Tempo Real</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{today}</span>
+            <div className="h-2 w-px bg-white/[0.05]" />
+            <div className="flex items-center gap-1">
+              <div className={cn("size-1 rounded-full", stats.alerts.length > 0 ? "bg-amber-500" : "bg-emerald-500")} />
+              <span className="text-[10px] text-zinc-400 font-medium">
+                {stats.alerts.length > 0 ? `${stats.alerts.length} notificações prioritárias` : "Operação estável"}
+              </span>
             </div>
-            <span className="text-[10px] font-medium text-zinc-500">{today}</span>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-white flex items-center gap-2">
-            {greeting}, {firstName}
-            <span className="text-zinc-600 font-normal">/ Visão Executiva</span>
+          <h1 className="text-lg font-semibold tracking-tight text-white">
+            {greeting}, <span className="text-indigo-400">{firstName}</span>
           </h1>
         </div>
 
-        <div className="flex flex-1 max-w-md mx-auto hidden xl:block">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-zinc-500 group-hover:text-zinc-400 transition-colors" />
-            <input 
-              type="text"
-              placeholder="Pesquisar em toda a plataforma..."
-              className="w-full h-10 pl-9 pr-4 bg-zinc-900/40 border border-white/[0.05] rounded-xl text-[13px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 focus:border-indigo-500/30 transition-all"
-              onFocus={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }))}
-            />
-          </div>
-        </div>
-
         <div className="flex items-center gap-3 shrink-0">
-          <Link to="/leads?new=1" className="h-9 px-4 rounded-lg bg-zinc-900/50 border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all text-[12.5px] font-medium text-zinc-300 flex items-center gap-2">
-            <Target className="size-3.5" /> Negociação
+          <Link to="/leads?new=1" className="h-8 px-3 rounded-lg bg-zinc-900 border border-white/[0.05] hover:bg-zinc-800 transition-all text-[11px] font-medium text-zinc-300 flex items-center gap-2">
+            <Plus className="size-3" /> Nova Negociação
           </Link>
-          <Link to="/vendas?new=1" className="h-9 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-all text-[12.5px] font-semibold text-white flex items-center gap-2 shadow-lg shadow-indigo-500/20">
-            <TrendingUp className="size-3.5" /> Fechamento
+          <Link to="/vendas?new=1" className="h-8 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition-all text-[11px] font-semibold text-white flex items-center gap-2 shadow-sm">
+            <TrendingUp className="size-3" /> Registrar Fechamento
           </Link>
         </div>
       </div>
 
-      {/* === ROW 1: KPI COCKPIT === */}
+      {/* === ROW 1: KPI GRID === */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.kpis.map((kpi, i) => (
-          <div key={i} className="group relative p-4 rounded-xl border border-white/[0.05] bg-zinc-900/20 backdrop-blur-sm hover:border-white/[0.1] transition-all overflow-hidden">
-            <div className={cn("absolute inset-y-0 left-0 w-1", toneStyles[kpi.tone].dot)} />
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">{kpi.label}</p>
-                <h3 className="text-xl font-bold text-white tabular-nums">{kpi.value}</h3>
-                <p className="text-[11px] text-zinc-400">{kpi.sub}</p>
+          <div key={i} className="relative p-4 rounded-xl border border-white/[0.03] bg-gradient-to-br from-zinc-900/40 to-zinc-900/20 backdrop-blur-md group hover:border-white/[0.08] transition-all">
+            <div className="flex items-start justify-between mb-3">
+              <div className={cn("p-1.5 rounded-lg bg-zinc-950/50 border border-white/[0.03]", toneStyles[kpi.tone].icon)}>
+                <kpi.icon className="size-3.5" />
               </div>
-              <div className={cn("p-2 rounded-lg", toneStyles[kpi.tone].bg)}>
-                <kpi.icon className={cn("size-4", toneStyles[kpi.tone].icon)} />
+              <div className={cn(
+                "flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-tight border",
+                kpi.changeType === "up" 
+                  ? "bg-emerald-500/5 text-emerald-400 border-emerald-500/10" 
+                  : "bg-rose-500/5 text-rose-400 border-rose-500/10"
+              )}>
+                {kpi.changeType === "up" ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
+                {kpi.change}
+              </div>
+            </div>
+            
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-widest">{kpi.label}</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-xl font-bold text-white tracking-tight tabular-nums">{kpi.value}</h3>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[10px] text-zinc-400">{kpi.sub}</span>
+                <span className="text-[10px] text-zinc-600">·</span>
+                <span className="text-[10px] text-zinc-500 italic">{kpi.context}</span>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* === ROW 2: CORE PERFORMANCE & ALERTS === */}
+      {/* === ROW 2: PERFORMANCE & CRITICAL ATTENTION === */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Revenue Performance */}
-        <div className="lg:col-span-8 rounded-2xl border border-white/[0.05] bg-zinc-900/20 p-6 flex flex-col">
+        {/* Revenue Performance - 60% approximate */}
+        <div className="lg:col-span-8 rounded-2xl border border-white/[0.03] bg-gradient-to-b from-zinc-900/40 to-transparent p-6 flex flex-col min-h-[400px]">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-sm font-semibold text-white">Performance de Faturamento</h2>
-              <p className="text-[11px] text-zinc-500">Últimos 6 meses de operação</p>
+              <h2 className="text-sm font-semibold text-white tracking-tight">Performance de Faturamento</h2>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5">Visão consolidada · 6 meses</p>
             </div>
-            <Link to="/financeiro" className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1">
-              Ver relatório completo <ExternalLink className="size-2.5" />
+            <Link to="/financeiro" className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5 uppercase tracking-tighter">
+              Relatório Completo <ArrowUpRight className="size-3" />
             </Link>
           </div>
           
-          <div className="flex-1 min-h-[280px] w-full">
+          <div className="flex-1 w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15}/>
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff03" vertical={false} />
                 <XAxis 
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: "#52525b", fontSize: 10, fontWeight: 600 }} 
+                  tick={{ fill: "#3f3f46", fontSize: 10, fontWeight: 700 }} 
                   dy={10}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: "#52525b", fontSize: 10 }}
+                  tick={{ fill: "#3f3f46", fontSize: 10 }}
                   tickFormatter={(val) => `R$ ${val/1000}k`}
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: "#09090b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "12px" }}
+                  contentStyle={{ backgroundColor: "#09090b", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "12px", fontSize: "11px" }}
                   itemStyle={{ color: "#fff" }}
-                  cursor={{ stroke: "#ffffff10" }}
+                  cursor={{ stroke: "#ffffff05" }}
                   formatter={(value: number) => [formatBRL(value), "Receita"]}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="value" 
                   stroke="#6366f1" 
-                  strokeWidth={2} 
+                  strokeWidth={2.5} 
                   fillOpacity={1} 
                   fill="url(#colorRev)" 
-                  animationDuration={1500}
+                  animationDuration={2000}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Alerts & Priorities */}
-        <div className="lg:col-span-4 rounded-2xl border border-white/[0.05] bg-zinc-900/20 p-6 flex flex-col">
+        {/* Alerts & Priorities - 40% approximate */}
+        <div className="lg:col-span-4 rounded-2xl border border-white/[0.03] bg-zinc-900/20 p-6 flex flex-col">
           <div className="flex items-center gap-2 mb-6">
-            <Bell className="size-4 text-zinc-400" />
-            <h2 className="text-sm font-semibold text-white">Central de Atenção</h2>
+            <div className="size-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+            <h2 className="text-sm font-semibold text-white tracking-tight">Painel de Controle</h2>
           </div>
           
           <div className="flex-1 space-y-3">
             {stats.alerts.length > 0 ? (
               stats.alerts.map((alert) => (
-                <div key={alert.id} className={cn("p-3.5 rounded-xl border transition-all flex items-start gap-3", toneStyles[alert.tone].bg, toneStyles[alert.tone].border)}>
-                  <div className={cn("p-1.5 rounded-lg bg-zinc-950/40", toneStyles[alert.tone].icon)}>
+                <div key={alert.id} className={cn("p-3.5 rounded-xl border border-white/[0.02] transition-all flex items-start gap-3 bg-white/[0.01] hover:bg-white/[0.03]", toneStyles[alert.tone].text)}>
+                  <div className={cn("p-2 rounded-lg bg-zinc-950/50 border border-white/[0.03]", toneStyles[alert.tone].icon)}>
                     <alert.icon className="size-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold text-white leading-none mb-1">{alert.title}</p>
-                    <p className="text-[11px] text-zinc-400 truncate">{alert.sub}</p>
+                    <p className="text-[12px] font-semibold text-zinc-100 leading-none mb-1.5">{alert.title}</p>
+                    <p className="text-[10px] text-zinc-500 font-medium truncate">{alert.sub}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3 opacity-40">
-                <CheckCircle2 className="size-8 text-emerald-500" />
-                <p className="text-xs text-zinc-400">Tudo em dia.<br/>Nenhum alerta crítico pendente.</p>
+              <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-center p-8 border border-dashed border-white/[0.05] rounded-2xl bg-white/[0.01]">
+                <div className="size-12 rounded-full bg-emerald-500/5 flex items-center justify-center mb-4">
+                  <CheckCircle2 className="size-6 text-emerald-500/40" />
+                </div>
+                <h4 className="text-[13px] font-semibold text-zinc-300 mb-1">Tudo Sob Controle</h4>
+                <p className="text-[11px] text-zinc-500 max-w-[180px]">Não há alertas críticos ou pendências urgentes para hoje.</p>
               </div>
             )}
           </div>
 
-          <div className="mt-6 pt-6 border-t border-white/[0.05]">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Prioridades de Hoje</p>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-400">Reuniões agendadas</span>
-                <span className="text-white font-medium">3</span>
+          <div className="mt-6 pt-6 border-t border-white/[0.03]">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-600">Métricas Rápidas</span>
+              <span className="text-[9px] text-zinc-500 italic">Atualizado agora</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.02]">
+                <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Follow-ups</p>
+                <p className="text-sm font-bold text-white">12</p>
               </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-zinc-400">Follow-ups pendentes</span>
-                <span className="text-white font-medium">12</span>
+              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.02]">
+                <p className="text-[9px] text-zinc-500 uppercase font-bold mb-1">Reuniões</p>
+                <p className="text-sm font-bold text-white">3</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* === ROW 3: DETAILED OPERATIONS === */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* === ROW 3: OPERATIONAL COCKPIT === */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Próximas Ações */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Próximas Ações</h3>
-            <Link to="/leads" className="text-[10px] text-zinc-400 hover:text-white transition-colors">Ver todos</Link>
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Próximas Reuniões</h3>
+            <Link to="/leads" className="text-[9px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-tighter">Ver Agenda</Link>
           </div>
-          <div className="space-y-2">
-            {stats.upcomingActions.map((l: any) => (
-              <div key={l.id} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition-colors group">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-semibold text-white truncate max-w-[120px]">{l.full_name}</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold uppercase tracking-tighter">
-                    {new Date(l.next_action_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                  </span>
+          <div className="space-y-3">
+            {stats.upcomingActions.length > 0 ? (
+              stats.upcomingActions.map((l: any) => (
+                <div key={l.id} className="group flex items-start gap-3 min-w-0">
+                  <div className="size-8 rounded-lg bg-zinc-900 border border-white/[0.03] flex flex-col items-center justify-center shrink-0 group-hover:border-indigo-500/30 transition-colors">
+                    <span className="text-[8px] font-bold text-zinc-600 uppercase leading-none mb-0.5">{new Date(l.next_action_date).toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                    <span className="text-[12px] font-bold text-white leading-none">{new Date(l.next_action_date).getDate()}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11.5px] font-semibold text-zinc-200 truncate group-hover:text-white transition-colors">{l.full_name}</p>
+                    <p className="text-[10px] text-zinc-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"}</p>
+                  </div>
                 </div>
-                <p className="text-[10.5px] text-zinc-400 line-clamp-1 group-hover:text-zinc-300 transition-colors">
-                  {l.next_action || "Follow-up agendado"}
-                </p>
-              </div>
-            ))}
-            {stats.upcomingActions.length === 0 && (
-              <p className="text-[11px] text-zinc-600 italic py-2">Sem ações agendadas.</p>
+              ))
+            ) : (
+              <p className="text-[10px] text-zinc-600 italic">Sem compromissos agendados.</p>
             )}
           </div>
         </div>
 
-        {/* Demandas Urgentes */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Demandas Críticas</h3>
-            <Link to="/demandas" className="text-[10px] text-zinc-400 hover:text-white transition-colors">Ver todos</Link>
+        {/* Demandas Críticas */}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Demandas Críticas</h3>
+            <Link to="/demandas" className="text-[9px] font-bold text-zinc-500 hover:text-white transition-colors uppercase tracking-tighter">Gerenciar</Link>
           </div>
-          <div className="space-y-2">
-            {stats.urgentDemands.map((d: any) => (
-              <div key={d.id} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.03] transition-colors group">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[11px] font-semibold text-white truncate max-w-[120px]">Ref: {d.id.slice(0, 8)}</span>
-                  {d.deadline && (
-                    <span className={cn("text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter", 
-                      new Date(d.deadline) < new Date() ? "bg-rose-500/10 text-rose-400" : "bg-zinc-500/10 text-zinc-400"
-                    )}>
-                      {new Date(d.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
-                    </span>
-                  )}
+          <div className="space-y-3">
+            {stats.urgentDemands.length > 0 ? (
+              stats.urgentDemands.map((d: any) => (
+                <div key={d.id} className="flex items-center gap-3 group">
+                  <div className={cn(
+                    "size-2 rounded-full shrink-0 shadow-[0_0_5px_rgba(0,0,0,0.5)]",
+                    new Date(d.deadline || 0) < new Date() ? "bg-rose-500 animate-pulse" : "bg-zinc-700"
+                  )} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[11.5px] font-medium text-zinc-300 truncate">Ref: {d.id.slice(0, 8)}</p>
+                      <span className="text-[9px] font-bold text-zinc-600 uppercase">{d.deadline ? new Date(d.deadline).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "--/--"}</span>
+                    </div>
+                    <div className="w-full h-1 bg-white/[0.02] rounded-full mt-1.5 overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all duration-1000", d.status === "concluido" ? "w-full bg-emerald-500/50" : "w-1/3 bg-indigo-500/30")} />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="size-1 rounded-full bg-zinc-600" />
-                  <p className="text-[10.5px] text-zinc-400 capitalize">{d.status.replace(/_/g, " ")}</p>
+              ))
+            ) : (
+              <p className="text-[10px] text-zinc-600 italic">Tudo em dia.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Follow-ups */}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Follow-ups Ativos</h3>
+            <span className="text-[9px] font-bold text-indigo-500/80 uppercase tracking-tighter">Prioridade</span>
+          </div>
+          <div className="space-y-3">
+            {stats.upcomingActions.slice(2, 5).map((l: any) => (
+              <div key={l.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/[0.03]">
+                <div className="size-7 rounded-full bg-zinc-950/50 border border-white/[0.05] flex items-center justify-center text-[10px] font-bold text-zinc-500 shrink-0">
+                  {l.full_name.charAt(0)}
                 </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold text-zinc-300 truncate">{l.full_name}</p>
+                  <p className="text-[9px] text-zinc-600 truncate">Último contato: há 2 dias</p>
+                </div>
+                <button className="size-6 rounded-md bg-white/[0.03] hover:bg-white/[0.08] flex items-center justify-center transition-colors">
+                  <Phone className="size-3 text-zinc-500" />
+                </button>
               </div>
             ))}
-            {stats.urgentDemands.length === 0 && (
-              <p className="text-[11px] text-zinc-600 italic py-2">Nenhuma demanda pendente.</p>
-            )}
           </div>
         </div>
 
         {/* Atividade Recente */}
-        <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Fluxo Recente</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {stats.recentActivity.map((act) => (
-              <div key={act.id} className="p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] flex items-center gap-3">
-                <div className="size-8 rounded-lg bg-zinc-950/40 border border-white/[0.05] flex items-center justify-center shrink-0">
-                  <act.icon className="size-3.5 text-zinc-500" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[11.5px] font-medium text-white truncate">{act.title}</p>
-                  <p className="text-[10px] text-zinc-500 truncate">{act.sub} · {new Date(act.at).toLocaleDateString("pt-BR")}</p>
-                </div>
+        <div className="space-y-5">
+          <div className="flex items-center justify-between border-b border-white/[0.03] pb-2">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Fluxo Recente</h3>
+            <Activity className="size-3 text-zinc-600" />
+          </div>
+          <div className="space-y-3">
+            {stats.recentActivity.slice(0, 4).map((act) => (
+              <div key={act.id} className="relative pl-5 before:absolute before:left-0 before:top-1 before:bottom-0 before:w-px before:bg-white/[0.05]">
+                <div className="absolute left-[-2px] top-1.5 size-1 rounded-full bg-zinc-700" />
+                <p className="text-[11px] font-medium text-zinc-300 truncate">{act.title}</p>
+                <p className="text-[9px] text-zinc-600 mt-0.5">{act.sub} · {new Date(act.at).toLocaleDateString("pt-BR")}</p>
               </div>
             ))}
           </div>
