@@ -295,69 +295,88 @@ export default function DashboardAdmin() {
 
       <div className="relative p-5 lg:p-8 space-y-6 max-w-[1720px] mx-auto animate-in fade-in duration-500">
 
-        {/* ============ COMPACT HEADER ============ */}
-        <header className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/[0.04]">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center shadow-[0_4px_16px_rgba(99,102,241,0.3)] ring-1 ring-white/15">
-              <Crown className="size-4 text-white" strokeWidth={2.2} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-[15px] font-semibold text-white tracking-tight">
-                  {greeting}, <span className="text-indigo-300">{firstName}</span>
-                </h1>
-                <span className="size-1 rounded-full bg-zinc-700" />
-                <span className="text-[10.5px] text-zinc-500 capitalize">{today} · {timeNow}</span>
+        {/* ============ EXECUTIVE HEADER ============ */}
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="relative">
+                <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(99,102,241,0.5)] ring-1 ring-white/40">
+                  <Crown className="size-5 text-white" strokeWidth={2.2} />
+                </div>
+                <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-[#08080b] shadow-md" />
               </div>
-              <p className="text-[10.5px] text-zinc-500 mt-0.5">
-                <span className="text-emerald-400">●</span> {stats.activeClients} clientes ativos
-                <span className="text-zinc-700 mx-2">·</span>
-                <span className="text-indigo-300">{stats.activeLeads.length}</span> negociações
-                <span className="text-zinc-700 mx-2">·</span>
-                <span className="text-amber-300">{stats.delayed}</span> atrasos
-                <span className="text-zinc-700 mx-2">·</span>
-                <span className="text-rose-300">{stats.overduePayments.length}</span> inadimplentes
-              </p>
+              <div>
+                <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+                  <CalendarClock className="size-3" />
+                  <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
+                  <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
+                  <Sparkles className="size-3 text-indigo-500" />
+                  <span className="text-indigo-500 dark:text-indigo-400">Painel de Comando</span>
+                </div>
+                <h1 className="text-[22px] lg:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight">
+                  {greeting}, <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 dark:from-indigo-300 dark:via-violet-300 dark:to-fuchsia-300 bg-clip-text text-transparent">{firstName}</span>
+                </h1>
+                <p className="text-[12px] text-slate-500 dark:text-zinc-500 mt-1 flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{stats.activeLeads.length}</span> negociações
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-amber-600 dark:text-amber-300 font-semibold">{stats.delayed}</span> atrasos
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-rose-600 dark:text-rose-300 font-semibold">{stats.overduePayments.length}</span> inadimplentes
+                  <span className="text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="text-slate-500 dark:text-zinc-500 capitalize">{today}</span>
+                </p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 transition-colors">
-              <Filter className="size-3.5" /> Este mês
-            </button>
-            <Link to="/leads?new=1" className="h-9 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[11px] font-medium text-zinc-200 flex items-center gap-1.5 transition-colors">
-              <Plus className="size-3.5" /> Negociação
-            </Link>
-            <Link to="/vendas?new=1" className="h-9 px-4 rounded-lg bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 text-[11px] font-semibold text-white flex items-center gap-1.5 shadow-[0_4px_16px_rgba(99,102,241,0.3)] ring-1 ring-white/15 transition-all">
-              <TrendingUp className="size-3.5" /> Registrar fechamento
-            </Link>
-            <button className="size-9 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] flex items-center justify-center text-zinc-400 hover:text-white transition-colors relative">
-              <Bell className="size-3.5" />
-              {stats.alerts.length > 0 && (
-                <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-[#08080b]">{stats.alerts.length}</span>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] p-1 shadow-sm">
+                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
+                  <button key={p} className={cn("px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all", i === 3 ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm" : "text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white")}>{p}</button>
+                ))}
+              </div>
+              <Link to="/leads?new=1" className="h-10 px-3.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] text-[11.5px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5 transition-all shadow-sm">
+                <Plus className="size-3.5" /> Negociação
+              </Link>
+              <Link to="/vendas?new=1" className="h-10 px-4 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-[11.5px] font-bold text-white flex items-center gap-1.5 shadow-[0_6px_20px_-4px_rgba(99,102,241,0.5)] ring-1 ring-white/20 transition-all">
+                <TrendingUp className="size-3.5" /> Registrar fechamento
+              </Link>
+              <button className="size-10 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-all relative shadow-sm">
+                <Bell className="size-4" />
+                {stats.alerts.length > 0 && (
+                  <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-[#08080b]">{stats.alerts.length}</span>
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* ============ KPI STRIP (8 KPIs) ============ */}
-        <section className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-          <Kpi label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" />
-          <Kpi label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="success" />
-          <Kpi label="Pipeline ponderado" value={formatBRL(stats.weightedPipeline)} delta={`${stats.activeLeads.length} ativas`} up icon={Target} tone="info" />
-          <Kpi label="Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Activity} tone="violet" />
-          <Kpi label="Clientes ativos" value={stats.activeClients.toString()} delta={`+${stats.newClientsMonth} novos`} up={stats.newClientsMonth > 0} icon={Users} tone="success" />
-          <Kpi label="Demandas em curso" value={stats.inProgress.toString()} delta={`${stats.delayed} atrasadas`} up={stats.delayed === 0} icon={Briefcase} tone="warning" />
-          <Kpi label="Inadimplência" value={formatBRL(stats.overdueAmount)} delta={`${stats.overduePayments.length} títulos`} up={stats.overdueAmount === 0} icon={FileWarning} tone="danger" />
-          <Kpi label="Comissões pendentes" value={formatBRL(stats.pendingCommissions)} delta={`${stats.topPartners.length} parceiros`} up icon={Handshake} tone="violet" />
+        {/* ============ KPI HERO (4 PREMIUM) ============ */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <KpiPremium label="Receita do mês" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`vs anterior · ${formatBRL(stats.lastMonthRevenue)}`} progress={Math.min(100, Math.round((stats.monthRevenue / Math.max(stats.lastMonthRevenue * 1.15, 1)) * 100))} />
+          <KpiPremium label="Novos clientes" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="success" sparkData={dealsSpark} caption={`${stats.activeClients} na carteira`} progress={Math.min(100, stats.newClientsMonth * 10)} />
+          <KpiPremium label="Conv. leads" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Acima meta" : "Abaixo meta"} up={stats.conversionRate >= 25} icon={Target} tone="warning" sparkData={dealsSpark} caption={`${stats.wonLeads.length}/${leads.length} fechados`} progress={stats.conversionRate} />
+          <KpiPremium label="Ticket médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="violet" sparkData={revSpark} caption="Por fechamento" progress={Math.min(100, Math.round((stats.avgTicket / 50000) * 100))} />
+        </section>
+
+        {/* ============ MINI METRIC PILLS ============ */}
+        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <MetricPill label="Contratos abertos" value={stats.contractsAwaiting.toString()} tone="primary" icon={FileSignature} href="/contratos" />
+          <MetricPill label="Docs pendentes" value={(clientProducts.filter((p: any) => p.status === "aguardando_inicio").length).toString()} tone="warning" icon={FileText} href="/documentos" />
+          <MetricPill label="Tarefas em atraso" value={stats.todayTasks.length.toString()} tone="danger" icon={Clock} href="/tarefas" />
+          <MetricPill label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} tone="success" icon={Handshake} href="/comissoes" />
+          <MetricPill label="Pipeline ponderado" value={formatBRL(stats.weightedPipeline)} tone="info" icon={Activity} href="/leads" />
+          <MetricPill label="Total clientes" value={clients.length.toString()} tone="violet" icon={Users} href="/clientes" />
         </section>
 
         {/* ============ ROW: REVENUE CHART + ALERTS + CONVERSION GOAL ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Revenue 12m */}
-          <Card className="lg:col-span-6 min-h-[340px] flex flex-col">
+          <Card className="lg:col-span-7 min-h-[360px] flex flex-col">
             <CardHeader
-              eyebrow="Performance"
-              title="Receita × meta (12 meses)"
+              eyebrow="Performance Financeira"
+              title="Fluxo de receita × meta · 12 meses"
+
               right={
                 <div className="flex items-center gap-3 text-[10px]">
                   <Legend2 color="#a5b4fc" label="Receita" />
