@@ -233,14 +233,6 @@ export default function DashboardAdmin() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="relative hidden lg:block mr-2 w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-zinc-500" />
-            <input 
-              type="text"
-              placeholder="Busca global..."
-              className="w-full h-8 pl-8 pr-4 bg-white/[0.02] border border-white/[0.05] rounded-lg text-[11px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/30 transition-all"
-            />
-          </div>
           <Link to="/leads?new=1" className="h-8 px-3 rounded-lg bg-zinc-900 border border-white/[0.05] hover:bg-zinc-800 transition-all text-[11px] font-medium text-zinc-300 flex items-center gap-2">
             <Plus className="size-3" /> Nova Negociação
           </Link>
