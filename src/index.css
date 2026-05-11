@@ -574,20 +574,8 @@
   .admin-shell .text-red-700,
   .admin-shell .text-pink-600 { color: hsl(0 80% 75%) !important; }
 
-  /* Section dividers that were border-border in light tone */
-  .admin-shell .border-border,
-  .admin-shell .border-border\\/50,
-  .admin-shell .border-border\\/60,
-  .admin-shell .border-border\\/70,
-  .admin-shell .border-border\\/80 { border-color: hsl(0 0% 100% / 0.08) !important; }
-
-  /* Muted backgrounds used in headers/tables */
-  .admin-shell .bg-muted\\/5,
-  .admin-shell .bg-muted\\/10,
-  .admin-shell .bg-muted\\/20,
-  .admin-shell .bg-muted\\/30,
-  .admin-shell .bg-muted\\/40,
-  .admin-shell .bg-muted\\/50 { background-color: hsl(0 0% 100% / 0.03) !important; }
+  .admin-shell [class*="border-border"] { border-color: hsl(0 0% 100% / 0.08) !important; }
+  .admin-shell [class*="bg-muted"]:not(input):not(textarea) { background-color: hsl(0 0% 100% / 0.03) !important; }
 
   .cp-panel {
     @apply rounded-lg border border-border bg-card transition-colors duration-200;
