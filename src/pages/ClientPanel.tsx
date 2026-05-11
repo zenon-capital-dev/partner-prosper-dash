@@ -43,8 +43,9 @@ export default function ClientPanel() {
         supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
         supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false }),
-        supabase.from("client_products").select("*, products(name, description)").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase.from("client_products").select("*, products(name, description), companies(id, name, trade_name)").eq("client_id", client.id).order("created_at", { ascending: false }),
         supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
+        supabase.from("demand_deliveries").select("*, client_products(id, products(name))").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
       ]);
 
       return {
