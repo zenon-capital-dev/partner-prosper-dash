@@ -54,10 +54,12 @@ export default function DemandDetail() {
         .select(`
           *,
           clients(id, full_name, email, phone, company, document),
+          companies(id, name, trade_name),
           products(id, name, description, sla_day_type),
           service_providers:service_provider_id(id, name, specialty),
           documents(*),
-          steps:client_product_steps(*)
+          steps:client_product_steps(*),
+          deliveries:demand_deliveries(*)
         `)
         .eq("id", id!)
         .single();
