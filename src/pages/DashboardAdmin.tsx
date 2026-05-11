@@ -395,9 +395,9 @@ export default function DashboardAdmin() {
         </div>
 
         {/* Alerts */}
-        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="flex items-center gap-2.5">
+        <div className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.04]">
+            <div className="flex items-center gap-3">
               <div className="size-7 rounded-lg bg-rose-500/15 border border-rose-500/25 flex items-center justify-center">
                 <Bell className="size-3.5 text-rose-300" />
               </div>
