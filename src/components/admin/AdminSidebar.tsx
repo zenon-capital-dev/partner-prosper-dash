@@ -103,29 +103,36 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-200 ease-in-out z-50",
-          "bg-[#09090b] border-r border-white/[0.04]",
-          collapsed ? "w-[64px]" : "w-[240px]"
+          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-200 ease-in-out z-50 relative",
+          "bg-[#08080b] border-r border-white/[0.05]",
+          collapsed ? "w-[68px]" : "w-[252px]"
         )}
       >
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[220px] bg-gradient-to-b from-indigo-600/[0.07] via-violet-600/[0.03] to-transparent" />
+        </div>
+
         {/* Workspace / Brand */}
-        <div className={cn("h-[60px] flex items-center border-b border-white/[0.05] shrink-0", collapsed ? "px-2 justify-center" : "px-3")}>
+        <div className={cn("relative h-[68px] flex items-center border-b border-white/[0.05] shrink-0", collapsed ? "px-2 justify-center" : "px-3")}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "h-10 flex items-center gap-2.5 rounded-lg hover:bg-white/[0.04] transition-colors group",
-                  collapsed ? "w-10 justify-center" : "w-full px-2"
+                  "h-12 flex items-center gap-3 rounded-xl hover:bg-white/[0.04] transition-colors group",
+                  collapsed ? "w-12 justify-center" : "w-full px-2"
                 )}
               >
-                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center shrink-0 shadow-inner">
-                  <Zap className="size-4 text-zinc-300" strokeWidth={2} />
+                <div className="relative shrink-0">
+                  <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center shadow-[0_6px_20px_rgba(99,102,241,0.35)] ring-1 ring-white/15">
+                    <Crown className="size-4 text-white" strokeWidth={2.2} />
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-[#08080b]" />
                 </div>
                 {!collapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[13px] font-semibold text-white leading-tight truncate">Prosper</p>
-                      <p className="text-[10.5px] text-white/40 leading-tight truncate">Workspace · Pro</p>
+                      <p className="font-[Fraunces,serif] text-[16px] font-medium text-white leading-tight truncate">Prosper</p>
+                      <p className="text-[9.5px] text-indigo-300/70 leading-tight truncate tracking-[0.18em] uppercase font-bold mt-0.5">Executive · Pro</p>
                     </div>
                     <ChevronDown className="size-3.5 text-white/35 group-hover:text-white/70 transition-colors shrink-0" />
                   </>
@@ -135,9 +142,9 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             <DropdownMenuContent align="start" className="w-64 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl">
               <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Workspace</DropdownMenuLabel>
               <div className="px-2 py-2 flex items-center gap-2.5 rounded-lg bg-white/[0.03] border border-white/[0.05] mb-1">
-                <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center"><Zap className="size-4 text-zinc-300" /></div>
+                <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-700 flex items-center justify-center ring-1 ring-white/15"><Crown className="size-4 text-white" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-semibold text-white">Prosper</p>
+                  <p className="font-[Fraunces,serif] text-[14px] font-medium text-white">Prosper</p>
                   <p className="text-[10.5px] text-zinc-500">Plano Pro · 12 usuários</p>
                 </div>
               </div>
