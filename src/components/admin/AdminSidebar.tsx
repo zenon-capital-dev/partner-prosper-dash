@@ -270,10 +270,10 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                 )}
               >
                 <div className="relative shrink-0">
-                  <div className="size-8 rounded-lg bg-gradient-to-tr from-indigo-500/40 to-violet-500/30 border border-white/[0.1] flex items-center justify-center text-[11px] font-bold text-white">
+                  <div className="size-8 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[11px] font-bold text-zinc-300">
                     {initials(displayName)}
                   </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-400 border-2 border-[#0a0a14]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 border-2 border-[#09090b]" />
                 </div>
                 {!collapsed && (
                   <div className="flex-1 min-w-0 text-left">
