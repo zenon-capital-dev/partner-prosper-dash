@@ -103,6 +103,7 @@ export default function Demands() {
             partners(id, full_name),
             referrers(id, full_name)
           ),
+          companies(id, name, trade_name),
           products(id, name),
           service_providers:service_provider_id(id, name),
           documents(id, status),
