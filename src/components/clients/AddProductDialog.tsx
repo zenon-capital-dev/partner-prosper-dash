@@ -105,6 +105,15 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     notes: "",
   });
 
+  const { data: companies = [] } = useQuery({
+    queryKey: ["client-companies", clientId],
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("id, name").eq("client_id", clientId);
+      return data ?? [];
+    },
+    enabled: !!clientId
+  });
+
   const { data: products = [] } = useQuery({
     queryKey: ["all-products"],
     queryFn: async () => {
