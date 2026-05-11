@@ -494,6 +494,3 @@ export default function DashboardAdmin() {
     </div>
   );
 }
-    </div>
-  );
-}
