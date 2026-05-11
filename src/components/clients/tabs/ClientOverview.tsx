@@ -19,8 +19,9 @@ export function ClientOverview({ client, stats }: any) {
 
         <div className="cp-panel p-6 space-y-4">
           <h3 className="text-sm font-bold tracking-tight mb-4 flex items-center gap-2">
-            <MapPin className="size-4 text-indigo-500" /> Endereço
+            <Building2 className="size-4 text-indigo-500" /> Principal Empresa
           </h3>
+          <DetailItem label="Razão Social" value={client.company} />
           <DetailItem label="Logradouro" value={client.address_street || client.address} />
           <DetailItem label="Número" value={client.address_number} />
           <DetailItem label="Bairro" value={client.address_neighborhood} />
@@ -33,7 +34,6 @@ export function ClientOverview({ client, stats }: any) {
             <Briefcase className="size-4 text-indigo-500" /> Comercial
           </h3>
           <DetailItem label="Origem" value={client.source || "Direto"} />
-          <DetailItem label="Empresa" value={client.company} />
           <DetailItem label="Status Atual" value={client.status?.replace(/_/g, " ").toUpperCase()} />
           <DetailItem label="Valor Total LTV" value={formatBRL(stats.totalRevenue)} />
           <DetailItem label="Data de Entrada" value={formatDate(client.created_at)} />
