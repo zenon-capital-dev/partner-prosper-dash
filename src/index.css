@@ -489,6 +489,94 @@
   .admin-shell .section-divider,
   .admin-shell .cp-divider { background: hsl(0 0% 100% / 0.06); }
 
+  /* ───── Neutralize hardcoded light-mode badge classes ─────
+     Many legacy pages use bg-slate-100 / bg-blue-50 / text-rose-700 etc.
+     Inside the aurora glass shell these look broken. Re-skin them. */
+  .admin-shell .bg-slate-100,
+  .admin-shell .bg-slate-50,
+  .admin-shell .bg-gray-100,
+  .admin-shell .bg-gray-50,
+  .admin-shell .bg-neutral-100 {
+    background-color: hsl(0 0% 100% / 0.06) !important;
+  }
+  .admin-shell .bg-blue-50,
+  .admin-shell .bg-sky-50,
+  .admin-shell .bg-cyan-50,
+  .admin-shell .bg-indigo-50,
+  .admin-shell .bg-violet-50,
+  .admin-shell .bg-purple-50 {
+    background-color: hsl(217 91% 60% / 0.12) !important;
+  }
+  .admin-shell .bg-emerald-50,
+  .admin-shell .bg-green-50,
+  .admin-shell .bg-teal-50 {
+    background-color: hsl(152 65% 50% / 0.12) !important;
+  }
+  .admin-shell .bg-amber-50,
+  .admin-shell .bg-yellow-50,
+  .admin-shell .bg-orange-50 {
+    background-color: hsl(38 92% 60% / 0.12) !important;
+  }
+  .admin-shell .bg-rose-50,
+  .admin-shell .bg-red-50,
+  .admin-shell .bg-pink-50 {
+    background-color: hsl(0 75% 60% / 0.12) !important;
+  }
+
+  /* Borders */
+  .admin-shell .border-slate-200,
+  .admin-shell .border-gray-200,
+  .admin-shell .border-neutral-200 { border-color: hsl(0 0% 100% / 0.1) !important; }
+  .admin-shell .border-blue-200,
+  .admin-shell .border-sky-200,
+  .admin-shell .border-indigo-200,
+  .admin-shell .border-violet-200,
+  .admin-shell .border-purple-200 { border-color: hsl(217 91% 60% / 0.25) !important; }
+  .admin-shell .border-emerald-200,
+  .admin-shell .border-green-200,
+  .admin-shell .border-teal-200 { border-color: hsl(152 65% 50% / 0.25) !important; }
+  .admin-shell .border-amber-200,
+  .admin-shell .border-orange-200,
+  .admin-shell .border-yellow-200 { border-color: hsl(38 92% 60% / 0.3) !important; }
+  .admin-shell .border-rose-200,
+  .admin-shell .border-red-200,
+  .admin-shell .border-pink-200 { border-color: hsl(0 75% 60% / 0.3) !important; }
+
+  /* Foregrounds — make dark-mode-readable */
+  .admin-shell .text-slate-600,
+  .admin-shell .text-slate-700,
+  .admin-shell .text-gray-600,
+  .admin-shell .text-gray-700,
+  .admin-shell .text-neutral-700 { color: hsl(220 12% 70%) !important; }
+  .admin-shell .text-blue-600,
+  .admin-shell .text-blue-700,
+  .admin-shell .text-sky-600,
+  .admin-shell .text-sky-700,
+  .admin-shell .text-indigo-600,
+  .admin-shell .text-indigo-700,
+  .admin-shell .text-violet-600,
+  .admin-shell .text-purple-600,
+  .admin-shell .text-purple-700 { color: hsl(217 91% 75%) !important; }
+  .admin-shell .text-emerald-600,
+  .admin-shell .text-emerald-700,
+  .admin-shell .text-green-600,
+  .admin-shell .text-green-700,
+  .admin-shell .text-teal-600 { color: hsl(152 70% 65%) !important; }
+  .admin-shell .text-amber-600,
+  .admin-shell .text-amber-700,
+  .admin-shell .text-orange-600,
+  .admin-shell .text-orange-700,
+  .admin-shell .text-yellow-600,
+  .admin-shell .text-yellow-700 { color: hsl(38 92% 70%) !important; }
+  .admin-shell .text-rose-600,
+  .admin-shell .text-rose-700,
+  .admin-shell .text-red-600,
+  .admin-shell .text-red-700,
+  .admin-shell .text-pink-600 { color: hsl(0 80% 75%) !important; }
+
+  .admin-shell [class*="border-border"] { border-color: hsl(0 0% 100% / 0.08) !important; }
+  .admin-shell [class*="bg-muted"]:not(input):not(textarea) { background-color: hsl(0 0% 100% / 0.03) !important; }
+
   .cp-panel {
     @apply rounded-lg border border-border bg-card transition-colors duration-200;
   }
