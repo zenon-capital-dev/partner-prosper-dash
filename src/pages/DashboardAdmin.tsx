@@ -299,22 +299,23 @@ export default function DashboardAdmin() {
     .reduce((a, s: any) => a + Number(s.amount || 0), 0);
 
   return (
-    <div className="px-5 lg:px-8 py-6 lg:py-8 space-y-6 animate-fade-up max-w-[1640px] mx-auto">
+    <div className="px-6 lg:px-10 py-8 lg:py-10 space-y-10 animate-fade-up max-w-[1600px] mx-auto">
       {/* === EXECUTIVE HEADER === */}
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
-        <div className="space-y-2 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-300">Ao vivo</span>
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="space-y-1.5 min-w-0">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider tabular-nums">{today}</span>
+            <div className="h-3 w-px bg-white/10" />
+            <span className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[11px] font-medium text-zinc-400">Sistema Online</span>
             </span>
-            <span className="text-[11px] text-white/40 capitalize tabular-nums">{today}</span>
           </div>
-          <h1 className="font-display text-[26px] lg:text-[30px] font-semibold tracking-tight text-white leading-tight">
-            {greeting}, <span className="capitalize">{firstName}</span>.
+          <h1 className="text-[28px] lg:text-[34px] font-bold tracking-tight text-zinc-100 leading-tight">
+            {greeting}, <span className="text-white">{firstName}</span>.
           </h1>
-          <p className="text-[13px] text-white/50 max-w-xl">
-            Pipeline ponderado · {stats.upcomingActions.length} follow-ups na fila · {stats.alerts.length} alertas ativos
+          <p className="text-[14px] text-zinc-400 max-w-xl">
+            Visão geral da sua operação de alto ticket hoje.
           </p>
         </div>
 

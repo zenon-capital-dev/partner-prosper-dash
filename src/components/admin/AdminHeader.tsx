@@ -12,7 +12,7 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
   return (
-    <header className="glass-header h-[60px] px-5 lg:px-8 flex items-center gap-4 sticky top-0 z-40">
+    <header className="glass-header h-[56px] px-6 lg:px-8 flex items-center gap-4 sticky top-0 z-40 bg-zinc-950/50 backdrop-blur-md border-b border-white/[0.04]">
       {/* Breadcrumb on left */}
       <div className="hidden md:flex items-center gap-3 min-w-0 flex-1">
         <Breadcrumbs />

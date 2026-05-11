@@ -103,9 +103,9 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-300 ease-out z-50 relative",
-          "bg-[hsl(240_32%_4%_/_0.78)] backdrop-blur-2xl border-r border-white/[0.05]",
-          collapsed ? "w-[68px]" : "w-[248px]"
+          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-200 ease-in-out z-50",
+          "bg-[#09090b] border-r border-white/[0.04]",
+          collapsed ? "w-[64px]" : "w-[240px]"
         )}
       >
         {/* Workspace / Brand */}
@@ -216,22 +216,19 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       to={item.url}
                       title={collapsed ? item.title : undefined}
                       className={cn(
-                        "group relative flex items-center gap-2.5 rounded-md text-[12.5px] font-medium transition-colors duration-150",
-                        collapsed ? "justify-center h-9 mx-1" : "px-2.5 h-8",
+                        "group relative flex items-center gap-2.5 rounded-md text-[13px] font-medium transition-all duration-150 px-2.5 h-8",
+                        collapsed ? "justify-center h-9 mx-1" : "mx-2",
                         active
-                          ? "bg-white/[0.07] text-white"
-                          : "text-white/55 hover:text-white hover:bg-white/[0.035]"
+                          ? "bg-white/[0.06] text-white"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03]"
                       )}
                     >
-                      {active && !collapsed && (
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.6)]" />
-                      )}
                       <Icon
                         className={cn(
-                          "size-[15px] shrink-0 transition-colors",
-                          active ? "text-indigo-300" : "text-white/45 group-hover:text-white/85"
+                          "size-[16px] shrink-0 transition-colors",
+                          active ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"
                         )}
-                        strokeWidth={active ? 2.25 : 1.8}
+                        strokeWidth={active ? 2 : 1.5}
                       />
                       {!collapsed && (
                         <>
