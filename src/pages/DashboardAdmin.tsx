@@ -581,10 +581,10 @@ export default function DashboardAdmin() {
       )}
 
       {/* === ACTIVITY + TASKS === */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-white/[0.06] bg-[hsl(240_30%_7%_/_0.6)] backdrop-blur-xl overflow-hidden">
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-white/[0.05]">
-            <div className="size-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-xl border border-white/[0.04] bg-zinc-900/20 overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-white/[0.04]">
+            <div className="size-7 rounded-lg bg-zinc-800/50 flex items-center justify-center">
               <Activity className="size-3.5 text-indigo-300" />
             </div>
             <div className="flex-1">
