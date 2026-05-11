@@ -103,13 +103,13 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <>
       <aside
         className={cn(
-          "h-svh sticky top-0 shrink-0 flex flex-col text-sidebar-foreground transition-[width] duration-200 ease-in-out z-50 relative",
-          "bg-[#08080b] border-r border-white/[0.05]",
-          collapsed ? "w-[68px]" : "w-[252px]"
+          "h-svh sticky top-0 shrink-0 flex flex-col transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] z-50 relative",
+          "bg-white dark:bg-[#08080b] border-r border-slate-200 dark:border-white/[0.05] shadow-2xl shadow-slate-200/50 dark:shadow-none",
+          collapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-[220px] bg-gradient-to-b from-indigo-600/[0.07] via-violet-600/[0.03] to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-[300px] bg-gradient-to-b from-indigo-500/[0.04] dark:from-indigo-600/[0.07] via-transparent to-transparent" />
         </div>
 
         {/* Workspace / Brand */}
