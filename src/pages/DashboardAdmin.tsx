@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  TrendingUp, CircleDollarSign, Users, Activity, Wallet, Clock,
+  TrendingUp, TrendingDown, CircleDollarSign, Users, Activity, Wallet, Clock,
   CheckCircle2, FileWarning, CreditCard, FileSignature,
-  BarChart3, Plus, Calendar, Bell, 
+  BarChart3, Plus, Calendar, Bell, ArrowUpRight, ArrowRight, AlertCircle, Heart,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo } from "react";
@@ -16,13 +16,22 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RePieChart, Pie, Cell,
 } from "recharts";
-import { PremiumCard, KpiTile } from "@/components/ui/PremiumCard";
+import { PremiumCard } from "@/components/ui/PremiumCard";
 
 /* ============================================================
    Premium Executive Dashboard
    ============================================================ */
 
 type Tone = "primary" | "success" | "warning" | "danger" | "info" | "neutral";
+
+const toneStyles: Record<Tone, { bg: string; fg: string; ring: string; bar: string }> = {
+  primary: { bg: "bg-primary/8", fg: "text-primary", ring: "ring-primary/15", bar: "bg-primary" },
+  success: { bg: "bg-success-muted", fg: "text-success", ring: "ring-success/20", bar: "bg-success" },
+  warning: { bg: "bg-warning-muted", fg: "text-warning", ring: "ring-warning/20", bar: "bg-warning" },
+  danger:  { bg: "bg-destructive-muted", fg: "text-destructive", ring: "ring-destructive/20", bar: "bg-destructive" },
+  info:    { bg: "bg-info-muted", fg: "text-info", ring: "ring-info/20", bar: "bg-info" },
+  neutral: { bg: "bg-muted", fg: "text-foreground", ring: "ring-border", bar: "bg-foreground/40" },
+};
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
@@ -33,7 +42,6 @@ export default function DashboardAdmin() {
   const today = new Date().toLocaleDateString("pt-BR", {
     weekday: "long", day: "2-digit", month: "long", year: "numeric",
   });
-
 
   // ===== Queries =====
   const { data: clients = [], isLoading: loadingClients } = useQuery({
@@ -82,7 +90,6 @@ export default function DashboardAdmin() {
     const thisYear = now.getFullYear();
     const lastMonth = new Date(thisYear, thisMonth - 1, 1);
 
-    // Receita do mês
     const monthRevenue = sales
       .filter((s: any) => {
         if (!s.sale_date) return false;
@@ -126,7 +133,6 @@ export default function DashboardAdmin() {
       ? healthScores.reduce((a, v) => a + v, 0) / healthScores.length
       : 0;
 
-    // Revenue chart — últimos 6 meses
     const revenue6m = Array.from({ length: 6 }).map((_, i) => {
       const d = new Date(thisYear, thisMonth - (5 - i), 1);
       const label = d.toLocaleString("pt-BR", { month: "short" }).replace(".", "");
@@ -136,7 +142,6 @@ export default function DashboardAdmin() {
       return { name: label, value: total };
     });
 
-    // Status distribution
     const statusMap: Record<string, number> = {};
     clientProducts.forEach((p: any) => {
       const k = p.status || "indefinido";
@@ -146,7 +151,6 @@ export default function DashboardAdmin() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
 
-    // Critical alerts
     const alerts: Array<{ id: string; title: string; sub: string; tone: Tone; link: string; icon: any }> = [];
     if (delayed > 0) alerts.push({ id: "delayed", title: `${delayed} demandas atrasadas`, sub: "Prazo vencido sem conclusão", tone: "danger", link: "/demandas", icon: Clock });
     if (overduePayments.length > 0) alerts.push({ id: "overdue", title: `${overduePayments.length} pagamentos vencidos`, sub: formatBRL(overdueAmount) + " em atraso", tone: "danger", link: "/financeiro", icon: CreditCard });
@@ -156,7 +160,6 @@ export default function DashboardAdmin() {
     const contractsAwaiting = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
     if (contractsAwaiting > 0) alerts.push({ id: "contracts", title: `${contractsAwaiting} contratos aguardando`, sub: "Assinatura pendente", tone: "info", link: "/contratos", icon: FileSignature });
 
-    // Urgent demands (priority urgente or close to deadline)
     const urgentDemands = clientProducts
       .filter((p: any) => !["concluido", "cancelado"].includes(p.status))
       .map((p: any) => {
@@ -167,7 +170,6 @@ export default function DashboardAdmin() {
       .sort((a: any, b: any) => a.daysLeft - b.daysLeft)
       .slice(0, 6);
 
-    // Recent activity (mix from tasks, documents, demands)
     const activity = [
       ...documents.slice(0, 5).map((d: any) => ({
         id: `doc-${d.id}`, type: "Documento", title: d.name || "Documento", at: d.created_at, icon: FileWarning, tone: "info" as Tone,
@@ -183,7 +185,6 @@ export default function DashboardAdmin() {
       .sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime())
       .slice(0, 8);
 
-    // Tasks overdue & urgent
     const tasksOverdue = dashTasks.filter((t: any) => t.due_date && new Date(t.due_date) < now && !["concluida", "cancelada"].includes(t.status_new));
     const tasksUrgent = dashTasks.filter((t: any) => t.priority === "urgente" && !["concluida", "cancelada"].includes(t.status_new));
 
@@ -206,9 +207,6 @@ export default function DashboardAdmin() {
       tasksOverdue,
       tasksUrgent,
       monthRevenue,
-      activeClients,
-      delayed,
-      docsPending,
     };
   }, [clients, clientProducts, sales, payments, commissions, documents, contracts, dashTasks]);
 
@@ -220,7 +218,6 @@ export default function DashboardAdmin() {
     <div className="page-shell space-y-7 animate-fade-up">
       <Breadcrumbs />
 
-      {/* ===== Executive Header ===== */}
       <header className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 pb-5 border-b border-border">
         <div className="space-y-2 min-w-0">
           <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/90">
@@ -250,7 +247,6 @@ export default function DashboardAdmin() {
         </div>
       </header>
 
-      {/* ===== Day Summary Strip ===== */}
       <DaySummary
         summary={[
           { label: "Receita hoje", value: formatBRL(
@@ -263,7 +259,6 @@ export default function DashboardAdmin() {
         ]}
       />
 
-      {/* ===== KPI GRID ===== */}
       <section>
         <SectionTitle title="Indicadores principais" hint="Visão consolidada da operação" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -282,15 +277,8 @@ export default function DashboardAdmin() {
         </div>
       </section>
 
-      {/* ===== Revenue + Critical Alerts ===== */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 vx-card p-5">
-          <CardHeader
-            title="Receita mensal"
-            subtitle="Evolução dos últimos 6 meses"
-            icon={<TrendingUp className="size-4" />}
-            right={<span className="text-[11px] font-semibold text-foreground tabular-nums">{formatBRL(stats.monthRevenue)}<span className="text-muted-foreground/70 font-normal ml-1">este mês</span></span>}
-          />
+        <PremiumCard className="lg:col-span-2" title="Receita mensal" subtitle="Evolução dos últimos 6 meses" icon={<TrendingUp className="size-4" />} right={<span className="text-[11px] font-semibold text-foreground tabular-nums">{formatBRL(stats.monthRevenue)}<span className="text-muted-foreground/70 font-normal ml-1">este mês</span></span>}>
           <div className="h-[260px] -ml-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.revenue6m} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
@@ -311,15 +299,9 @@ export default function DashboardAdmin() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </PremiumCard>
 
-        <div className="vx-card p-5 flex flex-col">
-          <CardHeader
-            title="Alertas críticos"
-            subtitle="Situações que exigem atenção"
-            icon={<Bell className="size-4 text-destructive" />}
-            right={<span className="vx-pill vx-pill-danger">{stats.alerts.length}</span>}
-          />
+        <PremiumCard title="Alertas críticos" subtitle="Situações que exigem atenção" icon={<Bell className="size-4 text-destructive" />} right={<span className="vx-pill vx-pill-danger">{stats.alerts.length}</span>}>
           <div className="flex-1 space-y-1.5 overflow-y-auto max-h-[260px] pr-1">
             {stats.alerts.length === 0 ? (
               <EmptyState icon={CheckCircle2} title="Tudo em dia" subtitle="Sem alertas críticos no momento" />
@@ -344,18 +326,11 @@ export default function DashboardAdmin() {
               ))
             )}
           </div>
-        </div>
+        </PremiumCard>
       </section>
 
-      {/* ===== Urgent Demands + Status Distribution ===== */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 vx-card p-5">
-          <CardHeader
-            title="Demandas urgentes"
-            subtitle="Próximas do prazo ou em atraso"
-            icon={<Clock className="size-4 text-warning" />}
-            right={<Link to="/demandas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}
-          />
+        <PremiumCard className="lg:col-span-2" title="Demandas urgentes" subtitle="Próximas do prazo ou em atraso" icon={<Clock className="size-4 text-warning" />} right={<Link to="/demandas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}>
           <div className="vx-table-wrap !rounded-md">
             <table className="vx-table">
               <thead className="vx-table-head">
@@ -391,14 +366,9 @@ export default function DashboardAdmin() {
               </tbody>
             </table>
           </div>
-        </div>
+        </PremiumCard>
 
-        <div className="vx-card p-5">
-          <CardHeader
-            title="Distribuição de status"
-            subtitle="Demandas por estágio"
-            icon={<Activity className="size-4 text-info" />}
-          />
+        <PremiumCard title="Distribuição de status" subtitle="Demandas por estágio" icon={<Activity className="size-4 text-info" />}>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <RePieChart>
@@ -418,17 +388,11 @@ export default function DashboardAdmin() {
               </div>
             ))}
           </div>
-        </div>
+        </PremiumCard>
       </section>
 
-      {/* ===== Recent Activity + Next Tasks ===== */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="vx-card p-5">
-          <CardHeader
-            title="Atividade recente"
-            subtitle="Eventos das últimas horas"
-            icon={<Activity className="size-4 text-primary" />}
-          />
+        <PremiumCard title="Atividade recente" subtitle="Eventos das últimas horas" icon={<Activity className="size-4 text-primary" />}>
           <div className="space-y-1">
             {stats.activity.length === 0 ? (
               <EmptyState icon={Activity} title="Sem atividade recente" />
@@ -449,15 +413,9 @@ export default function DashboardAdmin() {
               ))
             )}
           </div>
-        </div>
+        </PremiumCard>
 
-        <div className="vx-card p-5">
-          <CardHeader
-            title="Próximas ações"
-            subtitle="Tarefas vencidas e urgentes"
-            icon={<AlertCircle className="size-4 text-warning" />}
-            right={<Link to="/tarefas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}
-          />
+        <PremiumCard title="Próximas ações" subtitle="Tarefas vencidas e urgentes" icon={<AlertCircle className="size-4 text-warning" />} right={<Link to="/tarefas" className="text-[11.5px] font-semibold text-primary hover:underline">Ver todas →</Link>}>
           <div className="space-y-1">
             {[...stats.tasksOverdue, ...stats.tasksUrgent].slice(0, 7).length === 0 ? (
               <EmptyState icon={CheckCircle2} title="Sem ações pendentes" subtitle="Você está em dia" />
@@ -480,38 +438,17 @@ export default function DashboardAdmin() {
                 ))
             )}
           </div>
-        </div>
+        </PremiumCard>
       </section>
     </div>
   );
 }
-
-/* ============================================================
-   Sub-components — premium, compact, dense
-   ============================================================ */
 
 function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="flex items-end justify-between mb-3">
       <h2 className="text-[13px] font-semibold text-foreground tracking-tight">{title}</h2>
       {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
-    </div>
-  );
-}
-
-function CardHeader({
-  title, subtitle, icon, right,
-}: { title: string; subtitle?: string; icon?: React.ReactNode; right?: React.ReactNode }) {
-  return (
-    <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b border-border">
-      <div className="flex items-start gap-2.5 min-w-0">
-        {icon && <div className="size-7 rounded-md bg-muted/70 border border-border flex items-center justify-center text-muted-foreground shrink-0 mt-0.5">{icon}</div>}
-        <div className="min-w-0">
-          <h3 className="text-[13.5px] font-semibold text-foreground tracking-tight leading-tight">{title}</h3>
-          {subtitle && <p className="text-[11.5px] text-muted-foreground mt-0.5">{subtitle}</p>}
-        </div>
-      </div>
-      {right && <div className="shrink-0 mt-0.5">{right}</div>}
     </div>
   );
 }
