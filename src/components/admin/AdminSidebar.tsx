@@ -292,7 +292,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               className="w-60 bg-[#0c0c14] border-white/[0.08] text-white p-1.5 rounded-xl shadow-2xl"
             >
               <div className="px-2 py-2 flex items-center gap-2.5">
-                <div className="size-9 rounded-lg bg-gradient-to-tr from-indigo-500/40 to-violet-500/30 border border-white/[0.1] flex items-center justify-center text-[12px] font-bold">{initials(displayName)}</div>
+                <div className="size-9 rounded-lg bg-zinc-800 border border-white/[0.08] flex items-center justify-center text-[12px] font-bold text-white">{initials(displayName)}</div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[12.5px] font-semibold truncate">{displayName}</p>
                   <p className="text-[10.5px] text-white/45 truncate">{user?.email}</p>
