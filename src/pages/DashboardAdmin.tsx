@@ -827,7 +827,7 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/50 dark:to-zinc-950/30 p-5 hover:border-slate-300 dark:hover:border-white/[0.1] transition-all shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none">
       <div className={cn("absolute -top-8 -right-8 size-24 rounded-full blur-3xl opacity-50 dark:opacity-40", t.bg)} />
-      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r", t.grad)} style={{ background: `linear-gradient(to right, ${t.chart}, ${t.chart}90)` }} />
+      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: `linear-gradient(to right, ${t.chart}, ${t.chart}90)` }} />
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
           <div className={cn("size-10 rounded-xl flex items-center justify-center border ring-4", t.bg, t.border, t.text, t.ring)}>
