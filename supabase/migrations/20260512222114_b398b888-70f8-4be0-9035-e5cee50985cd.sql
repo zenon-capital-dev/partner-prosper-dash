@@ -1,0 +1,13 @@
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.is_admin(uuid) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.check_is_admin(uuid) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.check_user_role(uuid, text) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION public.is_delegated_provider(uuid, uuid) TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION private.is_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION private.is_admin(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.has_role(uuid, public.app_role) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.check_is_admin(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.check_user_role(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.is_delegated_provider(uuid, uuid) TO authenticated;
+GRANT USAGE ON SCHEMA private TO authenticated;
