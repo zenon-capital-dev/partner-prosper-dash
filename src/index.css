@@ -386,8 +386,9 @@
     background: #fafafa;
     color: #09090b;
     font-weight: 600;
-    @apply hover:bg-white shadow-md active:scale-[0.98];
+    @apply shadow-md active:scale-[0.98];
   }
+  .admin-shell .btn-premium:hover { background: #ffffff; }
 
   /* Colors inside shell */
   .admin-shell .section-title { color: #f4f4f5; }
