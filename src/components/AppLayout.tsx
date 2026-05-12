@@ -5,24 +5,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { NotificationBell } from "@/components/NotificationBell";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LoadingScreen } from "@/components/LoadingScreen";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
 import { EnvBadge } from "@/components/EnvBadge";
+import { RouteGuard } from "@/components/RouteGuard";
 import { initials } from "@/lib/format";
 
 export default function AppLayout() {
+  return (
+    <RouteGuard>
+      <AppLayoutInner />
+    </RouteGuard>
+  );
+}
+
+function AppLayoutInner() {
   const {
-    user, loading,
+    user,
     isAdmin, isAdminSecondary, isColaborador,
     isParceiro, isPrestador, isCliente, isLead, isIndicador,
   } = useAuth();
   const { pathname } = useLocation();
-
-  if (loading) {
-    return <LoadingScreen message="Preparando seu painel..." />;
-  }
-
-  if (!user) return <Navigate to="/auth" replace />;
 
   // 🔒 Cada role só pode entrar no seu próprio painel
   const allowedPrefix = (() => {
