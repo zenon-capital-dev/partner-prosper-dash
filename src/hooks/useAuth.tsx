@@ -29,28 +29,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRoles = async (userId: string) => {
+  const fetchRoles = async (userId: string, attempt = 0): Promise<void> => {
     if (!userId) {
       setLoading(false);
       return;
     }
-    
-    console.log("Fetching roles for user:", userId);
+
     try {
-      // Use a timeout for the fetchRoles request
-      const rolesPromise = supabase.from("user_roles").select("role").eq("user_id", userId);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Timeout fetching roles")), 5000)
-      );
-      
-      const { data, error } = await Promise.race([rolesPromise, timeoutPromise]) as any;
-      
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
       if (error) throw error;
       const roleList = (data?.map((r: any) => r.role) as AppRole[]) ?? [];
-      console.log("Roles fetched:", roleList);
+      console.log("[auth] roles loaded:", roleList);
       setRoles(roleList);
     } catch (error) {
-      console.error("Error fetching roles:", error);
+      console.error("[auth] error fetching roles (attempt " + attempt + "):", error);
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+        return fetchRoles(userId, attempt + 1);
+      }
+      // Final failure: keep roles empty so guards can react safely
+      setRoles([]);
     } finally {
       setLoading(false);
     }

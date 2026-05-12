@@ -1,9 +1,8 @@
-import { Outlet, Navigate, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { RouteGuard } from "@/components/RouteGuard";
 
 const ROUTE_LABEL: Record<string, string> = {
   admin: "Dashboard",
@@ -29,34 +28,24 @@ const ROUTE_LABEL: Record<string, string> = {
 };
 
 export default function AdminLayout() {
-  const { user, loading, isAdmin, isAdminSecondary } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-
-  if (loading) {
-    return <LoadingScreen message="Sincronizando ambiente seguro..." />;
-  }
-
-  if (!user) return <Navigate to="/auth" replace />;
-
-  // 🔒 Bloqueia acesso ao painel admin para qualquer não-admin
-  if (!isAdmin && !isAdminSecondary) {
-    return <Navigate to="/" replace />;
-  }
 
   const handleSearchClick = () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   };
 
   return (
-    <div className="min-h-screen flex w-full text-foreground admin-shell">
-      <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+    <RouteGuard allow={["admin", "admin_secondary"]}>
+      <div className="min-h-screen flex w-full text-foreground admin-shell">
+        <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
 
-      <div className="flex-1 flex flex-col min-w-0 relative">
-        <AdminHeader onSearchClick={handleSearchClick} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          <Outlet />
-        </main>
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          <AdminHeader onSearchClick={handleSearchClick} />
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </RouteGuard>
   );
 }
