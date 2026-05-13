@@ -201,23 +201,23 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-slate-200/70 p-2">
+      <div className="shrink-0 border-t border-border/80 p-2 bg-background/55">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-slate-50 transition-colors group",
+              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-muted transition-colors group",
               collapsed && "justify-center"
             )}>
-              <div className="size-8 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-700 text-[11px] font-bold shrink-0 ring-1 ring-slate-200">
+              <div className="size-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground text-[11px] font-bold shrink-0 ring-1 ring-border">
                 {initials(displayName)}
               </div>
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-semibold text-slate-800 truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] text-slate-500 truncate leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12.5px] font-semibold text-foreground truncate leading-tight">{displayName}</p>
+                    <p className="text-[10.5px] text-muted-foreground truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
-                  <ChevronDown className="size-3.5 text-slate-400 shrink-0" />
+                  <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
                 </>
               )}
             </button>
