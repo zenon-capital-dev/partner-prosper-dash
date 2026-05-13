@@ -522,7 +522,7 @@ export default function ClientPanel() {
                         <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
                         <div className="mt-8 flex items-center justify-between">
                            <p className="text-xl font-bold text-slate-900 dark:text-white">{formatBRL(p.base_price)}</p>
-                           <Button className="rounded-xl h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all">Saber mais</Button>
+                           <Button className="rounded-md h-10 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium">Saber mais</Button>
                         </div>
                       </div>
                     ))}
