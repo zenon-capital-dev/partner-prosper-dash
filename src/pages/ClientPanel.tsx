@@ -106,7 +106,7 @@ export default function ClientPanel() {
 
   return (
     <div className="bg-premium min-h-screen dark:bg-[#020617]">
-      <div className="page-shell space-y-12 py-12">
+      <div className="page-shell space-y-6 sm:space-y-12 py-6 sm:py-12 px-4 sm:px-6">
         {selectedProductId && selectedProduct ? (
           /* SINGLE PRODUCT VIEW */
           <div className="animate-fade-up space-y-8">
