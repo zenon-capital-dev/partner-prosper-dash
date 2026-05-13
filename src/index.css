@@ -303,261 +303,56 @@
   }
 
   /* ============================================================
-     AURORA GLASS SHELL — Premium dark glassmorphism (admin)
-     Forces a deep obsidian + mesh aurora aesthetic across the
-     entire admin portal, regardless of light/dark mode.
+     ADMIN SHELL — Force LIGHT corporate SaaS theme always
+     (overrides html.dark inside /admin/* routes)
      ============================================================ */
+  .admin-shell,
   .dark .admin-shell {
-    --background: 224 45% 4%;
-    --foreground: 220 14% 96%;
-    --card: 224 35% 8%;
-    --card-foreground: 220 14% 96%;
-    --popover: 224 35% 9%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 235 60% 60%;
-    --primary-foreground: 224 45% 4%;
-    --primary-muted: 235 40% 12%;
-    --primary-glow: 235 60% 50%;
-    --secondary: 224 30% 10%;
-    --secondary-foreground: 220 14% 96%;
-    --muted: 224 30% 9%;
-    --muted-foreground: 220 12% 55%;
-    --accent: 250 45% 14%;
-    --accent-foreground: 250 85% 75%;
-    --border: 224 30% 12%;
-    --input: 224 30% 11%;
-    --ring: 250 85% 65%;
-    --success: 152 65% 45%;
-    --success-foreground: 224 45% 4%;
-    --success-muted: 152 45% 10%;
-    --warning: 38 85% 55%;
-    --warning-foreground: 224 45% 4%;
-    --warning-muted: 38 45% 10%;
-    --info: 212 85% 55%;
-    --info-foreground: 224 45% 4%;
-    --info-muted: 212 45% 10%;
-    --destructive: 0 75% 55%;
-    --destructive-foreground: 224 45% 4%;
-    --destructive-muted: 0 45% 10%;
-    @apply min-h-screen text-foreground selection:bg-primary/20 selection:text-primary relative isolate;
-    background: #0c0c0d;
+    --background: 220 20% 98%;
+    --foreground: 222 47% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 9%;
+    --primary: 234 89% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-muted: 234 100% 96%;
+    --secondary: 220 16% 95%;
+    --secondary-foreground: 222 40% 14%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 40%;
+    --accent: 234 100% 96%;
+    --accent-foreground: 234 89% 40%;
+    --border: 220 13% 90%;
+    --input: 220 13% 88%;
+    --ring: 234 89% 60%;
+    --success: 158 58% 38%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 158 60% 95%;
+    --warning: 32 78% 48%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 36 90% 95%;
+    --destructive: 358 68% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 358 80% 96%;
+    color-scheme: light;
+    background: hsl(220 20% 98%);
+    color: hsl(222 47% 8%);
   }
-
-  /* Refined Grainy/Glass Background — subtle, not neon */
-  .dark .admin-shell::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image: radial-gradient(at 0% 0%, hsla(250, 45%, 15%, 0.15) 0, transparent 50%),
-                      radial-gradient(at 100% 0%, hsla(210, 45%, 15%, 0.12) 0, transparent 50%);
-    opacity: 1;
-  }
-  .dark .admin-shell > * { position: relative; z-index: 1; }
-
-  /* ───── Premium Surfaces ───── */
-  .dark .admin-shell .vx-card,
-  .dark .admin-shell .glass-card,
-  .dark .admin-shell .surface,
-  .dark .admin-shell .stat-card,
-  .dark .admin-shell .vx-table-wrap {
-    background: linear-gradient(180deg, #16161b 0%, #121216 100%);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow:
-      0 1px 0 0 rgba(255,255,255,0.03) inset,
-      0 8px 28px -12px rgb(0 0 0 / 0.55),
-      0 2px 6px -2px rgb(0 0 0 / 0.35);
-    border-radius: 1rem;
-    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .dark .admin-shell .vx-card:hover {
-    border-color: hsl(0 0% 100% / 0.10);
-    box-shadow:
-      0 1px 0 0 rgba(255,255,255,0.05) inset,
-      0 14px 40px -16px rgb(0 0 0 / 0.7),
-      0 4px 10px -4px rgb(0 0 0 / 0.4);
-  }
-
-  /* Premium top bar */
-  .admin-shell .glass-header,
-  .dark .admin-shell .glass-header {
-    background: hsl(var(--background) / 0.72) !important;
-    backdrop-filter: blur(20px) saturate(140%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border-bottom: 1px solid hsl(var(--border) / 0.7) !important;
-  }
-  .dark .admin-shell .glass-header {
-    background: rgba(10, 10, 14, 0.7) !important;
-    border-bottom-color: hsl(0 0% 100% / 0.06) !important;
-  }
-
-  /* Premium Tables */
-  .dark .admin-shell .vx-table-head {
-    background: linear-gradient(180deg, #17171f 0%, #14141d 100%) !important;
-    color: hsl(220 12% 55%) !important;
-    border-bottom-color: hsl(0 0% 100% / 0.06) !important;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 10.5px;
-    font-weight: 700;
-  }
-  .dark .admin-shell .vx-table-row {
-    border-bottom-color: hsl(0 0% 100% / 0.04) !important;
-    transition: background-color 0.15s ease;
-  }
-  .dark .admin-shell .vx-table-row:hover {
-    background: hsl(235 60% 60% / 0.04) !important;
-  }
-
-  /* Premium Buttons */
-  .dark .admin-shell .btn-premium {
-    background: linear-gradient(180deg, #ffffff 0%, #ededf0 100%);
-    color: #0a0a0c;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    box-shadow:
-      0 1px 0 0 rgba(255,255,255,0.6) inset,
-      0 4px 14px -4px rgba(0,0,0,0.4);
-    @apply active:scale-[0.98] transition-all;
-  }
-  .dark .admin-shell .btn-premium:hover {
-    background: #ffffff;
-    box-shadow:
-      0 1px 0 0 rgba(255,255,255,0.8) inset,
-      0 6px 20px -4px rgba(0,0,0,0.5);
-  }
-
-  /* Section titles */
-  .admin-shell .section-title {
-    font-weight: 700;
-    letter-spacing: -0.015em;
-  }
-  .dark .admin-shell .section-title { color: #f4f4f5; }
-  .dark .admin-shell .vx-kpi-label { color: #a1a1aa; font-weight: 600; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; }
-
-  /* Refined focus rings inside admin */
-  .admin-shell *:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.55);
-    border-radius: 0.5rem;
-  }
+  .dark .admin-shell::before { display: none; }
 
   /* Smooth scrollbar inside admin */
   .admin-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
   .admin-shell ::-webkit-scrollbar-track { background: transparent; }
   .admin-shell ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
+    background: hsl(220 13% 88%);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
   .admin-shell ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.4);
+    background: hsl(220 13% 75%);
     background-clip: content-box;
-  }
-
-
-  /* Neutralize legacy light-mode classes */
-  .dark .admin-shell .bg-slate-100, .dark .admin-shell .bg-gray-100 {
-    background-color: hsl(0 0% 100% / 0.05) !important;
-  }
-  .dark .admin-shell .bg-blue-50,
-  .dark .admin-shell .bg-sky-50,
-  .dark .admin-shell .bg-cyan-50,
-  .dark .admin-shell .bg-indigo-50,
-  .dark .admin-shell .bg-violet-50,
-  .dark .admin-shell .bg-purple-50 {
-    background-color: hsl(217 91% 60% / 0.12) !important;
-  }
-  .dark .admin-shell .bg-emerald-50,
-  .dark .admin-shell .bg-green-50,
-  .dark .admin-shell .bg-teal-50 {
-    background-color: hsl(152 65% 50% / 0.12) !important;
-  }
-  .dark .admin-shell .bg-amber-50,
-  .dark .admin-shell .bg-yellow-50,
-  .dark .admin-shell .bg-orange-50 {
-    background-color: hsl(38 92% 60% / 0.12) !important;
-  }
-  .dark .admin-shell .bg-rose-50,
-  .dark .admin-shell .bg-red-50,
-  .dark .admin-shell .bg-pink-50 {
-    background-color: hsl(0 75% 60% / 0.12) !important;
-  }
-
-  /* Borders */
-  .dark .admin-shell .border-slate-200,
-  .dark .admin-shell .border-gray-200,
-  .dark .admin-shell .border-neutral-200 { border-color: hsl(0 0% 100% / 0.1) !important; }
-  .dark .admin-shell .border-blue-200,
-  .dark .admin-shell .border-sky-200,
-  .dark .admin-shell .border-indigo-200,
-  .dark .admin-shell .border-violet-200,
-  .dark .admin-shell .border-purple-200 { border-color: hsl(217 91% 60% / 0.25) !important; }
-  .dark .admin-shell .border-emerald-200,
-  .dark .admin-shell .border-green-200,
-  .dark .admin-shell .border-teal-200 { border-color: hsl(152 65% 50% / 0.25) !important; }
-  .dark .admin-shell .border-amber-200,
-  .dark .admin-shell .border-orange-200,
-  .dark .admin-shell .border-yellow-200 { border-color: hsl(38 92% 60% / 0.3) !important; }
-  .dark .admin-shell .border-rose-200,
-  .dark .admin-shell .border-red-200,
-  .dark .admin-shell .border-pink-200 { border-color: hsl(0 75% 60% / 0.3) !important; }
-
-  /* Foregrounds — make dark-mode-readable */
-  .dark .admin-shell .text-slate-600,
-  .dark .admin-shell .text-slate-700,
-  .dark .admin-shell .text-gray-600,
-  .dark .admin-shell .text-gray-700,
-  .dark .admin-shell .text-neutral-700 { color: hsl(220 12% 70%) !important; }
-  .dark .admin-shell .text-blue-600,
-  .dark .admin-shell .text-blue-700,
-  .dark .admin-shell .text-sky-600,
-  .dark .admin-shell .text-sky-700,
-  .dark .admin-shell .text-indigo-600,
-  .dark .admin-shell .text-indigo-700,
-  .dark .admin-shell .text-violet-600,
-  .dark .admin-shell .text-purple-600,
-  .dark .admin-shell .text-purple-700 { color: hsl(217 91% 75%) !important; }
-  .dark .admin-shell .text-emerald-600,
-  .dark .admin-shell .text-emerald-700,
-  .dark .admin-shell .text-green-600,
-  .dark .admin-shell .text-green-700,
-  .dark .admin-shell .text-teal-600 { color: hsl(152 70% 65%) !important; }
-  .dark .admin-shell .text-amber-600,
-  .dark .admin-shell .text-amber-700,
-  .dark .admin-shell .text-orange-600,
-  .dark .admin-shell .text-orange-700,
-  .dark .admin-shell .text-yellow-600,
-  .dark .admin-shell .text-yellow-700 { color: hsl(38 92% 70%) !important; }
-  .dark .admin-shell .text-rose-600,
-  .dark .admin-shell .text-rose-700,
-  .dark .admin-shell .text-red-600,
-  .dark .admin-shell .text-red-700,
-  .dark .admin-shell .text-pink-600 { color: hsl(0 80% 75%) !important; }
-
-  .dark .admin-shell [class*="border-border"] { border-color: hsl(0 0% 100% / 0.08) !important; }
-  .dark .admin-shell [class*="bg-muted"]:not(input):not(textarea) { background-color: hsl(0 0% 100% / 0.03) !important; }
-
-  /* Neutralize legacy raw-white backgrounds inside the always-dark admin shell */
-  .dark .admin-shell .bg-white { background-color: #141416 !important; }
-  .dark .admin-shell .bg-white\/40,
-  .dark .admin-shell .bg-white\/50,
-  .dark .admin-shell .bg-white\/60,
-  .dark .admin-shell .bg-white\/70,
-  .dark .admin-shell .bg-white\/80,
-  .dark .admin-shell .bg-white\/90 { background-color: hsl(0 0% 100% / 0.04) !important; backdrop-filter: blur(8px); }
-  .dark .admin-shell .border-white\/10,
-  .dark .admin-shell .border-white\/20,
-  .dark .admin-shell .border-white\/30 { border-color: hsl(0 0% 100% / 0.08) !important; }
-  .dark .admin-shell [data-state="active"].bg-white {
-    background-color: hsl(0 0% 100% / 0.08) !important;
-    color: hsl(var(--foreground)) !important;
-  }
-  .dark .admin-shell .bg-white.text-slate-900 {
-    background-color: hsl(var(--foreground)) !important;
-    color: hsl(var(--background)) !important;
   }
 
   /* Same neutralization in global dark mode (non-admin pages) */
