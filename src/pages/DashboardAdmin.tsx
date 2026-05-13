@@ -288,53 +288,53 @@ export default function DashboardAdmin() {
 
   return (
     <div className="relative min-h-full bg-transparent">
-      <div className="relative p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
+      <div className="relative p-3 sm:p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
 
         {/* ============ EXECUTIVE HEADER ============ */}
         <header className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="relative">
-                <div className="size-12 rounded-lg bg-primary flex items-center justify-center shadow-sm ring-1 ring-primary/15">
-                  <Crown className="size-5 text-primary-foreground" strokeWidth={2.2} />
+          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
+            <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+              <div className="relative shrink-0">
+                <div className="size-10 sm:size-12 rounded-lg bg-primary flex items-center justify-center shadow-sm ring-1 ring-primary/15">
+                  <Crown className="size-4 sm:size-5 text-primary-foreground" strokeWidth={2.2} />
                 </div>
-                <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-[#08080b] shadow-md" />
+                <div className="absolute -bottom-1 -right-1 size-3 sm:size-4 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-[#08080b] shadow-md" />
               </div>
-              <div>
-                <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 text-[10px] sm:text-[10.5px] uppercase tracking-[0.18em] sm:tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600 flex-wrap">
                   <CalendarClock className="size-3" />
                   <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
                   <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
                   <Sparkles className="size-3 text-primary" />
                   <span className="text-primary">Painel de Comando</span>
                 </div>
-                <h1 className="text-[22px] lg:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight">
+                <h1 className="text-[18px] sm:text-[22px] lg:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight">
                   {greeting}, <span className="text-primary">{firstName}</span>
                 </h1>
-                <p className="text-[12px] text-slate-500 dark:text-zinc-500 mt-1 flex items-center gap-2 flex-wrap">
+                <p className="text-[11px] sm:text-[12px] text-slate-500 dark:text-zinc-500 mt-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
                   <span className="text-slate-300 dark:text-zinc-700">·</span>
-                  <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{stats.activeLeads.length}</span> negociações
+                  <span><span className="text-indigo-600 dark:text-indigo-300 font-semibold">{stats.activeLeads.length}</span> negociações</span>
                   <span className="text-slate-300 dark:text-zinc-700">·</span>
-                  <span className="text-amber-600 dark:text-amber-300 font-semibold">{stats.delayed}</span> atrasos
+                  <span><span className="text-amber-600 dark:text-amber-300 font-semibold">{stats.delayed}</span> atrasos</span>
                   <span className="text-slate-300 dark:text-zinc-700">·</span>
-                  <span className="text-rose-600 dark:text-rose-300 font-semibold">{stats.overduePayments.length}</span> inadimplentes
-                  <span className="text-slate-300 dark:text-zinc-700">·</span>
-                  <span className="text-slate-500 dark:text-zinc-500 capitalize">{today}</span>
+                  <span><span className="text-rose-600 dark:text-rose-300 font-semibold">{stats.overduePayments.length}</span> inadimplentes</span>
+                  <span className="hidden sm:inline text-slate-300 dark:text-zinc-700">·</span>
+                  <span className="hidden sm:inline text-slate-500 dark:text-zinc-500 capitalize">{today}</span>
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+              <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
                 {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
-                  <button key={p} className={cn("px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white")}>{p}</button>
+                  <button key={p} className={cn("px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white")}>{p}</button>
                 ))}
               </div>
-              <Link to="/leads?new=1" className="h-10 px-3.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] text-[11.5px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5 transition-all shadow-sm">
+              <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] text-[11.5px] font-semibold text-slate-700 dark:text-zinc-200 items-center gap-1.5 transition-all shadow-sm">
                 <Plus className="size-3.5" /> Negociação
               </Link>
-              <Link to="/vendas?new=1" className="h-10 px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
-                <TrendingUp className="size-3.5" /> Registrar fechamento
+              <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
+                <TrendingUp className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar fechamento</span><span className="xs:hidden sm:hidden">Fechar</span>
               </Link>
               <button className="size-10 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-all relative shadow-sm">
                 <Bell className="size-4" />
