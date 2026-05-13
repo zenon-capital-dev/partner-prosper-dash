@@ -114,14 +114,14 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/" element={<RoleHome />} />
               <Route path="/parceiro" element={<PartnerPanel />} />
-              <Route path="/parceiro/clientes" element={<PartnerPanel />} />
-              <Route path="/parceiro/comissoes" element={<PartnerPanel />} />
+              <Route path="/parceiro/:tab" element={<PartnerPanel />} />
               <Route path="/cliente" element={<ClientPanel />} />
-              <Route path="/cliente/documentos" element={<ClientPanel />} />
+              <Route path="/cliente/:tab" element={<ClientPanel />} />
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/prestador" element={<ProviderPanel />} />
+              <Route path="/prestador/:tab" element={<ProviderPanel />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
