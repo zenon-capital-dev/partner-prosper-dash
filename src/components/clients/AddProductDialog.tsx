@@ -337,82 +337,146 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
               {/* COMISSOES */}
               <div className="space-y-4">
-                <p className="editorial-label text-primary flex items-center gap-2">
-                   02. Rede de Intermediação
-                </p>
+                <div className="flex items-end justify-between">
+                  <p className="editorial-label text-primary flex items-center gap-2">02. Rede de Comissionamento</p>
+                  <span className={cn(
+                    "text-[10px] font-mono px-2 py-1 rounded-md",
+                    totalPercent > 100 ? "bg-rose-500/20 text-rose-300" : totalPercent > 60 ? "bg-amber-500/20 text-amber-300" : "bg-white/5 text-white/40"
+                  )}>
+                    {totalPercent.toFixed(1)}% comprometido
+                  </span>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
-                      <Label className="editorial-label text-white/40 mb-3 block">Parceiro Vendedor</Label>
-                      <Select 
-                        value={form.partner_id || "__none__"} 
-                        onValueChange={(v) => v === "__none__" ? setForm({ ...form, partner_id: "", partner_commission: 10 }) : handlePartnerChange(v)}
-                      >
-                        <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Direto / Sem parceiro" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Direto / Sem parceiro</SelectItem>
-                          {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {form.partner_id && (
-                        <div className="mt-3 flex items-center justify-between">
-                           <span className="text-[10px] font-bold uppercase tracking-wider text-white/20">Taxa de Comissão</span>
-                           <input 
-                             type="number" 
-                             value={form.partner_commission} 
-                             onChange={(e) => setForm({ ...form, partner_commission: Number(e.target.value) })}
-                             className="w-16 bg-white/[0.05] border-none text-right font-mono font-bold text-sm rounded-md px-2 py-1"
-                           />
+                  {/* PARCEIRO */}
+                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                    <div className="flex items-center justify-between">
+                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><Handshake className="size-3" /> Parceiro Vendedor</Label>
+                      {partnerCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(partnerCalc)}</span>}
+                    </div>
+                    <Select
+                      value={form.partner_id || "__none__"}
+                      onValueChange={(v) => v === "__none__" ? setForm({ ...form, partner_id: "", partner_commission: 10 }) : handlePartnerChange(v)}
+                    >
+                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Direto / Sem parceiro" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Direto / Sem parceiro</SelectItem>
+                        {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {form.partner_id && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <Input type="number" step="0.1" min="0" max="100" value={form.partner_commission}
+                            onChange={(e) => setForm({ ...form, partner_commission: Number(e.target.value) })}
+                            className="h-9 bg-white/[0.05] border-white/10 pr-7 font-mono text-sm" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">%</span>
                         </div>
-                      )}
-                   </div>
-                   <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
-                      <Label className="editorial-label text-white/40 mb-3 block">Indicador</Label>
-                      <Select 
-                        value={form.referrer_id || "__none__"} 
-                        onValueChange={(v) => v === "__none__" ? setForm({ ...form, referrer_id: "", referrer_commission: 5 }) : handleReferrerChange(v)}
-                      >
-                        <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem indicação" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Sem indicação</SelectItem>
-                          {referrers.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {form.referrer_id && (
-                        <div className="mt-3 flex items-center justify-between">
-                           <span className="text-[10px] font-bold uppercase tracking-wider text-white/20">Taxa de Indicação</span>
-                           <input 
-                             type="number" 
-                             value={form.referrer_commission} 
-                             onChange={(e) => setForm({ ...form, referrer_commission: Number(e.target.value) })}
-                             className="w-16 bg-white/[0.05] border-none text-right font-mono font-bold text-sm rounded-md px-2 py-1"
-                           />
+                        <div className="relative">
+                          <Input type="number" step="0.01" min="0" value={partnerCalc.toFixed(2)}
+                            onChange={(e) => setForm({ ...form, partner_commission: form.value > 0 ? (Number(e.target.value) / form.value) * 100 : 0 })}
+                            className="h-9 bg-white/[0.05] border-white/10 pl-7 font-mono text-sm" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
                         </div>
-                      )}
-                   </div>
-                </div>
-              </div>
+                      </div>
+                    )}
+                  </div>
 
-              {/* DELEGAÇÃO */}
-              <div className="space-y-4">
-                <p className="editorial-label text-primary flex items-center gap-2">
-                   03. Execução do Serviço
-                </p>
-                <div className="space-y-2">
-                  <Label className="editorial-label text-white/40">Delegar para Prestador</Label>
-                  <Select 
-                    value={form.service_provider_id || "__none__"} 
-                    onValueChange={(v) => setForm({ ...form, service_provider_id: v === "__none__" ? "" : v })}
-                  >
-                    <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl"><SelectValue placeholder="Delegar mais tarde" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Delegar mais tarde</SelectItem>
-                      {providers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name} · {p.specialty}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {/* INDICADOR */}
+                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                    <div className="flex items-center justify-between">
+                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><UserCheck className="size-3" /> Indicador</Label>
+                      {referrerCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(referrerCalc)}</span>}
+                    </div>
+                    <Select
+                      value={form.referrer_id || "__none__"}
+                      onValueChange={(v) => v === "__none__" ? setForm({ ...form, referrer_id: "", referrer_commission: 5 }) : handleReferrerChange(v)}
+                    >
+                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem indicação" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Sem indicação</SelectItem>
+                        {referrers.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {form.referrer_id && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <Input type="number" step="0.1" min="0" max="100" value={form.referrer_commission}
+                            onChange={(e) => setForm({ ...form, referrer_commission: Number(e.target.value) })}
+                            className="h-9 bg-white/[0.05] border-white/10 pr-7 font-mono text-sm" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">%</span>
+                        </div>
+                        <div className="relative">
+                          <Input type="number" step="0.01" min="0" value={referrerCalc.toFixed(2)}
+                            onChange={(e) => setForm({ ...form, referrer_commission: form.value > 0 ? (Number(e.target.value) / form.value) * 100 : 0 })}
+                            className="h-9 bg-white/[0.05] border-white/10 pl-7 font-mono text-sm" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* COLABORADOR INTERNO */}
+                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                    <div className="flex items-center justify-between">
+                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><UserCog className="size-3" /> Vendedor Interno</Label>
+                      {collaboratorCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(collaboratorCalc)}</span>}
+                    </div>
+                    <Select
+                      value={form.collaborator_id || "__none__"}
+                      onValueChange={(v) => setForm({ ...form, collaborator_id: v === "__none__" ? "" : v, collaborator_commission: v === "__none__" ? 0 : (form.collaborator_commission || 5) })}
+                    >
+                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem vendedor interno" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Sem vendedor interno</SelectItem>
+                        {collaborators.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {form.collaborator_id && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <Input type="number" step="0.1" min="0" max="100" value={form.collaborator_commission}
+                            onChange={(e) => setForm({ ...form, collaborator_commission: Number(e.target.value) })}
+                            className="h-9 bg-white/[0.05] border-white/10 pr-7 font-mono text-sm" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">%</span>
+                        </div>
+                        <div className="relative">
+                          <Input type="number" step="0.01" min="0" value={collaboratorCalc.toFixed(2)}
+                            onChange={(e) => setForm({ ...form, collaborator_commission: form.value > 0 ? (Number(e.target.value) / form.value) * 100 : 0 })}
+                            className="h-9 bg-white/[0.05] border-white/10 pl-7 font-mono text-sm" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PRESTADOR (repasse fixo R$) */}
+                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                    <div className="flex items-center justify-between">
+                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><Calculator className="size-3" /> Prestador (repasse)</Label>
+                      {providerCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(providerCalc)}</span>}
+                    </div>
+                    <Select
+                      value={form.service_provider_id || "__none__"}
+                      onValueChange={(v) => setForm({ ...form, service_provider_id: v === "__none__" ? "" : v, provider_payout: v === "__none__" ? 0 : form.provider_payout })}
+                    >
+                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem prestador" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Sem prestador / executar internamente</SelectItem>
+                        {providers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name} · {p.specialty}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    {form.service_provider_id && (
+                      <div className="mt-3 relative">
+                        <Input type="number" step="0.01" min="0" value={form.provider_payout || ""}
+                          onChange={(e) => setForm({ ...form, provider_payout: Number(e.target.value) })}
+                          placeholder="Valor fixo do repasse"
+                          className="h-9 bg-white/[0.05] border-white/10 pl-9 font-mono text-sm" />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
           {/* RIGHT SIDEBAR SUMMARY */}
           <div className="bg-white/[0.02] border-l border-white/10 p-8 flex flex-col justify-between">
