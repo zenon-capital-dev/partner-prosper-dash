@@ -33,7 +33,6 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Catálogo", adminOnly: true, items: [
     { title: "Produtos", url: "/produtos", icon: Package, adminOnly: true },
-    { title: "Projetos", url: "/projetos", icon: Briefcase, adminOnly: true },
     { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", adminOnly: true, items: [
