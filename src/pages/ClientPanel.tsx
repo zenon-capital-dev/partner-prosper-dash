@@ -296,42 +296,30 @@ export default function ClientPanel() {
         ) : (
           /* MAIN HOME VIEW */
           <>
-            {/* ─── Refined Hero ─── */}
-            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 text-white p-6 sm:p-10 lg:p-12 shadow-xl">
-              <div className="absolute -top-32 -right-32 size-[420px] rounded-full bg-primary/30 blur-[120px] opacity-60 pointer-events-none" />
-              <div className="absolute -bottom-24 -left-24 size-[320px] rounded-full bg-blue-500/20 blur-[100px] opacity-50 pointer-events-none" />
-              <div
-                className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-                  backgroundSize: "48px 48px",
-                  maskImage: "radial-gradient(ellipse 70% 60% at 30% 30%, #000 30%, transparent 100%)",
-                }}
-              />
-
-              <div className="relative grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 lg:gap-12 items-center">
+            {/* ─── Hero (light) ─── */}
+            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/70 shadow-sm p-6 sm:p-8 lg:p-10">
+              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
                 <div className="space-y-5">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-xl px-3 py-1.5">
-                    <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/70">Sua jornada</span>
-                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-3 py-1 text-[11px] font-medium text-indigo-700">
+                    <span className="size-1.5 rounded-full bg-indigo-600" />
+                    Sua jornada
+                  </span>
 
-                  <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.05]">
-                    Olá, <span className="text-primary italic">{client.full_name?.split(" ")[0] || ""}</span>.
-                    <span className="block text-white/60 text-base sm:text-lg lg:text-xl font-normal italic mt-2 tracking-tight">
+                  <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
+                    Olá, <span className="text-indigo-600">{client.full_name?.split(" ")[0] || ""}</span>.
+                    <span className="block text-slate-500 text-base sm:text-lg lg:text-xl font-normal mt-1.5">
                       Tudo o que importa, num só lugar.
                     </span>
                   </h1>
 
                   <div className="space-y-2 max-w-md pt-1">
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/50">
+                    <div className="flex items-center justify-between text-[11.5px] font-medium text-slate-500">
                       <span>Progresso do onboarding</span>
-                      <span className="text-white tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
+                      <span className="text-slate-900 font-semibold tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-700"
+                        className="h-full bg-indigo-600 rounded-full transition-all duration-700"
                         style={{ width: `${Math.max(4, Math.round(client.onboarding_progress || 0))}%` }}
                       />
                     </div>
@@ -340,23 +328,23 @@ export default function ClientPanel() {
                   <div className="flex flex-wrap gap-2 pt-2">
                     <button
                       onClick={() => setActiveTab("checklist")}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-white text-slate-950 text-[13px] font-semibold hover:bg-white/90 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium transition-colors active:scale-[0.99] shadow-sm"
                     >
                       <ListChecks className="size-4" /> Ver pendências
                       {pendingDocs > 0 && (
-                        <span className="ml-1 inline-flex items-center justify-center size-5 rounded-md bg-rose-500 text-white text-[10px] font-bold tabular-nums">{pendingDocs}</span>
+                        <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded bg-white/20 text-white text-[10.5px] font-semibold tabular-nums">{pendingDocs}</span>
                       )}
                     </button>
                     <button
                       onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-md text-white text-[13px] font-semibold hover:bg-white/10 transition-all active:scale-[0.98]"
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-slate-200 bg-white text-slate-700 text-[13px] font-medium hover:bg-slate-50 transition-colors active:scale-[0.99]"
                     >
                       <MessageSquare className="size-4" /> Falar com a equipe
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-white/10 lg:pl-10">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-slate-200/70 lg:pl-8">
                   <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} icon={<Package className="size-3.5" />} />
                   <HeroKpi label="Documentos" value={String(pendingDocs)} sub={pendingDocs > 0 ? "pendentes" : "em dia"} tone={pendingDocs > 0 ? "warning" : "success"} icon={<FileText className="size-3.5" />} />
                   <HeroKpi label="Pagamentos" value={String(pendingPayments)} sub={pendingPayments > 0 ? "em aberto" : "quitado"} tone={pendingPayments > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
@@ -364,6 +352,7 @@ export default function ClientPanel() {
                 </div>
               </div>
             </section>
+
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
               <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide">
