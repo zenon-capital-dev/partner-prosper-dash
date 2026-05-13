@@ -2,10 +2,10 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
-  Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, LogOut, Search,
-  Briefcase, CircleDollarSign, Command, Zap, Target, ClipboardList, History,
-  Truck, TrendingUp, Home, Boxes, PackageCheck, FileCheck2,
-  MessageSquare, FolderArchive, Receipt, ListChecks, ShoppingBag, Inbox, Layers,
+  Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, ChevronRight, LogOut, Search,
+  Briefcase, CircleDollarSign, Command, Zap, ClipboardList, History,
+  Truck, TrendingUp, Home, Boxes, FileCheck2,
+  MessageSquare, FolderArchive, ListChecks, ShoppingBag,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -25,10 +25,6 @@ import { cn } from "@/lib/utils";
 
 type NavItem = { title: string; url: string; icon: any; badge?: string };
 type NavSection = { label: string; items: NavItem[] };
-
-/* ============================================================
-   Menu structures — aligned to actual panel tabs / routes.
-   ============================================================ */
 
 const adminSections: NavSection[] = [
   {
@@ -50,9 +46,7 @@ const adminSections: NavSection[] = [
   },
   {
     label: "Clientes",
-    items: [
-      { title: "Clientes", url: "/clientes", icon: Users },
-    ],
+    items: [{ title: "Clientes", url: "/clientes", icon: Users }],
   },
   {
     label: "Operação",
@@ -80,9 +74,7 @@ const adminSections: NavSection[] = [
   },
   {
     label: "Parceiros",
-    items: [
-      { title: "Parceiros", url: "/parceiros", icon: Handshake },
-    ],
+    items: [{ title: "Parceiros", url: "/parceiros", icon: Handshake }],
   },
   {
     label: "Prestadores",
@@ -100,7 +92,7 @@ const adminSections: NavSection[] = [
     ],
   },
   {
-    label: "Configurações",
+    label: "Sistema",
     items: [
       { title: "Usuários & Acessos", url: "/usuarios", icon: UserCog },
       { title: "Automações", url: "/automacoes", icon: Zap },
@@ -109,7 +101,6 @@ const adminSections: NavSection[] = [
   },
 ];
 
-// Cliente — URLs mapeiam direto para abas internas do ClientPanel
 const clientSections: NavSection[] = [
   {
     label: "Meu Painel",
@@ -131,7 +122,6 @@ const clientSections: NavSection[] = [
   },
 ];
 
-// Prestador — URLs mapeiam para abas internas do ProviderPanel
 const prestadorSections: NavSection[] = [
   {
     label: "Operação",
@@ -151,7 +141,6 @@ const prestadorSections: NavSection[] = [
   },
 ];
 
-// Parceiro — URLs mapeiam para abas internas do PartnerPanel
 const partnerSections: NavSection[] = [
   {
     label: "Painel",
@@ -198,11 +187,7 @@ export function AppSidebar() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const isActive = (path: string) => {
-    if (path === "/") return pathname === "/";
-    // exact match — evita que /cliente case com /cliente/produtos
-    return pathname === path;
-  };
+  const isActive = (path: string) => pathname === path;
 
   const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
@@ -212,27 +197,25 @@ export function AppSidebar() {
 
   const sections = showAdmin
     ? adminSections
-    : showPartner
-      ? partnerSections
-      : showReferrer
-        ? referrerSections
-        : showPrestador
-          ? prestadorSections
-          : showClient
-            ? clientSections
-            : adminSections;
+    : showPartner ? partnerSections
+    : showReferrer ? referrerSections
+    : showPrestador ? prestadorSections
+    : showClient ? clientSections
+    : adminSections;
 
-  const portalLabel = showAdmin
-    ? "Operações"
-    : showPartner
-      ? "Parceiro"
-      : showPrestador
-        ? "Prestador"
-        : showClient
-          ? "Cliente"
-          : showReferrer
-            ? "Indicador"
-            : "Operações";
+  const portalLabel = showAdmin ? "Direct Response"
+    : showPartner ? "Parceiro"
+    : showPrestador ? "Prestador"
+    : showClient ? "Cliente"
+    : showReferrer ? "Indicador"
+    : "Operações";
+
+  const portalTitle = showAdmin ? "Admin"
+    : showPartner ? "Parceiro"
+    : showPrestador ? "Prestador"
+    : showClient ? "Cliente"
+    : showReferrer ? "Indicador"
+    : "Workspace";
 
   const cmdItems = useMemo(
     () => sections.flatMap((s) => s.items.map((i) => ({ ...i, group: s.label }))),
@@ -245,29 +228,25 @@ export function AppSidebar() {
     <>
       <Sidebar
         collapsible="icon"
-        className="border-r border-white/[0.06] bg-sidebar-background transition-[width] duration-300"
+        className="border-r border-slate-200/80 bg-white transition-[width] duration-300"
       >
         {/* ===== Brand ===== */}
-        <SidebarHeader className="!bg-transparent px-5 pt-6 pb-5">
+        <SidebarHeader className="!bg-white px-5 pt-6 pb-5 border-b border-slate-100">
           <button
             onClick={() => navigate("/")}
-            className={cn(
-              "flex items-center gap-3 group w-full",
-              collapsed ? "justify-center" : ""
-            )}
+            className={cn("flex items-center gap-3.5 group w-full", collapsed && "justify-center")}
           >
             <div className="relative shrink-0">
-              <div className="size-11 rounded-xl bg-gradient-to-br from-primary/30 via-white/[0.06] to-white/[0.02] border border-white/[0.10] flex items-center justify-center shadow-lg shadow-primary/10">
-                <AppLogo size={24} />
+              <div className="size-12 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-[0_8px_20px_-6px_hsl(var(--primary)/0.45)] ring-1 ring-primary/20">
+                <AppLogo size={26} />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0c0d12]" />
             </div>
             {!collapsed && (
-              <div className="min-w-0 flex-1 text-left leading-none">
-                <p className="font-display text-[17px] font-bold tracking-tight text-white">
-                  Prosper
+              <div className="min-w-0 flex-1 text-left leading-tight">
+                <p className="font-display text-[19px] font-extrabold tracking-tight text-slate-900">
+                  {portalTitle}
                 </p>
-                <p className="text-[10px] font-semibold tracking-[0.24em] uppercase text-primary/80 mt-1.5">
+                <p className="text-[10px] font-bold tracking-[0.22em] uppercase text-slate-400 mt-1">
                   {portalLabel}
                 </p>
               </div>
@@ -277,11 +256,11 @@ export function AppSidebar() {
           {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-5 w-full h-10 rounded-xl bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.06] hover:border-white/[0.14] flex items-center gap-2.5 px-3.5 text-[13px] text-white/55 transition-all group"
+              className="mt-5 w-full h-10 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 flex items-center gap-2.5 px-3.5 text-[13px] text-slate-500 transition-all group"
             >
-              <Search className="size-4 group-hover:text-white transition-colors" />
+              <Search className="size-4 group-hover:text-slate-700 transition-colors" />
               <span className="flex-1 text-left font-medium">Buscar...</span>
-              <kbd className="text-[10px] font-mono bg-white/[0.07] border border-white/[0.10] rounded-md px-1.5 py-0.5 flex items-center gap-0.5 text-white/50">
+              <kbd className="text-[10px] font-mono bg-white border border-slate-200 rounded-md px-1.5 py-0.5 flex items-center gap-0.5 text-slate-500">
                 <Command className="size-2.5" />K
               </kbd>
             </button>
@@ -289,26 +268,19 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ===== Navigation ===== */}
-        <SidebarContent className="!bg-transparent px-3 pb-4 overflow-x-hidden vx-sidebar-scroll">
+        <SidebarContent className="!bg-white px-3 pt-4 pb-4 overflow-x-hidden">
           {sections.map((section, idx) => (
-            <SidebarGroup
-              key={section.label}
-              className={cn("py-0", idx > 0 && "mt-5")}
-            >
+            <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-4")}>
               {!collapsed && (
-                <div className="px-3.5 mb-2 flex items-center gap-2">
-                  <div className="h-px flex-1 bg-gradient-to-r from-white/[0.08] to-transparent" />
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+                <div className="px-3 mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                     {section.label}
                   </span>
-                  <div className="h-px flex-[2] bg-gradient-to-l from-white/[0.08] to-transparent" />
                 </div>
               )}
-              {collapsed && idx > 0 && (
-                <div className="h-px bg-white/[0.06] mx-2.5 mb-2.5" />
-              )}
+              {collapsed && idx > 0 && <div className="h-px bg-slate-100 mx-2.5 mb-2.5" />}
               <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
+                <SidebarMenu className="gap-0.5">
                   {section.items.map((item) => {
                     const active = isActive(item.url);
                     const Icon = item.icon;
@@ -324,26 +296,19 @@ export function AppSidebar() {
                             to={item.url}
                             end
                             className={cn(
-                              "group relative flex items-center rounded-lg text-[13.5px] font-medium transition-all duration-200",
-                              collapsed
-                                ? "justify-center h-11 w-11 mx-auto"
-                                : "h-11 px-3.5 gap-3",
+                              "group relative flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200",
+                              collapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 px-3 gap-3",
                               active
-                                ? "text-white bg-gradient-to-r from-primary/20 via-primary/10 to-transparent shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]"
-                                : "text-white/60 hover:text-white hover:bg-white/[0.045]"
+                                ? "bg-gradient-to-r from-primary to-primary-glow text-white shadow-[0_8px_20px_-8px_hsl(var(--primary)/0.55)]"
+                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
                             )}
                           >
-                            {active && !collapsed && (
-                              <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary))]" />
-                            )}
                             <Icon
                               className={cn(
-                                "size-[17px] shrink-0 transition-all",
-                                active
-                                  ? "text-primary"
-                                  : "text-white/50 group-hover:text-white/90"
+                                "size-[18px] shrink-0 transition-all",
+                                active ? "text-white" : "text-slate-400 group-hover:text-slate-700"
                               )}
-                              strokeWidth={active ? 2.25 : 1.85}
+                              strokeWidth={active ? 2.4 : 2}
                             />
                             {!collapsed && (
                               <>
@@ -351,10 +316,16 @@ export function AppSidebar() {
                                   {item.title}
                                 </span>
                                 {item.badge && (
-                                  <span className="text-[10px] font-bold bg-primary/20 text-primary px-1.5 py-0.5 rounded-md">
+                                  <span
+                                    className={cn(
+                                      "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
+                                      active ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
+                                    )}
+                                  >
                                     {item.badge}
                                   </span>
                                 )}
+                                {active && <ChevronRight className="size-4 text-white/90 shrink-0" />}
                               </>
                             )}
                           </NavLink>
@@ -368,30 +339,30 @@ export function AppSidebar() {
           ))}
         </SidebarContent>
 
-        {/* ===== Footer: user + actions ===== */}
-        <SidebarFooter className="!bg-transparent p-3 mt-auto border-t border-white/[0.06]">
+        {/* ===== Footer ===== */}
+        <SidebarFooter className="!bg-white p-3 mt-auto border-t border-slate-100">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-xl p-2.5 hover:bg-white/[0.05] transition-colors group",
+                  "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-slate-100/70 transition-colors group",
                   collapsed && "justify-center"
                 )}
               >
-                <div className="size-10 rounded-xl bg-gradient-to-br from-primary/50 to-primary/15 border border-primary/30 flex items-center justify-center text-[13px] font-bold text-white shrink-0 shadow-md shadow-primary/10">
+                <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center text-[13px] font-bold text-white shrink-0 shadow-md shadow-primary/20">
                   {initials(fullName || user?.email || "U")}
                 </div>
                 {!collapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[13.5px] font-semibold text-white truncate leading-tight">
+                      <p className="text-[13.5px] font-semibold text-slate-900 truncate leading-tight">
                         {fullName}
                       </p>
-                      <p className="text-[11px] text-white/45 truncate font-mono mt-1">
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
                         {user?.email}
                       </p>
                     </div>
-                    <ChevronDown className="size-4 text-white/35 group-hover:text-white/70 transition-colors shrink-0" />
+                    <ChevronDown className="size-4 text-slate-400 group-hover:text-slate-700 transition-colors shrink-0" />
                   </>
                 )}
               </button>
@@ -399,34 +370,34 @@ export function AppSidebar() {
             <DropdownMenuContent
               side={collapsed ? "right" : "top"}
               align="end"
-              className="w-64 rounded-xl border-white/[0.08] bg-[#0c0d12] text-white shadow-2xl p-1.5"
+              className="w-64 rounded-xl shadow-2xl p-1.5"
             >
               <DropdownMenuLabel className="px-2.5 py-2">
-                <p className="text-[12.5px] font-semibold text-white truncate">{fullName}</p>
-                <p className="text-[11px] text-white/45 truncate font-mono mt-0.5">{user?.email}</p>
-                <span className="inline-flex items-center mt-2 px-2 py-0.5 rounded-md bg-primary/15 text-primary text-[10px] font-bold uppercase tracking-wider">
+                <p className="text-[12.5px] font-semibold truncate">{fullName}</p>
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">{user?.email}</p>
+                <span className="inline-flex items-center mt-2 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
                   {portalLabel}
                 </span>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => navigate(showAdmin ? "/configuracoes" : "/perfil")}
-                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md focus:bg-white/[0.06] cursor-pointer"
+                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md cursor-pointer"
               >
-                <Settings className="size-4 text-white/50" />
+                <Settings className="size-4 text-muted-foreground" />
                 Configurações
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/suporte")}
-                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md focus:bg-white/[0.06] cursor-pointer"
+                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md cursor-pointer"
               >
-                <LifeBuoy className="size-4 text-white/50" />
+                <LifeBuoy className="size-4 text-muted-foreground" />
                 Suporte
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={signOut}
-                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md text-rose-400 focus:bg-rose-500/10 focus:text-rose-300 cursor-pointer"
+                className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md text-rose-600 focus:bg-rose-50 focus:text-rose-700 cursor-pointer"
               >
                 <LogOut className="size-4" />
                 Sair da conta
@@ -438,7 +409,7 @@ export function AppSidebar() {
 
       <CommandDialog open={cmdOpen} onOpenChange={setCmdOpen}>
         <CommandInput placeholder="Buscar..." />
-        <CommandList className="max-h-[360px] vx-sidebar-scroll">
+        <CommandList className="max-h-[360px]">
           <CommandEmpty>Nenhum resultado encontrado.</CommandEmpty>
           <CommandGroup heading="Navegação">
             {cmdItems.map((item) => (
