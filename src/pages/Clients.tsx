@@ -34,6 +34,7 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [view, setView] = useState<"grid" | "table">("grid");
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
