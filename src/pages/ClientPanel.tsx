@@ -37,7 +37,7 @@ const CLIENT_TAB_TO_PATH: Record<string, string> = {
 };
 
 export default function ClientPanel() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
