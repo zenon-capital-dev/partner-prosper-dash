@@ -351,47 +351,7 @@ export default function DashboardAdmin() {
           </div>
         </header>
 
-        {/* ============ QUICK ACTIONS BAR ============ */}
-        <div className="flex flex-wrap items-center gap-4 p-4 lg:p-5 rounded-[2rem] bg-slate-950 dark:bg-white/[0.03] text-white overflow-hidden relative group">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(99,102,241,0.2),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <Zap className="size-32 text-indigo-500 -rotate-12" />
-          </div>
-          
-          <div className="relative flex items-center gap-3 pr-5 border-r border-white/10">
-            <div className="size-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-              <Zap className="size-5 text-indigo-400" />
-            </div>
-            <div className="hidden sm:block">
-              <span className="block text-[9px] font-black uppercase tracking-[0.3em] text-indigo-400/80">Command</span>
-              <span className="block text-xs font-black tracking-tight">Quick Terminal</span>
-            </div>
-          </div>
-          
-          <div className="relative flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar">
-            {[
-              { label: "New Lead", icon: UserPlus, href: "/leads?new=true", color: "bg-indigo-500" },
-              { label: "Draft Proposal", icon: FileText, href: "/propostas?new=true", color: "bg-violet-500" },
-              { label: "Log Revenue", icon: CircleDollarSign, href: "/vendas?new=true", color: "bg-emerald-500" },
-              { label: "System Sync", icon: Activity, href: "#", color: "bg-amber-500" },
-            ].map((action) => (
-              <Link
-                key={action.label}
-                to={action.href}
-                className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/5 hover:border-white/10 transition-all whitespace-nowrap group/item"
-              >
-                <div className={cn("size-2 rounded-full", action.color)} />
-                <span className="text-xs font-black tracking-widest uppercase opacity-80 group-hover/item:opacity-100">{action.label}</span>
-                <ArrowUpRight className="size-3 opacity-0 group-hover/item:opacity-100 transition-all group-hover/item:translate-x-0.5" />
-              </Link>
-            ))}
-          </div>
-
-          <button className="relative px-6 py-2.5 rounded-2xl bg-indigo-500 hover:bg-indigo-400 flex items-center gap-2 shadow-[0_10px_30px_-5px_rgba(99,102,241,0.4)] transition-all font-black text-xs uppercase tracking-widest">
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Add Entry</span>
-          </button>
-        </div>
+{/* Quick Terminal removido — ações rápidas já estão no header e na seção dedicada abaixo */}
 
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">

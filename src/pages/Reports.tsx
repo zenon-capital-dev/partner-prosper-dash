@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell, PieChart, Pie } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell, PieChart, Pie, LineChart, Line, AreaChart, Area, Legend } from "recharts";
 import { formatBRL, formatDate } from "@/lib/format";
 import { exportToPDF, exportToExcel } from "@/lib/exports";
-import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2, Search as SearchIcon } from "lucide-react";
+import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2, Search as SearchIcon, Activity, Target, AlertTriangle, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 type ReportType = 
@@ -346,6 +346,54 @@ export default function Reports() {
 
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
+  // Painel executivo agregado (independente do tipo de relatório)
+  const execKpis = useMemo(() => {
+    const totalRevenue = sales.reduce((s, x) => s + Number(x.amount || 0), 0);
+    const totalDeals = sales.length;
+    const avgTicket = totalDeals > 0 ? totalRevenue / totalDeals : 0;
+    const newClients = clientsData.length;
+    const completedDemands = clientProducts.filter((p: any) => p.status === "concluido").length;
+    const openDemands = clientProducts.filter((p: any) => p.status !== "concluido" && p.status !== "cancelado").length;
+    const conversion = newClients > 0 ? Math.round((totalDeals / newClients) * 100) : 0;
+    const overdue = payments.filter((p: any) => p.status === "vencido" || (p.status === "pendente" && new Date(p.due_date) < new Date()));
+    const overdueAmount = overdue.reduce((s, p: any) => s + Number(p.amount || 0), 0);
+    const commissionsTotal = commissions.reduce((s, c: any) => s + Number(c.amount || 0), 0);
+    return { totalRevenue, totalDeals, avgTicket, newClients, completedDemands, openDemands, conversion, overdueAmount, commissionsTotal };
+  }, [sales, clientsData, clientProducts, payments, commissions]);
+
+  // Tendência diária de receita
+  const revenueTrend = useMemo(() => {
+    const map: Record<string, { date: string; receita: number; vendas: number }> = {};
+    sales.forEach((s: any) => {
+      const k = s.sale_date;
+      if (!k) return;
+      (map[k] ||= { date: formatDate(k), receita: 0, vendas: 0 });
+      map[k].receita += Number(s.amount || 0);
+      map[k].vendas += 1;
+    });
+    return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+  }, [sales]);
+
+  // Top 5 produtos
+  const topProducts = useMemo(() => {
+    const map: Record<string, number> = {};
+    sales.forEach((s: any) => {
+      const n = s.products?.name || "Outros";
+      map[n] = (map[n] || 0) + Number(s.amount || 0);
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [sales]);
+
+  // Demandas por status
+  const demandsByStatus = useMemo(() => {
+    const map: Record<string, number> = {};
+    clientProducts.forEach((p: any) => {
+      const s = p.status || "indefinido";
+      map[s] = (map[s] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [clientProducts]);
+
   return (
     <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in bg-premium min-h-screen space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -357,8 +405,113 @@ export default function Reports() {
           <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
             Relatórios <span className="text-primary italic font-medium">Empresariais</span>.
           </h1>
+          <p className="text-sm text-muted-foreground max-w-2xl pt-2">
+            Painel executivo do período + relatórios detalhados com filtros, gráficos e exportação em PDF/Excel.
+          </p>
         </div>
       </div>
+
+      {/* Painel executivo — KPIs do período */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { label: "Receita", value: formatBRL(execKpis.totalRevenue), icon: DollarSign, tone: "from-emerald-500/15 text-emerald-600" },
+          { label: "Vendas", value: execKpis.totalDeals, icon: Receipt, tone: "from-indigo-500/15 text-indigo-600" },
+          { label: "Ticket Médio", value: formatBRL(execKpis.avgTicket), icon: TrendingUp, tone: "from-violet-500/15 text-violet-600" },
+          { label: "Novos Clientes", value: execKpis.newClients, icon: Users, tone: "from-sky-500/15 text-sky-600" },
+          { label: "Conversão", value: `${execKpis.conversion}%`, icon: Target, tone: "from-amber-500/15 text-amber-600" },
+          { label: "Inadimplência", value: formatBRL(execKpis.overdueAmount), icon: AlertTriangle, tone: "from-rose-500/15 text-rose-600" },
+        ].map((k) => (
+          <div key={k.label} className="vx-card p-4 rounded-2xl bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+            <div className={`size-9 rounded-xl bg-gradient-to-br ${k.tone} flex items-center justify-center mb-2`}>
+              <k.icon className="size-4" />
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{k.label}</p>
+            <p className="font-display text-xl font-black tabular-nums text-slate-900 dark:text-white">{k.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Mini-painel de tendência + mix */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 vx-card p-6 rounded-[24px] bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-editorial text-lg font-bold">Receita no Período</h3>
+              <p className="text-xs text-muted-foreground">Evolução diária baseada nos filtros selecionados</p>
+            </div>
+            <Badge variant="outline" className="rounded-full">{revenueTrend.length} dias</Badge>
+          </div>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueTrend}>
+                <defs>
+                  <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
+                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip contentStyle={{ borderRadius: 12, border: "none" }} formatter={(v: any) => formatBRL(Number(v))} />
+                <Area type="monotone" dataKey="receita" stroke="#6366f1" strokeWidth={2} fill="url(#rev)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="vx-card p-6 rounded-[24px] bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+          <h3 className="font-editorial text-lg font-bold mb-1">Mix de Demandas</h3>
+          <p className="text-xs text-muted-foreground mb-3">Status atual</p>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={demandsByStatus} cx="50%" cy="50%" innerRadius={48} outerRadius={80} paddingAngle={3} dataKey="value">
+                  {demandsByStatus.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: 12, border: "none" }} />
+                <Legend wrapperStyle={{ fontSize: 10 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Top produtos */}
+      <div className="vx-card p-6 rounded-[24px] bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-editorial text-lg font-bold">Top Produtos</h3>
+            <p className="text-xs text-muted-foreground">Maiores receitas no período</p>
+          </div>
+          <Award className="size-5 text-amber-500" />
+        </div>
+        <div className="space-y-3">
+          {topProducts.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Nenhuma venda no período.</p>
+          ) : (
+            topProducts.map((p, i) => {
+              const max = topProducts[0].value || 1;
+              const pct = (p.value / max) * 100;
+              return (
+                <div key={p.name} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="flex items-center gap-2">
+                      <span className="size-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black">{i + 1}</span>
+                      {p.name}
+                    </span>
+                    <span className="tabular-nums">{formatBRL(p.value)}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
 
       {/* FILTERS */}
       <div className="vx-card p-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] space-y-6">
