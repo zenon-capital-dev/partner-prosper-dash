@@ -87,13 +87,13 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white border-r border-slate-200/70",
-        collapsed ? "w-[72px]" : "w-[248px]"
+        "bg-card border-r border-border/80 shadow-[4px_0_24px_-24px_hsl(var(--foreground)/0.5)]",
+        collapsed ? "w-[72px]" : "w-[272px]"
       )}
     >
       {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[60px] flex items-center border-b border-slate-200/70",
+        "relative shrink-0 h-[64px] flex items-center border-b border-border/80",
         collapsed ? "px-3 justify-center" : "px-4"
       )}>
         <DropdownMenu>
@@ -102,18 +102,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               "flex items-center gap-2.5 rounded-lg transition-colors group",
               collapsed ? "size-10 justify-center hover:bg-slate-100" : "w-full px-1.5 py-1.5 hover:bg-slate-50"
             )}>
-              <div className="size-8 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-sm shrink-0">
-                <Box className="size-4 text-white" strokeWidth={2.5} />
+              <div className="size-9 rounded-lg bg-primary flex items-center justify-center shadow-sm shrink-0 ring-1 ring-primary/20">
+                <Box className="size-4 text-primary-foreground" strokeWidth={2.5} />
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13.5px] font-semibold text-slate-900 leading-tight tracking-tight truncate">VendxCRM</p>
-                  <p className="text-[10px] font-medium text-slate-500 leading-tight mt-0.5 truncate">
-                    Painel Administrativo
+                  <p className="text-[13.5px] font-bold text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground leading-tight mt-0.5 truncate uppercase tracking-[0.12em]">
+                    Admin OS
                   </p>
                 </div>
               )}
-              {!collapsed && <ChevronDown className="size-3.5 text-slate-400 shrink-0" />}
+              {!collapsed && <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
@@ -130,7 +130,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-300 transition-all z-10"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-card border border-border shadow-sm flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
@@ -141,7 +141,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       {collapsed && (
         <button
           onClick={onToggle}
-          className="mx-auto mt-2 size-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+          className="mx-auto mt-2 size-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           title="Expandir"
         >
           <PanelLeftOpen className="size-4" />
@@ -154,12 +154,12 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-2.5 mb-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/70">
                   {section.label}
                 </span>
               </div>
             ) : (
-              <div className="h-px bg-slate-200 mx-3 my-2" />
+              <div className="h-px bg-border mx-3 my-2" />
             )}
             <div className="space-y-0.5">
               {section.items.map((item) => {
@@ -171,21 +171,21 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                     to={item.url}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "group relative flex items-center rounded-md text-[13px] font-medium transition-all duration-150",
-                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-8 gap-2.5",
+                      "group relative flex items-center rounded-lg text-[13px] font-semibold transition-all duration-150",
+                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-9 gap-2.5",
                       active
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        ? "bg-primary-muted text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.08)]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                     )}
                   >
                     {active && !collapsed && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-indigo-600" />
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-primary" />
                     )}
                     <Icon
                       className={cn(
                         "shrink-0",
                         collapsed ? "size-[18px]" : "size-[15px]",
-                        active ? "text-indigo-600" : "text-slate-500 group-hover:text-slate-700",
+                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                       )}
                       strokeWidth={2}
                     />
@@ -201,23 +201,23 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-slate-200/70 p-2">
+      <div className="shrink-0 border-t border-border/80 p-2 bg-background/55">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-slate-50 transition-colors group",
+              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-muted transition-colors group",
               collapsed && "justify-center"
             )}>
-              <div className="size-8 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-700 text-[11px] font-bold shrink-0 ring-1 ring-slate-200">
+              <div className="size-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground text-[11px] font-bold shrink-0 ring-1 ring-border">
                 {initials(displayName)}
               </div>
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-semibold text-slate-800 truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] text-slate-500 truncate leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12.5px] font-semibold text-foreground truncate leading-tight">{displayName}</p>
+                    <p className="text-[10.5px] text-muted-foreground truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
-                  <ChevronDown className="size-3.5 text-slate-400 shrink-0" />
+                  <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
                 </>
               )}
             </button>

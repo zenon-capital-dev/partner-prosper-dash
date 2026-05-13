@@ -16,7 +16,7 @@ interface Props {
 }
 
 /**
- * Executive page header — light gradient orbs + gradient icon (mesma linha do Dashboard Admin).
+ * Executive page header — sober B2B admin surface.
  */
 export function PageHeader({
   eyebrow,
@@ -31,43 +31,38 @@ export function PageHeader({
 }: Props) {
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
   return (
-    <header className={cn("relative px-5 lg:px-8 pt-6 lg:pt-8 pb-5 space-y-5", className)}>
-      <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-32 -left-32 size-[500px] rounded-full bg-indigo-200/30 dark:bg-indigo-600/[0.06] blur-[140px]" />
-        <div className="absolute top-1/3 -right-32 size-[400px] rounded-full bg-violet-200/25 dark:bg-violet-600/[0.04] blur-[140px]" />
-      </div>
-
+    <header className={cn("relative px-5 lg:px-7 pt-6 pb-4 space-y-4 border-b border-border/70 bg-card/40", className)}>
       {!hideBreadcrumbs && <Breadcrumbs override={breadcrumbOverride} />}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4 min-w-0 flex-1">
           {icon && (
             <div className="relative shrink-0">
-              <div className="size-12 lg:size-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-[0_8px_24px_-6px_rgba(99,102,241,0.5)] ring-1 ring-white/40">
+              <div className="size-11 lg:size-12 rounded-lg bg-primary flex items-center justify-center text-primary-foreground shadow-sm ring-1 ring-primary/15">
                 {icon}
               </div>
-              <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-2 ring-background shadow-md" />
+              <div className="absolute -bottom-1 -right-1 size-3 rounded-full bg-success ring-2 ring-background" />
             </div>
           )}
           <div className="min-w-0">
             {eyebrow && (
-              <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+                <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] font-bold text-muted-foreground">
                 <CalendarClock className="size-3" />
-                <span className="text-slate-500 dark:text-zinc-500">{eyebrow}</span>
-                <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
-                <Sparkles className="size-3 text-indigo-500" />
-                <span className="text-indigo-500 dark:text-indigo-400">Operacional</span>
+                <span>{eyebrow}</span>
+                <span className="size-1 rounded-full bg-border" />
+                <Sparkles className="size-3 text-primary" />
+                <span className="text-primary">Operacional</span>
               </div>
             )}
-            <h1 className="text-[22px] lg:text-[28px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight font-display">
+            <h1 className="text-[22px] lg:text-[28px] font-bold text-foreground tracking-tight mt-1 leading-tight font-display">
               {title}
             </h1>
             {description && (
-              <p className="text-[13px] text-slate-500 dark:text-zinc-500 mt-1 max-w-2xl leading-relaxed">
+              <p className="text-[13px] text-muted-foreground mt-1 max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}
-            <p className="text-[11px] text-slate-400 dark:text-zinc-600 mt-1 capitalize">{today}</p>
+            <p className="text-[11px] text-muted-foreground/70 mt-1 capitalize">{today}</p>
             {meta && <div className="flex flex-wrap items-center gap-2 pt-2">{meta}</div>}
           </div>
         </div>

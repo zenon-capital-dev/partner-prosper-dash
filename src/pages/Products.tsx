@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHero } from "@/components/PageHero";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -313,14 +312,14 @@ export default function Products() {
   };
 
   return (
-    <div className="px-6 lg:px-10 py-6 lg:py-8 space-y-7 max-w-[1440px] mx-auto animate-fade-up">
+    <div className="px-5 lg:px-7 py-5 lg:py-6 space-y-5 max-w-[1680px] mx-auto animate-fade-up">
       {/* HEADER */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border/70">
         <div>
-          <h1 className="text-[22px] font-bold text-slate-900 tracking-tight leading-tight">Produtos</h1>
+          <h1 className="text-[24px] font-bold text-foreground tracking-tight leading-tight">Produtos</h1>
           <div className="flex items-center gap-2 mt-1.5">
             <span className="size-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-500">Sincronizado agora</span>
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Catálogo operacional sincronizado</span>
           </div>
         </div>
       </header>
@@ -331,7 +330,7 @@ export default function Products() {
           {alerts.slice(0, 3).map((a, i) => {
             const Icon = a.Icon;
             return (
-              <div key={i} className={cn("rounded-2xl p-4 flex items-start gap-3 shadow-sm", toneMap[a.tone])}>
+              <div key={i} className={cn("rounded-lg p-4 flex items-start gap-3 shadow-sm", toneMap[a.tone])}>
                 <div className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
                   <Icon className="size-4.5" strokeWidth={2.25} />
                 </div>
@@ -349,14 +348,14 @@ export default function Products() {
       <section className="space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-[18px] font-bold text-slate-900 tracking-tight">Gestão de Produtos</h2>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500 mt-1">Controle de ofertas e custos</p>
+            <h2 className="text-[18px] font-bold text-foreground tracking-tight">Gestão de Produtos</h2>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mt-1">Produtos viram demandas com checklist, SLA e financeiro</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 px-4 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 gap-2 font-semibold">
+            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 px-4 rounded-lg border-border bg-card text-foreground hover:bg-muted gap-2 font-semibold">
               <Tag className="size-4" /> Categorias
             </Button>
-            <Button onClick={openNew} className="h-10 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-semibold shadow-sm">
+            <Button onClick={openNew} className="h-10 px-5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-semibold shadow-sm">
               <Plus className="size-4" strokeWidth={2.5} /> Novo Produto
             </Button>
           </div>
@@ -372,7 +371,7 @@ export default function Products() {
           ].map((k) => {
             const Icon = k.Icon as any;
             return (
-              <div key={k.label} className="bg-white border border-slate-200/70 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
+              <div key={k.label} className="bg-card border border-border rounded-lg p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all">
                 <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0", k.chip)}>
                   <Icon className="size-5" strokeWidth={2} />
                 </div>
@@ -387,7 +386,7 @@ export default function Products() {
       </section>
 
       {/* ============ INSIGHTS ROW ============ */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-7 vx-card p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -444,7 +443,7 @@ export default function Products() {
                   <button
                     key={c.id}
                     onClick={() => setCategoryFilter(c.id)}
-                    className="text-left rounded-xl border border-slate-200 dark:border-white/[0.06] p-3 hover:border-slate-900 hover:shadow-md transition-all group"
+                    className="text-left rounded-lg border border-border p-3 hover:border-primary/30 hover:shadow-sm transition-all group bg-card"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="size-2 rounded-full shrink-0" style={{ background: color }} />
@@ -501,14 +500,14 @@ export default function Products() {
           <Button onClick={openNew} className="mt-4 gap-2 bg-gradient-primary"><Plus className="size-4" /> Novo produto</Button>
         </div>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-5 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((p) => {
             const u = (usageStats as any)[p.id] || { sales: 0, revenue: 0, partners: 0 };
             const cat = p.product_categories;
             const color = cat?.color ?? "#6366f1";
             return (
-              <div key={p.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[100px] -z-10 transition-colors group-hover:bg-slate-100/50" />
+              <div key={p.id} className="bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-muted/40 rounded-bl-[90px] -z-10 transition-colors" />
                 
                 <div className="flex justify-between items-start mb-4">
                   <div className="size-12 rounded-xl flex items-center justify-center shadow-sm" style={{ background: `${color}15`, color: color }}>
@@ -543,18 +542,18 @@ export default function Products() {
                   <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider h-5 px-1.5" style={{ color: color, borderColor: `${color}40` }}>
                     {p.product_categories?.name || "Sem categoria"}
                   </Badge>
-                  <h3 className="text-lg font-bold text-slate-900 line-clamp-1">{p.name}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
+                  <h3 className="text-lg font-bold text-foreground line-clamp-1">{p.name}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100">
                   <div>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço Base</p>
-                    <p className="text-sm font-black text-slate-900">{formatBRL(p.base_price)}</p>
+                    <p className="text-sm font-black text-foreground">{formatBRL(p.base_price)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comissão</p>
-                    <p className="text-sm font-black text-indigo-600">{formatPercent(p.default_commission_percent)}</p>
+                    <p className="text-sm font-black text-primary">{formatPercent(p.default_commission_percent)}</p>
                   </div>
                 </div>
 
