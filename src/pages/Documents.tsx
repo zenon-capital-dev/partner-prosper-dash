@@ -498,6 +498,7 @@ export default function Documents() {
           </div>
         )}
       </div>
+      </div>{/* close px wrapper */}
 
       <DocumentDialog
         open={isDialogOpen}
