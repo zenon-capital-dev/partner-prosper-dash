@@ -108,13 +108,50 @@ export default function ProviderPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_product_status_reports")
-        .select("id, status, notes, created_at, client_product_id")
+        .select("id, status, notes, pending, next_steps, created_at, client_product_id")
         .in("client_product_id", clientProductIds)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(200);
       return data ?? [];
     },
   });
+
+  const lastReportMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of reports as any[]) if (!m.has(r.client_product_id)) m.set(r.client_product_id, r.created_at);
+    return m;
+  }, [reports]);
+
+  const needsReport = (cpId: string, status: string) => {
+    if (status === "concluido" || status === "cancelado") return false;
+    const last = lastReportMap.get(cpId);
+    if (!last) return true;
+    return Date.now() - new Date(last).getTime() > 7 * 86400000;
+  };
+
+  const filteredReports = useMemo(() => {
+    const cutoff = reportPeriod === "all" ? 0 : Date.now() - parseInt(reportPeriod) * 86400000;
+    return (reports as any[]).filter((r) => {
+      if (reportStatusFilter !== "todos" && r.status !== reportStatusFilter) return false;
+      if (cutoff && new Date(r.created_at).getTime() < cutoff) return false;
+      if (search) {
+        const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
+        const name = (cp?.clients?.full_name || "").toLowerCase();
+        if (!name.includes(search.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [reports, reportStatusFilter, reportPeriod, search, clientProducts]);
+
+  const groupedByClient = useMemo(() => {
+    const groups = new Map<string, { client: any; products: any[] }>();
+    for (const cp of clientProducts as any[]) {
+      const cid = cp.clients?.id || "unknown";
+      if (!groups.has(cid)) groups.set(cid, { client: cp.clients, products: [] });
+      groups.get(cid)!.products.push(cp);
+    }
+    return Array.from(groups.values());
+  }, [clientProducts]);
 
   const { data: contracts = [] } = useQuery({
     queryKey: ["provider-contracts", providerId],
