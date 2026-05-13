@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -277,30 +278,47 @@ export default function Products() {
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
-      <PageHero
-        eyebrow="Catálogo"
-        category="Serviços"
-        title="Produtos & Serviços"
-        description="Cadastre os serviços que você oferece (Contábil, Tributário, Jurídico, Societário…). Cada serviço vendido vira uma demanda com checklist e prestador delegado."
-        icon={<Boxes className="size-6" />}
-        actions={
-          <>
-            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 gap-2">
-              <Tag className="size-4" /> Categorias
-            </Button>
-            <Button onClick={openNew} className="btn-premium h-10 px-5 gap-2 font-semibold">
-              <Plus className="size-4" strokeWidth={2.5} /> Novo serviço
-            </Button>
-          </>
-        }
-        kpis={[
-          { label: "Total", value: kpis.total, tone: "primary", icon: <Boxes className="size-4" /> },
-          { label: "Ativos", value: kpis.active, tone: "success", icon: <Power className="size-4" /> },
-          { label: "Recorrentes", value: kpis.recurring, tone: "warning", icon: <RefreshCcw className="size-4" /> },
-          { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "primary", icon: <TrendingUp className="size-4" /> },
-          { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "success", icon: <Sparkles className="size-4" /> },
-        ]}
-      />
+      <header className="px-5 lg:px-8 pt-6 space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="size-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+              <Boxes className="size-8" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                <span>Catálogo</span>
+                <span className="size-1 rounded-full bg-slate-300" />
+                <span className="text-indigo-600">Serviços</span>
+              </div>
+              <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Produtos & Serviços</h1>
+              <p className="text-sm text-slate-500 max-w-xl">Cadastre e gerencie as ofertas da sua plataforma. Demandas automatizadas, checklists e comissões integradas.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+             <Button variant="outline" onClick={() => setCategoryOpen(true)} className="gap-2 h-11 px-4 rounded-xl">
+               <Tag className="size-4" /> Categorias
+             </Button>
+             <Button onClick={openNew} className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white gap-2 font-bold shadow-lg shadow-slate-900/20">
+               <Plus className="size-4" /> Novo serviço
+             </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Total", value: kpis.total, tone: "text-slate-900" },
+            { label: "Ativos", value: kpis.active, tone: "text-emerald-600" },
+            { label: "Recorrentes", value: kpis.recurring, tone: "text-indigo-600" },
+            { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "text-amber-600" },
+            { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "text-emerald-600" },
+          ].map((k) => (
+            <div key={k.label} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{k.label}</p>
+              <p className={cn("text-2xl font-black mt-1", k.tone)}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+      </header>
 
       {/* ============ INSIGHTS ROW ============ */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
@@ -417,71 +435,74 @@ export default function Products() {
           <Button onClick={openNew} className="mt-4 gap-2 bg-gradient-primary"><Plus className="size-4" /> Novo produto</Button>
         </div>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-5 lg:px-8">
           {filtered.map((p) => {
             const u = (usageStats as any)[p.id] || { sales: 0, revenue: 0, partners: 0 };
             const cat = p.product_categories;
-            const color = cat?.color ?? "hsl(var(--primary))";
+            const color = cat?.color ?? "#6366f1";
             return (
-              <div key={p.id} className="vx-card overflow-hidden group relative">
-                <div className="h-1 w-full" style={{ background: color }} />
-                <div className="p-5 space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      {cat && (
-                        <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider"
-                          style={{ background: `${color}1a`, color }}
-                        >
-                          {cat.name}
-                        </span>
-                      )}
-                      <h3 className="font-display font-semibold text-base mt-2 truncate">{p.name}</h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-1 min-h-[2rem]">
-                        {p.description ?? "Sem descrição"}
-                      </p>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="size-8 rounded-md hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="size-4 text-muted-foreground" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuItem onClick={() => openEdit(p)}><Pencil className="size-3.5 mr-2" /> Editar</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setChecklistTarget(p)}><ListChecks className="size-3.5 mr-2" /> Checklist Operacional</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toggleActive(p)}>
-                          {p.active ? <><PowerOff className="size-3.5 mr-2" /> Desativar</> : <><Power className="size-3.5 mr-2" /> Ativar</>}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDelete(p)} className="text-destructive">
-                          <Trash2 className="size-3.5 mr-2" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              <div key={p.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[100px] -z-10 transition-colors group-hover:bg-slate-100/50" />
+                
+                <div className="flex justify-between items-start mb-4">
+                  <div className="size-12 rounded-xl flex items-center justify-center shadow-sm" style={{ background: `${color}15`, color: color }}>
+                    <Package className="size-6" />
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                      <DropdownMenuItem onClick={() => openEdit(p)} className="gap-2">
+                        <Pencil className="size-4" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setChecklistTarget(p)} className="gap-2">
+                        <ListChecks className="size-4" /> Checklist Template
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => toggleActive(p)} className={cn("gap-2", p.active ? "text-amber-600" : "text-emerald-600")}>
+                        {p.active ? <PowerOff className="size-4" /> : <Power className="size-4" />}
+                        {p.active ? "Desativar" : "Ativar"}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDelete(p)} className="gap-2 text-rose-600 focus:text-rose-700">
+                        <Trash2 className="size-4" /> Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Preço</p>
-                      <p className="font-display font-bold vx-mono text-sm mt-1">{formatBRL(p.base_price)}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Comissão</p>
-                      <p className="font-display font-bold vx-mono text-sm mt-1 text-success">{formatPercent(p.default_commission_percent)}</p>
-                    </div>
+                <div className="space-y-1 flex-1">
+                  <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider h-5 px-1.5" style={{ color: color, borderColor: `${color}40` }}>
+                    {p.product_categories?.name || "Sem categoria"}
+                  </Badge>
+                  <h3 className="text-lg font-bold text-slate-900 line-clamp-1">{p.name}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço Base</p>
+                    <p className="text-sm font-black text-slate-900">{formatBRL(p.base_price)}</p>
                   </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comissão</p>
+                    <p className="text-sm font-black text-indigo-600">{formatPercent(p.default_commission_percent)}</p>
+                  </div>
+                </div>
 
-                  <div className="flex items-center justify-between text-[11px] pt-3 border-t border-border">
-                    <div className="flex items-center gap-3 text-muted-foreground">
-                      <span className="inline-flex items-center gap-1"><Users2 className="size-3" /> {u.partners}</span>
-                      <span className="inline-flex items-center gap-1"><TrendingUp className="size-3" /> {u.sales}</span>
-                      {p.recurring && <Badge variant="secondary" className="h-4 text-[9px] px-1.5">RECORRENTE</Badge>}
-                    </div>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase ${p.active ? "text-success" : "text-muted-foreground"}`}>
-                      <span className={`size-1.5 rounded-full ${p.active ? "bg-success" : "bg-muted-foreground"}`} />
-                      {p.active ? "Ativo" : "Inativo"}
-                    </span>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex -space-x-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="size-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-400">
+                        {u.partners > i ? "P" : "+"}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    <TrendingUp className="size-3" />
+                    {u.sales} vendas
                   </div>
                 </div>
               </div>

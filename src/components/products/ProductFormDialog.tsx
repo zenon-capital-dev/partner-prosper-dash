@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Sparkles, Tag, FileText, ListChecks, Settings2, Wallet, Clock, X, Plus,
-  Briefcase, ScrollText, Calculator, Scale,
+  Briefcase, ScrollText, Calculator, Scale, Package
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,19 +148,25 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0 overflow-hidden">
-        <DialogHeader className="px-7 pt-6 pb-4 border-b border-border bg-muted/30">
-          <DialogTitle className="font-display text-xl flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            {editing ? "Editar serviço" : "Novo serviço"}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Cadastre um serviço (ex: Contabilidade, Tributário, Jurídico). Depois ele poderá ser vendido para clientes e delegado a um prestador.
-          </DialogDescription>
+      <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-3xl border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-white">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="size-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+              <Package className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="font-display text-2xl font-bold text-slate-900">
+                {editing ? "Editar serviço" : "Novo serviço"}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 uppercase tracking-widest mt-0.5">
+                Catálogo de Ofertas
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {/* Tab nav */}
-        <div className="flex items-center gap-1 px-7 pt-4 border-b border-border overflow-x-auto">
+        <div className="flex items-center gap-6 px-8 bg-white border-b border-slate-100 overflow-x-auto scrollbar-hide">
           {tabs.map((t) => {
             const active = tab === t.id;
             return (
@@ -168,13 +174,13 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 h-9 text-[12px] font-semibold rounded-t-md border-b-2 transition-colors",
+                  "flex items-center gap-2 px-1 h-12 text-sm font-bold transition-all border-b-2 whitespace-nowrap",
                   active
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-slate-400 hover:text-slate-600"
                 )}
               >
-                <t.icon className="size-3.5" /> {t.label}
+                <t.icon className={cn("size-4", active ? "text-indigo-600" : "text-slate-400")} /> {t.label}
               </button>
             );
           })}
@@ -415,11 +421,22 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
           )}
         </div>
 
-        <DialogFooter className="px-7 py-4 border-t border-border bg-muted/30">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="gap-2">
-            <Sparkles className="size-4" /> {submitting ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar serviço"}
-          </Button>
+        <DialogFooter className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between sm:justify-between">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
+            * Campos obrigatórios
+          </p>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-bold text-slate-500">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={submit} 
+              disabled={submitting}
+              className="rounded-xl px-8 h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-600/20"
+            >
+              {submitting ? "Salvando..." : editing ? "Salvar Alterações" : "Criar Serviço"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
