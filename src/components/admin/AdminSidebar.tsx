@@ -141,7 +141,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       {collapsed && (
         <button
           onClick={onToggle}
-          className="mx-auto mt-2 size-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+          className="mx-auto mt-2 size-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           title="Expandir"
         >
           <PanelLeftOpen className="size-4" />
@@ -154,12 +154,12 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-2.5 mb-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/70">
                   {section.label}
                 </span>
               </div>
             ) : (
-              <div className="h-px bg-slate-200 mx-3 my-2" />
+              <div className="h-px bg-border mx-3 my-2" />
             )}
             <div className="space-y-0.5">
               {section.items.map((item) => {
@@ -171,21 +171,21 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                     to={item.url}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "group relative flex items-center rounded-md text-[13px] font-medium transition-all duration-150",
-                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-8 gap-2.5",
+                      "group relative flex items-center rounded-lg text-[13px] font-semibold transition-all duration-150",
+                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-9 gap-2.5",
                       active
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                        ? "bg-primary-muted text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.08)]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
                     )}
                   >
                     {active && !collapsed && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-indigo-600" />
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-primary" />
                     )}
                     <Icon
                       className={cn(
                         "shrink-0",
                         collapsed ? "size-[18px]" : "size-[15px]",
-                        active ? "text-indigo-600" : "text-slate-500 group-hover:text-slate-700",
+                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                       )}
                       strokeWidth={2}
                     />
