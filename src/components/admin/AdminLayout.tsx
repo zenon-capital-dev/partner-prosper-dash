@@ -4,7 +4,7 @@ import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 // Rotas que SOMENTE admin pleno pode acessar. Colaborador fica restrito a operação.
 const ADMIN_ONLY_PREFIXES = [
