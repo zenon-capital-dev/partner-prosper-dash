@@ -350,10 +350,10 @@ export default function DashboardAdmin() {
 
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          <KpiPremium label="Gross Revenue" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`MTD vs Prev`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
-          <KpiPremium label="Acquisition" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`New closed contracts`} progress={78} />
-          <KpiPremium label="Conversion Rate" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Optimal" : "Review"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads to customers`} progress={stats.conversionRate} />
-          <KpiPremium label="Avg. Ticket" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} deals`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Per transaction" progress={65} />
+          <KpiPremium label="Receita Bruta" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`Mês atual vs anterior`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
+          <KpiPremium label="Aquisição" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`Novos contratos fechados`} progress={78} />
+          <KpiPremium label="Taxa de Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Ótima" : "Revisar"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads em clientes`} progress={stats.conversionRate} />
+          <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
         </section>
 
         {/* ============ MINI METRIC PILLS ============ */}
