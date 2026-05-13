@@ -660,18 +660,28 @@ function PremiumStat({ label, value, sub, tone }: { label: string; value: string
   );
 }
 
-function PremiumTabTrigger({ value, label, icon: Icon, count }: { value: string; label: string; icon: any; count?: number }) {
+function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
   return (
-    <TabsTrigger 
-      value={value} 
-      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary border-none rounded-none p-0 pb-6 text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 transition-all relative group h-auto"
+    <TabsTrigger
+      value={value}
+      className={cn(
+        "shrink-0 inline-flex items-center gap-2 h-10 px-4 rounded-full text-[12.5px] font-semibold tracking-tight",
+        "bg-white dark:bg-white/5 border border-slate-200/70 dark:border-white/10 text-slate-600 dark:text-white/60",
+        "hover:bg-slate-50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-all",
+        "data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-slate-900",
+        "data-[state=active]:border-slate-900 dark:data-[state=active]:border-white data-[state=active]:shadow-md"
+      )}
     >
-      <div className="flex items-center gap-3">
-        <Icon className="size-4 opacity-40 group-data-[state=active]:opacity-100 transition-opacity" />
-        {label}
-        {count !== undefined && <span className="ml-1 text-[10px] tabular-nums font-bold opacity-30 group-data-[state=active]:opacity-100 group-data-[state=active]:text-primary/60">({count})</span>}
-      </div>
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-primary scale-x-0 data-[state=active]:scale-x-100 transition-transform origin-left rounded-full" />
+      <Icon className="size-3.5" />
+      <span>{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className={cn(
+          "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold tabular-nums",
+          alert
+            ? "bg-rose-500 text-white"
+            : "bg-slate-200 text-slate-700 dark:bg-white/15 dark:text-white group-data-[state=active]:bg-white/20"
+        )}>{count}</span>
+      )}
     </TabsTrigger>
   );
 }
