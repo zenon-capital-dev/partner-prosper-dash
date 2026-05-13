@@ -162,19 +162,20 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       )}
 
       {/* NAV */}
-      <nav className="relative flex-1 overflow-y-auto px-2.5 py-3 space-y-4 vx-sidebar-scroll">
+      <nav className="relative flex-1 overflow-y-auto px-2.5 py-3 space-y-5 vx-sidebar-scroll">
         {sections.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
-              <div className="px-2.5 mb-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/70">
+              <div className="px-2.5 mb-2 flex items-center gap-2">
+                <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-400">
                   {section.label}
                 </span>
+                <span className="flex-1 h-px bg-gradient-to-r from-slate-200/80 to-transparent" />
               </div>
             ) : (
               <div className="h-px bg-border mx-3 my-2" />
             )}
-            <div className="space-y-0.5">
+            <div className="space-y-[2px]">
               {section.items.map((item) => {
                 const active = isActive(item.url);
                 const Icon = item.icon;
@@ -185,23 +186,26 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                     onClick={onNavigate}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "group relative flex items-center rounded-lg text-[13px] font-semibold transition-all duration-150",
+                      "group relative flex items-center rounded-lg text-[13px] font-semibold transition-all duration-200",
                       collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-9 gap-2.5",
                       active
-                        ? "bg-primary-muted text-primary shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.08)]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                        ? "bg-gradient-to-r from-indigo-50 to-indigo-50/40 text-indigo-700 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.12)]"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
                     )}
                   >
                     {active && !collapsed && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full bg-primary" />
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-indigo-500 to-indigo-600 shadow-[0_0_8px_hsl(var(--primary)/0.4)]" />
+                    )}
+                    {active && collapsed && (
+                      <span className="absolute -left-2.5 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-indigo-600" />
                     )}
                     <Icon
                       className={cn(
-                        "shrink-0",
+                        "shrink-0 transition-transform",
                         collapsed ? "size-[18px]" : "size-[15px]",
-                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                        active ? "text-indigo-600 scale-110" : "text-slate-400 group-hover:text-slate-700",
                       )}
-                      strokeWidth={2}
+                      strokeWidth={active ? 2.4 : 2}
                     />
                     {!collapsed && (
                       <span className="flex-1 truncate">{item.title}</span>
