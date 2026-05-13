@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHero } from "@/components/PageHero";
 import { 
   FileSignature, Plus, Download, Eye, Clock, CheckCircle2, 
   XCircle, AlertCircle, FileText, Filter, MoreHorizontal,
