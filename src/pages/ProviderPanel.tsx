@@ -364,19 +364,13 @@ export default function ProviderPanel() {
           /* MAIN LIST VIEW */
           <Tabs defaultValue="dashboard" className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12">
-                <TabsTrigger value="dashboard" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Home
-                </TabsTrigger>
-                <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Minhas Demandas ({clientProducts.length})
-                </TabsTrigger>
-                <TabsTrigger value="documentos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Documentos
-                </TabsTrigger>
-                <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Reportes
-                </TabsTrigger>
+              <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 flex-wrap">
+                <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
+                <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
+                <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Documentos ({documents.length})</TabsTrigger>
+                <TabsTrigger value="reportes" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Reportes ({reports.length})</TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Contratos ({contracts.length})</TabsTrigger>
               </TabsList>
 
               <div className="relative group">
