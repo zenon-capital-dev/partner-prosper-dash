@@ -159,7 +159,8 @@ const referrerSections: NavSection[] = [
     label: "Indicador",
     items: [
       { title: "Painel", url: "/indicador", icon: LayoutDashboard },
-      { title: "Indicações", url: "/indicador", icon: Users },
+      { title: "Indicações", url: "/indicador/indicacoes", icon: Users },
+      { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
     ],
   },
 ];
@@ -187,7 +188,7 @@ export function AppSidebar() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => path === "/" ? pathname === path : pathname === path || pathname.startsWith(path + "/");
 
   const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
