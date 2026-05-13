@@ -122,22 +122,7 @@ export default function PartnerPanel() {
            </div>
         </section>
 
-        {(() => null)()}
-        <Tabs
-          value={(() => {
-            const t = (useParams() as any).tab as string | undefined;
-            const map: Record<string, string> = { clientes: "clientes", comissoes: "comissoes", demandas: "demandas", contratos: "contratos" };
-            return t && map[t] ? map[t] : "home";
-          })()}
-          onValueChange={(v) => {
-            const nav = useNavigate;
-            // navigate via window history replacement to avoid hook-in-callback rule
-            const path = v === "home" ? "/parceiro" : `/parceiro/${v}`;
-            window.history.pushState({}, "", path);
-            window.dispatchEvent(new PopStateEvent("popstate"));
-          }}
-          className="space-y-10"
-        >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
            <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 inline-flex flex-wrap">
               <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Visão Geral</TabsTrigger>
               <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Indicados ({clients.length})</TabsTrigger>
