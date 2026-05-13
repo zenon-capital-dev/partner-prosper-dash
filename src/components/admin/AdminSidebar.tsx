@@ -53,7 +53,6 @@ const SECTIONS: NavSection[] = [
     { title: "Auditoria", url: "/auditoria", icon: History },
     { title: "Usuários", url: "/usuarios", icon: UserCog },
     { title: "Automações", url: "/automacoes", icon: Zap },
-    { title: "Suporte", url: "/suporte", icon: LifeBuoy },
     { title: "Configurações", url: "/configuracoes", icon: Settings },
   ]},
 ];
