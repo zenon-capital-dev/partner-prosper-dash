@@ -276,58 +276,114 @@ export default function Products() {
     else { toast.success("Categoria removida"); qc.invalidateQueries({ queryKey: ["categories"] }); qc.invalidateQueries({ queryKey: ["products-list"] }); }
   };
 
+  const alerts = useMemo(() => {
+    const top = Object.entries(usageStats as any)
+      .map(([id, u]: any) => ({ id, ...u, p: products.find((x) => x.id === id) }))
+      .filter((x) => x.p)
+      .sort((a, b) => b.revenue - a.revenue);
+    const best = top[0];
+    const inactive = products.filter((p) => !p.active).length;
+    return [
+      best && {
+        tone: "emerald",
+        title: "Produto top em receita",
+        body: `${best.p.name} lidera com ${formatBRL(best.revenue)} acumulado.`,
+        Icon: TrendingUp,
+      },
+      inactive > 0 && {
+        tone: "rose",
+        title: "Produtos inativos",
+        body: `${inactive} ${inactive === 1 ? "produto está" : "produtos estão"} fora do catálogo público.`,
+        Icon: PowerOff,
+      },
+      kpis.recurring > 0 && {
+        tone: "indigo",
+        title: "Receita recorrente",
+        body: `${kpis.recurring} ${kpis.recurring === 1 ? "serviço recorrente ativo" : "serviços recorrentes ativos"} no portfólio.`,
+        Icon: RefreshCcw,
+      },
+    ].filter(Boolean) as { tone: string; title: string; body: string; Icon: any }[];
+  }, [products, usageStats, kpis]);
+
+  const toneMap: Record<string, string> = {
+    emerald: "bg-emerald-600 text-white",
+    rose: "bg-rose-600 text-white",
+    indigo: "bg-indigo-600 text-white",
+  };
+
   return (
-    <div className="page-shell space-y-8 animate-fade-up">
-      <header className="px-5 lg:px-8 pt-6 space-y-6">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="flex items-start gap-5">
-            <div className="relative shrink-0">
-              <div className="size-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center">
-                <Boxes className="size-7 text-cyan-400" strokeWidth={1.75} />
-              </div>
-              <div className="absolute inset-0 rounded-2xl bg-cyan-400/10 blur-xl -z-10" />
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-zinc-500">
-                <span>Catálogo</span>
-                <span className="size-1 rounded-full bg-zinc-700" />
-                <span className="text-cyan-400">Serviços</span>
-              </div>
-              <h1 className="text-[32px] font-display font-bold text-zinc-50 tracking-[-0.02em] leading-[1.05]">Produtos & Serviços</h1>
-              <p className="text-[13px] text-zinc-500 max-w-xl leading-relaxed">Cadastre e gerencie ofertas. Demandas automatizadas, checklists operacionais e estruturas de comissionamento dinâmico.</p>
-            </div>
+    <div className="px-6 lg:px-10 py-6 lg:py-8 space-y-7 max-w-[1440px] mx-auto animate-fade-up">
+      {/* HEADER */}
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-bold text-slate-900 tracking-tight leading-tight">Produtos</h1>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-500">Sincronizado agora</span>
           </div>
-          <div className="flex items-center gap-2.5">
-             <Button variant="outline" onClick={() => setCategoryOpen(true)} className="gap-2 h-10 px-4 rounded-xl bg-white/[0.03] border-white/[0.08] text-zinc-300 hover:bg-white/[0.06] hover:border-white/15 hover:text-white">
-               <Tag className="size-4" /> Categorias
-             </Button>
-             <Button onClick={openNew} className="h-10 px-5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 gap-2 font-bold shadow-[0_0_25px_-4px_hsla(187,92%,55%,0.5)]">
-               <Plus className="size-4" strokeWidth={2.5} /> Novo serviço
-             </Button>
+        </div>
+      </header>
+
+      {/* ALERT CARDS — bold colored pills like reference */}
+      {alerts.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {alerts.slice(0, 3).map((a, i) => {
+            const Icon = a.Icon;
+            return (
+              <div key={i} className={cn("rounded-2xl p-4 flex items-start gap-3 shadow-sm", toneMap[a.tone])}>
+                <div className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                  <Icon className="size-4.5" strokeWidth={2.25} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-90 leading-tight">{a.title}</p>
+                  <p className="text-[12.5px] font-medium leading-snug mt-1 opacity-95">{a.body}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* GESTÃO BLOCK */}
+      <section className="space-y-5">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-[18px] font-bold text-slate-900 tracking-tight">Gestão de Produtos</h2>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500 mt-1">Controle de ofertas e custos</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 px-4 rounded-xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50 gap-2 font-semibold">
+              <Tag className="size-4" /> Categorias
+            </Button>
+            <Button onClick={openNew} className="h-10 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white gap-2 font-semibold shadow-sm">
+              <Plus className="size-4" strokeWidth={2.5} /> Novo Produto
+            </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* KPIs — white cards with colored chip */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Total", value: String(kpis.total).padStart(2, "0"), tone: "text-zinc-100", accent: "bg-cyan-400" },
-            { label: "Ativos", value: String(kpis.active).padStart(2, "0"), tone: "text-emerald-400", accent: "bg-emerald-400" },
-            { label: "Recorrentes", value: String(kpis.recurring).padStart(2, "0"), tone: "text-zinc-600", accent: "bg-zinc-700" },
-            { label: "Comissão", value: formatPercent(kpis.avgCommission), tone: "text-amber-400", accent: "bg-amber-400" },
-            { label: "Receita", value: formatBRL(kpis.totalRevenue), tone: "text-cyan-400", accent: "bg-cyan-400" },
-          ].map((k) => (
-            <div key={k.label} className="group relative bg-zinc-900/40 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-sm hover:border-cyan-500/25 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[9.5px] font-mono font-bold uppercase tracking-[0.22em] text-zinc-500">{k.label}</p>
-                <span className={cn("size-1.5 rounded-full", k.accent)} style={{ boxShadow: "0 0 8px currentColor" }} />
+            { label: "Ticket médio", value: formatBRL(kpis.totalRevenue / Math.max(1, kpis.total)), Icon: CircleDollarSignIcon, chip: "bg-indigo-50 text-indigo-600" },
+            { label: "Margem média", value: formatPercent(kpis.avgCommission), Icon: PercentIcon, chip: "bg-emerald-50 text-emerald-600" },
+            { label: "Ativos", value: String(kpis.active), Icon: Power, chip: "bg-sky-50 text-sky-600" },
+            { label: "Melhor oferta", value: (Object.entries(usageStats as any).sort((a:any,b:any)=>b[1].revenue-a[1].revenue)[0] ? products.find(p=>p.id===(Object.entries(usageStats as any).sort((a:any,b:any)=>b[1].revenue-a[1].revenue)[0] as any)[0])?.name ?? "—" : "—"), Icon: TrendingUp, chip: "bg-amber-50 text-amber-600" },
+          ].map((k) => {
+            const Icon = k.Icon as any;
+            return (
+              <div key={k.label} className="bg-white border border-slate-200/70 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all">
+                <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0", k.chip)}>
+                  <Icon className="size-5" strokeWidth={2} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 leading-tight">{k.label}</p>
+                  <p className="font-mono text-[18px] font-semibold tabular-nums text-slate-900 leading-tight mt-1 truncate">{k.value}</p>
+                </div>
               </div>
-              <p className={cn("text-[26px] font-mono font-medium tabular-nums tracking-tight leading-none", k.tone)}>{k.value}</p>
-              <div className="mt-3 h-[2px] w-full bg-white/[0.04] rounded-full overflow-hidden">
-                <div className={cn("h-full rounded-full transition-all duration-500", k.accent)} style={{ width: `${Math.min(100, Math.max(8, (kpis.total ? 35 : 8)))}%` }} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-      </header>
+      </section>
 
       {/* ============ INSIGHTS ROW ============ */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
