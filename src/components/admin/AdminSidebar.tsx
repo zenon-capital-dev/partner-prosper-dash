@@ -116,7 +116,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-[13.5px] font-bold text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
                   <p className="text-[10px] font-semibold text-muted-foreground leading-tight mt-0.5 truncate uppercase tracking-[0.12em]">
-                    Admin OS
+                    {portalLabel}
                   </p>
                 </div>
               )}
