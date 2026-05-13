@@ -233,20 +233,27 @@ export default function ClientPanel() {
           /* MAIN HOME VIEW */
           <>
             {/* Header Section */}
-            <section className="relative overflow-hidden rounded-[40px] bg-white dark:bg-card p-10 lg:p-16 border border-slate-100 dark:border-white/5 shadow-sm group">
+            <section className="relative overflow-hidden rounded-2xl sm:rounded-[40px] bg-white dark:bg-card p-5 sm:p-10 lg:p-16 border border-slate-100 dark:border-white/5 shadow-sm group">
               <div className="absolute top-0 right-0 size-[500px] bg-primary/5 blur-[120px] -mr-64 -mt-64 rounded-full transition-all group-hover:bg-primary/10" />
               
-              <div className="flex flex-col lg:flex-row lg:items-center gap-12 relative">
-                 <div className="relative group">
-                    <div className="size-28 lg:size-32 rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-4xl shadow-2xl ring-8 ring-slate-50 dark:ring-white/5 transition-transform duration-500 group-hover:scale-105">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6 sm:gap-12 relative">
+                 <div className="relative group flex items-center gap-4 lg:block">
+                    <div className="size-16 sm:size-24 lg:size-32 rounded-2xl sm:rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-xl sm:text-3xl lg:text-4xl shadow-2xl ring-4 sm:ring-8 ring-slate-50 dark:ring-white/5 transition-transform duration-500 group-hover:scale-105 shrink-0">
                        {initials(client.full_name)}
                     </div>
-                    <div className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-4 border-white dark:border-slate-900">
+                    <div className="hidden lg:flex absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-primary-foreground items-center justify-center shadow-lg border-4 border-white dark:border-slate-900">
                        <CheckCircle2 className="size-5" />
+                    </div>
+                    {/* mobile inline name */}
+                    <div className="lg:hidden min-w-0 flex-1">
+                      <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary/60">Portal do Cliente</span>
+                      <p className="font-editorial text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate mt-1">
+                        {client.full_name}
+                      </p>
                     </div>
                  </div>
                  
-                 <div className="flex-1 space-y-4">
+                 <div className="hidden lg:block flex-1 space-y-4">
                     <div className="flex items-center gap-4">
                        <span className="h-px w-12 bg-primary/30" />
                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary/60 dark:text-primary/80">Private Client Portal</span>
@@ -260,7 +267,13 @@ export default function ClientPanel() {
                     </div>
                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5">
+                 {/* mobile contact line */}
+                 <div className="lg:hidden flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                   <span className="flex items-center gap-1.5 truncate max-w-full"><Mail className="size-3 shrink-0" /> <span className="truncate normal-case tracking-normal">{client.email}</span></span>
+                   {client.phone && <span className="flex items-center gap-1.5"><Phone className="size-3" /> {client.phone}</span>}
+                 </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 lg:gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5 pt-4 lg:pt-0 border-t lg:border-t-0">
                      <PremiumStat label="Serviços" value={String(activeProducts.length)} />
                      <PremiumStat label="Progresso" value={`${Math.round(client.onboarding_progress || 0)}%`} sub="Geral" />
                      <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
@@ -269,16 +282,18 @@ export default function ClientPanel() {
               </div>
             </section>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-              <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
-                <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
-                <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />
-                <PremiumTabTrigger value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} />
-                <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} />
-                <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} />
-                <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-                <PremiumTabTrigger value="descobrir" label="Novas Soluções" icon={ShoppingBag} />
-              </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
+              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide">
+                <TabsList className="bg-transparent h-auto p-0 flex-nowrap sm:flex-wrap gap-x-6 sm:gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-max sm:w-full rounded-none pb-px px-4 sm:px-0">
+                  <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
+                  <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />
+                  <PremiumTabTrigger value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} />
+                  <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} />
+                  <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} />
+                  <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
+                  <PremiumTabTrigger value="descobrir" label="Novas Soluções" icon={ShoppingBag} />
+                </TabsList>
+              </div>
 
               <TabsContent value="home" className="animate-fade-up space-y-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
