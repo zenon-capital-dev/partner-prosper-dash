@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any; badge?: string };
-type NavSection = { label: string; items: NavItem[] };
+type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean };
+type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean };
 
 const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
@@ -40,16 +40,16 @@ const SECTIONS: NavSection[] = [
     { title: "Parceiros", url: "/parceiros", icon: Handshake },
     { title: "Prestadores", url: "/prestadores", icon: Truck },
     { title: "Indicadores", url: "/indicadores", icon: Sparkles },
-    { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
+    { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
   { label: "Financeiro", items: [
-    { title: "Financeiro", url: "/financeiro", icon: Banknote },
-    { title: "Central", url: "/financeiro/central", icon: BarChart3 },
-    { title: "Comissões", url: "/comissoes", icon: Wallet },
+    { title: "Financeiro", url: "/financeiro", icon: Banknote, adminOnly: true },
+    { title: "Central", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
+    { title: "Comissões", url: "/comissoes", icon: Wallet, adminOnly: true },
     { title: "Contratos", url: "/contratos", icon: FileSignature },
     { title: "Documentos", url: "/documentos", icon: FileText },
   ]},
-  { label: "Sistema", items: [
+  { label: "Sistema", adminOnly: true, items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
     { title: "Auditoria", url: "/auditoria", icon: History },
     { title: "Usuários", url: "/usuarios", icon: UserCog },
