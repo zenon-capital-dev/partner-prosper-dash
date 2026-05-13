@@ -1,5 +1,4 @@
 import { Activity, Command, Search } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { InternalChat } from "@/components/chat/InternalChat";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
@@ -47,8 +46,6 @@ export function AdminHeader({ onSearchClick }: AdminHeaderProps) {
         <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-border hover:bg-muted/60 transition-colors">
           <NotificationBell />
         </div>
-        <div className="h-5 w-px bg-border mx-1" />
-        <ThemeToggle />
       </div>
     </header>
   );
