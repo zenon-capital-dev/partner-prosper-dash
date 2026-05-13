@@ -315,16 +315,10 @@ export default function AuthPage() {
             </Button>
           </form>
 
-          {/* Sign-up link */}
+          {/* Cadastro apenas via convite do administrador */}
           <div className="text-center">
             <p className="text-[12.5px] text-slate-500">
-              Não tem uma conta?{" "}
-              <Link
-                to="/cadastro"
-                className="text-slate-900 font-semibold underline underline-offset-2 hover:text-slate-700"
-              >
-                Criar conta
-              </Link>
+              Acesso restrito. Contas são criadas pelo administrador.
             </p>
           </div>
 
