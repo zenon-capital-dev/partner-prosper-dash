@@ -166,7 +166,7 @@ const referrerSections: NavSection[] = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const {
@@ -297,6 +297,7 @@ export function AppSidebar() {
                           <NavLink
                             to={item.url}
                             end
+                            onClick={() => isMobile && setOpenMobile(false)}
                             className={cn(
                               "group relative flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200",
                               collapsed ? "justify-center h-11 w-11 mx-auto" : "h-11 px-3 gap-3",
