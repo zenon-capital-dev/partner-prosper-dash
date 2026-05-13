@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { KeyRound, Eye, EyeOff, Sparkles, Copy } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -22,10 +24,26 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual", priority: "media" });
 
+  // Acesso ao painel (apenas no cadastro novo)
+  const [createAccess, setCreateAccess] = useState(false);
+  const [accessPwd, setAccessPwd] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+
   useEffect(() => {
     if (client) setForm(client);
     else setForm({ status: "ativo" });
+    setCreateAccess(false);
+    setAccessPwd("");
   }, [client, open]);
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let p = "";
+    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    p += "!" + Math.floor(Math.random() * 90 + 10);
+    setAccessPwd(p);
+    setShowPwd(true);
+  };
 
   const { data: partners } = useQuery({
     queryKey: ["partners-select"],
