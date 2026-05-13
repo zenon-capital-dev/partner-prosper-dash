@@ -111,35 +111,75 @@ export default function Proposals() {
     }
   };
 
+  // KPIs do funil
+  const kpis = useMemo(() => {
+    const total = proposals.length;
+    const totalValue = proposals.reduce((s: number, p: any) => s + Number(p.total || 0), 0);
+    const approved = proposals.filter((p: any) => p.status === "aprovada");
+    const approvedValue = approved.reduce((s: number, p: any) => s + Number(p.total || 0), 0);
+    const sent = proposals.filter((p: any) => ["enviada", "visualizada"].includes(p.status)).length;
+    const conversionRate = total > 0 ? Math.round((approved.length / total) * 100) : 0;
+    return { total, totalValue, approvedValue, approvedCount: approved.length, sent, conversionRate };
+  }, [proposals]);
+
   return (
     <div className="page-shell space-y-6 animate-fade-up">
       <PageHero
         eyebrow="Comercial"
         title="Propostas Comerciais"
-        description="Monte propostas profissionais para leads e clientes, acompanhe o status e converta em vendas."
+        description="Monte propostas profissionais, acompanhe o funil e converta em vendas."
         icon={<FileText className="h-5 w-5" />}
         actions={
           <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" /> Nova proposta
           </Button>
         }
+        kpis={[
+          { label: "Total", value: kpis.total, tone: "primary" },
+          { label: "Em Negociação", value: kpis.sent, tone: "info" },
+          { label: "Aprovadas", value: kpis.approvedCount, tone: "success" },
+          { label: "Conversão", value: `${kpis.conversionRate}%`, tone: kpis.conversionRate >= 30 ? "success" : "warning" },
+          { label: "Receita Aprovada", value: formatBRL(kpis.approvedValue), tone: "success" },
+        ]}
       />
+
+      {/* Tabs por status */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { key: "todos", label: "Todas", count: proposals.length },
+          ...(Object.keys(STATUS_META) as Status[]).map((k) => ({
+            key: k,
+            label: STATUS_META[k].label,
+            count: proposals.filter((p: any) => p.status === k).length,
+          })),
+        ].map((t) => {
+          const active = statusFilter === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setStatusFilter(t.key)}
+              className={cn(
+                "h-9 px-4 rounded-xl text-xs font-bold border transition-all flex items-center gap-2",
+                active
+                  ? "bg-foreground text-background border-foreground"
+                  : "bg-muted/30 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {t.label}
+              <span className={cn("px-1.5 rounded-md text-[10px] tabular-nums", active ? "bg-background/20" : "bg-background/60 text-foreground")}>
+                {t.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar por cliente, número ou empresa..."
+          <Input className="pl-9" placeholder="Buscar por número, cliente ou empresa..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos status</SelectItem>
-            {(Object.keys(STATUS_META) as Status[]).map(k => (
-              <SelectItem key={k} value={k}>{STATUS_META[k].label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="rounded-lg border bg-card overflow-hidden">
