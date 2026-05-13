@@ -616,11 +616,6 @@ export default function ClientPanel() {
                 <ClientContractsTab clientId={client.id} contracts={contracts as any} />
               </TabsContent>
             </Tabs>
-
-            {/* NPS — pesquisa de satisfação */}
-            <section className="max-w-2xl mx-auto w-full pt-12">
-              <NpsCard clientId={client.id} />
-            </section>
           </>
         )}
       </div>
