@@ -55,10 +55,27 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-white text-slate-900 flex flex-col lg:flex-row">
+    <div className="min-h-[100dvh] w-full bg-white text-slate-900 flex flex-col lg:flex-row relative overflow-hidden">
+      {/* ─── Ambient background (subtle, light) ─── */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute -top-40 -left-32 size-[520px] rounded-full bg-indigo-200/40 blur-[120px] auth-orb-1" />
+        <div className="absolute top-1/3 -right-40 size-[560px] rounded-full bg-violet-200/40 blur-[120px] auth-orb-2" />
+        <div className="absolute -bottom-40 left-1/3 size-[460px] rounded-full bg-sky-200/40 blur-[120px] auth-orb-3" />
+        <div
+          className="absolute inset-0 opacity-[0.5]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 100%)",
+            WebkitMaskImage: "radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 100%)",
+          }}
+        />
+      </div>
+
       {/* LEFT — brand panel (desktop) */}
-      <aside className="hidden lg:flex lg:w-[46%] xl:w-[44%] relative bg-slate-50 border-r border-slate-200/70 flex-col justify-between p-12 xl:p-16">
-        <header className="flex items-center gap-3">
+      <aside className="hidden lg:flex lg:w-[46%] xl:w-[44%] relative z-10 bg-slate-50/70 backdrop-blur-sm border-r border-slate-200/70 flex-col justify-between p-12 xl:p-16">
+        <header className="flex items-center gap-3 auth-fade-up" style={{ animationDelay: "60ms" }}>
           <ProsperLogo size={38} />
           <div>
             <div className="font-semibold text-[15px] tracking-tight leading-none text-slate-900">Prosper</div>
@@ -67,26 +84,36 @@ export default function AuthPage() {
         </header>
 
         <div className="space-y-10 max-w-md">
-          <div className="space-y-5">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600">
-              <span className="size-1.5 rounded-full bg-emerald-500" />
+          <div className="space-y-5 auth-fade-up" style={{ animationDelay: "120ms" }}>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white border border-slate-200 px-3 py-1 text-[11px] font-medium text-slate-600 shadow-sm">
+              <span className="relative flex size-1.5">
+                <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-60" />
+                <span className="relative size-1.5 rounded-full bg-emerald-500" />
+              </span>
               Sistema operacional
             </span>
             <h1 className="font-display text-[40px] xl:text-[46px] leading-[1.1] font-semibold tracking-tight text-slate-900">
-              Gestão completa<br />do seu negócio.
+              Gestão completa<br />
+              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-600 bg-clip-text text-transparent">
+                do seu negócio.
+              </span>
             </h1>
             <p className="text-[15px] text-slate-600 leading-relaxed">
               Clientes, vendas, contratos e comissões em um só lugar — com a inteligência que sua operação precisa.
             </p>
           </div>
 
-          <ul className="space-y-3.5">
+          <ul className="space-y-3.5 auth-fade-up" style={{ animationDelay: "200ms" }}>
             {[
               "Operação centralizada em tempo real",
               "Comissionamento automático e transparente",
               "Relatórios e indicadores prontos para decisão",
-            ].map((t) => (
-              <li key={t} className="flex items-start gap-3 text-[14px] text-slate-700">
+            ].map((t, i) => (
+              <li
+                key={t}
+                className="flex items-start gap-3 text-[14px] text-slate-700 auth-fade-up"
+                style={{ animationDelay: `${260 + i * 70}ms` }}
+              >
                 <CheckCircle2 className="size-[18px] text-indigo-600 mt-0.5 shrink-0" strokeWidth={2.2} />
                 <span>{t}</span>
               </li>
@@ -94,7 +121,7 @@ export default function AuthPage() {
           </ul>
         </div>
 
-        <footer className="flex items-center justify-between text-[11.5px] text-slate-500">
+        <footer className="flex items-center justify-between text-[11.5px] text-slate-500 auth-fade-up" style={{ animationDelay: "500ms" }}>
           <span>© {new Date().getFullYear()} Prosper</span>
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="size-3.5 text-emerald-600" />
