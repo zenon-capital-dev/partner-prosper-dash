@@ -421,11 +421,22 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
           )}
         </div>
 
-        <DialogFooter className="px-7 py-4 border-t border-border bg-muted/30">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="gap-2">
-            <Sparkles className="size-4" /> {submitting ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar serviço"}
-          </Button>
+        <DialogFooter className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between sm:justify-between">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
+            * Campos obrigatórios
+          </p>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-bold text-slate-500">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={submit} 
+              disabled={submitting}
+              className="rounded-xl px-8 h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-600/20"
+            >
+              {submitting ? "Salvando..." : editing ? "Salvar Alterações" : "Criar Serviço"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
