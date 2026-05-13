@@ -1114,7 +1114,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell .text-zinc-900,
 .admin-shell .text-zinc-800,
 .admin-shell .text-gray-900,
-.admin-shell .text-foreground { color: hsl(220 12% 94%) !important; }
+.admin-shell [class~="text-foreground"] { color: hsl(220 12% 94%) !important; }
 .admin-shell .text-slate-700,
 .admin-shell .text-slate-600,
 .admin-shell .text-zinc-700,
