@@ -374,6 +374,7 @@ export default function Contracts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
