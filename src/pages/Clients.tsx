@@ -218,7 +218,7 @@ export default function Clients() {
         />
 
         {/* Summary cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
           <SummaryCard
             label="Total de clientes" value={kpis.total.toString()}
             sublabel={`${kpis.active} ativos · ${kpis.prospects} prospectos`}
@@ -242,39 +242,41 @@ export default function Clients() {
         </div>
 
         {/* Toolbar: search + filter toggle + view toggle */}
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+          <div className="relative flex-1 min-w-0">
             <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
             <Input
-              placeholder="Buscar por nome, empresa, CNPJ ou telefone..."
+              placeholder="Buscar nome, empresa, CNPJ..."
               value={search} onChange={(e) => setSearch(e.target.value)}
               className="pl-10 h-10"
             />
           </div>
-          <div className="inline-flex items-center rounded-xl border border-border/60 bg-card/40 p-1 h-10">
-            <button
-              onClick={() => setView("grid")}
-              className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "grid" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
-            >Cards</button>
-            <button
-              onClick={() => setView("table")}
-              className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
-            >Tabela</button>
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center rounded-xl border border-border/60 bg-card/40 p-1 h-10 shrink-0">
+              <button
+                onClick={() => setView("grid")}
+                className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "grid" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+              >Cards</button>
+              <button
+                onClick={() => setView("table")}
+                className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+              >Tabela</button>
+            </div>
+            <Button
+              variant="outline" size="sm"
+              onClick={() => setShowFilters((v) => !v)}
+              className="h-10 gap-2 flex-1 sm:flex-none"
+            >
+              <Filter className="size-4" />
+              Filtros
+              {activeFiltersCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center rounded-md bg-primary/15 text-primary px-1.5 py-0.5 text-[10px] font-bold">
+                  {activeFiltersCount}
+                </span>
+              )}
+              {showFilters ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            </Button>
           </div>
-          <Button
-            variant="outline" size="sm"
-            onClick={() => setShowFilters((v) => !v)}
-            className="h-10 gap-2"
-          >
-            <Filter className="size-4" />
-            Filtros
-            {activeFiltersCount > 0 && (
-              <span className="ml-1 inline-flex items-center justify-center rounded-md bg-primary/15 text-primary px-1.5 py-0.5 text-[10px] font-bold">
-                {activeFiltersCount}
-              </span>
-            )}
-            {showFilters ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-          </Button>
         </div>
 
         {showFilters && (
@@ -383,12 +385,12 @@ export default function Clients() {
           </div>
         ) : view === "grid" ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filtered.map((c: any) => (
                 <div
                   key={c.id}
                   onClick={() => navigate(`/clientes/${c.id}`)}
-                  className="group relative rounded-2xl border border-border/60 bg-card/40 p-5 hover:border-primary/40 hover:shadow-lg transition-all cursor-pointer overflow-hidden"
+                  className="group relative rounded-2xl border border-border/60 bg-card/40 p-4 sm:p-5 hover:border-primary/40 hover:shadow-lg active:scale-[0.99] transition-all cursor-pointer overflow-hidden"
                 >
                   {/* Indicador de engajamento */}
                   <div
@@ -418,7 +420,7 @@ export default function Clients() {
                     <div onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100">
+                          <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors sm:opacity-0 sm:group-hover:opacity-100">
                             <MoreHorizontal className="size-4" />
                           </button>
                         </DropdownMenuTrigger>
@@ -648,13 +650,13 @@ function SummaryCard({
     danger: "bg-destructive/10 text-destructive",
   }[tone];
   return (
-    <div className="rounded-xl border border-border/60 bg-card/40 p-4 hover:border-border transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-        <div className={cn("size-7 rounded-md flex items-center justify-center", iconBg)}>{icon}</div>
+    <div className="rounded-xl border border-border/60 bg-card/40 p-3 sm:p-4 hover:border-border transition-colors">
+      <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
+        <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight">{label}</span>
+        <div className={cn("size-6 sm:size-7 rounded-md flex items-center justify-center shrink-0", iconBg)}>{icon}</div>
       </div>
-      <p className={cn("text-2xl font-bold tracking-tight font-mono", toneCls)}>{value}</p>
-      {sublabel && <p className="text-[11px] text-muted-foreground mt-1">{sublabel}</p>}
+      <p className={cn("text-lg sm:text-2xl font-bold tracking-tight font-mono truncate", toneCls)}>{value}</p>
+      {sublabel && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 line-clamp-2">{sublabel}</p>}
     </div>
   );
 }

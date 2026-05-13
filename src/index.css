@@ -1018,3 +1018,7 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   /* Force 1-col grids that try to be 2-col on very narrow widths */
   .admin-shell .grid-cols-2 > * { min-width: 0; }
 }
+
+/* Hide scrollbars on horizontal scrollers (used by client detail tabs) */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
