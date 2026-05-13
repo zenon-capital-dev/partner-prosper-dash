@@ -174,43 +174,43 @@ export default function ClientDetail() {
   );
 
   return (
-    <div className="page-shell space-y-6 animate-fade-up">
+    <div className="page-shell space-y-5 sm:space-y-6 animate-fade-up">
       {/* Premium Header */}
       <header className="relative space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => navigate("/clientes")}
-            className="rounded-xl border border-border/40 hover:bg-muted"
+            className="rounded-xl border border-border/40 hover:bg-muted size-9 shrink-0"
           >
             <ArrowLeft className="size-4" />
           </Button>
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
-            <Users className="size-3" />
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground/60 min-w-0">
+            <Users className="size-3 shrink-0" />
             <span>CRM</span>
-            <ChevronRight className="size-3" />
-            <span>Dossiê do Cliente</span>
+            <ChevronRight className="size-3 shrink-0" />
+            <span className="truncate">Dossiê</span>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="flex items-start gap-5">
-            <div className="size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-3xl font-bold text-primary shadow-sm shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
+          <div className="flex items-start gap-3 sm:gap-5 min-w-0">
+            <div className="size-14 sm:size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl sm:text-2xl lg:text-3xl font-bold text-primary shadow-sm shrink-0">
                {initials(client.full_name)}
             </div>
-            <div className="space-y-1">
-              <h1 className="text-3xl font-display font-bold tracking-tight text-foreground">
+            <div className="space-y-1 min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tight text-foreground truncate">
                 {client.full_name}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <Building2 className="size-3.5" />
-                  <span className="font-medium text-foreground/80">{client.company || "Pessoa Física"}</span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Building2 className="size-3.5 shrink-0" />
+                  <span className="font-medium text-foreground/80 truncate">{client.company || "Pessoa Física"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ShieldAlert className="size-3.5" />
-                  <span>{formatDoc(client.document)}</span>
+                  <ShieldAlert className="size-3.5 shrink-0" />
+                  <span className="font-mono text-[11px] sm:text-xs">{formatDoc(client.document)}</span>
                 </div>
               </div>
             </div>
@@ -219,7 +219,8 @@ export default function ClientDetail() {
           <div className="flex items-center gap-2 flex-wrap lg:justify-end">
              <Button
                variant="outline"
-               className="gap-2 bg-emerald-500/5 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10"
+               size="sm"
+               className="gap-2 bg-emerald-500/5 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10 flex-1 lg:flex-none h-9"
                onClick={() => {
                  const ok = openWhatsApp({ phone: client.whatsapp || client.phone, message: `Olá ${client.full_name?.split(" ")[0] || ""}, tudo bem?` });
                  if (!ok) toast.error("Cliente sem telefone válido");
@@ -230,7 +231,7 @@ export default function ClientDetail() {
              
              <DropdownMenu>
                <DropdownMenuTrigger asChild>
-                 <Button variant="outline" className="gap-2">
+                 <Button variant="outline" size="sm" className="gap-2 flex-1 lg:flex-none h-9">
                    Ações <ChevronRight className="size-4 rotate-90" />
                  </Button>
                </DropdownMenuTrigger>
@@ -256,7 +257,7 @@ export default function ClientDetail() {
         </div>
 
         {/* Status Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 pt-1">
           <StatusCluster 
             label="Comercial" 
             value={client.status?.replace("_", " ")} 
@@ -272,15 +273,15 @@ export default function ClientDetail() {
             value={client.payment_status?.replace("_", " ")} 
             tone={client.payment_status === 'pago' ? 'success' : client.payment_status === 'pendente' ? 'warning' : 'danger'}
           />
-          <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-muted/40 border border-border/40">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Engajamento</span>
+          <div className="flex flex-col gap-1 px-2.5 sm:px-3 py-2 rounded-xl bg-muted/40 border border-border/40 min-w-0">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Engajamento</span>
             <div className="flex items-center gap-2">
-              <span className={cn("text-sm font-bold", 
+              <span className={cn("text-sm font-bold shrink-0", 
                 client.health_score >= 80 ? "text-emerald-500" : client.health_score >= 50 ? "text-amber-500" : "text-rose-500"
               )}>
                 {client.health_score || 100}
               </span>
-              <Progress value={client.health_score || 100} className="h-1.5 flex-1" />
+              <Progress value={client.health_score || 100} className="h-1.5 flex-1 min-w-0" />
             </div>
           </div>
           <StatusCluster 
@@ -288,18 +289,18 @@ export default function ClientDetail() {
             value={client.churn_risk || "Baixo"} 
             tone={client.churn_risk === 'Alto' ? 'danger' : client.churn_risk === 'Médio' ? 'warning' : 'success'}
           />
-          <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-muted/40 border border-border/40">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Responsável</span>
-            <div className="flex items-center gap-1.5 truncate">
-              <UserCheck className="size-3.5 text-primary" />
-              <span className="text-sm font-medium truncate">{(client as any).responsible?.full_name || "Sem atribuição"}</span>
+          <div className="flex flex-col gap-1 px-2.5 sm:px-3 py-2 rounded-xl bg-muted/40 border border-border/40 min-w-0">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Responsável</span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <UserCheck className="size-3.5 text-primary shrink-0" />
+              <span className="text-xs sm:text-sm font-medium truncate">{(client as any).responsible?.full_name || "Sem atribuição"}</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
         <MiniCard 
           label="Produtos Ativos" 
           value={stats.activeProducts} 
@@ -330,7 +331,7 @@ export default function ClientDetail() {
           icon={<Activity className="size-4" />}
           tone="info"
         />
-        <div className="col-span-2 md:col-span-1 lg:col-span-1 rounded-2xl p-4 bg-primary/5 border border-primary/20 flex flex-col justify-between">
+        <div className="col-span-2 sm:col-span-3 lg:col-span-1 rounded-2xl p-3 sm:p-4 bg-primary/5 border border-primary/20 flex flex-col justify-between min-h-[88px]">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Próxima Ação</span>
             <Sparkles className="size-3.5 text-primary" />
@@ -343,16 +344,16 @@ export default function ClientDetail() {
       </div>
 
       {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="overflow-x-auto pb-1 scrollbar-hide">
-          <TabsList className="bg-transparent border-b border-border/60 w-full justify-start rounded-none h-12 p-0 gap-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5 sm:space-y-6">
+        <div className="-mx-3 sm:mx-0 overflow-x-auto pb-1 scrollbar-hide">
+          <TabsList className="bg-transparent border-b border-border/60 w-max sm:w-full justify-start rounded-none h-11 sm:h-12 p-0 gap-5 sm:gap-8 px-3 sm:px-0">
             {TABS.map(tab => (
               <TabsTrigger 
                 key={tab.id} 
                 value={tab.id}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-1 pb-4 pt-2 gap-2 text-muted-foreground hover:text-foreground transition-all"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-1 pb-3 sm:pb-4 pt-2 gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-all whitespace-nowrap"
               >
-                <tab.icon className="size-4" />
+                <tab.icon className="size-3.5 sm:size-4" />
                 {tab.label}
               </TabsTrigger>
             ))}
