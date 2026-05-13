@@ -434,7 +434,7 @@ export default function Products() {
           <p className="text-sm text-muted-foreground mt-1">Ajuste os filtros ou cadastre seu primeiro produto.</p>
           <Button onClick={openNew} className="mt-4 gap-2 bg-gradient-primary"><Plus className="size-4" /> Novo produto</Button>
         </div>
-      {view === "grid" ? (
+      ) : view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-5 lg:px-8">
           {filtered.map((p) => {
             const u = (usageStats as any)[p.id] || { sales: 0, revenue: 0, partners: 0 };
