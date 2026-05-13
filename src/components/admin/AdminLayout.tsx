@@ -75,7 +75,6 @@ function AdminShell() {
           </main>
         </div>
       </div>
-    </div>
   );
 }
 
