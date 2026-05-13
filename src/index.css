@@ -22,10 +22,10 @@
     --popover-foreground: 222 47% 9%;
 
     /* Brand — Deep Corporate Indigo (Stripe / Ramp tone) */
-    --primary: 230 65% 20%;
+    --primary: 222 47% 11%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 230 40% 95%;
-    --primary-glow: 230 70% 38%;
+    --primary-muted: 220 14% 96%;
+    --primary-glow: 222 47% 11%;
 
     --secondary: 220 16% 95%;
     --secondary-foreground: 222 40% 14%;
@@ -42,7 +42,7 @@
 
     --border: 220 13% 88%;
     --input: 220 13% 86%;
-    --ring: 230 60% 30%;
+    --ring: 222 47% 11%;
 
     --radius: 0.5rem;
 
@@ -114,10 +114,10 @@
     --popover: 224 40% 8%;
     --popover-foreground: 220 14% 96%;
 
-    --primary: 250 90% 70%;
-    --primary-foreground: 224 45% 4%;
-    --primary-muted: 243 60% 16%;
-    --primary-glow: 250 95% 75%;
+    --primary: 220 14% 96%;
+    --primary-foreground: 222 47% 11%;
+    --primary-muted: 224 28% 12%;
+    --primary-glow: 220 14% 96%;
 
     --secondary: 224 30% 12%;
     --secondary-foreground: 220 14% 96%;
