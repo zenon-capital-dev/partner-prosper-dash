@@ -10,7 +10,7 @@ import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
   Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
   FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity,
-  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard
+  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard, LogOut, Bell, User as UserIcon,
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -20,6 +20,12 @@ import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PageHero } from "@/components/PageHero";
+import { ProsperLogo } from "@/components/VendxLogo";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 
 const CLIENT_PATH_TO_TAB: Record<string, string> = {
   produtos: "servicos", documentos: "checklist", financeiro: "financeiro",
@@ -31,7 +37,7 @@ const CLIENT_TAB_TO_PATH: Record<string, string> = {
 };
 
 export default function ClientPanel() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
@@ -106,7 +112,65 @@ export default function ClientPanel() {
 
   return (
     <div className="bg-premium min-h-screen dark:bg-[#020617]">
-      <div className="page-shell space-y-6 sm:space-y-12 py-6 sm:py-12 px-4 sm:px-6">
+      {/* ─── Sticky Top Bar ─── */}
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl">
+        <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <ProsperLogo size={28} />
+            <div className="min-w-0">
+              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900 dark:text-white">Prosper</p>
+              <p className="hidden sm:block text-[8.5px] text-muted-foreground tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
+              onClick={() => toast.info("Notificações em breve")}
+              aria-label="Notificações"
+            >
+              <Bell className="size-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
+                  <span className="size-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[11px] font-bold shrink-0">
+                    {initials(client.full_name)}
+                  </span>
+                  <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-bold leading-none truncate">{client.full_name}</p>
+                    <p className="text-[11px] text-muted-foreground leading-none truncate">{client.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2">
+                  <LayoutDashboard className="size-4" /> Painel inicial
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open("https://wa.me/5511999999999", "_blank")} className="gap-2">
+                  <MessageSquare className="size-4" /> Falar com a equipe
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async () => { await signOut(); toast.success("Sessão encerrada"); navigate("/auth", { replace: true }); }}
+                  className="gap-2 text-rose-600 focus:text-rose-600"
+                >
+                  <LogOut className="size-4" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      <div className="page-shell space-y-6 sm:space-y-10 py-5 sm:py-10 px-4 sm:px-6">
         {selectedProductId && selectedProduct ? (
           /* SINGLE PRODUCT VIEW */
           <div className="animate-fade-up space-y-8">
@@ -232,53 +296,72 @@ export default function ClientPanel() {
         ) : (
           /* MAIN HOME VIEW */
           <>
-            {/* Header Section */}
-            <section className="relative overflow-hidden rounded-2xl sm:rounded-[40px] bg-white dark:bg-card p-5 sm:p-10 lg:p-16 border border-slate-100 dark:border-white/5 shadow-sm group">
-              <div className="absolute top-0 right-0 size-[500px] bg-primary/5 blur-[120px] -mr-64 -mt-64 rounded-full transition-all group-hover:bg-primary/10" />
-              
-              <div className="flex flex-col lg:flex-row lg:items-center gap-6 sm:gap-12 relative">
-                 <div className="relative group flex items-center gap-4 lg:block">
-                    <div className="size-16 sm:size-24 lg:size-32 rounded-2xl sm:rounded-[32px] bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center font-editorial text-xl sm:text-3xl lg:text-4xl shadow-2xl ring-4 sm:ring-8 ring-slate-50 dark:ring-white/5 transition-transform duration-500 group-hover:scale-105 shrink-0">
-                       {initials(client.full_name)}
-                    </div>
-                    <div className="hidden lg:flex absolute -bottom-2 -right-2 size-10 rounded-2xl bg-primary text-primary-foreground items-center justify-center shadow-lg border-4 border-white dark:border-slate-900">
-                       <CheckCircle2 className="size-5" />
-                    </div>
-                    {/* mobile inline name */}
-                    <div className="lg:hidden min-w-0 flex-1">
-                      <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary/60">Portal do Cliente</span>
-                      <p className="font-editorial text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate mt-1">
-                        {client.full_name}
-                      </p>
-                    </div>
-                 </div>
-                 
-                 <div className="hidden lg:block flex-1 space-y-4">
-                    <div className="flex items-center gap-4">
-                       <span className="h-px w-12 bg-primary/30" />
-                       <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary/60 dark:text-primary/80">Private Client Portal</span>
-                    </div>
-                    <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-[0.95]">
-                       Bem-vindo, <br/><span className="text-primary italic">{client.full_name.split(' ')[0]}</span>.
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-8 text-[13px] text-muted-foreground font-medium pt-4">
-                       <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default font-bold uppercase tracking-widest text-[10px] opacity-60"><Mail className="size-3.5" /> {client.email}</span>
-                       {client.phone && <span className="flex items-center gap-2.5 hover:text-primary transition-colors cursor-default font-bold uppercase tracking-widest text-[10px] opacity-60"><Phone className="size-3.5" /> {client.phone}</span>}
-                    </div>
-                 </div>
+            {/* ─── Refined Hero ─── */}
+            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 text-white p-6 sm:p-10 lg:p-12 shadow-xl">
+              <div className="absolute -top-32 -right-32 size-[420px] rounded-full bg-primary/30 blur-[120px] opacity-60 pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 size-[320px] rounded-full bg-blue-500/20 blur-[100px] opacity-50 pointer-events-none" />
+              <div
+                className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+                  backgroundSize: "48px 48px",
+                  maskImage: "radial-gradient(ellipse 70% 60% at 30% 30%, #000 30%, transparent 100%)",
+                }}
+              />
 
-                 {/* mobile contact line */}
-                 <div className="lg:hidden flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                   <span className="flex items-center gap-1.5 truncate max-w-full"><Mail className="size-3 shrink-0" /> <span className="truncate normal-case tracking-normal">{client.email}</span></span>
-                   {client.phone && <span className="flex items-center gap-1.5"><Phone className="size-3" /> {client.phone}</span>}
-                 </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8 lg:gap-12 lg:pl-16 lg:border-l border-slate-100 dark:border-white/5 pt-4 lg:pt-0 border-t lg:border-t-0">
-                     <PremiumStat label="Serviços" value={String(activeProducts.length)} />
-                     <PremiumStat label="Progresso" value={`${Math.round(client.onboarding_progress || 0)}%`} sub="Geral" />
-                     <PremiumStat label="Pendências" value={String(pendingDocs)} tone={pendingDocs > 0 ? "warning" : "success"} />
-                     <PremiumStat label="A Pagar" value={formatBRL(payments.filter((p: any) => p.status !== 'pago').reduce((s, p) => s + Number(p.amount), 0))} sub="Abertas" />
+              <div className="relative grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 lg:gap-12 items-center">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-xl px-3 py-1.5">
+                    <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/70">Sua jornada</span>
                   </div>
+
+                  <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.05]">
+                    Olá, <span className="text-primary italic">{client.full_name?.split(" ")[0] || ""}</span>.
+                    <span className="block text-white/60 text-base sm:text-lg lg:text-xl font-normal italic mt-2 tracking-tight">
+                      Tudo o que importa, num só lugar.
+                    </span>
+                  </h1>
+
+                  <div className="space-y-2 max-w-md pt-1">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/50">
+                      <span>Progresso do onboarding</span>
+                      <span className="text-white tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-700"
+                        style={{ width: `${Math.max(4, Math.round(client.onboarding_progress || 0))}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <button
+                      onClick={() => setActiveTab("checklist")}
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-white text-slate-950 text-[13px] font-semibold hover:bg-white/90 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
+                    >
+                      <ListChecks className="size-4" /> Ver pendências
+                      {pendingDocs > 0 && (
+                        <span className="ml-1 inline-flex items-center justify-center size-5 rounded-md bg-rose-500 text-white text-[10px] font-bold tabular-nums">{pendingDocs}</span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-md text-white text-[13px] font-semibold hover:bg-white/10 transition-all active:scale-[0.98]"
+                    >
+                      <MessageSquare className="size-4" /> Falar com a equipe
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-white/10 lg:pl-10">
+                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} icon={<Package className="size-3.5" />} />
+                  <HeroKpi label="Documentos" value={String(pendingDocs)} sub={pendingDocs > 0 ? "pendentes" : "em dia"} tone={pendingDocs > 0 ? "warning" : "success"} icon={<FileText className="size-3.5" />} />
+                  <HeroKpi label="Pagamentos" value={String(pendingPayments)} sub={pendingPayments > 0 ? "em aberto" : "quitado"} tone={pendingPayments > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
+                  <HeroKpi label="Contratos" value={String(pendingContracts)} sub={pendingContracts > 0 ? "p/ assinar" : "assinados"} tone={pendingContracts > 0 ? "warning" : "success"} icon={<FileSignature className="size-3.5" />} />
+                </div>
               </div>
             </section>
 
@@ -541,6 +624,22 @@ export default function ClientPanel() {
             </section>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone?: "default" | "success" | "warning" }) {
+  const accent = tone === "warning" ? "text-amber-300" : tone === "success" ? "text-emerald-300" : "text-white";
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-3 sm:p-4 hover:bg-white/[0.07] transition-colors min-w-0">
+      <div className="flex items-center justify-between mb-1.5 text-white/50">
+        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] truncate">{label}</span>
+        {icon && <span className="shrink-0 opacity-70">{icon}</span>}
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className={cn("font-display text-xl sm:text-2xl font-bold tabular-nums leading-none", accent)}>{value}</span>
+        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/40 truncate">{sub}</span>}
       </div>
     </div>
   );
