@@ -308,17 +308,22 @@ export default function Sales() {
                 <Th>Status</Th>
                 <Th>Cliente</Th>
                 <Th>Produto</Th>
+                <Th>Parceiro</Th>
                 <Th>Data</Th>
                 <Th align="right">Valor</Th>
+                <Th align="right">Comissão</Th>
                 <Th align="right">Ações</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/40">
               {isLoading ? (
-                <tr><td colSpan={6} className="py-24 text-center text-muted-foreground/50 animate-pulse">Sincronizando transações...</td></tr>
+                <tr><td colSpan={8} className="py-24 text-center text-muted-foreground/50 animate-pulse">Sincronizando transações...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="py-24 text-center text-muted-foreground/50">Nenhuma transação encontrada.</td></tr>
-              ) : filtered.map((s: any) => (
+                <tr><td colSpan={8} className="py-24 text-center text-muted-foreground/50">Nenhuma transação encontrada.</td></tr>
+              ) : filtered.map((s: any) => {
+                const commissionPct = Number(s.commission_percent || 0);
+                const commissionVal = (Number(s.amount || 0) * commissionPct) / 100;
+                return (
                 <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
                   <Td><StatusPill status={s.status} /></Td>
                   <Td>
@@ -339,8 +344,28 @@ export default function Sales() {
                       <span className="text-foreground/80">{s.products?.name ?? "—"}</span>
                     </div>
                   </Td>
+                  <Td>
+                    {s.partners?.full_name ? (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-violet-500/10 text-violet-600 dark:text-violet-300 text-[11px] font-semibold">
+                        <span className="size-1.5 rounded-full bg-violet-500" />
+                        {s.partners.full_name}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground/60 italic">Direto</span>
+                    )}
+                  </Td>
                   <Td className="text-muted-foreground text-xs">{formatDate(s.sale_date)}</Td>
                   <Td align="right"><span className="font-semibold text-foreground tabular-nums">{formatBRL(s.amount)}</span></Td>
+                  <Td align="right">
+                    {commissionVal > 0 ? (
+                      <div>
+                        <p className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums text-[12px]">{formatBRL(commissionVal)}</p>
+                        <p className="text-[10px] text-muted-foreground tabular-nums">{commissionPct}%</p>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground/60">—</span>
+                    )}
+                  </Td>
                   <Td align="right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -350,14 +375,24 @@ export default function Sales() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients?.id}`)}><Eye className="size-3.5 mr-2" /> Ver Cliente</DropdownMenuItem>
-                        <DropdownMenuItem><Clock3 className="size-3.5 mr-2" /> Mudar Status</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={async () => { await supabase.from("sales").update({ status: "concluida" }).eq("id", s.id); qc.invalidateQueries({ queryKey: ["sales-rich"] }); toast.success("Marcada como concluída"); }}>
+                          <CheckCircle2 className="size-3.5 mr-2" /> Marcar concluída
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => { await supabase.from("sales").update({ status: "em_andamento" }).eq("id", s.id); qc.invalidateQueries({ queryKey: ["sales-rich"] }); toast.success("Em andamento"); }}>
+                          <PlayCircle className="size-3.5 mr-2" /> Em andamento
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={async () => { await supabase.from("sales").update({ status: "cancelada" }).eq("id", s.id); qc.invalidateQueries({ queryKey: ["sales-rich"] }); toast.success("Cancelada"); }}>
+                          <XCircle className="size-3.5 mr-2" /> Cancelar
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => removeOne(s)} className="text-destructive focus:text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </Td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
