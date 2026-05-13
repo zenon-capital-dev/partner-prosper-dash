@@ -371,7 +371,7 @@ export default function DashboardAdmin() {
           {/* Revenue 12m */}
           <Card className="lg:col-span-8 min-h-[400px] flex flex-col p-6">
             <CardHeader
-              eyebrow="Business Intelligence"
+              eyebrow="Inteligência de Negócio"
               title="Fluxo de Receita Mensal × Metas Projetadas"
               right={
                 <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
