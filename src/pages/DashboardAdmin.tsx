@@ -901,7 +901,7 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
       </div>
       <div className="relative mt-8 pt-5 border-t border-slate-100 dark:border-white/[0.03]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Growth Index</span>
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Índice de Crescimento</span>
           <span className="text-[11px] font-black text-slate-900 dark:text-white">{Math.round(progress)}%</span>
         </div>
         <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
