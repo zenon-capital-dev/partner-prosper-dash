@@ -279,9 +279,9 @@ export default function Products() {
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
         eyebrow="Catálogo"
-        category="Product Suite"
-        title="Produtos"
-        description="Gerencie produtos, categorias, preços, comissões e disponibilidade para parceiros."
+        category="Serviços"
+        title="Produtos & Serviços"
+        description="Cadastre os serviços que você oferece (Contábil, Tributário, Jurídico, Societário…). Cada serviço vendido vira uma demanda com checklist e prestador delegado."
         icon={<Boxes className="size-6" />}
         actions={
           <>
@@ -289,7 +289,7 @@ export default function Products() {
               <Tag className="size-4" /> Categorias
             </Button>
             <Button onClick={openNew} className="btn-premium h-10 px-5 gap-2 font-semibold">
-              <Plus className="size-4" strokeWidth={2.5} /> Novo Produto
+              <Plus className="size-4" strokeWidth={2.5} /> Novo serviço
             </Button>
           </>
         }
