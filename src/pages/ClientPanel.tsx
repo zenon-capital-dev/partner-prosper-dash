@@ -535,15 +535,34 @@ export default function ClientPanel() {
               <TabsContent value="descobrir" className="animate-fade-up">
                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                      <div key={p.id} className="vx-card p-5 sm:p-8 bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:bg-white transition-all rounded-2xl sm:rounded-[32px] border-dashed border-2">
-                        <h3 className="font-editorial text-2xl font-bold text-slate-800 dark:text-slate-100">{p.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
-                        <div className="mt-8 flex items-center justify-between">
-                           <p className="text-xl font-bold text-slate-900 dark:text-white">{formatBRL(p.base_price)}</p>
-                           <Button className="rounded-xl h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all">Saber mais</Button>
+                      <div key={p.id} className="vx-card p-5 sm:p-7 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/30 hover:shadow-xl transition-all rounded-2xl sm:rounded-[28px] flex flex-col">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          {p.product_categories?.name && (
+                            <Badge variant="outline" className="text-[10px] font-bold rounded-full" style={{ borderColor: p.product_categories?.color, color: p.product_categories?.color }}>
+                              {p.product_categories.name}
+                            </Badge>
+                          )}
+                          {p.recurring && <Badge variant="secondary" className="text-[10px] font-bold rounded-full">Recorrente</Badge>}
+                        </div>
+                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">{p.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 flex-1">{p.description}</p>
+                        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3">
+                           <div>
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.recurring ? "A partir de" : "Investimento"}</p>
+                             <p className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
+                           </div>
+                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(`https://wa.me/5511999999999?text=Tenho interesse em ${encodeURIComponent(p.name)}`, '_blank')}>
+                             Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
+                           </Button>
                         </div>
                       </div>
                     ))}
+                    {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).length === 0 && (
+                      <div className="col-span-full vx-card p-10 sm:p-16 text-center bg-white dark:bg-card rounded-2xl border-slate-100 dark:border-white/5">
+                        <Sparkles className="size-10 mx-auto text-muted-foreground/30 mb-3" />
+                        <p className="text-sm text-muted-foreground italic">Você já tem acesso a todas as soluções disponíveis.</p>
+                      </div>
+                    )}
                  </div>
               </TabsContent>
 
