@@ -362,24 +362,24 @@ export default function ClientPanel() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-white/10 lg:pl-10">
-                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} icon={<Package className="size-3.5" />} />
+                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} sub={activeProducts.length > 0 ? "em execução" : "nenhum"} icon={<Package className="size-3.5" />} />
                   <HeroKpi label="Documentos" value={String(pendingDocs)} sub={pendingDocs > 0 ? "pendentes" : "em dia"} tone={pendingDocs > 0 ? "warning" : "success"} icon={<FileText className="size-3.5" />} />
-                  <HeroKpi label="Pagamentos" value={String(pendingPayments)} sub={pendingPayments > 0 ? "em aberto" : "quitado"} tone={pendingPayments > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
+                  <HeroKpi label="Em aberto" value={formatBRL(openTotal)} sub={pendingPayments > 0 ? `${pendingPayments} título(s)` : "quitado"} tone={openTotal > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
                   <HeroKpi label="Contratos" value={String(pendingContracts)} sub={pendingContracts > 0 ? "p/ assinar" : "assinados"} tone={pendingContracts > 0 ? "warning" : "success"} icon={<FileSignature className="size-3.5" />} />
                 </div>
               </div>
             </section>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
-              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide">
-                <TabsList className="bg-transparent h-auto p-0 flex-nowrap sm:flex-wrap gap-x-6 sm:gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-max sm:w-full rounded-none pb-px px-4 sm:px-0">
-                  <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
-                  <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />
-                  <PremiumTabTrigger value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} />
-                  <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} />
-                  <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} />
-                  <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-                  <PremiumTabTrigger value="descobrir" label="Novas Soluções" icon={ShoppingBag} />
+              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-premium/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60 dark:border-white/5">
+                <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max sm:w-full px-4 sm:px-0 rounded-none">
+                  <PillTab value="home" label="Início" icon={LayoutDashboard} />
+                  <PillTab value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
+                  <PillTab value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} alert={pendingDocs > 0} />
+                  <PillTab value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} alert={pendingPayments > 0} />
+                  <PillTab value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} alert={pendingContracts > 0} />
+                  <PillTab value="docs" label="Biblioteca" icon={FileText} count={docs.length} />
+                  <PillTab value="descobrir" label="Novas soluções" icon={Sparkles} />
                 </TabsList>
               </div>
 
