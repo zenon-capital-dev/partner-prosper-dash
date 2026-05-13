@@ -104,7 +104,7 @@ export default function Tasks() {
         .from("tasks")
         .select(`
           *,
-          assigned_user:profiles!tasks_assigned_to_fkey(id, full_name),
+          assigned_user:profiles!fk_tasks_assigned_to_profile(id, full_name),
           client:clients(id, full_name),
           client_product:client_products(id, custom_product_name, products(name)),
           provider:service_providers(id, name),
