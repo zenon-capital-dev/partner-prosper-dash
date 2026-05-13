@@ -477,6 +477,73 @@ export default function ProviderPanel() {
               </div>
             </TabsContent>
 
+            <TabsContent value="por-cliente" className="space-y-6 outline-none animate-fade-up">
+              {groupedByClient.length === 0 ? (
+                <EmptyState message="Nenhum cliente delegado." />
+              ) : groupedByClient.map(({ client, products }) => {
+                const totalValue = products.reduce((s, p) => s + (Number(p.value) || 0), 0);
+                const active = products.filter(p => p.status !== "concluido" && p.status !== "cancelado").length;
+                const needsRpt = products.filter(p => needsReport(p.id, p.status)).length;
+                return (
+                  <div key={client?.id || "x"} className="vx-card bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[28px] overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-slate-50/50 to-transparent dark:from-white/5">
+                      <div>
+                        <h3 className="font-editorial text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
+                        <p className="text-xs text-muted-foreground">{client?.company || client?.email || "—"}</p>
+                      </div>
+                      <div className="flex items-center gap-6 text-xs">
+                        <div><p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Demandas</p><p className="font-bold text-lg">{products.length}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Ativas</p><p className="font-bold text-lg">{active}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">A receber</p><p className="font-bold text-lg tabular-nums">{formatBRL(totalValue)}</p></div>
+                        {needsRpt > 0 && <Badge className="bg-amber-500 text-white text-[10px]">{needsRpt} sem reporte</Badge>}
+                      </div>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-50/40 dark:bg-white/5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                          <th className="px-6 py-3 text-left">Produto</th>
+                          <th className="px-6 py-3 text-center">Status</th>
+                          <th className="px-6 py-3 text-center">SLA</th>
+                          <th className="px-6 py-3 text-left">Prazo</th>
+                          <th className="px-6 py-3 text-left">Último reporte</th>
+                          <th className="px-6 py-3 text-right">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                        {products.map((p: any) => {
+                          const last = lastReportMap.get(p.id);
+                          const stale = needsReport(p.id, p.status);
+                          return (
+                            <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5">
+                              <td className="px-6 py-4 font-bold">{p.products?.name || "—"}</td>
+                              <td className="px-6 py-4 text-center"><StatusBadge status={p.status} /></td>
+                              <td className="px-6 py-4 text-center"><Badge variant="outline" className={cn("text-[9px]", p.sla_status === "no_prazo" ? "text-emerald-600 border-emerald-200" : p.sla_status === "atrasado" ? "text-rose-600 border-rose-200" : "text-amber-600 border-amber-200")}>{p.sla_status || "—"}</Badge></td>
+                              <td className="px-6 py-4 text-xs text-muted-foreground">{p.deadline ? formatDate(p.deadline) : "—"}</td>
+                              <td className="px-6 py-4 text-xs">
+                                {last ? (
+                                  <span className={cn(stale ? "text-amber-600 font-bold" : "text-muted-foreground")}>{formatDate(last)}{stale && " · atrasado"}</span>
+                                ) : (
+                                  <span className="text-rose-600 font-bold">Sem reporte</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-1">
+                                  <Button size="sm" variant="ghost" onClick={() => setReportTarget({ id: p.id, productName: p.products?.name, clientName: client?.full_name })}>
+                                    <ClipboardCheck className="size-3.5 mr-1" /> Reportar
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => setSelectedProductId(p.id)}>Abrir</Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
+            </TabsContent>
+
             <TabsContent value="clientes" className="space-y-4 outline-none">
               {isLoading ? (
                 <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>
