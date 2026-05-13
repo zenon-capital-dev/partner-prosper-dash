@@ -241,7 +241,7 @@ export default function Clients() {
           />
         </div>
 
-        {/* Toolbar: search + filter toggle */}
+        {/* Toolbar: search + filter toggle + view toggle */}
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="relative flex-1">
             <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
@@ -251,13 +251,23 @@ export default function Clients() {
               className="pl-10 h-10"
             />
           </div>
+          <div className="inline-flex items-center rounded-xl border border-border/60 bg-card/40 p-1 h-10">
+            <button
+              onClick={() => setView("grid")}
+              className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "grid" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+            >Cards</button>
+            <button
+              onClick={() => setView("table")}
+              className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+            >Tabela</button>
+          </div>
           <Button
             variant="outline" size="sm"
             onClick={() => setShowFilters((v) => !v)}
             className="h-10 gap-2"
           >
             <Filter className="size-4" />
-            Filtros avançados
+            Filtros
             {activeFiltersCount > 0 && (
               <span className="ml-1 inline-flex items-center justify-center rounded-md bg-primary/15 text-primary px-1.5 py-0.5 text-[10px] font-bold">
                 {activeFiltersCount}
