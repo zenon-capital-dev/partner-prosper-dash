@@ -657,27 +657,72 @@ export default function ProviderPanel() {
               )}
             </TabsContent>
 
-            <TabsContent value="reportes">
-              {reports.length === 0 ? (
-                <EmptyState message="Você ainda não enviou nenhum reporte." />
+            <TabsContent value="reportes" className="space-y-4">
+              <div className="flex flex-wrap gap-3 items-center">
+                <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
+                  <SelectTrigger className="w-48 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os status</SelectItem>
+                    <SelectItem value="aguardando_documentos">Aguardando documentos</SelectItem>
+                    <SelectItem value="em_analise">Em análise</SelectItem>
+                    <SelectItem value="aguardando_cliente">Aguardando cliente</SelectItem>
+                    <SelectItem value="em_andamento">Em andamento</SelectItem>
+                    <SelectItem value="pendente_correcao">Pendente correção</SelectItem>
+                    <SelectItem value="aguardando_aprovacao_final">Aguardando aprovação</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={reportPeriod} onValueChange={setReportPeriod}>
+                  <SelectTrigger className="w-40 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30">Últimos 30 dias</SelectItem>
+                    <SelectItem value="90">Últimos 90 dias</SelectItem>
+                    <SelectItem value="all">Tudo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-xs text-muted-foreground ml-auto">{filteredReports.length} reportes</span>
+              </div>
+
+              {filteredReports.length === 0 ? (
+                <EmptyState message="Nenhum reporte no filtro atual." />
               ) : (
-                <div className="vx-card divide-y divide-slate-50 dark:divide-white/5 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px]">
-                  {reports.map((r: any) => {
+                <div className="space-y-3">
+                  {filteredReports.map((r: any) => {
                     const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
                     return (
-                      <div key={r.id} className="p-6 flex items-start gap-4 hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors first:rounded-t-[24px] last:rounded-b-[24px]">
-                        <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-sm">
-                          <ClipboardCheck className="size-6" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <p className="font-bold text-slate-900 dark:text-white">{cp?.clients?.full_name ?? "Cliente"}</p>
-                            <span className="size-1 rounded-full bg-slate-300" />
-                            <p className="text-xs text-muted-foreground font-medium">{cp?.products?.name}</p>
-                            <StatusBadge status={r.status} />
+                      <div key={r.id} className="vx-card p-6 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[24px] hover:border-primary/20 transition-all">
+                        <div className="flex items-start gap-4">
+                          <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                            <ClipboardCheck className="size-6" />
                           </div>
-                          {r.notes && <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">"{r.notes}"</p>}
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{formatDate(r.created_at)}</p>
+                          <div className="flex-1 space-y-3 min-w-0">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <button onClick={() => cp && setSelectedProductId(cp.id)} className="font-bold hover:text-primary transition-colors">{cp?.clients?.full_name ?? "Cliente"}</button>
+                              <span className="size-1 rounded-full bg-slate-300" />
+                              <p className="text-xs text-muted-foreground font-medium">{cp?.products?.name}</p>
+                              <StatusBadge status={r.status} />
+                              <span className="text-[10px] text-muted-foreground ml-auto">{formatDate(r.created_at)}</span>
+                            </div>
+                            {r.notes && (
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Andamento</p>
+                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{r.notes}</p>
+                              </div>
+                            )}
+                            {r.pending && (
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-amber-600 mb-1">Pendências</p>
+                                <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">{r.pending}</p>
+                              </div>
+                            )}
+                            {r.next_steps && (
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-primary mb-1">Próximos passos</p>
+                                <p className="text-sm text-primary leading-relaxed">{r.next_steps}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
