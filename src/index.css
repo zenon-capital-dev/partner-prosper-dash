@@ -971,3 +971,50 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell .tabular-nums { font-feature-settings: 'tnum'; }
 .admin-shell .vx-mono,
 .admin-shell .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* =====================================================
+   MOBILE POLISH (admin shell) — keeps desktop intact
+   ===================================================== */
+@media (max-width: 640px) {
+  .admin-shell .page-shell { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+  /* Tighten card & panel padding on mobile */
+  .admin-shell .cp-panel,
+  .admin-shell .vx-card,
+  .admin-shell .glass-card,
+  .admin-shell .surface,
+  .admin-shell .stat-card { border-radius: 0.75rem; }
+
+  .admin-shell .p-8 { padding: 1rem !important; }
+  .admin-shell .p-7 { padding: 1rem !important; }
+  .admin-shell .p-6 { padding: 1rem !important; }
+  .admin-shell .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .admin-shell .py-6 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .admin-shell .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .admin-shell .py-8 { padding-top: 1.25rem !important; padding-bottom: 1.25rem !important; }
+  .admin-shell .gap-8 { gap: 1rem !important; }
+  .admin-shell .gap-6 { gap: 0.875rem !important; }
+  .admin-shell .space-y-8 > * + * { margin-top: 1rem !important; }
+
+  /* Headings — keep punchy but not oversized */
+  .admin-shell h1 { font-size: clamp(18px, 5.2vw, 24px) !important; line-height: 1.15 !important; }
+  .admin-shell h2 { font-size: clamp(16px, 4.6vw, 20px) !important; }
+  .admin-shell .text-3xl { font-size: 1.5rem !important; line-height: 1.2 !important; }
+  .admin-shell .text-2xl { font-size: 1.25rem !important; line-height: 1.25 !important; }
+
+  /* All tables in admin scroll horizontally on mobile */
+  .admin-shell table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+  .admin-shell table thead, .admin-shell table tbody, .admin-shell table tr { display: table; width: 100%; table-layout: auto; }
+
+  /* Dialogs/Sheets full-width with safe padding */
+  .admin-shell [role="dialog"] { max-width: 100vw !important; }
+
+  /* Hide overly-decorative absolute icons on tight screens */
+  .admin-shell .absolute.opacity-10 { display: none; }
+
+  /* Buttons — ensure tap targets ≥ 36px */
+  .admin-shell button, .admin-shell .btn { min-height: 36px; }
+
+  /* Force 1-col grids that try to be 2-col on very narrow widths */
+  .admin-shell .grid-cols-2 > * { min-width: 0; }
+}
