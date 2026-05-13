@@ -108,7 +108,6 @@ const App = () => (
               <Route path="/automacoes" element={<Automations />} />
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
-              <Route path="/projetos" element={<Navigate to="/demandas" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
             </Route>
             <Route element={<AppLayout />}>
