@@ -15,7 +15,6 @@ import {
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { NpsCard } from "@/components/nps/NpsCard";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
@@ -103,6 +102,12 @@ export default function ClientPanel() {
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
   const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
   const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
+  const paidTotal = payments.filter((p: any) => p.status === 'pago').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+  const openTotal = payments.filter((p: any) => p.status !== 'pago').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+  const nextDue = payments
+    .filter((p: any) => p.status !== 'pago' && p.due_date)
+    .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
+  const completionPct = Math.round(client.onboarding_progress || 0);
   const deliveries = [
     ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
     ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
@@ -357,24 +362,24 @@ export default function ClientPanel() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-white/10 lg:pl-10">
-                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} icon={<Package className="size-3.5" />} />
+                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} sub={activeProducts.length > 0 ? "em execução" : "nenhum"} icon={<Package className="size-3.5" />} />
                   <HeroKpi label="Documentos" value={String(pendingDocs)} sub={pendingDocs > 0 ? "pendentes" : "em dia"} tone={pendingDocs > 0 ? "warning" : "success"} icon={<FileText className="size-3.5" />} />
-                  <HeroKpi label="Pagamentos" value={String(pendingPayments)} sub={pendingPayments > 0 ? "em aberto" : "quitado"} tone={pendingPayments > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
+                  <HeroKpi label="Em aberto" value={formatBRL(openTotal)} sub={pendingPayments > 0 ? `${pendingPayments} título(s)` : "quitado"} tone={openTotal > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
                   <HeroKpi label="Contratos" value={String(pendingContracts)} sub={pendingContracts > 0 ? "p/ assinar" : "assinados"} tone={pendingContracts > 0 ? "warning" : "success"} icon={<FileSignature className="size-3.5" />} />
                 </div>
               </div>
             </section>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
-              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide">
-                <TabsList className="bg-transparent h-auto p-0 flex-nowrap sm:flex-wrap gap-x-6 sm:gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-max sm:w-full rounded-none pb-px px-4 sm:px-0">
-                  <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
-                  <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />
-                  <PremiumTabTrigger value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} />
-                  <PremiumTabTrigger value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} />
-                  <PremiumTabTrigger value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} />
-                  <PremiumTabTrigger value="docs" label="Biblioteca" icon={FileText} />
-                  <PremiumTabTrigger value="descobrir" label="Novas Soluções" icon={ShoppingBag} />
+              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-premium/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60 dark:border-white/5">
+                <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max sm:w-full px-4 sm:px-0 rounded-none">
+                  <PillTab value="home" label="Início" icon={LayoutDashboard} />
+                  <PillTab value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
+                  <PillTab value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} alert={pendingDocs > 0} />
+                  <PillTab value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} alert={pendingPayments > 0} />
+                  <PillTab value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} alert={pendingContracts > 0} />
+                  <PillTab value="docs" label="Biblioteca" icon={FileText} count={docs.length} />
+                  <PillTab value="descobrir" label="Novas soluções" icon={Sparkles} />
                 </TabsList>
               </div>
 
@@ -440,9 +445,9 @@ export default function ClientPanel() {
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
                        <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6 relative">Ações Necessárias</h3>
                        <div className="space-y-4 relative">
-                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
-                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
-                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => {}} />
+                          <ActionItem icon={FileText} label="Documentos pendentes" count={pendingDocs} onClick={() => setActiveTab("checklist")} />
+                          <ActionItem icon={Receipt} label="Pagamentos em aberto" count={pendingPayments} onClick={() => setActiveTab("financeiro")} />
+                          <ActionItem icon={FileSignature} label="Contratos para assinar" count={pendingContracts} onClick={() => setActiveTab("contratos")} />
                        </div>
                     </div>
 
@@ -530,15 +535,34 @@ export default function ClientPanel() {
               <TabsContent value="descobrir" className="animate-fade-up">
                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                      <div key={p.id} className="vx-card p-5 sm:p-8 bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:bg-white transition-all rounded-2xl sm:rounded-[32px] border-dashed border-2">
-                        <h3 className="font-editorial text-2xl font-bold text-slate-800 dark:text-slate-100">{p.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
-                        <div className="mt-8 flex items-center justify-between">
-                           <p className="text-xl font-bold text-slate-900 dark:text-white">{formatBRL(p.base_price)}</p>
-                           <Button className="rounded-xl h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all">Saber mais</Button>
+                      <div key={p.id} className="vx-card p-5 sm:p-7 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/30 hover:shadow-xl transition-all rounded-2xl sm:rounded-[28px] flex flex-col">
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          {p.product_categories?.name && (
+                            <Badge variant="outline" className="text-[10px] font-bold rounded-full" style={{ borderColor: p.product_categories?.color, color: p.product_categories?.color }}>
+                              {p.product_categories.name}
+                            </Badge>
+                          )}
+                          {p.recurring && <Badge variant="secondary" className="text-[10px] font-bold rounded-full">Recorrente</Badge>}
+                        </div>
+                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">{p.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 flex-1">{p.description}</p>
+                        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3">
+                           <div>
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.recurring ? "A partir de" : "Investimento"}</p>
+                             <p className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
+                           </div>
+                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(`https://wa.me/5511999999999?text=Tenho interesse em ${encodeURIComponent(p.name)}`, '_blank')}>
+                             Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
+                           </Button>
                         </div>
                       </div>
                     ))}
+                    {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).length === 0 && (
+                      <div className="col-span-full vx-card p-10 sm:p-16 text-center bg-white dark:bg-card rounded-2xl border-slate-100 dark:border-white/5">
+                        <Sparkles className="size-10 mx-auto text-muted-foreground/30 mb-3" />
+                        <p className="text-sm text-muted-foreground italic">Você já tem acesso a todas as soluções disponíveis.</p>
+                      </div>
+                    )}
                  </div>
               </TabsContent>
 
@@ -569,46 +593,86 @@ export default function ClientPanel() {
                  </div>
               </TabsContent>
 
-              <TabsContent value="financeiro" className="animate-fade-up">
+              <TabsContent value="financeiro" className="animate-fade-up space-y-6 sm:space-y-8">
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <FinanceStat label="Mensalidade" value={formatBRL(monthlyTotal)} sub="recorrência ativa" tone="default" icon={<Activity className="size-4" />} />
+                    <FinanceStat label="Total pago" value={formatBRL(paidTotal)} sub={`${payments.filter((p:any)=>p.status==='pago').length} título(s)`} tone="success" icon={<CheckCircle2 className="size-4" />} />
+                    <FinanceStat label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} tone={openTotal>0?"warning":"success"} icon={<Clock className="size-4" />} />
+                    <FinanceStat label="Próximo vencimento" value={nextDue ? formatDate(nextDue.due_date) : "—"} sub={nextDue ? formatBRL(nextDue.amount) : "sem pendência"} tone={nextDue?"warning":"success"} icon={<Calendar className="size-4" />} />
+                 </div>
+
                  <div className="grid lg:grid-cols-3 gap-5 sm:gap-8">
                     <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
                        <div className="p-5 sm:p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
-                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Extrato de Pagamentos</h3>
+                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Extrato de pagamentos</h3>
+                          <Badge variant="outline" className="text-[10px] font-bold rounded-full">{payments.length} registros</Badge>
                        </div>
-                       <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                             <thead>
-                                <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
-                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-left">Vencimento</th>
-                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-left">Status</th>
-                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-right">Valor</th>
-                                </tr>
-                             </thead>
-                             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                {payments.map((p: any) => (
-                                  <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
-                                     <td className="px-4 sm:px-8 py-4 sm:py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
-                                     <td className="px-4 sm:px-8 py-4 sm:py-6">
-                                        <span className={cn(
-                                          "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
-                                          p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
-                                        )}>{p.status}</span>
-                                     </td>
-                                     <td className="px-4 sm:px-8 py-4 sm:py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
-                                  </tr>
-                                ))}
-                             </tbody>
-                          </table>
-                       </div>
+                       {payments.length === 0 ? (
+                         <div className="p-12 text-center">
+                           <Receipt className="size-10 mx-auto text-muted-foreground/30 mb-3" />
+                           <p className="text-sm text-muted-foreground italic">Nenhum pagamento registrado ainda.</p>
+                         </div>
+                       ) : (
+                         <>
+                           {/* Mobile: cards */}
+                           <div className="sm:hidden divide-y divide-slate-50 dark:divide-white/5">
+                             {payments.map((p: any) => (
+                               <div key={p.id} className="p-4 flex items-center justify-between gap-3">
+                                 <div className="min-w-0">
+                                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{formatDate(p.due_date)}</p>
+                                   <p className="text-base font-bold tabular-nums text-slate-900 dark:text-white mt-0.5">{formatBRL(p.amount)}</p>
+                                   {p.installment_number && p.installments_count && (
+                                     <p className="text-[10px] text-muted-foreground mt-0.5">Parcela {p.installment_number}/{p.installments_count}</p>
+                                   )}
+                                 </div>
+                                 <span className={cn(
+                                   "vx-pill uppercase tracking-widest text-[9px] px-3 py-1 shrink-0",
+                                   p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                 )}>{p.status}</span>
+                               </div>
+                             ))}
+                           </div>
+                           {/* Desktop: table */}
+                           <div className="hidden sm:block overflow-x-auto">
+                              <table className="w-full text-sm">
+                                 <thead>
+                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
+                                       <th className="px-8 py-5 text-left">Vencimento</th>
+                                       <th className="px-8 py-5 text-left">Parcela</th>
+                                       <th className="px-8 py-5 text-left">Status</th>
+                                       <th className="px-8 py-5 text-right">Valor</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                    {payments.map((p: any) => (
+                                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
+                                         <td className="px-8 py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
+                                         <td className="px-8 py-6 text-muted-foreground text-xs">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td>
+                                         <td className="px-8 py-6">
+                                            <span className={cn(
+                                              "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
+                                              p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                            )}>{p.status}</span>
+                                         </td>
+                                         <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
+                                      </tr>
+                                    ))}
+                                 </tbody>
+                              </table>
+                           </div>
+                         </>
+                       )}
                     </div>
-                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
+                    <div className="vx-card p-6 sm:p-10 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <Receipt className="size-12 text-primary relative" />
-                       <div className="space-y-4 relative">
-                          <h3 className="font-editorial text-2xl sm:text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
-                          <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
+                       <Receipt className="size-10 sm:size-12 text-primary relative" />
+                       <div className="space-y-3 relative">
+                          <h3 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Faturamento & cobrança</h3>
+                          <p className="text-sm text-white/50 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
                        </div>
-                       <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
+                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                         <MessageSquare className="size-4 mr-2" /> Solicitar ajuste
+                       </Button>
                     </div>
                  </div>
               </TabsContent>
@@ -617,11 +681,6 @@ export default function ClientPanel() {
                 <ClientContractsTab clientId={client.id} contracts={contracts as any} />
               </TabsContent>
             </Tabs>
-
-            {/* NPS — pesquisa de satisfação */}
-            <section className="max-w-2xl mx-auto w-full pt-12">
-              <NpsCard clientId={client.id} />
-            </section>
           </>
         )}
       </div>
@@ -660,19 +719,46 @@ function PremiumStat({ label, value, sub, tone }: { label: string; value: string
   );
 }
 
-function PremiumTabTrigger({ value, label, icon: Icon, count }: { value: string; label: string; icon: any; count?: number }) {
+function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
   return (
-    <TabsTrigger 
-      value={value} 
-      className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary border-none rounded-none p-0 pb-6 text-[13px] font-bold uppercase tracking-[0.2em] text-muted-foreground/40 transition-all relative group h-auto"
+    <TabsTrigger
+      value={value}
+      className={cn(
+        "shrink-0 inline-flex items-center gap-2 h-10 px-4 rounded-full text-[12.5px] font-semibold tracking-tight",
+        "bg-white dark:bg-white/5 border border-slate-200/70 dark:border-white/10 text-slate-600 dark:text-white/60",
+        "hover:bg-slate-50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-all",
+        "data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-slate-900",
+        "data-[state=active]:border-slate-900 dark:data-[state=active]:border-white data-[state=active]:shadow-md"
+      )}
     >
-      <div className="flex items-center gap-3">
-        <Icon className="size-4 opacity-40 group-data-[state=active]:opacity-100 transition-opacity" />
-        {label}
-        {count !== undefined && <span className="ml-1 text-[10px] tabular-nums font-bold opacity-30 group-data-[state=active]:opacity-100 group-data-[state=active]:text-primary/60">({count})</span>}
-      </div>
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-primary scale-x-0 data-[state=active]:scale-x-100 transition-transform origin-left rounded-full" />
+      <Icon className="size-3.5" />
+      <span>{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className={cn(
+          "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold tabular-nums",
+          alert
+            ? "bg-rose-500 text-white"
+            : "bg-slate-200 text-slate-700 dark:bg-white/15 dark:text-white group-data-[state=active]:bg-white/20"
+        )}>{count}</span>
+      )}
     </TabsTrigger>
+  );
+}
+
+function FinanceStat({ label, value, sub, tone = "default", icon }: { label: string; value: string; sub?: string; tone?: "default" | "success" | "warning"; icon?: React.ReactNode }) {
+  const tint =
+    tone === "success" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/20"
+    : tone === "warning" ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300 border-amber-200/60 dark:border-amber-500/20"
+    : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-white/70 border-slate-200/70 dark:border-white/10";
+  return (
+    <div className="vx-card p-4 sm:p-5 bg-white dark:bg-card rounded-2xl border-slate-100 dark:border-white/5 shadow-sm">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+        <span className={cn("size-7 rounded-lg border flex items-center justify-center shrink-0", tint)}>{icon}</span>
+      </div>
+      <p className="font-editorial text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+      {sub && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1.5 truncate">{sub}</p>}
+    </div>
   );
 }
 
