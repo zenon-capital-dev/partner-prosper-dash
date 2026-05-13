@@ -132,23 +132,27 @@ export default function Contracts() {
   }), [allContracts, search, statusFilter]);
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader 
-          title="Contratos" 
-          description="Controle todos os contratos de prestação de serviço." 
-        />
-        <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="gap-2 self-start bg-gradient-primary">
-          <Plus className="size-4" /> Novo Contrato
-        </Button>
-      </div>
+    <div className="page-shell space-y-6 animate-fade-up">
+      <PageHero
+        eyebrow="Jurídico"
+        category="Contratos & Termos"
+        title="Contratos"
+        description="Centralize contratos com clientes, parceiros e prestadores. Acompanhe assinaturas, validades e histórico auditado."
+        icon={<FileSignature className="size-6" />}
+        actions={
+          <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-xl">
+            <Plus className="size-4 mr-1.5" /> Novo Contrato
+          </Button>
+        }
+        kpis={[
+          { label: "Total", value: kpis.total, tone: "primary", icon: <FileSignature className="size-4" /> },
+          { label: "Em andamento", value: kpis.pendentes, tone: "warning", icon: <Clock className="size-4" /> },
+          { label: "Assinados", value: kpis.assinados, tone: "success", icon: <CheckCircle2 className="size-4" /> },
+          { label: "Valor total", value: formatBRL(kpis.valorTotal), tone: "info", icon: <DollarSign className="size-4" /> },
+        ]}
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={String(kpis.total)} icon={FileSignature} iconColor="primary" />
-        <StatCard label="Em andamento" value={String(kpis.pendentes)} icon={Clock} iconColor="warning" />
-        <StatCard label="Assinados / Finalizados" value={String(kpis.assinados)} icon={CheckCircle2} iconColor="success" />
-        <StatCard label="Valor total" value={formatBRL(kpis.valorTotal)} icon={DollarSign} iconColor="info" />
-      </div>
+      <div className="px-5 lg:px-8 space-y-6">
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
