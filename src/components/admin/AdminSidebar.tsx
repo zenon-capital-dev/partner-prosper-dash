@@ -119,7 +119,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               collapsed ? "w-12 h-12 justify-center hover:bg-slate-100" : "w-full px-1 py-1 hover:bg-slate-50"
             )}>
               <div className="relative shrink-0">
-                <div className="size-11 rounded-2xl bg-gradient-to-br from-violet-500 via-violet-600 to-indigo-600 flex items-center justify-center shadow-[0_8px_22px_-6px_rgba(124,58,237,0.55)]">
+                <div className="size-11 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg">
                   <BarChart3 className="size-[22px] text-white" strokeWidth={2.5} />
                 </div>
               </div>
@@ -191,7 +191,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       "group relative flex items-center rounded-xl text-[13.5px] font-semibold transition-all duration-200",
                       collapsed ? "justify-center mx-auto size-11" : "px-3 h-11 gap-3",
                       active
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_8px_20px_-6px_rgba(124,58,237,0.5)]"
+                        ? "bg-slate-900 text-white shadow-md"
                         : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/70"
                     )}
                   >
@@ -209,7 +209,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                         {item.badge && (
                           <span className={cn(
                             "text-[10px] font-bold tabular-nums px-1.5 h-5 rounded-md flex items-center",
-                            active ? "bg-white/20 text-white" : "bg-violet-100 text-violet-700"
+                            active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                           )}>
                             {item.badge}
                           </span>
@@ -235,7 +235,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-slate-100/70 transition-colors group",
               collapsed && "justify-center"
             )}>
-              <div className="size-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-[12px] font-bold shadow-sm shrink-0">
+              <div className="size-9 rounded-xl bg-slate-900 flex items-center justify-center text-white text-[12px] font-bold shadow-sm shrink-0">
                 {initials(displayName)}
               </div>
               {!collapsed && (

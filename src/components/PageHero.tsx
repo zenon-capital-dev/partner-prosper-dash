@@ -23,12 +23,12 @@ interface Props {
 }
 
 const toneCfg: Record<string, { text: string; bg: string; ring: string; dot: string; grad: string }> = {
-  primary: { text: "text-indigo-600 dark:text-indigo-300", bg: "bg-indigo-50 dark:bg-indigo-500/10", ring: "ring-indigo-200/60 dark:ring-indigo-500/20", dot: "bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.6)]", grad: "from-indigo-500 to-indigo-600" },
-  success: { text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-500/10", ring: "ring-emerald-200/60 dark:ring-emerald-500/20", dot: "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.6)]", grad: "from-emerald-500 to-emerald-600" },
-  warning: { text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", ring: "ring-amber-200/60 dark:ring-amber-500/20", dot: "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.6)]", grad: "from-amber-500 to-amber-600" },
-  info: { text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-50 dark:bg-sky-500/10", ring: "ring-sky-200/60 dark:ring-sky-500/20", dot: "bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.6)]", grad: "from-sky-500 to-sky-600" },
-  danger: { text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-50 dark:bg-rose-500/10", ring: "ring-rose-200/60 dark:ring-rose-500/20", dot: "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.6)]", grad: "from-rose-500 to-rose-600" },
-  violet: { text: "text-violet-600 dark:text-violet-300", bg: "bg-violet-50 dark:bg-violet-500/10", ring: "ring-violet-200/60 dark:ring-violet-500/20", dot: "bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]", grad: "from-violet-500 to-violet-600" },
+  primary: { text: "text-slate-900 dark:text-slate-100", bg: "bg-slate-100 dark:bg-slate-500/10", ring: "ring-slate-200/60 dark:ring-slate-500/20", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
+  success: { text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-500/10", ring: "ring-emerald-200/60 dark:ring-emerald-500/20", dot: "bg-emerald-500 shadow-sm", grad: "from-emerald-500 to-emerald-600" },
+  warning: { text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", ring: "ring-amber-200/60 dark:ring-amber-500/20", dot: "bg-amber-500 shadow-sm", grad: "from-amber-500 to-amber-600" },
+  info: { text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-50 dark:bg-sky-500/10", ring: "ring-sky-200/60 dark:ring-sky-500/20", dot: "bg-sky-500 shadow-sm", grad: "from-sky-500 to-sky-600" },
+  danger: { text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-50 dark:bg-rose-500/10", ring: "ring-rose-200/60 dark:ring-rose-500/20", dot: "bg-rose-500 shadow-sm", grad: "from-rose-500 to-rose-600" },
+  violet: { text: "text-slate-900 dark:text-slate-100", bg: "bg-slate-100 dark:bg-slate-500/10", ring: "ring-slate-200/60 dark:ring-slate-500/20", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
   default: { text: "text-slate-700 dark:text-zinc-200", bg: "bg-slate-100 dark:bg-white/5", ring: "ring-slate-200 dark:ring-white/10", dot: "bg-slate-400", grad: "from-slate-500 to-slate-600" },
 };
 
@@ -48,8 +48,8 @@ export function PageHero({
     <section className="relative px-5 lg:px-8 pt-7 lg:pt-9 pb-3 space-y-7">
       {/* ambient orbs — refined */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-40 -left-40 size-[560px] rounded-full bg-indigo-200/25 dark:bg-indigo-600/[0.07] blur-[160px]" />
-        <div className="absolute top-1/3 -right-40 size-[440px] rounded-full bg-violet-200/20 dark:bg-violet-600/[0.05] blur-[160px]" />
+        <div className="absolute -top-40 -left-40 size-[560px] rounded-full bg-slate-200/25 dark:bg-slate-600/[0.07] blur-[160px]" />
+        <div className="absolute top-1/3 -right-40 size-[440px] rounded-full bg-slate-200/20 dark:bg-slate-600/[0.05] blur-[160px]" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
       </div>
 
@@ -59,7 +59,7 @@ export function PageHero({
         <div className="flex items-start gap-5 min-w-0 flex-1">
           {icon && (
             <div className="relative shrink-0">
-              <div className="size-14 lg:size-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-[0_12px_32px_-8px_rgba(99,102,241,0.6)] ring-1 ring-white/30">
+              <div className="size-14 lg:size-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl ring-1 ring-white/10">
                 {icon}
               </div>
               <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-2 ring-background shadow-md" />
@@ -74,8 +74,8 @@ export function PageHero({
                 {category && (
                   <>
                     <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
-                    <Sparkles className="size-3 text-indigo-500" />
-                    <span className="text-indigo-500 dark:text-indigo-400">{category}</span>
+                    <Sparkles className="size-3 text-slate-500" />
+                    <span className="text-slate-700 dark:text-zinc-300">{category}</span>
                   </>
                 )}
               </div>
