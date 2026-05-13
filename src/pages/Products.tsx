@@ -280,41 +280,50 @@ export default function Products() {
     <div className="page-shell space-y-8 animate-fade-up">
       <header className="px-5 lg:px-8 pt-6 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="size-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg">
-              <Boxes className="size-8" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                <span>Catálogo</span>
-                <span className="size-1 rounded-full bg-slate-300" />
-                <span className="text-slate-900">Serviços</span>
+          <div className="flex items-start gap-5">
+            <div className="relative shrink-0">
+              <div className="size-14 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center">
+                <Boxes className="size-7 text-cyan-400" strokeWidth={1.75} />
               </div>
-              <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Produtos & Serviços</h1>
-              <p className="text-sm text-slate-500 max-w-xl">Cadastre e gerencie as ofertas da sua plataforma. Demandas automatizadas, checklists e comissões integradas.</p>
+              <div className="absolute inset-0 rounded-2xl bg-cyan-400/10 blur-xl -z-10" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-zinc-500">
+                <span>Catálogo</span>
+                <span className="size-1 rounded-full bg-zinc-700" />
+                <span className="text-cyan-400">Serviços</span>
+              </div>
+              <h1 className="text-[32px] font-display font-bold text-zinc-50 tracking-[-0.02em] leading-[1.05]">Produtos & Serviços</h1>
+              <p className="text-[13px] text-zinc-500 max-w-xl leading-relaxed">Cadastre e gerencie ofertas. Demandas automatizadas, checklists operacionais e estruturas de comissionamento dinâmico.</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-             <Button variant="outline" onClick={() => setCategoryOpen(true)} className="gap-2 h-11 px-4 rounded-xl">
+          <div className="flex items-center gap-2.5">
+             <Button variant="outline" onClick={() => setCategoryOpen(true)} className="gap-2 h-10 px-4 rounded-xl bg-white/[0.03] border-white/[0.08] text-zinc-300 hover:bg-white/[0.06] hover:border-white/15 hover:text-white">
                <Tag className="size-4" /> Categorias
              </Button>
-             <Button onClick={openNew} className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white gap-2 font-bold shadow-lg shadow-slate-900/20">
-               <Plus className="size-4" /> Novo serviço
+             <Button onClick={openNew} className="h-10 px-5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-zinc-950 gap-2 font-bold shadow-[0_0_25px_-4px_hsla(187,92%,55%,0.5)]">
+               <Plus className="size-4" strokeWidth={2.5} /> Novo serviço
              </Button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {[
-            { label: "Total", value: kpis.total, tone: "text-slate-900" },
-            { label: "Ativos", value: kpis.active, tone: "text-emerald-600" },
-            { label: "Recorrentes", value: kpis.recurring, tone: "text-slate-900" },
-            { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "text-amber-600" },
-            { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "text-emerald-600" },
+            { label: "Total", value: String(kpis.total).padStart(2, "0"), tone: "text-zinc-100", accent: "bg-cyan-400" },
+            { label: "Ativos", value: String(kpis.active).padStart(2, "0"), tone: "text-emerald-400", accent: "bg-emerald-400" },
+            { label: "Recorrentes", value: String(kpis.recurring).padStart(2, "0"), tone: "text-zinc-600", accent: "bg-zinc-700" },
+            { label: "Comissão", value: formatPercent(kpis.avgCommission), tone: "text-amber-400", accent: "bg-amber-400" },
+            { label: "Receita", value: formatBRL(kpis.totalRevenue), tone: "text-cyan-400", accent: "bg-cyan-400" },
           ].map((k) => (
-            <div key={k.label} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{k.label}</p>
-              <p className={cn("text-2xl font-black mt-1", k.tone)}>{k.value}</p>
+            <div key={k.label} className="group relative bg-zinc-900/40 border border-white/[0.06] rounded-2xl p-4 backdrop-blur-sm hover:border-cyan-500/25 transition-all">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[9.5px] font-mono font-bold uppercase tracking-[0.22em] text-zinc-500">{k.label}</p>
+                <span className={cn("size-1.5 rounded-full", k.accent)} style={{ boxShadow: "0 0 8px currentColor" }} />
+              </div>
+              <p className={cn("text-[26px] font-mono font-medium tabular-nums tracking-tight leading-none", k.tone)}>{k.value}</p>
+              <div className="mt-3 h-[2px] w-full bg-white/[0.04] rounded-full overflow-hidden">
+                <div className={cn("h-full rounded-full transition-all duration-500", k.accent)} style={{ width: `${Math.min(100, Math.max(8, (kpis.total ? 35 : 8)))}%` }} />
+              </div>
             </div>
           ))}
         </div>
