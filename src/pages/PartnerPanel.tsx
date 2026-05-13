@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ReferralDialog } from "@/components/ReferralDialog";
 
 const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos"] as const;
 
@@ -30,15 +31,25 @@ export default function PartnerPanel() {
   const [clientFilter, setClientFilter] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [referralOpen, setReferralOpen] = useState(false);
+  const panelQueryKey = ["partner-panel", user?.id] as const;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["partner-panel", user?.id],
+    queryKey: panelQueryKey,
     queryFn: async () => {
-      const { data: partner } = await supabase
+      let { data: partner } = await supabase
         .from("partners")
         .select("id, full_name, email, phone, commission_percent, pix_key, partner_type, active, bank_name, bank_agency, bank_account, document, whatsapp")
         .eq("user_id", user!.id)
         .maybeSingle();
+      if (!partner && user?.email) {
+        const { data: byEmail } = await supabase
+          .from("partners")
+          .select("id, full_name, email, phone, commission_percent, pix_key, partner_type, active, bank_name, bank_agency, bank_account, document, whatsapp")
+          .ilike("email", user.email)
+          .maybeSingle();
+        partner = byEmail;
+      }
       if (!partner) return null;
 
       const [clients, commissions, contracts] = await Promise.all([
@@ -78,7 +89,7 @@ export default function PartnerPanel() {
   const filteredSplits = useMemo(() => {
     if (!data) return [];
     return data.commissions.filter((s: any) => {
-      if (statusFilter !== "todos" && s.status !== statusFilter) return false;
+      if (statusFilter !== "todos" && (s.workflow_status || s.status) !== statusFilter) return false;
       if (clientFilter) {
         const name = (s.sales?.clients?.full_name || "").toLowerCase();
         if (!name.includes(clientFilter.toLowerCase())) return false;
