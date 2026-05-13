@@ -35,11 +35,22 @@ export default function PartnerPanel() {
       if (!partner) return null;
 
       const [clients, commissions, contracts] = await Promise.all([
-        supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(id, amount, sale_date, status, products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
-        supabase.from("commissions").select("*, sales(id, amount, sale_date, clients(full_name), products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
-        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind, contract_type, expires_at").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("clients").select("id, full_name, company, email, phone, status, created_at").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("commissions").select("id, amount, percent, status, workflow_status, created_at, paid_at, expected_date, sales(id, amount, sale_date, clients(full_name), products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, expires_at, contract_kind, contract_type").eq("partner_id", partner.id).order("created_at", { ascending: false }),
       ]);
-      return { partner, clients: clients.data ?? [], commissions: commissions.data ?? [], contracts: contracts.data ?? [] };
+
+      const clientIds = (clients.data ?? []).map((c: any) => c.id);
+      let demands: any[] = [];
+      if (clientIds.length) {
+        const { data: d } = await supabase
+          .from("client_products")
+          .select("id, status, sla_status, sla_due_date, value, start_date, deadline, created_at, custom_product_name, clients(full_name), products(name)")
+          .in("client_id", clientIds)
+          .order("created_at", { ascending: false });
+        demands = d ?? [];
+      }
+      return { partner, clients: clients.data ?? [], commissions: commissions.data ?? [], contracts: contracts.data ?? [], demands };
     },
     enabled: !!user,
   });
