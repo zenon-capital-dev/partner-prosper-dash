@@ -1,36 +1,100 @@
-Finalizar o CRM com uma revisão completa de arquitetura, funcionalidades, permissões, layout e experiência de uso para os 4 perfis de usuários.
 
-### 1. Refinamento de Interface e Experiência (UX/UI Premium)
-- **Consistência Visual**: Garantir que todos os dashboards (Admin, Cliente, Prestador, Parceiro) utilizem os mesmos tokens de design premium (sombras vx-lg, gradientes sutis, PageHeader padronizado).
-- **Feedback Visual**: Implementar estados de carregamento (Skeletons) e estados vazios (Empty States) elegantes em todas as listagens.
-- **Micro-interações**: Adicionar animações suaves de fade-in e hover em cards e botões.
+## Objetivo
 
-### 2. Painel Administrativo (Equipe Interna)
-- **Dashboard Executivo**: Criar uma visão de alto nível com KPIs de faturamento, novos clientes, demandas críticas e performance da equipe.
-- **Cockpit Operacional**: Refinar a central de comando para que a equipe possa agir rapidamente em bloqueios (documentos reprovados, SLAs vencendo).
-- **Gestão de Usuários**: Garantir que a atribuição de papéis e permissões esteja intuitiva.
-
-### 3. Portal do Cliente (Transparência e Confiança)
-- **Área do Produto**: Detalhar cada serviço contratado com checklist de progresso, documentos necessários e histórico de interações.
-- **Central de Suporte**: Facilitar o contato direto e a visualização de prazos.
-- **Simplificação**: Remover jargões internos e focar no que o cliente precisa saber para se sentir seguro.
-
-### 4. Portal do Prestador (Execução e Produtividade)
-- **Central de Demandas**: Focar na execução com cards claros, cronômetros de SLA e área de reporte simplificada.
-- **Financeiro**: Visualização clara de valores a receber por serviço executado.
-
-### 5. Portal do Parceiro/Afiliado (Crescimento e Conversão)
-- **Link de Indicação**: Área de cópia rápida do link e monitoramento de cliques/conversões.
-- **Extrato de Comissões**: Tabela detalhada com status de pagamento (Pendente, Liberada, Paga).
-
-### 6. Arquitetura e Segurança (Robustez SaaS)
-- **Revisão de Permissões (RLS)**: Garantir que as políticas do Supabase protejam os dados de forma que cada perfil só veja o que lhe compete.
-- **Otimização de Performance**: Revisar o uso de React Query para garantir que os dados sejam atualizados em tempo real sem excesso de chamadas.
+Consolidar o CRM em torno da entidade **Demanda** (`client_products`) — cada produto contratado por um cliente vira uma demanda independente, com prestador delegado, documentos, checklist, status, prazo, financeiro e histórico próprios. Cada papel (Admin, Cliente, Prestador, Parceiro) só enxerga o que lhe pertence — sem nenhum vazamento de dados entre painéis.
 
 ---
 
-### Detalhes Técnicos (Para Desenvolvedores)
-- **Componentes**: Padronização do `PageHeader` e `PremiumCard`.
-- **Hooks**: Centralização da lógica de papéis no `useAuth`.
-- **Database**: Implementação de triggers para atualização de status e auditoria.
-- **Estilos**: Uso intensivo de classes customizadas no `tailwind.config.ts` e `index.css`.
+## 1. Modelo conceitual (já existente, vamos reforçar)
+
+```text
+Cliente ──┐
+          │
+Parceiro ─┼──► Demanda (client_products) ──► Documentos
+          │         │                       ├─► Checklist (steps)
+Produto ──┘         │                       ├─► Prestador delegado
+                    │                       ├─► Financeiro (payments/commissions)
+                    │                       ├─► Contratos
+                    └──► Histórico/Atividade└─► Reportes de status
+```
+
+Tudo (documento, tarefa, pagamento, contrato, comissão) carrega `client_product_id`. Já temos isso parcialmente — vou garantir cobertura total via RLS.
+
+---
+
+## 2. Portal do Cliente — "Minhas Demandas"
+
+Substitui o painel atual genérico por uma visão por demanda:
+
+- **Home:** lista de demandas contratadas (cards premium, status pill, % checklist, prazo).
+- **Detalhe da demanda:** abas
+  - Visão geral (prestador responsável, prazo, próximos passos)
+  - Documentos **apenas desta demanda** (upload + status)
+  - Checklist visível ao cliente
+  - Histórico
+  - Financeiro (pagamentos desta demanda)
+- Cliente **nunca** vê documentos de outra demanda nem outros clientes.
+
+## 3. Portal do Prestador — "Demandas Delegadas"
+
+- Lista somente `client_products` onde `service_provider_id = (sp do user)`.
+- Abre a página de demanda em modo prestador:
+  - Documentos da demanda (read + upload de entregáveis)
+  - Checklist (marcar etapas)
+  - Reportar status
+  - Comentários internos
+- **Sem** acesso a comissões, parceiro, outras demandas do cliente.
+
+## 4. Portal do Parceiro — "Indicados & Comissões"
+
+- Lista clientes onde `partner_id = parceiro_atual`.
+- Para cada cliente: demandas vinculadas (apenas título/status/valor — sem documentos).
+- Aba comissões já existe — garantir filtro por `partner_id`.
+
+## 5. Portal Admin — visão completa
+
+- Já tem `/cockpit`, `/demandas`, `/clientes/:id`. Vou conectar o **Delegar Prestador** direto na demanda e garantir que abrir uma demanda mostre todos os blocos (helpers `demand.loadAll` já prontos em `src/lib/demand.ts`).
+
+---
+
+## 6. Segurança (RLS) — auditoria e correções
+
+Vou rodar uma migration que garante:
+
+- `documents`: SELECT permitido se
+  - admin, OU
+  - cliente dono (`client.user_id = auth.uid()`), OU
+  - prestador delegado (`is_delegated_provider(auth.uid(), client_product_id)`).
+- `client_products`: mesma regra.
+- `client_product_steps`, `client_product_status_reports`, `demand_comments`, `tasks` (quando `client_product_id` not null), `payments`: idem.
+- `commissions` / `commission_splits`: parceiro só vê o próprio `partner_id`.
+- Trigger já existe para forçar `client_product_id` em documents — manter.
+
+## 7. Design — "nada comum"
+
+Direção visual única por portal, mantendo o design system:
+
+- **Admin:** denso, tipo cockpit (já em andamento).
+- **Cliente:** layout em "linha do tempo" da demanda, com cards grandes, ícones de etapa, gradientes suaves.
+- **Prestador:** visão "fila de trabalho" estilo Kanban + cronômetro de SLA.
+- **Parceiro:** dashboard com gráfico de funil (indicados → contratos → comissões pagas).
+
+Vou propor 3 direções via prototype para o portal do Cliente (o mais visual) antes de implementar — para você escolher.
+
+---
+
+## Entregáveis técnicos
+
+1. Migration RLS unificada para documentos/demanda/financeiro por papel.
+2. Refator `ClientPanel`: lista de demandas + nova página `/cliente/demandas/:id`.
+3. Refator `ProviderPanel`: fila de demandas delegadas + reuso de `DemandDetail` em modo prestador.
+4. Refator `PartnerPanel`: indicados + comissões filtradas.
+5. Hook `useDemandAccess(demandId)` central para decidir o que mostrar por papel.
+6. Após aprovação do plano: gerar 3 direções visuais para o portal do Cliente via `design--create_directions`.
+
+---
+
+## Pergunta antes de implementar
+
+- O cliente faz **upload** de documentos por demanda, ou apenas **visualiza** o que o admin/prestador anexa? (afeta UI e RLS de INSERT)
+- O parceiro pode ver o **status das demandas** dos indicados, ou só "fechou/não fechou"?
