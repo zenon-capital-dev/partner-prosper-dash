@@ -101,8 +101,46 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     partner_commission: 10,
     referrer_id: "",
     referrer_commission: 5,
+    collaborator_id: "",
+    collaborator_commission: 0,
     service_provider_id: "",
+    provider_payout: 0,
     notes: "",
+  });
+
+  // Pré-preenche com a rede já vinculada ao cliente (parceiro / indicador / colaborador)
+  useQuery({
+    queryKey: ["client-network-prefill", clientId, open],
+    enabled: !!clientId && open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("partner_id, referrer_id, collaborator_id, partners(commission_percent), referrers(commission_percent)")
+        .eq("id", clientId)
+        .maybeSingle();
+      if (data) {
+        setForm((f) => ({
+          ...f,
+          partner_id: f.partner_id || data.partner_id || "",
+          partner_commission: data.partner_id && (data as any).partners?.commission_percent ? Number((data as any).partners.commission_percent) : f.partner_commission,
+          referrer_id: f.referrer_id || data.referrer_id || "",
+          referrer_commission: data.referrer_id && (data as any).referrers?.commission_percent ? Number((data as any).referrers.commission_percent) : f.referrer_commission,
+          collaborator_id: f.collaborator_id || (data.collaborator_id ?? ""),
+        }));
+      }
+      return data;
+    },
+  });
+
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ["all-collaborators-select"],
+    queryFn: async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["vendedor", "colaborador", "admin"]);
+      const ids = (roles ?? []).map((r) => r.user_id);
+      if (!ids.length) return [];
+      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
+      return data ?? [];
+    },
   });
 
   const { data: companies = [] } = useQuery({
