@@ -57,16 +57,16 @@
     --sidebar-ring: 230 70% 60%;
     --sidebar-muted: 220 10% 42%;
 
-    /* Admin sidebar — dark executive rail */
-    --admin-sidebar-bg: 240 14% 4%;
-    --admin-sidebar-surface: 240 12% 7%;
-    --admin-sidebar-surface-strong: 244 18% 10%;
-    --admin-sidebar-border: 240 10% 14%;
-    --admin-sidebar-text: 224 18% 72%;
-    --admin-sidebar-muted: 226 12% 43%;
-    --admin-sidebar-heading: 228 14% 39%;
-    --admin-sidebar-active: 250 94% 62%;
-    --admin-sidebar-active-2: 283 88% 64%;
+    /* Admin sidebar — premium light B2B rail */
+    --admin-sidebar-bg: 0 0% 100%;
+    --admin-sidebar-surface: 220 20% 98%;
+    --admin-sidebar-surface-strong: 224 38% 96%;
+    --admin-sidebar-border: 220 13% 88%;
+    --admin-sidebar-text: 222 28% 22%;
+    --admin-sidebar-muted: 220 9% 46%;
+    --admin-sidebar-heading: 220 12% 48%;
+    --admin-sidebar-active: 231 72% 46%;
+    --admin-sidebar-active-2: 217 80% 48%;
     --admin-sidebar-online: 154 76% 48%;
 
     /* Status palette — corporate, desaturated */
