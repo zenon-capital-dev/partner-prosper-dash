@@ -294,7 +294,7 @@ export default function AuditLog() {
                         <span className="text-sm font-bold text-foreground">
                           {log.profiles?.full_name || "Sistema"}
                         </span>
-                        <Badge variant="secondary" className="text-[9px] uppercase tracking-tighter px-1.5 py-0 h-4 bg-primary/5 text-primary border-primary/10">
+                        <Badge variant="outline" className={`text-[9px] uppercase tracking-tighter px-1.5 py-0 h-4 border ${actionTone(log.action)}`}>
                           {log.action.replace(/_/g, ' ')}
                         </Badge>
                         <span className="text-xs text-muted-foreground">em</span>
