@@ -308,36 +308,40 @@
      ============================================================ */
   .admin-shell,
   .dark .admin-shell {
-    --background: 220 20% 98%;
+    --background: 220 24% 97%;
     --foreground: 222 47% 8%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 9%;
-    --primary: 234 89% 60%;
+    --primary: 231 72% 46%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 234 100% 96%;
+    --primary-muted: 231 82% 96%;
+    --primary-glow: 217 80% 48%;
     --secondary: 220 16% 95%;
     --secondary-foreground: 222 40% 14%;
     --muted: 220 14% 94%;
     --muted-foreground: 220 9% 40%;
-    --accent: 234 100% 96%;
-    --accent-foreground: 234 89% 40%;
-    --border: 220 13% 90%;
-    --input: 220 13% 88%;
-    --ring: 234 89% 60%;
-    --success: 158 58% 38%;
+    --accent: 217 80% 96%;
+    --accent-foreground: 231 72% 34%;
+    --border: 220 13% 88%;
+    --input: 220 13% 86%;
+    --ring: 231 72% 46%;
+    --success: 158 58% 34%;
     --success-foreground: 0 0% 100%;
-    --success-muted: 158 60% 95%;
-    --warning: 32 78% 48%;
+    --success-muted: 158 56% 94%;
+    --warning: 34 82% 44%;
     --warning-foreground: 0 0% 100%;
-    --warning-muted: 36 90% 95%;
-    --destructive: 358 68% 52%;
+    --warning-muted: 38 82% 94%;
+    --info: 203 78% 42%;
+    --info-foreground: 0 0% 100%;
+    --info-muted: 203 78% 95%;
+    --destructive: 358 68% 50%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 358 80% 96%;
+    --destructive-muted: 358 76% 96%;
     color-scheme: light;
-    background: hsl(220 20% 98%);
-    color: hsl(222 47% 8%);
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
   .dark .admin-shell::before { display: none; }
 
