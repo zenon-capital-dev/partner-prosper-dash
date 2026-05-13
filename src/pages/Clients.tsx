@@ -204,7 +204,7 @@ export default function Clients() {
         <PageHeader
           eyebrow="CRM"
           title="Clientes"
-          description="Carteira completa, saúde financeira e risco de cancelamento."
+          description="Carteira completa, engajamento e risco de cancelamento."
           actions={
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search}>
@@ -230,8 +230,8 @@ export default function Clients() {
             icon={<AlertTriangle className="size-4" />} tone="danger"
           />
           <SummaryCard
-            label="Health médio" value={`${kpis.avgHealth}`}
-            sublabel="Score consolidado da carteira"
+            label="Engajamento médio" value={`${kpis.avgHealth}`}
+            sublabel="Pontuação consolidada da carteira"
             icon={<Activity className="size-4" />} tone={kpis.avgHealth >= 70 ? "success" : kpis.avgHealth >= 50 ? "warning" : "danger"}
           />
           <SummaryCard
@@ -390,7 +390,7 @@ export default function Clients() {
                   onClick={() => navigate(`/clientes/${c.id}`)}
                   className="group relative rounded-2xl border border-border/60 bg-card/40 p-5 hover:border-primary/40 hover:shadow-lg transition-all cursor-pointer overflow-hidden"
                 >
-                  {/* Health indicator strip */}
+                  {/* Indicador de engajamento */}
                   <div
                     className={cn(
                       "absolute top-0 left-0 right-0 h-1",
@@ -483,7 +483,7 @@ export default function Clients() {
                       <p className="font-display font-bold text-sm tabular-nums text-foreground">{formatBRL(c._totalContracted)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Health</p>
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Engajamento</p>
                       <p className={cn(
                         "font-display font-bold text-sm tabular-nums",
                         c._health >= 75 ? "text-success" : c._health >= 50 ? "text-warning" : "text-destructive"
@@ -507,7 +507,7 @@ export default function Clients() {
                     <Th>Cliente</Th>
                     <Th>Documento / Contato</Th>
                     <Th>Status</Th>
-                    <Th>Health</Th>
+                    <Th>Engajamento</Th>
                     <Th>Risco</Th>
                     <Th>Produtos</Th>
                     <Th>Responsável</Th>

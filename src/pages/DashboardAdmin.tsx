@@ -213,7 +213,7 @@ export default function DashboardAdmin() {
     if (staleLeads > 0) alerts.push({ id: "l1", title: "Follow-ups atrasados", sub: `${staleLeads} negociações esfriando`, tone: "danger", icon: CalendarClock, href: "/leads" });
     if (delayed > 0) alerts.push({ id: "d1", title: "Entregas em atraso", sub: `${delayed} demandas estouraram o prazo`, tone: "danger", icon: Clock, href: "/demandas" });
     if (overdueAmount > 0) alerts.push({ id: "p1", title: "Inadimplência detectada", sub: `${formatBRL(overdueAmount)} em ${overduePayments.length} título(s)`, tone: "danger", icon: CreditCard, href: "/financeiro" });
-    if (churnRisk > 0) alerts.push({ id: "ch", title: "Clientes em risco de churn", sub: `${churnRisk} contas com health baixo`, tone: "warning", icon: AlertTriangle, href: "/clientes" });
+    if (churnRisk > 0) alerts.push({ id: "ch", title: "Clientes em risco de cancelamento", sub: `${churnRisk} contas com engajamento baixo`, tone: "warning", icon: AlertTriangle, href: "/clientes" });
     if (upcomingPayments.length > 0) alerts.push({ id: "up", title: "Recebíveis nos próximos 7 dias", sub: `${formatBRL(upcomingAmount)} previstos`, tone: "info", icon: PiggyBank, href: "/financeiro" });
 
     const upcomingActions = activeLeads
@@ -731,7 +731,7 @@ export default function DashboardAdmin() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold text-slate-900 dark:text-zinc-100 truncate">{c.full_name}</p>
-                    <p className="text-[9.5px] text-slate-500 dark:text-zinc-500 truncate">Health {c.health_score ?? "—"}/100 · {c.status}</p>
+                    <p className="text-[9.5px] text-slate-500 dark:text-zinc-500 truncate">Engajamento {c.health_score ?? "—"}/100 · {c.status}</p>
                   </div>
                   <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">{formatBRL(c._value)}</span>
                 </Link>

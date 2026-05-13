@@ -215,7 +215,7 @@ export default function Dashboard() {
                   <div className="mt-8 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="size-2 rounded-full bg-emerald-500" />
-                      <span className="text-[11px] font-bold text-white/60">SAÚDE FINANCEIRA OK</span>
+                      <span className="text-[11px] font-bold text-white/60">FINANCEIRO EM DIA</span>
                     </div>
                   </div>
                 </div>
