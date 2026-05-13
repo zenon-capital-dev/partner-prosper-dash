@@ -125,11 +125,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Workspace</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
-              <Settings className="size-4 mr-2" /> Configurações
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/usuarios")}>
-              <UserCog className="size-4 mr-2" /> Membros
+            {isFullAdmin && (
+              <>
+                <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
+                  <Settings className="size-4 mr-2" /> Configurações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/usuarios")}>
+                  <UserCog className="size-4 mr-2" /> Membros
+                </DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuItem onClick={() => navigate("/perfil")}>
+              <UserCircle className="size-4 mr-2" /> Meu Perfil
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
