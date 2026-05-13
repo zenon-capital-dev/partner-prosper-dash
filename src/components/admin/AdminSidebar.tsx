@@ -164,7 +164,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
 
       {/* NAV */}
       <nav className="relative flex-1 overflow-y-auto px-2.5 py-3 space-y-4 vx-sidebar-scroll">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-2.5 mb-1.5">
