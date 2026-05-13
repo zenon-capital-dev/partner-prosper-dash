@@ -87,13 +87,13 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white border-r border-slate-200/70",
-        collapsed ? "w-[72px]" : "w-[248px]"
+        "bg-card border-r border-border/80 shadow-[4px_0_24px_-24px_hsl(var(--foreground)/0.5)]",
+        collapsed ? "w-[72px]" : "w-[272px]"
       )}
     >
       {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[60px] flex items-center border-b border-slate-200/70",
+        "relative shrink-0 h-[64px] flex items-center border-b border-border/80",
         collapsed ? "px-3 justify-center" : "px-4"
       )}>
         <DropdownMenu>
@@ -102,18 +102,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               "flex items-center gap-2.5 rounded-lg transition-colors group",
               collapsed ? "size-10 justify-center hover:bg-slate-100" : "w-full px-1.5 py-1.5 hover:bg-slate-50"
             )}>
-              <div className="size-8 rounded-lg bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-sm shrink-0">
-                <Box className="size-4 text-white" strokeWidth={2.5} />
+              <div className="size-9 rounded-lg bg-primary flex items-center justify-center shadow-sm shrink-0 ring-1 ring-primary/20">
+                <Box className="size-4 text-primary-foreground" strokeWidth={2.5} />
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13.5px] font-semibold text-slate-900 leading-tight tracking-tight truncate">VendxCRM</p>
-                  <p className="text-[10px] font-medium text-slate-500 leading-tight mt-0.5 truncate">
-                    Painel Administrativo
+                  <p className="text-[13.5px] font-bold text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground leading-tight mt-0.5 truncate uppercase tracking-[0.12em]">
+                    Admin OS
                   </p>
                 </div>
               )}
-              {!collapsed && <ChevronDown className="size-3.5 text-slate-400 shrink-0" />}
+              {!collapsed && <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
@@ -130,7 +130,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-300 transition-all z-10"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-card border border-border shadow-sm flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
