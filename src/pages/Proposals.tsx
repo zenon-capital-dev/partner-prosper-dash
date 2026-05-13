@@ -467,11 +467,11 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
           <div>
             <Label className="mb-2 block">Destinatário</Label>
             <div className="flex gap-2 mb-3">
-              {(["client", "lead", "manual"] as const).map(t => (
+              {(["client", "manual"] as const).map(t => (
                 <Button key={t} type="button" size="sm"
                   variant={recipientType === t ? "default" : "outline"}
                   onClick={() => setRecipientType(t)}>
-                  {t === "client" ? "Cliente" : t === "lead" ? "Lead" : "Manual"}
+                  {t === "client" ? "Cliente cadastrado" : "Destinatário manual"}
                 </Button>
               ))}
             </div>
@@ -480,14 +480,6 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
                 <SelectTrigger><SelectValue placeholder="Selecione cliente" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name}{c.company ? ` — ${c.company}` : ""}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            {recipientType === "lead" && (
-              <Select value={leadId} onValueChange={setLeadId}>
-                <SelectTrigger><SelectValue placeholder="Selecione lead" /></SelectTrigger>
-                <SelectContent>
-                  {leads.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.name}{l.company ? ` — ${l.company}` : ""}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
