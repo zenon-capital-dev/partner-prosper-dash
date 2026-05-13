@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,8 +18,14 @@ import {
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos"] as const;
+
 export default function PartnerPanel() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const activeTab = tabParam && (PARTNER_TABS as readonly string[]).includes(tabParam) ? tabParam : "home";
+  const setActiveTab = (v: string) => navigate(v === "home" ? "/parceiro" : `/parceiro/${v}`);
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [clientFilter, setClientFilter] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
@@ -115,7 +122,7 @@ export default function PartnerPanel() {
            </div>
         </section>
 
-        <Tabs defaultValue="home" className="space-y-10">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
            <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 inline-flex flex-wrap">
               <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Visão Geral</TabsTrigger>
               <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Indicados ({clients.length})</TabsTrigger>

@@ -1,4 +1,5 @@
 import { useRef, useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,8 +21,21 @@ import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PageHero } from "@/components/PageHero";
 
+const CLIENT_PATH_TO_TAB: Record<string, string> = {
+  produtos: "servicos", documentos: "checklist", financeiro: "financeiro",
+  contratos: "contratos", biblioteca: "docs", descobrir: "descobrir",
+};
+const CLIENT_TAB_TO_PATH: Record<string, string> = {
+  servicos: "produtos", checklist: "documentos", financeiro: "financeiro",
+  contratos: "contratos", docs: "biblioteca", descobrir: "descobrir",
+};
+
 export default function ClientPanel() {
   const { user } = useAuth();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
+  const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
+  const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -255,7 +269,7 @@ export default function ClientPanel() {
               </div>
             </section>
 
-            <Tabs defaultValue="home" className="space-y-10">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
               <TabsList className="bg-transparent h-auto p-0 flex-wrap gap-x-12 gap-y-4 justify-start border-b border-slate-200 w-full rounded-none pb-px">
                 <PremiumTabTrigger value="home" label="Início" icon={LayoutDashboard} />
                 <PremiumTabTrigger value="servicos" label="Meus Produtos" icon={Package} />

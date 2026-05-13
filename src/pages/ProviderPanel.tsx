@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,9 +22,21 @@ import { ProductInteractionPanel } from "@/components/provider/ProductInteractio
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+const PROVIDER_PATH_TO_TAB: Record<string, string> = {
+  "por-cliente": "por-cliente", demandas: "clientes", documentos: "documentos",
+  reportes: "reportes", contratos: "contratos",
+};
+const PROVIDER_TAB_TO_PATH: Record<string, string> = {
+  "por-cliente": "por-cliente", clientes: "demandas", documentos: "documentos",
+  reportes: "reportes", contratos: "contratos",
+};
+
 export default function ProviderPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const activeTab = tabParam && PROVIDER_PATH_TO_TAB[tabParam] ? PROVIDER_PATH_TO_TAB[tabParam] : "dashboard";
+  const setActiveTab = (v: string) => navigate(v === "dashboard" ? "/prestador" : `/prestador/${PROVIDER_TAB_TO_PATH[v] || v}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -364,7 +376,7 @@ export default function ProviderPanel() {
           </div>
         ) : (
           /* MAIN LIST VIEW */
-          <Tabs defaultValue="dashboard" className="space-y-8 animate-fade-up">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 flex-wrap">
                 <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Home</TabsTrigger>
