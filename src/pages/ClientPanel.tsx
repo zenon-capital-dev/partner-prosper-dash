@@ -383,14 +383,14 @@ export default function ClientPanel() {
               </TabsContent>
 
               <TabsContent value="servicos" className="animate-fade-up">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                   {granularProducts.map((p: any) => {
                     const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
                     const latestReport = reports.find((r: any) => r.client_product_id === p.id);
                     return (
                       <div 
                         key={p.id} 
-                        className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-[32px] group/item cursor-pointer flex flex-col h-full"
+                        className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-2xl sm:rounded-[32px] group/item cursor-pointer flex flex-col h-full"
                         onClick={() => setSelectedProductId(p.id)}
                       >
                         <div className="flex justify-between items-start mb-8">
@@ -400,7 +400,7 @@ export default function ClientPanel() {
                           <StatusBadge status={p.status} />
                         </div>
                         
-                        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                           {p.products?.name}
                         </h3>
                         <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
@@ -445,9 +445,9 @@ export default function ClientPanel() {
               </TabsContent>
 
               <TabsContent value="descobrir" className="animate-fade-up">
-                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                      <div key={p.id} className="vx-card p-8 bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:bg-white transition-all rounded-[32px] border-dashed border-2">
+                      <div key={p.id} className="vx-card p-5 sm:p-8 bg-slate-50 dark:bg-white/[0.02] border-slate-100 dark:border-white/5 hover:bg-white transition-all rounded-2xl sm:rounded-[32px] border-dashed border-2">
                         <h3 className="font-editorial text-2xl font-bold text-slate-800 dark:text-slate-100">{p.name}</h3>
                         <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
                         <div className="mt-8 flex items-center justify-between">
@@ -460,13 +460,13 @@ export default function ClientPanel() {
               </TabsContent>
 
               <TabsContent value="docs" className="animate-fade-up">
-                 <div className="vx-card bg-white dark:bg-card rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
-                    <div className="p-8 border-b border-slate-50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
-                       <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Repositório de Arquivos</h3>
+                 <div className="vx-card bg-white dark:bg-card rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
+                    <div className="p-5 sm:p-8 border-b border-slate-50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
+                       <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Repositório de Arquivos</h3>
                     </div>
                     <div className="divide-y divide-slate-50 dark:divide-white/5">
                        {docs.map((d: any) => (
-                         <div key={d.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                         <div key={d.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                             <div className="flex items-center gap-5">
                                <div className="size-12 rounded-[18px] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
                                   <FileText className="size-6" />
@@ -487,31 +487,31 @@ export default function ClientPanel() {
               </TabsContent>
 
               <TabsContent value="financeiro" className="animate-fade-up">
-                 <div className="grid lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
-                       <div className="p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
-                          <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Extrato de Pagamentos</h3>
+                 <div className="grid lg:grid-cols-3 gap-5 sm:gap-8">
+                    <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
+                       <div className="p-5 sm:p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
+                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Extrato de Pagamentos</h3>
                        </div>
                        <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                              <thead>
                                 <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
-                                   <th className="px-8 py-5 text-left">Vencimento</th>
-                                   <th className="px-8 py-5 text-left">Status</th>
-                                   <th className="px-8 py-5 text-right">Valor</th>
+                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-left">Vencimento</th>
+                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-left">Status</th>
+                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-right">Valor</th>
                                 </tr>
                              </thead>
                              <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                                 {payments.map((p: any) => (
                                   <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
-                                     <td className="px-8 py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
-                                     <td className="px-8 py-6">
+                                     <td className="px-4 sm:px-8 py-4 sm:py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
+                                     <td className="px-4 sm:px-8 py-4 sm:py-6">
                                         <span className={cn(
                                           "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
                                           p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
                                         )}>{p.status}</span>
                                      </td>
-                                     <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
+                                     <td className="px-4 sm:px-8 py-4 sm:py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
                                   </tr>
                                 ))}
                              </tbody>
