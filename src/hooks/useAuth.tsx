@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("user_id", userId);
 
       if (error) throw error;
-      const roleList = (data?.map((r: { role: AppRole }) => r.role) as AppRole[]) ?? [];
+      const roleList = ((data ?? []).map((r) => r.role as unknown as AppRole));
       if (import.meta.env.DEV) console.log("[auth] roles loaded:", roleList);
       setRoles(roleList);
     } catch (error) {
