@@ -141,7 +141,7 @@ export default function ClientPanel() {
                ]}
              />
 
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
                <div className="lg:col-span-2 space-y-8">
                   <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
                     <h3 className="font-editorial text-2xl font-bold mb-8">Checklist de Execução</h3>
@@ -296,11 +296,11 @@ export default function ClientPanel() {
               </div>
 
               <TabsContent value="home" className="animate-fade-up space-y-10">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
                   <div className="lg:col-span-2 space-y-8">
                     {/* Próximas Etapas */}
-                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
-                      <h3 className="font-editorial text-2xl font-bold mb-6">Próximas Etapas</h3>
+                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                      <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Próximas Etapas</h3>
                       <div className="space-y-4">
                         {activeProducts.length === 0 ? (
                           <p className="text-sm text-muted-foreground italic">Nenhuma etapa pendente no momento.</p>
@@ -324,8 +324,8 @@ export default function ClientPanel() {
                     </div>
 
                     {/* Entregas Recentes */}
-                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
-                      <h3 className="font-editorial text-2xl font-bold mb-6">Entregas Disponíveis</h3>
+                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                      <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Entregas Disponíveis</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {deliveries.length === 0 ? (
                           <div className="col-span-full py-8 text-center bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
@@ -353,9 +353,9 @@ export default function ClientPanel() {
 
                   <div className="space-y-8">
                     {/* Ações Necessárias */}
-                    <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                    <div className="vx-card p-5 sm:p-8 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] shadow-xl relative overflow-hidden">
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <h3 className="font-editorial text-xl font-bold mb-6 relative">Ações Necessárias</h3>
+                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6 relative">Ações Necessárias</h3>
                        <div className="space-y-4 relative">
                           <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
                           <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
@@ -364,8 +364,8 @@ export default function ClientPanel() {
                     </div>
 
                     {/* Canal de Suporte */}
-                    <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm">
-                       <h3 className="font-editorial text-xl font-bold mb-6">Suporte & Sucesso</h3>
+                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6">Suporte & Sucesso</h3>
                        <div className="space-y-6">
                           <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
                           <div className="space-y-3">
@@ -518,7 +518,7 @@ export default function ClientPanel() {
                           </table>
                        </div>
                     </div>
-                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-8 relative overflow-hidden shadow-2xl">
+                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
                        <Receipt className="size-12 text-primary relative" />
                        <div className="space-y-4 relative">
