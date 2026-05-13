@@ -27,9 +27,8 @@ import AdminProfile from "./pages/AdminProfile";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
-import Support from "./pages/Support";
 import Indicators from "./pages/Indicators";
-import Projects from "./pages/Projects";
+
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
 import ClientOnboarding from "./pages/ClientOnboarding";
@@ -86,7 +85,7 @@ const App = () => (
               <Route path="/parceiros/:id" element={<PartnerDetail />} />
               <Route path="/produtos" element={<Products />} />
               <Route path="/indicadores" element={<Indicators />} />
-              <Route path="/projetos" element={<Projects />} />
+              <Route path="/projetos" element={<Navigate to="/demandas" replace />} />
               <Route path="/leads" element={<Navigate to="/vendas" replace />} />
               <Route path="/colaboradores" element={<Collaborators />} />
               <Route path="/prestadores" element={<Providers />} />
@@ -108,7 +107,7 @@ const App = () => (
               <Route path="/configuracoes" element={<Settings />} />
               <Route path="/automacoes" element={<Automations />} />
               <Route path="/usuarios" element={<UsersPage />} />
-              <Route path="/suporte" element={<Support />} />
+              <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
             </Route>
             <Route element={<AppLayout />}>

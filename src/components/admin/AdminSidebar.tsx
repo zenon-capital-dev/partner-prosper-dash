@@ -33,7 +33,6 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Catálogo", adminOnly: true, items: [
     { title: "Produtos", url: "/produtos", icon: Package, adminOnly: true },
-    { title: "Projetos", url: "/projetos", icon: Briefcase, adminOnly: true },
     { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", adminOnly: true, items: [
@@ -54,7 +53,6 @@ const SECTIONS: NavSection[] = [
     { title: "Auditoria", url: "/auditoria", icon: History },
     { title: "Usuários", url: "/usuarios", icon: UserCog },
     { title: "Automações", url: "/automacoes", icon: Zap },
-    { title: "Suporte", url: "/suporte", icon: LifeBuoy },
     { title: "Configurações", url: "/configuracoes", icon: Settings },
   ]},
 ];
