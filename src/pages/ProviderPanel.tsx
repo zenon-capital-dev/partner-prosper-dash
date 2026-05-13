@@ -191,7 +191,7 @@ export default function ProviderPanel() {
       .slice(0, 3);
 
     return { total, active, urgent, delayed, docsAwaiting, pendingReports, valuesToReceive, nextDeadlines };
-  }, [clientProducts, documents]);
+  }, [clientProducts, documents, lastReportMap]);
 
   async function handleDownload(filePath: string, name: string) {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 3600);
