@@ -111,15 +111,15 @@ export default function ClientPanel() {
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
   return (
-    <div className="bg-premium min-h-screen dark:bg-[#020617]">
+    <div className="bg-slate-50 min-h-screen text-slate-900">
       {/* ─── Sticky Top Bar ─── */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
         <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
           <div className="flex items-center gap-2.5 min-w-0">
             <ProsperLogo size={28} />
             <div className="min-w-0">
-              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900 dark:text-white">Prosper</p>
-              <p className="hidden sm:block text-[8.5px] text-muted-foreground tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
+              <p className="font-semibold text-[14px] tracking-tight leading-none text-slate-900">Prosper</p>
+              <p className="hidden sm:block text-[11px] text-slate-500 mt-0.5">Portal do Cliente</p>
             </div>
           </div>
 
@@ -127,7 +127,7 @@ export default function ClientPanel() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
+              className="size-9 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100"
               onClick={() => toast.info("Notificações em breve")}
               aria-label="Notificações"
             >
@@ -135,12 +135,12 @@ export default function ClientPanel() {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
-                  <span className="size-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[11px] font-bold shrink-0">
+                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors active:scale-[0.98]">
+                  <span className="size-7 rounded-md bg-indigo-600 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">
                     {initials(client.full_name)}
                   </span>
-                  <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
-                  <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
+                  <span className="hidden sm:inline text-[13px] font-medium text-slate-700 max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
+                  <ChevronRight className="size-3.5 text-slate-400 rotate-90" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
