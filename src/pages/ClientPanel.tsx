@@ -588,14 +588,15 @@ export default function ClientPanel() {
                           </table>
                        </div>
                     </div>
-                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
-                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <Receipt className="size-12 text-primary relative" />
-                       <div className="space-y-4 relative">
-                          <h3 className="font-editorial text-2xl sm:text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
-                          <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
+                    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
+                       <div className="size-11 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                          <Receipt className="size-5" />
                        </div>
-                       <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
+                       <div className="space-y-2">
+                          <h3 className="font-display text-lg sm:text-xl font-semibold text-slate-900 leading-tight">Configurações de Faturamento</h3>
+                          <p className="text-sm text-slate-500 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
+                       </div>
+                       <Button className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white h-11 font-medium">Solicitar Ajuste</Button>
                     </div>
                  </div>
               </TabsContent>
