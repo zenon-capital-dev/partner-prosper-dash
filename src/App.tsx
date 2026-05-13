@@ -27,7 +27,6 @@ import AdminProfile from "./pages/AdminProfile";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
-import Support from "./pages/Support";
 import Indicators from "./pages/Indicators";
 import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
