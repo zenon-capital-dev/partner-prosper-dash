@@ -350,10 +350,10 @@ export default function DashboardAdmin() {
 
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          <KpiPremium label="Gross Revenue" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`MTD vs Prev`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
-          <KpiPremium label="Acquisition" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`New closed contracts`} progress={78} />
-          <KpiPremium label="Conversion Rate" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Optimal" : "Review"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads to customers`} progress={stats.conversionRate} />
-          <KpiPremium label="Avg. Ticket" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} deals`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Per transaction" progress={65} />
+          <KpiPremium label="Receita Bruta" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`Mês atual vs anterior`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
+          <KpiPremium label="Aquisição" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`Novos contratos fechados`} progress={78} />
+          <KpiPremium label="Taxa de Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Ótima" : "Revisar"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads em clientes`} progress={stats.conversionRate} />
+          <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
         </section>
 
         {/* ============ MINI METRIC PILLS ============ */}
@@ -371,7 +371,7 @@ export default function DashboardAdmin() {
           {/* Revenue 12m */}
           <Card className="lg:col-span-8 min-h-[400px] flex flex-col p-6">
             <CardHeader
-              eyebrow="Business Intelligence"
+              eyebrow="Inteligência de Negócio"
               title="Fluxo de Receita Mensal × Metas Projetadas"
               right={
                 <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
@@ -901,7 +901,7 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
       </div>
       <div className="relative mt-8 pt-5 border-t border-slate-100 dark:border-white/[0.03]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Growth Index</span>
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Índice de Crescimento</span>
           <span className="text-[11px] font-black text-slate-900 dark:text-white">{Math.round(progress)}%</span>
         </div>
         <div className="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
