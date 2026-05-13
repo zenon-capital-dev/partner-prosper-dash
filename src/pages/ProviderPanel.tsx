@@ -18,7 +18,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ProviderPanel() {
   const { user } = useAuth();
