@@ -43,7 +43,6 @@ const adminSections: NavSection[] = [
   {
     label: "Comercial",
     items: [
-      { title: "Leads", url: "/leads", icon: Target },
       { title: "Propostas", url: "/propostas", icon: FileText },
       { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
       { title: "Produtos", url: "/produtos", icon: Package },

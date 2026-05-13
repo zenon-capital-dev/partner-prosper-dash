@@ -33,7 +33,7 @@ import Projects from "./pages/Projects";
 import PartnerPanel from "./pages/PartnerPanel";
 import ClientPanel from "./pages/ClientPanel";
 import ClientOnboarding from "./pages/ClientOnboarding";
-import Leads from "./pages/Leads";
+// Leads removido — apenas clientes fechados manualmente
 import Collaborators from "./pages/Collaborators";
 import Providers from "./pages/Providers";
 import Tasks from "./pages/Tasks";
@@ -87,7 +87,7 @@ const App = () => (
               <Route path="/produtos" element={<Products />} />
               <Route path="/indicadores" element={<Indicators />} />
               <Route path="/projetos" element={<Projects />} />
-              <Route path="/leads" element={<Leads />} />
+              <Route path="/leads" element={<Navigate to="/vendas" replace />} />
               <Route path="/colaboradores" element={<Collaborators />} />
               <Route path="/prestadores" element={<Providers />} />
               <Route path="/prestadores/reportes" element={<ProviderReports />} />

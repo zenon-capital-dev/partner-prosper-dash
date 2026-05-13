@@ -34,6 +34,7 @@ export default function Clients() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [view, setView] = useState<"grid" | "table">("grid");
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
@@ -240,7 +241,7 @@ export default function Clients() {
           />
         </div>
 
-        {/* Toolbar: search + filter toggle */}
+        {/* Toolbar: search + filter toggle + view toggle */}
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="relative flex-1">
             <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
@@ -250,13 +251,23 @@ export default function Clients() {
               className="pl-10 h-10"
             />
           </div>
+          <div className="inline-flex items-center rounded-xl border border-border/60 bg-card/40 p-1 h-10">
+            <button
+              onClick={() => setView("grid")}
+              className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "grid" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+            >Cards</button>
+            <button
+              onClick={() => setView("table")}
+              className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+            >Tabela</button>
+          </div>
           <Button
             variant="outline" size="sm"
             onClick={() => setShowFilters((v) => !v)}
             className="h-10 gap-2"
           >
             <Filter className="size-4" />
-            Filtros avançados
+            Filtros
             {activeFiltersCount > 0 && (
               <span className="ml-1 inline-flex items-center justify-center rounded-md bg-primary/15 text-primary px-1.5 py-0.5 text-[10px] font-bold">
                 {activeFiltersCount}
@@ -356,12 +367,137 @@ export default function Clients() {
           </div>
         )}
 
-        {/* Table */}
+        {/* Lista — grid ou tabela */}
         {isLoading ? (
           <div className="rounded-xl border border-border/60 bg-card/40 py-20 flex flex-col items-center justify-center text-muted-foreground">
             <div className="size-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-3" />
             <p className="text-sm">Carregando clientes...</p>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="rounded-xl border-2 border-dashed border-border/60 bg-card/40 py-16 text-center">
+            <Users className="size-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Nenhum cliente encontrado.</p>
+            <button onClick={resetFilters} className="text-primary text-xs font-semibold mt-2 hover:underline">
+              Limpar filtros
+            </button>
+          </div>
+        ) : view === "grid" ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filtered.map((c: any) => (
+                <div
+                  key={c.id}
+                  onClick={() => navigate(`/clientes/${c.id}`)}
+                  className="group relative rounded-2xl border border-border/60 bg-card/40 p-5 hover:border-primary/40 hover:shadow-lg transition-all cursor-pointer overflow-hidden"
+                >
+                  {/* Health indicator strip */}
+                  <div
+                    className={cn(
+                      "absolute top-0 left-0 right-0 h-1",
+                      c._risk === "high" && "bg-destructive",
+                      c._risk === "med" && "bg-warning",
+                      c._risk === "low" && "bg-success"
+                    )}
+                  />
+
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="size-12 rounded-xl bg-gradient-to-br from-primary/20 to-violet-500/20 border border-primary/20 text-primary flex items-center justify-center text-sm font-black shrink-0">
+                        {initials(c.full_name)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          {c.full_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                          <Building2 className="size-3" />
+                          {c.company || "Pessoa física"}
+                        </p>
+                      </div>
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100">
+                            <MoreHorizontal className="size-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                          <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}>
+                            <Eye className="size-3.5 mr-2" /> Ver perfil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}>
+                            <CreditCard className="size-3.5 mr-2" /> Financeiro
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=documentos`)}>
+                            <FileText className="size-3.5 mr-2" /> Documentos
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive">
+                            <Trash2 className="size-3.5 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <StatusBadge status={c.status} />
+                    <RiskBadge risk={c._risk} overdue={c._overdue} />
+                  </div>
+
+                  <div className="space-y-2.5 text-xs mb-4">
+                    {c.email && (
+                      <div className="flex items-center gap-2 text-muted-foreground truncate">
+                        <Mail className="size-3 shrink-0" /> {c.email}
+                      </div>
+                    )}
+                    {c.phone && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="size-3" /> {c.phone}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <User className="size-3" /> {c.partners?.full_name || "Direto"}
+                    </div>
+                  </div>
+
+                  {c._productNames.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-4 pt-3 border-t border-border/40">
+                      {c._productNames.slice(0, 3).map((p: string, i: number) => (
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-primary/5 text-primary border border-primary/20 text-[10px] font-bold whitespace-nowrap">
+                          {p}
+                        </span>
+                      ))}
+                      {c._productNames.length > 3 && (
+                        <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold">
+                          +{c._productNames.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/40">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Receita</p>
+                      <p className="font-display font-bold text-sm tabular-nums text-foreground">{formatBRL(c._totalContracted)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Health</p>
+                      <p className={cn(
+                        "font-display font-bold text-sm tabular-nums",
+                        c._health >= 75 ? "text-success" : c._health >= 50 ? "text-warning" : "text-destructive"
+                      )}>{c._health}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="px-4 py-3 text-xs text-muted-foreground flex items-center justify-between">
+              <span>{filtered.length} de {enriched.length} clientes</span>
+              <span className="font-mono">Receita visível: {formatBRL(filtered.reduce((s: number, c: any) => s + c._totalContracted, 0))}</span>
+            </div>
+          </>
         ) : (
           <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
             <div className="overflow-x-auto">
@@ -400,15 +536,6 @@ export default function Clients() {
                               <Building2 className="size-3 text-muted-foreground/60" />
                               <p className="text-xs text-muted-foreground truncate">{c.company || "Pessoa física"}</p>
                             </div>
-                            {c._tags.length > 0 && (
-                              <div className="flex gap-1 mt-1.5 flex-wrap">
-                                {c._tags.slice(0, 2).map((t: string, i: number) => (
-                                  <span key={i} className="px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground text-[10px] font-medium">
-                                    {t}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                           </div>
                         </div>
                       </td>
@@ -420,36 +547,21 @@ export default function Clients() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5"><StatusBadge status={c.status} /></td>
-                      <td className="px-4 py-3.5">
-                        <HealthBar value={c._health} />
-                      </td>
+                      <td className="px-4 py-3.5"><HealthBar value={c._health} /></td>
                       <td className="px-4 py-3.5"><RiskBadge risk={c._risk} overdue={c._overdue} /></td>
                       <td className="px-4 py-3.5 max-w-[180px]">
                         <div className="flex flex-wrap gap-1">
                           {c._productNames.length > 0 ? (
                             <>
                               {c._productNames.slice(0, 2).map((p: string, i: number) => (
-                                <span key={i} className="px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 text-[11px] text-foreground/80 whitespace-nowrap">
-                                  {p}
-                                </span>
+                                <span key={i} className="px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 text-[11px] text-foreground/80 whitespace-nowrap">{p}</span>
                               ))}
-                              {c._productNames.length > 2 && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 text-[11px] text-muted-foreground">
-                                      +{c._productNames.length - 2}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent>{c._productNames.slice(2).join(", ")}</TooltipContent>
-                                </Tooltip>
-                              )}
+                              {c._productNames.length > 2 && <span className="px-2 py-0.5 rounded-md bg-muted/60 text-[11px] text-muted-foreground">+{c._productNames.length - 2}</span>}
                             </>
                           ) : <span className="text-xs text-muted-foreground/60">—</span>}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="text-xs text-foreground/80">{c.partners?.full_name || "Direto"}</span>
-                      </td>
+                      <td className="px-4 py-3.5"><span className="text-xs text-foreground/80">{c.partners?.full_name || "Direto"}</span></td>
                       <td className="px-4 py-3.5 text-right">
                         <p className="font-mono font-semibold text-foreground">{formatBRL(c._totalContracted)}</p>
                         <p className={cn("text-[11px] font-mono mt-0.5", c._totalPending > 0 ? "text-warning" : "text-success")}>
@@ -458,60 +570,27 @@ export default function Clients() {
                       </td>
                       <td className="px-4 py-3.5 text-right">
                         <p className="text-xs text-foreground/80">{format(new Date(c.created_at), "dd/MM/yyyy")}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{format(new Date(c.created_at), "HH:mm")}</p>
                       </td>
                       <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button onClick={() => navigate(`/clientes/${c.id}`)} className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                                <ArrowUpRight className="size-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>Abrir perfil</TooltipContent>
-                          </Tooltip>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                                <MoreHorizontal className="size-4" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-52">
-                              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Ações rápidas</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}>
-                                <Eye className="size-3.5 mr-2" /> Ver perfil
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}>
-                                <CreditCard className="size-3.5 mr-2" /> Financeiro
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=documentos`)}>
-                                <FileText className="size-3.5 mr-2" /> Documentos
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=comunicacao`)}>
-                                <MessageSquare className="size-3.5 mr-2" /> Comunicação
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive focus:text-destructive">
-                                <Trash2 className="size-3.5 mr-2" /> Excluir cliente
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                              <MoreHorizontal className="size-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52">
+                            <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> Ver perfil</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            {filtered.length === 0 && (
-              <div className="py-16 text-center">
-                <Users className="size-10 text-muted-foreground/40 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">Nenhum cliente encontrado.</p>
-                <button onClick={resetFilters} className="text-primary text-xs font-semibold mt-2 hover:underline">
-                  Limpar filtros
-                </button>
-              </div>
-            )}
             {filtered.length > 0 && (
               <div className="px-4 py-3 border-t border-border/60 bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{filtered.length} de {enriched.length} clientes</span>
