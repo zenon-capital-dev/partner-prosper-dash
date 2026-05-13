@@ -20,6 +20,9 @@ interface Body {
   link_client_id?: string;
   link_partner_id?: string;
   link_referrer_id?: string;
+  link_service_provider_id?: string;
+  link_type?: "client" | "partner" | "referrer" | "service_provider";
+  link_id?: string;
 }
 
 Deno.serve(async (req) => {
