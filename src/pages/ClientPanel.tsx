@@ -15,7 +15,6 @@ import {
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { NpsCard } from "@/components/nps/NpsCard";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
