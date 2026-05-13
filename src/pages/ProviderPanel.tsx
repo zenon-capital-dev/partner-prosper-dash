@@ -314,6 +314,8 @@ export default function ProviderPanel() {
                    </div>
                    <ClientProductSteps clientProductId={selectedProduct.id} />
                 </div>
+
+                <ProductInteractionPanel clientProductId={selectedProduct.id} />
               </div>
 
               <div className="space-y-6">
