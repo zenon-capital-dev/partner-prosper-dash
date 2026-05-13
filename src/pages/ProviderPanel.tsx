@@ -179,7 +179,7 @@ export default function ProviderPanel() {
     }).length;
     
     const docsAwaiting = documents.filter((d: any) => d.status === "enviado" || d.status === "em_analise").length;
-    const pendingReports = active; // Simplificação: toda demanda ativa precisa de reporte
+    const pendingReports = clientProducts.filter((c: any) => needsReport(c.id, c.status)).length;
     
     const valuesToReceive = clientProducts
       .filter((c: any) => c.status !== "cancelado")
