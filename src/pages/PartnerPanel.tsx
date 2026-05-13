@@ -35,11 +35,22 @@ export default function PartnerPanel() {
       if (!partner) return null;
 
       const [clients, commissions, contracts] = await Promise.all([
-        supabase.from("clients").select("id, full_name, company, email, phone, status, created_at, sales(id, amount, sale_date, status, products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
-        supabase.from("commissions").select("*, sales(id, amount, sale_date, clients(full_name), products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
-        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, contract_kind, contract_type, expires_at").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("clients").select("id, full_name, company, email, phone, status, created_at").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("commissions").select("id, amount, percent, status, workflow_status, created_at, paid_at, expected_date, sales(id, amount, sale_date, clients(full_name), products(name))").eq("partner_id", partner.id).order("created_at", { ascending: false }),
+        supabase.from("contracts").select("id, name, status, file_path, amount, created_at, signed_at, sent_at, expires_at, contract_kind, contract_type").eq("partner_id", partner.id).order("created_at", { ascending: false }),
       ]);
-      return { partner, clients: clients.data ?? [], commissions: commissions.data ?? [], contracts: contracts.data ?? [] };
+
+      const clientIds = (clients.data ?? []).map((c: any) => c.id);
+      let demands: any[] = [];
+      if (clientIds.length) {
+        const { data: d } = await supabase
+          .from("client_products")
+          .select("id, status, sla_status, sla_due_date, value, start_date, deadline, created_at, custom_product_name, clients(full_name), products(name)")
+          .in("client_id", clientIds)
+          .order("created_at", { ascending: false });
+        demands = d ?? [];
+      }
+      return { partner, clients: clients.data ?? [], commissions: commissions.data ?? [], contracts: contracts.data ?? [], demands };
     },
     enabled: !!user,
   });
@@ -72,7 +83,14 @@ export default function PartnerPanel() {
   if (isLoading) return <div className="p-12 text-center text-sm font-editorial italic text-muted-foreground">Processando ganhos...</div>;
   if (!data) return <div className="p-20 text-center">Acesso pendente.</div>;
 
-  const { partner, clients, commissions, contracts } = data;
+  const { partner, clients, commissions, contracts, demands } = data;
+
+  const downloadContract = async (path: string | null, name: string) => {
+    if (!path) return toast.error("Arquivo indisponível");
+    const { data, error } = await supabase.storage.from("contracts").createSignedUrl(path, 60);
+    if (error || !data) return toast.error("Não foi possível baixar");
+    window.open(data.signedUrl, "_blank");
+  };
 
   return (
     <div className="bg-premium min-h-screen">
@@ -98,35 +116,64 @@ export default function PartnerPanel() {
         </section>
 
         <Tabs defaultValue="home" className="space-y-10">
-           <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 inline-flex">
+           <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 inline-flex flex-wrap">
               <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Visão Geral</TabsTrigger>
               <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Indicados ({clients.length})</TabsTrigger>
               <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Comissões ({commissions.length})</TabsTrigger>
+              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Demandas ({demands.length})</TabsTrigger>
+              <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Contratos ({contracts.length})</TabsTrigger>
            </TabsList>
 
            <TabsContent value="home" className="animate-fade-up space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 <KpiCard label="Saldo Disponível" value={formatBRL(totals.pending)} icon={Wallet} tone="info" description="Aguardando liberação" />
+                 <KpiCard label="Saldo Disponível" value={formatBRL(totals.pending)} icon={Wallet} tone="info" description="Liberado após pagamento do cliente" />
                  <KpiCard label="Total Recebido" value={formatBRL(totals.paid)} icon={CheckCircle2} tone="success" description="Já creditado" />
                  <KpiCard label="Conversão" value={`${totals.conversionRate.toFixed(1)}%`} icon={TrendingUp} tone="warning" description="Eficiência de indicação" />
                  <KpiCard label="Pagamento" value={totals.nextPayment ? formatDate(totals.nextPayment) : "—"} icon={Calendar} description="Próxima data prevista" />
               </div>
 
-              {/* Indicação manual via admin */}
               <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden">
                 <div className="absolute top-0 right-0 size-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full" />
                 <div className="relative z-10 space-y-2">
-                  <h3 className="font-editorial text-2xl font-bold">Como indicar um cliente</h3>
+                  <h3 className="font-editorial text-2xl font-bold">Como funciona a sua comissão</h3>
                   <p className="text-white/60 text-sm max-w-xl">
-                    O cadastro de novos clientes é feito exclusivamente pelo administrador. Envie os dados do indicado pelo seu canal de contato e ele será vinculado automaticamente ao seu painel para você acompanhar comissões e status.
+                    Toda comissão fica como <strong>aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong>liberada</strong> para repasse.
                   </p>
-                  <p className="text-white/40 text-xs pt-2">
-                    Seu código de indicação: <span className="font-mono text-white/80">{partner.id.slice(0, 8).toUpperCase()}</span>
-                  </p>
+                  <p className="text-white/40 text-xs pt-2">Código de indicação: <span className="font-mono text-white/80">{partner.id.slice(0, 8).toUpperCase()}</span></p>
                 </div>
               </div>
            </TabsContent>
 
+           <TabsContent value="clientes" className="animate-fade-up space-y-4">
+              {clients.length === 0 ? (
+                <div className="vx-card bg-white rounded-[32px] p-16 text-center text-muted-foreground">Você ainda não possui clientes indicados.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {clients.map((c: any) => {
+                    const cd = demands.filter((d: any) => d.clients?.full_name === c.full_name);
+                    return (
+                      <div key={c.id} className="vx-card bg-white border border-slate-100 rounded-[24px] p-6 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">{initials(c.full_name)}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold truncate">{c.full_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{c.company || c.email || "—"}</p>
+                          </div>
+                          <Badge variant="outline" className="text-[9px]">{c.status}</Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground">Produtos contratados: <strong className="text-foreground">{cd.length}</strong></div>
+                        {cd.slice(0, 3).map((d: any) => (
+                          <div key={d.id} className="text-xs flex justify-between gap-2 border-t border-slate-100 pt-2">
+                            <span className="truncate">{d.products?.name || d.custom_product_name || "Produto"}</span>
+                            <Badge variant="outline" className="text-[9px]">{d.status}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+           </TabsContent>
 
            <TabsContent value="comissoes" className="animate-fade-up space-y-6">
               <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
@@ -148,9 +195,71 @@ export default function PartnerPanel() {
                            <td className="px-8 py-6 text-center"><CommissionStatusBadge status={s.workflow_status || 'pendente'} /></td>
                         </tr>
                       ))}
+                      {filteredSplits.length === 0 && (
+                        <tr><td colSpan={4} className="px-8 py-12 text-center text-sm text-muted-foreground">Sem comissões registradas.</td></tr>
+                      )}
                    </tbody>
                 </table>
               </div>
+           </TabsContent>
+
+           <TabsContent value="demandas" className="animate-fade-up space-y-4">
+              {demands.length === 0 ? (
+                <div className="vx-card bg-white rounded-[32px] p-16 text-center text-muted-foreground">Nenhuma demanda em andamento dos seus indicados.</div>
+              ) : (
+                <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50">
+                        <th className="px-6 py-5 text-left">Cliente</th>
+                        <th className="px-6 py-5 text-left">Produto</th>
+                        <th className="px-6 py-5 text-center">Status</th>
+                        <th className="px-6 py-5 text-center">SLA</th>
+                        <th className="px-6 py-5 text-left">Prazo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {demands.map((d: any) => (
+                        <tr key={d.id} className="hover:bg-slate-50/50">
+                          <td className="px-6 py-5 font-bold">{d.clients?.full_name ?? "—"}</td>
+                          <td className="px-6 py-5">{d.products?.name || d.custom_product_name || "—"}</td>
+                          <td className="px-6 py-5 text-center"><Badge variant="outline" className="text-[9px]">{d.status}</Badge></td>
+                          <td className="px-6 py-5 text-center"><Badge variant="outline" className={cn("text-[9px]", d.sla_status === 'no_prazo' ? 'text-emerald-600 border-emerald-200' : d.sla_status === 'atrasado' ? 'text-rose-600 border-rose-200' : 'text-amber-600 border-amber-200')}>{d.sla_status || '—'}</Badge></td>
+                          <td className="px-6 py-5 text-xs text-muted-foreground">{d.deadline ? formatDate(d.deadline) : (d.sla_due_date ? formatDate(d.sla_due_date) : "—")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+           </TabsContent>
+
+           <TabsContent value="contratos" className="animate-fade-up space-y-4">
+              {contracts.length === 0 ? (
+                <div className="vx-card bg-white rounded-[32px] p-16 text-center text-muted-foreground">Nenhum contrato vinculado ao seu cadastro.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {contracts.map((c: any) => (
+                    <div key={c.id} className="vx-card bg-white border border-slate-100 rounded-[24px] p-6 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-bold">{c.name}</p>
+                          <p className="text-xs text-muted-foreground">{c.contract_type || c.contract_kind} · {formatDate(c.created_at)}</p>
+                        </div>
+                        <Badge variant="outline" className="text-[9px] uppercase">{c.status}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground text-xs">Valor</span>
+                        <span className="font-bold tabular-nums">{c.amount ? formatBRL(c.amount) : "—"}</span>
+                      </div>
+                      {c.expires_at && <div className="text-xs text-muted-foreground">Expira: {formatDate(c.expires_at)}</div>}
+                      <Button size="sm" variant="outline" className="w-full" disabled={!c.file_path} onClick={() => downloadContract(c.file_path, c.name)}>
+                        <Download className="size-3 mr-2" /> Baixar contrato
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
            </TabsContent>
         </Tabs>
       </div>
