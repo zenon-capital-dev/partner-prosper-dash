@@ -63,11 +63,7 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select(`
-          *, 
-          partners(id, full_name, email, commission_percent),
-          responsible:profiles!clients_responsible_id_fkey(id, full_name, avatar_url)
-        `)
+        .select(`*, partners(id, full_name, email, commission_percent)`)
         .eq("id", id!)
         .maybeSingle();
       if (error) throw error;

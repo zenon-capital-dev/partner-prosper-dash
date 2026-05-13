@@ -1,100 +1,141 @@
-
 ## Objetivo
 
-Consolidar o CRM em torno da entidade **Demanda** (`client_products`) — cada produto contratado por um cliente vira uma demanda independente, com prestador delegado, documentos, checklist, status, prazo, financeiro e histórico próprios. Cada papel (Admin, Cliente, Prestador, Parceiro) só enxerga o que lhe pertence — sem nenhum vazamento de dados entre painéis.
+Transformar o CRM em um sistema completo com **4 portais reais** (Admin, Cliente, Prestador, Parceiro), cada um com rotas, menus, telas internas com tabela + filtros + ações + página de detalhe, regras de acesso por papel e visual premium SaaS B2B unificado.
 
----
-
-## 1. Modelo conceitual (já existente, vamos reforçar)
+A lógica central:
 
 ```text
-Cliente ──┐
-          │
-Parceiro ─┼──► Demanda (client_products) ──► Documentos
-          │         │                       ├─► Checklist (steps)
-Produto ──┘         │                       ├─► Prestador delegado
-                    │                       ├─► Financeiro (payments/commissions)
-                    │                       ├─► Contratos
-                    └──► Histórico/Atividade└─► Reportes de status
+Cliente ─► Empresa ─► Produto/Pacote ─► Demanda
+                                          ├── Documentos
+                                          ├── Checklist / SLA
+                                          ├── Prestador delegado
+                                          ├── Financeiro
+                                          └── Entrega
 ```
 
-Tudo (documento, tarefa, pagamento, contrato, comissão) carrega `client_product_id`. Já temos isso parcialmente — vou garantir cobertura total via RLS.
+> Já existe muita coisa pronta no projeto (Clients, Demands, Documents, Commissions, Providers, Partners, ClientPanel, ProviderPanel, PartnerPanel, RLS por papel). O trabalho é **conectar, completar lacunas, padronizar visual e blindar o que falta**.
 
 ---
 
-## 2. Portal do Cliente — "Minhas Demandas"
+## 1. Portal ADMIN — `/admin/*` (AdminLayout)
 
-Substitui o painel atual genérico por uma visão por demanda:
+Sidebar reorganizada em grupos:
 
-- **Home:** lista de demandas contratadas (cards premium, status pill, % checklist, prazo).
-- **Detalhe da demanda:** abas
-  - Visão geral (prestador responsável, prazo, próximos passos)
-  - Documentos **apenas desta demanda** (upload + status)
-  - Checklist visível ao cliente
-  - Histórico
-  - Financeiro (pagamentos desta demanda)
-- Cliente **nunca** vê documentos de outra demanda nem outros clientes.
+- **Operação:** Dashboard, Cockpit, Demandas, Tarefas
+- **Clientes:** Clientes, Empresas (novo), Cliente 360º (em `/clientes/:id`)
+- **Catálogo:** Produtos, Pacotes (novo)
+- **Rede:** Prestadores, Parceiros, Indicadores, Colaboradores
+- **Financeiro:** Financeiro, Comissões, Contratos, Documentos
+- **Sistema:** Relatórios, Auditoria, Usuários, Configurações, Automações
 
-## 3. Portal do Prestador — "Demandas Delegadas"
+Telas que ganham refator de tabela densa + filtros + bulk actions + drawer de detalhe:
+- Demandas, Clientes, Produtos, Documentos, Comissões, Contratos, Financeiro, Prestadores, Parceiros, Tarefas.
 
-- Lista somente `client_products` onde `service_provider_id = (sp do user)`.
-- Abre a página de demanda em modo prestador:
-  - Documentos da demanda (read + upload de entregáveis)
-  - Checklist (marcar etapas)
-  - Reportar status
-  - Comentários internos
-- **Sem** acesso a comissões, parceiro, outras demandas do cliente.
+Telas novas:
+- **Empresas** (`/empresas`) — lista de `companies` agrupadas por cliente com filtros e detalhe.
+- **Pacotes** (`/pacotes`) — produtos compostos (vai usar `products` com flag `is_bundle` + tabela `product_bundle_items`).
 
-## 4. Portal do Parceiro — "Indicados & Comissões"
-
-- Lista clientes onde `partner_id = parceiro_atual`.
-- Para cada cliente: demandas vinculadas (apenas título/status/valor — sem documentos).
-- Aba comissões já existe — garantir filtro por `partner_id`.
-
-## 5. Portal Admin — visão completa
-
-- Já tem `/cockpit`, `/demandas`, `/clientes/:id`. Vou conectar o **Delegar Prestador** direto na demanda e garantir que abrir uma demanda mostre todos os blocos (helpers `demand.loadAll` já prontos em `src/lib/demand.ts`).
+Cliente 360º (`/clientes/:id`) — corrigir bug "não encontrado", garantir abas: Visão geral, Empresas, Demandas, Documentos, Financeiro, Contratos, Tarefas, Histórico.
 
 ---
 
-## 6. Segurança (RLS) — auditoria e correções
+## 2. Portal CLIENTE — `/cliente/*` (AppLayout)
 
-Vou rodar uma migration que garante:
+Sidebar do cliente (substitui menu genérico atual):
+- Início
+- Meus Produtos / Demandas
+- Documentos Pendentes
+- Upload de Documentos
+- Entregas
+- Financeiro
+- Contratos
+- Suporte
 
-- `documents`: SELECT permitido se
-  - admin, OU
-  - cliente dono (`client.user_id = auth.uid()`), OU
-  - prestador delegado (`is_delegated_provider(auth.uid(), client_product_id)`).
-- `client_products`: mesma regra.
-- `client_product_steps`, `client_product_status_reports`, `demand_comments`, `tasks` (quando `client_product_id` not null), `payments`: idem.
-- `commissions` / `commission_splits`: parceiro só vê o próprio `partner_id`.
-- Trigger já existe para forçar `client_product_id` em documents — manter.
+Cada item vira uma rota dentro de `ClientPanel` (já tem tabs system) ou rotas separadas `/cliente/demandas`, `/cliente/documentos`, etc. Detalhe da demanda em `/cliente/demandas/:id`.
 
-## 7. Design — "nada comum"
-
-Direção visual única por portal, mantendo o design system:
-
-- **Admin:** denso, tipo cockpit (já em andamento).
-- **Cliente:** layout em "linha do tempo" da demanda, com cards grandes, ícones de etapa, gradientes suaves.
-- **Prestador:** visão "fila de trabalho" estilo Kanban + cronômetro de SLA.
-- **Parceiro:** dashboard com gráfico de funil (indicados → contratos → comissões pagas).
-
-Vou propor 3 direções via prototype para o portal do Cliente (o mais visual) antes de implementar — para você escolher.
+Regra: cliente só vê seus próprios registros (já garantido por RLS — vou auditar).
 
 ---
 
-## Entregáveis técnicos
+## 3. Portal PRESTADOR — `/prestador/*`
 
-1. Migration RLS unificada para documentos/demanda/financeiro por papel.
-2. Refator `ClientPanel`: lista de demandas + nova página `/cliente/demandas/:id`.
-3. Refator `ProviderPanel`: fila de demandas delegadas + reuso de `DemandDetail` em modo prestador.
-4. Refator `PartnerPanel`: indicados + comissões filtradas.
-5. Hook `useDemandAccess(demandId)` central para decidir o que mostrar por papel.
-6. Após aprovação do plano: gerar 3 direções visuais para o portal do Cliente via `design--create_directions`.
+Sidebar:
+- Início
+- Minhas Demandas (kanban + lista)
+- Detalhe da Demanda (`/prestador/demandas/:id`)
+- Documentos Permitidos
+- Checklist
+- Reportar Status
+- Solicitar Documento
+- Pagamentos
+
+Reuso de `DemandDetail` em modo prestador, com bloqueio de seções financeiras/parceiro.
 
 ---
 
-## Pergunta antes de implementar
+## 4. Portal PARCEIRO — `/parceiro/*`
 
-- O cliente faz **upload** de documentos por demanda, ou apenas **visualiza** o que o admin/prestador anexa? (afeta UI e RLS de INSERT)
-- O parceiro pode ver o **status das demandas** dos indicados, ou só "fechou/não fechou"?
+Sidebar:
+- Início (funil indicados → contratos → comissões)
+- Meus Indicados
+- Comissões
+- Extrato
+- Pagamentos
+- Contrato
+- Link de Indicação
+- Materiais
+
+---
+
+## 5. Visual SaaS B2B Premium (unificado)
+
+- Tema **claro corporativo** padrão para Admin (sai do "dark futurista" que não agradou) com acento `indigo-600` + neutros graphite, tipografia Inter + JetBrains Mono para números.
+- Sidebar: grupos colapsáveis, ícones lucide, item ativo com barra lateral azul + bg `slate-50`.
+- Topbar: search global, breadcrumb, ações rápidas, sino, perfil.
+- Padrão de página: `PageHeader` (título + subtítulo + ações) → KPIs (4 cards densos) → barra de filtros → tabela densa com zebra + hover + badges → drawer/sheet de detalhe.
+- Componentes base novos: `DataTable`, `FilterBar`, `EntityDrawer`, `KpiCard`, `StatusBadge` premium.
+
+---
+
+## 6. Segurança / dados
+
+- Migration de auditoria RLS para garantir:
+  - `documents` sempre com `client_product_id` (trigger já existe).
+  - Cliente não vê documento de outra demanda.
+  - Prestador só vê demandas delegadas.
+  - Parceiro só vê próprios indicados e comissões.
+- Tabela nova `product_bundles` (id, product_id pai, child_product_id, qty) para pacotes.
+- Seed de **dados demonstrativos** realistas (clientes, empresas, produtos, demandas, documentos, comissões) só se o banco estiver vazio — para que cada tela tenha conteúdo.
+
+---
+
+## 7. Correção do bug "não encontrado"
+
+Auditar páginas de detalhe (`ClientDetail`, `PartnerDetail`, `ProviderDetail`, `DemandDetail`, `UsersPage` modal): muitas falham porque o `select` usa joins com FK que não existem mais ou RLS bloqueia. Vou:
+1. Reproduzir cada uma.
+2. Trocar `.single()` por `.maybeSingle()` e tratar null com tela "Não encontrado" decente.
+3. Corrigir queries quebradas (campos renomeados, embeds inválidos).
+
+---
+
+## Entregáveis
+
+1. **Migration**: tabela `product_bundles`, ajustes RLS, seed condicional.
+2. **Design system**: novo tema claro corporativo no `index.css` + `tailwind.config.ts` + componentes `DataTable`, `FilterBar`, `KpiCard`, `EntityDrawer`.
+3. **AdminSidebar** reorganizado em grupos + AdminHeader polido.
+4. **Sidebars dedicados** para Cliente, Prestador, Parceiro (substituem `AppSidebar` genérico).
+5. **Rotas novas**: `/empresas`, `/pacotes`, `/cliente/demandas/:id`, `/prestador/demandas/:id`, `/parceiro/materiais`, `/parceiro/link`.
+6. **Refator das páginas** Admin (Clients, Products, Demands, Documents, Commissions, Contracts, Finance, Providers, Partners, Tasks) para o novo padrão denso.
+7. **Refator dos painéis** Cliente, Prestador, Parceiro com sidebar própria e telas internas reais.
+8. **Correção** das páginas de detalhe quebradas.
+
+---
+
+## Avisos importantes
+
+- Esse escopo é **muito grande** (15+ telas refatoradas, 3 sidebars novas, novo design system, migrations, seed). Vou entregar em **uma sequência de commits coerentes**, começando pela base (design system + AdminSidebar + correção bug detalhe), depois cada portal.
+- Antes de começar quero confirmar 2 coisas pra não retrabalhar:
+
+**Perguntas:**
+1. Posso **abandonar o "dark futurista"** atual do admin e migrar tudo (admin + portais) para um único tema claro corporativo SaaS B2B (estilo Linear/Attio)? Ou você quer manter dark no admin e claro nos portais?
+2. Quer que eu **gere dados de demonstração** (seed de clientes/demandas/documentos fictícios) caso o banco esteja vazio, pra todas as telas terem conteúdo? Ou usar só os dados reais que já existem?
