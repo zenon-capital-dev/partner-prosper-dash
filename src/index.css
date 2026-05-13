@@ -863,9 +863,9 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell .bg-black,
 .admin-shell .bg-zinc-900,
 .admin-shell .bg-slate-900,
-.admin-shell .dark\:bg-white\/[0\.03\],
-.admin-shell .dark\:bg-white\/[0\.02\],
-.admin-shell .dark\:bg-white\/[0\.05\] { background-color: hsl(var(--card)) !important; }
+.admin-shell .dark\:bg-white\/\[0\.03\],
+.admin-shell .dark\:bg-white\/\[0\.02\],
+.admin-shell .dark\:bg-white\/\[0\.05\] { background-color: hsl(var(--card)) !important; }
 .admin-shell .from-violet-500,
 .admin-shell .to-fuchsia-500,
 .admin-shell .from-purple-600,
