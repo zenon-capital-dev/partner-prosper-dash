@@ -120,42 +120,33 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
     // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
     if (!client?.id && createAccess && clientId) {
-      const { data, error: invErr } = await supabase.functions.invoke("invite-user", {
+      const { error: invErr } = await supabase.functions.invoke("invite-user", {
         body: {
           email: form.email,
           full_name: form.full_name,
           phone: form.phone || null,
           role: "cliente",
           send_invite: false,
+          password: accessPwd,
           link_client_id: clientId,
         },
       });
       if (invErr) {
+        setSubmitting(false);
         toast.warning("Cliente criado, mas o acesso falhou: " + invErr.message);
-      } else {
-        // Se senha custom foi escolhida, atualiza no auth via outra chamada (a função gerou senha temporária)
-        // Aqui simplificamos: usa a senha que o admin escolheu via update direto
-        try {
-          await supabase.functions.invoke("invite-user", {
-            body: {
-              email: form.email,
-              role: "cliente",
-              send_invite: false,
-              link_client_id: clientId,
-              full_name: form.full_name,
-            },
-          });
-        } catch {}
-        toast.success(`Acesso criado para ${form.email}`, {
-          description: `Senha: ${accessPwd} — copie e envie ao cliente.`,
-          duration: 15000,
-        });
-        try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
+        onCreated?.();
+        return;
       }
+      try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
+      toast.success(`Acesso criado para ${form.email}`, {
+        description: `Senha: ${accessPwd} (copiada para a área de transferência)`,
+        duration: 20000,
+      });
+    } else {
+      toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
     }
 
     setSubmitting(false);
-    toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
     onCreated?.();
     onOpenChange(false);
   };
