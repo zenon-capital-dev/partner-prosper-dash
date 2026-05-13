@@ -445,9 +445,9 @@ export default function ClientPanel() {
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
                        <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6 relative">Ações Necessárias</h3>
                        <div className="space-y-4 relative">
-                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
-                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
-                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => {}} />
+                          <ActionItem icon={FileText} label="Documentos pendentes" count={pendingDocs} onClick={() => setActiveTab("checklist")} />
+                          <ActionItem icon={Receipt} label="Pagamentos em aberto" count={pendingPayments} onClick={() => setActiveTab("financeiro")} />
+                          <ActionItem icon={FileSignature} label="Contratos para assinar" count={pendingContracts} onClick={() => setActiveTab("contratos")} />
                        </div>
                     </div>
 
