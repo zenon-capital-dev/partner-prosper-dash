@@ -109,6 +109,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
     onOpenChange(false);
   };
 
+  const amount = Number(form.amount || 0);
+  const partnerCalc = form.partner_id ? (amount * Number(form.commission_percent || 0)) / 100 : 0;
+  const referrerCalc = form.referrer_id ? (amount * Number(form.referrer_percent || 0)) / 100 : 0;
+  const collaboratorCalc = form.collaborator_id ? (amount * Number(form.collaborator_percent || 0)) / 100 : 0;
+  const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
+  const liquido = amount - totalCommissions;
+  const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
