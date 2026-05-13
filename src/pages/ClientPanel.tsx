@@ -619,16 +619,16 @@ export default function ClientPanel() {
 }
 
 function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone?: "default" | "success" | "warning" }) {
-  const accent = tone === "warning" ? "text-amber-300" : tone === "success" ? "text-emerald-300" : "text-white";
+  const accent = tone === "warning" ? "text-amber-600" : tone === "success" ? "text-emerald-600" : "text-slate-900";
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-3 sm:p-4 hover:bg-white/[0.07] transition-colors min-w-0">
-      <div className="flex items-center justify-between mb-1.5 text-white/50">
-        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] truncate">{label}</span>
+    <div className="rounded-lg border border-slate-200/70 bg-slate-50/70 p-3 sm:p-4 hover:bg-slate-50 transition-colors min-w-0">
+      <div className="flex items-center justify-between mb-1.5 text-slate-500">
+        <span className="text-[10px] sm:text-[10.5px] font-medium uppercase tracking-wide truncate">{label}</span>
         {icon && <span className="shrink-0 opacity-70">{icon}</span>}
       </div>
       <div className="flex items-baseline gap-1.5">
-        <span className={cn("font-display text-xl sm:text-2xl font-bold tabular-nums leading-none", accent)}>{value}</span>
-        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/40 truncate">{sub}</span>}
+        <span className={cn("font-display text-xl sm:text-2xl font-semibold tabular-nums leading-none", accent)}>{value}</span>
+        {sub && <span className="text-[10px] sm:text-[10.5px] font-medium uppercase tracking-wide text-slate-400 truncate">{sub}</span>}
       </div>
     </div>
   );
