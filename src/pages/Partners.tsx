@@ -199,24 +199,100 @@ export default function Partners() {
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl bg-neutral-950 border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)]">
-          <DialogHeader><DialogTitle className="editorial-title text-xl">{editing ? "Editar Parceiro" : "Novo Parceiro"}</DialogTitle></DialogHeader>
-          <div className="grid grid-cols-2 gap-5 py-6">
-            <div className="col-span-2 space-y-2"><Label className="editorial-label">Nome Completo</Label><Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="bg-white/[0.03] border-white/10 h-11" /></div>
-            <div className="space-y-2"><Label className="editorial-label">Email Profissional</Label><Input value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-white/[0.03] border-white/10 h-11" /></div>
-            <div className="space-y-2"><Label className="editorial-label">Telefone / WhatsApp</Label><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-white/[0.03] border-white/10 h-11" /></div>
-            <div className="space-y-2"><Label className="editorial-label">% Comissão Padrão</Label><Input type="number" value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} className="bg-white/[0.03] border-white/10 h-11" /></div>
-            <div className="space-y-2 flex flex-col justify-end pb-1">
-              <Label className="editorial-label mb-2">Status da Parceria</Label>
-              <div className="flex items-center gap-3">
-                <Switch checked={!!form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
-                <span className="text-[11px] font-bold uppercase tracking-wider text-white/40">{form.active ? "Ativo" : "Inativo"}</span>
+        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg">
+                <Handshake className="size-5" />
+              </div>
+              <div>
+                <DialogTitle className="font-display text-xl">{editing ? "Editar Parceiro" : "Novo Parceiro"}</DialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">Cadastre indicadores e parceiros estratégicos com dados completos para repasses.</p>
               </div>
             </div>
+          </DialogHeader>
+
+          <div className="space-y-6 py-3">
+            <PartnerSection title="Identificação" icon={<Users2 className="size-3.5" />}>
+              <div className="grid grid-cols-2 gap-3">
+                <PartnerField label="Nome Completo / Razão Social *" wide>
+                  <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: João da Silva ou Acme Indicações" />
+                </PartnerField>
+                <PartnerField label="CPF / CNPJ">
+                  <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} placeholder="000.000.000-00" />
+                </PartnerField>
+                <PartnerField label="Categoria">
+                  <Select value={form.partner_category ?? "indicador"} onValueChange={(v) => setForm({ ...form, partner_category: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="indicador">Indicador (apenas indicações)</SelectItem>
+                      <SelectItem value="afiliado">Afiliado (link próprio)</SelectItem>
+                      <SelectItem value="estrategico">Parceiro estratégico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </PartnerField>
+              </div>
+            </PartnerSection>
+
+            <PartnerSection title="Contato" icon={<Mail className="size-3.5" />}>
+              <div className="grid grid-cols-2 gap-3">
+                <PartnerField label="E-mail">
+                  <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
+                </PartnerField>
+                <PartnerField label="Telefone">
+                  <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+                </PartnerField>
+                <PartnerField label="WhatsApp">
+                  <Input value={form.whatsapp ?? ""} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
+                </PartnerField>
+                <PartnerField label="% Comissão padrão">
+                  <Input type="number" step="0.01" value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
+                </PartnerField>
+              </div>
+            </PartnerSection>
+
+            <PartnerSection title="Dados bancários para repasse" icon={<Wallet className="size-3.5" />}>
+              <div className="grid grid-cols-2 gap-3">
+                <PartnerField label="Chave Pix" wide>
+                  <Input value={form.pix_key ?? ""} onChange={(e) => setForm({ ...form, pix_key: e.target.value })} placeholder="CPF, e-mail, telefone ou chave aleatória" />
+                </PartnerField>
+                <PartnerField label="Banco">
+                  <Input value={form.bank_name ?? ""} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} placeholder="Ex: Itaú" />
+                </PartnerField>
+                <PartnerField label="Agência">
+                  <Input value={form.bank_agency ?? ""} onChange={(e) => setForm({ ...form, bank_agency: e.target.value })} placeholder="0000" />
+                </PartnerField>
+                <PartnerField label="Conta" wide>
+                  <Input value={form.bank_account ?? ""} onChange={(e) => setForm({ ...form, bank_account: e.target.value })} placeholder="00000-0" />
+                </PartnerField>
+              </div>
+            </PartnerSection>
+
+            <PartnerSection title="Notas e Status" icon={<Crown className="size-3.5" />}>
+              <PartnerField label="Notas internas">
+                <textarea
+                  value={form.notes ?? ""}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="Histórico, observações, condições especiais..."
+                />
+              </PartnerField>
+              <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-4 py-3 mt-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider">Parceria ativa</p>
+                  <p className="text-[11px] text-muted-foreground">{form.active ? "Recebe novas indicações e comissões" : "Pausado / inativo"}</p>
+                </div>
+                <Switch checked={!!form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
+              </div>
+            </PartnerSection>
           </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-            <Button variant="ghost" onClick={() => setOpen(false)} className="editorial-label h-11 px-6">Cancelar</Button>
-            <button onClick={submit} className="action-button btn-primary px-8">Salvar Alterações</button>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={submit} className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg">
+              {editing ? "Salvar alterações" : "Cadastrar parceiro"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
