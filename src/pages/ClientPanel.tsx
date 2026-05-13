@@ -10,7 +10,7 @@ import {
   Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
   Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
   FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity,
-  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard
+  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard, LogOut, Bell, User as UserIcon,
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -20,6 +20,12 @@ import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PageHero } from "@/components/PageHero";
+import { ProsperLogo } from "@/components/VendxLogo";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 
 const CLIENT_PATH_TO_TAB: Record<string, string> = {
   produtos: "servicos", documentos: "checklist", financeiro: "financeiro",
