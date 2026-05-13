@@ -18,8 +18,14 @@ import {
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos"] as const;
+
 export default function PartnerPanel() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const activeTab = tabParam && (PARTNER_TABS as readonly string[]).includes(tabParam) ? tabParam : "home";
+  const setActiveTab = (v: string) => navigate(v === "home" ? "/parceiro" : `/parceiro/${v}`);
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [clientFilter, setClientFilter] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
