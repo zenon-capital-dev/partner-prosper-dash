@@ -477,34 +477,54 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
           {/* RIGHT SIDEBAR SUMMARY */}
           <div className="bg-white/[0.02] border-l border-white/10 p-8 flex flex-col justify-between">
             <div className="space-y-8">
                <div className="space-y-2">
                  <p className="editorial-label">Split de Receita</p>
-                 <div className="space-y-4 pt-4">
+                 <div className="space-y-3 pt-4">
                     <div className="flex justify-between items-center text-white/40">
                        <span className="text-[11px] font-bold uppercase tracking-wider">Bruto</span>
                        <span className="font-mono text-sm">{formatBRL(form.value)}</span>
                     </div>
-                    {form.partner_id && (
+                    {partnerCalc > 0 && (
                       <div className="flex justify-between items-center text-rose-400">
-                         <span className="text-[11px] font-bold uppercase tracking-wider">Vendedor</span>
+                         <span className="text-[11px] font-bold uppercase tracking-wider">Parceiro · {form.partner_commission}%</span>
                          <span className="font-mono text-sm">− {formatBRL(partnerCalc)}</span>
                       </div>
                     )}
-                    {form.referrer_id && (
+                    {referrerCalc > 0 && (
                       <div className="flex justify-between items-center text-rose-400">
-                         <span className="text-[11px] font-bold uppercase tracking-wider">Indicador</span>
+                         <span className="text-[11px] font-bold uppercase tracking-wider">Indicador · {form.referrer_commission}%</span>
                          <span className="font-mono text-sm">− {formatBRL(referrerCalc)}</span>
+                      </div>
+                    )}
+                    {collaboratorCalc > 0 && (
+                      <div className="flex justify-between items-center text-rose-400">
+                         <span className="text-[11px] font-bold uppercase tracking-wider">Vendedor int. · {form.collaborator_commission}%</span>
+                         <span className="font-mono text-sm">− {formatBRL(collaboratorCalc)}</span>
+                      </div>
+                    )}
+                    {providerCalc > 0 && (
+                      <div className="flex justify-between items-center text-rose-400">
+                         <span className="text-[11px] font-bold uppercase tracking-wider">Prestador (repasse)</span>
+                         <span className="font-mono text-sm">− {formatBRL(providerCalc)}</span>
                       </div>
                     )}
                     <div className="h-px bg-white/5" />
                     <div className="flex justify-between items-center">
-                       <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Líquido</span>
+                       <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Líquido empresa</span>
                        <span className="font-mono text-xl font-bold text-emerald-400">{formatBRL(companyShare)}</span>
                     </div>
+                    {form.value > 0 && (
+                      <div className="flex justify-between text-[10px] text-white/30 font-mono">
+                        <span>Margem</span>
+                        <span>{((companyShare / form.value) * 100).toFixed(1)}%</span>
+                      </div>
+                    )}
                  </div>
               {/* CAMPOS PERSONALIZADOS */}
               {form.product_id && (
