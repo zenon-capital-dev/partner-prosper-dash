@@ -726,6 +726,23 @@ function PillTab({ value, label, icon: Icon, count, alert }: { value: string; la
   );
 }
 
+function FinanceStat({ label, value, sub, tone = "default", icon }: { label: string; value: string; sub?: string; tone?: "default" | "success" | "warning"; icon?: React.ReactNode }) {
+  const tint =
+    tone === "success" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/20"
+    : tone === "warning" ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300 border-amber-200/60 dark:border-amber-500/20"
+    : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-white/70 border-slate-200/70 dark:border-white/10";
+  return (
+    <div className="vx-card p-4 sm:p-5 bg-white dark:bg-card rounded-2xl border-slate-100 dark:border-white/5 shadow-sm">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+        <span className={cn("size-7 rounded-lg border flex items-center justify-center shrink-0", tint)}>{icon}</span>
+      </div>
+      <p className="font-editorial text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+      {sub && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1.5 truncate">{sub}</p>}
+    </div>
+  );
+}
+
 function StatusBadge({ status }: { status: string }) {
   const map: any = {
     aguardando_documentos: { label: "PENDENTE DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
