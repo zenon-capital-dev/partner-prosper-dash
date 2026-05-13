@@ -26,10 +26,10 @@ function AppLayoutInner() {
   } = useAuth();
   const { pathname } = useLocation();
 
-  // 🔒 Cada role só pode entrar no seu próprio painel
+  // 🔒 Cada role só pode entrar no seu próprio painel.
+  // Admin e Colaborador usam o painel administrativo (/admin).
   const allowedPrefix = (() => {
-    if (isAdmin || isAdminSecondary) return "/admin";
-    if (isColaborador) return "/colaborador";
+    if (isAdmin || isAdminSecondary || isColaborador) return "/admin";
     if (isParceiro) return "/parceiro";
     if (isPrestador) return "/prestador";
     if (isIndicador) return "/indicador";
@@ -37,8 +37,7 @@ function AppLayoutInner() {
     return null;
   })();
 
-  // Admin sempre vai para /admin via AdminLayout
-  if ((isAdmin || isAdminSecondary) && !pathname.startsWith("/admin")) {
+  if ((isAdmin || isAdminSecondary || isColaborador) && !pathname.startsWith("/admin")) {
     return <Navigate to="/admin" replace />;
   }
 

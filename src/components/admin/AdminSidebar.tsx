@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any; badge?: string };
-type NavSection = { label: string; items: NavItem[] };
+type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean };
+type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean };
 
 const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
@@ -40,16 +40,16 @@ const SECTIONS: NavSection[] = [
     { title: "Parceiros", url: "/parceiros", icon: Handshake },
     { title: "Prestadores", url: "/prestadores", icon: Truck },
     { title: "Indicadores", url: "/indicadores", icon: Sparkles },
-    { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
+    { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
   { label: "Financeiro", items: [
-    { title: "Financeiro", url: "/financeiro", icon: Banknote },
-    { title: "Central", url: "/financeiro/central", icon: BarChart3 },
-    { title: "Comissões", url: "/comissoes", icon: Wallet },
+    { title: "Financeiro", url: "/financeiro", icon: Banknote, adminOnly: true },
+    { title: "Central", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
+    { title: "Comissões", url: "/comissoes", icon: Wallet, adminOnly: true },
     { title: "Contratos", url: "/contratos", icon: FileSignature },
     { title: "Documentos", url: "/documentos", icon: FileText },
   ]},
-  { label: "Sistema", items: [
+  { label: "Sistema", adminOnly: true, items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
     { title: "Auditoria", url: "/auditoria", icon: History },
     { title: "Usuários", url: "/usuarios", icon: UserCog },
@@ -64,7 +64,8 @@ interface Props { collapsed: boolean; onToggle: () => void; }
 export function AdminSidebar({ collapsed, onToggle }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin, isAdminSecondary } = useAuth();
+  const isFullAdmin = isAdmin || isAdminSecondary;
   const [, setCmdOpen] = useState(false);
 
   useEffect(() => {
@@ -80,8 +81,14 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
   const isActive = (path: string) =>
     path === "/admin" ? pathname === "/admin" : pathname === path || pathname.startsWith(path + "/");
 
+  const sections = SECTIONS
+    .filter((s) => isFullAdmin || !s.adminOnly)
+    .map((s) => ({ ...s, items: s.items.filter((i) => isFullAdmin || !i.adminOnly) }))
+    .filter((s) => s.items.length > 0);
+
   const displayName = user?.user_metadata?.full_name || user?.email || "Admin";
   const displayEmail = user?.email || "";
+  const portalLabel = isFullAdmin ? "Admin OS" : "Workspace";
 
   return (
     <aside
@@ -109,7 +116,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-[13.5px] font-bold text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
                   <p className="text-[10px] font-semibold text-muted-foreground leading-tight mt-0.5 truncate uppercase tracking-[0.12em]">
-                    Admin OS
+                    {portalLabel}
                   </p>
                 </div>
               )}
@@ -118,11 +125,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Workspace</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
-              <Settings className="size-4 mr-2" /> Configurações
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/usuarios")}>
-              <UserCog className="size-4 mr-2" /> Membros
+            {isFullAdmin && (
+              <>
+                <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
+                  <Settings className="size-4 mr-2" /> Configurações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/usuarios")}>
+                  <UserCog className="size-4 mr-2" /> Membros
+                </DropdownMenuItem>
+              </>
+            )}
+            <DropdownMenuItem onClick={() => navigate("/perfil")}>
+              <UserCircle className="size-4 mr-2" /> Meu Perfil
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -150,7 +164,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
 
       {/* NAV */}
       <nav className="relative flex-1 overflow-y-auto px-2.5 py-3 space-y-4 vx-sidebar-scroll">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-2.5 mb-1.5">
