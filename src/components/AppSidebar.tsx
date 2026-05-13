@@ -228,25 +228,26 @@ export function AppSidebar() {
     <>
       <Sidebar
         collapsible="icon"
-        className="border-r border-slate-200/80 bg-white transition-[width] duration-300"
+        className="border-r border-white/5 bg-[#0B0F1A] transition-[width] duration-300"
       >
         {/* ===== Brand ===== */}
-        <SidebarHeader className="!bg-white px-5 pt-6 pb-5 border-b border-slate-100">
+        <SidebarHeader className="!bg-[#0B0F1A] px-4 pt-5 pb-4 border-b border-white/5">
           <button
             onClick={() => navigate("/")}
-            className={cn("flex items-center gap-3.5 group w-full", collapsed && "justify-center")}
+            className={cn("flex items-center gap-3 group w-full", collapsed && "justify-center")}
           >
             <div className="relative shrink-0">
-              <div className="size-12 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-[0_8px_20px_-6px_hsl(var(--primary)/0.45)] ring-1 ring-primary/20">
-                <AppLogo size={26} />
+              <div className="size-11 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-[0_10px_30px_-8px_hsl(var(--primary)/0.7)] ring-1 ring-white/10">
+                <AppLogo size={24} />
               </div>
+              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-[#0B0F1A]" />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-display text-[19px] font-extrabold tracking-tight text-slate-900">
+                <p className="font-display text-[18px] font-extrabold tracking-tight text-white">
                   {portalTitle}
                 </p>
-                <p className="text-[10px] font-bold tracking-[0.22em] uppercase text-slate-400 mt-1">
+                <p className="text-[10px] font-bold tracking-[0.22em] uppercase text-slate-500 mt-0.5">
                   {portalLabel}
                 </p>
               </div>
@@ -256,11 +257,11 @@ export function AppSidebar() {
           {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-5 w-full h-10 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 flex items-center gap-2.5 px-3.5 text-[13px] text-slate-500 transition-all group"
+              className="mt-4 w-full h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/[0.07] hover:border-white/20 flex items-center gap-2.5 px-3.5 text-[13px] text-slate-400 transition-all group"
             >
-              <Search className="size-4 group-hover:text-slate-700 transition-colors" />
+              <Search className="size-4 group-hover:text-slate-200 transition-colors" />
               <span className="flex-1 text-left font-medium">Buscar...</span>
-              <kbd className="text-[10px] font-mono bg-white border border-slate-200 rounded-md px-1.5 py-0.5 flex items-center gap-0.5 text-slate-500">
+              <kbd className="text-[10px] font-mono bg-white/[0.06] border border-white/10 rounded-md px-1.5 py-0.5 flex items-center gap-0.5 text-slate-400">
                 <Command className="size-2.5" />K
               </kbd>
             </button>
@@ -268,19 +269,19 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ===== Navigation ===== */}
-        <SidebarContent className="!bg-white px-3 pt-4 pb-4 overflow-x-hidden">
+        <SidebarContent className="!bg-[#0B0F1A] px-3 pt-4 pb-4 overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {sections.map((section, idx) => (
-            <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-4")}>
+            <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
-                <div className="px-3 mb-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                <div className="px-3 mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
                     {section.label}
                   </span>
                 </div>
               )}
-              {collapsed && idx > 0 && <div className="h-px bg-slate-100 mx-2.5 mb-2.5" />}
+              {collapsed && idx > 0 && <div className="h-px bg-white/5 mx-2.5 mb-2.5" />}
               <SidebarGroupContent>
-                <SidebarMenu className="gap-0.5">
+                <SidebarMenu className="gap-1">
                   {section.items.map((item) => {
                     const active = isActive(item.url);
                     const Icon = item.icon;
@@ -297,16 +298,19 @@ export function AppSidebar() {
                             end
                             className={cn(
                               "group relative flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200",
-                              collapsed ? "justify-center h-12 w-12 mx-auto" : "h-12 px-3 gap-3",
+                              collapsed ? "justify-center h-11 w-11 mx-auto" : "h-11 px-3 gap-3",
                               active
-                                ? "bg-gradient-to-r from-primary to-primary-glow text-white shadow-[0_8px_20px_-8px_hsl(var(--primary)/0.55)]"
-                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
+                                ? "bg-gradient-to-r from-primary/25 to-primary/10 text-white shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.35)]"
+                                : "text-slate-400 hover:text-white hover:bg-white/[0.04]"
                             )}
                           >
+                            {active && !collapsed && (
+                              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-gradient-to-b from-primary to-primary-glow" />
+                            )}
                             <Icon
                               className={cn(
                                 "size-[18px] shrink-0 transition-all",
-                                active ? "text-white" : "text-slate-400 group-hover:text-slate-700"
+                                active ? "text-primary-glow" : "text-slate-500 group-hover:text-slate-200"
                               )}
                               strokeWidth={active ? 2.4 : 2}
                             />
@@ -319,13 +323,13 @@ export function AppSidebar() {
                                   <span
                                     className={cn(
                                       "text-[10px] font-bold px-1.5 py-0.5 rounded-md",
-                                      active ? "bg-white/20 text-white" : "bg-primary/10 text-primary"
+                                      active ? "bg-primary/30 text-white" : "bg-white/5 text-slate-300"
                                     )}
                                   >
                                     {item.badge}
                                   </span>
                                 )}
-                                {active && <ChevronRight className="size-4 text-white/90 shrink-0" />}
+                                {active && <span className="size-1.5 rounded-full bg-primary-glow shrink-0 shadow-[0_0_8px_hsl(var(--primary-glow))]" />}
                               </>
                             )}
                           </NavLink>
@@ -340,29 +344,29 @@ export function AppSidebar() {
         </SidebarContent>
 
         {/* ===== Footer ===== */}
-        <SidebarFooter className="!bg-white p-3 mt-auto border-t border-slate-100">
+        <SidebarFooter className="!bg-[#0B0F1A] p-3 mt-auto border-t border-white/5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-slate-100/70 transition-colors group",
+                  "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.05] transition-colors group",
                   collapsed && "justify-center"
                 )}
               >
-                <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center text-[13px] font-bold text-white shrink-0 shadow-md shadow-primary/20">
+                <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center text-[13px] font-bold text-white shrink-0 shadow-[0_8px_20px_-8px_hsl(var(--primary)/0.6)] ring-1 ring-white/10">
                   {initials(fullName || user?.email || "U")}
                 </div>
                 {!collapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[13.5px] font-semibold text-slate-900 truncate leading-tight">
+                      <p className="text-[13.5px] font-semibold text-white truncate leading-tight">
                         {fullName}
                       </p>
                       <p className="text-[11px] text-slate-500 truncate mt-0.5">
                         {user?.email}
                       </p>
                     </div>
-                    <ChevronDown className="size-4 text-slate-400 group-hover:text-slate-700 transition-colors shrink-0" />
+                    <ChevronDown className="size-4 text-slate-500 group-hover:text-slate-300 transition-colors shrink-0" />
                   </>
                 )}
               </button>
