@@ -26,7 +26,7 @@ const toneColor: Record<Tone, { text: string; bg: string; border: string; chart:
   warning: { text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-100 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/25", chart: "#f59e0b", soft: "bg-amber-50 dark:bg-amber-500/5", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60 dark:ring-amber-500/20" },
   danger: { text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-100 dark:bg-rose-500/10", border: "border-rose-200 dark:border-rose-500/25", chart: "#f43f5e", soft: "bg-rose-50 dark:bg-rose-500/5", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60 dark:ring-rose-500/20" },
   info: { text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-100 dark:bg-sky-500/10", border: "border-sky-200 dark:border-sky-500/25", chart: "#0ea5e9", soft: "bg-sky-50 dark:bg-sky-500/5", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60 dark:ring-sky-500/20" },
-  violet: { text: "text-violet-600 dark:text-violet-300", bg: "bg-violet-100 dark:bg-violet-500/10", border: "border-violet-200 dark:border-violet-500/25", chart: "#8b5cf6", soft: "bg-violet-50 dark:bg-violet-500/5", grad: "from-violet-500 to-violet-600", ring: "ring-violet-200/60 dark:ring-violet-500/20" },
+  violet: { text: "text-primary", bg: "bg-primary-muted", border: "border-primary/20", chart: "hsl(var(--primary))", soft: "bg-card", grad: "from-primary to-primary-glow", ring: "ring-primary/15" },
 };
 
 const statusLabel: Record<string, { label: string; tone: Tone }> = {
@@ -287,21 +287,21 @@ export default function DashboardAdmin() {
   const dealsSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.deals }));
 
   return (
-    <div className="relative min-h-full bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-[#08080b] dark:via-[#0a0a0f] dark:to-[#08080b]">
+    <div className="relative min-h-full bg-transparent">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -left-40 size-[600px] rounded-full bg-indigo-200/40 dark:bg-indigo-600/[0.06] blur-[140px]" />
         <div className="absolute top-1/3 -right-40 size-[500px] rounded-full bg-violet-200/30 dark:bg-violet-600/[0.04] blur-[140px]" />
       </div>
 
-      <div className="relative p-5 lg:p-8 space-y-6 max-w-[1720px] mx-auto animate-in fade-in duration-500">
+      <div className="relative p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
 
         {/* ============ EXECUTIVE HEADER ============ */}
         <header className="space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               <div className="relative">
-                <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-[0_8px_24px_-6px_rgba(99,102,241,0.5)] ring-1 ring-white/40">
-                  <Crown className="size-5 text-white" strokeWidth={2.2} />
+                <div className="size-12 rounded-lg bg-primary flex items-center justify-center shadow-sm ring-1 ring-primary/15">
+                  <Crown className="size-5 text-primary-foreground" strokeWidth={2.2} />
                 </div>
                 <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-[#08080b] shadow-md" />
               </div>
@@ -310,11 +310,11 @@ export default function DashboardAdmin() {
                   <CalendarClock className="size-3" />
                   <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
                   <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
-                  <Sparkles className="size-3 text-indigo-500" />
-                  <span className="text-indigo-500 dark:text-indigo-400">Painel de Comando</span>
+                  <Sparkles className="size-3 text-primary" />
+                  <span className="text-primary">Painel de Comando</span>
                 </div>
                 <h1 className="text-[22px] lg:text-[26px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight">
-                  {greeting}, <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 dark:from-indigo-300 dark:via-violet-300 dark:to-fuchsia-300 bg-clip-text text-transparent">{firstName}</span>
+                  {greeting}, <span className="text-primary">{firstName}</span>
                 </h1>
                 <p className="text-[12px] text-slate-500 dark:text-zinc-500 mt-1 flex items-center gap-2 flex-wrap">
                   <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
@@ -330,15 +330,15 @@ export default function DashboardAdmin() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="inline-flex items-center rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] p-1 shadow-sm">
+              <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm">
                 {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
-                  <button key={p} className={cn("px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all", i === 3 ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm" : "text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white")}>{p}</button>
+                  <button key={p} className={cn("px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-500 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-white")}>{p}</button>
                 ))}
               </div>
               <Link to="/leads?new=1" className="h-10 px-3.5 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] text-[11.5px] font-semibold text-slate-700 dark:text-zinc-200 flex items-center gap-1.5 transition-all shadow-sm">
                 <Plus className="size-3.5" /> Negociação
               </Link>
-              <Link to="/vendas?new=1" className="h-10 px-4 rounded-xl bg-gradient-to-b from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-[11.5px] font-bold text-white flex items-center gap-1.5 shadow-[0_6px_20px_-4px_rgba(99,102,241,0.5)] ring-1 ring-white/20 transition-all">
+              <Link to="/vendas?new=1" className="h-10 px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
                 <TrendingUp className="size-3.5" /> Registrar fechamento
               </Link>
               <button className="size-10 rounded-xl bg-white dark:bg-white/[0.03] hover:bg-slate-50 dark:hover:bg-white/[0.06] border border-slate-200 dark:border-white/[0.06] flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-all relative shadow-sm">
@@ -846,8 +846,8 @@ const tooltipStyle = {
 
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/[0.05] bg-white dark:bg-gradient-to-b dark:from-zinc-900/40 dark:to-zinc-950/30 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] dark:shadow-none backdrop-blur-sm", className)}>
-      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-white/[0.08] to-transparent" />
+    <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm", className)}>
+      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
       {children}
     </div>
   );
@@ -857,8 +857,8 @@ function CardHeader({ eyebrow, title, right }: { eyebrow: string; title: string;
   return (
     <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-white/[0.04]">
       <div>
-        <p className="text-[9px] font-bold tracking-[0.22em] uppercase text-indigo-500/80 dark:text-indigo-300/60">{eyebrow}</p>
-        <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-zinc-100 mt-0.5 tracking-tight">{title}</h3>
+        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-muted-foreground">{eyebrow}</p>
+        <h3 className="text-[13.5px] font-semibold text-foreground mt-0.5 tracking-tight">{title}</h3>
       </div>
       {right}
     </div>
@@ -872,8 +872,8 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
   const t = toneColor[tone];
   return (
     <div className={cn(
-      "group relative p-6 rounded-[2rem] border transition-all duration-500",
-      "bg-white dark:bg-white/[0.03] hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2",
+      "group relative p-5 rounded-lg border transition-all duration-300",
+      "bg-card hover:shadow-md",
       t.border,
       t.soft,
       "overflow-hidden"
@@ -921,12 +921,12 @@ function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: st
   const t = toneColor[tone];
   return (
     <Link to={href} className={cn(
-      "group relative flex items-center gap-4 p-4 rounded-[1.5rem] border transition-all duration-300",
-      "bg-white dark:bg-white/[0.03] shadow-sm hover:shadow-xl hover:scale-[1.03]",
+      "group relative flex items-center gap-3 p-3 rounded-lg border transition-all duration-200",
+      "bg-card shadow-sm hover:shadow-md",
       t.border, "hover:bg-slate-50 dark:hover:bg-white/[0.06]"
     )}>
       <div className={cn(
-        "size-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500 group-hover:rotate-12 group-hover:shadow-lg",
+        "size-10 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 group-hover:shadow-sm",
         t.bg, t.text
       )}>
         <Icon className={cn("size-6", pulse && "animate-pulse")} />
