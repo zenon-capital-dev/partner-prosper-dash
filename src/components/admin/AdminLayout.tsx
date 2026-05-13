@@ -75,6 +75,15 @@ function AdminShell() {
           </main>
         </div>
       </div>
+    </div>
+  );
+}
+
+export default function AdminLayout() {
+  return (
+    <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
+      <AdminShell />
     </RouteGuard>
   );
 }
+
