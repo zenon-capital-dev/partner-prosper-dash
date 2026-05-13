@@ -26,28 +26,28 @@ const SECTIONS: NavSection[] = [
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "SLA & Prazos", url: "/sla", icon: Zap },
   ]},
-  { label: "Clientes", items: [
-    { title: "Clientes", url: "/clientes", icon: Users },
-    { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
-    { title: "Propostas", url: "/propostas", icon: FileText },
+  { label: "Clientes", adminOnly: true, items: [
+    { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },
+    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
+    { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
   ]},
-  { label: "Catálogo", items: [
-    { title: "Produtos", url: "/produtos", icon: Package },
-    { title: "Projetos", url: "/projetos", icon: Briefcase },
-    { title: "Templates", url: "/templates", icon: MessageSquare },
+  { label: "Catálogo", adminOnly: true, items: [
+    { title: "Produtos", url: "/produtos", icon: Package, adminOnly: true },
+    { title: "Projetos", url: "/projetos", icon: Briefcase, adminOnly: true },
+    { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
-  { label: "Rede", items: [
-    { title: "Parceiros", url: "/parceiros", icon: Handshake },
-    { title: "Prestadores", url: "/prestadores", icon: Truck },
-    { title: "Indicadores", url: "/indicadores", icon: Sparkles },
+  { label: "Rede", adminOnly: true, items: [
+    { title: "Parceiros", url: "/parceiros", icon: Handshake, adminOnly: true },
+    { title: "Prestadores", url: "/prestadores", icon: Truck, adminOnly: true },
+    { title: "Indicadores", url: "/indicadores", icon: Sparkles, adminOnly: true },
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
-  { label: "Financeiro", items: [
+  { label: "Financeiro", adminOnly: true, items: [
     { title: "Financeiro", url: "/financeiro", icon: Banknote, adminOnly: true },
     { title: "Central", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
     { title: "Comissões", url: "/comissoes", icon: Wallet, adminOnly: true },
-    { title: "Contratos", url: "/contratos", icon: FileSignature },
-    { title: "Documentos", url: "/documentos", icon: FileText },
+    { title: "Contratos", url: "/contratos", icon: FileSignature, adminOnly: true },
+    { title: "Documentos", url: "/documentos", icon: FileText, adminOnly: true },
   ]},
   { label: "Sistema", adminOnly: true, items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
