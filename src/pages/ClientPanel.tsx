@@ -426,29 +426,26 @@ export default function ClientPanel() {
 
                   <div className="space-y-8">
                     {/* Ações Necessárias */}
-                    <div className="vx-card p-5 sm:p-8 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] shadow-xl relative overflow-hidden">
-                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6 relative">Ações Necessárias</h3>
-                       <div className="space-y-4 relative">
-                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
-                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
-                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => {}} />
+                    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-5 sm:p-7">
+                       <h3 className="font-display text-base sm:text-lg font-semibold mb-4 text-slate-900">Ações Necessárias</h3>
+                       <div className="space-y-2">
+                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => setActiveTab("checklist")} />
+                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => setActiveTab("financeiro")} />
+                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => setActiveTab("contratos")} />
                        </div>
                     </div>
 
                     {/* Canal de Suporte */}
-                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
-                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6">Suporte & Sucesso</h3>
-                       <div className="space-y-6">
-                          <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
-                          <div className="space-y-3">
-                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
-                                <MessageSquare className="size-4 mr-2" /> Iniciar Chat
-                             </Button>
-                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
-                                <Mail className="size-4 mr-2" /> Enviar E-mail
-                             </Button>
-                          </div>
+                    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-5 sm:p-7">
+                       <h3 className="font-display text-base sm:text-lg font-semibold mb-2 text-slate-900">Suporte & Sucesso</h3>
+                       <p className="text-sm text-slate-500 leading-relaxed mb-5">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
+                       <div className="space-y-2.5">
+                          <Button className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-11" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                             <MessageSquare className="size-4 mr-2" /> Iniciar Chat
+                          </Button>
+                          <Button variant="outline" className="w-full rounded-md h-11 border-slate-200 text-slate-700 hover:bg-slate-50 font-medium" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
+                             <Mail className="size-4 mr-2" /> Enviar E-mail
+                          </Button>
                        </div>
                     </div>
                   </div>
