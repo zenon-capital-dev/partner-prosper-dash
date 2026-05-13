@@ -40,6 +40,10 @@ const ROUTE_LABEL: Record<string, string> = {
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const { pathname } = useLocation();
+  const isFullAdmin = isAdmin || isAdminSecondary;
+  const blocked = !isFullAdmin && ADMIN_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   const handleSearchClick = () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
