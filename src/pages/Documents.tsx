@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
-import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History, Search, RefreshCw, Lock, Unlock, MoreVertical, Filter } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
+import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History, Search, RefreshCw, Lock, Unlock, MoreVertical, Filter, FolderOpen, ShieldCheck } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StatCard } from "@/components/StatCard";
 import { logAudit } from "@/lib/audit";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export type DocumentStatus = 'solicitado' | 'enviado' | 'em_analise' | 'aprovado' | 'rejeitado' | 'reprovado' | 'atrasado' | 'vencido' | 'pendente_correcao';
 
@@ -267,24 +267,28 @@ export default function Documents() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <PageHeader
-          title="Central de Documentos"
-          description="Gerencie todos os documentos vinculados a clientes, produtos e demandas."
-        />
-        <Button onClick={() => { setSelectedDoc(null); setIsDialogOpen(true); }} className="gap-2 self-start">
-          <FilePlus className="size-4" /> Solicitar Documento
-        </Button>
-      </div>
+    <div className="page-shell space-y-6 animate-fade-up">
+      <PageHero
+        eyebrow="Documentos"
+        category="Central de Arquivos"
+        title="Central de Documentos"
+        description="Solicite, valide e arquive documentos de clientes. Cada arquivo fica vinculado a uma demanda e visível apenas para quem tem permissão."
+        icon={<FolderOpen className="size-6" />}
+        actions={
+          <Button onClick={() => { setSelectedDoc(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-xl">
+            <FilePlus className="size-4 mr-1.5" /> Solicitar Documento
+          </Button>
+        }
+        kpis={[
+          { label: "Total de Docs", value: kpis.total, tone: "primary", icon: <FileText className="size-4" /> },
+          { label: "Pendentes", value: kpis.pendentes, tone: "warning", icon: <Clock className="size-4" /> },
+          { label: "Aprovados", value: kpis.aprovados, tone: "success", icon: <Check className="size-4" /> },
+          { label: "Rejeitados", value: kpis.rejeitados, tone: "danger", icon: <X className="size-4" /> },
+          { label: "Atrasados", value: kpis.atrasados, tone: "danger", icon: <AlertCircle className="size-4" /> },
+        ]}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard label="Total de Docs" value={String(kpis.total)} icon={FileText} iconColor="primary" />
-        <StatCard label="Pendentes" value={String(kpis.pendentes)} icon={Clock} iconColor="warning" />
-        <StatCard label="Aprovados" value={String(kpis.aprovados)} icon={Check} iconColor="success" />
-        <StatCard label="Rejeitados" value={String(kpis.rejeitados)} icon={X} iconColor="destructive" />
-        <StatCard label="Atrasados" value={String(kpis.atrasados)} icon={AlertCircle} iconColor="destructive" />
-      </div>
+      <div className="px-5 lg:px-8 space-y-6">
 
       {/* Filters */}
       <div className="vx-card p-4 space-y-3">
@@ -494,6 +498,7 @@ export default function Documents() {
           </div>
         )}
       </div>
+      </div>{/* close px wrapper */}
 
       <DocumentDialog
         open={isDialogOpen}
