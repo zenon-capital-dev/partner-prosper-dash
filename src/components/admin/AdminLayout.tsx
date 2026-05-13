@@ -37,7 +37,7 @@ const ROUTE_LABEL: Record<string, string> = {
   auditoria: "Auditoria",
 };
 
-export default function AdminLayout() {
+function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAdmin, isAdminSecondary } = useAuth();
@@ -49,10 +49,10 @@ export default function AdminLayout() {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   };
 
+  if (blocked) return <Navigate to="/admin" replace />;
+
   return (
-    <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
-      {blocked && <Navigate to="/admin" replace />}
-      <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
+    <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
         <div className="hidden md:block shrink-0">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
