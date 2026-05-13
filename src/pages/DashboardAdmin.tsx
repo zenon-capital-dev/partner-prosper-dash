@@ -288,11 +288,6 @@ export default function DashboardAdmin() {
 
   return (
     <div className="relative min-h-full bg-transparent">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 size-[600px] rounded-full bg-indigo-200/40 dark:bg-indigo-600/[0.06] blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 size-[500px] rounded-full bg-violet-200/30 dark:bg-violet-600/[0.04] blur-[140px]" />
-      </div>
-
       <div className="relative p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
 
         {/* ============ EXECUTIVE HEADER ============ */}
