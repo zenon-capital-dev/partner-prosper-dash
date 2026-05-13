@@ -522,7 +522,7 @@ export default function ClientPanel() {
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
                        <Receipt className="size-12 text-primary relative" />
                        <div className="space-y-4 relative">
-                          <h3 className="font-editorial text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
+                          <h3 className="font-editorial text-2xl sm:text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
                           <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
                        </div>
                        <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
@@ -552,7 +552,7 @@ function PremiumStat({ label, value, sub, tone }: { label: string; value: string
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
       <div className="flex items-baseline gap-2">
          <span className={cn(
-           "font-editorial text-4xl font-bold tracking-tighter",
+           "font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tighter",
            tone === "success" ? "text-emerald-500" : tone === "warning" ? "text-amber-500" : "text-slate-900 dark:text-white"
          )}>{value}</span>
          {sub && <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-widest opacity-40">{sub}</span>}
