@@ -82,8 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         
         // Fetch roles if user changed or it's a critical auth event
-        if (userChanged || event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || !initialized) {
-          setLoading(true);
+        if (userChanged || event === "SIGNED_IN" || !initialized) {
+          if (!initialized) setLoading(true);
           await fetchRoles(sess.user.id);
         } else {
           setLoading(false);
