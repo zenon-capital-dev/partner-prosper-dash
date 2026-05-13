@@ -421,3 +421,24 @@ function RankBadge({ rank }: { rank: number }) {
     </div>
   );
 }
+
+function PartnerSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="size-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center">{icon}</span>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function PartnerField({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={`space-y-1.5 ${wide ? "col-span-2" : ""}`}>
+      <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</Label>
+      {children}
+    </div>
+  );
+}
