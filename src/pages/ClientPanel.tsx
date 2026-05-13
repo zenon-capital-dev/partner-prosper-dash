@@ -111,15 +111,15 @@ export default function ClientPanel() {
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
   return (
-    <div className="bg-slate-50 min-h-screen text-slate-900">
+    <div className="bg-premium min-h-screen dark:bg-[#020617]">
       {/* ─── Sticky Top Bar ─── */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl">
         <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
           <div className="flex items-center gap-2.5 min-w-0">
             <ProsperLogo size={28} />
             <div className="min-w-0">
-              <p className="font-semibold text-[14px] tracking-tight leading-none text-slate-900">Prosper</p>
-              <p className="hidden sm:block text-[11px] text-slate-500 mt-0.5">Portal do Cliente</p>
+              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900 dark:text-white">Prosper</p>
+              <p className="hidden sm:block text-[8.5px] text-muted-foreground tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
             </div>
           </div>
 
@@ -127,7 +127,7 @@ export default function ClientPanel() {
             <Button
               variant="ghost"
               size="icon"
-              className="size-9 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+              className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
               onClick={() => toast.info("Notificações em breve")}
               aria-label="Notificações"
             >
@@ -135,12 +135,12 @@ export default function ClientPanel() {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-md border border-slate-200 hover:bg-slate-50 transition-colors active:scale-[0.98]">
-                  <span className="size-7 rounded-md bg-indigo-600 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">
+                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
+                  <span className="size-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[11px] font-bold shrink-0">
                     {initials(client.full_name)}
                   </span>
-                  <span className="hidden sm:inline text-[13px] font-medium text-slate-700 max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
-                  <ChevronRight className="size-3.5 text-slate-400 rotate-90" />
+                  <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
@@ -253,21 +253,21 @@ export default function ClientPanel() {
                </div>
 
                <div className="space-y-8">
-                  <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
-                    <h3 className="font-display text-lg font-semibold text-slate-900">Mensagens & Atualizações</h3>
-                    <div className="space-y-5">
+                  <div className="vx-card p-8 bg-slate-900 text-white rounded-[40px] space-y-6 relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="size-20" /></div>
+                    <h3 className="font-editorial text-xl font-bold">Mensagens & Atualizações</h3>
+                    <div className="space-y-6 relative">
                        {reports.filter((r: any) => r.client_product_id === selectedProductId).length === 0 ? (
-                         <p className="text-sm text-slate-500 leading-relaxed">Nenhuma atualização registrada ainda. Nossa equipe reportará novidades em breve.</p>
+                         <p className="text-xs text-white/40 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
                        ) : (
                          reports.filter((r: any) => r.client_product_id === selectedProductId).slice(0, 5).map((r: any) => (
-                           <div key={r.id} className="flex gap-3">
-                             <div className="size-2 rounded-full bg-indigo-600 mt-1.5 shrink-0" />
-                             <div className="space-y-1 min-w-0">
-                               <p className="text-sm text-slate-700 leading-relaxed">{r.notes}</p>
-                               <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                                  <span>{formatDate(r.created_at)}</span>
-                                  <span>·</span>
-                                  <span className="text-indigo-600 font-medium">{r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
+                           <div key={r.id} className="flex gap-4 group">
+                             <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                             <div className="space-y-1">
+                               <p className="text-xs font-medium text-white/90 leading-relaxed">{r.notes}</p>
+                               <div className="flex items-center gap-2 pt-1">
+                                  <p className="text-[9px] font-bold text-white/30 uppercase">{formatDate(r.created_at)}</p>
+                                  <span className="text-[9px] font-bold text-primary italic lowercase">por {r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
                                </div>
                              </div>
                            </div>
@@ -275,7 +275,6 @@ export default function ClientPanel() {
                        )}
                     </div>
                   </div>
-
 
                   <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] space-y-6">
                     <h3 className="font-editorial text-xl font-bold">Histórico de Atividades</h3>
@@ -297,30 +296,42 @@ export default function ClientPanel() {
         ) : (
           /* MAIN HOME VIEW */
           <>
-            {/* ─── Hero (light) ─── */}
-            <section className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/70 shadow-sm p-6 sm:p-8 lg:p-10">
-              <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 items-center">
-                <div className="space-y-5">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-indigo-50 border border-indigo-100 px-3 py-1 text-[11px] font-medium text-indigo-700">
-                    <span className="size-1.5 rounded-full bg-indigo-600" />
-                    Sua jornada
-                  </span>
+            {/* ─── Refined Hero ─── */}
+            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 text-white p-6 sm:p-10 lg:p-12 shadow-xl">
+              <div className="absolute -top-32 -right-32 size-[420px] rounded-full bg-primary/30 blur-[120px] opacity-60 pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 size-[320px] rounded-full bg-blue-500/20 blur-[100px] opacity-50 pointer-events-none" />
+              <div
+                className="absolute inset-0 opacity-[0.05] pointer-events-none"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
+                  backgroundSize: "48px 48px",
+                  maskImage: "radial-gradient(ellipse 70% 60% at 30% 30%, #000 30%, transparent 100%)",
+                }}
+              />
 
-                  <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-slate-900 leading-tight">
-                    Olá, <span className="text-indigo-600">{client.full_name?.split(" ")[0] || ""}</span>.
-                    <span className="block text-slate-500 text-base sm:text-lg lg:text-xl font-normal mt-1.5">
+              <div className="relative grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 lg:gap-12 items-center">
+                <div className="space-y-5">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-xl px-3 py-1.5">
+                    <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/70">Sua jornada</span>
+                  </div>
+
+                  <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.05]">
+                    Olá, <span className="text-primary italic">{client.full_name?.split(" ")[0] || ""}</span>.
+                    <span className="block text-white/60 text-base sm:text-lg lg:text-xl font-normal italic mt-2 tracking-tight">
                       Tudo o que importa, num só lugar.
                     </span>
                   </h1>
 
                   <div className="space-y-2 max-w-md pt-1">
-                    <div className="flex items-center justify-between text-[11.5px] font-medium text-slate-500">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/50">
                       <span>Progresso do onboarding</span>
-                      <span className="text-slate-900 font-semibold tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
+                      <span className="text-white tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div
-                        className="h-full bg-indigo-600 rounded-full transition-all duration-700"
+                        className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-700"
                         style={{ width: `${Math.max(4, Math.round(client.onboarding_progress || 0))}%` }}
                       />
                     </div>
@@ -329,23 +340,23 @@ export default function ClientPanel() {
                   <div className="flex flex-wrap gap-2 pt-2">
                     <button
                       onClick={() => setActiveTab("checklist")}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium transition-colors active:scale-[0.99] shadow-sm"
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-white text-slate-950 text-[13px] font-semibold hover:bg-white/90 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
                     >
                       <ListChecks className="size-4" /> Ver pendências
                       {pendingDocs > 0 && (
-                        <span className="ml-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded bg-white/20 text-white text-[10.5px] font-semibold tabular-nums">{pendingDocs}</span>
+                        <span className="ml-1 inline-flex items-center justify-center size-5 rounded-md bg-rose-500 text-white text-[10px] font-bold tabular-nums">{pendingDocs}</span>
                       )}
                     </button>
                     <button
                       onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-slate-200 bg-white text-slate-700 text-[13px] font-medium hover:bg-slate-50 transition-colors active:scale-[0.99]"
+                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-md text-white text-[13px] font-semibold hover:bg-white/10 transition-all active:scale-[0.98]"
                     >
                       <MessageSquare className="size-4" /> Falar com a equipe
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-slate-200/70 lg:pl-8">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-white/10 lg:pl-10">
                   <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} icon={<Package className="size-3.5" />} />
                   <HeroKpi label="Documentos" value={String(pendingDocs)} sub={pendingDocs > 0 ? "pendentes" : "em dia"} tone={pendingDocs > 0 ? "warning" : "success"} icon={<FileText className="size-3.5" />} />
                   <HeroKpi label="Pagamentos" value={String(pendingPayments)} sub={pendingPayments > 0 ? "em aberto" : "quitado"} tone={pendingPayments > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
@@ -353,7 +364,6 @@ export default function ClientPanel() {
                 </div>
               </div>
             </section>
-
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
               <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide">
@@ -426,26 +436,29 @@ export default function ClientPanel() {
 
                   <div className="space-y-8">
                     {/* Ações Necessárias */}
-                    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-5 sm:p-7">
-                       <h3 className="font-display text-base sm:text-lg font-semibold mb-4 text-slate-900">Ações Necessárias</h3>
-                       <div className="space-y-2">
-                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => setActiveTab("checklist")} />
-                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => setActiveTab("financeiro")} />
-                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => setActiveTab("contratos")} />
+                    <div className="vx-card p-5 sm:p-8 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] shadow-xl relative overflow-hidden">
+                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
+                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6 relative">Ações Necessárias</h3>
+                       <div className="space-y-4 relative">
+                          <ActionItem icon={FileText} label="Documentos Pendentes" count={pendingDocs} onClick={() => {}} />
+                          <ActionItem icon={Receipt} label="Pagamentos em Aberto" count={pendingPayments} onClick={() => {}} />
+                          <ActionItem icon={FileSignature} label="Contratos para Assinar" count={pendingContracts} onClick={() => {}} />
                        </div>
                     </div>
 
                     {/* Canal de Suporte */}
-                    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-5 sm:p-7">
-                       <h3 className="font-display text-base sm:text-lg font-semibold mb-2 text-slate-900">Suporte & Sucesso</h3>
-                       <p className="text-sm text-slate-500 leading-relaxed mb-5">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
-                       <div className="space-y-2.5">
-                          <Button className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-medium h-11" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
-                             <MessageSquare className="size-4 mr-2" /> Iniciar Chat
-                          </Button>
-                          <Button variant="outline" className="w-full rounded-md h-11 border-slate-200 text-slate-700 hover:bg-slate-50 font-medium" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
-                             <Mail className="size-4 mr-2" /> Enviar E-mail
-                          </Button>
+                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6">Suporte & Sucesso</h3>
+                       <div className="space-y-6">
+                          <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
+                          <div className="space-y-3">
+                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                                <MessageSquare className="size-4 mr-2" /> Iniciar Chat
+                             </Button>
+                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
+                                <Mail className="size-4 mr-2" /> Enviar E-mail
+                             </Button>
+                          </div>
                        </div>
                     </div>
                   </div>
@@ -522,7 +535,7 @@ export default function ClientPanel() {
                         <p className="text-sm text-muted-foreground mt-3 line-clamp-3">{p.description}</p>
                         <div className="mt-8 flex items-center justify-between">
                            <p className="text-xl font-bold text-slate-900 dark:text-white">{formatBRL(p.base_price)}</p>
-                           <Button className="rounded-md h-10 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium">Saber mais</Button>
+                           <Button className="rounded-xl h-10 px-6 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all">Saber mais</Button>
                         </div>
                       </div>
                     ))}
@@ -588,15 +601,14 @@ export default function ClientPanel() {
                           </table>
                        </div>
                     </div>
-                    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
-                       <div className="size-11 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                          <Receipt className="size-5" />
+                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
+                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
+                       <Receipt className="size-12 text-primary relative" />
+                       <div className="space-y-4 relative">
+                          <h3 className="font-editorial text-2xl sm:text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
+                          <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
                        </div>
-                       <div className="space-y-2">
-                          <h3 className="font-display text-lg sm:text-xl font-semibold text-slate-900 leading-tight">Configurações de Faturamento</h3>
-                          <p className="text-sm text-slate-500 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
-                       </div>
-                       <Button className="w-full rounded-md bg-indigo-600 hover:bg-indigo-700 text-white h-11 font-medium">Solicitar Ajuste</Button>
+                       <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
                     </div>
                  </div>
               </TabsContent>
@@ -618,16 +630,16 @@ export default function ClientPanel() {
 }
 
 function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone?: "default" | "success" | "warning" }) {
-  const accent = tone === "warning" ? "text-amber-600" : tone === "success" ? "text-emerald-600" : "text-slate-900";
+  const accent = tone === "warning" ? "text-amber-300" : tone === "success" ? "text-emerald-300" : "text-white";
   return (
-    <div className="rounded-lg border border-slate-200/70 bg-slate-50/70 p-3 sm:p-4 hover:bg-slate-50 transition-colors min-w-0">
-      <div className="flex items-center justify-between mb-1.5 text-slate-500">
-        <span className="text-[10px] sm:text-[10.5px] font-medium uppercase tracking-wide truncate">{label}</span>
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-3 sm:p-4 hover:bg-white/[0.07] transition-colors min-w-0">
+      <div className="flex items-center justify-between mb-1.5 text-white/50">
+        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] truncate">{label}</span>
         {icon && <span className="shrink-0 opacity-70">{icon}</span>}
       </div>
       <div className="flex items-baseline gap-1.5">
-        <span className={cn("font-display text-xl sm:text-2xl font-semibold tabular-nums leading-none", accent)}>{value}</span>
-        {sub && <span className="text-[10px] sm:text-[10.5px] font-medium uppercase tracking-wide text-slate-400 truncate">{sub}</span>}
+        <span className={cn("font-display text-xl sm:text-2xl font-bold tabular-nums leading-none", accent)}>{value}</span>
+        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/40 truncate">{sub}</span>}
       </div>
     </div>
   );
@@ -684,28 +696,23 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ActionItem({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick: () => void }) {
-  const active = count > 0;
   return (
-    <button
-      type="button"
-      disabled={!active}
+    <div 
       className={cn(
-        "w-full flex items-center justify-between px-3.5 py-3 rounded-md transition-colors text-left",
-        active
-          ? "bg-slate-50 hover:bg-slate-100 border border-slate-200/70 cursor-pointer"
-          : "opacity-50 cursor-not-allowed"
+        "flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer",
+        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-40 grayscale pointer-events-none"
       )}
       onClick={onClick}
     >
        <div className="flex items-center gap-3">
-          <Icon className={cn("size-4", active ? "text-indigo-600" : "text-slate-400")} />
-          <span className="text-[13px] font-medium text-slate-700">{label}</span>
+          <Icon className="size-4 text-primary" />
+          <span className="text-[13px] font-bold">{label}</span>
        </div>
-       {active && (
-         <span className="min-w-6 h-6 px-2 rounded-md bg-indigo-600 text-white flex items-center justify-center text-[11px] font-semibold tabular-nums">
+       {count > 0 && (
+         <div className="size-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
             {count}
-         </span>
+         </div>
        )}
-    </button>
+    </div>
   );
 }
