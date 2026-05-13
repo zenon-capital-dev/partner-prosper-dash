@@ -64,7 +64,8 @@ interface Props { collapsed: boolean; onToggle: () => void; }
 export function AdminSidebar({ collapsed, onToggle }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin, isAdminSecondary } = useAuth();
+  const isFullAdmin = isAdmin || isAdminSecondary;
   const [, setCmdOpen] = useState(false);
 
   useEffect(() => {
@@ -80,8 +81,14 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
   const isActive = (path: string) =>
     path === "/admin" ? pathname === "/admin" : pathname === path || pathname.startsWith(path + "/");
 
+  const sections = SECTIONS
+    .filter((s) => isFullAdmin || !s.adminOnly)
+    .map((s) => ({ ...s, items: s.items.filter((i) => isFullAdmin || !i.adminOnly) }))
+    .filter((s) => s.items.length > 0);
+
   const displayName = user?.user_metadata?.full_name || user?.email || "Admin";
   const displayEmail = user?.email || "";
+  const portalLabel = isFullAdmin ? "Admin OS" : "Workspace";
 
   return (
     <aside
