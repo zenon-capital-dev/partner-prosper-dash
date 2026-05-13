@@ -281,14 +281,14 @@ export default function Products() {
       <header className="px-5 lg:px-8 pt-6 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="size-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+            <div className="size-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg">
               <Boxes className="size-8" />
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
                 <span>Catálogo</span>
                 <span className="size-1 rounded-full bg-slate-300" />
-                <span className="text-indigo-600">Serviços</span>
+                <span className="text-slate-900">Serviços</span>
               </div>
               <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Produtos & Serviços</h1>
               <p className="text-sm text-slate-500 max-w-xl">Cadastre e gerencie as ofertas da sua plataforma. Demandas automatizadas, checklists e comissões integradas.</p>
@@ -308,7 +308,7 @@ export default function Products() {
           {[
             { label: "Total", value: kpis.total, tone: "text-slate-900" },
             { label: "Ativos", value: kpis.active, tone: "text-emerald-600" },
-            { label: "Recorrentes", value: kpis.recurring, tone: "text-indigo-600" },
+            { label: "Recorrentes", value: kpis.recurring, tone: "text-slate-900" },
             { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "text-amber-600" },
             { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "text-emerald-600" },
           ].map((k) => (
@@ -326,7 +326,7 @@ export default function Products() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
-                <Sparkles className="size-3 text-indigo-500" /> Catálogo · Performance
+                <Sparkles className="size-3 text-slate-900" /> Catálogo · Performance
               </div>
               <h3 className="font-display text-base font-bold mt-1 text-slate-900 dark:text-white">Top Produtos por Receita</h3>
             </div>
@@ -363,7 +363,7 @@ export default function Products() {
         <div className="lg:col-span-5 vx-card p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
-              <Layers className="size-3 text-violet-500" /> Categorias
+              <Layers className="size-3 text-slate-900" /> Categorias
             </div>
             <Badge variant="outline" className="text-[10px]">{categories.length}</Badge>
           </div>
@@ -378,7 +378,7 @@ export default function Products() {
                   <button
                     key={c.id}
                     onClick={() => setCategoryFilter(c.id)}
-                    className="text-left rounded-xl border border-slate-200 dark:border-white/[0.06] p-3 hover:border-indigo-400 hover:shadow-md transition-all group"
+                    className="text-left rounded-xl border border-slate-200 dark:border-white/[0.06] p-3 hover:border-slate-900 hover:shadow-md transition-all group"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="size-2 rounded-full shrink-0" style={{ background: color }} />
