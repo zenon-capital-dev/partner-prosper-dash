@@ -312,7 +312,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Health Score (0-100)</Label>
+            <Label>Engajamento (0-100)</Label>
             <Input type="number" min="0" max="100" value={form.health_score ?? 100} onChange={(e) => setForm({ ...form, health_score: e.target.value })} />
           </div>
           <div className="space-y-2">

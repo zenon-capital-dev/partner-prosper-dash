@@ -216,7 +216,7 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="editorial-label text-[9px] mb-1">Health Score</p>
+                <p className="editorial-label text-[9px] mb-1">Engajamento</p>
                 <div className="flex items-center gap-2">
                   <Heart className={cn("size-5", getHealthColor(client.health_score || 100))} />
                   <span className={cn("text-2xl font-bold font-mono", getHealthColor(client.health_score || 100))}>

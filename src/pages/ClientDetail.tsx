@@ -273,7 +273,7 @@ export default function ClientDetail() {
             tone={client.payment_status === 'pago' ? 'success' : client.payment_status === 'pendente' ? 'warning' : 'danger'}
           />
           <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-muted/40 border border-border/40">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Health Score</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Engajamento</span>
             <div className="flex items-center gap-2">
               <span className={cn("text-sm font-bold", 
                 client.health_score >= 80 ? "text-emerald-500" : client.health_score >= 50 ? "text-amber-500" : "text-rose-500"
@@ -568,12 +568,12 @@ function EngagementCard({ health, risk }: { health: number; risk: string }) {
   return (
     <div className="cp-panel p-6 space-y-4">
       <h3 className="text-sm font-bold flex items-center gap-2">
-        <PieChart className="size-4 text-indigo-500" /> Saúde & Engajamento
+        <PieChart className="size-4 text-indigo-500" /> Engajamento
       </h3>
       <div className="space-y-5">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Saúde do Cliente</span>
+            <span className="text-muted-foreground">Engajamento do Cliente</span>
             <span className="font-bold">{health}%</span>
           </div>
           <Progress value={health} className={cn("h-2", 
