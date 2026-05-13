@@ -684,23 +684,28 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function ActionItem({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick: () => void }) {
+  const active = count > 0;
   return (
-    <div 
+    <button
+      type="button"
+      disabled={!active}
       className={cn(
-        "flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer",
-        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-40 grayscale pointer-events-none"
+        "w-full flex items-center justify-between px-3.5 py-3 rounded-md transition-colors text-left",
+        active
+          ? "bg-slate-50 hover:bg-slate-100 border border-slate-200/70 cursor-pointer"
+          : "opacity-50 cursor-not-allowed"
       )}
       onClick={onClick}
     >
        <div className="flex items-center gap-3">
-          <Icon className="size-4 text-primary" />
-          <span className="text-[13px] font-bold">{label}</span>
+          <Icon className={cn("size-4", active ? "text-indigo-600" : "text-slate-400")} />
+          <span className="text-[13px] font-medium text-slate-700">{label}</span>
        </div>
-       {count > 0 && (
-         <div className="size-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+       {active && (
+         <span className="min-w-6 h-6 px-2 rounded-md bg-indigo-600 text-white flex items-center justify-center text-[11px] font-semibold tabular-nums">
             {count}
-         </div>
+         </span>
        )}
-    </div>
+    </button>
   );
 }
