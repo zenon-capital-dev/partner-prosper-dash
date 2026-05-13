@@ -650,13 +650,13 @@ function SummaryCard({
     danger: "bg-destructive/10 text-destructive",
   }[tone];
   return (
-    <div className="rounded-xl border border-border/60 bg-card/40 p-4 hover:border-border transition-colors">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-        <div className={cn("size-7 rounded-md flex items-center justify-center", iconBg)}>{icon}</div>
+    <div className="rounded-xl border border-border/60 bg-card/40 p-3 sm:p-4 hover:border-border transition-colors">
+      <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
+        <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight">{label}</span>
+        <div className={cn("size-6 sm:size-7 rounded-md flex items-center justify-center shrink-0", iconBg)}>{icon}</div>
       </div>
-      <p className={cn("text-2xl font-bold tracking-tight font-mono", toneCls)}>{value}</p>
-      {sublabel && <p className="text-[11px] text-muted-foreground mt-1">{sublabel}</p>}
+      <p className={cn("text-lg sm:text-2xl font-bold tracking-tight font-mono truncate", toneCls)}>{value}</p>
+      {sublabel && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 line-clamp-2">{sublabel}</p>}
     </div>
   );
 }
