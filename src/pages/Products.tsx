@@ -10,6 +10,7 @@ import {
   Tag, Users2, MoreHorizontal, Power, PowerOff, Filter, Sparkles, Boxes, ListChecks,
 } from "lucide-react";
 import { ProductChecklistDialog } from "@/components/products/ProductChecklistDialog";
+import { ProductFormDialog } from "@/components/products/ProductFormDialog";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import {
@@ -278,9 +279,9 @@ export default function Products() {
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
         eyebrow="Catálogo"
-        category="Product Suite"
-        title="Produtos"
-        description="Gerencie produtos, categorias, preços, comissões e disponibilidade para parceiros."
+        category="Serviços"
+        title="Produtos & Serviços"
+        description="Cadastre os serviços que você oferece (Contábil, Tributário, Jurídico, Societário…). Cada serviço vendido vira uma demanda com checklist e prestador delegado."
         icon={<Boxes className="size-6" />}
         actions={
           <>
@@ -288,7 +289,7 @@ export default function Products() {
               <Tag className="size-4" /> Categorias
             </Button>
             <Button onClick={openNew} className="btn-premium h-10 px-5 gap-2 font-semibold">
-              <Plus className="size-4" strokeWidth={2.5} /> Novo Produto
+              <Plus className="size-4" strokeWidth={2.5} /> Novo serviço
             </Button>
           </>
         }
@@ -563,141 +564,17 @@ export default function Products() {
         </div>
       )}
 
-      {/* Dialog Produto */}
-      <Dialog open={productOpen} onOpenChange={setProductOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">{editing ? "Editar produto" : "Novo produto"}</DialogTitle>
-            <DialogDescription>Configure preço, comissão e disponibilidade para parceiros.</DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-2 max-h-[60vh] overflow-y-auto px-1">
-            <div className="col-span-2 space-y-1.5">
-              <Label>Nome do produto *</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Gestão Financeira Completa" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Categoria *</Label>
-              <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  {categories.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      <span className="inline-flex items-center gap-2">
-                        <span className="size-2 rounded-full" style={{ background: c.color ?? "#6366f1" }} />
-                        {c.name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de cobrança</Label>
-              <Select value={form.billing_type} onValueChange={(v) => setForm({ ...form, billing_type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unico">Pagamento único</SelectItem>
-                  <SelectItem value="mensal">Mensalidade</SelectItem>
-                  <SelectItem value="anual">Anual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Valor padrão (R$)</Label>
-              <Input type="number" step="0.01" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>SLA Padrão (dias)</Label>
-              <Input type="number" value={form.default_sla_days} onChange={(e) => setForm({ ...form, default_sla_days: e.target.value })} placeholder="Ex: 15" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de Prazo</Label>
-              <Select value={form.sla_day_type} onValueChange={(v) => setForm({ ...form, sla_day_type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="working">Dias Úteis</SelectItem>
-                  <SelectItem value="calendar">Dias Corridos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-2 space-y-1.5">
-              <Label>Descrição</Label>
-              <Textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detalhes, escopo, entregáveis..." />
-            </div>
-            
-            <div className="space-y-1.5">
-              <Label>Comissão Parceiro (%)</Label>
-              <Input type="number" step="0.01" value={form.default_commission_percent} onChange={(e) => setForm({ ...form, default_commission_percent: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Comissão Colaborador (%)</Label>
-              <Input type="number" step="0.01" value={form.default_employee_commission} onChange={(e) => setForm({ ...form, default_employee_commission: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Valor Prestador (R$)</Label>
-              <Input type="number" step="0.01" value={form.default_provider_value} onChange={(e) => setForm({ ...form, default_provider_value: e.target.value })} />
-            </div>
-            
-            <div className="col-span-2 space-y-1.5">
-              <Label>Documentos necessários (separados por vírgula)</Label>
-              <Input value={form.required_documents} onChange={(e) => setForm({ ...form, required_documents: e.target.value })} placeholder="Ex: RG, CPF, Comprovante de Residência" />
-            </div>
-
-            <div className="col-span-2 space-y-1.5">
-              <Label>Etapas padrão do processo (separadas por vírgula)</Label>
-              <Input value={form.standard_steps} onChange={(e) => setForm({ ...form, standard_steps: e.target.value })} placeholder="Ex: Triagem, Análise, Entrega" />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Status Inicial</Label>
-              <Input value={form.initial_status} onChange={(e) => setForm({ ...form, initial_status: e.target.value })} placeholder="Ex: aguardando_inicio" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de Prestador Recomendado</Label>
-              <Input value={form.recommended_provider_type} onChange={(e) => setForm({ ...form, recommended_provider_type: e.target.value })} placeholder="Ex: Contador, Advogado" />
-            </div>
-
-            <div className="col-span-2 space-y-1.5">
-              <Label>Mensagem de Boas-vindas (Cliente)</Label>
-              <Textarea rows={2} value={form.client_welcome_message} onChange={(e) => setForm({ ...form, client_welcome_message: e.target.value })} placeholder="Olá! Começamos seu processo..." />
-            </div>
-            <div className="col-span-2 space-y-1.5">
-              <Label>Instruções Padrão (Prestador)</Label>
-              <Textarea rows={2} value={form.provider_welcome_message} onChange={(e) => setForm({ ...form, provider_welcome_message: e.target.value })} placeholder="Uma nova demanda foi delegada..." />
-            </div>
-
-            <div className="col-span-2 space-y-3">
-              <Label>Configurações</Label>
-              <div className="grid grid-cols-3 gap-3 p-3 rounded-md border border-border bg-muted/30">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1">
-                    <p className="text-[11px] font-medium">Ativo</p>
-                  </div>
-                  <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
-                </div>
-                <div className="flex items-center justify-between gap-2 border-l pl-3">
-                  <div className="flex-1">
-                    <p className="text-[11px] font-medium">Recorrente</p>
-                  </div>
-                  <Switch checked={form.recurring} onCheckedChange={(v) => setForm({ ...form, recurring: v })} />
-                </div>
-                <div className="flex items-center justify-between gap-2 border-l pl-3">
-                  <div className="flex-1">
-                    <p className="text-[11px] font-medium">Parceiros</p>
-                  </div>
-                  <Switch checked={form.allow_partner} onCheckedChange={(v) => setForm({ ...form, allow_partner: v })} />
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setProductOpen(false)}>Cancelar</Button>
-            <Button onClick={submit} className="bg-gradient-primary hover:opacity-90 gap-2">
-              <Sparkles className="size-4" /> {editing ? "Salvar alterações" : "Cadastrar produto"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Dialog Serviço (novo layout) */}
+      <ProductFormDialog
+        open={productOpen}
+        onOpenChange={setProductOpen}
+        editing={editing}
+        categories={categories}
+        onSaved={() => {
+          setEditing(null);
+          qc.invalidateQueries({ queryKey: ["products-list"] });
+        }}
+      />
 
       {/* Dialog Categorias */}
       <Dialog open={categoryOpen} onOpenChange={setCategoryOpen}>

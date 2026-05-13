@@ -14,6 +14,7 @@ interface Body {
   phone?: string;
   role: Role;
   send_invite?: boolean;
+  password?: string;
   has_system_access?: boolean;
   internal_notes?: string;
   link_client_id?: string;
@@ -50,12 +51,32 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "email e role obrigatórios" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Try invite (sends email with set-password link)
-    const redirectTo = `${new URL(req.url).origin.replace(/\/+$/, "")}`;
+    // Try invite (sends email with set-password link) OR create with password
     let userId: string | null = null;
     let tempPassword: string | null = null;
 
-    if (body.send_invite !== false) {
+    // Check if user already exists (by email)
+    const { data: existingList } = await admin.auth.admin.listUsers();
+    const existing = existingList?.users?.find((u: any) => u.email?.toLowerCase() === body.email.toLowerCase());
+
+    if (existing) {
+      userId = existing.id;
+      if (body.password) {
+        await admin.auth.admin.updateUserById(userId, { password: body.password, email_confirm: true });
+        tempPassword = body.password;
+      }
+    } else if (body.password) {
+      // Admin definiu senha personalizada
+      const { data: created, error: cErr } = await admin.auth.admin.createUser({
+        email: body.email,
+        password: body.password,
+        email_confirm: true,
+        user_metadata: { full_name: body.full_name ?? body.email },
+      });
+      if (cErr) throw cErr;
+      userId = created.user!.id;
+      tempPassword = body.password;
+    } else if (body.send_invite !== false) {
       const { data: inv, error: invErr } = await admin.auth.admin.inviteUserByEmail(body.email, {
         data: { full_name: body.full_name ?? body.email },
       });

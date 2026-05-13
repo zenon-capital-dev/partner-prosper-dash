@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { KeyRound, Eye, EyeOff, Sparkles, Copy } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -22,10 +24,26 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual", priority: "media" });
 
+  // Acesso ao painel (apenas no cadastro novo)
+  const [createAccess, setCreateAccess] = useState(false);
+  const [accessPwd, setAccessPwd] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+
   useEffect(() => {
     if (client) setForm(client);
     else setForm({ status: "ativo" });
+    setCreateAccess(false);
+    setAccessPwd("");
   }, [client, open]);
+
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let p = "";
+    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    p += "!" + Math.floor(Math.random() * 90 + 10);
+    setAccessPwd(p);
+    setShowPwd(true);
+  };
 
   const { data: partners } = useQuery({
     queryKey: ["partners-select"],
@@ -55,6 +73,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       toast.error("Nome obrigatório");
       return;
     }
+    if (!client?.id && createAccess) {
+      if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
+      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
+    }
+
     setSubmitting(true);
     const payload = {
       full_name: form.full_name,
@@ -84,24 +107,56 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       churn_risk: form.churn_risk || "Baixo",
       created_by: user?.id,
     };
-    const { error } = client?.id
-      ? await supabase.from("clients").update(payload).eq("id", client.id)
-      : await supabase.from("clients").insert(payload);
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+
+    let clientId = client?.id as string | undefined;
+    if (clientId) {
+      const { error } = await supabase.from("clients").update(payload).eq("id", clientId);
+      if (error) { setSubmitting(false); toast.error(error.message); return; }
+    } else {
+      const { data: created, error } = await supabase.from("clients").insert(payload).select("id").single();
+      if (error) { setSubmitting(false); toast.error(error.message); return; }
+      clientId = created.id;
     }
-    toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
+
+    // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
+    if (!client?.id && createAccess && clientId) {
+      const { error: invErr } = await supabase.functions.invoke("invite-user", {
+        body: {
+          email: form.email,
+          full_name: form.full_name,
+          phone: form.phone || null,
+          role: "cliente",
+          send_invite: false,
+          password: accessPwd,
+          link_client_id: clientId,
+        },
+      });
+      if (invErr) {
+        setSubmitting(false);
+        toast.warning("Cliente criado, mas o acesso falhou: " + invErr.message);
+        onCreated?.();
+        return;
+      }
+      try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
+      toast.success(`Acesso criado para ${form.email}`, {
+        description: `Senha: ${accessPwd} (copiada para a área de transferência)`,
+        duration: 20000,
+      });
+    } else {
+      toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
+    }
+
+    setSubmitting(false);
     onCreated?.();
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{client?.id ? "Editar cliente" : "Novo cliente"}</DialogTitle>
+          <DialogDescription>Cadastre os dados do cliente. Você pode opcionalmente já criar o acesso ao painel.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-2">
           <div className="col-span-2 space-y-2">
@@ -284,6 +339,68 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label>Observações internas</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
+
+          {/* Acesso ao painel — apenas no cadastro novo */}
+          {!client?.id && (
+            <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="size-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-bold">Criar acesso ao painel</p>
+                    <p className="text-[11px] text-muted-foreground">Cliente loga em /auth com email + senha que você definir.</p>
+                  </div>
+                </div>
+                <Switch checked={createAccess} onCheckedChange={setCreateAccess} />
+              </div>
+
+              {createAccess && (
+                <div className="space-y-3 pt-2 border-t border-primary/20">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px]">Email do cliente *</Label>
+                    <Input
+                      type="email"
+                      value={form.email ?? ""}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="cliente@empresa.com"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px]">Senha de acesso *</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          type={showPwd ? "text" : "password"}
+                          value={accessPwd}
+                          onChange={(e) => setAccessPwd(e.target.value)}
+                          placeholder="Mínimo 8 caracteres"
+                          className="h-9 pr-9 font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPwd(!showPwd)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        </button>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={generatePassword} className="gap-1.5 h-9">
+                        <Sparkles className="size-3.5" /> Gerar
+                      </Button>
+                      {accessPwd && (
+                        <Button type="button" variant="ghost" size="icon" className="h-9 w-9"
+                          onClick={() => { navigator.clipboard.writeText(accessPwd); toast.success("Senha copiada"); }}>
+                          <Copy className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Após salvar, email + senha são copiados para sua área de transferência.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

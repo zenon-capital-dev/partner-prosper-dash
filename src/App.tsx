@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import AppLayout from "@/components/AppLayout";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Auth from "./pages/Auth";
-import Signup from "./pages/Signup";
+import { Navigate } from "react-router-dom";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/DashboardAdmin";
 import Clients from "./pages/Clients";
@@ -73,7 +73,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/cadastro" element={<Signup />} />
+            <Route path="/cadastro" element={<Navigate to="/auth" replace />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<Dashboard />} />
