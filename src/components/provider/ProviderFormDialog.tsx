@@ -75,7 +75,7 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
           email: form.email,
           password: form.access_password,
           full_name: form.name,
-          role: "service_provider",
+          role: "prestador",
           link_type: "service_provider",
           link_id: providerId,
         },
