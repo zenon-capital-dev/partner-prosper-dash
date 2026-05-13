@@ -1,9 +1,18 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Rotas que SOMENTE admin pleno pode acessar. Colaborador fica restrito a operação.
+const ADMIN_ONLY_PREFIXES = [
+  "/clientes", "/vendas", "/propostas", "/produtos", "/projetos", "/templates",
+  "/parceiros", "/prestadores", "/indicadores", "/colaboradores",
+  "/financeiro", "/comissoes", "/contratos", "/documentos",
+  "/relatorios", "/auditoria", "/usuarios", "/automacoes", "/suporte", "/configuracoes",
+];
 
 const ROUTE_LABEL: Record<string, string> = {
   admin: "Dashboard",
