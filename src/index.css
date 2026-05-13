@@ -359,7 +359,14 @@
     background-clip: content-box;
   }
 
-  /* Same neutralization in global dark mode (non-admin pages) */
+  /* ============================================================
+     DARK MODE NEUTRALIZATION (non-admin pages)
+     Many client/partner/provider panels use hardcoded light tokens
+     (bg-white, bg-slate-50, border-slate-100, text-slate-900).
+     We map them to semantic tokens whenever a dark: variant is missing,
+     so dark mode renders correctly without rewriting every component.
+     The :not() guard keeps explicit dark: overrides untouched.
+     ============================================================ */
   .dark .bg-white:not([class*="dark:bg-"]) {
     background-color: hsl(var(--card)) !important;
   }
@@ -369,11 +376,80 @@
   .dark .bg-white\/70:not([class*="dark:bg-"]),
   .dark .bg-white\/80:not([class*="dark:bg-"]),
   .dark .bg-white\/90:not([class*="dark:bg-"]) {
+    background-color: hsl(var(--card) / 0.6) !important;
+    backdrop-filter: blur(12px);
+  }
+  .dark .bg-white\/5:not([class*="dark:bg-"]),
+  .dark .bg-white\/\[0\.04\]:not([class*="dark:bg-"]),
+  .dark .bg-white\/\[0\.05\]:not([class*="dark:bg-"]),
+  .dark .bg-white\/\[0\.06\]:not([class*="dark:bg-"]),
+  .dark .bg-white\/\[0\.07\]:not([class*="dark:bg-"]),
+  .dark .bg-white\/10:not([class*="dark:bg-"]),
+  .dark .bg-white\/15:not([class*="dark:bg-"]),
+  .dark .bg-white\/20:not([class*="dark:bg-"]) {
     background-color: hsl(0 0% 100% / 0.04) !important;
   }
+
+  /* Slate light surfaces → card / muted in dark */
+  .dark .bg-slate-50:not([class*="dark:bg-"]),
+  .dark .bg-slate-50\/40:not([class*="dark:bg-"]),
+  .dark .bg-slate-50\/50:not([class*="dark:bg-"]),
+  .dark .bg-slate-50\/60:not([class*="dark:bg-"]),
+  .dark .bg-zinc-50:not([class*="dark:bg-"]),
+  .dark .bg-gray-50:not([class*="dark:bg-"]) {
+    background-color: hsl(var(--muted)) !important;
+  }
+  .dark .bg-slate-100:not([class*="dark:bg-"]),
+  .dark .bg-slate-100\/50:not([class*="dark:bg-"]),
+  .dark .bg-slate-200:not([class*="dark:bg-"]),
+  .dark .bg-zinc-100:not([class*="dark:bg-"]),
+  .dark .bg-gray-100:not([class*="dark:bg-"]) {
+    background-color: hsl(var(--secondary)) !important;
+  }
+
+  /* Light borders → semantic border in dark */
+  .dark .border-white\/5:not([class*="dark:border-"]),
   .dark .border-white\/10:not([class*="dark:border-"]),
-  .dark .border-white\/20:not([class*="dark:border-"]) {
+  .dark .border-white\/15:not([class*="dark:border-"]),
+  .dark .border-white\/20:not([class*="dark:border-"]),
+  .dark .border-slate-50:not([class*="dark:border-"]),
+  .dark .border-slate-100:not([class*="dark:border-"]),
+  .dark .border-slate-100\/50:not([class*="dark:border-"]),
+  .dark .border-slate-200:not([class*="dark:border-"]),
+  .dark .border-slate-200\/50:not([class*="dark:border-"]),
+  .dark .border-slate-200\/70:not([class*="dark:border-"]),
+  .dark .border-zinc-100:not([class*="dark:border-"]),
+  .dark .border-gray-100:not([class*="dark:border-"]),
+  .dark .border-gray-200:not([class*="dark:border-"]) {
     border-color: hsl(var(--border)) !important;
+  }
+
+  /* Dark text on light surfaces → foreground in dark */
+  .dark .text-slate-900:not([class*="dark:text-"]),
+  .dark .text-slate-800:not([class*="dark:text-"]),
+  .dark .text-zinc-900:not([class*="dark:text-"]),
+  .dark .text-gray-900:not([class*="dark:text-"]) {
+    color: hsl(var(--foreground)) !important;
+  }
+  .dark .text-slate-700:not([class*="dark:text-"]),
+  .dark .text-slate-600:not([class*="dark:text-"]),
+  .dark .text-slate-500:not([class*="dark:text-"]),
+  .dark .text-slate-400:not([class*="dark:text-"]),
+  .dark .text-zinc-700:not([class*="dark:text-"]),
+  .dark .text-zinc-600:not([class*="dark:text-"]),
+  .dark .text-zinc-500:not([class*="dark:text-"]),
+  .dark .text-gray-700:not([class*="dark:text-"]),
+  .dark .text-gray-600:not([class*="dark:text-"]),
+  .dark .text-gray-500:not([class*="dark:text-"]) {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Hover states using slate light surfaces */
+  .dark .hover\:bg-slate-50:hover:not([class*="dark:hover\:bg-"]),
+  .dark .hover\:bg-slate-50\/50:hover:not([class*="dark:hover\:bg-"]),
+  .dark .hover\:bg-slate-100:hover:not([class*="dark:hover\:bg-"]),
+  .dark .hover\:bg-slate-200:hover:not([class*="dark:hover\:bg-"]) {
+    background-color: hsl(var(--accent)) !important;
   }
 
   .cp-panel {
