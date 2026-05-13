@@ -277,30 +277,47 @@ export default function Products() {
 
   return (
     <div className="page-shell space-y-8 animate-fade-up">
-      <PageHero
-        eyebrow="Catálogo"
-        category="Serviços"
-        title="Produtos & Serviços"
-        description="Cadastre os serviços que você oferece (Contábil, Tributário, Jurídico, Societário…). Cada serviço vendido vira uma demanda com checklist e prestador delegado."
-        icon={<Boxes className="size-6" />}
-        actions={
-          <>
-            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 gap-2">
-              <Tag className="size-4" /> Categorias
-            </Button>
-            <Button onClick={openNew} className="btn-premium h-10 px-5 gap-2 font-semibold">
-              <Plus className="size-4" strokeWidth={2.5} /> Novo serviço
-            </Button>
-          </>
-        }
-        kpis={[
-          { label: "Total", value: kpis.total, tone: "primary", icon: <Boxes className="size-4" /> },
-          { label: "Ativos", value: kpis.active, tone: "success", icon: <Power className="size-4" /> },
-          { label: "Recorrentes", value: kpis.recurring, tone: "warning", icon: <RefreshCcw className="size-4" /> },
-          { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "primary", icon: <TrendingUp className="size-4" /> },
-          { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "success", icon: <Sparkles className="size-4" /> },
-        ]}
-      />
+      <header className="px-5 lg:px-8 pt-6 space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div className="size-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+              <Boxes className="size-8" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                <span>Catálogo</span>
+                <span className="size-1 rounded-full bg-slate-300" />
+                <span className="text-indigo-600">Serviços</span>
+              </div>
+              <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Produtos & Serviços</h1>
+              <p className="text-sm text-slate-500 max-w-xl">Cadastre e gerencie as ofertas da sua plataforma. Demandas automatizadas, checklists e comissões integradas.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+             <Button variant="outline" onClick={() => setCategoryOpen(true)} className="gap-2 h-11 px-4 rounded-xl">
+               <Tag className="size-4" /> Categorias
+             </Button>
+             <Button onClick={openNew} className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white gap-2 font-bold shadow-lg shadow-slate-900/20">
+               <Plus className="size-4" /> Novo serviço
+             </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {[
+            { label: "Total", value: kpis.total, tone: "text-slate-900" },
+            { label: "Ativos", value: kpis.active, tone: "text-emerald-600" },
+            { label: "Recorrentes", value: kpis.recurring, tone: "text-indigo-600" },
+            { label: "Comissão média", value: formatPercent(kpis.avgCommission), tone: "text-amber-600" },
+            { label: "Receita gerada", value: formatBRL(kpis.totalRevenue), tone: "text-emerald-600" },
+          ].map((k) => (
+            <div key={k.label} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{k.label}</p>
+              <p className={cn("text-2xl font-black mt-1", k.tone)}>{k.value}</p>
+            </div>
+          ))}
+        </div>
+      </header>
 
       {/* ============ INSIGHTS ROW ============ */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
