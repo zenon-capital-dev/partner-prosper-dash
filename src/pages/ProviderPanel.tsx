@@ -28,6 +28,9 @@ export default function ProviderPanel() {
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [reportStatusFilter, setReportStatusFilter] = useState<string>("todos");
+  const [reportPeriod, setReportPeriod] = useState<string>("30");
+  const [demandStatusFilter, setDemandStatusFilter] = useState<string>("todos");
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
