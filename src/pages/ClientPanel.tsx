@@ -629,6 +629,22 @@ export default function ClientPanel() {
   );
 }
 
+function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone?: "default" | "success" | "warning" }) {
+  const accent = tone === "warning" ? "text-amber-300" : tone === "success" ? "text-emerald-300" : "text-white";
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-3 sm:p-4 hover:bg-white/[0.07] transition-colors min-w-0">
+      <div className="flex items-center justify-between mb-1.5 text-white/50">
+        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] truncate">{label}</span>
+        {icon && <span className="shrink-0 opacity-70">{icon}</span>}
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <span className={cn("font-display text-xl sm:text-2xl font-bold tabular-nums leading-none", accent)}>{value}</span>
+        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/40 truncate">{sub}</span>}
+      </div>
+    </div>
+  );
+}
+
 function PremiumStat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "success" | "warning" | "default" }) {
   return (
     <div className="space-y-1.5">
