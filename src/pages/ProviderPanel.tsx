@@ -376,7 +376,7 @@ export default function ProviderPanel() {
           </div>
         ) : (
           /* MAIN LIST VIEW */
-          <Tabs defaultValue="dashboard" className="space-y-8 animate-fade-up">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 flex-wrap">
                 <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Home</TabsTrigger>
