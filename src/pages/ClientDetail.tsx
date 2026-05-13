@@ -513,14 +513,14 @@ function MiniCard({ label, value, icon, tone }: { label: string; value: string |
   };
 
   return (
-    <div className="rounded-2xl p-4 bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">{label}</span>
-        <div className={cn("size-8 rounded-xl flex items-center justify-center", colors[tone])}>
+    <div className="rounded-2xl p-3 sm:p-4 bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow min-h-[88px] flex flex-col justify-between">
+      <div className="flex items-center justify-between mb-2 sm:mb-3 gap-2">
+        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 leading-tight">{label}</span>
+        <div className={cn("size-7 sm:size-8 rounded-xl flex items-center justify-center shrink-0", colors[tone])}>
           {icon}
         </div>
       </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
+      <p className="text-lg sm:text-2xl font-bold tracking-tight truncate">{value}</p>
     </div>
   );
 }
