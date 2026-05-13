@@ -166,7 +166,7 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
         </DialogHeader>
 
         {/* Tab nav */}
-        <div className="flex items-center gap-1 px-7 pt-4 border-b border-border overflow-x-auto">
+        <div className="flex items-center gap-6 px-8 bg-white border-b border-slate-100 overflow-x-auto scrollbar-hide">
           {tabs.map((t) => {
             const active = tab === t.id;
             return (
@@ -174,13 +174,13 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 h-9 text-[12px] font-semibold rounded-t-md border-b-2 transition-colors",
+                  "flex items-center gap-2 px-1 h-12 text-sm font-bold transition-all border-b-2 whitespace-nowrap",
                   active
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-slate-400 hover:text-slate-600"
                 )}
               >
-                <t.icon className="size-3.5" /> {t.label}
+                <t.icon className={cn("size-4", active ? "text-indigo-600" : "text-slate-400")} /> {t.label}
               </button>
             );
           })}
