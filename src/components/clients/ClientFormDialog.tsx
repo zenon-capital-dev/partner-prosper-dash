@@ -339,6 +339,68 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label>Observações internas</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
+
+          {/* Acesso ao painel — apenas no cadastro novo */}
+          {!client?.id && (
+            <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="size-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-bold">Criar acesso ao painel</p>
+                    <p className="text-[11px] text-muted-foreground">Cliente loga em /auth com email + senha que você definir.</p>
+                  </div>
+                </div>
+                <Switch checked={createAccess} onCheckedChange={setCreateAccess} />
+              </div>
+
+              {createAccess && (
+                <div className="space-y-3 pt-2 border-t border-primary/20">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px]">Email do cliente *</Label>
+                    <Input
+                      type="email"
+                      value={form.email ?? ""}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="cliente@empresa.com"
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px]">Senha de acesso *</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Input
+                          type={showPwd ? "text" : "password"}
+                          value={accessPwd}
+                          onChange={(e) => setAccessPwd(e.target.value)}
+                          placeholder="Mínimo 8 caracteres"
+                          className="h-9 pr-9 font-mono"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPwd(!showPwd)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        </button>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={generatePassword} className="gap-1.5 h-9">
+                        <Sparkles className="size-3.5" /> Gerar
+                      </Button>
+                      {accessPwd && (
+                        <Button type="button" variant="ghost" size="icon" className="h-9 w-9"
+                          onClick={() => { navigator.clipboard.writeText(accessPwd); toast.success("Senha copiada"); }}>
+                          <Copy className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Após salvar, email + senha são copiados para sua área de transferência.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
