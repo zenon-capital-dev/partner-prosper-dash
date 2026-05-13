@@ -66,10 +66,10 @@ export default function ClientDetail() {
         .select(`
           *, 
           partners(id, full_name, email, commission_percent),
-          responsible:responsible_id(id, full_name, avatar_url)
+          responsible:profiles!clients_responsible_id_fkey(id, full_name, avatar_url)
         `)
         .eq("id", id!)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
