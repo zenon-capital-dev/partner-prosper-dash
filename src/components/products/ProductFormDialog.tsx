@@ -148,15 +148,21 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0 overflow-hidden">
-        <DialogHeader className="px-7 pt-6 pb-4 border-b border-border bg-muted/30">
-          <DialogTitle className="font-display text-xl flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            {editing ? "Editar serviço" : "Novo serviço"}
-          </DialogTitle>
-          <DialogDescription className="text-xs">
-            Cadastre um serviço (ex: Contabilidade, Tributário, Jurídico). Depois ele poderá ser vendido para clientes e delegado a um prestador.
-          </DialogDescription>
+      <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-3xl border-none shadow-2xl">
+        <DialogHeader className="px-8 pt-8 pb-6 bg-white">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="size-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+              <Package className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="font-display text-2xl font-bold text-slate-900">
+                {editing ? "Editar serviço" : "Novo serviço"}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 uppercase tracking-widest mt-0.5">
+                Catálogo de Ofertas
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {/* Tab nav */}
