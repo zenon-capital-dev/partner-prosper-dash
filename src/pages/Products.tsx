@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import {
   Plus, Search, Pencil, Trash2, Package, TrendingUp, Layers, RefreshCcw,
   Tag, Users2, MoreHorizontal, Power, PowerOff, Filter, Sparkles, Boxes, ListChecks,
+  CircleDollarSign as CircleDollarSignIcon, Percent as PercentIcon,
 } from "lucide-react";
 import { ProductChecklistDialog } from "@/components/products/ProductChecklistDialog";
 import { ProductFormDialog } from "@/components/products/ProductFormDialog";
