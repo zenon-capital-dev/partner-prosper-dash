@@ -133,6 +133,16 @@ Deno.serve(async (req) => {
     if (body.link_referrer_id) {
       await admin.from("referrers").update({ user_id: userId }).eq("id", body.link_referrer_id);
     }
+    if (body.link_service_provider_id || (body.link_type === "service_provider" && body.link_id)) {
+      const id = body.link_service_provider_id ?? body.link_id!;
+      await admin.from("service_providers").update({ user_id: userId }).eq("id", id);
+    }
+    if (body.link_type === "client" && body.link_id) {
+      await admin.from("clients").update({ user_id: userId }).eq("id", body.link_id);
+    }
+    if (body.link_type === "partner" && body.link_id) {
+      await admin.from("partners").update({ user_id: userId }).eq("id", body.link_id);
+    }
 
     return new Response(
       JSON.stringify({ ok: true, user_id: userId, temp_password: tempPassword }),
