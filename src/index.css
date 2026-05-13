@@ -303,45 +303,43 @@
   }
 
   /* ============================================================
-     AURORA GLASS SHELL — Premium dark glassmorphism (admin)
-     Forces a deep obsidian + mesh aurora aesthetic across the
-     entire admin portal, regardless of light/dark mode.
+     ADMIN SHELL — Force LIGHT corporate SaaS theme always
+     (overrides html.dark inside /admin/* routes)
      ============================================================ */
+  .admin-shell,
   .dark .admin-shell {
-    --background: 224 45% 4%;
-    --foreground: 220 14% 96%;
-    --card: 224 35% 8%;
-    --card-foreground: 220 14% 96%;
-    --popover: 224 35% 9%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 235 60% 60%;
-    --primary-foreground: 224 45% 4%;
-    --primary-muted: 235 40% 12%;
-    --primary-glow: 235 60% 50%;
-    --secondary: 224 30% 10%;
-    --secondary-foreground: 220 14% 96%;
-    --muted: 224 30% 9%;
-    --muted-foreground: 220 12% 55%;
-    --accent: 250 45% 14%;
-    --accent-foreground: 250 85% 75%;
-    --border: 224 30% 12%;
-    --input: 224 30% 11%;
-    --ring: 250 85% 65%;
-    --success: 152 65% 45%;
-    --success-foreground: 224 45% 4%;
-    --success-muted: 152 45% 10%;
-    --warning: 38 85% 55%;
-    --warning-foreground: 224 45% 4%;
-    --warning-muted: 38 45% 10%;
-    --info: 212 85% 55%;
-    --info-foreground: 224 45% 4%;
-    --info-muted: 212 45% 10%;
-    --destructive: 0 75% 55%;
-    --destructive-foreground: 224 45% 4%;
-    --destructive-muted: 0 45% 10%;
-    @apply min-h-screen text-foreground selection:bg-primary/20 selection:text-primary relative isolate;
-    background: #0c0c0d;
+    --background: 220 20% 98%;
+    --foreground: 222 47% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 9%;
+    --primary: 234 89% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-muted: 234 100% 96%;
+    --secondary: 220 16% 95%;
+    --secondary-foreground: 222 40% 14%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 40%;
+    --accent: 234 100% 96%;
+    --accent-foreground: 234 89% 40%;
+    --border: 220 13% 90%;
+    --input: 220 13% 88%;
+    --ring: 234 89% 60%;
+    --success: 158 58% 38%;
+    --success-foreground: 0 0% 100%;
+    --success-muted: 158 60% 95%;
+    --warning: 32 78% 48%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 36 90% 95%;
+    --destructive: 358 68% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 358 80% 96%;
+    color-scheme: light;
+    background: hsl(220 20% 98%);
+    color: hsl(222 47% 8%);
   }
+  .dark .admin-shell::before { display: none; }
 
   /* Refined Grainy/Glass Background — subtle, not neon */
   .dark .admin-shell::before {
