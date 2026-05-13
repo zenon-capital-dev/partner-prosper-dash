@@ -42,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("user_id", userId);
 
       if (error) throw error;
-      const roleList = (data?.map((r: any) => r.role) as AppRole[]) ?? [];
-      console.log("[auth] roles loaded:", roleList);
+      const roleList = ((data ?? []).map((r) => r.role as unknown as AppRole));
+      if (import.meta.env.DEV) console.log("[auth] roles loaded:", roleList);
       setRoles(roleList);
     } catch (error) {
       console.error("[auth] error fetching roles (attempt " + attempt + "):", error);
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       
       const newUserId = sess?.user?.id ?? null;
-      console.log("Handling session:", event || "initial", newUserId);
+      if (import.meta.env.DEV) console.log("[auth] session:", event || "initial");
 
       const userChanged = newUserId !== currentUserId;
       currentUserId = newUserId;
@@ -77,12 +77,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (sess?.user) {
         if (event === "SIGNED_IN") {
-          logAudit("LOGIN", "auth", sess.user.id);
+          // Defer to avoid deadlocks inside onAuthStateChange callback
+          setTimeout(() => { logAudit("LOGIN", "auth", sess.user.id); }, 0);
         }
         
         // Fetch roles if user changed or it's a critical auth event
-        if (userChanged || event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || !initialized) {
-          setLoading(true);
+        if (userChanged || event === "SIGNED_IN" || !initialized) {
+          if (!initialized) setLoading(true);
           await fetchRoles(sess.user.id);
         } else {
           setLoading(false);
