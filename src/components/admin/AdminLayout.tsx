@@ -51,7 +51,7 @@ export default function AdminLayout() {
 
   return (
     <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
-      <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
+      {blocked && <Navigate to="/admin" replace />}
         <div className="hidden md:block shrink-0">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
