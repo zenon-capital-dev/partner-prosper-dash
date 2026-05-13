@@ -22,9 +22,21 @@ import { ProductInteractionPanel } from "@/components/provider/ProductInteractio
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+const PROVIDER_PATH_TO_TAB: Record<string, string> = {
+  "por-cliente": "por-cliente", demandas: "clientes", documentos: "documentos",
+  reportes: "reportes", contratos: "contratos",
+};
+const PROVIDER_TAB_TO_PATH: Record<string, string> = {
+  "por-cliente": "por-cliente", clientes: "demandas", documentos: "documentos",
+  reportes: "reportes", contratos: "contratos",
+};
+
 export default function ProviderPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const activeTab = tabParam && PROVIDER_PATH_TO_TAB[tabParam] ? PROVIDER_PATH_TO_TAB[tabParam] : "dashboard";
+  const setActiveTab = (v: string) => navigate(v === "dashboard" ? "/prestador" : `/prestador/${PROVIDER_TAB_TO_PATH[v] || v}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
