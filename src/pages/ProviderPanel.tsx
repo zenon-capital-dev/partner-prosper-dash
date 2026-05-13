@@ -545,49 +545,67 @@ export default function ProviderPanel() {
             </TabsContent>
 
             <TabsContent value="clientes" className="space-y-4 outline-none">
+              <div className="flex flex-wrap gap-2">
+                {["todos","aguardando_inicio","em_andamento","aguardando_documentos","aguardando_cliente","pendente_correcao","aguardando_aprovacao_final","concluido"].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setDemandStatusFilter(s)}
+                    className={cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-colors", demandStatusFilter === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-white/5 text-muted-foreground hover:bg-slate-200")}
+                  >
+                    {s.replace(/_/g, " ")}
+                  </button>
+                ))}
+              </div>
               {isLoading ? (
                 <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>
               ) : filteredProducts.length === 0 ? (
                 <EmptyState message={search ? "Nenhum resultado para sua busca." : "Nenhum atendimento delegado a você no momento."} />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredProducts.map((cp: any) => (
-                    <div 
-                      key={cp.id} 
-                      className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card cursor-pointer"
-                      onClick={() => setSelectedProductId(cp.id)}
-                    >
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
-                          <Briefcase className="size-6" />
+                  {filteredProducts.map((cp: any) => {
+                    const stale = needsReport(cp.id, cp.status);
+                    return (
+                      <div
+                        key={cp.id}
+                        className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card"
+                      >
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
+                            <Briefcase className="size-6" />
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <StatusBadge status={cp.status} />
+                            {stale && <Badge className="bg-amber-500 text-white text-[9px]">Sem reporte</Badge>}
+                          </div>
                         </div>
-                        <StatusBadge status={cp.status} />
-                      </div>
 
-                      <div className="space-y-1">
-                        <h3 className="font-editorial text-xl font-bold text-slate-900 dark:text-white leading-tight group-hover/card:text-primary transition-colors">
-                           {cp.clients?.full_name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Fatal</p>
-                          <p className="text-xs font-bold">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
+                        <div className="space-y-1 cursor-pointer" onClick={() => setSelectedProductId(cp.id)}>
+                          <h3 className="font-editorial text-xl font-bold text-slate-900 dark:text-white leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
+                          <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
                         </div>
-                        <div className="text-right">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
-                           <p className="text-xs font-bold">{formatDate(cp.created_at)}</p>
+
+                        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo</p>
+                            <p className="text-xs font-bold">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Valor</p>
+                            <p className="text-xs font-bold tabular-nums">{cp.value ? formatBRL(cp.value) : "—"}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-2 gap-2">
+                          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>
+                            <ClipboardCheck className="size-3.5 mr-1" /> Reportar
+                          </Button>
+                          <Button size="sm" className="rounded-xl" onClick={() => setSelectedProductId(cp.id)}>
+                            Abrir <ArrowRight className="size-3.5 ml-1" />
+                          </Button>
                         </div>
                       </div>
-
-                      <div className="mt-6 flex items-center justify-between group/link">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary group-hover/link:translate-x-1 transition-transform">Ver Detalhes</span>
-                        <ArrowRight className="size-4 text-primary opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>
