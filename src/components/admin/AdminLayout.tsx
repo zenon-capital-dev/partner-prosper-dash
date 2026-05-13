@@ -36,12 +36,12 @@ export default function AdminLayout() {
 
   return (
     <RouteGuard allow={["admin", "admin_secondary"]}>
-      <div className="min-h-screen flex w-full text-slate-900 bg-slate-50/60 admin-shell">
+      <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
         <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
 
         <div className="flex-1 flex flex-col min-w-0 relative">
           <AdminHeader onSearchClick={handleSearchClick} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50/60">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-transparent">
             <Outlet />
           </main>
         </div>
