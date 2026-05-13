@@ -199,9 +199,13 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     setForm({ ...form, referrer_id: refId, referrer_commission: Number(r?.commission_percent || 5) });
   };
 
-  const partnerCalc = ((form.value * (form.partner_commission || 0)) / 100) || 0;
-  const referrerCalc = ((form.value * (form.referrer_commission || 0)) / 100) || 0;
-  const companyShare = form.value - partnerCalc - referrerCalc;
+  const partnerCalc = form.partner_id ? ((form.value * (form.partner_commission || 0)) / 100) || 0 : 0;
+  const referrerCalc = form.referrer_id ? ((form.value * (form.referrer_commission || 0)) / 100) || 0 : 0;
+  const collaboratorCalc = form.collaborator_id ? ((form.value * (form.collaborator_commission || 0)) / 100) || 0 : 0;
+  const providerCalc = form.service_provider_id ? Number(form.provider_payout || 0) : 0;
+  const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc + providerCalc;
+  const companyShare = form.value - totalCommissions;
+  const totalPercent = ((totalCommissions / (form.value || 1)) * 100) || 0;
 
   async function handleSave() {
     const validation = schema.safeParse(form);
@@ -210,13 +214,12 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
       return;
     }
     if (companyShare < 0) {
-      toast.error("Soma das comissões excede o valor do produto");
+      toast.error("Soma das comissões + repasse excede o valor do produto");
       return;
     }
 
     setSaving(true);
     try {
-      // 1. Insert Client Product (Demands)
       const { data: cp, error: cpErr } = await supabase
         .from("client_products")
         .insert({
@@ -224,14 +227,16 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           company_id: (form as any).company_id === "none" ? null : (form as any).company_id,
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
+          partner_commission: form.partner_id ? form.partner_commission : null,
+          employee_commission: form.collaborator_id ? form.collaborator_commission : null,
           custom_fields: (form as any).custom_fields || {},
+          value: form.value,
           notes: form.notes || null,
         })
         .select("id")
         .single();
       if (cpErr) throw cpErr;
 
-      // 2. Create Sale (Trigger will handle splits)
       const { error: sErr } = await supabase.from("sales").insert({
         client_id: clientId,
         product_id: form.product_id,
@@ -239,21 +244,24 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
         commission_percent: form.partner_id ? form.partner_commission : 0,
         referrer_id: form.referrer_id || null,
         referrer_percent: form.referrer_id ? form.referrer_commission : 0,
+        collaborator_id: form.collaborator_id || null,
+        collaborator_percent: form.collaborator_id ? form.collaborator_commission : 0,
         amount: form.value,
         status: "concluida",
       });
       if (sErr) throw sErr;
 
-
       toast.success("Produto adicionado com sucesso", {
-        description: `Comissões geradas: ${formatBRL(partnerCalc + referrerCalc)}`,
+        description: `Comissões geradas: ${formatBRL(totalCommissions)} (${totalPercent.toFixed(1)}%)`,
       });
       qc.invalidateQueries({ queryKey: ["client-products"] });
       qc.invalidateQueries({ queryKey: ["client", clientId] });
       onOpenChange(false);
       setForm({
         product_id: "", value: 0, partner_id: "", partner_commission: 10,
-        referrer_id: "", referrer_commission: 5, service_provider_id: "", notes: "",
+        referrer_id: "", referrer_commission: 5,
+        collaborator_id: "", collaborator_commission: 0,
+        service_provider_id: "", provider_payout: 0, notes: "",
       });
     } catch (e: any) {
       toast.error("Erro ao adicionar", { description: e.message });
