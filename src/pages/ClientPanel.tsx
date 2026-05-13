@@ -102,6 +102,12 @@ export default function ClientPanel() {
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
   const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
   const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
+  const paidTotal = payments.filter((p: any) => p.status === 'pago').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+  const openTotal = payments.filter((p: any) => p.status !== 'pago').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+  const nextDue = payments
+    .filter((p: any) => p.status !== 'pago' && p.due_date)
+    .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
+  const completionPct = Math.round(client.onboarding_progress || 0);
   const deliveries = [
     ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
     ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
