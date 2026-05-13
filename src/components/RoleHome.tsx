@@ -49,11 +49,10 @@ export default function RoleHome() {
     return <LoadingScreen message="Identificando perfil..." />;
   }
 
-  // Admin and Admin Secondary go to Admin Dashboard
-  if (isAdmin || isAdminSecondary) return <Navigate to="/admin" replace />;
+  // Admin, Admin Secondary e Colaborador usam o painel administrativo
+  if (isAdmin || isAdminSecondary || isColaborador) return <Navigate to="/admin" replace />;
 
   // Specific role panels
-  if (isColaborador) return <Navigate to="/colaborador" replace />;
   if (isParceiro) return <Navigate to="/parceiro" replace />;
   if (isIndicador) return <Navigate to="/indicador" replace />;
   if (isPrestador) return <Navigate to="/prestador" replace />;
