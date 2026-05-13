@@ -32,8 +32,8 @@ const CLIENT_TAB_TO_PATH: Record<string, string> = {
 
 export default function ClientPanel() {
   const { user } = useAuth();
-  const { tab: tabParam } = (require("react-router-dom") as typeof import("react-router-dom")).useParams<{ tab?: string }>();
-  const navigate = (require("react-router-dom") as typeof import("react-router-dom")).useNavigate();
+  const { tab: tabParam } = useParams<{ tab?: string }>();
+  const navigate = useNavigate();
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
   const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
