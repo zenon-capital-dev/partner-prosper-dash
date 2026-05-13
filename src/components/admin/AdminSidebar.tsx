@@ -1,11 +1,10 @@
-import { NavLink, useLocation, useNavigate, Link } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
-  Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Search,
-  Briefcase, CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
-  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronRight, ChevronDown,
-  Crown, Bell,
+  Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Briefcase,
+  CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
+  PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -15,78 +14,59 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any; badge?: string };
+type NavItem = { title: string; url: string; icon: any };
 type NavSection = { label: string; items: NavItem[] };
 
 const SECTIONS: NavSection[] = [
-  {
-    label: "Visão Geral",
-    items: [
-      { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-      { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-      { title: "SLA & Prazos", url: "/sla", icon: Zap },
-      { title: "Auditoria", url: "/auditoria", icon: History },
-    ],
-  },
-  {
-    label: "Comercial",
-    items: [
-      { title: "Clientes", url: "/clientes", icon: Users },
-      { title: "Leads", url: "/leads", icon: Target },
-      { title: "Produtos", url: "/produtos", icon: Package },
-      { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
-      { title: "Propostas", url: "/propostas", icon: FileText },
-      { title: "Parceiros", url: "/parceiros", icon: Handshake },
-    ],
-  },
-  {
-    label: "Operação",
-    items: [
-      { title: "Demandas", url: "/demandas", icon: ClipboardList },
-      { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
-      { title: "Documentos", url: "/documentos", icon: FileText },
-      { title: "Contratos", url: "/contratos", icon: FileSignature },
-      { title: "Projetos", url: "/projetos", icon: Briefcase },
-      { title: "Templates", url: "/templates", icon: MessageSquare },
-      { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
-      { title: "Prestadores", url: "/prestadores", icon: Truck },
-      { title: "Indicadores", url: "/indicadores", icon: Activity },
-    ],
-  },
-  {
-    label: "Financeiro",
-    items: [
-      { title: "Financeiro", url: "/financeiro", icon: Banknote },
-      { title: "Central", url: "/financeiro/central", icon: BarChart3 },
-      { title: "Comissões", url: "/comissoes", icon: Wallet },
-    ],
-  },
-  {
-    label: "Sistema",
-    items: [
-      { title: "Usuários", url: "/usuarios", icon: UserCog },
-      { title: "Suporte", url: "/suporte", icon: LifeBuoy },
-      { title: "Configurações", url: "/configuracoes", icon: Settings },
-    ],
-  },
+  { label: "Visão Geral", items: [
+    { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+    { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+    { title: "SLA & Prazos", url: "/sla", icon: Zap },
+    { title: "Auditoria", url: "/auditoria", icon: History },
+  ]},
+  { label: "Comercial", items: [
+    { title: "Clientes", url: "/clientes", icon: Users },
+    { title: "Leads", url: "/leads", icon: Target },
+    { title: "Produtos", url: "/produtos", icon: Package },
+    { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
+    { title: "Propostas", url: "/propostas", icon: FileText },
+    { title: "Parceiros", url: "/parceiros", icon: Handshake },
+  ]},
+  { label: "Operação", items: [
+    { title: "Demandas", url: "/demandas", icon: ClipboardList },
+    { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
+    { title: "Documentos", url: "/documentos", icon: FileText },
+    { title: "Contratos", url: "/contratos", icon: FileSignature },
+    { title: "Projetos", url: "/projetos", icon: Briefcase },
+    { title: "Templates", url: "/templates", icon: MessageSquare },
+    { title: "Colaboradores", url: "/colaboradores", icon: UserCircle },
+    { title: "Prestadores", url: "/prestadores", icon: Truck },
+    { title: "Indicadores", url: "/indicadores", icon: Activity },
+  ]},
+  { label: "Financeiro", items: [
+    { title: "Financeiro", url: "/financeiro", icon: Banknote },
+    { title: "Central", url: "/financeiro/central", icon: BarChart3 },
+    { title: "Comissões", url: "/comissoes", icon: Wallet },
+  ]},
+  { label: "Sistema", items: [
+    { title: "Usuários", url: "/usuarios", icon: UserCog },
+    { title: "Suporte", url: "/suporte", icon: LifeBuoy },
+    { title: "Configurações", url: "/configuracoes", icon: Settings },
+  ]},
 ];
 
-interface Props {
-  collapsed: boolean;
-  onToggle: () => void;
-}
+interface Props { collapsed: boolean; onToggle: () => void; }
 
 export function AdminSidebar({ collapsed, onToggle }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [cmdOpen, setCmdOpen] = useState(false);
+  const [, setCmdOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setCmdOpen((o) => !o);
+        e.preventDefault(); setCmdOpen((o) => !o);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -103,43 +83,46 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white border-r border-slate-200/80",
-        collapsed ? "w-[80px]" : "w-[260px]"
+        "bg-[#08080a]/95 backdrop-blur-xl border-r border-white/[0.06]",
+        collapsed ? "w-[76px]" : "w-[252px]"
       )}
+      style={{
+        backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.015) 0%, transparent 100%)",
+      }}
     >
-      {/* ============ BRAND HEADER ============ */}
+      {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[78px] flex items-center",
-        collapsed ? "px-3 justify-center" : "px-5"
+        "relative shrink-0 h-[68px] flex items-center border-b border-white/[0.05]",
+        collapsed ? "px-3 justify-center" : "px-4"
       )}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "flex items-center gap-3 rounded-xl transition-colors group",
-              collapsed ? "w-12 h-12 justify-center hover:bg-slate-100" : "w-full px-1 py-1 hover:bg-slate-50"
+              "flex items-center gap-2.5 rounded-lg transition-colors group",
+              collapsed ? "size-11 justify-center hover:bg-white/[0.04]" : "w-full px-1.5 py-1.5 hover:bg-white/[0.03]"
             )}>
               <div className="relative shrink-0">
-                <div className="size-11 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg">
-                  <BarChart3 className="size-[22px] text-white" strokeWidth={2.5} />
+                <div className="size-9 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center">
+                  <div className="size-4 rounded-sm bg-cyan-400" style={{ boxShadow: "0 0 12px hsla(187,92%,55%,0.7)" }} />
                 </div>
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[17px] font-extrabold text-slate-900 leading-tight tracking-tight">Admin</p>
-                  <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase leading-tight mt-0.5">
+                  <p className="text-[14px] font-bold text-white leading-tight tracking-tight">Admin</p>
+                  <p className="text-[9px] font-mono font-bold text-zinc-500 tracking-[0.22em] uppercase leading-tight mt-0.5">
                     Direct Response
                   </p>
                 </div>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-[240px] p-2 rounded-2xl border-slate-200 shadow-xl">
-            <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Workspace</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-lg cursor-pointer">
-              <Settings className="size-4 text-slate-500" /> Configurações
+          <DropdownMenuContent align="start" className="w-[230px] p-1.5 rounded-xl bg-zinc-950 border-white/10 shadow-2xl">
+            <DropdownMenuLabel className="px-2 py-1 text-[9px] font-mono font-bold uppercase tracking-[0.18em] text-zinc-500">Workspace</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-md cursor-pointer text-zinc-300 focus:bg-white/[0.06] focus:text-white">
+              <Settings className="size-4" /> Configurações
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/usuarios")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-lg cursor-pointer">
-              <UserCog className="size-4 text-slate-500" /> Membros
+            <DropdownMenuItem onClick={() => navigate("/usuarios")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-md cursor-pointer text-zinc-300 focus:bg-white/[0.06] focus:text-white">
+              <UserCog className="size-4" /> Membros
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -147,7 +130,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-400 hover:text-violet-600 hover:border-violet-300 transition-all z-10"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-zinc-900 border border-white/10 shadow-md flex items-center justify-center text-zinc-500 hover:text-cyan-400 hover:border-cyan-500/40 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
@@ -158,27 +141,27 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       {collapsed && (
         <button
           onClick={onToggle}
-          className="mx-auto size-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors mb-1"
+          className="mx-auto mt-2 size-8 rounded-md hover:bg-white/[0.05] flex items-center justify-center text-zinc-500 hover:text-zinc-200 transition-colors"
           title="Expandir"
         >
           <PanelLeftOpen className="size-4" />
         </button>
       )}
 
-      {/* ============ NAV ============ */}
-      <nav className="relative flex-1 overflow-y-auto px-3 py-2 space-y-5 vx-sidebar-scroll">
+      {/* NAV */}
+      <nav className="relative flex-1 overflow-y-auto px-3 py-4 space-y-5 vx-sidebar-scroll">
         {SECTIONS.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
-              <div className="px-3 mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              <div className="px-2 mb-2">
+                <span className="text-[9px] font-mono font-bold uppercase tracking-[0.22em] text-zinc-600">
                   {section.label}
                 </span>
               </div>
             ) : (
-              <div className="h-px bg-slate-100 mx-3 my-2" />
+              <div className="h-px bg-white/[0.05] mx-3 my-2" />
             )}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {section.items.map((item) => {
                 const active = isActive(item.url);
                 const Icon = item.icon;
@@ -188,36 +171,29 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                     to={item.url}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "group relative flex items-center rounded-xl text-[13.5px] font-semibold transition-all duration-200",
-                      collapsed ? "justify-center mx-auto size-11" : "px-3 h-11 gap-3",
+                      "group relative flex items-center rounded-md text-[13px] font-medium transition-all duration-150",
+                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-9 gap-2.5",
                       active
-                        ? "bg-slate-900 text-white shadow-md"
-                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/70"
+                        ? "bg-white/[0.07] text-white ring-1 ring-inset ring-white/[0.08]"
+                        : "text-zinc-400 hover:text-white hover:bg-white/[0.035]"
                     )}
                   >
+                    {active && !collapsed && (
+                      <span
+                        className="absolute -left-3 top-1/2 -translate-y-1/2 w-[2px] h-5 rounded-full bg-cyan-400"
+                        style={{ boxShadow: "0 0 10px hsla(187,92%,55%,0.8)" }}
+                      />
+                    )}
                     <Icon
                       className={cn(
-                        "shrink-0 transition-transform",
-                        collapsed ? "size-[19px]" : "size-[18px]",
-                        active ? "text-white" : "text-slate-400 group-hover:text-slate-700",
+                        "shrink-0 transition-colors",
+                        collapsed ? "size-[18px]" : "size-[16px]",
+                        active ? "text-cyan-400" : "text-zinc-500 group-hover:text-zinc-200",
                       )}
-                      strokeWidth={active ? 2.4 : 2}
+                      strokeWidth={1.75}
                     />
                     {!collapsed && (
-                      <>
-                        <span className="flex-1 truncate tracking-tight">{item.title}</span>
-                        {item.badge && (
-                          <span className={cn(
-                            "text-[10px] font-bold tabular-nums px-1.5 h-5 rounded-md flex items-center",
-                            active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
-                          )}>
-                            {item.badge}
-                          </span>
-                        )}
-                        {active && !item.badge && (
-                          <ChevronRight className="size-4 text-white/90 shrink-0" strokeWidth={2.5} />
-                        )}
-                      </>
+                      <span className="flex-1 truncate tracking-tight">{item.title}</span>
                     )}
                   </NavLink>
                 );
@@ -227,38 +203,38 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         ))}
       </nav>
 
-      {/* ============ FOOTER / USER ============ */}
-      <div className="shrink-0 border-t border-slate-100 p-3">
+      {/* USER */}
+      <div className="shrink-0 border-t border-white/[0.05] p-2.5">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-3 rounded-xl p-2 hover:bg-slate-100/70 transition-colors group",
+              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-white/[0.04] transition-colors group",
               collapsed && "justify-center"
             )}>
-              <div className="size-9 rounded-xl bg-slate-900 flex items-center justify-center text-white text-[12px] font-bold shadow-sm shrink-0">
+              <div className="size-8 rounded-lg bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-200 text-[11px] font-bold shrink-0">
                 {initials(displayName)}
               </div>
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[13px] font-bold text-slate-800 truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] text-slate-400 truncate font-medium leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12px] font-semibold text-zinc-100 truncate leading-tight">{displayName}</p>
+                    <p className="text-[10px] text-zinc-500 truncate font-mono leading-tight mt-0.5">{displayEmail}</p>
                   </div>
-                  <ChevronDown className="size-3.5 text-slate-400 shrink-0" />
+                  <ChevronDown className="size-3.5 text-zinc-500 shrink-0" />
                 </>
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top" className="w-[230px] p-2 rounded-2xl border-slate-200 shadow-xl">
-            <DropdownMenuLabel className="px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Conta</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => navigate("/perfil")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-lg cursor-pointer">
-              <UserCircle className="size-4 text-slate-500" /> Meu Perfil
+          <DropdownMenuContent align="end" side="top" className="w-[220px] p-1.5 rounded-xl bg-zinc-950 border-white/10 shadow-2xl">
+            <DropdownMenuLabel className="px-2 py-1 text-[9px] font-mono font-bold uppercase tracking-[0.18em] text-zinc-500">Conta</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => navigate("/perfil")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-md cursor-pointer text-zinc-300 focus:bg-white/[0.06] focus:text-white">
+              <UserCircle className="size-4" /> Meu Perfil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-lg cursor-pointer">
-              <Settings className="size-4 text-slate-500" /> Preferências
+            <DropdownMenuItem onClick={() => navigate("/configuracoes")} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-md cursor-pointer text-zinc-300 focus:bg-white/[0.06] focus:text-white">
+              <Settings className="size-4" /> Preferências
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-lg cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+            <DropdownMenuSeparator className="bg-white/[0.06]" />
+            <DropdownMenuItem onClick={signOut} className="gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-md cursor-pointer text-rose-400 focus:bg-rose-500/10 focus:text-rose-300">
               <LogOut className="size-4" /> Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

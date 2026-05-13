@@ -1001,3 +1001,240 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 /* Refined scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 .admin-scroll::-webkit-scrollbar { width: 6px; }
+
+/* ============================================================
+   ADMIN FUTURIST SHELL v5 — Dark Obsidian + Cyan Neon
+   Forced dark theme for /admin regardless of global light/dark
+   ============================================================ */
+.admin-shell {
+  --background: 240 6% 4%;
+  --foreground: 220 10% 92%;
+  --card: 240 6% 7%;
+  --card-foreground: 220 10% 92%;
+  --popover: 240 6% 8%;
+  --popover-foreground: 220 10% 92%;
+  --primary: 187 92% 55%;
+  --primary-foreground: 240 10% 4%;
+  --primary-muted: 187 60% 14%;
+  --primary-glow: 187 92% 60%;
+  --secondary: 240 6% 11%;
+  --secondary-foreground: 220 10% 92%;
+  --muted: 240 6% 10%;
+  --muted-foreground: 220 8% 58%;
+  --accent: 187 60% 14%;
+  --accent-foreground: 187 92% 70%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-muted: 0 50% 12%;
+  --border: 240 6% 14%;
+  --input: 240 6% 12%;
+  --ring: 187 92% 55%;
+  --success: 152 65% 50%;
+  --success-foreground: 240 10% 4%;
+  --success-muted: 152 50% 12%;
+  --warning: 38 92% 60%;
+  --warning-foreground: 240 10% 4%;
+  --warning-muted: 38 50% 12%;
+  --info: 200 90% 60%;
+  --info-foreground: 240 10% 4%;
+  --info-muted: 200 50% 12%;
+  background: #050507 !important;
+  color: hsl(var(--foreground));
+  position: relative;
+  isolate: isolate;
+}
+.admin-shell::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px),
+    radial-gradient(at 0% 0%, hsla(187, 92%, 50%, 0.06) 0, transparent 45%),
+    radial-gradient(at 100% 100%, hsla(280, 60%, 40%, 0.05) 0, transparent 45%);
+  background-size: 36px 36px, 36px 36px, 100% 100%, 100% 100%;
+}
+.admin-shell > * { position: relative; z-index: 1; }
+
+/* Force dark surfaces for ALL admin pages */
+.admin-shell .vx-card,
+.admin-shell .glass-card,
+.admin-shell .surface,
+.admin-shell .stat-card,
+.admin-shell .vx-section,
+.admin-shell .vx-stat-card,
+.admin-shell .vx-table-wrap,
+.admin-shell .kpi-tile,
+.admin-shell .hero-v4,
+.admin-shell .page-hero {
+  background: linear-gradient(180deg, rgba(20,20,24,0.8) 0%, rgba(14,14,18,0.85) 100%) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: 1rem !important;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 8px 24px -12px rgba(0,0,0,0.6) !important;
+}
+.admin-shell .vx-card:hover,
+.admin-shell .surface-hover:hover,
+.admin-shell .stat-card:hover {
+  border-color: hsla(187, 92%, 55%, 0.25) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 12px 32px -8px rgba(0,0,0,0.7),
+    0 0 0 1px hsla(187, 92%, 55%, 0.1) !important;
+}
+
+/* Headers */
+.admin-shell .glass-header {
+  background: rgba(5,5,7,0.7) !important;
+  backdrop-filter: blur(20px) saturate(140%);
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+}
+
+/* Override any stray light backgrounds */
+.admin-shell .bg-white,
+.admin-shell .bg-slate-50,
+.admin-shell .bg-slate-100,
+.admin-shell .bg-gray-50,
+.admin-shell .bg-gray-100,
+.admin-shell .bg-zinc-50,
+.admin-shell .bg-zinc-100 {
+  background-color: rgba(255,255,255,0.04) !important;
+  color: hsl(220 10% 88%);
+}
+.admin-shell .bg-slate-900,
+.admin-shell .bg-zinc-900,
+.admin-shell .bg-black {
+  background-color: rgba(255,255,255,0.06) !important;
+}
+
+/* Text colors — make dark mode legible */
+.admin-shell .text-slate-900,
+.admin-shell .text-slate-800,
+.admin-shell .text-zinc-900,
+.admin-shell .text-zinc-800,
+.admin-shell .text-gray-900,
+.admin-shell [class~="text-foreground"] { color: hsl(220 12% 94%) !important; }
+.admin-shell .text-slate-700,
+.admin-shell .text-slate-600,
+.admin-shell .text-zinc-700,
+.admin-shell .text-zinc-600,
+.admin-shell .text-gray-700,
+.admin-shell .text-gray-600 { color: hsl(220 10% 78%) !important; }
+.admin-shell .text-slate-500,
+.admin-shell .text-zinc-500,
+.admin-shell .text-gray-500,
+.admin-shell .text-muted-foreground { color: hsl(220 8% 58%) !important; }
+.admin-shell .text-slate-400,
+.admin-shell .text-zinc-400,
+.admin-shell .text-gray-400 { color: hsl(220 8% 48%) !important; }
+
+/* Convert ALL purple/violet/indigo accents to cyan (no-violet rule) */
+.admin-shell .text-indigo-600,
+.admin-shell .text-indigo-500,
+.admin-shell .text-indigo-400,
+.admin-shell .text-violet-600,
+.admin-shell .text-violet-500,
+.admin-shell .text-violet-400,
+.admin-shell .text-purple-600,
+.admin-shell .text-purple-500,
+.admin-shell .text-purple-400,
+.admin-shell .text-fuchsia-500,
+.admin-shell .text-fuchsia-400,
+.admin-shell .text-blue-600,
+.admin-shell .text-blue-500 { color: hsl(187 92% 60%) !important; }
+
+.admin-shell .bg-indigo-600,
+.admin-shell .bg-indigo-500,
+.admin-shell .bg-violet-600,
+.admin-shell .bg-violet-500,
+.admin-shell .bg-purple-600,
+.admin-shell .bg-purple-500 { background-color: hsl(187 92% 45%) !important; }
+
+.admin-shell .bg-indigo-50,
+.admin-shell .bg-indigo-100,
+.admin-shell .bg-violet-50,
+.admin-shell .bg-violet-100,
+.admin-shell .bg-purple-50,
+.admin-shell .bg-purple-100,
+.admin-shell .bg-fuchsia-50 { background-color: hsla(187, 92%, 50%, 0.08) !important; }
+
+.admin-shell .border-indigo-200,
+.admin-shell .border-indigo-300,
+.admin-shell .border-indigo-400,
+.admin-shell .border-violet-200,
+.admin-shell .border-violet-300,
+.admin-shell .border-purple-200,
+.admin-shell .border-purple-300 { border-color: hsla(187, 92%, 50%, 0.2) !important; }
+
+/* Borders */
+.admin-shell .border-slate-200,
+.admin-shell .border-slate-100,
+.admin-shell .border-zinc-200,
+.admin-shell .border-zinc-100,
+.admin-shell .border-gray-200,
+.admin-shell .border-gray-100,
+.admin-shell .border-border { border-color: rgba(255,255,255,0.06) !important; }
+
+/* Inputs */
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select,
+.admin-shell [role="combobox"] {
+  background-color: rgba(255,255,255,0.03) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: hsl(220 12% 94%) !important;
+}
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder { color: hsl(220 8% 42%) !important; }
+.admin-shell input:focus,
+.admin-shell textarea:focus {
+  border-color: hsla(187, 92%, 55%, 0.5) !important;
+  box-shadow: 0 0 0 3px hsla(187, 92%, 55%, 0.1) !important;
+}
+
+/* Tables */
+.admin-shell table thead,
+.admin-shell .vx-table-head,
+.admin-shell .data-table thead th {
+  background: rgba(255,255,255,0.025) !important;
+  color: hsl(220 8% 58%) !important;
+  border-bottom-color: rgba(255,255,255,0.06) !important;
+}
+.admin-shell .vx-table-row,
+.admin-shell .data-table tbody tr {
+  border-bottom-color: rgba(255,255,255,0.04) !important;
+}
+.admin-shell .vx-table-row:hover,
+.admin-shell .data-table tbody tr:hover {
+  background-color: hsla(187, 92%, 55%, 0.04) !important;
+}
+
+/* Premium buttons */
+.admin-shell .btn-premium,
+.admin-shell button.bg-slate-900,
+.admin-shell button.bg-zinc-900,
+.admin-shell button.bg-black {
+  background: linear-gradient(180deg, #fafafa 0%, #e4e4e7 100%) !important;
+  color: #0a0a0c !important;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    0 4px 14px -4px rgba(0,0,0,0.4) !important;
+}
+
+/* Tabular nums everywhere for data */
+.admin-shell .tabular-nums { font-feature-settings: 'tnum'; }
+
+/* Scroll */
+.admin-shell ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08) !important;
+  border-radius: 999px;
+}
+.admin-shell ::-webkit-scrollbar-thumb:hover {
+  background: hsla(187, 92%, 55%, 0.3) !important;
+}
+
+/* Mono font for IDs and metric labels with .font-mono */
+.admin-shell .vx-mono,
+.admin-shell .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
