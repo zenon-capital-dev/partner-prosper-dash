@@ -246,10 +246,9 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                       {active && (
                         <span className={cn(
                           "absolute inset-0 rounded-lg",
-                          "bg-gradient-to-r from-indigo-50 via-violet-50/60 to-transparent",
-                          "dark:from-indigo-500/[0.12] dark:via-violet-500/[0.06] dark:to-transparent",
-                          "ring-1 ring-inset ring-indigo-200/60 dark:ring-indigo-500/15",
-                          "shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] dark:shadow-none"
+                          "bg-gradient-to-r from-[hsl(var(--admin-sidebar-active)/0.18)] via-[hsl(var(--admin-sidebar-active-2)/0.1)] to-transparent",
+                          "ring-1 ring-inset ring-[hsl(var(--admin-sidebar-active)/0.22)]",
+                          "shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]"
                         )} />
                       )}
                       {/* Hover background */}
@@ -355,10 +354,10 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             >
               <div className="p-3 rounded-xl bg-[hsl(var(--admin-sidebar-surface-strong))] border border-[hsl(var(--admin-sidebar-border))] mb-1.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="size-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 dark:from-zinc-700 dark:to-zinc-900 flex items-center justify-center text-[13px] font-black text-white shadow-md ring-1 ring-white/10">{initials(displayName)}</div>
+                  <div className="size-10 rounded-xl bg-gradient-to-br from-[hsl(var(--admin-sidebar-surface-strong))] to-[hsl(var(--admin-sidebar-bg))] flex items-center justify-center text-[13px] font-black text-[hsl(var(--primary-foreground))] shadow-md ring-1 ring-[hsl(0_0%_100%/0.1)]">{initials(displayName)}</div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-bold text-slate-900 dark:text-white truncate tracking-tight">{displayName}</p>
-                    <p className="text-[10.5px] font-medium text-slate-500 dark:text-zinc-500 truncate">{user?.email}</p>
+                    <p className="text-[13px] font-bold text-[hsl(var(--primary-foreground))] truncate tracking-tight">{displayName}</p>
+                    <p className="text-[10.5px] font-medium text-[hsl(var(--admin-sidebar-muted))] truncate">{user?.email}</p>
                   </div>
                 </div>
               </div>
