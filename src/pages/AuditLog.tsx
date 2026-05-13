@@ -128,6 +128,38 @@ export default function AuditLog() {
     return String(val);
   };
 
+  // KPIs agregados
+  const kpis = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const last7 = new Date(today); last7.setDate(today.getDate() - 7);
+    const uniqueUsers = new Set(logs.map((l: any) => l.user_id).filter(Boolean));
+    const todayCount = logs.filter((l: any) => new Date(l.created_at) >= today).length;
+    const weekCount = logs.filter((l: any) => new Date(l.created_at) >= last7).length;
+    const critical = logs.filter((l: any) =>
+      ["DELETE", "ROLE_CHANGE", "PERMISSION_GRANT", "EXPORT_DATA"].some((k) => l.action?.includes(k))
+    ).length;
+    return { total: logs.length, today: todayCount, week: weekCount, users: uniqueUsers.size, critical };
+  }, [logs]);
+
+  // Agrupamento por dia
+  const grouped = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    filteredLogs.forEach((log: any) => {
+      const key = format(new Date(log.created_at), "yyyy-MM-dd");
+      (groups[key] ||= []).push(log);
+    });
+    return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
+  }, [filteredLogs]);
+
+  const actionTone = (action: string) => {
+    if (action?.includes("DELETE")) return "bg-rose-500/10 text-rose-600 border-rose-500/20";
+    if (action?.includes("CREATE") || action?.includes("INSERT")) return "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+    if (action?.includes("UPDATE") || action?.includes("EDIT")) return "bg-amber-500/10 text-amber-600 border-amber-500/20";
+    if (action?.includes("LOGIN") || action?.includes("AUTH")) return "bg-violet-500/10 text-violet-600 border-violet-500/20";
+    if (action?.includes("EXPORT")) return "bg-sky-500/10 text-sky-600 border-sky-500/20";
+    return "bg-primary/5 text-primary border-primary/10";
+  };
+
   return (
     <div className="page-shell space-y-7 animate-fade-in">
       <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
@@ -139,16 +171,37 @@ export default function AuditLog() {
           <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
             Logs e Auditoria
           </h1>
-          <p className="text-sm text-muted-foreground">Monitoramento detalhado de todas as alterações críticas na base de dados.</p>
+          <p className="text-sm text-muted-foreground">Linha do tempo completa de tudo que acontece no sistema, com filtros e exportação.</p>
         </div>
       </header>
 
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {[
+          { label: "Total de Eventos", value: kpis.total.toLocaleString("pt-BR"), icon: Database, tone: "text-primary bg-primary/5" },
+          { label: "Hoje", value: kpis.today, icon: Activity, tone: "text-emerald-600 bg-emerald-500/5" },
+          { label: "Últimos 7 dias", value: kpis.week, icon: CalendarIcon, tone: "text-violet-600 bg-violet-500/5" },
+          { label: "Usuários Ativos", value: kpis.users, icon: UserIcon, tone: "text-sky-600 bg-sky-500/5" },
+          { label: "Eventos Críticos", value: kpis.critical, icon: ShieldCheck, tone: "text-rose-600 bg-rose-500/5" },
+        ].map((k) => (
+          <div key={k.label} className="vx-card p-4 flex items-center gap-3">
+            <div className={`size-10 rounded-xl flex items-center justify-center ${k.tone}`}>
+              <k.icon className="size-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{k.label}</p>
+              <p className="font-display text-2xl font-black tabular-nums">{k.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* Filtros */}
       <div className="vx-card p-6 space-y-4">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
+        <div className="flex flex-wrap items-end gap-3">
+          <Button
+            variant="outline"
+            size="sm"
             className="h-11 px-4 gap-2 border-border/50 hover:bg-muted"
             onClick={exportToCSV}
           >
@@ -156,48 +209,46 @@ export default function AuditLog() {
             Exportar CSV
           </Button>
 
-          <div className="relative flex-1 min-w-[300px]">
+          <div className="relative flex-1 min-w-[280px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input 
-              className="pl-10 h-11 text-sm bg-muted/20 border-border/50 focus:bg-background transition-all" 
-              placeholder="Buscar por usuário, ação ou entidade..." 
+            <Input
+              className="pl-10 h-11 text-sm bg-muted/20 border-border/50 focus:bg-background transition-all"
+              placeholder="Buscar por usuário, ação ou entidade..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Entidade</p>
-              <Select value={entityFilter} onValueChange={setEntityFilter}>
-                <SelectTrigger className="w-[180px] h-11 bg-muted/20 border-border/50 capitalize">
-                  <SelectValue placeholder="Todas Entidades" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entities.map(e => (
-                    <SelectItem key={e} value={e} className="capitalize">
-                      {e === "all" ? "Todas Entidades" : e.replace(/_/g, ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Entidade</p>
+            <Select value={entityFilter} onValueChange={setEntityFilter}>
+              <SelectTrigger className="w-[180px] h-11 bg-muted/20 border-border/50 capitalize">
+                <SelectValue placeholder="Todas Entidades" />
+              </SelectTrigger>
+              <SelectContent>
+                {entities.map((e) => (
+                  <SelectItem key={e} value={e} className="capitalize">
+                    {e === "all" ? "Todas Entidades" : e.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Ação</p>
-              <Select value={actionFilter} onValueChange={setActionFilter}>
-                <SelectTrigger className="w-[180px] h-11 bg-muted/20 border-border/50 capitalize">
-                  <SelectValue placeholder="Todas Ações" />
-                </SelectTrigger>
-                <SelectContent>
-                  {actions.map(a => (
-                    <SelectItem key={a} value={a} className="capitalize">
-                      {a === "all" ? "Todas Ações" : a.replace(/_/g, ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Ação</p>
+            <Select value={actionFilter} onValueChange={setActionFilter}>
+              <SelectTrigger className="w-[180px] h-11 bg-muted/20 border-border/50 capitalize">
+                <SelectValue placeholder="Todas Ações" />
+              </SelectTrigger>
+              <SelectContent>
+                {actions.map((a) => (
+                  <SelectItem key={a} value={a} className="capitalize">
+                    {a === "all" ? "Todas Ações" : a.replace(/_/g, " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
