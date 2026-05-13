@@ -18,7 +18,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
+import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ProviderPanel() {
   const { user } = useAuth();
@@ -26,6 +28,9 @@ export default function ProviderPanel() {
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [reportStatusFilter, setReportStatusFilter] = useState<string>("todos");
+  const [reportPeriod, setReportPeriod] = useState<string>("30");
+  const [demandStatusFilter, setDemandStatusFilter] = useState<string>("todos");
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
@@ -70,12 +75,17 @@ export default function ProviderPanel() {
   });
 
   const filteredProducts = useMemo(() => {
-    return clientProducts.filter((cp: any) => 
-      cp.clients?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-      cp.products?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      cp.clients?.company?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [clientProducts, search]);
+    return clientProducts.filter((cp: any) => {
+      if (demandStatusFilter !== "todos" && cp.status !== demandStatusFilter) return false;
+      const q = search.toLowerCase();
+      if (!q) return true;
+      return (
+        cp.clients?.full_name?.toLowerCase().includes(q) ||
+        cp.products?.name?.toLowerCase().includes(q) ||
+        cp.clients?.company?.toLowerCase().includes(q)
+      );
+    });
+  }, [clientProducts, search, demandStatusFilter]);
 
   const clientProductIds = useMemo(() => clientProducts.map((cp: any) => cp.id), [clientProducts]);
 
@@ -98,13 +108,50 @@ export default function ProviderPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_product_status_reports")
-        .select("id, status, notes, created_at, client_product_id")
+        .select("id, status, notes, pending, next_steps, created_at, client_product_id")
         .in("client_product_id", clientProductIds)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(200);
       return data ?? [];
     },
   });
+
+  const lastReportMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of reports as any[]) if (!m.has(r.client_product_id)) m.set(r.client_product_id, r.created_at);
+    return m;
+  }, [reports]);
+
+  const needsReport = (cpId: string, status: string) => {
+    if (status === "concluido" || status === "cancelado") return false;
+    const last = lastReportMap.get(cpId);
+    if (!last) return true;
+    return Date.now() - new Date(last).getTime() > 7 * 86400000;
+  };
+
+  const filteredReports = useMemo(() => {
+    const cutoff = reportPeriod === "all" ? 0 : Date.now() - parseInt(reportPeriod) * 86400000;
+    return (reports as any[]).filter((r) => {
+      if (reportStatusFilter !== "todos" && r.status !== reportStatusFilter) return false;
+      if (cutoff && new Date(r.created_at).getTime() < cutoff) return false;
+      if (search) {
+        const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
+        const name = (cp?.clients?.full_name || "").toLowerCase();
+        if (!name.includes(search.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [reports, reportStatusFilter, reportPeriod, search, clientProducts]);
+
+  const groupedByClient = useMemo(() => {
+    const groups = new Map<string, { client: any; products: any[] }>();
+    for (const cp of clientProducts as any[]) {
+      const cid = cp.clients?.id || "unknown";
+      if (!groups.has(cid)) groups.set(cid, { client: cp.clients, products: [] });
+      groups.get(cid)!.products.push(cp);
+    }
+    return Array.from(groups.values());
+  }, [clientProducts]);
 
   const { data: contracts = [] } = useQuery({
     queryKey: ["provider-contracts", providerId],
@@ -132,7 +179,7 @@ export default function ProviderPanel() {
     }).length;
     
     const docsAwaiting = documents.filter((d: any) => d.status === "enviado" || d.status === "em_analise").length;
-    const pendingReports = active; // Simplificação: toda demanda ativa precisa de reporte
+    const pendingReports = clientProducts.filter((c: any) => needsReport(c.id, c.status)).length;
     
     const valuesToReceive = clientProducts
       .filter((c: any) => c.status !== "cancelado")
@@ -144,7 +191,7 @@ export default function ProviderPanel() {
       .slice(0, 3);
 
     return { total, active, urgent, delayed, docsAwaiting, pendingReports, valuesToReceive, nextDeadlines };
-  }, [clientProducts, documents]);
+  }, [clientProducts, documents, lastReportMap]);
 
   async function handleDownload(filePath: string, name: string) {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(filePath, 3600);
@@ -267,6 +314,8 @@ export default function ProviderPanel() {
                    </div>
                    <ClientProductSteps clientProductId={selectedProduct.id} />
                 </div>
+
+                <ProductInteractionPanel clientProductId={selectedProduct.id} />
               </div>
 
               <div className="space-y-6">
@@ -317,19 +366,13 @@ export default function ProviderPanel() {
           /* MAIN LIST VIEW */
           <Tabs defaultValue="dashboard" className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12">
-                <TabsTrigger value="dashboard" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Home
-                </TabsTrigger>
-                <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Minhas Demandas ({clientProducts.length})
-                </TabsTrigger>
-                <TabsTrigger value="documentos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Documentos
-                </TabsTrigger>
-                <TabsTrigger value="reportes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">
-                   Reportes
-                </TabsTrigger>
+              <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 flex-wrap">
+                <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
+                <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
+                <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Documentos ({documents.length})</TabsTrigger>
+                <TabsTrigger value="reportes" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Reportes ({reports.length})</TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Contratos ({contracts.length})</TabsTrigger>
               </TabsList>
 
               <div className="relative group">
@@ -434,50 +477,135 @@ export default function ProviderPanel() {
               </div>
             </TabsContent>
 
+            <TabsContent value="por-cliente" className="space-y-6 outline-none animate-fade-up">
+              {groupedByClient.length === 0 ? (
+                <EmptyState message="Nenhum cliente delegado." />
+              ) : groupedByClient.map(({ client, products }) => {
+                const totalValue = products.reduce((s, p) => s + (Number(p.value) || 0), 0);
+                const active = products.filter(p => p.status !== "concluido" && p.status !== "cancelado").length;
+                const needsRpt = products.filter(p => needsReport(p.id, p.status)).length;
+                return (
+                  <div key={client?.id || "x"} className="vx-card bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[28px] overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-slate-50/50 to-transparent dark:from-white/5">
+                      <div>
+                        <h3 className="font-editorial text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
+                        <p className="text-xs text-muted-foreground">{client?.company || client?.email || "—"}</p>
+                      </div>
+                      <div className="flex items-center gap-6 text-xs">
+                        <div><p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Demandas</p><p className="font-bold text-lg">{products.length}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Ativas</p><p className="font-bold text-lg">{active}</p></div>
+                        <div><p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">A receber</p><p className="font-bold text-lg tabular-nums">{formatBRL(totalValue)}</p></div>
+                        {needsRpt > 0 && <Badge className="bg-amber-500 text-white text-[10px]">{needsRpt} sem reporte</Badge>}
+                      </div>
+                    </div>
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-50/40 dark:bg-white/5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                          <th className="px-6 py-3 text-left">Produto</th>
+                          <th className="px-6 py-3 text-center">Status</th>
+                          <th className="px-6 py-3 text-center">SLA</th>
+                          <th className="px-6 py-3 text-left">Prazo</th>
+                          <th className="px-6 py-3 text-left">Último reporte</th>
+                          <th className="px-6 py-3 text-right">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                        {products.map((p: any) => {
+                          const last = lastReportMap.get(p.id);
+                          const stale = needsReport(p.id, p.status);
+                          return (
+                            <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5">
+                              <td className="px-6 py-4 font-bold">{p.products?.name || "—"}</td>
+                              <td className="px-6 py-4 text-center"><StatusBadge status={p.status} /></td>
+                              <td className="px-6 py-4 text-center"><Badge variant="outline" className={cn("text-[9px]", p.sla_status === "no_prazo" ? "text-emerald-600 border-emerald-200" : p.sla_status === "atrasado" ? "text-rose-600 border-rose-200" : "text-amber-600 border-amber-200")}>{p.sla_status || "—"}</Badge></td>
+                              <td className="px-6 py-4 text-xs text-muted-foreground">{p.deadline ? formatDate(p.deadline) : "—"}</td>
+                              <td className="px-6 py-4 text-xs">
+                                {last ? (
+                                  <span className={cn(stale ? "text-amber-600 font-bold" : "text-muted-foreground")}>{formatDate(last)}{stale && " · atrasado"}</span>
+                                ) : (
+                                  <span className="text-rose-600 font-bold">Sem reporte</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex justify-end gap-1">
+                                  <Button size="sm" variant="ghost" onClick={() => setReportTarget({ id: p.id, productName: p.products?.name, clientName: client?.full_name })}>
+                                    <ClipboardCheck className="size-3.5 mr-1" /> Reportar
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => setSelectedProductId(p.id)}>Abrir</Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
+            </TabsContent>
+
             <TabsContent value="clientes" className="space-y-4 outline-none">
+              <div className="flex flex-wrap gap-2">
+                {["todos","aguardando_inicio","em_andamento","aguardando_documentos","aguardando_cliente","pendente_correcao","aguardando_aprovacao_final","concluido"].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setDemandStatusFilter(s)}
+                    className={cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-colors", demandStatusFilter === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-white/5 text-muted-foreground hover:bg-slate-200")}
+                  >
+                    {s.replace(/_/g, " ")}
+                  </button>
+                ))}
+              </div>
               {isLoading ? (
                 <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>
               ) : filteredProducts.length === 0 ? (
                 <EmptyState message={search ? "Nenhum resultado para sua busca." : "Nenhum atendimento delegado a você no momento."} />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredProducts.map((cp: any) => (
-                    <div 
-                      key={cp.id} 
-                      className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card cursor-pointer"
-                      onClick={() => setSelectedProductId(cp.id)}
-                    >
-                      <div className="flex items-start justify-between mb-6">
-                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
-                          <Briefcase className="size-6" />
+                  {filteredProducts.map((cp: any) => {
+                    const stale = needsReport(cp.id, cp.status);
+                    return (
+                      <div
+                        key={cp.id}
+                        className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card"
+                      >
+                        <div className="flex items-start justify-between mb-6">
+                          <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
+                            <Briefcase className="size-6" />
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <StatusBadge status={cp.status} />
+                            {stale && <Badge className="bg-amber-500 text-white text-[9px]">Sem reporte</Badge>}
+                          </div>
                         </div>
-                        <StatusBadge status={cp.status} />
-                      </div>
 
-                      <div className="space-y-1">
-                        <h3 className="font-editorial text-xl font-bold text-slate-900 dark:text-white leading-tight group-hover/card:text-primary transition-colors">
-                           {cp.clients?.full_name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Fatal</p>
-                          <p className="text-xs font-bold">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
+                        <div className="space-y-1 cursor-pointer" onClick={() => setSelectedProductId(cp.id)}>
+                          <h3 className="font-editorial text-xl font-bold text-slate-900 dark:text-white leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
+                          <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
                         </div>
-                        <div className="text-right">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
-                           <p className="text-xs font-bold">{formatDate(cp.created_at)}</p>
+
+                        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo</p>
+                            <p className="text-xs font-bold">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Valor</p>
+                            <p className="text-xs font-bold tabular-nums">{cp.value ? formatBRL(cp.value) : "—"}</p>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-2 gap-2">
+                          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>
+                            <ClipboardCheck className="size-3.5 mr-1" /> Reportar
+                          </Button>
+                          <Button size="sm" className="rounded-xl" onClick={() => setSelectedProductId(cp.id)}>
+                            Abrir <ArrowRight className="size-3.5 ml-1" />
+                          </Button>
                         </div>
                       </div>
-
-                      <div className="mt-6 flex items-center justify-between group/link">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary group-hover/link:translate-x-1 transition-transform">Ver Detalhes</span>
-                        <ArrowRight className="size-4 text-primary opacity-0 group-hover/card:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </TabsContent>
@@ -529,27 +657,72 @@ export default function ProviderPanel() {
               )}
             </TabsContent>
 
-            <TabsContent value="reportes">
-              {reports.length === 0 ? (
-                <EmptyState message="Você ainda não enviou nenhum reporte." />
+            <TabsContent value="reportes" className="space-y-4">
+              <div className="flex flex-wrap gap-3 items-center">
+                <Select value={reportStatusFilter} onValueChange={setReportStatusFilter}>
+                  <SelectTrigger className="w-48 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos os status</SelectItem>
+                    <SelectItem value="aguardando_documentos">Aguardando documentos</SelectItem>
+                    <SelectItem value="em_analise">Em análise</SelectItem>
+                    <SelectItem value="aguardando_cliente">Aguardando cliente</SelectItem>
+                    <SelectItem value="em_andamento">Em andamento</SelectItem>
+                    <SelectItem value="pendente_correcao">Pendente correção</SelectItem>
+                    <SelectItem value="aguardando_aprovacao_final">Aguardando aprovação</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={reportPeriod} onValueChange={setReportPeriod}>
+                  <SelectTrigger className="w-40 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30">Últimos 30 dias</SelectItem>
+                    <SelectItem value="90">Últimos 90 dias</SelectItem>
+                    <SelectItem value="all">Tudo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-xs text-muted-foreground ml-auto">{filteredReports.length} reportes</span>
+              </div>
+
+              {filteredReports.length === 0 ? (
+                <EmptyState message="Nenhum reporte no filtro atual." />
               ) : (
-                <div className="vx-card divide-y divide-slate-50 dark:divide-white/5 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px]">
-                  {reports.map((r: any) => {
+                <div className="space-y-3">
+                  {filteredReports.map((r: any) => {
                     const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
                     return (
-                      <div key={r.id} className="p-6 flex items-start gap-4 hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors first:rounded-t-[24px] last:rounded-b-[24px]">
-                        <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20 shadow-sm">
-                          <ClipboardCheck className="size-6" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <p className="font-bold text-slate-900 dark:text-white">{cp?.clients?.full_name ?? "Cliente"}</p>
-                            <span className="size-1 rounded-full bg-slate-300" />
-                            <p className="text-xs text-muted-foreground font-medium">{cp?.products?.name}</p>
-                            <StatusBadge status={r.status} />
+                      <div key={r.id} className="vx-card p-6 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[24px] hover:border-primary/20 transition-all">
+                        <div className="flex items-start gap-4">
+                          <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                            <ClipboardCheck className="size-6" />
                           </div>
-                          {r.notes && <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">"{r.notes}"</p>}
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{formatDate(r.created_at)}</p>
+                          <div className="flex-1 space-y-3 min-w-0">
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <button onClick={() => cp && setSelectedProductId(cp.id)} className="font-bold hover:text-primary transition-colors">{cp?.clients?.full_name ?? "Cliente"}</button>
+                              <span className="size-1 rounded-full bg-slate-300" />
+                              <p className="text-xs text-muted-foreground font-medium">{cp?.products?.name}</p>
+                              <StatusBadge status={r.status} />
+                              <span className="text-[10px] text-muted-foreground ml-auto">{formatDate(r.created_at)}</span>
+                            </div>
+                            {r.notes && (
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Andamento</p>
+                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{r.notes}</p>
+                              </div>
+                            )}
+                            {r.pending && (
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-amber-600 mb-1">Pendências</p>
+                                <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">{r.pending}</p>
+                              </div>
+                            )}
+                            {r.next_steps && (
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-bold text-primary mb-1">Próximos passos</p>
+                                <p className="text-sm text-primary leading-relaxed">{r.next_steps}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
