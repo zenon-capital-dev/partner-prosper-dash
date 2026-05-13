@@ -112,7 +112,65 @@ export default function ClientPanel() {
 
   return (
     <div className="bg-premium min-h-screen dark:bg-[#020617]">
-      <div className="page-shell space-y-6 sm:space-y-12 py-6 sm:py-12 px-4 sm:px-6">
+      {/* ─── Sticky Top Bar ─── */}
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl">
+        <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <ProsperLogo size={28} />
+            <div className="min-w-0">
+              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900 dark:text-white">Prosper</p>
+              <p className="hidden sm:block text-[8.5px] text-muted-foreground tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
+              onClick={() => toast.info("Notificações em breve")}
+              aria-label="Notificações"
+            >
+              <Bell className="size-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
+                  <span className="size-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[11px] font-bold shrink-0">
+                    {initials(client.full_name)}
+                  </span>
+                  <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
+                  <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-bold leading-none truncate">{client.full_name}</p>
+                    <p className="text-[11px] text-muted-foreground leading-none truncate">{client.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2">
+                  <LayoutDashboard className="size-4" /> Painel inicial
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open("https://wa.me/5511999999999", "_blank")} className="gap-2">
+                  <MessageSquare className="size-4" /> Falar com a equipe
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async () => { await signOut(); toast.success("Sessão encerrada"); navigate("/auth", { replace: true }); }}
+                  className="gap-2 text-rose-600 focus:text-rose-600"
+                >
+                  <LogOut className="size-4" /> Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      <div className="page-shell space-y-6 sm:space-y-10 py-5 sm:py-10 px-4 sm:px-6">
         {selectedProductId && selectedProduct ? (
           /* SINGLE PRODUCT VIEW */
           <div className="animate-fade-up space-y-8">
