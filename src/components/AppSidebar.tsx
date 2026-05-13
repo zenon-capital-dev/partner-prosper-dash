@@ -159,13 +159,14 @@ const referrerSections: NavSection[] = [
     label: "Indicador",
     items: [
       { title: "Painel", url: "/indicador", icon: LayoutDashboard },
-      { title: "Indicações", url: "/indicador", icon: Users },
+      { title: "Indicações", url: "/indicador/indicacoes", icon: Users },
+      { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
     ],
   },
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const {
@@ -187,7 +188,7 @@ export function AppSidebar() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => path === "/" ? pathname === path : pathname === path || pathname.startsWith(path + "/");
 
   const showAdmin = isAdmin || isAdminSecondary || isColaborador;
   const showPartner = isParceiro && !showAdmin;
@@ -296,6 +297,7 @@ export function AppSidebar() {
                           <NavLink
                             to={item.url}
                             end
+                            onClick={() => isMobile && setOpenMobile(false)}
                             className={cn(
                               "group relative flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200",
                               collapsed ? "justify-center h-11 w-11 mx-auto" : "h-11 px-3 gap-3",

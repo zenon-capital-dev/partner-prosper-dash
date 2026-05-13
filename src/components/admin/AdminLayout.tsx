@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const ROUTE_LABEL: Record<string, string> = {
   admin: "Dashboard",
@@ -29,6 +30,7 @@ const ROUTE_LABEL: Record<string, string> = {
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSearchClick = () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
@@ -37,10 +39,23 @@ export default function AdminLayout() {
   return (
     <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
       <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
-        <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+        <div className="hidden md:block shrink-0">
+          <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+        </div>
+
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-card text-foreground [&>button]:hidden">
+            <AdminSidebar
+              collapsed={false}
+              onToggle={() => setMobileMenuOpen(false)}
+              onNavigate={() => setMobileMenuOpen(false)}
+              className="w-full border-r-0 shadow-none"
+            />
+          </SheetContent>
+        </Sheet>
 
         <div className="flex-1 flex flex-col min-w-0 relative">
-          <AdminHeader onSearchClick={handleSearchClick} />
+          <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
           <main className="flex-1 overflow-y-auto overflow-x-hidden bg-transparent">
             <Outlet />
           </main>

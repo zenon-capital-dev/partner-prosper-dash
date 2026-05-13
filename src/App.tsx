@@ -120,6 +120,7 @@ const App = () => (
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
+              <Route path="/indicador/:tab" element={<ReferrerPanel />} />
               <Route path="/prestador" element={<ProviderPanel />} />
               <Route path="/prestador/:tab" element={<ProviderPanel />} />
             </Route>

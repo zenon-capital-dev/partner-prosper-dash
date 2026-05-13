@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ReferralDialog } from "@/components/ReferralDialog";
 
 const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos"] as const;
 
@@ -30,15 +31,25 @@ export default function PartnerPanel() {
   const [clientFilter, setClientFilter] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [referralOpen, setReferralOpen] = useState(false);
+  const panelQueryKey = ["partner-panel", user?.id] as const;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["partner-panel", user?.id],
+    queryKey: panelQueryKey,
     queryFn: async () => {
-      const { data: partner } = await supabase
+      let { data: partner } = await supabase
         .from("partners")
         .select("id, full_name, email, phone, commission_percent, pix_key, partner_type, active, bank_name, bank_agency, bank_account, document, whatsapp")
         .eq("user_id", user!.id)
         .maybeSingle();
+      if (!partner && user?.email) {
+        const { data: byEmail } = await supabase
+          .from("partners")
+          .select("id, full_name, email, phone, commission_percent, pix_key, partner_type, active, bank_name, bank_agency, bank_account, document, whatsapp")
+          .ilike("email", user.email)
+          .maybeSingle();
+        partner = byEmail;
+      }
       if (!partner) return null;
 
       const [clients, commissions, contracts] = await Promise.all([
@@ -78,7 +89,7 @@ export default function PartnerPanel() {
   const filteredSplits = useMemo(() => {
     if (!data) return [];
     return data.commissions.filter((s: any) => {
-      if (statusFilter !== "todos" && s.status !== statusFilter) return false;
+      if (statusFilter !== "todos" && (s.workflow_status || s.status) !== statusFilter) return false;
       if (clientFilter) {
         const name = (s.sales?.clients?.full_name || "").toLowerCase();
         if (!name.includes(clientFilter.toLowerCase())) return false;
@@ -104,7 +115,7 @@ export default function PartnerPanel() {
       <div className="page-shell space-y-12 py-12">
         <section className="relative overflow-hidden rounded-[40px] bg-slate-900 p-10 lg:p-16 text-white group shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]">
            <div className="absolute bottom-0 right-0 size-96 bg-primary/10 blur-[100px] -mb-48 -mr-48 rounded-full" />
-           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 relative">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 relative">
               <div className="space-y-6">
                  <div className="flex items-center gap-3">
                    <div className="size-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]" />
@@ -119,6 +130,9 @@ export default function PartnerPanel() {
                    <span>{Number(partner.commission_percent).toFixed(1)}% comissão</span>
                  </div>
               </div>
+               <Button onClick={() => setReferralOpen(true)} className="w-full sm:w-auto rounded-2xl bg-white text-slate-900 hover:bg-primary hover:text-primary-foreground font-bold h-12 px-6">
+                 <Share2 className="size-4 mr-2" /> Nova indicação
+               </Button>
            </div>
         </section>
 
@@ -269,6 +283,7 @@ export default function PartnerPanel() {
               )}
            </TabsContent>
         </Tabs>
+        <ReferralDialog open={referralOpen} onOpenChange={setReferralOpen} mode="partner" ownerId={partner.id} queryKey={panelQueryKey} />
       </div>
     </div>
   );

@@ -59,9 +59,9 @@ const SECTIONS: NavSection[] = [
   ]},
 ];
 
-interface Props { collapsed: boolean; onToggle: () => void; }
+interface Props { collapsed: boolean; onToggle: () => void; onNavigate?: () => void; className?: string; }
 
-export function AdminSidebar({ collapsed, onToggle }: Props) {
+export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { user, signOut, isAdmin, isAdminSecondary } = useAuth();
@@ -95,7 +95,8 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
         "bg-card border-r border-border/80 shadow-[4px_0_24px_-24px_hsl(var(--foreground)/0.5)]",
-        collapsed ? "w-[72px]" : "w-[272px]"
+        collapsed ? "w-[72px]" : "w-[272px]",
+        className
       )}
     >
       {/* BRAND */}
@@ -183,6 +184,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                   <NavLink
                     key={item.url}
                     to={item.url}
+                    onClick={onNavigate}
                     title={collapsed ? item.title : undefined}
                     className={cn(
                       "group relative flex items-center rounded-lg text-[13px] font-semibold transition-all duration-150",
