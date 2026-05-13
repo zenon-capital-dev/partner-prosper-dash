@@ -207,6 +207,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
             <Label>Observações</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
+          {amount > 0 && (
+            <div className="col-span-2 rounded-lg border border-border bg-muted/30 p-3 space-y-1.5 text-xs font-mono">
+              <div className="flex justify-between text-muted-foreground"><span>Bruto</span><span>R$ {amount.toFixed(2)}</span></div>
+              {partnerCalc > 0 && <div className="flex justify-between text-rose-500"><span>− Parceiro ({form.commission_percent}%)</span><span>R$ {partnerCalc.toFixed(2)}</span></div>}
+              {referrerCalc > 0 && <div className="flex justify-between text-rose-500"><span>− Indicador ({form.referrer_percent}%)</span><span>R$ {referrerCalc.toFixed(2)}</span></div>}
+              {collaboratorCalc > 0 && <div className="flex justify-between text-rose-500"><span>− Colaborador ({form.collaborator_percent}%)</span><span>R$ {collaboratorCalc.toFixed(2)}</span></div>}
+              <div className="border-t border-border pt-1.5 flex justify-between font-bold"><span className={totalPct > 100 ? "text-rose-500" : "text-emerald-500"}>Líquido ({(100 - totalPct).toFixed(1)}%)</span><span className={totalPct > 100 ? "text-rose-500" : "text-emerald-500"}>R$ {liquido.toFixed(2)}</span></div>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
