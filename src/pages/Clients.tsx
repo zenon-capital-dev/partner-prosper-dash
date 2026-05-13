@@ -390,7 +390,7 @@ export default function Clients() {
                 <div
                   key={c.id}
                   onClick={() => navigate(`/clientes/${c.id}`)}
-                  className="group relative rounded-2xl border border-border/60 bg-card/40 p-5 hover:border-primary/40 hover:shadow-lg transition-all cursor-pointer overflow-hidden"
+                  className="group relative rounded-2xl border border-border/60 bg-card/40 p-4 sm:p-5 hover:border-primary/40 hover:shadow-lg active:scale-[0.99] transition-all cursor-pointer overflow-hidden"
                 >
                   {/* Indicador de engajamento */}
                   <div
