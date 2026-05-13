@@ -1,5 +1,4 @@
 import { Activity, Command, Search } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 import { InternalChat } from "@/components/chat/InternalChat";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
