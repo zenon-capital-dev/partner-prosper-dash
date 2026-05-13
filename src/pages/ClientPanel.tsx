@@ -253,21 +253,21 @@ export default function ClientPanel() {
                </div>
 
                <div className="space-y-8">
-                  <div className="vx-card p-8 bg-slate-900 text-white rounded-[40px] space-y-6 relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="size-20" /></div>
-                    <h3 className="font-editorial text-xl font-bold">Mensagens & Atualizações</h3>
-                    <div className="space-y-6 relative">
+                  <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
+                    <h3 className="font-display text-lg font-semibold text-slate-900">Mensagens & Atualizações</h3>
+                    <div className="space-y-5">
                        {reports.filter((r: any) => r.client_product_id === selectedProductId).length === 0 ? (
-                         <p className="text-xs text-white/40 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
+                         <p className="text-sm text-slate-500 leading-relaxed">Nenhuma atualização registrada ainda. Nossa equipe reportará novidades em breve.</p>
                        ) : (
                          reports.filter((r: any) => r.client_product_id === selectedProductId).slice(0, 5).map((r: any) => (
-                           <div key={r.id} className="flex gap-4 group">
-                             <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                             <div className="space-y-1">
-                               <p className="text-xs font-medium text-white/90 leading-relaxed">{r.notes}</p>
-                               <div className="flex items-center gap-2 pt-1">
-                                  <p className="text-[9px] font-bold text-white/30 uppercase">{formatDate(r.created_at)}</p>
-                                  <span className="text-[9px] font-bold text-primary italic lowercase">por {r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
+                           <div key={r.id} className="flex gap-3">
+                             <div className="size-2 rounded-full bg-indigo-600 mt-1.5 shrink-0" />
+                             <div className="space-y-1 min-w-0">
+                               <p className="text-sm text-slate-700 leading-relaxed">{r.notes}</p>
+                               <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                                  <span>{formatDate(r.created_at)}</span>
+                                  <span>·</span>
+                                  <span className="text-indigo-600 font-medium">{r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
                                </div>
                              </div>
                            </div>
@@ -275,6 +275,7 @@ export default function ClientPanel() {
                        )}
                     </div>
                   </div>
+
 
                   <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] space-y-6">
                     <h3 className="font-editorial text-xl font-bold">Histórico de Atividades</h3>
