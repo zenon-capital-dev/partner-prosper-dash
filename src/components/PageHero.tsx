@@ -45,30 +45,32 @@ export function PageHero({
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
 
   return (
-    <section className="relative px-5 lg:px-8 pt-6 lg:pt-8 pb-2 space-y-6">
-      {/* ambient orbs */}
+    <section className="relative px-5 lg:px-8 pt-7 lg:pt-9 pb-3 space-y-7">
+      {/* ambient orbs — refined */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-32 -left-32 size-[500px] rounded-full bg-indigo-200/30 dark:bg-indigo-600/[0.06] blur-[140px]" />
-        <div className="absolute top-1/3 -right-32 size-[400px] rounded-full bg-violet-200/25 dark:bg-violet-600/[0.04] blur-[140px]" />
+        <div className="absolute -top-40 -left-40 size-[560px] rounded-full bg-indigo-200/25 dark:bg-indigo-600/[0.07] blur-[160px]" />
+        <div className="absolute top-1/3 -right-40 size-[440px] rounded-full bg-violet-200/20 dark:bg-violet-600/[0.05] blur-[160px]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
       </div>
 
       {!hideBreadcrumbs && <Breadcrumbs />}
 
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-4 min-w-0 flex-1">
+      <header className="flex flex-wrap items-start justify-between gap-5">
+        <div className="flex items-start gap-5 min-w-0 flex-1">
           {icon && (
             <div className="relative shrink-0">
-              <div className="size-12 lg:size-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-[0_8px_24px_-6px_rgba(99,102,241,0.5)] ring-1 ring-white/40">
+              <div className="size-14 lg:size-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-[0_12px_32px_-8px_rgba(99,102,241,0.6)] ring-1 ring-white/30">
                 {icon}
               </div>
               <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-2 ring-background shadow-md" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
             </div>
           )}
           <div className="min-w-0">
             {(eyebrow || category) && (
-              <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+              <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.24em] font-bold text-slate-400 dark:text-zinc-500">
                 <CalendarClock className="size-3" />
-                <span className="text-slate-500 dark:text-zinc-500">{eyebrow}</span>
+                <span className="text-slate-500 dark:text-zinc-400">{eyebrow}</span>
                 {category && (
                   <>
                     <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
@@ -78,15 +80,15 @@ export function PageHero({
                 )}
               </div>
             )}
-            <h1 className="text-[22px] lg:text-[28px] font-bold text-slate-900 dark:text-white tracking-tight mt-1 leading-tight font-display">
+            <h1 className="text-[26px] lg:text-[32px] font-bold text-slate-900 dark:text-white tracking-[-0.02em] mt-1.5 leading-[1.1] font-display">
               {title}
             </h1>
             {description && (
-              <p className="text-[13px] text-slate-500 dark:text-zinc-500 mt-1 max-w-2xl leading-relaxed">
+              <p className="text-[13.5px] text-slate-500 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}
-            <p className="text-[11px] text-slate-400 dark:text-zinc-600 mt-1 capitalize">{today}</p>
+            <p className="text-[10.5px] text-slate-400 dark:text-zinc-600 mt-2 capitalize tracking-wide">{today}</p>
           </div>
         </div>
 
@@ -97,7 +99,7 @@ export function PageHero({
 
       {kpis && kpis.length > 0 && (
         <div
-          className="grid gap-3"
+          className="grid gap-3.5"
           style={{ gridTemplateColumns: `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` }}
         >
           {kpis.map((k, i) => {
@@ -106,30 +108,42 @@ export function PageHero({
               <div
                 key={i}
                 className={cn(
-                  "relative overflow-hidden rounded-2xl border bg-card p-4 transition-all group hover:shadow-md hover:-translate-y-0.5",
-                  "border-slate-200 dark:border-white/[0.06]"
+                  "group/kpi relative overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-300",
+                  "border-slate-200/80 dark:border-white/[0.06]",
+                  "hover:shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-white/[0.12]"
                 )}
               >
-                <div className="flex items-center justify-between mb-2.5">
+                {/* subtle radial glow on hover */}
+                <div className={cn(
+                  "absolute inset-0 opacity-0 group-hover/kpi:opacity-100 transition-opacity duration-500 pointer-events-none",
+                  "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_60%)]"
+                )} />
+                <div className="flex items-center justify-between mb-3 relative">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={cn("size-1.5 rounded-full shrink-0", cfg.dot)} />
-                    <p className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-zinc-500 truncate">
+                    <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-zinc-500 truncate">
                       {k.label}
                     </p>
                   </div>
                   {k.icon && (
-                    <div className={cn("size-7 rounded-lg flex items-center justify-center shrink-0", cfg.bg, cfg.text)}>
+                    <div className={cn(
+                      "size-8 rounded-xl flex items-center justify-center shrink-0 ring-1 transition-transform group-hover/kpi:scale-110",
+                      cfg.bg, cfg.text, cfg.ring
+                    )}>
                       {k.icon}
                     </div>
                   )}
                 </div>
-                <p className={cn("font-display text-[22px] lg:text-[26px] font-bold tracking-tight tabular-nums leading-none truncate text-slate-900 dark:text-white")}>
+                <p className="font-display text-[24px] lg:text-[30px] font-bold tracking-[-0.02em] tabular-nums leading-none truncate text-slate-900 dark:text-white relative">
                   {k.value}
                 </p>
                 {k.hint && (
-                  <p className="text-[10.5px] text-slate-400 dark:text-zinc-600 mt-1.5 truncate">{k.hint}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-2 truncate relative">{k.hint}</p>
                 )}
-                <div className={cn("absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r opacity-60", cfg.grad)} />
+                <div className={cn(
+                  "absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r opacity-70 group-hover/kpi:opacity-100 transition-opacity",
+                  cfg.grad
+                )} />
               </div>
             );
           })}
