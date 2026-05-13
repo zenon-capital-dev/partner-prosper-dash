@@ -341,20 +341,77 @@ export default function Products() {
                 const max = Math.max(1, ...products.map((q) => (usageStats as any)[q.id]?.revenue || 0));
                 const pct = (u.revenue / max) * 100;
                 const color = p.product_categories?.color ?? "#6366f1";
-                return (
-                  <div key={p.id}>
-                    <div className="flex items-center justify-between text-[11.5px] mb-1">
-                      <span className="flex items-center gap-2 truncate">
-                        <span className="size-5 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: `${color}22`, color }}>{idx + 1}</span>
-                        <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate">{p.name}</span>
-                      </span>
-                      <span className="tabular-nums font-bold text-slate-900 dark:text-white shrink-0">{formatBRL(u.revenue)} <span className="font-medium text-muted-foreground">· {u.sales} vendas</span></span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${Math.max(2, pct)}%`, background: `linear-gradient(90deg, ${color}, ${color}aa)` }} />
-                    </div>
-                  </div>
-                );
+    const { p, u } = data;
+    const max = Math.max(1, ...products.map((q) => (usageStats as any)[q.id]?.revenue || 0));
+    const pct = (u.revenue / max) * 100;
+    const color = p.product_categories?.color ?? "#6366f1";
+    return (
+      <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[100px] -z-10 transition-colors group-hover:bg-slate-100/50" />
+        
+        <div className="flex justify-between items-start mb-4">
+          <div className="size-12 rounded-xl flex items-center justify-center shadow-sm" style={{ background: `${color}15`, color: color }}>
+            <Package className="size-6" />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8 rounded-lg">
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 rounded-xl">
+              <DropdownMenuItem onClick={() => openEdit(p)} className="gap-2">
+                <Pencil className="size-4" /> Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChecklistTarget(p)} className="gap-2">
+                <ListChecks className="size-4" /> Checklist Template
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => toggleActive(p)} className={cn("gap-2", p.active ? "text-amber-600" : "text-emerald-600")}>
+                {p.active ? <PowerOff className="size-4" /> : <Power className="size-4" />}
+                {p.active ? "Desativar" : "Ativar"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDelete(p)} className="gap-2 text-rose-600 focus:text-rose-700">
+                <Trash2 className="size-4" /> Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="space-y-1">
+          <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider h-5 px-1.5" style={{ color: color, borderColor: `${color}40` }}>
+            {p.product_categories?.name || "Sem categoria"}
+          </Badge>
+          <h3 className="text-lg font-bold text-slate-900 line-clamp-1">{p.name}</h3>
+          <p className="text-xs text-slate-500 line-clamp-2 h-8">{p.description || "Sem descrição disponível."}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço Base</p>
+            <p className="text-sm font-black text-slate-900">{formatBRL(p.base_price)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comissão</p>
+            <p className="text-sm font-black text-indigo-600">{formatPercent(p.default_commission_percent)}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex -space-x-2">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="size-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-400">
+                {u.partners > i ? "P" : "+"}
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            <TrendingUp className="size-3" />
+            {u.sales} vendas
+          </div>
+        </div>
+      </div>
+    );
               })}
             {products.length === 0 && <p className="text-center text-sm text-muted-foreground py-4">Nenhum produto cadastrado.</p>}
           </div>
