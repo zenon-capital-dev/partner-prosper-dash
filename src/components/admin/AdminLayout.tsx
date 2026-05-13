@@ -1,9 +1,18 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { useState } from "react";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
+
+// Rotas que SOMENTE admin pleno pode acessar. Colaborador fica restrito a operação.
+const ADMIN_ONLY_PREFIXES = [
+  "/clientes", "/vendas", "/propostas", "/produtos", "/projetos", "/templates",
+  "/parceiros", "/prestadores", "/indicadores", "/colaboradores",
+  "/financeiro", "/comissoes", "/contratos", "/documentos",
+  "/relatorios", "/auditoria", "/usuarios", "/automacoes", "/suporte", "/configuracoes",
+];
 
 const ROUTE_LABEL: Record<string, string> = {
   admin: "Dashboard",
@@ -31,6 +40,10 @@ const ROUTE_LABEL: Record<string, string> = {
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const { pathname } = useLocation();
+  const isFullAdmin = isAdmin || isAdminSecondary;
+  const blocked = !isFullAdmin && ADMIN_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   const handleSearchClick = () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
@@ -38,6 +51,7 @@ export default function AdminLayout() {
 
   return (
     <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
+      {blocked && <Navigate to="/admin" replace />}
       <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
         <div className="hidden md:block shrink-0">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
