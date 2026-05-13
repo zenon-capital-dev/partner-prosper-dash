@@ -75,12 +75,17 @@ export default function ProviderPanel() {
   });
 
   const filteredProducts = useMemo(() => {
-    return clientProducts.filter((cp: any) => 
-      cp.clients?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-      cp.products?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      cp.clients?.company?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [clientProducts, search]);
+    return clientProducts.filter((cp: any) => {
+      if (demandStatusFilter !== "todos" && cp.status !== demandStatusFilter) return false;
+      const q = search.toLowerCase();
+      if (!q) return true;
+      return (
+        cp.clients?.full_name?.toLowerCase().includes(q) ||
+        cp.products?.name?.toLowerCase().includes(q) ||
+        cp.clients?.company?.toLowerCase().includes(q)
+      );
+    });
+  }, [clientProducts, search, demandStatusFilter]);
 
   const clientProductIds = useMemo(() => clientProducts.map((cp: any) => cp.id), [clientProducts]);
 
