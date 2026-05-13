@@ -574,46 +574,86 @@ export default function ClientPanel() {
                  </div>
               </TabsContent>
 
-              <TabsContent value="financeiro" className="animate-fade-up">
+              <TabsContent value="financeiro" className="animate-fade-up space-y-6 sm:space-y-8">
+                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <FinanceStat label="Mensalidade" value={formatBRL(monthlyTotal)} sub="recorrência ativa" tone="default" icon={<Activity className="size-4" />} />
+                    <FinanceStat label="Total pago" value={formatBRL(paidTotal)} sub={`${payments.filter((p:any)=>p.status==='pago').length} título(s)`} tone="success" icon={<CheckCircle2 className="size-4" />} />
+                    <FinanceStat label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} tone={openTotal>0?"warning":"success"} icon={<Clock className="size-4" />} />
+                    <FinanceStat label="Próximo vencimento" value={nextDue ? formatDate(nextDue.due_date) : "—"} sub={nextDue ? formatBRL(nextDue.amount) : "sem pendência"} tone={nextDue?"warning":"success"} icon={<Calendar className="size-4" />} />
+                 </div>
+
                  <div className="grid lg:grid-cols-3 gap-5 sm:gap-8">
                     <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
                        <div className="p-5 sm:p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
-                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Extrato de Pagamentos</h3>
+                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Extrato de pagamentos</h3>
+                          <Badge variant="outline" className="text-[10px] font-bold rounded-full">{payments.length} registros</Badge>
                        </div>
-                       <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                             <thead>
-                                <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
-                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-left">Vencimento</th>
-                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-left">Status</th>
-                                   <th className="px-4 sm:px-8 py-4 sm:py-5 text-right">Valor</th>
-                                </tr>
-                             </thead>
-                             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                                {payments.map((p: any) => (
-                                  <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
-                                     <td className="px-4 sm:px-8 py-4 sm:py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
-                                     <td className="px-4 sm:px-8 py-4 sm:py-6">
-                                        <span className={cn(
-                                          "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
-                                          p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
-                                        )}>{p.status}</span>
-                                     </td>
-                                     <td className="px-4 sm:px-8 py-4 sm:py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
-                                  </tr>
-                                ))}
-                             </tbody>
-                          </table>
-                       </div>
+                       {payments.length === 0 ? (
+                         <div className="p-12 text-center">
+                           <Receipt className="size-10 mx-auto text-muted-foreground/30 mb-3" />
+                           <p className="text-sm text-muted-foreground italic">Nenhum pagamento registrado ainda.</p>
+                         </div>
+                       ) : (
+                         <>
+                           {/* Mobile: cards */}
+                           <div className="sm:hidden divide-y divide-slate-50 dark:divide-white/5">
+                             {payments.map((p: any) => (
+                               <div key={p.id} className="p-4 flex items-center justify-between gap-3">
+                                 <div className="min-w-0">
+                                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{formatDate(p.due_date)}</p>
+                                   <p className="text-base font-bold tabular-nums text-slate-900 dark:text-white mt-0.5">{formatBRL(p.amount)}</p>
+                                   {p.installment_number && p.installments_count && (
+                                     <p className="text-[10px] text-muted-foreground mt-0.5">Parcela {p.installment_number}/{p.installments_count}</p>
+                                   )}
+                                 </div>
+                                 <span className={cn(
+                                   "vx-pill uppercase tracking-widest text-[9px] px-3 py-1 shrink-0",
+                                   p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                 )}>{p.status}</span>
+                               </div>
+                             ))}
+                           </div>
+                           {/* Desktop: table */}
+                           <div className="hidden sm:block overflow-x-auto">
+                              <table className="w-full text-sm">
+                                 <thead>
+                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
+                                       <th className="px-8 py-5 text-left">Vencimento</th>
+                                       <th className="px-8 py-5 text-left">Parcela</th>
+                                       <th className="px-8 py-5 text-left">Status</th>
+                                       <th className="px-8 py-5 text-right">Valor</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                    {payments.map((p: any) => (
+                                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
+                                         <td className="px-8 py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
+                                         <td className="px-8 py-6 text-muted-foreground text-xs">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td>
+                                         <td className="px-8 py-6">
+                                            <span className={cn(
+                                              "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
+                                              p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
+                                            )}>{p.status}</span>
+                                         </td>
+                                         <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
+                                      </tr>
+                                    ))}
+                                 </tbody>
+                              </table>
+                           </div>
+                         </>
+                       )}
                     </div>
-                    <div className="vx-card p-10 bg-slate-900 text-white rounded-[40px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
+                    <div className="vx-card p-6 sm:p-10 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
                        <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <Receipt className="size-12 text-primary relative" />
-                       <div className="space-y-4 relative">
-                          <h3 className="font-editorial text-2xl sm:text-3xl font-bold leading-tight">Configurações de <br/>Faturamento</h3>
-                          <p className="text-sm text-white/50 leading-relaxed font-medium">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível para suporte.</p>
+                       <Receipt className="size-10 sm:size-12 text-primary relative" />
+                       <div className="space-y-3 relative">
+                          <h3 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Faturamento & cobrança</h3>
+                          <p className="text-sm text-white/50 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
                        </div>
-                       <Button className="w-full rounded-[20px] bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-14 font-bold text-base shadow-xl">Solicitar Ajuste</Button>
+                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                         <MessageSquare className="size-4 mr-2" /> Solicitar ajuste
+                       </Button>
                     </div>
                  </div>
               </TabsContent>
