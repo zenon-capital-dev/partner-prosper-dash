@@ -211,8 +211,12 @@
   .section-divider { @apply h-px bg-border/50; }
 
   .page-shell {
-    @apply mx-auto max-w-[1440px] px-6 lg:px-10 py-8 lg:py-10 space-y-8;
+    @apply mx-auto max-w-[1440px] px-3 sm:px-6 lg:px-10 py-4 sm:py-8 lg:py-10 space-y-5 sm:space-y-8;
   }
+  /* Mobile-friendly tables: any <table> inside admin shell scrolls horizontally inside its parent */
+  .admin-shell table { @apply min-w-full; }
+  .admin-shell .vx-table-wrap,
+  .admin-shell .table-wrap { @apply w-full overflow-x-auto; }
 
   /* Premium Card — flat, hairline border, no glow */
   .vx-card {
