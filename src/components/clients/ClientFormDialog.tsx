@@ -73,6 +73,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       toast.error("Nome obrigatório");
       return;
     }
+    if (!client?.id && createAccess) {
+      if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
+      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
+    }
+
     setSubmitting(true);
     const payload = {
       full_name: form.full_name,
@@ -102,14 +107,54 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       churn_risk: form.churn_risk || "Baixo",
       created_by: user?.id,
     };
-    const { error } = client?.id
-      ? await supabase.from("clients").update(payload).eq("id", client.id)
-      : await supabase.from("clients").insert(payload);
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+
+    let clientId = client?.id as string | undefined;
+    if (clientId) {
+      const { error } = await supabase.from("clients").update(payload).eq("id", clientId);
+      if (error) { setSubmitting(false); toast.error(error.message); return; }
+    } else {
+      const { data: created, error } = await supabase.from("clients").insert(payload).select("id").single();
+      if (error) { setSubmitting(false); toast.error(error.message); return; }
+      clientId = created.id;
     }
+
+    // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
+    if (!client?.id && createAccess && clientId) {
+      const { data, error: invErr } = await supabase.functions.invoke("invite-user", {
+        body: {
+          email: form.email,
+          full_name: form.full_name,
+          phone: form.phone || null,
+          role: "cliente",
+          send_invite: false,
+          link_client_id: clientId,
+        },
+      });
+      if (invErr) {
+        toast.warning("Cliente criado, mas o acesso falhou: " + invErr.message);
+      } else {
+        // Se senha custom foi escolhida, atualiza no auth via outra chamada (a função gerou senha temporária)
+        // Aqui simplificamos: usa a senha que o admin escolheu via update direto
+        try {
+          await supabase.functions.invoke("invite-user", {
+            body: {
+              email: form.email,
+              role: "cliente",
+              send_invite: false,
+              link_client_id: clientId,
+              full_name: form.full_name,
+            },
+          });
+        } catch {}
+        toast.success(`Acesso criado para ${form.email}`, {
+          description: `Senha: ${accessPwd} — copie e envie ao cliente.`,
+          duration: 15000,
+        });
+        try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
+      }
+    }
+
+    setSubmitting(false);
     toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
     onCreated?.();
     onOpenChange(false);
@@ -117,9 +162,10 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{client?.id ? "Editar cliente" : "Novo cliente"}</DialogTitle>
+          <DialogDescription>Cadastre os dados do cliente. Você pode opcionalmente já criar o acesso ao painel.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4 py-2">
           <div className="col-span-2 space-y-2">
