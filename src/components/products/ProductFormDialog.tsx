@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
   Sparkles, Tag, FileText, ListChecks, Settings2, Wallet, Clock, X, Plus,
-  Briefcase, ScrollText, Calculator, Scale,
+  Briefcase, ScrollText, Calculator, Scale, Package
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
