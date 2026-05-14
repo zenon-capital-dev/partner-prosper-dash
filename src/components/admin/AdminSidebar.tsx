@@ -5,7 +5,7 @@ import {
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Briefcase,
   CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
   PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
-  Building2, Sparkles, Box,
+  Building2, Sparkles, Box, CalendarClock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Cockpit", url: "/cockpit", icon: Activity },
+    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "SLA & Prazos", url: "/sla", icon: Zap },

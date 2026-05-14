@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 const ADMIN_ONLY_PREFIXES = [
   "/clientes", "/vendas", "/propostas", "/produtos", "/projetos", "/templates",
   "/parceiros", "/prestadores", "/indicadores", "/colaboradores",
-  "/financeiro", "/comissoes", "/contratos", "/documentos",
+  "/financeiro", "/comissoes", "/contratos", "/documentos", "/atuacoes",
   "/relatorios", "/auditoria", "/usuarios", "/automacoes", "/suporte", "/configuracoes",
 ];
 
