@@ -1559,6 +1559,60 @@ export type Database = {
           },
         ]
       }
+      daily_actions: {
+        Row: {
+          assigned_to: string | null
+          client_id: string
+          client_product_id: string | null
+          created_at: string
+          created_by: string | null
+          executed_at: string | null
+          executed_by: string | null
+          execution_notes: string | null
+          id: string
+          notes: string | null
+          priority: string
+          result: string | null
+          scheduled_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id: string
+          client_product_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          executed_at?: string | null
+          executed_by?: string | null
+          execution_notes?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          result?: string | null
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string
+          client_product_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          executed_at?: string | null
+          executed_by?: string | null
+          execution_notes?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          result?: string | null
+          scheduled_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       demand_comments: {
         Row: {
           attachments: Json | null
