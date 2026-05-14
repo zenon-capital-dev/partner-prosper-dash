@@ -5,7 +5,7 @@ import {
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Briefcase,
   CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
   PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
-  Building2, Sparkles, Box,
+  Building2, Sparkles, Box, CalendarClock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
