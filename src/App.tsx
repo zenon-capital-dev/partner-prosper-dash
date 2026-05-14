@@ -51,6 +51,7 @@ import SLAPages from "./pages/SLAPages";
 import OperationalCockpit from "./pages/OperationalCockpit";
 import Proposals from "./pages/Proposals";
 import FinanceCenter from "./pages/FinanceCenter";
+import Atuacoes from "./pages/Atuacoes";
 
 const queryClient = new QueryClient({
   defaultOptions: {
