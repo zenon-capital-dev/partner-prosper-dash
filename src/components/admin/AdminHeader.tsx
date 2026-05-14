@@ -4,6 +4,7 @@ import { InternalChat } from "@/components/chat/InternalChat";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
 import { EnvBadge } from "@/components/EnvBadge";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AdminHeaderProps {
   onSearchClick: () => void;
@@ -49,6 +50,7 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2 shrink-0 sm:flex-1 justify-end">
+        <ThemeToggle />
         <QuickCreateButton />
         <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-border hover:bg-muted/60 transition-colors">
           <InternalChat />
