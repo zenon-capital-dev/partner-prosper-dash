@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -9,7 +9,7 @@ import {
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
   ChevronRight, Phone, Mail, Globe, MapPin, 
-  Wallet, PieChart, Star, Users
+  Wallet, PieChart, Star, Users, CalendarClock
 } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
@@ -247,10 +247,16 @@ export default function ClientDetail() {
                  <DropdownMenuItem onClick={() => setActiveTab("documentos")}>
                    <FileText className="size-4 mr-2" /> Solicitar Documento
                  </DropdownMenuItem>
-                 <DropdownMenuSeparator />
-                 <DropdownMenuItem className="text-destructive focus:text-destructive">
-                   <AlertCircle className="size-4 mr-2" /> Suspender Cliente
-                 </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/atuacoes?new=true" className="flex items-center">
+                      <CalendarClock className="size-4 mr-2" /> Agendar Atuação
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive focus:text-destructive">
+                    <AlertCircle className="size-4 mr-2" /> Suspender Cliente
+                  </DropdownMenuItem>
                </DropdownMenuContent>
              </DropdownMenu>
           </div>

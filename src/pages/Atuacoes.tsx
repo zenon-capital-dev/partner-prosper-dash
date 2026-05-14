@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,7 @@ import { ptBR } from "date-fns/locale";
 import {
   CalendarClock, CheckCircle2, Clock, Plus, AlertTriangle, History as HistoryIcon,
   CalendarDays, User2, Briefcase, ChevronRight, Search, X, MessageSquare, RotateCcw,
-  Flame, Target,
+  Flame, Target, ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,15 @@ export default function Atuacoes() {
   const [openCreate, setOpenCreate] = useState(false);
   const [executing, setExecuting] = useState<DailyAction | null>(null);
   const [reschedule, setReschedule] = useState<DailyAction | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "true") {
+      setOpenCreate(true);
+      // Limpa a URL para não abrir de novo no refresh
+      window.history.replaceState({}, "", "/atuacoes");
+    }
+  }, []);
 
   const { data: actions = [], isLoading } = useQuery({
     queryKey: ["daily_actions"],
@@ -415,6 +424,12 @@ function ActionRow({
                 Executada {format(parseISO(action.executed_at), "dd/MM HH:mm")}
               </span>
             )}
+            <Link 
+              to={`/clientes/${action.client_id}`} 
+              className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium ml-auto sm:ml-0"
+            >
+              Dossiê <ExternalLink className="size-2.5" />
+            </Link>
           </div>
 
           {action.notes && (
