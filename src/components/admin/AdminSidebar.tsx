@@ -22,6 +22,7 @@ const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Cockpit", url: "/cockpit", icon: Activity },
+    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "SLA & Prazos", url: "/sla", icon: Zap },
