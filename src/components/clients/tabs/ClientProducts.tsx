@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
 import { AddProductDialog } from "@/components/clients/AddProductDialog";
 import { ClientProductSteps } from "./ClientProductSteps";
+import { confirmAction } from "@/lib/confirm";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
