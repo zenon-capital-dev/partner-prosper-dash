@@ -534,7 +534,28 @@ export default function DemandDetail() {
                </TabsContent>
                
                <TabsContent value="history" className="animate-fade-up">
-                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Histórico de mudanças da demanda...</div>
+                  <div className="vx-card p-6 bg-card">
+                    {history.length === 0 ? (
+                      <p className="text-sm text-center text-muted-foreground py-10">Nenhum evento registrado.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {history.map((h: any) => (
+                          <div key={h.id} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/10">
+                            <div className="size-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <History className="size-3.5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12px] font-semibold capitalize">{String(h.action).toLowerCase().replace(/_/g, " ")}</p>
+                              {h.new_data?.description && (
+                                <p className="text-[11px] text-muted-foreground mt-0.5">{h.new_data.description}</p>
+                              )}
+                              <p className="text-[10px] text-muted-foreground/60 font-mono mt-1">{formatDate(h.created_at)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                </TabsContent>
              </Tabs>
         </div>
