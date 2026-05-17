@@ -50,8 +50,12 @@ export default function DemandDetail() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
-  const { user } = useAuth();
-  const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
+  const { user, isAdmin, isAdminSecondary, isColaborador } = useAuth();
+  const canManage = isAdmin || isAdminSecondary || isColaborador;
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
+  const [deliveryForm, setDeliveryForm] = useState({ title: "", description: "" });
 
   const openNotesEditor = () => {
     setNotesDraft((demand as any)?.internal_notes ?? "");
