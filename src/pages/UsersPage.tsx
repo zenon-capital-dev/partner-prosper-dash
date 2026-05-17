@@ -40,11 +40,7 @@ export default function UsersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [permissionOpen, setPermissionOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, has_system_access: true, internal_notes: "" });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
-  const [permState, setPermState] = useState<Record<string, boolean>>({ finance: false, clients: true, docs: true });
 
   const { data: users = [] } = useQuery({
     queryKey: ["users-with-roles"],
