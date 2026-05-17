@@ -305,30 +305,31 @@ export default function UsersPage() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><Settings className="size-5" /> Permissões: {selectedUser?.full_name}</DialogTitle>
-            <DialogDescription>Ajuste o que este usuário pode ver ou fazer.</DialogDescription>
+            <DialogDescription>Permissões granulares (refinamento sobre o papel principal).</DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-             <div className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="py-4 space-y-3">
+            {[
+              { key: 'finance', label: 'Acesso ao Financeiro', desc: 'Ver faturamento e comissões gerais' },
+              { key: 'clients', label: 'Gestão de Clientes', desc: 'Criar e editar fichas de clientes' },
+              { key: 'docs', label: 'Solicitar Documentos', desc: 'Pedir arquivos para o cliente' },
+            ].map((p) => (
+              <div key={p.key} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                   <p className="text-sm font-bold">Acesso ao Financeiro</p>
-                   <p className="text-xs text-muted-foreground">Ver faturamento e comissões gerais</p>
+                  <p className="text-sm font-bold">{p.label}</p>
+                  <p className="text-xs text-muted-foreground">{p.desc}</p>
                 </div>
-                <Button variant="outline" size="sm">Negado</Button>
-             </div>
-             <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                   <p className="text-sm font-bold">Gestão de Clientes</p>
-                   <p className="text-xs text-muted-foreground">Criar e editar fichas de clientes</p>
-                </div>
-                <Button variant="outline" size="sm">Permitido</Button>
-             </div>
-             <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                   <p className="text-sm font-bold">Solicitar Documentos</p>
-                   <p className="text-xs text-muted-foreground">Pedir arquivos para o cliente</p>
-                </div>
-                <Button variant="outline" size="sm">Permitido</Button>
-             </div>
+                <Button
+                  variant={permState[p.key] ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setPermState((s) => ({ ...s, [p.key]: !s[p.key] }))}
+                >
+                  {permState[p.key] ? "Permitido" : "Negado"}
+                </Button>
+              </div>
+            ))}
+            <p className="text-[11px] text-muted-foreground">
+              Permissões base são controladas pelo papel do usuário em <strong>Colaboradores</strong>. Ajustes finos serão aplicados na próxima sessão.
+            </p>
           </div>
           <DialogFooter>
             <Button onClick={() => { toast.success("Permissões salvas"); setPermissionOpen(false); }}>Salvar Permissões</Button>
