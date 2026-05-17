@@ -271,7 +271,7 @@ export default function DemandDetail() {
                  <AlertTriangle className="size-4" /> Registrar Atraso
                </DropdownMenuItem>
                <DropdownMenuSeparator />
-               <DropdownMenuItem className="gap-2 cursor-pointer">
+               <DropdownMenuItem onClick={finalizeDemand} disabled={demand.status === 'concluido'} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-700">
                  <CheckCircle2 className="size-4" /> Finalizar Demanda
                </DropdownMenuItem>
              </DropdownMenuContent>
