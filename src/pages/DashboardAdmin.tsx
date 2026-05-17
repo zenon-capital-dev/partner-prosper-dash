@@ -511,7 +511,7 @@ export default function DashboardAdmin() {
               {stats.pipelineByStage.map((stage, i) => {
                 const max = Math.max(...stats.pipelineByStage.map((s) => s.value), 1);
                 const pct = (stage.value / max) * 100;
-                const tones: Tone[] = ["info", "primary", "violet", "warning", "success"];
+                const tones: Tone[] = ["info", "primary", "success", "warning", "danger"];
                 return (
                   <div key={stage.name} className="group">
                     <div className="flex items-center justify-between mb-1">
