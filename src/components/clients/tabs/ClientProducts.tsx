@@ -136,7 +136,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                               <DropdownMenuItem className="gap-2 cursor-pointer"><Edit3 className="size-4" /> Editar Detalhes</DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="gap-2 text-rose-500 focus:text-rose-500 cursor-pointer"
-                                onClick={() => confirm("Remover este produto?") && deleteProduct.mutate(cp.id)}
+                                onClick={async () => { if (await confirmAction("Remover este produto?")) deleteProduct.mutate(cp.id); }}
                               >
                                 <Trash2 className="size-4" /> Remover Produto
                               </DropdownMenuItem>
