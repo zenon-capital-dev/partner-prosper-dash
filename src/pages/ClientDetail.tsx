@@ -529,6 +529,35 @@ export default function ClientDetail() {
         onCreated={() => qc.invalidateQueries({ queryKey: ["client", id] })} 
         client={client} 
       />
+
+      <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Observações Internas</DialogTitle>
+          </DialogHeader>
+          <Textarea rows={8} value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} placeholder="Anotações internas..." />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotesOpen(false)}>Cancelar</Button>
+            <Button onClick={saveNotes} disabled={savingNotes}>{savingNotes ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={interactionOpen} onOpenChange={setInteractionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Registro de Interação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Título (ex: Ligação, Reunião, E-mail...)" value={interactionTitle} onChange={(e) => setInteractionTitle(e.target.value)} />
+            <Textarea rows={6} placeholder="Detalhes da interação..." value={interactionDesc} onChange={(e) => setInteractionDesc(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInteractionOpen(false)}>Cancelar</Button>
+            <Button onClick={saveInteraction} disabled={savingInteraction}>{savingInteraction ? "Salvando..." : "Registrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
