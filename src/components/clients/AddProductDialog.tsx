@@ -55,16 +55,16 @@ function CustomFieldsForm({ productId, onChange }: { productId: string, onChange
     onChange(next);
   };
 
-  if (!fields.length) return <p className="text-[11px] text-white/20 italic">Este produto não possui campos adicionais.</p>;
+  if (!fields.length) return <p className="text-[11px] text-slate-400 italic">Este produto não possui campos adicionais.</p>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {fields.map((f: any) => (
         <div key={f.name} className="space-y-1.5">
-          <Label className="text-[10px] uppercase tracking-wider text-white/40">{f.label}</Label>
+          <Label className="text-[10px] uppercase tracking-wider text-slate-500">{f.label}</Label>
           {f.type === 'select' ? (
             <Select onValueChange={(v) => handleFieldChange(f.name, v)}>
-              <SelectTrigger className="h-10 bg-white/[0.03] border-white/10 rounded-lg">
+              <SelectTrigger className="h-10 bg-white border-slate-200 rounded-lg">
                 <SelectValue placeholder="Selecionar..." />
               </SelectTrigger>
               <SelectContent>
@@ -74,14 +74,14 @@ function CustomFieldsForm({ productId, onChange }: { productId: string, onChange
               </SelectContent>
             </Select>
           ) : f.type === 'boolean' ? (
-            <div className="flex items-center gap-2 h-10 px-3 bg-white/[0.03] border border-white/10 rounded-lg">
+            <div className="flex items-center gap-2 h-10 px-3 bg-white border border-slate-200 rounded-lg">
               <Switch onCheckedChange={(v) => handleFieldChange(f.name, v)} />
-              <span className="text-xs text-white/60">Sim</span>
+              <span className="text-xs text-slate-700">Sim</span>
             </div>
           ) : (
             <Input 
               type={f.type || 'text'}
-              className="h-10 bg-white/[0.03] border-white/10 rounded-lg"
+              className="h-10 bg-white border-slate-200 rounded-lg"
               onChange={(e) => handleFieldChange(f.name, e.target.value)}
             />
           )}
@@ -272,14 +272,14 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto bg-neutral-950 border-white/10 shadow-[0_0_100px_rgba(0,0,0,1)] p-0">
+      <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto bg-white border-slate-200 shadow-xl p-0">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_300px]">
           <div className="p-8 space-y-8">
             <DialogHeader>
-              <DialogTitle className="editorial-title flex items-center gap-3">
+              <DialogTitle className="text-xl font-bold text-slate-900 flex items-center gap-3">
                 <Package className="size-6 text-primary" /> Novo Fechamento
               </DialogTitle>
-              <DialogDescription className="editorial-label text-white/20">
+              <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-400">
                 Configure os detalhes da venda, comissões e delegação técnica.
               </DialogDescription>
             </DialogHeader>
@@ -287,17 +287,17 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
             <div className="space-y-8">
               {/* PRODUTO */}
               <div className="space-y-4">
-                <p className="editorial-label text-primary flex items-center gap-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-primary flex items-center gap-2">
                    01. Seleção de Produto
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="editorial-label text-white/40">Empresa (Opcional)</Label>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500">Empresa (Opcional)</Label>
                     <Select 
                       value={(form as any).company_id || "none"} 
                       onValueChange={(v) => setForm({ ...form, company_id: v } as any)}
                     >
-                      <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl">
+                      <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl">
                         <SelectValue placeholder="Selecione a empresa" />
                       </SelectTrigger>
                       <SelectContent>
@@ -309,9 +309,9 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="editorial-label text-white/40">Produto</Label>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500">Produto</Label>
                     <Select value={form.product_id} onValueChange={handleProductChange}>
-                      <SelectTrigger className="h-12 bg-white/[0.03] border-white/10 rounded-xl"><SelectValue placeholder="Selecione o produto" /></SelectTrigger>
+                      <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl"><SelectValue placeholder="Selecione o produto" /></SelectTrigger>
                       <SelectContent>
                         {products.map((p: any) => (
                           <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -320,14 +320,14 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="editorial-label text-white/40">Valor da Venda</Label>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500">Valor da Venda</Label>
                     <div className="relative">
-                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 font-mono text-sm">R$</span>
+                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">R$</span>
                        <Input
                          type="number" step="0.01" min="0"
                          value={form.value || ""}
                          onChange={(e) => setForm({ ...form, value: Number(e.target.value) })}
-                         className="h-12 pl-12 bg-white/[0.03] border-white/10 rounded-xl font-mono text-lg font-bold"
+                         className="h-12 pl-12 bg-white border-slate-200 rounded-xl font-mono text-lg font-bold"
                          placeholder="0,00"
                        />
                     </div>
@@ -338,26 +338,26 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
               {/* COMISSOES */}
               <div className="space-y-4">
                 <div className="flex items-end justify-between">
-                  <p className="editorial-label text-primary flex items-center gap-2">02. Rede de Comissionamento</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-primary flex items-center gap-2">02. Rede de Comissionamento</p>
                   <span className={cn(
                     "text-[10px] font-mono px-2 py-1 rounded-md",
-                    totalPercent > 100 ? "bg-rose-500/20 text-rose-300" : totalPercent > 60 ? "bg-amber-500/20 text-amber-300" : "bg-white/5 text-white/40"
+                    totalPercent > 100 ? "bg-rose-50 text-rose-700" : totalPercent > 60 ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-500"
                   )}>
                     {totalPercent.toFixed(1)}% comprometido
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* PARCEIRO */}
-                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                  <div className="space-y-2 p-4 bg-slate-50/60 border border-slate-200/70 rounded-2xl">
                     <div className="flex items-center justify-between">
-                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><Handshake className="size-3" /> Parceiro Vendedor</Label>
-                      {partnerCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(partnerCalc)}</span>}
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500 flex items-center gap-1.5"><Handshake className="size-3" /> Parceiro Vendedor</Label>
+                      {partnerCalc > 0 && <span className="text-[10px] font-mono text-emerald-600">{formatBRL(partnerCalc)}</span>}
                     </div>
                     <Select
                       value={form.partner_id || "__none__"}
                       onValueChange={(v) => v === "__none__" ? setForm({ ...form, partner_id: "", partner_commission: 10 }) : handlePartnerChange(v)}
                     >
-                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Direto / Sem parceiro" /></SelectTrigger>
+                      <SelectTrigger className="h-10 bg-transparent border-slate-200 rounded-lg"><SelectValue placeholder="Direto / Sem parceiro" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">Direto / Sem parceiro</SelectItem>
                         {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
@@ -368,30 +368,30 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                         <div className="relative">
                           <Input type="number" step="0.1" min="0" max="100" value={form.partner_commission}
                             onChange={(e) => setForm({ ...form, partner_commission: Number(e.target.value) })}
-                            className="h-9 bg-white/[0.05] border-white/10 pr-7 font-mono text-sm" />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">%</span>
+                            className="h-9 bg-white border-slate-200 pr-7 font-mono text-sm" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">%</span>
                         </div>
                         <div className="relative">
                           <Input type="number" step="0.01" min="0" value={partnerCalc.toFixed(2)}
                             onChange={(e) => setForm({ ...form, partner_commission: form.value > 0 ? (Number(e.target.value) / form.value) * 100 : 0 })}
-                            className="h-9 bg-white/[0.05] border-white/10 pl-7 font-mono text-sm" />
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                            className="h-9 bg-white border-slate-200 pl-7 font-mono text-sm" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">R$</span>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* INDICADOR */}
-                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                  <div className="space-y-2 p-4 bg-slate-50/60 border border-slate-200/70 rounded-2xl">
                     <div className="flex items-center justify-between">
-                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><UserCheck className="size-3" /> Indicador</Label>
-                      {referrerCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(referrerCalc)}</span>}
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500 flex items-center gap-1.5"><UserCheck className="size-3" /> Indicador</Label>
+                      {referrerCalc > 0 && <span className="text-[10px] font-mono text-emerald-600">{formatBRL(referrerCalc)}</span>}
                     </div>
                     <Select
                       value={form.referrer_id || "__none__"}
                       onValueChange={(v) => v === "__none__" ? setForm({ ...form, referrer_id: "", referrer_commission: 5 }) : handleReferrerChange(v)}
                     >
-                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem indicação" /></SelectTrigger>
+                      <SelectTrigger className="h-10 bg-transparent border-slate-200 rounded-lg"><SelectValue placeholder="Sem indicação" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">Sem indicação</SelectItem>
                         {referrers.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
@@ -402,30 +402,30 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                         <div className="relative">
                           <Input type="number" step="0.1" min="0" max="100" value={form.referrer_commission}
                             onChange={(e) => setForm({ ...form, referrer_commission: Number(e.target.value) })}
-                            className="h-9 bg-white/[0.05] border-white/10 pr-7 font-mono text-sm" />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">%</span>
+                            className="h-9 bg-white border-slate-200 pr-7 font-mono text-sm" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">%</span>
                         </div>
                         <div className="relative">
                           <Input type="number" step="0.01" min="0" value={referrerCalc.toFixed(2)}
                             onChange={(e) => setForm({ ...form, referrer_commission: form.value > 0 ? (Number(e.target.value) / form.value) * 100 : 0 })}
-                            className="h-9 bg-white/[0.05] border-white/10 pl-7 font-mono text-sm" />
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                            className="h-9 bg-white border-slate-200 pl-7 font-mono text-sm" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">R$</span>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* COLABORADOR INTERNO */}
-                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                  <div className="space-y-2 p-4 bg-slate-50/60 border border-slate-200/70 rounded-2xl">
                     <div className="flex items-center justify-between">
-                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><UserCog className="size-3" /> Vendedor Interno</Label>
-                      {collaboratorCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(collaboratorCalc)}</span>}
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500 flex items-center gap-1.5"><UserCog className="size-3" /> Vendedor Interno</Label>
+                      {collaboratorCalc > 0 && <span className="text-[10px] font-mono text-emerald-600">{formatBRL(collaboratorCalc)}</span>}
                     </div>
                     <Select
                       value={form.collaborator_id || "__none__"}
                       onValueChange={(v) => setForm({ ...form, collaborator_id: v === "__none__" ? "" : v, collaborator_commission: v === "__none__" ? 0 : (form.collaborator_commission || 5) })}
                     >
-                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem vendedor interno" /></SelectTrigger>
+                      <SelectTrigger className="h-10 bg-transparent border-slate-200 rounded-lg"><SelectValue placeholder="Sem vendedor interno" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">Sem vendedor interno</SelectItem>
                         {collaborators.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
@@ -436,30 +436,30 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                         <div className="relative">
                           <Input type="number" step="0.1" min="0" max="100" value={form.collaborator_commission}
                             onChange={(e) => setForm({ ...form, collaborator_commission: Number(e.target.value) })}
-                            className="h-9 bg-white/[0.05] border-white/10 pr-7 font-mono text-sm" />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">%</span>
+                            className="h-9 bg-white border-slate-200 pr-7 font-mono text-sm" />
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">%</span>
                         </div>
                         <div className="relative">
                           <Input type="number" step="0.01" min="0" value={collaboratorCalc.toFixed(2)}
                             onChange={(e) => setForm({ ...form, collaborator_commission: form.value > 0 ? (Number(e.target.value) / form.value) * 100 : 0 })}
-                            className="h-9 bg-white/[0.05] border-white/10 pl-7 font-mono text-sm" />
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                            className="h-9 bg-white border-slate-200 pl-7 font-mono text-sm" />
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">R$</span>
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* PRESTADOR (repasse fixo R$) */}
-                  <div className="space-y-2 p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl">
+                  <div className="space-y-2 p-4 bg-slate-50/60 border border-slate-200/70 rounded-2xl">
                     <div className="flex items-center justify-between">
-                      <Label className="editorial-label text-white/40 flex items-center gap-1.5"><Calculator className="size-3" /> Prestador (repasse)</Label>
-                      {providerCalc > 0 && <span className="text-[10px] font-mono text-emerald-400">{formatBRL(providerCalc)}</span>}
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-slate-500 flex items-center gap-1.5"><Calculator className="size-3" /> Prestador (repasse)</Label>
+                      {providerCalc > 0 && <span className="text-[10px] font-mono text-emerald-600">{formatBRL(providerCalc)}</span>}
                     </div>
                     <Select
                       value={form.service_provider_id || "__none__"}
                       onValueChange={(v) => setForm({ ...form, service_provider_id: v === "__none__" ? "" : v, provider_payout: v === "__none__" ? 0 : form.provider_payout })}
                     >
-                      <SelectTrigger className="h-10 bg-transparent border-white/10 rounded-lg"><SelectValue placeholder="Sem prestador" /></SelectTrigger>
+                      <SelectTrigger className="h-10 bg-transparent border-slate-200 rounded-lg"><SelectValue placeholder="Sem prestador" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">Sem prestador / executar internamente</SelectItem>
                         {providers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name} · {p.specialty}</SelectItem>)}
@@ -470,8 +470,8 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                         <Input type="number" step="0.01" min="0" value={form.provider_payout || ""}
                           onChange={(e) => setForm({ ...form, provider_payout: Number(e.target.value) })}
                           placeholder="Valor fixo do repasse"
-                          className="h-9 bg-white/[0.05] border-white/10 pl-9 font-mono text-sm" />
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-white/30">R$</span>
+                          className="h-9 bg-white border-slate-200 pl-9 font-mono text-sm" />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">R$</span>
                       </div>
                     )}
                   </div>
@@ -481,46 +481,46 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           </div>
 
           {/* RIGHT SIDEBAR SUMMARY */}
-          <div className="bg-white/[0.02] border-l border-white/10 p-8 flex flex-col justify-between">
+          <div className="bg-slate-50/60 border-l border-slate-200 p-8 bg-slate-50 flex flex-col justify-between">
             <div className="space-y-8">
                <div className="space-y-2">
-                 <p className="editorial-label">Split de Receita</p>
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Split de Receita</p>
                  <div className="space-y-3 pt-4">
-                    <div className="flex justify-between items-center text-white/40">
+                    <div className="flex justify-between items-center text-slate-500">
                        <span className="text-[11px] font-bold uppercase tracking-wider">Bruto</span>
                        <span className="font-mono text-sm">{formatBRL(form.value)}</span>
                     </div>
                     {partnerCalc > 0 && (
-                      <div className="flex justify-between items-center text-rose-400">
+                      <div className="flex justify-between items-center text-rose-600">
                          <span className="text-[11px] font-bold uppercase tracking-wider">Parceiro · {form.partner_commission}%</span>
                          <span className="font-mono text-sm">− {formatBRL(partnerCalc)}</span>
                       </div>
                     )}
                     {referrerCalc > 0 && (
-                      <div className="flex justify-between items-center text-rose-400">
+                      <div className="flex justify-between items-center text-rose-600">
                          <span className="text-[11px] font-bold uppercase tracking-wider">Indicador · {form.referrer_commission}%</span>
                          <span className="font-mono text-sm">− {formatBRL(referrerCalc)}</span>
                       </div>
                     )}
                     {collaboratorCalc > 0 && (
-                      <div className="flex justify-between items-center text-rose-400">
+                      <div className="flex justify-between items-center text-rose-600">
                          <span className="text-[11px] font-bold uppercase tracking-wider">Vendedor int. · {form.collaborator_commission}%</span>
                          <span className="font-mono text-sm">− {formatBRL(collaboratorCalc)}</span>
                       </div>
                     )}
                     {providerCalc > 0 && (
-                      <div className="flex justify-between items-center text-rose-400">
+                      <div className="flex justify-between items-center text-rose-600">
                          <span className="text-[11px] font-bold uppercase tracking-wider">Prestador (repasse)</span>
                          <span className="font-mono text-sm">− {formatBRL(providerCalc)}</span>
                       </div>
                     )}
-                    <div className="h-px bg-white/5" />
+                    <div className="h-px bg-slate-100" />
                     <div className="flex justify-between items-center">
-                       <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Líquido empresa</span>
-                       <span className="font-mono text-xl font-bold text-emerald-400">{formatBRL(companyShare)}</span>
+                       <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Líquido empresa</span>
+                       <span className="font-mono text-xl font-bold text-emerald-600">{formatBRL(companyShare)}</span>
                     </div>
                     {form.value > 0 && (
-                      <div className="flex justify-between text-[10px] text-white/30 font-mono">
+                      <div className="flex justify-between text-[10px] text-slate-400 font-mono">
                         <span>Margem</span>
                         <span>{((companyShare / form.value) * 100).toFixed(1)}%</span>
                       </div>
@@ -529,7 +529,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
               {/* CAMPOS PERSONALIZADOS */}
               {form.product_id && (
                 <div className="space-y-4">
-                  <p className="editorial-label text-primary flex items-center gap-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-primary flex items-center gap-2">
                      04. Informações Específicas
                   </p>
                   <CustomFieldsForm 
@@ -545,7 +545,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                   <Textarea
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="bg-transparent border-none p-0 text-xs text-white/60 focus-visible:ring-0 resize-none h-24"
+                    className="bg-transparent border-none p-0 text-xs text-slate-700 focus-visible:ring-0 resize-none h-24"
                     placeholder="Adicionar notas internas sobre esta venda..."
                   />
                </div>
@@ -555,11 +555,11 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
                <button 
                  disabled={saving || !form.product_id || form.value <= 0}
                  onClick={handleSave}
-                 className="w-full action-button btn-primary h-12 shadow-[0_0_50px_rgba(var(--primary-rgb),0.3)]"
+                 className="w-full action-button btn-primary h-12 shadow-md"
                >
                  {saving ? <Loader2 className="size-5 animate-spin" /> : <>Finalizar Venda <ArrowRight className="size-4 ml-2" /></>}
                </button>
-               <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full editorial-label">Descartar</Button>
+               <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full text-[10px] font-bold uppercase tracking-widest text-slate-500">Descartar</Button>
             </div>
           </div>
         </div>
