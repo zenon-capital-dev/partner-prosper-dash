@@ -468,14 +468,28 @@ export default function DemandDetail() {
                   <div className="vx-card p-8 bg-card">
                     <div className="flex items-center justify-between mb-6">
                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Tarefas Internas</h3>
-                       <Button size="sm" className="h-8 gap-2">
+                       <Button size="sm" className="h-8 gap-2" onClick={() => setTaskOpen(true)}>
                           <Plus className="size-3.5" /> Adicionar Tarefa
                        </Button>
                     </div>
-                    <div className="space-y-3">
-                       {/* Simplified task list view for demand-specific tasks */}
-                       <p className="text-sm text-center text-muted-foreground py-10">Use a aba de checklist para gerenciar as etapas principais do processo.</p>
-                    </div>
+                    {demandTasks.length === 0 ? (
+                      <p className="text-sm text-center text-muted-foreground py-10">Nenhuma tarefa vinculada a esta demanda.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {demandTasks.map((t: any) => (
+                          <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/20">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold truncate">{t.title}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                                {(t.status_new || t.status || "—").replace(/_/g, " ")} · {t.priority}
+                                {t.due_date && ` · ${formatDate(t.due_date)}`}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => navigate(`/tarefas`)}>Ver</Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                </TabsContent>
 
