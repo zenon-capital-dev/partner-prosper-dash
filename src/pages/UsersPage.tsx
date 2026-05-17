@@ -40,6 +40,7 @@ export default function UsersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, has_system_access: true, internal_notes: "" });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
 
   const { data: users = [] } = useQuery({
