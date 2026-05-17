@@ -81,10 +81,10 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                 <p className="text-[9px] text-muted-foreground mt-1 uppercase tracking-widest font-bold">Status do Documento</p>
               </div>
               <div className="flex items-center gap-2 border-l border-border/40 pl-6">
-                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all">
+                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all" onClick={() => downloadContract(contract.file_path)} title="Baixar arquivo">
                   <Download className="size-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all">
+                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all" onClick={() => navigate(`/contratos?focus=${contract.id}`)} title="Abrir detalhes">
                   <Eye className="size-4" />
                 </Button>
               </div>
