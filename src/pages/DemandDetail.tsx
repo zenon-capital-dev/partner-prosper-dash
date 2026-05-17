@@ -46,8 +46,31 @@ export default function DemandDetail() {
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
   const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [delegateOpen, setDelegateOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
+
+  const openNotesEditor = () => {
+    setNotesDraft((demand as any)?.internal_notes ?? "");
+    setNotesOpen(true);
+  };
+
+  const saveNotes = async () => {
+    if (!demand?.id) return;
+    setSavingNotes(true);
+    const { error } = await supabase
+      .from("client_products")
+      .update({ internal_notes: notesDraft })
+      .eq("id", demand.id);
+    setSavingNotes(false);
+    if (error) return toast.error("Erro ao salvar observações");
+    toast.success("Observações atualizadas");
+    setNotesOpen(false);
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
 
   const { data: demand, isLoading } = useQuery({
     queryKey: ["demand-detail", id],
