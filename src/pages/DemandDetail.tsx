@@ -684,6 +684,36 @@ export default function DemandDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nova tarefa para esta demanda</DialogTitle></DialogHeader>
+          <Textarea rows={3} value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="O que precisa ser feito?" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTaskOpen(false)}>Cancelar</Button>
+            <Button onClick={createTask}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deliveryOpen} onOpenChange={setDeliveryOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Registrar entrega</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <input className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
+              placeholder="Título da entrega"
+              value={deliveryForm.title}
+              onChange={(e) => setDeliveryForm({ ...deliveryForm, title: e.target.value })} />
+            <Textarea rows={4} placeholder="Descrição (opcional)"
+              value={deliveryForm.description}
+              onChange={(e) => setDeliveryForm({ ...deliveryForm, description: e.target.value })} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancelar</Button>
+            <Button onClick={createDelivery}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
