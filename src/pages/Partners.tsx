@@ -163,27 +163,27 @@ export default function Partners() {
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder="Buscar por nome ou email..."
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-11 bg-white/[0.02] border-white/[0.05] rounded-xl focus:border-primary/50 transition-all"
+            className="pl-10 h-11 bg-white border-slate-200 rounded-xl focus:border-indigo-400 transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="h-11 w-[140px] bg-white/[0.02] border-white/[0.05] rounded-xl text-xs font-bold uppercase tracking-wider"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-[140px] bg-white border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos Status</SelectItem>
               <SelectItem value="ativos">Ativos</SelectItem>
               <SelectItem value="inativos">Inativos</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex items-center bg-white/[0.02] border border-white/[0.05] rounded-xl p-1">
-            <button onClick={() => setView("list")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-white/[0.08] text-white" : "text-white/20 hover:text-white")}>
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1">
+            <button onClick={() => setView("list")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-indigo-50 text-indigo-700" : "text-slate-400 hover:text-slate-700")}>
               <List className="size-4" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-white/[0.08] text-white" : "text-white/20 hover:text-white")}>
+            <button onClick={() => setView("grid")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-indigo-50 text-indigo-700" : "text-slate-400 hover:text-slate-700")}>
               <LayoutGrid className="size-4" />
             </button>
           </div>
@@ -191,7 +191,7 @@ export default function Partners() {
       </div>
 
       {view === "list" ? (
-        <div className="bg-white/[0.01] border border-white/[0.05] rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-white border border-slate-200/70 rounded-lg overflow-hidden shadow-sm">
           <ListView partners={filtered} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
         </div>
       ) : (
@@ -306,49 +306,52 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
   return (
     <table className="w-full text-[13px]">
       <thead>
-        <tr className="border-b border-white/[0.05] bg-white/[0.01]">
-          <th className="px-6 py-5 text-left editorial-label">Parceiro</th>
-          <th className="px-6 py-5 text-right editorial-label">Performance</th>
-          <th className="px-6 py-5 text-right editorial-label">Ganhos</th>
-          <th className="px-6 py-5 text-center editorial-label">Trend</th>
-          <th className="px-6 py-5 text-right editorial-label">Ações</th>
+        <tr className="border-b border-slate-200 bg-slate-50/60">
+          <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Parceiro</th>
+          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Performance</th>
+          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Ganhos</th>
+          <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Trend</th>
+          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Ações</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-white/[0.05]">
+      <tbody className="divide-y divide-slate-100">
         {partners.map((p: any) => {
           const rank = topIds.get(p.id);
           return (
-            <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
-              <td className="px-6 py-5">
+            <tr key={p.id} className="hover:bg-slate-50/60 transition-colors group">
+              <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="size-11 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-sm font-bold shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]">
+                    <div className="size-11 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
                       {initials(p.full_name)}
                     </div>
                     {rank && <RankBadge rank={rank} />}
                   </div>
                   <div>
-                    <p className="font-bold text-white group-hover:text-primary transition-colors text-base">{p.full_name}</p>
-                    <p className="text-[11px] text-white/20 font-mono uppercase tracking-widest">{p.email || formatPhone(p.phone)}</p>
+                    <p className="font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors text-[14px]">{p.full_name}</p>
+                    <p className="text-[11px] text-slate-500 font-mono">{p.email || formatPhone(p.phone)}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-5 text-right">
-                <p className="font-mono font-bold text-white/80">{p._clientsCount} Indicações</p>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{formatPercent(p.commission_percent)} Base</p>
+              <td className="px-6 py-4 text-right">
+                <p className="font-mono font-semibold text-slate-700">{p._clientsCount} Indicações</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{formatPercent(p.commission_percent)} Base</p>
               </td>
-              <td className="px-6 py-5 text-right">
-                <p className="font-mono font-bold text-primary text-base">{formatBRL(p._total)}</p>
-                {p._pending > 0 && <p className="text-[10px] text-warning font-bold uppercase tracking-widest">Pendente: {formatBRL(p._pending)}</p>}
+              <td className="px-6 py-4 text-right">
+                <p className="font-mono font-bold text-indigo-700 text-base">{formatBRL(p._total)}</p>
+                {p._pending > 0 && <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Pendente: {formatBRL(p._pending)}</p>}
               </td>
-              <td className="px-6 py-5"><Sparkline data={p._spark} /></td>
-              <td className="px-6 py-5 text-right">
-                <div className="flex items-center justify-end gap-3">
-                  <button onClick={() => onDetail(p.id)} className="action-button btn-outline h-9 w-9 p-0">
+              <td className="px-6 py-4"><Sparkline data={p._spark} /></td>
+              <td className="px-6 py-4 text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <button onClick={() => onDetail(p.id)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
                     <ArrowUpRight className="size-4" />
                   </button>
-                  <button onClick={() => onEdit(p)} className="action-button btn-outline h-9 w-9 p-0">
+                  <button onClick={() => onEdit(p)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
                     <Pencil className="size-3.5" />
+                  </button>
+                  <button onClick={() => onToggle(p)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
+                    {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
                   </button>
                 </div>
               </td>
@@ -362,33 +365,33 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
 
 function GridView({ partners, topIds, onDetail }: any) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       {partners.map((p: any) => {
         const rank = topIds.get(p.id);
         return (
-          <div key={p.id} className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 hover:border-primary/30 transition-all group">
-            <div className="flex items-start justify-between mb-8">
+          <div key={p.id} className="bg-white border border-slate-200/70 rounded-lg p-6 hover:border-indigo-200 hover:shadow-md transition-all group shadow-sm">
+            <div className="flex items-start justify-between mb-6">
               <div className="relative">
-                <div className="size-14 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-xl font-bold">
+                <div className="size-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold">
                   {initials(p.full_name)}
                 </div>
                 {rank && <RankBadge rank={rank} />}
               </div>
-              <button onClick={() => onDetail(p.id)} className="size-10 rounded-full bg-white/[0.05] flex items-center justify-center hover:bg-white/10 transition-colors">
+              <button onClick={() => onDetail(p.id)} className="size-10 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
                 <ArrowUpRight className="size-5" />
               </button>
             </div>
-            <h3 className="text-xl font-bold text-white mb-1">{p.full_name}</h3>
-            <p className="editorial-label mb-6">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
-            
-            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+            <h3 className="text-lg font-bold text-slate-900 mb-1">{p.full_name}</h3>
+            <p className="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-5">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
+
+            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-100">
               <div>
-                <p className="editorial-label mb-1">Indicações</p>
-                <p className="text-lg font-bold font-mono">{p._clientsCount}</p>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Indicações</p>
+                <p className="text-lg font-bold font-mono text-slate-900">{p._clientsCount}</p>
               </div>
               <div>
-                <p className="editorial-label mb-1">Comissão Total</p>
-                <p className="text-lg font-bold font-mono text-primary">{formatBRL(p._total)}</p>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Comissão Total</p>
+                <p className="text-lg font-bold font-mono text-indigo-700">{formatBRL(p._total)}</p>
               </div>
             </div>
           </div>
@@ -399,7 +402,7 @@ function GridView({ partners, topIds, onDetail }: any) {
 }
 
 function Sparkline({ data }: { data: number[] }) {
-  if (!data || data.length === 0 || data.every((v) => v === 0)) return <div className="h-6 w-20 bg-white/5 rounded-full mx-auto opacity-20" />;
+  if (!data || data.length === 0 || data.every((v) => v === 0)) return <div className="h-5 w-20 bg-slate-100 rounded-full mx-auto" />;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -407,17 +410,18 @@ function Sparkline({ data }: { data: number[] }) {
   const H = 20;
   const points = data.map((v, i) => `${i * (W/(data.length-1))},${H - ((v - min) / range) * H}`).join(" ");
   return (
-    <svg width={W} height={H} className="mx-auto opacity-60 group-hover:opacity-100 transition-opacity">
-      <polyline points={points} fill="none" stroke="currentColor" className="text-primary" strokeWidth="2" strokeLinejoin="round" />
+    <svg width={W} height={H} className="mx-auto">
+      <polyline points={points} fill="none" stroke="currentColor" className="text-indigo-600" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function RankBadge({ rank }: { rank: number }) {
   const Icon = rank === 1 ? Crown : Award;
+  const colors = rank === 1 ? "bg-amber-400 text-amber-950" : rank === 2 ? "bg-slate-300 text-slate-800" : "bg-amber-700 text-amber-50";
   return (
-    <div className="absolute -top-2 -right-2 size-6 rounded-full bg-white text-black flex items-center justify-center shadow-2xl border-2 border-black">
-      <Icon className="size-3.5" />
+    <div className={cn("absolute -top-1.5 -right-1.5 size-6 rounded-full flex items-center justify-center shadow-md ring-2 ring-white", colors)}>
+      <Icon className="size-3" />
     </div>
   );
 }

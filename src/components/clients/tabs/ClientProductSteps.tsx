@@ -39,7 +39,7 @@ export function ClientProductSteps({ clientProductId, showDetails = false }: { c
     onError: (err: any) => toast.error(err.message),
   });
 
-  if (isLoading) return <Loader2 className="size-4 animate-spin text-white/20 mx-auto" />;
+  if (isLoading) return <Loader2 className="size-4 animate-spin text-slate-400 mx-auto" />;
   if (!steps?.length) return null;
 
   const completedCount = steps.filter(s => s.completed).length;

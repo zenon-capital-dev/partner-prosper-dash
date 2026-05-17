@@ -145,7 +145,7 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
       case 'baixo': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
       case 'médio': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
       case 'alto': return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
-      default: return 'bg-white/5 text-white/40 border-white/10';
+      default: return 'bg-slate-100 text-slate-500 border-slate-200';
     }
   };
 
@@ -174,7 +174,7 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
               </span>
             </div>
 
-            <p className="text-white/70 leading-relaxed mb-6 italic text-sm">
+            <p className="text-slate-700 leading-relaxed mb-6 italic text-sm">
               "{generateSummaryText()}"
             </p>
 
@@ -182,21 +182,21 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
               <div className="space-y-1">
                 <p className="editorial-label text-[9px]">Responsável</p>
                 <div className="flex items-center gap-2">
-                  <User className="size-3 text-white/40" />
+                  <User className="size-3 text-slate-500" />
                   <p className="text-xs font-medium truncate">{client.responsible_name || 'Não atribuído'}</p>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="editorial-label text-[9px]">Parceiro</p>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="size-3 text-white/40" />
+                  <TrendingUp className="size-3 text-slate-500" />
                   <p className="text-xs font-medium truncate">{client.partners?.full_name || 'Direto'}</p>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="editorial-label text-[9px]">Última Atualização</p>
                 <div className="flex items-center gap-2">
-                  <Clock className="size-3 text-white/40" />
+                  <Clock className="size-3 text-slate-500" />
                   <p className="text-xs font-medium">{lastUpdate}</p>
                 </div>
               </div>
@@ -244,13 +244,13 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
                 icon={FileText} 
                 label="Documentos" 
                 value={`${pendingDocs.length} Pendentes`} 
-                color={pendingDocs.length > 0 ? "text-amber-500" : "text-white/40"}
+                color={pendingDocs.length > 0 ? "text-amber-500" : "text-slate-500"}
               />
               <QuickStat 
                 icon={CreditCard} 
                 label="Financeiro" 
                 value={`${pendingPayments.length} Pendentes`} 
-                color={pendingPayments.length > 0 ? "text-rose-500" : "text-white/40"}
+                color={pendingPayments.length > 0 ? "text-rose-500" : "text-slate-500"}
               />
             </div>
           </div>
@@ -264,16 +264,16 @@ function QuickStat({ icon: Icon, label, value, subValue, color }: any) {
   return (
     <div className="flex items-center justify-between group cursor-default">
       <div className="flex items-center gap-3">
-        <div className="size-7 rounded-lg bg-white/5 flex items-center justify-center text-white/40 group-hover:text-white transition-colors">
+        <div className="size-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:text-slate-900 transition-colors">
           <Icon className="size-3.5" />
         </div>
         <div>
-          <p className="text-[10px] text-white/40 font-medium">{label}</p>
+          <p className="text-[10px] text-slate-500 font-medium">{label}</p>
           <p className={cn("text-xs font-bold", color)}>{value}</p>
         </div>
       </div>
       {subValue && (
-        <span className="text-[9px] text-white/20 font-mono italic">{subValue}</span>
+        <span className="text-[9px] text-slate-400 font-mono italic">{subValue}</span>
       )}
     </div>
   );
