@@ -513,7 +513,7 @@ export default function ClientDetail() {
             <div className="cp-panel p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold">Observações Internas</h3>
-                <Button variant="outline" size="sm">Editar Notas</Button>
+                <Button onClick={openNotesEditor} variant="outline" size="sm">Editar Notas</Button>
               </div>
               <div className="p-4 rounded-xl bg-muted/20 border border-border/40 min-h-[200px] text-sm leading-relaxed text-muted-foreground">
                 {client.internal_notes || "Nenhuma observação interna registrada para este cliente."}
