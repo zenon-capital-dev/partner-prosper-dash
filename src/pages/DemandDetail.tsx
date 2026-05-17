@@ -536,6 +536,30 @@ export default function DemandDetail() {
         defaultProductId={demand.product_id}
         onSuccess={() => qc.invalidateQueries({ queryKey: ["demand-detail", id] })}
       />
+      <DelegateProviderDialog
+        open={delegateOpen}
+        onOpenChange={setDelegateOpen}
+        clientProductId={demand.id}
+        currentProviderId={(demand as any).service_provider_id}
+        productName={(demand as any).products?.name || (demand as any).custom_product_name}
+      />
+      <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Observações Internas</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            rows={8}
+            value={notesDraft}
+            onChange={(e) => setNotesDraft(e.target.value)}
+            placeholder="Anotações visíveis apenas para o time interno..."
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotesOpen(false)}>Cancelar</Button>
+            <Button onClick={saveNotes} disabled={savingNotes}>{savingNotes ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
