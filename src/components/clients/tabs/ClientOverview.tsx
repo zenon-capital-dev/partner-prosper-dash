@@ -1,7 +1,26 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { formatBRL, formatDate, formatPhone, formatDoc } from "@/lib/format";
-import { Mail, Phone, IdCard, MapPin, Calendar, User, Briefcase, Globe, Building2 } from "lucide-react";
+import { User, Briefcase, Globe, Building2 } from "lucide-react";
 
 export function ClientOverview({ client, stats }: any) {
+  const { data: collaborator } = useQuery({
+    queryKey: ["client-collaborator", client.collaborator_id],
+    enabled: !!client.collaborator_id,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("full_name").eq("id", client.collaborator_id).maybeSingle();
+      return data;
+    },
+  });
+  const { data: provider } = useQuery({
+    queryKey: ["client-provider", client.service_provider_id],
+    enabled: !!client.service_provider_id,
+    queryFn: async () => {
+      const { data } = await supabase.from("service_providers").select("name").eq("id", client.service_provider_id).maybeSingle();
+      return data;
+    },
+  });
+
   return (
     <div className="space-y-6 animate-fade-up">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -46,8 +65,8 @@ export function ClientOverview({ client, stats }: any) {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <DetailItem label="Parceiro/Indicador" value={client.partners?.full_name || "Nenhum"} />
-          <DetailItem label="Colaborador Responsável" value={client.collaborator_id || "Não atribuído"} />
-          <DetailItem label="Prestador Vinculado" value={client.service_provider_id || "Nenhum"} />
+          <DetailItem label="Colaborador Responsável" value={collaborator?.full_name || (client.collaborator_id ? "—" : "Não atribuído")} />
+          <DetailItem label="Prestador Vinculado" value={provider?.name || (client.service_provider_id ? "—" : "Nenhum")} />
           <DetailItem label="Prioridade" value={client.priority || "Média"} />
         </div>
       </div>
