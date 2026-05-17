@@ -824,6 +824,15 @@ export default function ProviderPanel() {
           clientName={reportTarget.clientName}
         />
       )}
+      {docRequestTarget && (
+        <RequestDocumentDialog
+          open={!!docRequestTarget}
+          onOpenChange={(v) => !v && setDocRequestTarget(null)}
+          clientId={docRequestTarget.clientId}
+          clientProductId={docRequestTarget.cpId}
+          context={docRequestTarget.context}
+        />
+      )}
     </div>
   );
 }
