@@ -311,7 +311,7 @@ function ProviderCard({ provider, onDetail, onEdit, onAssign, onToggle }: any) {
 function Stat({ label, value, tone }: { label: string; value: number; tone: "info" | "primary" | "success" }) {
   const colors: any = {
     info: "text-sky-600",
-    violet: "text-indigo-600",
+    primary: "text-indigo-600",
     success: "text-emerald-600",
   };
   return (
