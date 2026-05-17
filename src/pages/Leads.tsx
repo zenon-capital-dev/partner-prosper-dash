@@ -37,6 +37,8 @@ const statusColors: Record<string, string> = {
   "Sem resposta": "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-400",
 };
 
+const PAGE_SIZE = 25;
+
 export default function Leads() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function Leads() {
   const [followUpLead, setFollowUpLead] = useState<any>(null);
   const [convertOpen, setConvertOpen] = useState(false);
   const [convertLead, setConvertLead] = useState<any>(null);
+  const [page, setPage] = useState(1);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -83,6 +86,13 @@ export default function Leads() {
       l.phone?.includes(q)
     );
   }, [leads, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedLeads = useMemo(
+    () => filteredLeads.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredLeads, currentPage]
+  );
 
   const handleEdit = (lead: any) => {
     setSelectedLead(lead);
@@ -201,7 +211,7 @@ export default function Leads() {
                   <td colSpan={6} className="px-6 py-20 text-center text-sm text-muted-foreground">Nenhum lead encontrado.</td>
                 </tr>
               ) : (
-                filteredLeads.map((lead: any) => (
+                pagedLeads.map((lead: any) => (
                   <tr key={lead.id} className="border-b last:border-0 border-border/40 hover:bg-muted/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -266,10 +276,12 @@ export default function Leads() {
         </div>
         {!isLoading && filteredLeads.length > 0 && (
           <div className="p-4 border-t border-border/40 bg-muted/5 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Mostrando {filteredLeads.length} resultados</p>
+            <p className="text-xs text-muted-foreground">
+              Página {currentPage} de {totalPages} · Mostrando {pagedLeads.length} de {filteredLeads.length} leads
+            </p>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Anterior</Button>
-              <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Próximo</Button>
+              <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="h-8 text-[11px]">Anterior</Button>
+              <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="h-8 text-[11px]">Próximo</Button>
             </div>
           </div>
         )}
