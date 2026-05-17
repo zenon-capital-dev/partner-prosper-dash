@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { UserCog, UserPlus, Search, Mail, Copy, Shield, MoreHorizontal, UserCheck, UserX, Lock, Key, Settings } from "lucide-react";
+import { UserPlus, Search, Mail, Copy, Shield, MoreHorizontal, UserCheck, UserX, Lock, Key } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
