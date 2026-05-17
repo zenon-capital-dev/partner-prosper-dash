@@ -20,6 +20,8 @@ import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PageHero } from "@/components/PageHero";
 import { ProsperLogo } from "@/components/VendxLogo";
+import { NotificationBell } from "@/components/NotificationBell";
+import { useSystemSettings, buildWhatsAppLink, buildMailtoLink } from "@/hooks/useSystemSettings";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator,
@@ -39,9 +41,26 @@ export default function ClientPanel() {
   const { user, signOut } = useAuth();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
+  const settings = useSystemSettings();
+  const wa = (msg?: string) => buildWhatsAppLink(settings.support_whatsapp, msg);
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
   const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+
+  const downloadDoc = async (path?: string | null, name?: string) => {
+    if (!path) return toast.error("Arquivo indisponível");
+    // Se for URL completa, abre direto
+    if (path.startsWith("http")) return window.open(path, "_blank");
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
+    if (error || !data) return toast.error("Não foi possível baixar");
+    const a = document.createElement("a");
+    a.href = data.signedUrl;
+    a.download = name || "documento";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["client-panel", user?.id],
@@ -129,15 +148,7 @@ export default function ClientPanel() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
-              onClick={() => toast.info("Notificações em breve")}
-              aria-label="Notificações"
-            >
-              <Bell className="size-4" />
-            </Button>
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
@@ -159,7 +170,7 @@ export default function ClientPanel() {
                 <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2">
                   <LayoutDashboard className="size-4" /> Painel inicial
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.open("https://wa.me/5511999999999", "_blank")} className="gap-2">
+                <DropdownMenuItem onClick={() => window.open(wa(), "_blank")} className="gap-2">
                   <MessageSquare className="size-4" /> Falar com a equipe
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -195,10 +206,10 @@ export default function ClientPanel() {
                icon={<Package className="size-6" />}
                actions={
                  <div className="flex gap-2">
-                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(`https://wa.me/5511999999999`, '_blank')}>
+                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(wa(), '_blank')}>
                      <MessageSquare className="size-4 mr-2" /> Falar com Equipe
                    </Button>
-                   <Button className="btn-premium h-11 rounded-xl" onClick={() => toast.info("Relatório sendo gerado...")}>
+                   <Button className="btn-premium h-11 rounded-xl" onClick={() => window.open(wa(`Gostaria do relatório completo da demanda ${selectedProduct.products?.name}`), "_blank")}>
                      Baixar Relatório
                    </Button>
                  </div>
@@ -241,11 +252,11 @@ export default function ClientPanel() {
                                    </div>
                                 </div>
                                 {d.file_path ? (
-                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => window.open(d.file_path, '_blank')}>
+                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => downloadDoc(d.file_path, d.name)}>
                                       <Download className="size-4" />
                                    </Button>
                                 ) : (
-                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => toast.info("Funcionalidade de upload na aba Documentos")}>
+                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => setActiveTab("checklist")}>
                                       <Upload className="size-3 mr-1.5" /> Upload
                                    </Button>
                                 )}
@@ -353,7 +364,7 @@ export default function ClientPanel() {
                       )}
                     </button>
                     <button
-                      onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
+                      onClick={() => window.open(wa(), "_blank")}
                       className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-md text-white text-[13px] font-semibold hover:bg-white/10 transition-all active:scale-[0.98]"
                     >
                       <MessageSquare className="size-4" /> Falar com a equipe
@@ -429,7 +440,7 @@ export default function ClientPanel() {
                                       {d.client_products?.products?.name && <p className="text-[9px] text-muted-foreground truncate">{d.client_products.products.name}</p>}
                                    </div>
                                 </div>
-                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path || d.file_url, '_blank')}>
+                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}>
                                   <Download className="size-4" />
                                </Button>
                             </div>
@@ -457,10 +468,10 @@ export default function ClientPanel() {
                        <div className="space-y-6">
                           <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
                           <div className="space-y-3">
-                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open(wa(), '_blank')}>
                                 <MessageSquare className="size-4 mr-2" /> Iniciar Chat
                              </Button>
-                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
+                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = buildMailtoLink(settings.support_email)}>
                                 <Mail className="size-4 mr-2" /> Enviar E-mail
                              </Button>
                           </div>
@@ -551,7 +562,7 @@ export default function ClientPanel() {
                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.recurring ? "A partir de" : "Investimento"}</p>
                              <p className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
                            </div>
-                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(`https://wa.me/5511999999999?text=Tenho interesse em ${encodeURIComponent(p.name)}`, '_blank')}>
+                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), '_blank')}>
                              Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
                            </Button>
                         </div>
@@ -574,18 +585,37 @@ export default function ClientPanel() {
                     <div className="divide-y divide-slate-50 dark:divide-white/5">
                        {docs.map((d: any) => (
                          <div key={d.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                            <div className="flex items-center gap-5">
-                               <div className="size-12 rounded-[18px] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                            <div className="flex items-center gap-5 min-w-0">
+                               <div className={cn(
+                                 "size-12 rounded-[18px] flex items-center justify-center shrink-0",
+                                 d.file_path ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-slate-100 dark:bg-white/5 text-slate-400"
+                               )}>
                                   <FileText className="size-6" />
                                </div>
-                               <div>
-                                  <p className="font-bold text-slate-900 dark:text-white">{d.name}</p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">Enviado em {formatDate(d.created_at)}</p>
+                               <div className="min-w-0">
+                                  <p className="font-bold text-slate-900 dark:text-white truncate">{d.name}</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">
+                                    {d.file_path ? `Enviado em ${formatDate(d.created_at)}` : "Pendente de envio"}
+                                  </p>
                                </div>
                             </div>
-                            <Button variant="outline" size="sm" className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all">
-                               <Download className="size-4" /> Download
-                            </Button>
+                            {d.file_path ? (
+                              <Button
+                                variant="outline" size="sm"
+                                className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all shrink-0"
+                                onClick={() => downloadDoc(d.file_path, d.name)}
+                              >
+                                 <Download className="size-4" /> Download
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline" size="sm"
+                                className="rounded-xl gap-2 h-10 shrink-0"
+                                onClick={() => setActiveTab("checklist")}
+                              >
+                                 <Upload className="size-4" /> Enviar
+                              </Button>
+                            )}
                          </div>
                        ))}
                        {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-muted-foreground">Sua biblioteca de documentos está vazia.</p>}
@@ -670,7 +700,7 @@ export default function ClientPanel() {
                           <h3 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Faturamento & cobrança</h3>
                           <p className="text-sm text-white/50 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
                        </div>
-                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open(wa(), '_blank')}>
                          <MessageSquare className="size-4 mr-2" /> Solicitar ajuste
                        </Button>
                     </div>

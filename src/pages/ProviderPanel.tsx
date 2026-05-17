@@ -17,6 +17,7 @@ import { formatDate, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
+import { RequestDocumentDialog } from "@/components/provider/RequestDocumentDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export default function ProviderPanel() {
   const activeTab = tabParam && PROVIDER_PATH_TO_TAB[tabParam] ? PROVIDER_PATH_TO_TAB[tabParam] : "dashboard";
   const setActiveTab = (v: string) => navigate(v === "dashboard" ? "/prestador" : `/prestador/${PROVIDER_TAB_TO_PATH[v] || v}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
+  const [docRequestTarget, setDocRequestTarget] = useState<{ clientId: string; cpId: string; context?: string } | null>(null);
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [reportStatusFilter, setReportStatusFilter] = useState<string>("todos");
@@ -340,10 +342,26 @@ export default function ProviderPanel() {
                    >
                      <ClipboardCheck className="size-4 mr-2" /> Reportar Status
                    </Button>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.info("Funcionalidade em desenvolvimento: Solicitar Documento")}>
+                   <Button
+                     variant="outline"
+                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
+                     onClick={() => setDocRequestTarget({
+                       clientId: selectedProduct.clients?.id,
+                       cpId: selectedProduct.id,
+                       context: selectedProduct.products?.name,
+                     })}
+                   >
                      <FileText className="size-4 mr-2" /> Solicitar Documento
                    </Button>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.success("Notificação enviada ao administrador solicitando conclusão")}>
+                   <Button
+                     variant="outline"
+                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
+                     onClick={() => setReportTarget({
+                       id: selectedProduct.id,
+                       productName: selectedProduct.products?.name,
+                       clientName: selectedProduct.clients?.full_name,
+                     })}
+                   >
                      <CheckCircle2 className="size-4 mr-2" /> Enviar Conclusão
                    </Button>
                 </div>
@@ -804,6 +822,15 @@ export default function ProviderPanel() {
           clientProductId={reportTarget.id}
           productName={reportTarget.productName}
           clientName={reportTarget.clientName}
+        />
+      )}
+      {docRequestTarget && (
+        <RequestDocumentDialog
+          open={!!docRequestTarget}
+          onOpenChange={(v) => !v && setDocRequestTarget(null)}
+          clientId={docRequestTarget.clientId}
+          clientProductId={docRequestTarget.cpId}
+          context={docRequestTarget.context}
         />
       )}
     </div>
