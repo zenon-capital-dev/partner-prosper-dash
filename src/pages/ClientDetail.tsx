@@ -57,6 +57,48 @@ export default function ClientDetail() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [editOpen, setEditOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [interactionOpen, setInteractionOpen] = useState(false);
+  const [interactionTitle, setInteractionTitle] = useState("");
+  const [interactionDesc, setInteractionDesc] = useState("");
+  const [savingInteraction, setSavingInteraction] = useState(false);
+
+  const openNotesEditor = () => {
+    setNotesDraft((client as any)?.internal_notes ?? "");
+    setNotesOpen(true);
+  };
+  const saveNotes = async () => {
+    if (!id) return;
+    setSavingNotes(true);
+    const { error } = await supabase.from("clients").update({ internal_notes: notesDraft }).eq("id", id);
+    setSavingNotes(false);
+    if (error) return toast.error("Erro ao salvar observações");
+    toast.success("Observações atualizadas");
+    setNotesOpen(false);
+    qc.invalidateQueries({ queryKey: ["client", id] });
+  };
+  const saveInteraction = async () => {
+    if (!id || !interactionTitle.trim()) return toast.error("Informe um título");
+    setSavingInteraction(true);
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await supabase.from("client_timeline").insert({
+      client_id: id,
+      user_id: userData.user?.id,
+      event_type: "note_added",
+      title: interactionTitle.trim(),
+      description: interactionDesc.trim() || null,
+    });
+    setSavingInteraction(false);
+    if (error) return toast.error("Erro ao salvar registro");
+    toast.success("Interação registrada");
+    setInteractionTitle("");
+    setInteractionDesc("");
+    setInteractionOpen(false);
+    qc.invalidateQueries({ queryKey: ["client", id] });
+    qc.invalidateQueries({ queryKey: ["client-history", id] });
+  };
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ["client", id],
