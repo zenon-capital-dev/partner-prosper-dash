@@ -616,6 +616,20 @@
     @apply bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20;
   }
 
+  /* Inside admin: re-skin the action buttons to corporate light */
+  .admin-shell .action-button {
+    @apply h-10 px-4 rounded-lg font-sans font-semibold uppercase tracking-[0.08em] text-[11.5px] transition-all flex items-center justify-center gap-2;
+  }
+  .admin-shell .btn-primary {
+    @apply bg-gradient-to-b from-indigo-600 to-indigo-700 text-white border border-indigo-700/40 shadow-[0_2px_8px_-2px_rgba(79,70,229,0.45),inset_0_1px_0_rgba(255,255,255,0.18)] hover:from-indigo-500 hover:to-indigo-600 hover:shadow-[0_4px_14px_-4px_rgba(79,70,229,0.55),inset_0_1px_0_rgba(255,255,255,0.2)];
+  }
+  .admin-shell .btn-outline {
+    @apply bg-white border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-700 hover:text-indigo-700 shadow-sm;
+  }
+  .admin-shell .btn-success {
+    @apply bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100;
+  }
+
   .suggested-card {
     @apply p-4 rounded-2xl border border-primary/20 bg-primary/5 flex items-center justify-between gap-4;
   }
