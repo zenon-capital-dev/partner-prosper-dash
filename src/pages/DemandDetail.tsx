@@ -497,7 +497,7 @@ export default function DemandDetail() {
                   <div className="vx-card p-8 bg-card">
                     <div className="flex items-center justify-between mb-6">
                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Entregas de Valor</h3>
-                       <Button size="sm" className="h-8 gap-2">
+                       <Button size="sm" className="h-8 gap-2" onClick={() => setDeliveryOpen(true)}>
                           <Plus className="size-3.5" /> Registrar Entrega
                        </Button>
                     </div>
