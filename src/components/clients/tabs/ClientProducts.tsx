@@ -87,8 +87,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         {isLoading ? (
           <div className="p-20 text-center"><Activity className="size-8 animate-spin mx-auto text-primary/20" /></div>
         ) : clientProducts?.length === 0 ? (
-          <div className="vx-card p-20 text-center border-dashed border-2 bg-slate-50 dark:bg-white/5 rounded-[40px]">
-            <Package className="size-16 text-slate-200 dark:text-white/5 mx-auto mb-6" />
+          <div className="vx-card p-20 text-center border-dashed border-2 bg-slate-50 rounded-[40px]">
+            <Package className="size-16 text-slate-200 mx-auto mb-6" />
             <p className="font-editorial text-xl font-bold">Nenhum serviço contratado</p>
             <p className="text-muted-foreground text-sm mt-2 mb-8 max-w-xs mx-auto">Vincule os produtos negociados para iniciar a gestão operacional e técnica.</p>
             <Button onClick={() => setAddOpen(true)} variant="outline" className="gap-2 rounded-xl">
@@ -98,16 +98,16 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         ) : clientProducts?.map((cp: any) => {
           const lastReport = (latestReports as any)[cp.id];
           return (
-            <div key={cp.id} className="vx-card bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] overflow-hidden group hover:border-primary/20 transition-all duration-500">
+            <div key={cp.id} className="vx-card bg-white border-slate-100 rounded-[40px] overflow-hidden group hover:border-primary/20 transition-all duration-500">
                <div className="p-8 lg:p-10">
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
                      <div className="flex items-start gap-6">
-                        <div className="size-16 rounded-[24px] bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-110">
+                        <div className="size-16 rounded-[24px] bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-110">
                            <Package className="size-8" />
                         </div>
                         <div className="space-y-2">
                            <div className="flex items-center gap-3">
-                              <h4 className="font-editorial text-3xl font-bold text-slate-900 dark:text-white leading-none">
+                              <h4 className="font-editorial text-3xl font-bold text-slate-900 leading-none">
                                 {cp.products?.name || cp.custom_product_name}
                               </h4>
                               <StatusBadge status={cp.status} />
@@ -129,7 +129,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         </Button>
                         <DropdownMenu>
                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5">
+                              <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-slate-100">
                                  <MoreVertical className="size-4 text-muted-foreground" />
                               </Button>
                            </DropdownMenuTrigger>
@@ -146,7 +146,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10 pt-10 border-t border-slate-50 dark:border-white/5">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10 pt-10 border-t border-slate-50">
                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
                      <DataField label="Data de Início" value={formatDate(cp.created_at)} icon={Calendar} />
                      <DataField label="Prazo Fatal" value={cp.deadline ? formatDate(cp.deadline) : "Nenhum"} icon={Clock} />
@@ -164,9 +164,9 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                            <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                               <ClipboardCheck className="size-4" />
                            </div>
-                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Checklist de Entrega</h5>
+                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900">Checklist de Entrega</h5>
                         </div>
-                        <div className="bg-slate-50/50 dark:bg-white/[0.02] rounded-[32px] p-8 border border-slate-100 dark:border-white/5">
+                        <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100">
                            <ClientProductSteps clientProductId={cp.id} />
                         </div>
                      </div>
@@ -176,23 +176,23 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                            <div className="size-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
                               <Activity className="size-4" />
                            </div>
-                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white">Último Reporte Técnico</h5>
+                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900">Último Reporte Técnico</h5>
                         </div>
                         <div className={cn(
-                          "rounded-[32px] p-8 border border-slate-100 dark:border-white/5 h-full min-h-[160px] flex flex-col justify-between transition-colors",
-                          lastReport ? "bg-indigo-50/30 dark:bg-indigo-500/5" : "bg-slate-50/50 dark:bg-white/[0.02] border-dashed border-2"
+                          "rounded-[32px] p-8 border border-slate-100 h-full min-h-[160px] flex flex-col justify-between transition-colors",
+                          lastReport ? "bg-indigo-50/30" : "bg-slate-50/50 border-dashed border-2"
                         )}>
                            {lastReport ? (
                              <>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic">"{lastReport.notes}"</p>
-                                <div className="mt-6 flex items-center justify-between border-t border-indigo-100/50 dark:border-white/5 pt-4">
+                                <p className="text-sm text-slate-600 font-medium leading-relaxed italic">"{lastReport.notes}"</p>
+                                <div className="mt-6 flex items-center justify-between border-t border-indigo-100/50 pt-4">
                                    <StatusBadge status={lastReport.status} />
                                    <span className="text-[10px] font-bold text-muted-foreground uppercase">{formatDate(lastReport.created_at)}</span>
                                 </div>
                              </>
                            ) : (
                              <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
-                                <Activity className="size-6 text-slate-200 dark:text-white/5" />
+                                <Activity className="size-6 text-slate-200" />
                                 <p className="text-xs text-muted-foreground font-medium">Nenhum reporte enviado pelo técnico ainda.</p>
                              </div>
                            )}
@@ -233,7 +233,7 @@ function DataField({ label, value, icon: Icon, highlight }: { label: string; val
       </div>
       <p className={cn(
         "text-sm font-bold truncate",
-        highlight ? "text-primary" : "text-slate-900 dark:text-white"
+        highlight ? "text-primary" : "text-slate-900"
       )}>{value}</p>
     </div>
   );
@@ -247,7 +247,7 @@ function StatusBadge({ status }: { status: string }) {
     em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
     pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
     concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-white/40" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200" },
     ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
     finalizado: { label: "FINALIZADO", className: "bg-muted text-muted-foreground border-border" },
   };

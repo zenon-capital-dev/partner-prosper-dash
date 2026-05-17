@@ -40,8 +40,8 @@ export function ClientTasks({ clientId }: { clientId: string }) {
             <div className="flex items-center gap-4">
               <div className={cn("size-10 rounded-xl flex items-center justify-center", 
                 task.status === "concluida" || task.status === "completed" 
-                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600"
-                  : "bg-slate-50 dark:bg-slate-900 text-slate-500"
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-slate-50 text-slate-500"
               )}>
                 {task.status === "concluida" || task.status === "completed" ? <CheckCircle2 className="size-5" /> : <ClipboardList className="size-5" />}
               </div>

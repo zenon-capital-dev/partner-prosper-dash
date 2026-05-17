@@ -37,13 +37,13 @@ type DocRequest = {
 type Product = { id: string; name: string };
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
-  solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300", icon: Clock },
-  enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300", icon: Loader2 },
+  solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
+  enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200", icon: Loader2 },
   em_analise: { label: "Em Análise", tone: "bg-primary-muted text-primary border-primary/20", icon: Loader2 },
-  aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300", icon: CheckCircle2 },
-  reprovado: { label: "Rejeitado", tone: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300", icon: AlertCircle },
+  aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
+  reprovado: { label: "Rejeitado", tone: "bg-rose-50 text-rose-700 border-rose-200", icon: AlertCircle },
   pendente_correcao: { label: "Reenvio Necessário", tone: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
-  atrasado: { label: "Atrasado", tone: "bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300", icon: AlertCircle },
+  atrasado: { label: "Atrasado", tone: "bg-rose-100 text-rose-700 border-rose-300", icon: AlertCircle },
   vencido: { label: "Vencido", tone: "bg-slate-100 text-slate-500 border-slate-200", icon: Clock },
 };
 
@@ -139,9 +139,9 @@ export function ClientDocumentsTab({
 
   if (requests.length === 0) {
     return (
-      <div className="vx-card bg-white dark:bg-slate-900/40 rounded-[24px] p-12 text-center border-slate-100 dark:border-white/5">
+      <div className="vx-card bg-white rounded-[24px] p-12 text-center border-slate-100">
         <CheckCircle2 className="size-12 text-emerald-500/30 mx-auto mb-4" />
-        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Você está em dia!</h3>
+        <h3 className="font-editorial text-2xl font-bold text-slate-900">Você está em dia!</h3>
         <p className="text-muted-foreground mt-2 text-sm">Nenhum documento pendente de envio no momento.</p>
       </div>
     );
@@ -162,18 +162,18 @@ export function ClientDocumentsTab({
       </div>
 
       {grouped.map(([key, { product, items }]) => (
-        <div key={key} className="vx-card bg-white dark:bg-slate-900/40 rounded-[24px] overflow-hidden border-slate-100 dark:border-white/5">
-          <div className="px-6 py-5 border-b border-slate-50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5 flex items-center gap-3">
+        <div key={key} className="vx-card bg-white rounded-[24px] overflow-hidden border-slate-100">
+          <div className="px-6 py-5 border-b border-slate-50 bg-slate-50/30 flex items-center gap-3">
             <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               <Package className="size-5" />
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Produto</p>
-              <h3 className="font-editorial text-lg font-bold text-slate-900 dark:text-white">{product?.name ?? "Documentos gerais"}</h3>
+              <h3 className="font-editorial text-lg font-bold text-slate-900">{product?.name ?? "Documentos gerais"}</h3>
             </div>
           </div>
 
-          <div className="divide-y divide-slate-50 dark:divide-white/5">
+          <div className="divide-y divide-slate-50">
             {items.map((req) => {
               const effective = getEffectiveStatus(req);
               const meta = STATUS_META[effective] ?? STATUS_META.solicitado;
@@ -181,14 +181,14 @@ export function ClientDocumentsTab({
               const isUploading = uploadingId === req.id;
               
               return (
-                <div key={req.id} className="p-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-slate-50/40 dark:hover:bg-white/5 transition-colors">
+                <div key={req.id} className="p-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-slate-50/40 transition-colors">
                   <div className={cn("size-12 rounded-xl flex items-center justify-center shrink-0", meta.tone, "border")}>
                     <Icon className={cn("size-5", req.status === "enviado" || req.status === "em_analise" ? "animate-spin" : "")} />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-bold text-slate-900 dark:text-white">{req.name}</p>
+                      <p className="font-bold text-slate-900">{req.name}</p>
                       <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider", meta.tone)}>
                         {meta.label}
                       </Badge>
@@ -201,7 +201,7 @@ export function ClientDocumentsTab({
                     </div>
 
                     {req.status === "reprovado" && req.rejection_reason && (
-                      <p className="text-xs text-rose-600 mt-2 bg-rose-50 dark:bg-rose-500/10 px-3 py-2 rounded-lg border border-rose-100 dark:border-rose-500/20">
+                      <p className="text-xs text-rose-600 mt-2 bg-rose-50 px-3 py-2 rounded-lg border border-rose-100">
                         <strong>Motivo da reprovação:</strong> {req.rejection_reason}
                       </p>
                     )}
@@ -226,7 +226,7 @@ export function ClientDocumentsTab({
 
                     <Button
                       size="sm"
-                      className="rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900"
+                      className="rounded-xl bg-slate-900"
                       disabled={isUploading}
                       onClick={() => setConfirmReq(req)}
                     >
@@ -260,14 +260,14 @@ export function ClientDocumentsTab({
 
 function SummaryCard({ tone, label, value, icon: Icon }: { tone: string; label: string; value: number; icon: any }) {
   const tones: any = {
-    warning: "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
-    info: "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
-    success: "bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+    warning: "bg-amber-50 text-amber-600 border-amber-100",
+    info: "bg-blue-50 text-blue-600 border-blue-100",
+    success: "bg-emerald-50 text-emerald-600 border-emerald-100",
   };
 
   return (
     <div className={cn("vx-card p-6 flex items-center gap-4 border transition-all hover:scale-[1.02]", tones[tone])}>
-      <div className="size-10 rounded-xl bg-white/50 dark:bg-black/20 flex items-center justify-center shrink-0">
+      <div className="size-10 rounded-xl bg-white/50 flex items-center justify-center shrink-0">
         <Icon className="size-5" />
       </div>
       <div>

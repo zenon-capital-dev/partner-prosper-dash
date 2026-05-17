@@ -107,7 +107,7 @@ export default function Providers() {
         description="Gerencie sua rede de fornecedores externos. Delegue demandas, controle entregas e acompanhe a operação terceirizada."
         icon={<Briefcase className="size-6" />}
         actions={
-          <Button onClick={() => { setEditing(null); setCreateOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-600 text-white shadow-xl">
+          <Button onClick={() => { setEditing(null); setCreateOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
             <Plus className="size-4 mr-1.5" /> Novo Prestador
           </Button>
         }
@@ -161,7 +161,7 @@ export default function Providers() {
             <Briefcase className="size-14 mx-auto text-muted-foreground/30 mb-4" />
             <p className="font-display text-lg">Nenhum prestador cadastrado</p>
             <p className="text-sm text-muted-foreground mt-1">Cadastre fornecedores externos para delegar entregas e atendimentos.</p>
-            <Button onClick={() => setCreateOpen(true)} className="mt-5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white">
+            <Button onClick={() => setCreateOpen(true)} className="mt-5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
               <Plus className="size-4 mr-1.5" /> Cadastrar primeiro prestador
             </Button>
           </div>
@@ -263,7 +263,7 @@ export default function Providers() {
 function ProviderCard({ provider, onDetail, onEdit, onAssign, onToggle }: any) {
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-xl transition-all">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
       <div className="flex items-start justify-between mb-4">
         <button onClick={onDetail} className="flex items-center gap-3 min-w-0 text-left">

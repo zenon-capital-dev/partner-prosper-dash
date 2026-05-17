@@ -140,7 +140,7 @@ export default function Contracts() {
         description="Centralize contratos com clientes, parceiros e prestadores. Acompanhe assinaturas, validades e histórico auditado."
         icon={<FileSignature className="size-6" />}
         actions={
-          <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-600 text-white shadow-xl">
+          <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
             <Plus className="size-4 mr-1.5" /> Novo Contrato
           </Button>
         }

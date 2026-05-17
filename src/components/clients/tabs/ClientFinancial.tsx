@@ -117,10 +117,10 @@ function FinancialCard({ label, value, icon: Icon, color }: any) {
 
 function StatusPill({ status }: { status: string }) {
   const map: any = {
-    pago: { label: "PAGO", color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10" },
-    pendente: { label: "PENDENTE", color: "text-amber-600 bg-amber-50 dark:bg-amber-500/10" },
-    atrasado: { label: "ATRASADO", color: "text-rose-600 bg-rose-50 dark:bg-rose-500/10" },
-    cancelado: { label: "CANCELADO", color: "text-slate-600 bg-slate-50 dark:bg-slate-500/10" },
+    pago: { label: "PAGO", color: "text-emerald-600 bg-emerald-50" },
+    pendente: { label: "PENDENTE", color: "text-amber-600 bg-amber-50" },
+    atrasado: { label: "ATRASADO", color: "text-rose-600 bg-rose-50" },
+    cancelado: { label: "CANCELADO", color: "text-slate-600 bg-slate-50" },
   };
   const config = map[status] || { label: status, color: "text-slate-600 bg-slate-50" };
   return (

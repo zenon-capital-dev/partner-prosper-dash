@@ -95,7 +95,7 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg">
+            <div className="size-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
               <Briefcase className="size-5" />
             </div>
             <div>
@@ -188,7 +188,7 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
 
         <DialogFooter className="gap-2 border-t border-border pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg">
+          <Button onClick={submit} disabled={submitting} className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg">
             {submitting ? "Salvando..." : provider ? "Salvar Alterações" : "Cadastrar Prestador"}
           </Button>
         </DialogFooter>

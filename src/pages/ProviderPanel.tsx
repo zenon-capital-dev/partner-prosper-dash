@@ -230,11 +230,11 @@ export default function ProviderPanel() {
   const selectedProduct = clientProducts.find((cp: any) => cp.id === selectedProductId);
 
   return (
-    <div className="bg-premium min-h-screen dark:bg-[#020617]">
+    <div className="bg-premium min-h-screen">
       <div className="page-shell space-y-10 py-10">
         
         {/* Header & Stats Strip */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white dark:bg-card p-8 rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden group">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-colors group-hover:bg-primary/10" />
           
           <div className="relative space-y-1.5">
@@ -242,7 +242,7 @@ export default function ProviderPanel() {
               <span className="h-px w-8 bg-primary/40" />
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Service Provider Console</p>
             </div>
-            <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+            <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
               Olá, <span className="text-primary italic">{provider.name.split(' ')[0]}</span>.
             </h1>
             <p className="text-xs text-muted-foreground font-medium flex items-center gap-2">
@@ -271,25 +271,25 @@ export default function ProviderPanel() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
-                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
                    <div className="flex items-center gap-3 mb-6">
-                      <div className="size-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                      <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                         <Briefcase className="size-5" />
                       </div>
                       <h3 className="font-editorial text-xl font-bold">Escopo do Serviço</h3>
                    </div>
                    <div className="space-y-4">
-                      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      <p className="text-sm text-slate-600 leading-relaxed">
                          {selectedProduct.products?.description || "Descrição do serviço não disponível."}
                       </p>
                    </div>
                 </div>
 
-                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
                    <div className="flex items-start justify-between mb-8">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Atendimento em Curso</p>
-                        <h2 className="font-editorial text-3xl font-bold text-slate-900 dark:text-white">
+                        <h2 className="font-editorial text-3xl font-bold text-slate-900">
                            {selectedProduct.clients?.full_name}
                         </h2>
                         <div className="flex items-center gap-3 pt-2">
@@ -299,27 +299,27 @@ export default function ProviderPanel() {
                            <StatusBadge status={selectedProduct.status} />
                         </div>
                       </div>
-                      <div className="size-14 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center border border-slate-100 dark:border-white/10">
+                      <div className="size-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
                          <Briefcase className="size-6 text-slate-400" />
                       </div>
                    </div>
 
-                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 pt-8 border-t border-slate-50 dark:border-white/5">
+                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 pt-8 border-t border-slate-50">
                       <DetailField label="Data de Início" value={formatDate(selectedProduct.created_at)} />
                       <DetailField label="Prazo Fatal" value={selectedProduct.deadline ? formatDate(selectedProduct.deadline) : "—"} />
                       <DetailField label="Valor Delegado" value={formatBRL(selectedProduct.value)} />
                    </div>
 
                    {selectedProduct.notes && (
-                     <div className="mt-8 p-6 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10">
+                     <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Observações do Admin</p>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">{selectedProduct.notes}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed italic">{selectedProduct.notes}</p>
                      </div>
                    )}
                 </div>
 
                 {/* Checklist / Steps */}
-                <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
                    <div className="flex items-center gap-3 mb-6">
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <ListChecks className="size-5" />
@@ -367,14 +367,14 @@ export default function ProviderPanel() {
                 </div>
 
                 {/* Documents for this product */}
-                <div className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px] space-y-4">
-                   <h3 className="font-editorial text-lg font-bold border-b border-slate-50 dark:border-white/5 pb-3">Documentos Vinculados</h3>
+                <div className="vx-card p-6 bg-white border-slate-100 rounded-[24px] space-y-4">
+                   <h3 className="font-editorial text-lg font-bold border-b border-slate-50 pb-3">Documentos Vinculados</h3>
                    <div className="space-y-3">
                       {documents.filter(d => d.client_product_id === selectedProductId).length === 0 ? (
                         <p className="text-xs text-muted-foreground italic p-4 text-center">Nenhum documento anexado.</p>
                       ) : (
                         documents.filter(d => d.client_product_id === selectedProductId).map((d: any) => (
-                          <div key={d.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 transition-colors">
+                          <div key={d.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
                              <div className="flex items-center gap-3 min-w-0">
                                 <FileText className="size-4 text-primary/60 shrink-0" />
                                 <p className="text-xs font-bold truncate">{d.name}</p>
@@ -396,13 +396,13 @@ export default function ProviderPanel() {
           /* MAIN LIST VIEW */
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8 animate-fade-up">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 flex-wrap">
-                <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Home</TabsTrigger>
-                <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
-                <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
-                <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Documentos ({documents.length})</TabsTrigger>
-                <TabsTrigger value="reportes" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Reportes ({reports.length})</TabsTrigger>
-                <TabsTrigger value="contratos" className="rounded-xl px-5 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none">Contratos ({contracts.length})</TabsTrigger>
+              <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12 flex-wrap">
+                <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
+                <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
+                <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Documentos ({documents.length})</TabsTrigger>
+                <TabsTrigger value="reportes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Reportes ({reports.length})</TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Contratos ({contracts.length})</TabsTrigger>
               </TabsList>
 
               <div className="relative group">
@@ -411,7 +411,7 @@ export default function ProviderPanel() {
                   placeholder="Buscar demanda..." 
                   value={search} 
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10 h-12 bg-white/50 dark:bg-card border-slate-200 dark:border-white/5 rounded-2xl w-full md:w-[320px] transition-all focus:ring-primary/20"
+                  className="pl-10 h-12 bg-white/50 border-slate-200 rounded-2xl w-full md:w-[320px] transition-all focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -449,7 +449,7 @@ export default function ProviderPanel() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                  <div className="vx-card p-8 bg-white dark:bg-card rounded-[32px] border border-slate-100 dark:border-white/5 shadow-sm">
+                  <div className="vx-card p-8 bg-white rounded-[32px] border border-slate-100 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
                        <h3 className="font-editorial text-2xl font-bold">Demandas com Prazo Próximo</h3>
                        <Button variant="ghost" className="text-primary text-xs font-bold uppercase tracking-widest" onClick={() => navigate("/prestador")}>Ver todas</Button>
@@ -462,19 +462,19 @@ export default function ProviderPanel() {
                           <div 
                             key={cp.id} 
                             onClick={() => setSelectedProductId(cp.id)}
-                            className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/20 transition-all cursor-pointer group"
+                            className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary/20 transition-all cursor-pointer group"
                           >
                              <div className="flex items-center gap-4">
-                                <div className="size-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/10 flex items-center justify-center">
+                                <div className="size-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center">
                                    <Clock className="size-5 text-slate-400 group-hover:text-primary transition-colors" />
                                 </div>
                                 <div>
-                                   <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{cp.clients?.full_name}</p>
+                                   <p className="font-bold text-slate-900 group-hover:text-primary transition-colors">{cp.clients?.full_name}</p>
                                    <p className="text-xs text-muted-foreground">{cp.products?.name}</p>
                                 </div>
                              </div>
                              <div className="text-right">
-                                <p className="text-xs font-bold text-slate-900 dark:text-white">{formatDate(cp.deadline)}</p>
+                                <p className="text-xs font-bold text-slate-900">{formatDate(cp.deadline)}</p>
                                 <p className="text-[10px] text-rose-500 font-bold uppercase tracking-widest mt-1">Prazo Fatal</p>
                              </div>
                           </div>
@@ -515,8 +515,8 @@ export default function ProviderPanel() {
                 const active = products.filter(p => p.status !== "concluido" && p.status !== "cancelado").length;
                 const needsRpt = products.filter(p => needsReport(p.id, p.status)).length;
                 return (
-                  <div key={client?.id || "x"} className="vx-card bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[28px] overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-slate-50/50 to-transparent dark:from-white/5">
+                  <div key={client?.id || "x"} className="vx-card bg-white border border-slate-100 rounded-[28px] overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-slate-50/50 to-transparent">
                       <div>
                         <h3 className="font-editorial text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
                         <p className="text-xs text-muted-foreground">{client?.company || client?.email || "—"}</p>
@@ -530,7 +530,7 @@ export default function ProviderPanel() {
                     </div>
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-slate-50/40 dark:bg-white/5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                        <tr className="bg-slate-50/40 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                           <th className="px-6 py-3 text-left">Produto</th>
                           <th className="px-6 py-3 text-center">Status</th>
                           <th className="px-6 py-3 text-center">SLA</th>
@@ -539,12 +539,12 @@ export default function ProviderPanel() {
                           <th className="px-6 py-3 text-right">Ações</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                      <tbody className="divide-y divide-slate-50">
                         {products.map((p: any) => {
                           const last = lastReportMap.get(p.id);
                           const stale = needsReport(p.id, p.status);
                           return (
-                            <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5">
+                            <tr key={p.id} className="hover:bg-slate-50/50">
                               <td className="px-6 py-4 font-bold">{p.products?.name || "—"}</td>
                               <td className="px-6 py-4 text-center"><StatusBadge status={p.status} /></td>
                               <td className="px-6 py-4 text-center"><Badge variant="outline" className={cn("text-[9px]", p.sla_status === "no_prazo" ? "text-emerald-600 border-emerald-200" : p.sla_status === "atrasado" ? "text-rose-600 border-rose-200" : "text-amber-600 border-amber-200")}>{p.sla_status || "—"}</Badge></td>
@@ -580,7 +580,7 @@ export default function ProviderPanel() {
                   <button
                     key={s}
                     onClick={() => setDemandStatusFilter(s)}
-                    className={cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-colors", demandStatusFilter === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-white/5 text-muted-foreground hover:bg-slate-200")}
+                    className={cn("text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg transition-colors", demandStatusFilter === s ? "bg-primary text-white" : "bg-slate-100 text-muted-foreground hover:bg-slate-200")}
                   >
                     {s.replace(/_/g, " ")}
                   </button>
@@ -597,10 +597,10 @@ export default function ProviderPanel() {
                     return (
                       <div
                         key={cp.id}
-                        className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card"
+                        className="vx-card p-6 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card"
                       >
                         <div className="flex items-start justify-between mb-6">
-                          <div className="size-12 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
+                          <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
                             <Briefcase className="size-6" />
                           </div>
                           <div className="flex flex-col items-end gap-1">
@@ -610,11 +610,11 @@ export default function ProviderPanel() {
                         </div>
 
                         <div className="space-y-1 cursor-pointer" onClick={() => setSelectedProductId(cp.id)}>
-                          <h3 className="font-editorial text-xl font-bold text-slate-900 dark:text-white leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
+                          <h3 className="font-editorial text-xl font-bold text-slate-900 leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
                           <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
+                        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-50">
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo</p>
                             <p className="text-xs font-bold">{cp.deadline ? formatDate(cp.deadline) : "—"}</p>
@@ -644,26 +644,26 @@ export default function ProviderPanel() {
               {documents.length === 0 ? (
                 <EmptyState message="Nenhum documento disponível para seus atendimentos." />
               ) : (
-                <div className="vx-card overflow-hidden bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[24px]">
+                <div className="vx-card overflow-hidden bg-white border-slate-100 rounded-[24px]">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-slate-50/50 dark:bg-white/5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                      <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                         <th className="px-6 py-5 text-left">Documento / Atendimento</th>
                         <th className="px-6 py-5 text-left">Status</th>
                         <th className="px-6 py-5 text-left">Data</th>
                         <th className="px-6 py-5 text-right">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                    <tbody className="divide-y divide-slate-50">
                       {documents.map((d: any) => (
-                        <tr key={d.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
+                        <tr key={d.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                                <div className="size-9 rounded-lg bg-primary/5 flex items-center justify-center text-primary/60">
                                  <FileText className="size-4" />
                                </div>
                                <div>
-                                  <p className="font-bold text-slate-900 dark:text-white leading-tight">{d.name}</p>
+                                  <p className="font-bold text-slate-900 leading-tight">{d.name}</p>
                                   <p className="text-[10px] text-muted-foreground mt-1">{d.clients?.full_name}</p>
                                </div>
                             </div>
@@ -721,7 +721,7 @@ export default function ProviderPanel() {
                   {filteredReports.map((r: any) => {
                     const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
                     return (
-                      <div key={r.id} className="vx-card p-6 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[24px] hover:border-primary/20 transition-all">
+                      <div key={r.id} className="vx-card p-6 bg-white border border-slate-100 rounded-[24px] hover:border-primary/20 transition-all">
                         <div className="flex items-start gap-4">
                           <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
                             <ClipboardCheck className="size-6" />
@@ -737,13 +737,13 @@ export default function ProviderPanel() {
                             {r.notes && (
                               <div>
                                 <p className="text-[9px] uppercase tracking-widest font-bold text-muted-foreground mb-1">Andamento</p>
-                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{r.notes}</p>
+                                <p className="text-sm text-slate-700 leading-relaxed">{r.notes}</p>
                               </div>
                             )}
                             {r.pending && (
                               <div>
                                 <p className="text-[9px] uppercase tracking-widest font-bold text-amber-600 mb-1">Pendências</p>
-                                <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">{r.pending}</p>
+                                <p className="text-sm text-amber-700 leading-relaxed">{r.pending}</p>
                               </div>
                             )}
                             {r.next_steps && (
@@ -767,7 +767,7 @@ export default function ProviderPanel() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {contracts.map((c: any) => (
-                    <div key={c.id} className="vx-card p-6 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] space-y-4">
+                    <div key={c.id} className="vx-card p-6 bg-white border-slate-100 rounded-[32px] space-y-4">
                       <div className="flex items-start justify-between">
                         <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                           <FileText className="size-5" />
@@ -775,15 +775,15 @@ export default function ProviderPanel() {
                         <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest">{c.status.replace(/_/g, ' ')}</Badge>
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white truncate">{c.name}</h4>
+                        <h4 className="font-bold text-slate-900 truncate">{c.name}</h4>
                         <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-1">
                           {c.contract_type?.replace(/_/g, ' ') || "Contrato Geral"}
                         </p>
                       </div>
-                      <div className="pt-4 border-t border-slate-50 dark:border-white/5 space-y-2">
+                      <div className="pt-4 border-t border-slate-50 space-y-2">
                         <p className="text-xs text-muted-foreground flex items-center justify-between">
                           <span>Criado em:</span>
-                          <span className="font-bold text-slate-700 dark:text-slate-300">{formatDate(c.created_at)}</span>
+                          <span className="font-bold text-slate-700">{formatDate(c.created_at)}</span>
                         </p>
                         {c.expires_at && (
                           <p className="text-xs text-rose-500 flex items-center justify-between">
@@ -800,7 +800,7 @@ export default function ProviderPanel() {
                       </div>
                       {c.file_path && (
                         <Button 
-                          className="w-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 hover:bg-primary hover:text-white transition-all rounded-xl"
+                          className="w-full bg-slate-100 text-slate-700 hover:bg-primary hover:text-white transition-all rounded-xl"
                           onClick={() => handleDownload(c.file_path, c.name)}
                         >
                           <Download className="size-4 mr-2" /> Baixar Contrato
@@ -858,7 +858,7 @@ function DashboardCard({
   };
   
   return (
-    <div className="vx-card p-6 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[32px] shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
+    <div className="vx-card p-6 bg-white border border-slate-100 rounded-[32px] shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
        <div className="flex items-center justify-between mb-4">
           <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone])}>
              <Icon className="size-5" />
@@ -867,7 +867,7 @@ function DashboardCard({
        </div>
        <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
-          <p className="text-2xl font-bold font-editorial text-slate-900 dark:text-white mt-1">{value}</p>
+          <p className="text-2xl font-bold font-editorial text-slate-900 mt-1">{value}</p>
           <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
        </div>
     </div>
@@ -876,7 +876,7 @@ function DashboardCard({
 
 function StatItem({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "warning" | "success" }) {
   const colors: any = {
-    default: "text-slate-900 dark:text-white",
+    default: "text-slate-900",
     warning: "text-amber-500",
     success: "text-emerald-500",
   };
@@ -892,7 +892,7 @@ function DetailField({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1.5">
       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
-      <p className="text-sm font-bold text-slate-900 dark:text-white">{value}</p>
+      <p className="text-sm font-bold text-slate-900">{value}</p>
     </div>
   );
 }
@@ -905,7 +905,7 @@ function StatusBadge({ status }: { status: string }) {
     em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
     pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
     concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-white/40" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200" },
     aprovado: { label: "APROVADO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
     enviado: { label: "ENVIADO", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
     solicitado: { label: "SOLICITADO", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
@@ -921,8 +921,8 @@ function StatusBadge({ status }: { status: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="vx-card p-20 text-center bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[32px] border-dashed border-2">
-      <Inbox className="size-12 text-slate-200 dark:text-white/5 mx-auto mb-4" />
+    <div className="vx-card p-20 text-center bg-white border-slate-100 rounded-[32px] border-dashed border-2">
+      <Inbox className="size-12 text-slate-200 mx-auto mb-4" />
       <p className="font-editorial text-lg text-muted-foreground">{message}</p>
     </div>
   );
