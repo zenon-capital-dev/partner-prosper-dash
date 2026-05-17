@@ -115,6 +115,91 @@ export default function DemandDetail() {
     enabled: !!id,
   });
 
+  const { data: demandTasks = [], refetch: refetchTasks } = useQuery({
+    queryKey: ["demand-tasks", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tasks")
+        .select("id, title, status_new, status, priority, due_date, assigned_to")
+        .eq("client_product_id", id!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: history = [] } = useQuery({
+    queryKey: ["demand-history", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("activity_logs")
+        .select("id, action, new_data, created_at, user_id")
+        .eq("entity_type", "client_product")
+        .eq("entity_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const finalizeDemand = async () => {
+    if (!demand) return;
+    const ok = await (await import("@/lib/confirm")).confirmAction("Finalizar esta demanda?");
+    if (!ok) return;
+    const { error } = await supabase
+      .from("client_products")
+      .update({ status: "concluido", end_date: new Date().toISOString().slice(0, 10) })
+      .eq("id", demand.id);
+    if (error) return toast.error(error.message);
+    toast.success("Demanda finalizada");
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
+  const completeNextStep = async () => {
+    if (!nextAction) return;
+    const { error } = await supabase
+      .from("client_product_steps")
+      .update({ completed: true, status: "concluida", completed_at: new Date().toISOString() })
+      .eq("id", nextAction.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Etapa "${nextAction.label}" concluída`);
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
+  const createTask = async () => {
+    if (!taskTitle.trim()) return toast.error("Título obrigatório");
+    const { error } = await supabase.from("tasks").insert({
+      title: taskTitle,
+      status: "a_fazer",
+      status_new: "a_fazer",
+      priority: "normal",
+      client_product_id: id,
+      client_id: demand?.client_id,
+      created_by: user?.id ?? null,
+    } as any);
+    if (error) return toast.error(error.message);
+    toast.success("Tarefa criada");
+    setTaskTitle("");
+    setTaskOpen(false);
+    refetchTasks();
+  };
+
+  const createDelivery = async () => {
+    if (!deliveryForm.title.trim()) return toast.error("Título obrigatório");
+    const { error } = await supabase.from("demand_deliveries").insert({
+      client_product_id: id,
+      title: deliveryForm.title,
+      description: deliveryForm.description || null,
+      status: "pending",
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Entrega registrada");
+    setDeliveryForm({ title: "", description: "" });
+    setDeliveryOpen(false);
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
   if (isLoading) return <div className="p-20 text-center animate-pulse">Carregando detalhes da demanda...</div>;
   if (!demand) return <div className="p-20 text-center text-rose-500 font-bold">Demanda não encontrada.</div>;
 
