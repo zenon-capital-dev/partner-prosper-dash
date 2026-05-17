@@ -1,11 +1,30 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, DollarSign, Calendar, ArrowUpRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 
 export function ClientFinancial({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [marking, setMarking] = useState<string | null>(null);
+
+  const markPaid = async (paymentId: string, amount: number) => {
+    const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
+    if (!ok) return;
+    setMarking(paymentId);
+    const { error } = await supabase.from("payments").update({ status: "pago", amount_paid: amount, paid_at: new Date().toISOString() }).eq("id", paymentId);
+    setMarking(null);
+    if (error) return toast.error("Erro ao dar baixa");
+    toast.success("Pagamento confirmado");
+    qc.invalidateQueries({ queryKey: ["client-payments", clientId] });
+  };
+
   const { data: payments, isLoading } = useQuery({
     queryKey: ["client-payments", clientId],
     queryFn: async () => {
