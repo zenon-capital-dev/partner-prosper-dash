@@ -464,7 +464,7 @@ export default function ClientDetail() {
                   <h3 className="text-sm font-bold flex items-center gap-2">
                     <MessageSquare className="size-4 text-indigo-500" /> Registro de Interações
                   </h3>
-                  <Button variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">Novo Registro</Button>
+                  <Button onClick={() => setInteractionOpen(true)} variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">Novo Registro</Button>
                 </div>
                 <div className="space-y-4 py-4">
                   <div className="flex gap-4 p-4 rounded-xl bg-muted/30 border border-border/40">
