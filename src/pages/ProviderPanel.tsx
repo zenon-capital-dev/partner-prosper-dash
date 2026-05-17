@@ -342,10 +342,26 @@ export default function ProviderPanel() {
                    >
                      <ClipboardCheck className="size-4 mr-2" /> Reportar Status
                    </Button>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.info("Funcionalidade em desenvolvimento: Solicitar Documento")}>
+                   <Button
+                     variant="outline"
+                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
+                     onClick={() => setDocRequestTarget({
+                       clientId: selectedProduct.clients?.id,
+                       cpId: selectedProduct.id,
+                       context: selectedProduct.products?.name,
+                     })}
+                   >
                      <FileText className="size-4 mr-2" /> Solicitar Documento
                    </Button>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold" onClick={() => toast.success("Notificação enviada ao administrador solicitando conclusão")}>
+                   <Button
+                     variant="outline"
+                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
+                     onClick={() => setReportTarget({
+                       id: selectedProduct.id,
+                       productName: selectedProduct.products?.name,
+                       clientName: selectedProduct.clients?.full_name,
+                     })}
+                   >
                      <CheckCircle2 className="size-4 mr-2" /> Enviar Conclusão
                    </Button>
                 </div>
