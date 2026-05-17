@@ -18,7 +18,7 @@ import {
   PieChart, Pie, Legend,
 } from "recharts";
 
-type Tone = "primary" | "success" | "warning" | "danger" | "info" | "violet";
+type Tone = "primary" | "success" | "warning" | "danger" | "info";
 
 const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string; grad: string; ring: string }> = {
   primary: { text: "text-indigo-600", bg: "bg-indigo-100", border: "border-indigo-200", chart: "#6366f1", soft: "bg-indigo-50", grad: "from-indigo-500 to-indigo-600", ring: "ring-indigo-200/60" },
@@ -26,7 +26,6 @@ const toneColor: Record<Tone, { text: string; bg: string; border: string; chart:
   warning: { text: "text-amber-600", bg: "bg-amber-100", border: "border-amber-200", chart: "#f59e0b", soft: "bg-amber-50", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60" },
   danger: { text: "text-rose-600", bg: "bg-rose-100", border: "border-rose-200", chart: "#f43f5e", soft: "bg-rose-50", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60" },
   info: { text: "text-sky-600", bg: "bg-sky-100", border: "border-sky-200", chart: "#0ea5e9", soft: "bg-sky-50", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60" },
-  violet: { text: "text-primary", bg: "bg-primary-muted", border: "border-primary/20", chart: "hsl(var(--primary))", soft: "bg-card", grad: "from-primary to-primary-glow", ring: "ring-primary/15" },
 };
 
 const statusLabel: Record<string, { label: string; tone: Tone }> = {
@@ -241,7 +240,7 @@ export default function DashboardAdmin() {
       ...proposals.slice(0, 4).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
       ...leads.slice(0, 4).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
       ...sales.slice(0, 4).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
-      ...contracts.slice(0, 3).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "violet" as Tone })),
+      ...contracts.slice(0, 3).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
     ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 9);
 
     const todayTasks = tasks.filter((t: any) => {
@@ -351,7 +350,7 @@ export default function DashboardAdmin() {
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
           <KpiPremium label="Receita Bruta" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`Mês atual vs anterior`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
-          <KpiPremium label="Aquisição" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="violet" sparkData={dealsSpark} caption={`Novos contratos fechados`} progress={78} />
+          <KpiPremium label="Aquisição" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="primary" sparkData={dealsSpark} caption={`Novos contratos fechados`} progress={78} />
           <KpiPremium label="Taxa de Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Ótima" : "Revisar"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads em clientes`} progress={stats.conversionRate} />
           <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
         </section>
@@ -363,7 +362,7 @@ export default function DashboardAdmin() {
           <MetricPill label="Tarefas em atraso" value={stats.todayTasks.length.toString()} tone="danger" icon={Clock} href="/tarefas" />
           <MetricPill label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} tone="success" icon={Handshake} href="/comissoes" />
           <MetricPill label="Pipeline ponderado" value={formatBRL(stats.weightedPipeline)} tone="info" icon={Activity} href="/leads" />
-          <MetricPill label="Total clientes" value={clients.length.toString()} tone="violet" icon={Users} href="/clientes" />
+          <MetricPill label="Total clientes" value={clients.length.toString()} tone="primary" icon={Users} href="/clientes" />
         </section>
 
         {/* ============ ROW: REVENUE CHART + ALERTS + CONVERSION GOAL ============ */}
@@ -585,7 +584,7 @@ export default function DashboardAdmin() {
                       <span className="font-bold text-slate-900 tabular-nums">{s.value}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-50 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -614,7 +613,7 @@ export default function DashboardAdmin() {
                     <tr key={s.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="py-2.5 px-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-700">
+                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/15 to-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-700">
                             {s.clientName.charAt(0).toUpperCase()}
                           </div>
                           <span className="text-slate-800 font-medium truncate max-w-[120px]">{s.clientName}</span>
@@ -726,7 +725,7 @@ export default function DashboardAdmin() {
               {stats.topClients.length > 0 ? stats.topClients.map((c: any, i: number) => (
                 <Link to={`/clientes/${c.id}`} key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
                   <span className="text-[10px] font-bold text-slate-400 tabular-nums w-4">{(i + 1).toString().padStart(2, "0")}</span>
-                  <div className="size-7 rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-700 shrink-0">
+                  <div className="size-7 rounded-full bg-gradient-to-br from-indigo-500/15 to-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-700 shrink-0">
                     {c.full_name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -774,7 +773,7 @@ export default function DashboardAdmin() {
             <div className="grid grid-cols-2 gap-3">
               <MiniMetric icon={PiggyBank} label="A receber 7 dias" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
               <MiniMetric icon={FileWarning} label="Inadimplente" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
-              <MiniMetric icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="violet" />
+              <MiniMetric icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="primary" />
               <MiniMetric icon={FileSignature} label="Contratos pendentes" value={stats.contractsAwaiting.toString()} sub="Aguardando assinatura" tone="warning" />
             </div>
           </Card>
