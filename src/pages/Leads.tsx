@@ -276,10 +276,12 @@ export default function Leads() {
         </div>
         {!isLoading && filteredLeads.length > 0 && (
           <div className="p-4 border-t border-border/40 bg-muted/5 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">Mostrando {filteredLeads.length} resultados</p>
+            <p className="text-xs text-muted-foreground">
+              Página {currentPage} de {totalPages} · Mostrando {pagedLeads.length} de {filteredLeads.length} leads
+            </p>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Anterior</Button>
-              <Button variant="outline" size="sm" disabled className="h-8 text-[11px]">Próximo</Button>
+              <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="h-8 text-[11px]">Anterior</Button>
+              <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="h-8 text-[11px]">Próximo</Button>
             </div>
           </div>
         )}
