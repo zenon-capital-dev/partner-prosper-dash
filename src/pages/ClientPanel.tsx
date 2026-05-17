@@ -170,7 +170,7 @@ export default function ClientPanel() {
                 <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2">
                   <LayoutDashboard className="size-4" /> Painel inicial
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.open("https://wa.me/5511999999999", "_blank")} className="gap-2">
+                <DropdownMenuItem onClick={() => window.open(wa(), "_blank")} className="gap-2">
                   <MessageSquare className="size-4" /> Falar com a equipe
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -206,10 +206,10 @@ export default function ClientPanel() {
                icon={<Package className="size-6" />}
                actions={
                  <div className="flex gap-2">
-                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(`https://wa.me/5511999999999`, '_blank')}>
+                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(wa(), '_blank')}>
                      <MessageSquare className="size-4 mr-2" /> Falar com Equipe
                    </Button>
-                   <Button className="btn-premium h-11 rounded-xl" onClick={() => toast.info("Relatório sendo gerado...")}>
+                   <Button className="btn-premium h-11 rounded-xl" onClick={() => window.open(wa(`Gostaria do relatório completo da demanda ${selectedProduct.products?.name}`), "_blank")}>
                      Baixar Relatório
                    </Button>
                  </div>
@@ -256,7 +256,7 @@ export default function ClientPanel() {
                                       <Download className="size-4" />
                                    </Button>
                                 ) : (
-                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => toast.info("Funcionalidade de upload na aba Documentos")}>
+                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => setActiveTab("checklist")}>
                                       <Upload className="size-3 mr-1.5" /> Upload
                                    </Button>
                                 )}
@@ -364,7 +364,7 @@ export default function ClientPanel() {
                       )}
                     </button>
                     <button
-                      onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
+                      onClick={() => window.open(wa(), "_blank")}
                       className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-md text-white text-[13px] font-semibold hover:bg-white/10 transition-all active:scale-[0.98]"
                     >
                       <MessageSquare className="size-4" /> Falar com a equipe
@@ -468,10 +468,10 @@ export default function ClientPanel() {
                        <div className="space-y-6">
                           <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
                           <div className="space-y-3">
-                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open(wa(), '_blank')}>
                                 <MessageSquare className="size-4 mr-2" /> Iniciar Chat
                              </Button>
-                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = 'mailto:suporte@prosper.com'}>
+                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = buildMailtoLink(settings.support_email)}>
                                 <Mail className="size-4 mr-2" /> Enviar E-mail
                              </Button>
                           </div>
@@ -562,7 +562,7 @@ export default function ClientPanel() {
                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.recurring ? "A partir de" : "Investimento"}</p>
                              <p className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
                            </div>
-                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(`https://wa.me/5511999999999?text=Tenho interesse em ${encodeURIComponent(p.name)}`, '_blank')}>
+                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), '_blank')}>
                              Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
                            </Button>
                         </div>
@@ -681,7 +681,7 @@ export default function ClientPanel() {
                           <h3 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Faturamento & cobrança</h3>
                           <p className="text-sm text-white/50 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
                        </div>
-                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open('https://wa.me/5511999999999', '_blank')}>
+                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open(wa(), '_blank')}>
                          <MessageSquare className="size-4 mr-2" /> Solicitar ajuste
                        </Button>
                     </div>
