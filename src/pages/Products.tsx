@@ -28,9 +28,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
-import { confirmAction } from "@/lib/confirm";
   Tabs, TabsList, TabsTrigger,
 } from "@/components/ui/tabs";
+import { confirmAction } from "@/lib/confirm";
 
 type Product = {
   id: string;
