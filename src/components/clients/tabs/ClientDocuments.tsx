@@ -138,46 +138,45 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     <div className="space-y-8 animate-fade-up">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h3 className="editorial-title text-xl">Documentos por produto</h3>
-          <p className="editorial-label text-white/40">Solicite, valide e acompanhe os arquivos de cada produto.</p>
+          <h3 className="text-lg font-bold tracking-tight">Documentos por produto</h3>
+          <p className="text-xs text-muted-foreground">Solicite, valide e acompanhe os arquivos de cada produto.</p>
         </div>
         <Button
           onClick={() => { setSelectedDoc(null); setDefaultProductId(null); setOpen(true); }}
-          className="btn-premium h-10 px-5 gap-2"
+          className="bg-indigo-600 hover:bg-indigo-700 h-10 px-5 gap-2"
         >
           <Plus className="size-4" /> Solicitar Documento
         </Button>
       </div>
 
-      {/* Resumo */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <SummaryStat label="Total" value={totals.total} tone="text-white" />
-        <SummaryStat label="Pendentes" value={totals.pending} tone="text-amber-400" />
-        <SummaryStat label="Em análise" value={totals.review} tone="text-blue-400" />
-        <SummaryStat label="Aprovados" value={totals.done} tone="text-emerald-400" />
-        <SummaryStat label="Rejeitados" value={totals.rejected} tone="text-rose-400" />
+        <SummaryStat label="Total" value={totals.total} tone="text-slate-900" />
+        <SummaryStat label="Pendentes" value={totals.pending} tone="text-amber-600" />
+        <SummaryStat label="Em análise" value={totals.review} tone="text-blue-600" />
+        <SummaryStat label="Aprovados" value={totals.done} tone="text-emerald-600" />
+        <SummaryStat label="Rejeitados" value={totals.rejected} tone="text-rose-600" />
       </div>
 
       {isLoading ? (
-        <div className="vx-card p-12 text-center text-white/20">Carregando documentos...</div>
+        <div className="cp-panel p-12 text-center text-muted-foreground">Carregando documentos...</div>
       ) : grouped.length === 0 ? (
-        <div className="vx-card p-16 text-center border-dashed">
-          <FileText className="size-10 text-white/10 mx-auto mb-4" />
-          <p className="editorial-title text-white/40">Nenhum produto contratado ainda</p>
-          <p className="text-xs text-white/30 mt-2">Adicione produtos ao cliente para organizar os documentos.</p>
+        <div className="cp-panel p-16 text-center border-dashed">
+          <FileText className="size-10 text-muted-foreground/30 mx-auto mb-4" />
+          <p className="text-sm font-bold text-muted-foreground">Nenhum produto contratado ainda</p>
+          <p className="text-xs text-muted-foreground/70 mt-2">Adicione produtos ao cliente para organizar os documentos.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {grouped.map((group) => (
-            <section key={group.name} className="vx-card overflow-hidden">
-              <header className="px-5 py-4 border-b border-white/[0.05] flex items-center justify-between bg-white/[0.02]">
+            <section key={group.name} className="cp-panel overflow-hidden">
+              <header className="px-5 py-4 border-b border-border/40 flex items-center justify-between bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <div className="size-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
                     <Package className="size-5" />
                   </div>
                   <div>
-                    <p className="editorial-label text-white/40">Produto</p>
-                    <h4 className="font-bold text-white">{group.name}</h4>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Produto</p>
+                    <h4 className="font-bold text-foreground">{group.name}</h4>
                   </div>
                   <Badge variant="outline" className="ml-2 text-[10px]">{group.items.length} doc(s)</Badge>
                 </div>
@@ -196,23 +195,23 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
               </header>
 
               {group.items.length === 0 ? (
-                <div className="p-8 text-center text-white/30 text-sm">
+                <div className="p-8 text-center text-muted-foreground text-sm">
                   Nenhum documento solicitado para este produto.
                 </div>
               ) : (
-                <ul className="divide-y divide-white/[0.04]">
+                <ul className="divide-y divide-border/40">
                   {group.items.map((doc: any) => {
                     const meta = STATUS_META[doc.status] ?? STATUS_META.solicitado;
                     const Icon = meta.icon;
                     return (
-                      <li key={doc.id} className="p-5 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-white/[0.02] transition-colors">
+                      <li key={doc.id} className="p-5 flex flex-col lg:flex-row lg:items-center gap-4 hover:bg-muted/20 transition-colors">
                         <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0 border", meta.tone)}>
                           <Icon className={cn("size-5", ["enviado", "em_analise"].includes(doc.status) && "animate-spin")} />
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-bold text-white">{doc.name}</p>
+                            <p className="font-bold text-foreground">{doc.name}</p>
                             <Badge variant="outline" className={cn("text-[9px] uppercase tracking-widest", meta.tone)}>
                               {meta.label}
                             </Badge>
@@ -221,19 +220,19 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                               className={cn(
                                 "text-[9px] uppercase tracking-widest",
                                 doc.is_required
-                                  ? "border-rose-500/30 text-rose-400"
-                                  : "border-white/10 text-white/40"
+                                  ? "border-rose-200 text-rose-600 bg-rose-50"
+                                  : "border-border text-muted-foreground"
                               )}
                             >
                               {doc.is_required ? "Obrigatório" : "Opcional"}
                             </Badge>
                           </div>
                           {doc.description && (
-                            <p className="text-xs text-white/50 mt-1">{doc.description}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>
                           )}
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[10px] uppercase tracking-widest font-bold text-white/40">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60">
                             {doc.due_date && (
-                              <span className="flex items-center gap-1.5 text-amber-400/70">
+                              <span className="flex items-center gap-1.5 text-amber-600">
                                 <Clock className="size-3" /> Prazo {formatDate(doc.due_date)}
                               </span>
                             )}
@@ -242,12 +241,12 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                             {doc.reviewed_at && <span>Revisado {formatDate(doc.reviewed_at)}</span>}
                           </div>
                           {doc.status === "reprovado" && doc.rejection_reason && (
-                            <p className="text-xs text-rose-300 mt-2 bg-rose-500/10 px-3 py-2 rounded-lg border border-rose-500/20">
+                            <p className="text-xs text-rose-700 mt-2 bg-rose-50 px-3 py-2 rounded-lg border border-rose-200">
                               <strong>Motivo:</strong> {doc.rejection_reason}
                             </p>
                           )}
                           {doc.internal_notes && (
-                            <p className="text-xs text-white/50 mt-2 bg-white/[0.03] px-3 py-2 rounded-lg border border-white/[0.05]">
+                            <p className="text-xs text-muted-foreground mt-2 bg-muted/40 px-3 py-2 rounded-lg border border-border/40">
                               <MessageSquare className="size-3 inline mr-1" /> {doc.internal_notes}
                             </p>
                           )}
@@ -263,7 +262,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                             <Button
                               variant="ghost" size="sm"
                               onClick={() => updateStatus(doc, "aprovado")}
-                              className="text-emerald-400 hover:bg-emerald-500/10 h-8 gap-1.5"
+                              className="text-emerald-600 hover:bg-emerald-50 h-8 gap-1.5"
                             >
                               <Check className="size-3.5" /> Aprovar
                             </Button>
@@ -272,7 +271,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                             <Button
                               variant="ghost" size="sm"
                               onClick={() => updateStatus(doc, "em_analise")}
-                              className="text-blue-400 hover:bg-blue-500/10 h-8 gap-1.5"
+                              className="text-blue-600 hover:bg-blue-50 h-8 gap-1.5"
                             >
                               <Loader2 className="size-3.5" /> Analisar
                             </Button>
@@ -281,7 +280,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                             <Button
                               variant="ghost" size="sm"
                               onClick={() => handleReject(doc)}
-                              className="text-rose-400 hover:bg-rose-500/10 h-8 gap-1.5"
+                              className="text-rose-600 hover:bg-rose-50 h-8 gap-1.5"
                             >
                               <X className="size-3.5" /> Rejeitar
                             </Button>
@@ -290,7 +289,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                             <Button
                               variant="ghost" size="sm"
                               onClick={() => handleRequestResend(doc)}
-                              className="text-orange-400 hover:bg-orange-500/10 h-8 gap-1.5"
+                              className="text-orange-600 hover:bg-orange-50 h-8 gap-1.5"
                             >
                               <RefreshCw className="size-3.5" /> Reenvio
                             </Button>
@@ -298,7 +297,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           <Button
                             variant="ghost" size="icon"
                             onClick={() => handleAddNote(doc)}
-                            className="size-8 text-white/40 hover:text-white"
+                            className="size-8 text-muted-foreground hover:text-foreground"
                             title="Comentário"
                           >
                             <MessageSquare className="size-4" />
@@ -306,7 +305,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           <Button
                             variant="ghost" size="icon"
                             onClick={() => deleteDoc(doc.id)}
-                            className="size-8 text-white/20 hover:text-rose-500"
+                            className="size-8 text-muted-foreground hover:text-rose-600"
                             title="Excluir"
                           >
                             <Trash2 className="size-4" />
@@ -336,8 +335,8 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
 
 function SummaryStat({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
-    <div className="vx-card p-4">
-      <p className="editorial-label text-white/40">{label}</p>
+    <div className="cp-panel p-4">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
       <p className={cn("text-2xl font-bold font-mono mt-1", tone)}>{value}</p>
     </div>
   );
