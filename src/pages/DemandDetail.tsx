@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmAction } from "@/lib/confirm";
 import { 
   ArrowLeft, Package, User, Clock, 
   AlertCircle, CheckCircle2, FileText, 
