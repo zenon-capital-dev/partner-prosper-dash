@@ -306,42 +306,42 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
   return (
     <table className="w-full text-[13px]">
       <thead>
-        <tr className="border-b border-white/[0.05] bg-white/[0.01]">
-          <th className="px-6 py-5 text-left editorial-label">Parceiro</th>
-          <th className="px-6 py-5 text-right editorial-label">Performance</th>
-          <th className="px-6 py-5 text-right editorial-label">Ganhos</th>
-          <th className="px-6 py-5 text-center editorial-label">Trend</th>
-          <th className="px-6 py-5 text-right editorial-label">Ações</th>
+        <tr className="border-b border-slate-200 bg-slate-50/60">
+          <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Parceiro</th>
+          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Performance</th>
+          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Ganhos</th>
+          <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Trend</th>
+          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Ações</th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-white/[0.05]">
+      <tbody className="divide-y divide-slate-100">
         {partners.map((p: any) => {
           const rank = topIds.get(p.id);
           return (
-            <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
-              <td className="px-6 py-5">
+            <tr key={p.id} className="hover:bg-slate-50/60 transition-colors group">
+              <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="size-11 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-sm font-bold shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)]">
+                    <div className="size-11 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
                       {initials(p.full_name)}
                     </div>
                     {rank && <RankBadge rank={rank} />}
                   </div>
                   <div>
-                    <p className="font-bold text-white group-hover:text-primary transition-colors text-base">{p.full_name}</p>
-                    <p className="text-[11px] text-white/20 font-mono uppercase tracking-widest">{p.email || formatPhone(p.phone)}</p>
+                    <p className="font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors text-[14px]">{p.full_name}</p>
+                    <p className="text-[11px] text-slate-500 font-mono">{p.email || formatPhone(p.phone)}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-5 text-right">
-                <p className="font-mono font-bold text-white/80">{p._clientsCount} Indicações</p>
-                <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{formatPercent(p.commission_percent)} Base</p>
+              <td className="px-6 py-4 text-right">
+                <p className="font-mono font-semibold text-slate-700">{p._clientsCount} Indicações</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{formatPercent(p.commission_percent)} Base</p>
               </td>
-              <td className="px-6 py-5 text-right">
-                <p className="font-mono font-bold text-primary text-base">{formatBRL(p._total)}</p>
-                {p._pending > 0 && <p className="text-[10px] text-warning font-bold uppercase tracking-widest">Pendente: {formatBRL(p._pending)}</p>}
+              <td className="px-6 py-4 text-right">
+                <p className="font-mono font-bold text-indigo-700 text-base">{formatBRL(p._total)}</p>
+                {p._pending > 0 && <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Pendente: {formatBRL(p._pending)}</p>}
               </td>
-              <td className="px-6 py-5"><Sparkline data={p._spark} /></td>
+              <td className="px-6 py-4"><Sparkline data={p._spark} /></td>
               <td className="px-6 py-5 text-right">
                 <div className="flex items-center justify-end gap-3">
                   <button onClick={() => onDetail(p.id)} className="action-button btn-outline h-9 w-9 p-0">
