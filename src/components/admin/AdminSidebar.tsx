@@ -93,38 +93,38 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-card border-r border-border/80 shadow-[4px_0_24px_-24px_hsl(var(--foreground)/0.5)]",
-        collapsed ? "w-[72px]" : "w-[272px]",
+        "bg-white border-r border-slate-200/70 shadow-[1px_0_0_rgba(15,23,42,0.02)]",
+        collapsed ? "w-[72px]" : "w-[260px]",
         className
       )}
     >
       {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[64px] flex items-center border-b border-border/80",
-        collapsed ? "px-3 justify-center" : "px-4"
+        "relative shrink-0 h-[60px] flex items-center border-b border-slate-200/70",
+        collapsed ? "px-3 justify-center" : "px-3"
       )}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
               "flex items-center gap-2.5 rounded-lg transition-colors group",
-              collapsed ? "size-10 justify-center hover:bg-slate-100" : "w-full px-1.5 py-1.5 hover:bg-slate-50"
+              collapsed ? "size-10 justify-center hover:bg-slate-100" : "w-full px-2 py-1.5 hover:bg-slate-50"
             )}>
-              <div className="size-9 rounded-lg bg-primary flex items-center justify-center shadow-sm shrink-0 ring-1 ring-primary/20">
-                <Box className="size-4 text-primary-foreground" strokeWidth={2.5} />
+              <div className="size-8 rounded-[9px] bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center shadow-[0_2px_8px_-2px_rgba(79,70,229,0.55)] shrink-0 ring-1 ring-indigo-700/30">
+                <Box className="size-[15px] text-white" strokeWidth={2.5} />
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13.5px] font-bold text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
-                  <p className="text-[10px] font-semibold text-muted-foreground leading-tight mt-0.5 truncate uppercase tracking-[0.12em]">
+                  <p className="text-[13px] font-bold text-slate-900 leading-tight tracking-tight truncate">VendxCRM</p>
+                  <p className="text-[9.5px] font-bold text-indigo-600 leading-tight mt-0.5 truncate uppercase tracking-[0.14em]">
                     {portalLabel}
                   </p>
                 </div>
               )}
-              {!collapsed && <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />}
+              {!collapsed && <ChevronDown className="size-3.5 text-slate-400 shrink-0 group-hover:text-slate-600 transition-colors" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Workspace</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Workspace</DropdownMenuLabel>
             {isFullAdmin && (
               <>
                 <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
@@ -144,7 +144,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-card border border-border shadow-sm flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all z-10"
+            className="absolute -right-[11px] top-1/2 -translate-y-1/2 size-[22px] rounded-full bg-white border border-slate-200 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.15)] flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:scale-110 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
@@ -155,7 +155,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       {collapsed && (
         <button
           onClick={onToggle}
-          className="mx-auto mt-2 size-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          className="mx-auto mt-2 size-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
           title="Expandir"
         >
           <PanelLeftOpen className="size-4" />
@@ -163,20 +163,19 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       )}
 
       {/* NAV */}
-      <nav className="relative flex-1 overflow-y-auto px-2.5 py-3 space-y-5 vx-sidebar-scroll">
+      <nav className="relative flex-1 overflow-y-auto px-2.5 py-4 space-y-5 vx-sidebar-scroll">
         {sections.map((section) => (
           <div key={section.label}>
             {!collapsed ? (
-              <div className="px-2.5 mb-2 flex items-center gap-2">
-                <span className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              <div className="px-2.5 mb-2">
+                <span className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-slate-400">
                   {section.label}
                 </span>
-                <span className="flex-1 h-px bg-gradient-to-r from-slate-200/80 to-transparent" />
               </div>
             ) : (
-              <div className="h-px bg-border mx-3 my-2" />
+              <div className="h-px bg-slate-200 mx-3 my-3" />
             )}
-            <div className="space-y-[2px]">
+            <div className="space-y-[1px]">
               {section.items.map((item) => {
                 const active = isActive(item.url);
                 const Icon = item.icon;
@@ -187,24 +186,24 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                     onClick={onNavigate}
                     title={collapsed ? item.title : undefined}
                     className={cn(
-                      "group relative flex items-center rounded-lg text-[13px] font-semibold transition-all duration-200",
-                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-9 gap-2.5",
+                      "group relative flex items-center rounded-[7px] text-[13px] font-semibold transition-all duration-150",
+                      collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-[34px] gap-2.5",
                       active
-                        ? "bg-gradient-to-r from-indigo-50 to-indigo-50/40 text-indigo-700 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.12)]"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
                     )}
                   >
                     {active && !collapsed && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-gradient-to-b from-indigo-500 to-indigo-600 shadow-[0_0_8px_hsl(var(--primary)/0.4)]" />
+                      <span className="absolute -left-[10px] top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-indigo-600" />
                     )}
                     {active && collapsed && (
-                      <span className="absolute -left-2.5 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-indigo-600" />
+                      <span className="absolute -left-[10px] top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-indigo-600" />
                     )}
                     <Icon
                       className={cn(
-                        "shrink-0 transition-transform",
+                        "shrink-0 transition-all",
                         collapsed ? "size-[18px]" : "size-[15px]",
-                        active ? "text-indigo-600 scale-110" : "text-slate-400 group-hover:text-slate-700",
+                        active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-700",
                       )}
                       strokeWidth={active ? 2.4 : 2}
                     />
