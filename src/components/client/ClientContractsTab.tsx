@@ -96,9 +96,9 @@ export function ClientContractsTab({
 
   if (contracts.length === 0) {
     return (
-      <div className="vx-card bg-white dark:bg-slate-900/40 rounded-[24px] p-12 text-center border-slate-100 dark:border-white/5">
+      <div className="vx-card bg-white rounded-[24px] p-12 text-center border-slate-100">
         <FileSignature className="size-12 text-primary/30 mx-auto mb-4" />
-        <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Nenhum contrato ativo</h3>
+        <h3 className="font-editorial text-2xl font-bold text-slate-900">Nenhum contrato ativo</h3>
         <p className="text-muted-foreground mt-2 text-sm">Seus contratos de serviço aparecerão aqui para assinatura e consulta.</p>
       </div>
     );
@@ -113,7 +113,7 @@ export function ClientContractsTab({
           const isAwaitingSign = c.status === 'enviado' || c.status === 'aguardando_assinatura';
 
           return (
-            <div key={c.id} className="vx-card bg-white dark:bg-slate-900/40 rounded-[32px] p-8 border-slate-100 dark:border-white/5 hover:shadow-xl transition-all group">
+            <div key={c.id} className="vx-card bg-white rounded-[32px] p-8 border-slate-100 hover:shadow-xl transition-all group">
               <div className="flex justify-between items-start mb-6">
                 <div className={cn("size-14 rounded-2xl flex items-center justify-center shrink-0 border", meta.tone)}>
                   <Icon className="size-7" />
@@ -125,7 +125,7 @@ export function ClientContractsTab({
 
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                  <h3 className="font-editorial text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors">
                     {c.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -134,13 +134,13 @@ export function ClientContractsTab({
                 </div>
 
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
+                  <span className="text-2xl font-bold tabular-nums text-slate-900">
                     {c.amount ? formatBRL(c.amount) : "---"}
                   </span>
                   <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Valor do Contrato</span>
                 </div>
 
-                <div className="pt-4 border-t border-slate-50 dark:border-white/5 flex flex-wrap gap-4 text-xs text-muted-foreground">
+                <div className="pt-4 border-t border-slate-50 flex flex-wrap gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1.5"><Clock className="size-3.5" /> Criado em {formatDate(c.created_at)}</span>
                   {c.signed_at && <span className="flex items-center gap-1.5 text-emerald-600 font-bold"><ShieldCheck className="size-3.5" /> Assinado em {formatDate(c.signed_at)}</span>}
                 </div>
@@ -174,7 +174,7 @@ export function ClientContractsTab({
             </div>
             <AlertDialogTitle className="font-editorial text-3xl">Assinatura Digital</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground text-base leading-relaxed pt-2">
-              Você está prestes a assinar digitalmente o contrato <strong className="text-slate-900 dark:text-white">"{confirmSign?.name}"</strong>. 
+              Você está prestes a assinar digitalmente o contrato <strong className="text-slate-900">"{confirmSign?.name}"</strong>. 
               Esta ação confirma sua concordância com todos os termos estabelecidos e possui validade jurídica dentro da nossa plataforma.
             </AlertDialogDescription>
           </AlertDialogHeader>

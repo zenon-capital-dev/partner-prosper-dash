@@ -77,7 +77,7 @@ export default function ClientOnboarding() {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-primary/5 blur-[120px] pointer-events-none" />
       
-      <div className="w-full max-w-2xl bg-white dark:bg-card rounded-[40px] shadow-2xl border border-white/10 relative z-10 flex flex-col min-h-[500px]">
+      <div className="w-full max-w-2xl bg-white rounded-[40px] shadow-2xl border border-white/10 relative z-10 flex flex-col min-h-[500px]">
         {/* Progress Top */}
         <div className="p-8 pb-4 space-y-4">
           <div className="flex items-center justify-between">
@@ -96,7 +96,7 @@ export default function ClientOnboarding() {
               <div className="size-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
                 <Sparkles className="size-10" />
               </div>
-              <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+              <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
                 Seja bem-vindo à <br/><span className="text-primary italic">Prosper Operations</span>.
               </h1>
               <p className="text-muted-foreground leading-relaxed max-w-sm mx-auto">
@@ -111,7 +111,7 @@ export default function ClientOnboarding() {
                 <Building2 className="size-6 text-primary" />
                 <h2 className="font-editorial text-3xl font-bold">Conferência de Dados</h2>
               </div>
-              <div className="space-y-4 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5">
+              <div className="space-y-4 p-6 bg-slate-50 rounded-3xl border border-slate-100">
                 <div className="grid grid-cols-2 gap-4">
                    <div>
                      <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Razão Social / Nome</p>
@@ -144,7 +144,7 @@ export default function ClientOnboarding() {
               <div className="grid gap-3">
                 {prods.map((p: any) => (
                   <div key={p.id} className="p-4 bg-primary/5 border border-primary/10 rounded-2xl flex items-center justify-between">
-                    <span className="font-bold text-slate-900 dark:text-white">{p.products?.name}</span>
+                    <span className="font-bold text-slate-900">{p.products?.name}</span>
                     <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                   </div>
                 ))}
@@ -201,7 +201,7 @@ export default function ClientOnboarding() {
         </div>
 
         {/* Footer Navigation */}
-        <div className="p-8 pt-4 border-t border-slate-50 dark:border-white/5 flex items-center justify-between">
+        <div className="p-8 pt-4 border-t border-slate-50 flex items-center justify-between">
           <Button 
             variant="ghost" 
             onClick={() => setStep(step - 1)} 
@@ -212,7 +212,7 @@ export default function ClientOnboarding() {
           </Button>
           <Button 
             onClick={nextStep}
-            className="rounded-2xl h-14 px-8 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all font-bold gap-3 shadow-xl"
+            className="rounded-2xl h-14 px-8 bg-slate-900 hover:bg-primary hover:text-white transition-all font-bold gap-3 shadow-xl"
           >
             {step === totalSteps ? "Concluir Onboarding" : "Continuar Jornada"}
             <ArrowRight className="size-4" />

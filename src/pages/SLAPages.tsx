@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 type Bucket = "todos" | "atrasado" | "vence_hoje" | "atencao" | "no_prazo" | "pausado";
 
 const BUCKETS: { key: Bucket; label: string; icon: any; tone: string }[] = [
-  { key: "todos", label: "Todas", icon: ListFilter, tone: "text-slate-600 dark:text-slate-300" },
+  { key: "todos", label: "Todas", icon: ListFilter, tone: "text-slate-600" },
   { key: "atrasado", label: "Atrasadas", icon: AlertTriangle, tone: "text-rose-600" },
   { key: "vence_hoje", label: "Vencem Hoje", icon: Clock, tone: "text-amber-600" },
   { key: "atencao", label: "Em Atenção", icon: Zap, tone: "text-yellow-600" },

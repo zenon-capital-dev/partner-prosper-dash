@@ -137,12 +137,12 @@ export default function PartnerPanel() {
         </section>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-           <TabsList className="bg-slate-100/50 dark:bg-white/5 p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 h-12 inline-flex flex-wrap">
-              <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Visão Geral</TabsTrigger>
-              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Indicados ({clients.length})</TabsTrigger>
-              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Comissões ({commissions.length})</TabsTrigger>
-              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Demandas ({demands.length})</TabsTrigger>
-              <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 shadow-none font-bold">Contratos ({contracts.length})</TabsTrigger>
+           <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12 inline-flex flex-wrap">
+              <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-white shadow-none font-bold">Visão Geral</TabsTrigger>
+              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-white shadow-none font-bold">Indicados ({clients.length})</TabsTrigger>
+              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-white shadow-none font-bold">Comissões ({commissions.length})</TabsTrigger>
+              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-white shadow-none font-bold">Demandas ({demands.length})</TabsTrigger>
+              <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-white shadow-none font-bold">Contratos ({contracts.length})</TabsTrigger>
            </TabsList>
 
            <TabsContent value="home" className="animate-fade-up space-y-8">

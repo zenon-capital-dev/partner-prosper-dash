@@ -289,7 +289,7 @@ export default function DemandDetail() {
                </TabsContent>
 
                <TabsContent value="checklist" className="animate-fade-up">
-                  <div className="vx-card p-8 bg-card border-slate-100 dark:border-white/5">
+                  <div className="vx-card p-8 bg-card border-slate-100">
                      <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
                   </div>
                </TabsContent>
@@ -360,7 +360,7 @@ export default function DemandDetail() {
                </TabsContent>
                
                <TabsContent value="reportes" className="animate-fade-up">
-                  <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5 space-y-6">
+                  <div className="vx-card p-6 bg-card border-slate-100 space-y-6">
                     {reports.length === 0 ? (
                        <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
                     ) : reports.map((r: any) => (
@@ -425,7 +425,7 @@ export default function DemandDetail() {
                </TabsContent>
 
                <TabsContent value="comments" className="animate-fade-up">
-                  <div className="vx-card p-6 bg-card border-slate-100 dark:border-white/5">
+                  <div className="vx-card p-6 bg-card border-slate-100">
                      <DemandComments clientProductId={demand.id} role={isAdmin ? "admin" : "provider"} />
                   </div>
                </TabsContent>
@@ -440,7 +440,7 @@ export default function DemandDetail() {
            {/* Client Summary */}
            <div className="vx-card p-6 bg-card space-y-6">
               <div className="flex items-center gap-4 border-b border-border/50 pb-4">
-                 <div className="size-12 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                 <div className="size-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
                     <User className="size-6" />
                  </div>
                  <div className="min-w-0">
@@ -492,12 +492,12 @@ export default function DemandDetail() {
            <div className="vx-card p-6 bg-card space-y-4 border-amber-500/20 bg-amber-500/5">
               <div className="flex items-center gap-2">
                  <MessageSquare className="size-4 text-amber-500" />
-                 <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">Observações Internas</h3>
+                 <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600">Observações Internas</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed italic whitespace-pre-wrap">
                  {demand.internal_notes || "Nenhuma observação interna para esta demanda."}
               </p>
-              <Button onClick={openNotesEditor} variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/20 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
+              <Button onClick={openNotesEditor} variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
            </div>
         </div>
       </div>

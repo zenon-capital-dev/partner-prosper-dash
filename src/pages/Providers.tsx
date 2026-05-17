@@ -107,7 +107,7 @@ export default function Providers() {
         description="Gerencie sua rede de fornecedores externos. Delegue demandas, controle entregas e acompanhe a operação terceirizada."
         icon={<Briefcase className="size-6" />}
         actions={
-          <Button onClick={() => { setEditing(null); setCreateOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-xl">
+          <Button onClick={() => { setEditing(null); setCreateOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
             <Plus className="size-4 mr-1.5" /> Novo Prestador
           </Button>
         }
@@ -115,7 +115,7 @@ export default function Providers() {
           { label: "Total da Rede", value: kpis.total, tone: "primary", icon: <Briefcase className="size-4" /> },
           { label: "Ativos", value: kpis.active, tone: "success", icon: <CheckCircle2 className="size-4" /> },
           { label: "Demandas em curso", value: kpis.demands, tone: "info", icon: <ClipboardCheck className="size-4" /> },
-          { label: "Clientes atendidos", value: kpis.clients, tone: "violet", icon: <Users2 className="size-4" /> },
+          { label: "Clientes atendidos", value: kpis.clients, tone: "primary", icon: <Users2 className="size-4" /> },
         ]}
       />
 
@@ -161,7 +161,7 @@ export default function Providers() {
             <Briefcase className="size-14 mx-auto text-muted-foreground/30 mb-4" />
             <p className="font-display text-lg">Nenhum prestador cadastrado</p>
             <p className="text-sm text-muted-foreground mt-1">Cadastre fornecedores externos para delegar entregas e atendimentos.</p>
-            <Button onClick={() => setCreateOpen(true)} className="mt-5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white">
+            <Button onClick={() => setCreateOpen(true)} className="mt-5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
               <Plus className="size-4 mr-1.5" /> Cadastrar primeiro prestador
             </Button>
           </div>
@@ -196,7 +196,7 @@ export default function Providers() {
                   <tr key={p.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/prestadores/${p.id}`)}>
-                        <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-bold text-sm border border-indigo-500/20">
+                        <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 text-indigo-600 flex items-center justify-center font-bold text-sm border border-indigo-500/20">
                           {initials(p.name)}
                         </div>
                         <div>
@@ -222,7 +222,7 @@ export default function Providers() {
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </td>
                     <td className="px-5 py-4 text-center">
-                      <Badge className={cn("text-[10px]", p.active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30" : "bg-muted text-muted-foreground")}>
+                      <Badge className={cn("text-[10px]", p.active ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30" : "bg-muted text-muted-foreground")}>
                         {p.active ? "Ativo" : "Inativo"}
                       </Badge>
                     </td>
@@ -263,11 +263,11 @@ export default function Providers() {
 function ProviderCard({ provider, onDetail, onEdit, onAssign, onToggle }: any) {
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-xl transition-all">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
       <div className="flex items-start justify-between mb-4">
         <button onClick={onDetail} className="flex items-center gap-3 min-w-0 text-left">
-          <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-bold border border-indigo-500/20 shrink-0">
+          <div className="size-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 text-indigo-600 flex items-center justify-center font-bold border border-indigo-500/20 shrink-0">
             {initials(provider.name)}
           </div>
           <div className="min-w-0">
@@ -293,7 +293,7 @@ function ProviderCard({ provider, onDetail, onEdit, onAssign, onToggle }: any) {
 
       <div className="grid grid-cols-3 gap-2 pt-4 border-t border-border">
         <Stat label="Em curso" value={provider._activeCount} tone="info" />
-        <Stat label="Clientes" value={provider._clientsCount} tone="violet" />
+        <Stat label="Clientes" value={provider._clientsCount} tone="primary" />
         <Stat label="Concluídas" value={provider._doneCount} tone="success" />
       </div>
 
@@ -310,9 +310,9 @@ function ProviderCard({ provider, onDetail, onEdit, onAssign, onToggle }: any) {
 
 function Stat({ label, value, tone }: { label: string; value: number; tone: "info" | "violet" | "success" }) {
   const colors: any = {
-    info: "text-sky-600 dark:text-sky-300",
-    violet: "text-violet-600 dark:text-violet-300",
-    success: "text-emerald-600 dark:text-emerald-300",
+    info: "text-sky-600",
+    violet: "text-indigo-600",
+    success: "text-emerald-600",
   };
   return (
     <div className="text-center">

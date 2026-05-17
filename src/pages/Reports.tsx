@@ -402,7 +402,7 @@ export default function Reports() {
             <span className="h-px w-8 bg-primary/40" />
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Intelligence Hub</p>
           </div>
-          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 dark:text-white leading-[0.9]">
+          <h1 className="font-editorial text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 leading-[0.9]">
             Relatórios <span className="text-primary italic font-medium">Empresariais</span>.
           </h1>
           <p className="text-sm text-muted-foreground max-w-2xl pt-2">
@@ -416,24 +416,24 @@ export default function Reports() {
         {[
           { label: "Receita", value: formatBRL(execKpis.totalRevenue), icon: DollarSign, tone: "from-emerald-500/15 text-emerald-600" },
           { label: "Vendas", value: execKpis.totalDeals, icon: Receipt, tone: "from-indigo-500/15 text-indigo-600" },
-          { label: "Ticket Médio", value: formatBRL(execKpis.avgTicket), icon: TrendingUp, tone: "from-violet-500/15 text-violet-600" },
+          { label: "Ticket Médio", value: formatBRL(execKpis.avgTicket), icon: TrendingUp, tone: "from-indigo-500/15 text-indigo-600" },
           { label: "Novos Clientes", value: execKpis.newClients, icon: Users, tone: "from-sky-500/15 text-sky-600" },
           { label: "Conversão", value: `${execKpis.conversion}%`, icon: Target, tone: "from-amber-500/15 text-amber-600" },
           { label: "Inadimplência", value: formatBRL(execKpis.overdueAmount), icon: AlertTriangle, tone: "from-rose-500/15 text-rose-600" },
         ].map((k) => (
-          <div key={k.label} className="vx-card p-4 rounded-2xl bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+          <div key={k.label} className="vx-card p-4 rounded-2xl bg-white border border-slate-100">
             <div className={`size-9 rounded-xl bg-gradient-to-br ${k.tone} flex items-center justify-center mb-2`}>
               <k.icon className="size-4" />
             </div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{k.label}</p>
-            <p className="font-display text-xl font-black tabular-nums text-slate-900 dark:text-white">{k.value}</p>
+            <p className="font-display text-xl font-black tabular-nums text-slate-900">{k.value}</p>
           </div>
         ))}
       </div>
 
       {/* Mini-painel de tendência + mix */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 vx-card p-6 rounded-[24px] bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+        <div className="lg:col-span-2 vx-card p-6 rounded-[24px] bg-white border border-slate-100">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-editorial text-lg font-bold">Receita no Período</h3>
@@ -460,7 +460,7 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="vx-card p-6 rounded-[24px] bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+        <div className="vx-card p-6 rounded-[24px] bg-white border border-slate-100">
           <h3 className="font-editorial text-lg font-bold mb-1">Mix de Demandas</h3>
           <p className="text-xs text-muted-foreground mb-3">Status atual</p>
           <div className="h-[220px]">
@@ -478,7 +478,7 @@ export default function Reports() {
       </div>
 
       {/* Top produtos */}
-      <div className="vx-card p-6 rounded-[24px] bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+      <div className="vx-card p-6 rounded-[24px] bg-white border border-slate-100">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-editorial text-lg font-bold">Top Produtos</h3>
@@ -503,7 +503,7 @@ export default function Reports() {
                     <span className="tabular-nums">{formatBRL(p.value)}</span>
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-primary to-violet-500" style={{ width: `${pct}%` }} />
+                    <div className="h-full rounded-full bg-gradient-to-r from-primary to-indigo-600" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );
@@ -514,7 +514,7 @@ export default function Reports() {
 
 
       {/* FILTERS */}
-      <div className="vx-card p-6 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] space-y-6">
+      <div className="vx-card p-6 bg-white border border-slate-100 rounded-[32px] space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="space-y-2">
             <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tipo de Relatório</Label>
@@ -565,8 +565,8 @@ export default function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* CHART SECTION */}
         {reportConfig?.chartData && (
-          <div className="lg:col-span-2 vx-card p-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px] space-y-6">
-            <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Visualização de Dados</h3>
+          <div className="lg:col-span-2 vx-card p-8 bg-white border border-slate-100 rounded-[32px] space-y-6">
+            <h3 className="font-editorial text-2xl font-bold text-slate-900">Visualização de Dados</h3>
             <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 {reportType.includes("status") ? (
@@ -608,15 +608,15 @@ export default function Reports() {
       </div>
 
       {/* DATA TABLE */}
-      <div className="vx-card p-8 bg-white dark:bg-slate-900/40 border border-slate-100 dark:border-white/5 rounded-[32px]">
+      <div className="vx-card p-8 bg-white border border-slate-100 rounded-[32px]">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="font-editorial text-2xl font-bold text-slate-900 dark:text-white">Registros Detalhados</h3>
+          <h3 className="font-editorial text-2xl font-bold text-slate-900">Registros Detalhados</h3>
           <Badge variant="outline" className="rounded-full px-4">{reportConfig?.rows.length ?? 0} registros encontrados</Badge>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-slate-100 dark:border-white/5">
+              <tr className="border-b border-slate-100">
                 {reportConfig?.columns.map(c => (
                   <th key={c.dataKey} className="pb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">{c.header}</th>
                 ))}
@@ -624,9 +624,9 @@ export default function Reports() {
             </thead>
             <tbody>
               {reportConfig?.rows.map((r: any, i) => (
-                <tr key={i} className="group border-b border-slate-50 dark:border-white/5 hover:bg-slate-50/50 transition-colors">
+                <tr key={i} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   {reportConfig?.columns.map(c => (
-                    <td key={c.dataKey} className="py-4 text-sm text-slate-600 dark:text-slate-300">
+                    <td key={c.dataKey} className="py-4 text-sm text-slate-600">
                       {String(r[c.dataKey] ?? "—")}
                     </td>
                   ))}

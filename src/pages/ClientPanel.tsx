@@ -135,14 +135,14 @@ export default function ClientPanel() {
   const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
 
   return (
-    <div className="bg-premium min-h-screen dark:bg-[#020617]">
+    <div className="bg-premium min-h-screen">
       {/* ─── Sticky Top Bar ─── */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
         <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
           <div className="flex items-center gap-2.5 min-w-0">
             <ProsperLogo size={28} />
             <div className="min-w-0">
-              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900 dark:text-white">Prosper</p>
+              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900">Prosper</p>
               <p className="hidden sm:block text-[8.5px] text-muted-foreground tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
             </div>
           </div>
@@ -151,8 +151,8 @@ export default function ClientPanel() {
             <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
-                  <span className="size-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[11px] font-bold shrink-0">
+                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors active:scale-[0.98]">
+                  <span className="size-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">
                     {initials(client.full_name)}
                   </span>
                   <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
@@ -223,12 +223,12 @@ export default function ClientPanel() {
 
              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
                <div className="lg:col-span-2 space-y-8">
-                  <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
+                  <div className="vx-card p-10 bg-white border-slate-100 rounded-[40px]">
                     <h3 className="font-editorial text-2xl font-bold mb-8">Checklist de Execução</h3>
                     <ClientProductSteps clientProductId={selectedProduct.id} showDetails={true} />
                   </div>
 
-                  <div className="vx-card p-10 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px]">
+                  <div className="vx-card p-10 bg-white border-slate-100 rounded-[40px]">
                     <h3 className="font-editorial text-2xl font-bold mb-8">Documentos da Demanda</h3>
                     <div className="space-y-4">
                        {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 ? (
@@ -236,7 +236,7 @@ export default function ClientPanel() {
                        ) : (
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
-                             <div key={d.id} className="p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-between group hover:border-primary/20 transition-all">
+                             <div key={d.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:border-primary/20 transition-all">
                                 <div className="flex items-center gap-4 min-w-0">
                                    <div className={cn(
                                      "size-10 rounded-xl flex items-center justify-center shrink-0",
@@ -292,7 +292,7 @@ export default function ClientPanel() {
                     </div>
                   </div>
 
-                  <div className="vx-card p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-[40px] space-y-6">
+                  <div className="vx-card p-8 bg-white border-slate-100 rounded-[40px] space-y-6">
                     <h3 className="font-editorial text-xl font-bold">Histórico de Atividades</h3>
                     <div className="space-y-4">
                        <div className="flex items-start gap-4">
@@ -300,7 +300,7 @@ export default function ClientPanel() {
                              <CheckCircle2 className="size-4" />
                           </div>
                           <div>
-                             <p className="text-xs font-bold text-slate-900 dark:text-white">Demanda Criada</p>
+                             <p className="text-xs font-bold text-slate-900">Demanda Criada</p>
                              <p className="text-[10px] text-muted-foreground mt-0.5">{formatDate(selectedProduct.created_at)}</p>
                           </div>
                        </div>
@@ -313,7 +313,7 @@ export default function ClientPanel() {
           /* MAIN HOME VIEW */
           <>
             {/* ─── Refined Hero ─── */}
-            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 text-white p-6 sm:p-10 lg:p-12 shadow-xl">
+            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white p-6 sm:p-10 lg:p-12 shadow-xl">
               <div className="absolute -top-32 -right-32 size-[420px] rounded-full bg-primary/30 blur-[120px] opacity-60 pointer-events-none" />
               <div className="absolute -bottom-24 -left-24 size-[320px] rounded-full bg-blue-500/20 blur-[100px] opacity-50 pointer-events-none" />
               <div
@@ -382,7 +382,7 @@ export default function ClientPanel() {
             </section>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
-              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-premium/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60 dark:border-white/5">
+              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-premium/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60">
                 <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max sm:w-full px-4 sm:px-0 rounded-none">
                   <PillTab value="home" label="Início" icon={LayoutDashboard} />
                   <PillTab value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
@@ -398,20 +398,20 @@ export default function ClientPanel() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
                   <div className="lg:col-span-2 space-y-8">
                     {/* Próximas Etapas */}
-                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                    <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
                       <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Próximas Etapas</h3>
                       <div className="space-y-4">
                         {activeProducts.length === 0 ? (
                           <p className="text-sm text-muted-foreground italic">Nenhuma etapa pendente no momento.</p>
                         ) : (
                           activeProducts.slice(0, 3).map((p: any) => (
-                            <div key={p.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+                            <div key={p.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100">
                                <div className="flex items-center gap-4">
                                   <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                                      <Activity className="size-5" />
                                   </div>
                                   <div>
-                                     <p className="font-bold text-slate-900 dark:text-white">{p.products?.name}</p>
+                                     <p className="font-bold text-slate-900">{p.products?.name}</p>
                                      <p className="text-xs text-muted-foreground">Etapa: {p.status?.replace(/_/g, ' ')}</p>
                                   </div>
                                </div>
@@ -423,16 +423,16 @@ export default function ClientPanel() {
                     </div>
 
                     {/* Entregas Recentes */}
-                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                    <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
                       <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Entregas Disponíveis</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {deliveries.length === 0 ? (
-                          <div className="col-span-full py-8 text-center bg-slate-50 dark:bg-white/5 rounded-2xl border border-dashed border-slate-200 dark:border-white/10">
+                          <div className="col-span-full py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                             <p className="text-sm text-muted-foreground italic">Suas entregas aparecerão aqui assim que forem concluídas.</p>
                           </div>
                         ) : (
                           deliveries.slice(0, 4).map((d: any) => (
-                            <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20">
+                            <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
                                 <div className="flex items-center gap-3 min-w-0">
                                    {d.type === 'document' ? <CheckCircle2 className="size-4 text-emerald-500 shrink-0" /> : <Package className="size-4 text-indigo-500 shrink-0" />}
                                    <div className="min-w-0">
@@ -463,12 +463,12 @@ export default function ClientPanel() {
                     </div>
 
                     {/* Canal de Suporte */}
-                    <div className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 rounded-2xl sm:rounded-[32px] shadow-sm">
+                    <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
                        <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6">Suporte & Sucesso</h3>
                        <div className="space-y-6">
                           <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
                           <div className="space-y-3">
-                             <Button className="w-full rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open(wa(), '_blank')}>
+                             <Button className="w-full rounded-xl bg-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open(wa(), '_blank')}>
                                 <MessageSquare className="size-4 mr-2" /> Iniciar Chat
                              </Button>
                              <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = buildMailtoLink(settings.support_email)}>
@@ -489,17 +489,17 @@ export default function ClientPanel() {
                     return (
                       <div 
                         key={p.id} 
-                        className="vx-card p-5 sm:p-8 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-2xl sm:rounded-[32px] group/item cursor-pointer flex flex-col h-full"
+                        className="vx-card p-5 sm:p-8 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-2xl sm:rounded-[32px] group/item cursor-pointer flex flex-col h-full"
                         onClick={() => setSelectedProductId(p.id)}
                       >
                         <div className="flex justify-between items-start mb-8">
-                          <div className="size-14 rounded-2xl bg-primary/5 dark:bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
+                          <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
                              <Package className="size-7" />
                           </div>
                           <StatusBadge status={p.status} />
                         </div>
                         
-                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
                           {p.products?.name}
                         </h3>
                         <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
@@ -510,11 +510,11 @@ export default function ClientPanel() {
                            <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                               <div>
                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Última Atualização</p>
-                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{latestReport ? formatDate(latestReport.created_at) : formatDate(p.created_at)}</p>
+                                 <p className="text-xs font-bold text-slate-700">{latestReport ? formatDate(latestReport.created_at) : formatDate(p.created_at)}</p>
                               </div>
                               <div className="text-right">
                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Estimado</p>
-                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
+                                 <p className="text-xs font-bold text-slate-700">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
                               </div>
                               <div>
                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Pendências</p>
@@ -524,11 +524,11 @@ export default function ClientPanel() {
                               </div>
                               <div className="text-right">
                                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
-                                 <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(p.created_at)}</p>
+                                 <p className="text-xs font-bold text-slate-700">{formatDate(p.created_at)}</p>
                               </div>
                            </div>
 
-                           <div className="pt-6 border-t border-slate-50 dark:border-white/5 flex items-center justify-between group/link">
+                           <div className="pt-6 border-t border-slate-50 flex items-center justify-between group/link">
                               <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Ver detalhes da execução</span>
                               <ArrowRight className="size-4 text-primary group-hover/link:translate-x-1 transition-transform" />
                            </div>
@@ -546,7 +546,7 @@ export default function ClientPanel() {
               <TabsContent value="descobrir" className="animate-fade-up">
                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                     {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                      <div key={p.id} className="vx-card p-5 sm:p-7 bg-white dark:bg-card border-slate-100 dark:border-white/5 hover:border-primary/30 hover:shadow-xl transition-all rounded-2xl sm:rounded-[28px] flex flex-col">
+                      <div key={p.id} className="vx-card p-5 sm:p-7 bg-white border-slate-100 hover:border-primary/30 hover:shadow-xl transition-all rounded-2xl sm:rounded-[28px] flex flex-col">
                         <div className="flex items-start justify-between gap-3 mb-3">
                           {p.product_categories?.name && (
                             <Badge variant="outline" className="text-[10px] font-bold rounded-full" style={{ borderColor: p.product_categories?.color, color: p.product_categories?.color }}>
@@ -555,21 +555,21 @@ export default function ClientPanel() {
                           )}
                           {p.recurring && <Badge variant="secondary" className="text-[10px] font-bold rounded-full">Recorrente</Badge>}
                         </div>
-                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">{p.name}</h3>
+                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 leading-tight">{p.name}</h3>
                         <p className="text-sm text-muted-foreground mt-2 line-clamp-3 flex-1">{p.description}</p>
-                        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3">
+                        <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
                            <div>
                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.recurring ? "A partir de" : "Investimento"}</p>
-                             <p className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
+                             <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
                            </div>
-                           <Button className="rounded-xl h-10 px-4 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), '_blank')}>
+                           <Button className="rounded-xl h-10 px-4 bg-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), '_blank')}>
                              Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
                            </Button>
                         </div>
                       </div>
                     ))}
                     {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).length === 0 && (
-                      <div className="col-span-full vx-card p-10 sm:p-16 text-center bg-white dark:bg-card rounded-2xl border-slate-100 dark:border-white/5">
+                      <div className="col-span-full vx-card p-10 sm:p-16 text-center bg-white rounded-2xl border-slate-100">
                         <Sparkles className="size-10 mx-auto text-muted-foreground/30 mb-3" />
                         <p className="text-sm text-muted-foreground italic">Você já tem acesso a todas as soluções disponíveis.</p>
                       </div>
@@ -578,22 +578,22 @@ export default function ClientPanel() {
               </TabsContent>
 
               <TabsContent value="docs" className="animate-fade-up">
-                 <div className="vx-card bg-white dark:bg-card rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
-                    <div className="p-5 sm:p-8 border-b border-slate-50 dark:border-white/5 bg-slate-50/30 dark:bg-white/5">
-                       <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Repositório de Arquivos</h3>
+                 <div className="vx-card bg-white rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100">
+                    <div className="p-5 sm:p-8 border-b border-slate-50 bg-slate-50/30">
+                       <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900">Repositório de Arquivos</h3>
                     </div>
-                    <div className="divide-y divide-slate-50 dark:divide-white/5">
+                    <div className="divide-y divide-slate-50">
                        {docs.map((d: any) => (
-                         <div key={d.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                         <div key={d.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                             <div className="flex items-center gap-5 min-w-0">
                                <div className={cn(
                                  "size-12 rounded-[18px] flex items-center justify-center shrink-0",
-                                 d.file_path ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-slate-100 dark:bg-white/5 text-slate-400"
+                                 d.file_path ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"
                                )}>
                                   <FileText className="size-6" />
                                </div>
                                <div className="min-w-0">
-                                  <p className="font-bold text-slate-900 dark:text-white truncate">{d.name}</p>
+                                  <p className="font-bold text-slate-900 truncate">{d.name}</p>
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">
                                     {d.file_path ? `Enviado em ${formatDate(d.created_at)}` : "Pendente de envio"}
                                   </p>
@@ -602,7 +602,7 @@ export default function ClientPanel() {
                             {d.file_path ? (
                               <Button
                                 variant="outline" size="sm"
-                                className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all shrink-0"
+                                className="rounded-xl gap-2 h-10 border-slate-200 hover:bg-primary hover:text-white transition-all shrink-0"
                                 onClick={() => downloadDoc(d.file_path, d.name)}
                               >
                                  <Download className="size-4" /> Download
@@ -632,9 +632,9 @@ export default function ClientPanel() {
                  </div>
 
                  <div className="grid lg:grid-cols-3 gap-5 sm:gap-8">
-                    <div className="lg:col-span-2 vx-card bg-white dark:bg-card rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100 dark:border-white/5">
-                       <div className="p-5 sm:p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
-                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Extrato de pagamentos</h3>
+                    <div className="lg:col-span-2 vx-card bg-white rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100">
+                       <div className="p-5 sm:p-8 border-b border-slate-50 flex items-center justify-between">
+                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900">Extrato de pagamentos</h3>
                           <Badge variant="outline" className="text-[10px] font-bold rounded-full">{payments.length} registros</Badge>
                        </div>
                        {payments.length === 0 ? (
@@ -645,12 +645,12 @@ export default function ClientPanel() {
                        ) : (
                          <>
                            {/* Mobile: cards */}
-                           <div className="sm:hidden divide-y divide-slate-50 dark:divide-white/5">
+                           <div className="sm:hidden divide-y divide-slate-50">
                              {payments.map((p: any) => (
                                <div key={p.id} className="p-4 flex items-center justify-between gap-3">
                                  <div className="min-w-0">
                                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{formatDate(p.due_date)}</p>
-                                   <p className="text-base font-bold tabular-nums text-slate-900 dark:text-white mt-0.5">{formatBRL(p.amount)}</p>
+                                   <p className="text-base font-bold tabular-nums text-slate-900 mt-0.5">{formatBRL(p.amount)}</p>
                                    {p.installment_number && p.installments_count && (
                                      <p className="text-[10px] text-muted-foreground mt-0.5">Parcela {p.installment_number}/{p.installments_count}</p>
                                    )}
@@ -666,17 +666,17 @@ export default function ClientPanel() {
                            <div className="hidden sm:block overflow-x-auto">
                               <table className="w-full text-sm">
                                  <thead>
-                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50 dark:bg-white/5">
+                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50">
                                        <th className="px-8 py-5 text-left">Vencimento</th>
                                        <th className="px-8 py-5 text-left">Parcela</th>
                                        <th className="px-8 py-5 text-left">Status</th>
                                        <th className="px-8 py-5 text-right">Valor</th>
                                     </tr>
                                  </thead>
-                                 <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                                 <tbody className="divide-y divide-slate-50">
                                     {payments.map((p: any) => (
-                                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-white/10 transition-colors">
-                                         <td className="px-8 py-6 font-bold text-slate-700 dark:text-slate-300">{formatDate(p.due_date)}</td>
+                                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                                         <td className="px-8 py-6 font-bold text-slate-700">{formatDate(p.due_date)}</td>
                                          <td className="px-8 py-6 text-muted-foreground text-xs">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td>
                                          <td className="px-8 py-6">
                                             <span className={cn(
@@ -684,7 +684,7 @@ export default function ClientPanel() {
                                               p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
                                             )}>{p.status}</span>
                                          </td>
-                                         <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 dark:text-white text-lg">{formatBRL(p.amount)}</td>
+                                         <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 text-lg">{formatBRL(p.amount)}</td>
                                       </tr>
                                     ))}
                                  </tbody>
@@ -741,7 +741,7 @@ function PremiumStat({ label, value, sub, tone }: { label: string; value: string
       <div className="flex items-baseline gap-2">
          <span className={cn(
            "font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tighter",
-           tone === "success" ? "text-emerald-500" : tone === "warning" ? "text-amber-500" : "text-slate-900 dark:text-white"
+           tone === "success" ? "text-emerald-500" : tone === "warning" ? "text-amber-500" : "text-slate-900"
          )}>{value}</span>
          {sub && <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-widest opacity-40">{sub}</span>}
       </div>
@@ -755,10 +755,10 @@ function PillTab({ value, label, icon: Icon, count, alert }: { value: string; la
       value={value}
       className={cn(
         "shrink-0 inline-flex items-center gap-2 h-10 px-4 rounded-full text-[12.5px] font-semibold tracking-tight",
-        "bg-white dark:bg-white/5 border border-slate-200/70 dark:border-white/10 text-slate-600 dark:text-white/60",
-        "hover:bg-slate-50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-all",
-        "data-[state=active]:bg-slate-900 dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-slate-900",
-        "data-[state=active]:border-slate-900 dark:data-[state=active]:border-white data-[state=active]:shadow-md"
+        "bg-white border border-slate-200/70 text-slate-600",
+        "hover:bg-slate-50 hover:text-slate-900 transition-all",
+        "data-[state=active]:bg-slate-900 data-[state=active]:text-white",
+        "data-[state=active]:border-slate-900 data-[state=active]:shadow-md"
       )}
     >
       <Icon className="size-3.5" />
@@ -768,7 +768,7 @@ function PillTab({ value, label, icon: Icon, count, alert }: { value: string; la
           "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold tabular-nums",
           alert
             ? "bg-rose-500 text-white"
-            : "bg-slate-200 text-slate-700 dark:bg-white/15 dark:text-white group-data-[state=active]:bg-white/20"
+            : "bg-slate-200 text-slate-700 group-data-[state=active]:bg-white/20"
         )}>{count}</span>
       )}
     </TabsTrigger>
@@ -777,16 +777,16 @@ function PillTab({ value, label, icon: Icon, count, alert }: { value: string; la
 
 function FinanceStat({ label, value, sub, tone = "default", icon }: { label: string; value: string; sub?: string; tone?: "default" | "success" | "warning"; icon?: React.ReactNode }) {
   const tint =
-    tone === "success" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-500/20"
-    : tone === "warning" ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300 border-amber-200/60 dark:border-amber-500/20"
-    : "bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-white/70 border-slate-200/70 dark:border-white/10";
+    tone === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200/60"
+    : tone === "warning" ? "bg-amber-50 text-amber-600 border-amber-200/60"
+    : "bg-slate-100 text-slate-600 border-slate-200/70";
   return (
-    <div className="vx-card p-4 sm:p-5 bg-white dark:bg-card rounded-2xl border-slate-100 dark:border-white/5 shadow-sm">
+    <div className="vx-card p-4 sm:p-5 bg-white rounded-2xl border-slate-100 shadow-sm">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
         <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
         <span className={cn("size-7 rounded-lg border flex items-center justify-center shrink-0", tint)}>{icon}</span>
       </div>
-      <p className="font-editorial text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+      <p className="font-editorial text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 tabular-nums leading-none">{value}</p>
       {sub && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1.5 truncate">{sub}</p>}
     </div>
   );
@@ -800,7 +800,7 @@ function StatusBadge({ status }: { status: string }) {
     em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
     pendente_correcao: { label: "AJUSTE NECESSÁRIO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
     concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-white/40" },
+    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200" },
     ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
   };
   const cfg = map[status] || { label: (status || "—").toUpperCase(), className: "bg-slate-100 text-slate-600 border-slate-200" };

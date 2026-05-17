@@ -21,15 +21,15 @@ import {
 } from "recharts";
 
 const PAY_STATUS: Record<string, { label: string; cls: string }> = {
-  em_aberto: { label: "Em aberto", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" },
-  pendente: { label: "Em aberto", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" },
-  pago: { label: "Pago", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
-  parcial: { label: "Parcial", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
-  parcialmente_pago: { label: "Parcial", cls: "bg-amber-500/15 text-amber-700 dark:text-amber-400" },
-  vencido: { label: "Vencido", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
-  atrasado: { label: "Vencido", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
+  em_aberto: { label: "Em aberto", cls: "bg-blue-500/15 text-blue-600" },
+  pendente: { label: "Em aberto", cls: "bg-blue-500/15 text-blue-600" },
+  pago: { label: "Pago", cls: "bg-emerald-500/15 text-emerald-600" },
+  parcial: { label: "Parcial", cls: "bg-amber-500/15 text-amber-700" },
+  parcialmente_pago: { label: "Parcial", cls: "bg-amber-500/15 text-amber-700" },
+  vencido: { label: "Vencido", cls: "bg-rose-500/15 text-rose-600" },
+  atrasado: { label: "Vencido", cls: "bg-rose-500/15 text-rose-600" },
   cancelado: { label: "Cancelado", cls: "bg-muted text-muted-foreground" },
-  reembolsado: { label: "Reembolsado", cls: "bg-violet-500/15 text-violet-600 dark:text-violet-400" },
+  reembolsado: { label: "Reembolsado", cls: "bg-indigo-500/15 text-indigo-600" },
 };
 
 const TABS = [
@@ -521,9 +521,9 @@ function ByClient({ payments }: { payments: any[] }) {
 function Stat({ label, value, tone = "default" }: { label: string; value: string; tone?: "default" | "success" | "warning" | "danger" }) {
   const toneCls = {
     default: "text-foreground",
-    success: "text-emerald-600 dark:text-emerald-400",
-    warning: "text-amber-600 dark:text-amber-400",
-    danger: "text-rose-600 dark:text-rose-400",
+    success: "text-emerald-600",
+    warning: "text-amber-600",
+    danger: "text-rose-600",
   }[tone];
   return (
     <div className="rounded-lg border bg-card p-4">

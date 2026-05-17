@@ -171,8 +171,8 @@ export default function Dashboard() {
             <div className="cp-panel p-6">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                    <Activity className="size-5 text-indigo-600 dark:text-indigo-400" />
+                  <div className="size-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <Activity className="size-5 text-indigo-600" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold tracking-tight">Histórico de Auditoria</h3>
@@ -246,7 +246,7 @@ export default function Dashboard() {
           <div className="col-span-12 lg:col-span-4 space-y-8">
             <div className="cp-panel p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="size-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+                <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center">
                   <FileUp className="size-4 text-amber-600" />
                 </div>
                 <h3 className="text-sm font-bold tracking-tight">Status de Operação</h3>
@@ -270,7 +270,7 @@ export default function Dashboard() {
                   <span className="text-xs text-muted-foreground">Contratos Assinados</span>
                   <span className="text-xs font-bold">{stats?.contracts.signed}</span>
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500" style={{ width: `${(stats?.contracts.signed || 0) / (stats?.contracts.total || 1) * 100}%` }} />
                 </div>
                 
@@ -278,7 +278,7 @@ export default function Dashboard() {
                   <span className="text-xs text-muted-foreground">Leads em Negociação</span>
                   <span className="text-xs font-bold">{stats?.leads.total - stats?.leads.converted}</span>
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500" style={{ width: `${(stats?.leads.total - stats?.leads.converted) / (stats?.leads.total || 1) * 100}%` }} />
                 </div>
               </div>
@@ -360,7 +360,7 @@ function SourceItem({ label, value, color }: { label: string; value: number; col
         <span className="text-muted-foreground">{label}</span>
         <span className="text-foreground">{value}%</span>
       </div>
-      <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
         <div className={cn("h-full rounded-full", color)} style={{ width: `${value}%` }} />
       </div>
     </div>

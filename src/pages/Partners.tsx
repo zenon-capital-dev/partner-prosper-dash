@@ -202,7 +202,7 @@ export default function Partners() {
         <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white shadow-lg">
+              <div className="size-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
                 <Handshake className="size-5" />
               </div>
               <div>
@@ -290,7 +290,7 @@ export default function Partners() {
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={submit} className="bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg">
+            <Button onClick={submit} className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg">
               {editing ? "Salvar alterações" : "Cadastrar parceiro"}
             </Button>
           </div>

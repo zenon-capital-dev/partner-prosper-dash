@@ -275,7 +275,7 @@ export default function Documents() {
         description="Solicite, valide e arquive documentos de clientes. Cada arquivo fica vinculado a uma demanda e visível apenas para quem tem permissão."
         icon={<FolderOpen className="size-6" />}
         actions={
-          <Button onClick={() => { setSelectedDoc(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-xl">
+          <Button onClick={() => { setSelectedDoc(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
             <FilePlus className="size-4 mr-1.5" /> Solicitar Documento
           </Button>
         }

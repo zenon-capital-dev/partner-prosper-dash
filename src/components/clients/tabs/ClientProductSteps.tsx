@@ -48,7 +48,7 @@ export function ClientProductSteps({ clientProductId, showDetails = false }: { c
   return (
     <div className="space-y-4 pt-4">
       <div className="flex items-center justify-between cursor-pointer group/header" onClick={() => setExpanded(!expanded)}>
-        <p className="editorial-label text-slate-400 dark:text-white/40 flex items-center gap-2 group-hover/header:text-primary transition-colors">
+        <p className="editorial-label text-slate-400 flex items-center gap-2 group-hover/header:text-primary transition-colors">
           <CheckCircle2 className="size-3 text-primary" /> Entrega: {completedCount}/{steps.length}
         </p>
         <div className="flex items-center gap-3">
@@ -57,7 +57,7 @@ export function ClientProductSteps({ clientProductId, showDetails = false }: { c
         </div>
       </div>
       
-      <div className="h-1 bg-slate-100 dark:bg-white/[0.05] rounded-full overflow-hidden">
+      <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
         <div 
           className="h-full bg-primary transition-all duration-500 shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" 
           style={{ width: `${progress}%` }} 
@@ -71,11 +71,11 @@ export function ClientProductSteps({ clientProductId, showDetails = false }: { c
               <Checkbox 
                 checked={step.completed} 
                 onCheckedChange={(checked) => toggleStep.mutate({ id: step.id, completed: !!checked })}
-                className="border-slate-200 dark:border-white/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                className="border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
               />
               <span className={cn(
                 "text-xs transition-all",
-                step.completed ? "text-slate-300 dark:text-white/20 line-through" : "text-slate-600 dark:text-white/60 group-hover:text-primary font-medium"
+                step.completed ? "text-slate-300 line-through" : "text-slate-600 group-hover:text-primary font-medium"
               )}>
                 {step.label}
               </span>

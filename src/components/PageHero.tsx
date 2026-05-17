@@ -23,13 +23,13 @@ interface Props {
 }
 
 const toneCfg: Record<string, { text: string; bg: string; ring: string; dot: string; grad: string }> = {
-  primary: { text: "text-slate-900 dark:text-slate-100", bg: "bg-slate-100 dark:bg-slate-500/10", ring: "ring-slate-200/60 dark:ring-slate-500/20", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
-  success: { text: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-500/10", ring: "ring-emerald-200/60 dark:ring-emerald-500/20", dot: "bg-emerald-500 shadow-sm", grad: "from-emerald-500 to-emerald-600" },
-  warning: { text: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", ring: "ring-amber-200/60 dark:ring-amber-500/20", dot: "bg-amber-500 shadow-sm", grad: "from-amber-500 to-amber-600" },
-  info: { text: "text-sky-600 dark:text-sky-300", bg: "bg-sky-50 dark:bg-sky-500/10", ring: "ring-sky-200/60 dark:ring-sky-500/20", dot: "bg-sky-500 shadow-sm", grad: "from-sky-500 to-sky-600" },
-  danger: { text: "text-rose-600 dark:text-rose-300", bg: "bg-rose-50 dark:bg-rose-500/10", ring: "ring-rose-200/60 dark:ring-rose-500/20", dot: "bg-rose-500 shadow-sm", grad: "from-rose-500 to-rose-600" },
-  violet: { text: "text-slate-900 dark:text-slate-100", bg: "bg-slate-100 dark:bg-slate-500/10", ring: "ring-slate-200/60 dark:ring-slate-500/20", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
-  default: { text: "text-slate-700 dark:text-zinc-200", bg: "bg-slate-100 dark:bg-white/5", ring: "ring-slate-200 dark:ring-white/10", dot: "bg-slate-400", grad: "from-slate-500 to-slate-600" },
+  primary: { text: "text-slate-900", bg: "bg-slate-100", ring: "ring-slate-200/60", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
+  success: { text: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-200/60", dot: "bg-emerald-500 shadow-sm", grad: "from-emerald-500 to-emerald-600" },
+  warning: { text: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-200/60", dot: "bg-amber-500 shadow-sm", grad: "from-amber-500 to-amber-600" },
+  info: { text: "text-sky-600", bg: "bg-sky-50", ring: "ring-sky-200/60", dot: "bg-sky-500 shadow-sm", grad: "from-sky-500 to-sky-600" },
+  danger: { text: "text-rose-600", bg: "bg-rose-50", ring: "ring-rose-200/60", dot: "bg-rose-500 shadow-sm", grad: "from-rose-500 to-rose-600" },
+  violet: { text: "text-slate-900", bg: "bg-slate-100", ring: "ring-slate-200/60", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
+  default: { text: "text-slate-700", bg: "bg-slate-100", ring: "ring-slate-200", dot: "bg-slate-400", grad: "from-slate-500 to-slate-600" },
 };
 
 export function PageHero({
@@ -48,8 +48,8 @@ export function PageHero({
     <section className="relative px-5 lg:px-8 pt-7 lg:pt-9 pb-3 space-y-7">
       {/* ambient orbs — refined */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-40 -left-40 size-[560px] rounded-full bg-slate-200/25 dark:bg-slate-600/[0.07] blur-[160px]" />
-        <div className="absolute top-1/3 -right-40 size-[440px] rounded-full bg-slate-200/20 dark:bg-slate-600/[0.05] blur-[160px]" />
+        <div className="absolute -top-40 -left-40 size-[560px] rounded-full bg-slate-200/25 blur-[160px]" />
+        <div className="absolute top-1/3 -right-40 size-[440px] rounded-full bg-slate-200/20 blur-[160px]" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
       </div>
 
@@ -68,27 +68,27 @@ export function PageHero({
           )}
           <div className="min-w-0">
             {(eyebrow || category) && (
-              <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.24em] font-bold text-slate-400 dark:text-zinc-500">
+              <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.24em] font-bold text-slate-400">
                 <CalendarClock className="size-3" />
-                <span className="text-slate-500 dark:text-zinc-400">{eyebrow}</span>
+                <span className="text-slate-500">{eyebrow}</span>
                 {category && (
                   <>
-                    <span className="size-1 rounded-full bg-slate-300 dark:bg-zinc-700" />
+                    <span className="size-1 rounded-full bg-slate-300" />
                     <Sparkles className="size-3 text-slate-500" />
-                    <span className="text-slate-700 dark:text-zinc-300">{category}</span>
+                    <span className="text-slate-700">{category}</span>
                   </>
                 )}
               </div>
             )}
-            <h1 className="text-[26px] lg:text-[32px] font-bold text-slate-900 dark:text-white tracking-[-0.02em] mt-1.5 leading-[1.1] font-display">
+            <h1 className="text-[26px] lg:text-[32px] font-bold text-slate-900 tracking-[-0.02em] mt-1.5 leading-[1.1] font-display">
               {title}
             </h1>
             {description && (
-              <p className="text-[13.5px] text-slate-500 dark:text-zinc-400 mt-2 max-w-2xl leading-relaxed">
+              <p className="text-[13.5px] text-slate-500 mt-2 max-w-2xl leading-relaxed">
                 {description}
               </p>
             )}
-            <p className="text-[10.5px] text-slate-400 dark:text-zinc-600 mt-2 capitalize tracking-wide">{today}</p>
+            <p className="text-[10.5px] text-slate-400 mt-2 capitalize tracking-wide">{today}</p>
           </div>
         </div>
 
@@ -109,8 +109,8 @@ export function PageHero({
                 key={i}
                 className={cn(
                   "group/kpi relative overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-300",
-                  "border-slate-200/80 dark:border-white/[0.06]",
-                  "hover:shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-white/[0.12]"
+                  "border-slate-200/80",
+                  "hover:shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:border-slate-300"
                 )}
               >
                 {/* subtle radial glow on hover */}
@@ -121,7 +121,7 @@ export function PageHero({
                 <div className="flex items-center justify-between mb-3 relative">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={cn("size-1.5 rounded-full shrink-0", cfg.dot)} />
-                    <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-zinc-500 truncate">
+                    <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-500 truncate">
                       {k.label}
                     </p>
                   </div>
@@ -134,11 +134,11 @@ export function PageHero({
                     </div>
                   )}
                 </div>
-                <p className="font-display text-[24px] lg:text-[30px] font-bold tracking-[-0.02em] tabular-nums leading-none truncate text-slate-900 dark:text-white relative">
+                <p className="font-display text-[24px] lg:text-[30px] font-bold tracking-[-0.02em] tabular-nums leading-none truncate text-slate-900 relative">
                   {k.value}
                 </p>
                 {k.hint && (
-                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-2 truncate relative">{k.hint}</p>
+                  <p className="text-[11px] text-slate-400 mt-2 truncate relative">{k.hint}</p>
                 )}
                 <div className={cn(
                   "absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r opacity-70 group-hover/kpi:opacity-100 transition-opacity",

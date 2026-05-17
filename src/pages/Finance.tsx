@@ -180,7 +180,7 @@ export default function Finance() {
             <Button 
               size="sm" 
               variant="outline"
-              className="h-10 px-4 gap-2 border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10"
+              className="h-10 px-4 gap-2 border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
               onClick={async () => {
                 const { data, error } = await supabase.functions.invoke('process-alerts');
                 if (error) toast.error("Erro ao processar alertas");
@@ -230,7 +230,7 @@ export default function Finance() {
 
       {/* Top Beneficiaries */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="vx-card p-6 bg-white dark:bg-card">
+        <div className="vx-card p-6 bg-white">
           <div className="flex items-center gap-3 mb-6">
             <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <Users className="size-4" />
@@ -251,7 +251,7 @@ export default function Finance() {
           </div>
         </div>
 
-        <div className="vx-card p-6 bg-white dark:bg-card">
+        <div className="vx-card p-6 bg-white">
            <div className="flex items-center gap-3 mb-6">
             <div className="size-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
               <Receipt className="size-4" />
@@ -270,7 +270,7 @@ export default function Finance() {
                   <span className="text-muted-foreground">{cat}</span>
                   <span className="text-foreground">{formatBRL(val)}</span>
                 </div>
-                <div className="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(val / kpis.expensesTotal) * 100}%` }} />
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function Finance() {
       {/* Performance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
          {/* Product Ranking */}
-         <div className="vx-card p-8 bg-white dark:bg-card">
+         <div className="vx-card p-8 bg-white">
             <div className="flex items-center justify-between mb-8">
                <div>
                   <h3 className="text-sm font-bold uppercase tracking-widest">Performance por Produto</h3>
@@ -362,7 +362,7 @@ export default function Finance() {
                         <span className="font-bold text-foreground">{p.product_name}</span>
                         <span className="font-mono font-bold text-success">{formatBRL(p.gross_revenue)}</span>
                      </div>
-                     <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                     <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div 
                            className="h-full bg-primary rounded-full transition-all duration-1000" 
                            style={{ width: `${(p.gross_revenue / (productPerformance[0]?.gross_revenue || 1)) * 100}%` }} 
@@ -379,7 +379,7 @@ export default function Finance() {
          </div>
 
          {/* Source Performance */}
-         <div className="vx-card p-8 bg-white dark:bg-card">
+         <div className="vx-card p-8 bg-white">
             <div className="flex items-center justify-between mb-8">
                <div>
                   <h3 className="text-sm font-bold uppercase tracking-widest">Origem de Leads</h3>
@@ -395,7 +395,7 @@ export default function Finance() {
                            <span className="font-bold text-foreground">{s.source || "Direto / Orgânico"}</span>
                            <span className="font-mono font-bold">{formatBRL(s.total_revenue)}</span>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                            <div 
                               className="h-full bg-emerald-500 rounded-full" 
                               style={{ width: `${(s.total_revenue / (sourcePerformance[0]?.total_revenue || 1)) * 100}%` }} 

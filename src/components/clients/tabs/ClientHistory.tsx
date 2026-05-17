@@ -62,7 +62,7 @@ export function ClientHistory({ clientId }: { clientId: string }) {
         ) : mergedHistory?.map((item: any) => (
           <div key={item.id} className="relative flex items-start justify-between gap-6 group">
             <div className="flex items-start gap-6">
-              <div className="relative flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-900 border border-border/40 shadow-sm z-10 group-hover:bg-white transition-colors shrink-0">
+              <div className="relative flex size-10 items-center justify-center rounded-full bg-slate-50 border border-border/40 shadow-sm z-10 group-hover:bg-white transition-colors shrink-0">
                 {item.isAction ? (
                   <MessageSquare className="size-4 text-emerald-500" />
                 ) : (

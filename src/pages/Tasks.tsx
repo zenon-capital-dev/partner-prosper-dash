@@ -31,18 +31,18 @@ import { Link } from "react-router-dom";
 import { confirmAction } from "@/lib/confirm";
 
 const STATUSES = [
-  { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700" },
-  { value: "em_andamento", label: "Em andamento", color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900" },
-  { value: "aguardando_terceiros", label: "Aguardando terceiros", color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900" },
-  { value: "bloqueada", label: "Bloqueada", color: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-900" },
-  { value: "concluida", label: "Concluída", color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900" },
+  { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200" },
+  { value: "em_andamento", label: "Em andamento", color: "bg-blue-50 text-blue-700 border-blue-200" },
+  { value: "aguardando_terceiros", label: "Aguardando terceiros", color: "bg-amber-50 text-amber-700 border-amber-200" },
+  { value: "bloqueada", label: "Bloqueada", color: "bg-rose-50 text-rose-700 border-rose-200" },
+  { value: "concluida", label: "Concluída", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   { value: "cancelada", label: "Cancelada", color: "bg-muted text-muted-foreground border-border" },
 ] as const;
 
 const PRIORITIES = [
-  { value: "baixa", label: "Baixa", color: "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-300" },
-  { value: "normal", label: "Normal", color: "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950 dark:text-blue-300" },
-  { value: "alta", label: "Alta", color: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950 dark:text-amber-300" },
+  { value: "baixa", label: "Baixa", color: "bg-slate-50 text-slate-600 border-slate-200" },
+  { value: "normal", label: "Normal", color: "bg-blue-50 text-blue-600 border-blue-200" },
+  { value: "alta", label: "Alta", color: "bg-amber-50 text-amber-600 border-amber-200" },
   { value: "urgente", label: "Urgente", color: "bg-destructive/10 text-destructive border-destructive/20" },
 ] as const;
 
@@ -363,9 +363,9 @@ export default function Tasks() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total", count: stats.total, tone: "text-primary bg-primary/5 border-primary/10" },
-          { label: "Urgentes", count: stats.urgent, tone: "text-amber-600 bg-amber-50 border-amber-100 dark:bg-amber-950/40 dark:border-amber-900/40" },
+          { label: "Urgentes", count: stats.urgent, tone: "text-amber-600 bg-amber-50 border-amber-100" },
           { label: "Atrasadas", count: stats.overdue, tone: "text-destructive bg-destructive/5 border-destructive/10" },
-          { label: "Concluídas", count: stats.done, tone: "text-emerald-600 bg-emerald-50 border-emerald-100 dark:bg-emerald-950/40 dark:border-emerald-900/40" },
+          { label: "Concluídas", count: stats.done, tone: "text-emerald-600 bg-emerald-50 border-emerald-100" },
         ].map((s, i) => (
           <div key={i} className={cn("vx-card p-4 flex flex-col items-center justify-center text-center border", s.tone)}>
             <p className="text-[10px] uppercase font-bold opacity-80">{s.label}</p>

@@ -107,9 +107,9 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
   }
 
   return (
-    <div className="vx-card p-6 lg:p-8 bg-white dark:bg-card border border-slate-100 dark:border-white/5 rounded-[32px]">
+    <div className="vx-card p-6 lg:p-8 bg-white border border-slate-100 rounded-[32px]">
       <Tabs defaultValue="comments">
-        <TabsList className="bg-slate-100/60 dark:bg-white/5 p-1 rounded-xl mb-6">
+        <TabsList className="bg-slate-100/60 p-1 rounded-xl mb-6">
           <TabsTrigger value="comments" className="rounded-lg gap-2"><MessageSquare className="size-3.5" /> Comentários ({comments.length})</TabsTrigger>
           <TabsTrigger value="deliveries" className="rounded-lg gap-2"><PackageCheck className="size-3.5" /> Entregáveis ({deliveries.length})</TabsTrigger>
           <TabsTrigger value="history" className="rounded-lg gap-2"><History className="size-3.5" /> Histórico ({reports.length})</TabsTrigger>
@@ -128,11 +128,11 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
               <div className="flex gap-1 text-xs">
                 <button
                   onClick={() => setVisibility("client")}
-                  className={cn("px-3 py-1.5 rounded-lg font-bold transition-colors", visibility === "client" ? "bg-primary text-white" : "bg-slate-100 dark:bg-white/5 text-muted-foreground hover:bg-slate-200")}
+                  className={cn("px-3 py-1.5 rounded-lg font-bold transition-colors", visibility === "client" ? "bg-primary text-white" : "bg-slate-100 text-muted-foreground hover:bg-slate-200")}
                 >Para o cliente</button>
                 <button
                   onClick={() => setVisibility("provider")}
-                  className={cn("px-3 py-1.5 rounded-lg font-bold transition-colors", visibility === "provider" ? "bg-amber-500 text-white" : "bg-slate-100 dark:bg-white/5 text-muted-foreground hover:bg-slate-200")}
+                  className={cn("px-3 py-1.5 rounded-lg font-bold transition-colors", visibility === "provider" ? "bg-amber-500 text-white" : "bg-slate-100 text-muted-foreground hover:bg-slate-200")}
                 >Interno (admin)</button>
               </div>
               <Button onClick={sendComment} disabled={sending || !content.trim()} className="rounded-xl">
@@ -141,18 +141,18 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
               </Button>
             </div>
           </div>
-          <div className="space-y-3 pt-4 border-t border-slate-50 dark:border-white/5 max-h-[400px] overflow-y-auto">
+          <div className="space-y-3 pt-4 border-t border-slate-50 max-h-[400px] overflow-y-auto">
             {comments.length === 0 ? (
               <p className="text-xs text-muted-foreground italic text-center py-6">Nenhum comentário ainda.</p>
             ) : comments.map((c: any) => (
-              <div key={c.id} className={cn("p-4 rounded-xl border text-sm", c.visibility === "provider" ? "bg-amber-50 border-amber-100 dark:bg-amber-500/5 dark:border-amber-500/10" : "bg-slate-50 border-slate-100 dark:bg-white/5 dark:border-white/10")}>
+              <div key={c.id} className={cn("p-4 rounded-xl border text-sm", c.visibility === "provider" ? "bg-amber-50 border-amber-100" : "bg-slate-50 border-slate-100")}>
                 <div className="flex items-center justify-between mb-1">
                   <Badge variant="outline" className="text-[9px] uppercase tracking-widest">
                     {c.visibility === "provider" ? "Interno" : c.visibility === "system" ? "Sistema" : "Cliente"}
                   </Badge>
                   <span className="text-[10px] text-muted-foreground">{formatDate(c.created_at)}</span>
                 </div>
-                <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">{c.content}</p>
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">{c.content}</p>
               </div>
             ))}
           </div>
@@ -163,7 +163,7 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
             <Input value={delivTitle} onChange={(e) => setDelivTitle(e.target.value)} placeholder="Título do entregável" className="rounded-xl" />
             <Input value={delivDesc} onChange={(e) => setDelivDesc(e.target.value)} placeholder="Descrição (opcional)" className="rounded-xl" />
           </div>
-          <label className="flex items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-slate-200 hover:border-primary hover:bg-primary/5 dark:border-white/10 cursor-pointer transition-all">
+          <label className="flex items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-slate-200 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all">
             <Upload className="size-5 text-primary" />
             <span className="text-sm font-bold">{uploading ? "Enviando..." : "Selecionar arquivo para enviar"}</span>
             <input type="file" hidden disabled={uploading} onChange={(e) => e.target.files?.[0] && uploadDelivery(e.target.files[0])} />
@@ -172,7 +172,7 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
             {deliveries.length === 0 ? (
               <p className="text-xs text-muted-foreground italic text-center py-6">Nenhum entregável publicado.</p>
             ) : deliveries.map((d: any) => (
-              <div key={d.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10">
+              <div key={d.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-sm truncate">{d.title}</p>
                   {d.description && <p className="text-xs text-muted-foreground truncate">{d.description}</p>}
@@ -193,13 +193,13 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
           {reports.length === 0 ? (
             <p className="text-xs text-muted-foreground italic text-center py-6">Sem reportes nesta demanda.</p>
           ) : reports.map((r: any) => (
-            <div key={r.id} className="p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 space-y-2">
+            <div key={r.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
                 <Badge variant="outline" className="text-[10px] uppercase tracking-widest font-bold">{r.status?.replace(/_/g, " ")}</Badge>
                 <span className="text-[10px] text-muted-foreground">{formatDate(r.created_at)}</span>
               </div>
               {r.notes && <p className="text-sm leading-relaxed"><span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest block">Andamento</span>{r.notes}</p>}
-              {r.pending && <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed"><span className="text-[10px] font-bold uppercase tracking-widest block">Pendências</span>{r.pending}</p>}
+              {r.pending && <p className="text-sm text-amber-700 leading-relaxed"><span className="text-[10px] font-bold uppercase tracking-widest block">Pendências</span>{r.pending}</p>}
               {r.next_steps && <p className="text-sm text-primary leading-relaxed"><span className="text-[10px] font-bold uppercase tracking-widest block">Próximos passos</span>{r.next_steps}</p>}
             </div>
           ))}

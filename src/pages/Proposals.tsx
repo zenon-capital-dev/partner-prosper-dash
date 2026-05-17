@@ -29,11 +29,11 @@ type Status = "rascunho" | "enviada" | "visualizada" | "aprovada" | "recusada" |
 
 const STATUS_META: Record<Status, { label: string; cls: string }> = {
   rascunho: { label: "Rascunho", cls: "bg-muted text-muted-foreground" },
-  enviada: { label: "Enviada", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" },
-  visualizada: { label: "Visualizada", cls: "bg-violet-500/15 text-violet-600 dark:text-violet-400" },
-  aprovada: { label: "Aprovada", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
-  recusada: { label: "Recusada", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400" },
-  vencida: { label: "Vencida", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
+  enviada: { label: "Enviada", cls: "bg-blue-500/15 text-blue-600" },
+  visualizada: { label: "Visualizada", cls: "bg-indigo-500/15 text-indigo-600" },
+  aprovada: { label: "Aprovada", cls: "bg-emerald-500/15 text-emerald-600" },
+  recusada: { label: "Recusada", cls: "bg-rose-500/15 text-rose-600" },
+  vencida: { label: "Vencida", cls: "bg-amber-500/15 text-amber-600" },
 };
 
 type Item = {

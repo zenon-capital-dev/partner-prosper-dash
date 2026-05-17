@@ -41,7 +41,7 @@ export function ClientContracts({ clientId }: { clientId: string }) {
         ) : contracts?.map((contract: any) => (
           <div key={contract.id} className="cp-panel p-5 flex items-center justify-between group hover:border-indigo-500/30 transition-all">
             <div className="flex items-center gap-4">
-              <div className="size-12 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border/40 flex items-center justify-center">
+              <div className="size-12 rounded-xl bg-slate-50 border border-border/40 flex items-center justify-center">
                 <FileSignature className="size-6 text-slate-500" />
               </div>
               <div>
