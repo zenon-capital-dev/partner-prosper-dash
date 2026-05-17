@@ -1,11 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { FileSignature, Plus, Download, Eye, Clock, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FileSignature, Plus, Download, Eye } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function ClientContracts({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
+  const downloadContract = async (filePath: string | null) => {
+    if (!filePath) return toast.error("Contrato sem arquivo anexado");
+    const { data, error } = await supabase.storage.from("contracts").createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) return toast.error("Erro ao gerar link de download");
+    window.open(data.signedUrl, "_blank");
+  };
   const { data: contracts, isLoading } = useQuery({
     queryKey: ["client-contracts", clientId],
     queryFn: async () => {
@@ -28,7 +37,7 @@ export function ClientContracts({ clientId }: { clientId: string }) {
           <h3 className="text-lg font-bold tracking-tight">Contratos</h3>
           <p className="text-xs text-muted-foreground">Formalização e assinaturas</p>
         </div>
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate(`/contratos?clientId=${clientId}&new=1`)}>
           <Plus className="size-4 mr-2" /> Novo Contrato
         </Button>
       </div>
@@ -72,10 +81,10 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                 <p className="text-[9px] text-muted-foreground mt-1 uppercase tracking-widest font-bold">Status do Documento</p>
               </div>
               <div className="flex items-center gap-2 border-l border-border/40 pl-6">
-                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all">
+                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all" onClick={() => downloadContract(contract.file_path)} title="Baixar arquivo">
                   <Download className="size-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all">
+                <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-indigo-500/10 hover:text-indigo-600 transition-all" onClick={() => navigate(`/contratos?focus=${contract.id}`)} title="Abrir detalhes">
                   <Eye className="size-4" />
                 </Button>
               </div>

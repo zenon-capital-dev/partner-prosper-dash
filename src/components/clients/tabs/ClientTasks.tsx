@@ -1,19 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ClipboardList, Plus, Clock, CheckCircle2, User, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ClipboardList, Plus, Clock, CheckCircle2, User } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function ClientTasks({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
   const { data: tasks, isLoading } = useQuery({
     queryKey: ["client-tasks", clientId],
     queryFn: async () => {
       const { data } = await supabase
         .from("tasks")
-        .select("*")
-        .eq("related_entity_id", clientId)
-        .order("due_date", { ascending: true });
+        .select("*, assigned_profile:profiles!assigned_to(full_name)")
+        .or(`client_id.eq.${clientId},related_entity_id.eq.${clientId}`)
+        .order("due_date", { ascending: true, nullsFirst: false });
       return data ?? [];
     },
   });
@@ -25,7 +27,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
           <h3 className="text-lg font-bold tracking-tight">Tarefas e Pendências</h3>
           <p className="text-xs text-muted-foreground">Acompanhamento de obrigações e prazos</p>
         </div>
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate(`/tarefas?clientId=${clientId}&new=1`)}>
           <Plus className="size-4 mr-2" /> Criar Tarefa
         </Button>
       </div>
@@ -55,7 +57,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
                   <span className="text-[10px] text-muted-foreground">•</span>
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                     <User className="size-3" />
-                    {task.responsible_id || "Não atribuído"}
+                    {task.assigned_profile?.full_name || "Não atribuído"}
                   </div>
                 </div>
               </div>
@@ -64,7 +66,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
             <div className="flex items-center gap-4">
               <PriorityBadge priority={task.priority} />
               <div className="h-6 w-px bg-border/40" />
-              <Button variant="ghost" size="sm" className="text-xs font-bold">
+              <Button variant="ghost" size="sm" className="text-xs font-bold" onClick={() => navigate(`/tarefas?focus=${task.id}`)}>
                 Detalhes
               </Button>
             </div>

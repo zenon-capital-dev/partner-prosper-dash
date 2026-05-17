@@ -1,11 +1,30 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, DollarSign, Calendar, ArrowUpRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 
 export function ClientFinancial({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [marking, setMarking] = useState<string | null>(null);
+
+  const markPaid = async (paymentId: string, amount: number) => {
+    const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
+    if (!ok) return;
+    setMarking(paymentId);
+    const { error } = await supabase.from("payments").update({ status: "pago", amount_paid: amount, paid_at: new Date().toISOString() }).eq("id", paymentId);
+    setMarking(null);
+    if (error) return toast.error("Erro ao dar baixa");
+    toast.success("Pagamento confirmado");
+    qc.invalidateQueries({ queryKey: ["client-payments", clientId] });
+  };
+
   const { data: payments, isLoading } = useQuery({
     queryKey: ["client-payments", clientId],
     queryFn: async () => {
@@ -41,7 +60,7 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
           <h3 className="text-lg font-bold tracking-tight">Fluxo de Pagamentos</h3>
           <p className="text-xs text-muted-foreground">Controle de parcelas e faturas</p>
         </div>
-        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate(`/financeiro?clientId=${clientId}&new=1`)}>
           <DollarSign className="size-4 mr-2" /> Lançar Pagamento
         </Button>
       </div>
@@ -83,9 +102,13 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
                   <StatusPill status={payment.status} />
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-emerald-500/10 hover:text-emerald-600">
-                    Baixar <ArrowUpRight className="size-3 ml-1" />
-                  </Button>
+                  {payment.status === "pago" ? (
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Quitado</span>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-emerald-500/10 hover:text-emerald-600" disabled={marking === payment.id} onClick={() => markPaid(payment.id, Number(payment.amount || 0))}>
+                      {marking === payment.id ? "..." : "Dar baixa"} <ArrowUpRight className="size-3 ml-1" />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}
