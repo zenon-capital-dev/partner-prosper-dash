@@ -159,15 +159,6 @@ export default function ClientPanel() {
                   <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors active:scale-[0.98]">
-                  <span className="size-7 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[11px] font-bold shrink-0">
-                    {initials(client.full_name)}
-                  </span>
-                  <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
-                  <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
-                </button>
-              </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col gap-1">
