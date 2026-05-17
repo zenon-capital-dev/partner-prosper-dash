@@ -23,6 +23,9 @@ import { toast } from "sonner";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
 import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
+import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -43,8 +46,31 @@ export default function DemandDetail() {
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
   const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
+  const [delegateOpen, setDelegateOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
+
+  const openNotesEditor = () => {
+    setNotesDraft((demand as any)?.internal_notes ?? "");
+    setNotesOpen(true);
+  };
+
+  const saveNotes = async () => {
+    if (!demand?.id) return;
+    setSavingNotes(true);
+    const { error } = await supabase
+      .from("client_products")
+      .update({ internal_notes: notesDraft })
+      .eq("id", demand.id);
+    setSavingNotes(false);
+    if (error) return toast.error("Erro ao salvar observações");
+    toast.success("Observações atualizadas");
+    setNotesOpen(false);
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
 
   const { data: demand, isLoading } = useQuery({
     queryKey: ["demand-detail", id],
@@ -455,10 +481,10 @@ export default function DemandDetail() {
                       <span className="text-muted-foreground font-medium">Especialidade</span>
                       <span className="font-bold text-foreground">{(demand.service_providers as any).specialty || "—"}</span>
                    </div>
-                   <Button variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>
+                   <Button onClick={() => setDelegateOpen(true)} variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>
                 </div>
               ) : (
-                <Button className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-none text-[11px] font-bold uppercase tracking-wider">Delegar Prestador</Button>
+                <Button onClick={() => setDelegateOpen(true)} className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-none text-[11px] font-bold uppercase tracking-wider">Delegar Prestador</Button>
               )}
            </div>
 
@@ -468,10 +494,10 @@ export default function DemandDetail() {
                  <MessageSquare className="size-4 text-amber-500" />
                  <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">Observações Internas</h3>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed italic">
+              <p className="text-xs text-muted-foreground leading-relaxed italic whitespace-pre-wrap">
                  {demand.internal_notes || "Nenhuma observação interna para esta demanda."}
               </p>
-              <Button variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/20 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
+              <Button onClick={openNotesEditor} variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/20 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
            </div>
         </div>
       </div>
@@ -510,6 +536,30 @@ export default function DemandDetail() {
         defaultProductId={demand.product_id}
         onSuccess={() => qc.invalidateQueries({ queryKey: ["demand-detail", id] })}
       />
+      <DelegateProviderDialog
+        open={delegateOpen}
+        onOpenChange={setDelegateOpen}
+        clientProductId={demand.id}
+        currentProviderId={(demand as any).service_provider_id}
+        productName={(demand as any).products?.name || (demand as any).custom_product_name}
+      />
+      <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Observações Internas</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            rows={8}
+            value={notesDraft}
+            onChange={(e) => setNotesDraft(e.target.value)}
+            placeholder="Anotações visíveis apenas para o time interno..."
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotesOpen(false)}>Cancelar</Button>
+            <Button onClick={saveNotes} disabled={savingNotes}>{savingNotes ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

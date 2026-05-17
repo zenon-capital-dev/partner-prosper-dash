@@ -36,6 +36,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
 
 const TABS = [
@@ -57,6 +60,48 @@ export default function ClientDetail() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState("visao-geral");
   const [editOpen, setEditOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [interactionOpen, setInteractionOpen] = useState(false);
+  const [interactionTitle, setInteractionTitle] = useState("");
+  const [interactionDesc, setInteractionDesc] = useState("");
+  const [savingInteraction, setSavingInteraction] = useState(false);
+
+  const openNotesEditor = () => {
+    setNotesDraft((client as any)?.internal_notes ?? "");
+    setNotesOpen(true);
+  };
+  const saveNotes = async () => {
+    if (!id) return;
+    setSavingNotes(true);
+    const { error } = await supabase.from("clients").update({ internal_notes: notesDraft }).eq("id", id);
+    setSavingNotes(false);
+    if (error) return toast.error("Erro ao salvar observações");
+    toast.success("Observações atualizadas");
+    setNotesOpen(false);
+    qc.invalidateQueries({ queryKey: ["client", id] });
+  };
+  const saveInteraction = async () => {
+    if (!id || !interactionTitle.trim()) return toast.error("Informe um título");
+    setSavingInteraction(true);
+    const { data: userData } = await supabase.auth.getUser();
+    const { error } = await supabase.from("client_timeline").insert({
+      client_id: id,
+      user_id: userData.user?.id,
+      event_type: "note_added",
+      title: interactionTitle.trim(),
+      description: interactionDesc.trim() || null,
+    });
+    setSavingInteraction(false);
+    if (error) return toast.error("Erro ao salvar registro");
+    toast.success("Interação registrada");
+    setInteractionTitle("");
+    setInteractionDesc("");
+    setInteractionOpen(false);
+    qc.invalidateQueries({ queryKey: ["client", id] });
+    qc.invalidateQueries({ queryKey: ["client-history", id] });
+  };
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ["client", id],
@@ -422,7 +467,7 @@ export default function ClientDetail() {
                   <h3 className="text-sm font-bold flex items-center gap-2">
                     <MessageSquare className="size-4 text-indigo-500" /> Registro de Interações
                   </h3>
-                  <Button variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">Novo Registro</Button>
+                  <Button onClick={() => setInteractionOpen(true)} variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">Novo Registro</Button>
                 </div>
                 <div className="space-y-4 py-4">
                   <div className="flex gap-4 p-4 rounded-xl bg-muted/30 border border-border/40">
@@ -471,7 +516,7 @@ export default function ClientDetail() {
             <div className="cp-panel p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold">Observações Internas</h3>
-                <Button variant="outline" size="sm">Editar Notas</Button>
+                <Button onClick={openNotesEditor} variant="outline" size="sm">Editar Notas</Button>
               </div>
               <div className="p-4 rounded-xl bg-muted/20 border border-border/40 min-h-[200px] text-sm leading-relaxed text-muted-foreground">
                 {client.internal_notes || "Nenhuma observação interna registrada para este cliente."}
@@ -487,6 +532,35 @@ export default function ClientDetail() {
         onCreated={() => qc.invalidateQueries({ queryKey: ["client", id] })} 
         client={client} 
       />
+
+      <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Observações Internas</DialogTitle>
+          </DialogHeader>
+          <Textarea rows={8} value={notesDraft} onChange={(e) => setNotesDraft(e.target.value)} placeholder="Anotações internas..." />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNotesOpen(false)}>Cancelar</Button>
+            <Button onClick={saveNotes} disabled={savingNotes}>{savingNotes ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={interactionOpen} onOpenChange={setInteractionOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Registro de Interação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Título (ex: Ligação, Reunião, E-mail...)" value={interactionTitle} onChange={(e) => setInteractionTitle(e.target.value)} />
+            <Textarea rows={6} placeholder="Detalhes da interação..." value={interactionDesc} onChange={(e) => setInteractionDesc(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInteractionOpen(false)}>Cancelar</Button>
+            <Button onClick={saveInteraction} disabled={savingInteraction}>{savingInteraction ? "Salvando..." : "Registrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
