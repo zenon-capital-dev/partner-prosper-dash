@@ -336,8 +336,8 @@ export default function DemandDetail() {
                     <h3 className="text-base font-bold text-foreground">{nextAction.label}</h3>
                   </div>
                 </div>
-                <Button className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
-                  Executar Agora <ArrowRight className="size-4" />
+                <Button onClick={completeNextStep} className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                  Concluir Etapa <CheckCircle2 className="size-4" />
                 </Button>
               </div>
             )}
