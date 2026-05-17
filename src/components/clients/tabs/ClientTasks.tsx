@@ -1,19 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ClipboardList, Plus, Clock, CheckCircle2, User, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ClipboardList, Plus, Clock, CheckCircle2, User } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function ClientTasks({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
   const { data: tasks, isLoading } = useQuery({
     queryKey: ["client-tasks", clientId],
     queryFn: async () => {
       const { data } = await supabase
         .from("tasks")
-        .select("*")
-        .eq("related_entity_id", clientId)
-        .order("due_date", { ascending: true });
+        .select("*, assigned_profile:profiles!assigned_to(full_name)")
+        .or(`client_id.eq.${clientId},related_entity_id.eq.${clientId}`)
+        .order("due_date", { ascending: true, nullsFirst: false });
       return data ?? [];
     },
   });
