@@ -23,6 +23,9 @@ import { toast } from "sonner";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
 import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
+import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
