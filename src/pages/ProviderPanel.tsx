@@ -39,6 +39,7 @@ export default function ProviderPanel() {
   const activeTab = tabParam && PROVIDER_PATH_TO_TAB[tabParam] ? PROVIDER_PATH_TO_TAB[tabParam] : "dashboard";
   const setActiveTab = (v: string) => navigate(v === "dashboard" ? "/prestador" : `/prestador/${PROVIDER_TAB_TO_PATH[v] || v}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
+  const [docRequestTarget, setDocRequestTarget] = useState<{ clientId: string; cpId: string; context?: string } | null>(null);
   const [search, setSearch] = useState("");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [reportStatusFilter, setReportStatusFilter] = useState<string>("todos");
