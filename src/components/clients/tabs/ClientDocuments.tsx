@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { logTimeline } from "@/lib/timeline";
+import { confirmAction } from "@/lib/confirm";
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   solicitado: { label: "Solicitado", tone: "bg-amber-500/10 text-amber-400 border-amber-500/20", icon: Clock },
@@ -98,7 +99,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
   };
 
   const deleteDoc = async (id: string) => {
-    if (!confirm("Excluir esta solicitação?")) return;
+    if (!(await confirmAction("Excluir esta solicitação?"))) return;
     const { error } = await supabase.from("documents").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Solicitação removida");

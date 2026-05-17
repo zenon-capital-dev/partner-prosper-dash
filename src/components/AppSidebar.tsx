@@ -394,7 +394,7 @@ export function AppSidebar() {
                 Configurações
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => navigate("/suporte")}
+                onClick={() => navigate("/configuracoes")}
                 className="gap-2.5 px-2.5 py-2 text-[13px] rounded-md cursor-pointer"
               >
                 <LifeBuoy className="size-4 text-muted-foreground" />

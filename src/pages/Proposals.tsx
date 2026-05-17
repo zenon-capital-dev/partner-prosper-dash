@@ -23,6 +23,7 @@ import {
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { confirmAction } from "@/lib/confirm";
 
 type Status = "rascunho" | "enviada" | "visualizada" | "aprovada" | "recusada" | "vencida";
 
@@ -102,7 +103,7 @@ export default function Proposals() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir esta proposta?")) return;
+    if (!(await confirmAction("Excluir esta proposta?"))) return;
     const { error } = await supabase.from("proposals").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
@@ -281,7 +282,7 @@ async function convertToSale(p: any, qc: any) {
     return;
   }
   if (!p.proposal_items?.length) { toast.error("Proposta sem itens."); return; }
-  if (!confirm("Converter proposta em venda(s) e produto(s) contratado(s)?")) return;
+  if (!(await confirmAction("Converter proposta em venda(s) e produto(s) contratado(s)?"))) return;
 
   try {
     const { data: u } = await supabase.auth.getUser();

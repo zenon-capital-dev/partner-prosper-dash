@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Plus, Pencil, Trash2, Mail, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
+import { confirmAction } from "@/lib/confirm";
 
 const CHANNELS = [
   { value: "whatsapp", label: "WhatsApp", icon: MessageSquare },
@@ -75,7 +76,7 @@ export default function MessageTemplates() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir este template?")) return;
+    if (!(await confirmAction("Excluir este template?"))) return;
     const { error } = await supabase.from("message_templates").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {

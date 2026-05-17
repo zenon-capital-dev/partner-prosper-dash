@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { confirmAction } from "@/lib/confirm";
 
 const statusColors: Record<string, string> = {
   "Novo": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
@@ -105,7 +106,7 @@ export default function Leads() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este lead permanentemente?")) return;
+    if (!(await confirmAction("Excluir este lead permanentemente?"))) return;
     const { error } = await supabase.from("leads").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {

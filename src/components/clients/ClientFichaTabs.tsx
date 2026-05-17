@@ -13,6 +13,7 @@ import { ContractDialog } from "@/components/contracts/ContractDialog";
 import { formatBRL, formatDate, formatDoc, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
 import { Plus, FileSignature, Receipt, ListTodo, StickyNote, Trash2, CheckCircle2, IdCard, Mail, Phone, MapPin, Building2 } from "lucide-react";
+import { confirmAction } from "@/lib/confirm";
 
 function Empty({ icon: Icon, text }: any) {
   return (
@@ -367,7 +368,7 @@ export function TasksTab({ clientId }: { clientId: string }) {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir tarefa?")) return;
+    if (!(await confirmAction("Excluir tarefa?"))) return;
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries({ queryKey: ["client-tasks", clientId] });

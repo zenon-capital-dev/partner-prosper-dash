@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
+import { confirmAction } from "@/lib/confirm";
 
 type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "cancelada" | "estornada";
 
@@ -251,7 +252,7 @@ export default function Commissions() {
   };
 
   const removeOne = async (c: any) => {
-    if (!confirm(`Excluir comissão de ${formatBRL(c.amount)} para ${c.partners?.full_name}?`)) return;
+    if (!(await confirmAction(`Excluir comissão de ${formatBRL(c.amount)} para ${c.partners?.full_name}?`))) return;
     const { error } = await supabase.from("commissions").delete().eq("id", c.id);
     if (error) toast.error(error.message);
     else { toast.success("Comissão excluída"); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
@@ -294,7 +295,7 @@ export default function Commissions() {
 
   const bulkCancel = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Cancelar ${selectedIds.length} comissão(ões)?`)) return;
+    if (!(await confirmAction(`Cancelar ${selectedIds.length} comissão(ões)?`))) return;
     const { error } = await supabase.from("commissions").update({ workflow_status: "cancelada", paid_at: null }).in("id", selectedIds);
     if (error) toast.error(error.message);
     else { toast.success("Comissões canceladas"); setSelected({}); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }
@@ -302,7 +303,7 @@ export default function Commissions() {
 
   const bulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Excluir ${selectedIds.length} comissão(ões)? Esta ação não pode ser desfeita.`)) return;
+    if (!(await confirmAction(`Excluir ${selectedIds.length} comissão(ões)? Esta ação não pode ser desfeita.`))) return;
     const { error } = await supabase.from("commissions").delete().in("id", selectedIds);
     if (error) toast.error(error.message);
     else { toast.success("Comissões excluídas"); setSelected({}); qc.invalidateQueries({ queryKey: ["commissions-list"] }); }

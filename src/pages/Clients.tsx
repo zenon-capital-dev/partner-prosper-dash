@@ -29,6 +29,7 @@ import { DateRange } from "react-day-picker";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PageHeader } from "@/components/PageHeader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { confirmAction } from "@/lib/confirm";
 
 export default function Clients() {
   const [search, setSearch] = useState("");
@@ -178,7 +179,7 @@ export default function Clients() {
   }, [enriched]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Excluir este cliente permanentemente?")) return;
+    if (!(await confirmAction("Excluir este cliente permanentemente?"))) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {

@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { UserCheck, Plus, Search, MoreHorizontal, Pencil, Trash2, Award, Wallet, Users2, TrendingUp, Power } from "lucide-react";
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
+import { confirmAction } from "@/lib/confirm";
 
 const empty = { active: true, commission_percent: 5 };
 
@@ -74,7 +75,7 @@ export default function Indicators() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir este indicador?")) return;
+    if (!(await confirmAction("Excluir este indicador?"))) return;
     const { error } = await supabase.from("referrers").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Removido"); qc.invalidateQueries({ queryKey: ["referrers-rich"] });
