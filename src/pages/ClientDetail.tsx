@@ -155,6 +155,43 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
+  const { data: companies = [] } = useQuery({
+    queryKey: ["client-companies", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: interactions = [] } = useQuery({
+    queryKey: ["client-interactions", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_timeline")
+        .select("*")
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const suspendClient = async () => {
+    if (!id) return;
+    const ok = await confirmAction({ title: "Suspender cliente?", description: "O cliente ficará marcado como inativo. Você pode reativar depois.", confirmText: "Suspender", tone: "danger" });
+    if (!ok) return;
+    const { error } = await supabase.from("clients").update({ status: "inativo" as any }).eq("id", id);
+    if (error) return toast.error("Erro ao suspender cliente");
+    toast.success("Cliente suspenso");
+    qc.invalidateQueries({ queryKey: ["client", id] });
+  };
+
   const isLoading = clientLoading || productsLoading || paymentsLoading || docsLoading;
 
   const stats = useMemo(() => {
