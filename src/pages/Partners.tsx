@@ -342,13 +342,16 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
                 {p._pending > 0 && <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Pendente: {formatBRL(p._pending)}</p>}
               </td>
               <td className="px-6 py-4"><Sparkline data={p._spark} /></td>
-              <td className="px-6 py-5 text-right">
-                <div className="flex items-center justify-end gap-3">
-                  <button onClick={() => onDetail(p.id)} className="action-button btn-outline h-9 w-9 p-0">
+              <td className="px-6 py-4 text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <button onClick={() => onDetail(p.id)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
                     <ArrowUpRight className="size-4" />
                   </button>
-                  <button onClick={() => onEdit(p)} className="action-button btn-outline h-9 w-9 p-0">
+                  <button onClick={() => onEdit(p)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
                     <Pencil className="size-3.5" />
+                  </button>
+                  <button onClick={() => onToggle(p)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
+                    {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
                   </button>
                 </div>
               </td>
@@ -362,33 +365,33 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
 
 function GridView({ partners, topIds, onDetail }: any) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       {partners.map((p: any) => {
         const rank = topIds.get(p.id);
         return (
-          <div key={p.id} className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-6 hover:border-primary/30 transition-all group">
-            <div className="flex items-start justify-between mb-8">
+          <div key={p.id} className="bg-white border border-slate-200/70 rounded-lg p-6 hover:border-indigo-200 hover:shadow-md transition-all group shadow-sm">
+            <div className="flex items-start justify-between mb-6">
               <div className="relative">
-                <div className="size-14 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-xl font-bold">
+                <div className="size-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold">
                   {initials(p.full_name)}
                 </div>
                 {rank && <RankBadge rank={rank} />}
               </div>
-              <button onClick={() => onDetail(p.id)} className="size-10 rounded-full bg-white/[0.05] flex items-center justify-center hover:bg-white/10 transition-colors">
+              <button onClick={() => onDetail(p.id)} className="size-10 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
                 <ArrowUpRight className="size-5" />
               </button>
             </div>
-            <h3 className="text-xl font-bold text-white mb-1">{p.full_name}</h3>
-            <p className="editorial-label mb-6">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
-            
-            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+            <h3 className="text-lg font-bold text-slate-900 mb-1">{p.full_name}</h3>
+            <p className="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-5">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
+
+            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-100">
               <div>
-                <p className="editorial-label mb-1">Indicações</p>
-                <p className="text-lg font-bold font-mono">{p._clientsCount}</p>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Indicações</p>
+                <p className="text-lg font-bold font-mono text-slate-900">{p._clientsCount}</p>
               </div>
               <div>
-                <p className="editorial-label mb-1">Comissão Total</p>
-                <p className="text-lg font-bold font-mono text-primary">{formatBRL(p._total)}</p>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Comissão Total</p>
+                <p className="text-lg font-bold font-mono text-indigo-700">{formatBRL(p._total)}</p>
               </div>
             </div>
           </div>
