@@ -402,7 +402,7 @@ function GridView({ partners, topIds, onDetail }: any) {
 }
 
 function Sparkline({ data }: { data: number[] }) {
-  if (!data || data.length === 0 || data.every((v) => v === 0)) return <div className="h-6 w-20 bg-white/5 rounded-full mx-auto opacity-20" />;
+  if (!data || data.length === 0 || data.every((v) => v === 0)) return <div className="h-5 w-20 bg-slate-100 rounded-full mx-auto" />;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -410,17 +410,18 @@ function Sparkline({ data }: { data: number[] }) {
   const H = 20;
   const points = data.map((v, i) => `${i * (W/(data.length-1))},${H - ((v - min) / range) * H}`).join(" ");
   return (
-    <svg width={W} height={H} className="mx-auto opacity-60 group-hover:opacity-100 transition-opacity">
-      <polyline points={points} fill="none" stroke="currentColor" className="text-primary" strokeWidth="2" strokeLinejoin="round" />
+    <svg width={W} height={H} className="mx-auto">
+      <polyline points={points} fill="none" stroke="currentColor" className="text-indigo-600" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
 }
 
 function RankBadge({ rank }: { rank: number }) {
   const Icon = rank === 1 ? Crown : Award;
+  const colors = rank === 1 ? "bg-amber-400 text-amber-950" : rank === 2 ? "bg-slate-300 text-slate-800" : "bg-amber-700 text-amber-50";
   return (
-    <div className="absolute -top-2 -right-2 size-6 rounded-full bg-white text-black flex items-center justify-center shadow-2xl border-2 border-black">
-      <Icon className="size-3.5" />
+    <div className={cn("absolute -top-1.5 -right-1.5 size-6 rounded-full flex items-center justify-center shadow-md ring-2 ring-white", colors)}>
+      <Icon className="size-3" />
     </div>
   );
 }
