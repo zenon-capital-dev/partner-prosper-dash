@@ -41,9 +41,26 @@ export default function ClientPanel() {
   const { user, signOut } = useAuth();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
+  const settings = useSystemSettings();
+  const wa = (msg?: string) => buildWhatsAppLink(settings.support_whatsapp, msg);
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
   const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+
+  const downloadDoc = async (path?: string | null, name?: string) => {
+    if (!path) return toast.error("Arquivo indisponível");
+    // Se for URL completa, abre direto
+    if (path.startsWith("http")) return window.open(path, "_blank");
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
+    if (error || !data) return toast.error("Não foi possível baixar");
+    const a = document.createElement("a");
+    a.href = data.signedUrl;
+    a.download = name || "documento";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["client-panel", user?.id],
