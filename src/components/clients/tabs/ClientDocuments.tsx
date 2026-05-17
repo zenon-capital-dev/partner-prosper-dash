@@ -15,13 +15,13 @@ import { logTimeline } from "@/lib/timeline";
 import { confirmAction } from "@/lib/confirm";
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
-  solicitado: { label: "Solicitado", tone: "bg-amber-500/10 text-amber-400 border-amber-500/20", icon: Clock },
-  enviado: { label: "Enviado", tone: "bg-blue-500/10 text-blue-400 border-blue-500/20", icon: Loader2 },
-  em_analise: { label: "Em análise", tone: "bg-primary/10 text-primary border-primary/20", icon: Loader2 },
-  aprovado: { label: "Aprovado", tone: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: CheckCircle2 },
-  reprovado: { label: "Rejeitado", tone: "bg-rose-500/10 text-rose-400 border-rose-500/20", icon: AlertCircle },
-  pendente_correcao: { label: "Reenvio", tone: "bg-orange-500/10 text-orange-400 border-orange-500/20", icon: RefreshCw },
-  vencido: { label: "Vencido", tone: "bg-slate-500/10 text-slate-400 border-slate-500/20", icon: Clock },
+  solicitado: { label: "Solicitado", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
+  enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200", icon: Loader2 },
+  em_analise: { label: "Em análise", tone: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: Loader2 },
+  aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
+  reprovado: { label: "Rejeitado", tone: "bg-rose-50 text-rose-700 border-rose-200", icon: AlertCircle },
+  pendente_correcao: { label: "Reenvio", tone: "bg-orange-50 text-orange-700 border-orange-200", icon: RefreshCw },
+  vencido: { label: "Vencido", tone: "bg-slate-100 text-slate-700 border-slate-200", icon: Clock },
 };
 
 export function ClientDocuments({ clientId }: { clientId: string; user_id?: string }) {
