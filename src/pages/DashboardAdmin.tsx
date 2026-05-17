@@ -507,7 +507,7 @@ export default function DashboardAdmin() {
         {/* ============ ROW: PIPELINE FUNNEL + DEMANDS DONUT + ORIGEM ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <Card className="lg:col-span-5 min-h-[280px]">
-            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Abrir CRM</Link>} />
+            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Abrir CRM</Link>} />
             <div className="space-y-2 mt-1">
               {stats.pipelineByStage.map((stage, i) => {
                 const max = Math.max(...stats.pipelineByStage.map((s) => s.value), 1);
@@ -692,7 +692,7 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Follow-ups / próximas ações */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/leads" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Agenda</Link>} />
+            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:text-indigo-200 uppercase tracking-wider">Agenda</Link>} />
             <div className="space-y-2">
               {stats.upcomingActions.length > 0 ? stats.upcomingActions.map((l: any) => {
                 const d = new Date(l.next_action_date);
