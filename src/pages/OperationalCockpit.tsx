@@ -432,7 +432,7 @@ export default function OperationalCockpit() {
         description="Gestão diária de pendências e ações prioritárias."
         actions={
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="rounded-2xl gap-2 border-slate-200 dark:border-white/10" onClick={() => queryClient.invalidateQueries()}>
+            <Button variant="outline" className="rounded-2xl gap-2 border-slate-200" onClick={() => queryClient.invalidateQueries()}>
               <RefreshCcw className="size-4" /> Atualizar
             </Button>
             <Button className="btn-premium rounded-2xl gap-2" onClick={() => navigate("/tarefas")}>
@@ -474,19 +474,19 @@ export default function OperationalCockpit() {
       </div>
 
       {/* FILTER BAR */}
-      <div className="vx-card p-4 flex flex-col md:flex-row gap-4 items-center justify-between sticky top-4 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+      <div className="vx-card p-4 flex flex-col md:flex-row gap-4 items-center justify-between sticky top-4 z-10 bg-white/80 backdrop-blur-md">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input 
             placeholder="Buscar por cliente, produto ou motivo..." 
-            className="pl-10 rounded-xl border-slate-200 dark:border-white/10"
+            className="pl-10 rounded-xl border-slate-200"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-          <TabsList className="bg-slate-100 dark:bg-white/5 rounded-xl p-1">
+          <TabsList className="bg-slate-100 rounded-xl p-1">
             <TabsTrigger value="all" className="rounded-lg text-xs">Todos</TabsTrigger>
             <TabsTrigger value="demand" className="rounded-lg text-xs">Demandas</TabsTrigger>
             <TabsTrigger value="document" className="rounded-lg text-xs">Documentos</TabsTrigger>
@@ -508,11 +508,11 @@ export default function OperationalCockpit() {
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-50">
-            <div className="size-20 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center">
+            <div className="size-20 rounded-full bg-slate-100 flex items-center justify-center">
               <CheckCircle2 className="size-10 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Parabéns!</h3>
+              <h3 className="text-xl font-bold text-slate-900">Parabéns!</h3>
               <p className="text-sm text-muted-foreground">Não há itens que precisem de sua atenção imediata.</p>
             </div>
             <Button variant="outline" onClick={() => { setActiveTab("all"); setSearchTerm(""); }}>
@@ -546,7 +546,7 @@ function StatTile({ label, value, icon: Icon, tone, onClick }: any) {
       </div>
       <div>
         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</p>
-        <p className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white mt-1">{value}</p>
+        <p className="text-3xl font-black tracking-tighter text-slate-900 mt-1">{value}</p>
       </div>
     </button>
   );
@@ -559,7 +559,7 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
     client: { icon: Users, label: 'Cliente', color: 'bg-blue-500/10 text-blue-500' },
     document: { icon: FileText, label: 'Documento', color: 'bg-amber-500/10 text-amber-500' },
     payment: { icon: Banknote, label: 'Financeiro', color: 'bg-emerald-500/10 text-emerald-500' },
-    commission: { icon: Wallet, label: 'Comissão', color: 'bg-violet-500/10 text-violet-500' },
+    commission: { icon: Wallet, label: 'Comissão', color: 'bg-indigo-500/10 text-indigo-500' },
     contract: { icon: FileSignature, label: 'Contrato', color: 'bg-orange-500/10 text-orange-500' },
     task: { icon: CheckSquare, label: 'Tarefa', color: 'bg-rose-500/10 text-rose-500' },
     request: { icon: MessageSquare, label: 'Solicitação', color: 'bg-cyan-500/10 text-cyan-500' },
@@ -567,7 +567,7 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
   };
 
   const severityColors = {
-    low: 'bg-slate-100 dark:bg-white/5 text-slate-500',
+    low: 'bg-slate-100 text-slate-500',
     medium: 'bg-blue-500/10 text-blue-500',
     high: 'bg-amber-500/10 text-amber-500',
     critical: 'bg-rose-500/10 text-rose-500 animate-pulse',
@@ -577,7 +577,7 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
   const Icon = config.icon;
 
   return (
-    <div className="vx-card group flex flex-col md:flex-row items-center gap-4 p-4 transition-all hover:bg-slate-50 dark:hover:bg-white/5 border-slate-100 dark:border-white/5">
+    <div className="vx-card group flex flex-col md:flex-row items-center gap-4 p-4 transition-all hover:bg-slate-50 border-slate-100">
       <div className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0", config.color)}>
         <Icon className="size-6" />
       </div>
@@ -597,7 +597,7 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
             </span>
           )}
         </div>
-        <h3 className="text-base font-bold text-slate-900 dark:text-white mt-1 group-hover:text-primary transition-colors truncate">
+        <h3 className="text-base font-bold text-slate-900 mt-1 group-hover:text-primary transition-colors truncate">
           {item.title}
         </h3>
         <p className="text-sm text-muted-foreground truncate">{item.subtitle}</p>

@@ -368,8 +368,8 @@ export default function Demands() {
                       {...provided.droppableProps}
                       ref={provided.innerRef}
                       className={cn(
-                        "w-[320px] flex flex-col rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-border/50",
-                        snapshot.isDraggingOver && "bg-slate-100/50 dark:bg-white/[0.04] border-primary/20"
+                        "w-[320px] flex flex-col rounded-xl bg-slate-50/50 border border-border/50",
+                        snapshot.isDraggingOver && "bg-slate-100/50 border-primary/20"
                       )}
                     >
                       <div className="p-4 border-b border-border/50 flex items-center justify-between">

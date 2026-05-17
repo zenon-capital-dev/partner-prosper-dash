@@ -140,7 +140,7 @@ export default function Contracts() {
         description="Centralize contratos com clientes, parceiros e prestadores. Acompanhe assinaturas, validades e histórico auditado."
         icon={<FileSignature className="size-6" />}
         actions={
-          <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-xl">
+          <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-600 text-white shadow-xl">
             <Plus className="size-4 mr-1.5" /> Novo Contrato
           </Button>
         }
@@ -336,7 +336,7 @@ export default function Contracts() {
             <DialogTitle className="font-editorial text-2xl">Histórico de Alterações</DialogTitle>
             <DialogDescription>Rastreabilidade completa de todas as movimentações e status.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 my-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-100 dark:before:bg-white/5">
+          <div className="space-y-6 my-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-100">
              {contractHistory.length === 0 ? (
                <p className="text-center py-8 text-muted-foreground italic">Nenhuma alteração registrada até o momento.</p>
              ) : (
@@ -344,7 +344,7 @@ export default function Contracts() {
                  const config = statusConfig[h.status as ContractStatus] || statusConfig.criado;
                  return (
                    <div key={h.id} className="relative pl-10 group">
-                      <div className={cn("absolute left-0 top-1.5 size-6 rounded-full border-4 border-white dark:border-slate-950 flex items-center justify-center", config.color.split(' ')[0])}>
+                      <div className={cn("absolute left-0 top-1.5 size-6 rounded-full border-4 border-white flex items-center justify-center", config.color.split(' ')[0])}>
                          <div className="size-1 bg-current rounded-full" />
                       </div>
                       <div className="space-y-1">
@@ -354,7 +354,7 @@ export default function Contracts() {
                             </Badge>
                             <span className="text-[10px] font-mono text-muted-foreground">{formatDate(h.created_at)}</span>
                          </div>
-                         <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">{h.notes || "Alteração de status"}</p>
+                         <p className="text-xs font-semibold text-slate-900">{h.notes || "Alteração de status"}</p>
                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                             <ShieldCheck className="size-3" /> Por: {h.profiles?.full_name || "Sistema"}
                          </p>

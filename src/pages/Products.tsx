@@ -391,10 +391,10 @@ export default function Products() {
         <div className="lg:col-span-7 vx-card p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400">
                 <Sparkles className="size-3 text-slate-900" /> Catálogo · Performance
               </div>
-              <h3 className="font-display text-base font-bold mt-1 text-slate-900 dark:text-white">Top Produtos por Receita</h3>
+              <h3 className="font-display text-base font-bold mt-1 text-slate-900">Top Produtos por Receita</h3>
             </div>
             <Badge variant="outline" className="text-[10px]">{products.length} produtos</Badge>
           </div>
@@ -412,11 +412,11 @@ export default function Products() {
                     <div className="flex items-center justify-between text-[11.5px] mb-1">
                       <span className="flex items-center gap-2 truncate">
                         <span className="size-5 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0" style={{ background: `${color}22`, color }}>{idx + 1}</span>
-                        <span className="font-semibold text-slate-800 dark:text-zinc-200 truncate">{p.name}</span>
+                        <span className="font-semibold text-slate-800 truncate">{p.name}</span>
                       </span>
-                      <span className="tabular-nums font-bold text-slate-900 dark:text-white shrink-0">{formatBRL(u.revenue)} <span className="font-medium text-muted-foreground">· {u.sales} vendas</span></span>
+                      <span className="tabular-nums font-bold text-slate-900 shrink-0">{formatBRL(u.revenue)} <span className="font-medium text-muted-foreground">· {u.sales} vendas</span></span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${Math.max(2, pct)}%`, background: `linear-gradient(90deg, ${color}, ${color}aa)` }} />
                     </div>
                   </div>
@@ -428,7 +428,7 @@ export default function Products() {
 
         <div className="lg:col-span-5 vx-card p-5">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 dark:text-zinc-600">
+            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400">
               <Layers className="size-3 text-slate-900" /> Categorias
             </div>
             <Badge variant="outline" className="text-[10px]">{categories.length}</Badge>
@@ -448,7 +448,7 @@ export default function Products() {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span className="size-2 rounded-full shrink-0" style={{ background: color }} />
-                      <p className="text-[12px] font-bold text-slate-800 dark:text-white truncate">{c.name}</p>
+                      <p className="text-[12px] font-bold text-slate-800 truncate">{c.name}</p>
                     </div>
                     <p className="text-[10.5px] text-muted-foreground">{count} {count === 1 ? "produto" : "produtos"}</p>
                   </button>
