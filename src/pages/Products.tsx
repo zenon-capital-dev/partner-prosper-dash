@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import {
+import { confirmAction } from "@/lib/confirm";
   Tabs, TabsList, TabsTrigger,
 } from "@/components/ui/tabs";
 
@@ -249,7 +250,7 @@ export default function Products() {
   };
 
   const handleDelete = async (p: Product) => {
-    if (!confirm(`Excluir "${p.name}"? Esta ação não pode ser desfeita.`)) return;
+    if (!(await confirmAction(`Excluir "${p.name}"? Esta ação não pode ser desfeita.`))) return;
     const { error } = await supabase.from("products").delete().eq("id", p.id);
     if (error) toast.error(error.message);
     else { toast.success("Produto excluído"); qc.invalidateQueries({ queryKey: ["products-list"] }); }
@@ -270,7 +271,7 @@ export default function Products() {
   };
 
   const deleteCategory = async (id: string) => {
-    if (!confirm("Excluir categoria? Produtos vinculados ficarão sem categoria.")) return;
+    if (!(await confirmAction("Excluir categoria? Produtos vinculados ficarão sem categoria."))) return;
     const { error } = await supabase.from("product_categories").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Categoria removida"); qc.invalidateQueries({ queryKey: ["categories"] }); qc.invalidateQueries({ queryKey: ["products-list"] }); }

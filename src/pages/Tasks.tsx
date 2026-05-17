@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { confirmAction } from "@/lib/confirm";
 
 const STATUSES = [
   { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700" },
@@ -254,7 +255,7 @@ export default function Tasks() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir esta tarefa?")) return;
+    if (!(await confirmAction("Excluir esta tarefa?"))) return;
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Tarefa excluída"); qc.invalidateQueries({ queryKey: ["tasks-central"] }); }

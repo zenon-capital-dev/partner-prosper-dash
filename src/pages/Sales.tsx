@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { confirmAction } from "@/lib/confirm";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 
@@ -119,7 +120,7 @@ export default function Sales() {
   }, [kpis]);
 
   const removeOne = async (s: any) => {
-    if (!confirm(`Excluir venda de ${formatBRL(s.amount)}?`)) return;
+    if (!(await confirmAction(`Excluir venda de ${formatBRL(s.amount)}?`))) return;
     const { error } = await supabase.from("sales").delete().eq("id", s.id);
     if (error) toast.error(error.message);
     else { toast.success("Venda excluída"); qc.invalidateQueries({ queryKey: ["sales-rich"] }); }

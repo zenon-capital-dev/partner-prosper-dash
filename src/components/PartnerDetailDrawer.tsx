@@ -23,6 +23,7 @@ import {
 import { formatBRL, formatPercent, formatDoc, formatPhone, initials, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { confirmAction } from "@/lib/confirm";
 
 type Props = {
   partnerId: string | null;
@@ -152,7 +153,7 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
   };
 
   const removeLink = async (id: string) => {
-    if (!confirm("Remover produto deste parceiro?")) return;
+    if (!(await confirmAction("Remover produto deste parceiro?"))) return;
     const { error } = await supabase.from("partner_products").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Removido"); qc.invalidateQueries({ queryKey: ["partner-products", partnerId] }); }
