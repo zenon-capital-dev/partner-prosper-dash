@@ -27,7 +27,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
           <h3 className="text-lg font-bold tracking-tight">Tarefas e Pendências</h3>
           <p className="text-xs text-muted-foreground">Acompanhamento de obrigações e prazos</p>
         </div>
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate(`/tarefas?clientId=${clientId}&new=1`)}>
           <Plus className="size-4 mr-2" /> Criar Tarefa
         </Button>
       </div>
