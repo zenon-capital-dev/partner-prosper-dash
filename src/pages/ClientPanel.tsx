@@ -252,7 +252,7 @@ export default function ClientPanel() {
                                    </div>
                                 </div>
                                 {d.file_path ? (
-                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => window.open(d.file_path, '_blank')}>
+                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => downloadDoc(d.file_path, d.name)}>
                                       <Download className="size-4" />
                                    </Button>
                                 ) : (
@@ -440,7 +440,7 @@ export default function ClientPanel() {
                                       {d.client_products?.products?.name && <p className="text-[9px] text-muted-foreground truncate">{d.client_products.products.name}</p>}
                                    </div>
                                 </div>
-                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => window.open(d.file_path || d.file_url, '_blank')}>
+                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}>
                                   <Download className="size-4" />
                                </Button>
                             </div>
