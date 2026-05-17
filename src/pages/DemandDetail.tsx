@@ -379,7 +379,7 @@ export default function DemandDetail() {
 
                <TabsContent value="checklist" className="animate-fade-up">
                   <div className="vx-card p-8 bg-card border-slate-100">
-                     <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
+                     <OperationalChecklist clientProductId={demand.id} canEdit={canManage} canManage={canManage} />
                   </div>
                </TabsContent>
                
@@ -529,7 +529,7 @@ export default function DemandDetail() {
 
                <TabsContent value="comments" className="animate-fade-up">
                   <div className="vx-card p-6 bg-card border-slate-100">
-                     <DemandComments clientProductId={demand.id} role={isAdmin ? "admin" : "provider"} />
+                     <DemandComments clientProductId={demand.id} role={canManage ? "admin" : "provider"} />
                   </div>
                </TabsContent>
                
