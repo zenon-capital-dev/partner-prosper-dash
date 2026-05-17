@@ -163,27 +163,27 @@ export default function Partners() {
 
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-white/20" />
+          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder="Buscar por nome ou email..."
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-11 bg-white/[0.02] border-white/[0.05] rounded-xl focus:border-primary/50 transition-all"
+            className="pl-10 h-11 bg-white border-slate-200 rounded-xl focus:border-indigo-400 transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="h-11 w-[140px] bg-white/[0.02] border-white/[0.05] rounded-xl text-xs font-bold uppercase tracking-wider"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-[140px] bg-white border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos Status</SelectItem>
               <SelectItem value="ativos">Ativos</SelectItem>
               <SelectItem value="inativos">Inativos</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex items-center bg-white/[0.02] border border-white/[0.05] rounded-xl p-1">
-            <button onClick={() => setView("list")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-white/[0.08] text-white" : "text-white/20 hover:text-white")}>
+          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1">
+            <button onClick={() => setView("list")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-indigo-50 text-indigo-700" : "text-slate-400 hover:text-slate-700")}>
               <List className="size-4" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-white/[0.08] text-white" : "text-white/20 hover:text-white")}>
+            <button onClick={() => setView("grid")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-indigo-50 text-indigo-700" : "text-slate-400 hover:text-slate-700")}>
               <LayoutGrid className="size-4" />
             </button>
           </div>
@@ -191,7 +191,7 @@ export default function Partners() {
       </div>
 
       {view === "list" ? (
-        <div className="bg-white/[0.01] border border-white/[0.05] rounded-2xl overflow-hidden shadow-2xl">
+        <div className="bg-white border border-slate-200/70 rounded-lg overflow-hidden shadow-sm">
           <ListView partners={filtered} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
         </div>
       ) : (
