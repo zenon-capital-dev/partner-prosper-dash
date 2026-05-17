@@ -205,9 +205,6 @@ export default function UsersPage() {
                         <DropdownMenuItem onClick={() => toggleStatus(u.id, u.has_system_access, 'has_system_access')}>
                           {u.has_system_access ? <><Lock className="size-4 mr-2" /> Bloquear Login</> : <><Key className="size-4 mr-2" /> Liberar Login</>}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setSelectedUser(u); setPermissionOpen(true); }}>
-                          <Settings className="size-4 mr-2" /> Permissões
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => resetPassword(u.email)}>
                           <Mail className="size-4 mr-2" /> Resetar senha
                         </DropdownMenuItem>
