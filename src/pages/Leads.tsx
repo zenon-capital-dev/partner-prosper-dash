@@ -211,7 +211,7 @@ export default function Leads() {
                   <td colSpan={6} className="px-6 py-20 text-center text-sm text-muted-foreground">Nenhum lead encontrado.</td>
                 </tr>
               ) : (
-                filteredLeads.map((lead: any) => (
+                pagedLeads.map((lead: any) => (
                   <tr key={lead.id} className="border-b last:border-0 border-border/40 hover:bg-muted/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
