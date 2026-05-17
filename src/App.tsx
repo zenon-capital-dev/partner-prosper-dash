@@ -52,6 +52,7 @@ import OperationalCockpit from "./pages/OperationalCockpit";
 import Proposals from "./pages/Proposals";
 import FinanceCenter from "./pages/FinanceCenter";
 import Atuacoes from "./pages/Atuacoes";
+import { ConfirmRoot } from "@/lib/confirm";
 
 const queryClient = new QueryClient({
   defaultOptions: {
