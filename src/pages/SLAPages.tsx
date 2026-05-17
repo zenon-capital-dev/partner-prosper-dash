@@ -239,12 +239,12 @@ export default function SLAPages() {
 
         {/* Sidebar — ranking + dicas */}
         <div className="space-y-6">
-          <section className="vx-card p-6 bg-slate-900 text-white border-none relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
+          <section className="vx-card p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
               <AlertTriangle className="size-24 rotate-12" />
             </div>
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-6 flex items-center gap-2">
-              <AlertTriangle className="size-3.5 text-rose-400" />
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-6 flex items-center gap-2">
+              <AlertTriangle className="size-3.5 text-rose-500" />
               Prestadores com Mais Atrasos
             </h3>
 
@@ -253,18 +253,18 @@ export default function SLAPages() {
                 providersWithDelays.map(([name, count]) => (
                   <div key={name} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[11px] font-bold">
+                      <div className="size-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-bold text-slate-700">
                         {name.charAt(0)}
                       </div>
-                      <span className="text-sm font-medium text-white/80">{name}</span>
+                      <span className="text-sm font-medium text-slate-700">{name}</span>
                     </div>
-                    <Badge className="bg-rose-500/20 text-rose-400 border-none font-black tabular-nums">
+                    <Badge className="bg-rose-50 text-rose-600 border border-rose-200 font-black tabular-nums">
                       {count as number}
                     </Badge>
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-white/40 italic">Nenhum atraso por prestador.</p>
+                <p className="text-xs text-muted-foreground italic">Nenhum atraso por prestador.</p>
               )}
             </div>
           </section>

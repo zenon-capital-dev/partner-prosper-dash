@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { UserCog, UserPlus, Search, Mail, Copy, Shield, MoreHorizontal, UserCheck, UserX, Lock, Key, Settings } from "lucide-react";
+import { UserPlus, Search, Mail, Copy, Shield, MoreHorizontal, UserCheck, UserX, Lock, Key } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
@@ -26,8 +26,8 @@ const roleLabel: Record<string, string> = {
   lead: "Lead / Convidado",
 };
 const roleClass: Record<string, string> = {
-  admin: "bg-slate-900 text-white",
-  admin_secondary: "bg-slate-700 text-white",
+  admin: "bg-indigo-600 text-white",
+  admin_secondary: "bg-indigo-100 text-indigo-700 border border-indigo-200",
   colaborador: "bg-blue-100 text-blue-700",
   parceiro: "bg-amber-100 text-amber-700",
   prestador: "bg-emerald-100 text-emerald-700",
@@ -40,11 +40,8 @@ export default function UsersPage() {
   const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [permissionOpen, setPermissionOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [form, setForm] = useState<any>({ role: "colaborador", send_invite: true, has_system_access: true, internal_notes: "" });
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);
-  const [permState, setPermState] = useState<Record<string, boolean>>({ finance: false, clients: true, docs: true });
 
   const { data: users = [] } = useQuery({
     queryKey: ["users-with-roles"],
@@ -205,9 +202,6 @@ export default function UsersPage() {
                         <DropdownMenuItem onClick={() => toggleStatus(u.id, u.has_system_access, 'has_system_access')}>
                           {u.has_system_access ? <><Lock className="size-4 mr-2" /> Bloquear Login</> : <><Key className="size-4 mr-2" /> Liberar Login</>}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setSelectedUser(u); setPermissionOpen(true); }}>
-                          <Settings className="size-4 mr-2" /> Permissões
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => resetPassword(u.email)}>
                           <Mail className="size-4 mr-2" /> Resetar senha
                         </DropdownMenuItem>
@@ -300,41 +294,6 @@ export default function UsersPage() {
             )}
             {!createdInfo?.password && <p className="text-xs text-muted-foreground">Email de convite enviado.</p>}
           </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={permissionOpen} onOpenChange={setPermissionOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Settings className="size-5" /> Permissões: {selectedUser?.full_name}</DialogTitle>
-            <DialogDescription>Permissões granulares (refinamento sobre o papel principal).</DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-3">
-            {[
-              { key: 'finance', label: 'Acesso ao Financeiro', desc: 'Ver faturamento e comissões gerais' },
-              { key: 'clients', label: 'Gestão de Clientes', desc: 'Criar e editar fichas de clientes' },
-              { key: 'docs', label: 'Solicitar Documentos', desc: 'Pedir arquivos para o cliente' },
-            ].map((p) => (
-              <div key={p.key} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <p className="text-sm font-bold">{p.label}</p>
-                  <p className="text-xs text-muted-foreground">{p.desc}</p>
-                </div>
-                <Button
-                  variant={permState[p.key] ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setPermState((s) => ({ ...s, [p.key]: !s[p.key] }))}
-                >
-                  {permState[p.key] ? "Permitido" : "Negado"}
-                </Button>
-              </div>
-            ))}
-            <p className="text-[11px] text-muted-foreground">
-              Permissões base são controladas pelo papel do usuário em <strong>Colaboradores</strong>. Ajustes finos serão aplicados na próxima sessão.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => { toast.success("Permissões salvas"); setPermissionOpen(false); }}>Salvar Permissões</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
