@@ -1,11 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { FileSignature, Plus, Download, Eye, Clock, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FileSignature, Plus, Download, Eye } from "lucide-react";
 import { formatDate, formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function ClientContracts({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
+  const downloadContract = async (filePath: string | null) => {
+    if (!filePath) return toast.error("Contrato sem arquivo anexado");
+    const { data, error } = await supabase.storage.from("contracts").createSignedUrl(filePath, 60);
+    if (error || !data?.signedUrl) return toast.error("Erro ao gerar link de download");
+    window.open(data.signedUrl, "_blank");
+  };
   const { data: contracts, isLoading } = useQuery({
     queryKey: ["client-contracts", clientId],
     queryFn: async () => {
