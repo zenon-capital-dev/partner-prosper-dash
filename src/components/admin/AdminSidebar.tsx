@@ -219,23 +219,26 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-border/80 p-2 bg-background/55">
+      <div className="shrink-0 border-t border-slate-200/70 p-2 bg-slate-50/50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-muted transition-colors group",
+              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-white hover:shadow-sm transition-all group border border-transparent hover:border-slate-200",
               collapsed && "justify-center"
             )}>
-              <div className="size-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground text-[11px] font-bold shrink-0 ring-1 ring-border">
-                {initials(displayName)}
+              <div className="relative shrink-0">
+                <div className="size-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-white shadow-sm">
+                  {initials(displayName)}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-white" />
               </div>
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-semibold text-foreground truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] text-muted-foreground truncate leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12.5px] font-semibold text-slate-900 truncate leading-tight">{displayName}</p>
+                    <p className="text-[10.5px] text-slate-500 truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
-                  <ChevronDown className="size-3.5 text-muted-foreground shrink-0" />
+                  <ChevronDown className="size-3.5 text-slate-400 shrink-0 group-hover:text-slate-600 transition-colors" />
                 </>
               )}
             </button>
