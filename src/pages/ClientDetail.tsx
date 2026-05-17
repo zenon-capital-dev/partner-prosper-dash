@@ -15,6 +15,7 @@ import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { confirmAction } from "@/lib/confirm";
 import { ClientOverview } from "@/components/clients/tabs/ClientOverview";
 import { ClientProducts } from "@/components/clients/tabs/ClientProducts";
 import { ClientDocuments } from "@/components/clients/tabs/ClientDocuments";
