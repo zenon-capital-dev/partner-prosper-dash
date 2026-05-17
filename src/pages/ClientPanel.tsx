@@ -585,18 +585,37 @@ export default function ClientPanel() {
                     <div className="divide-y divide-slate-50 dark:divide-white/5">
                        {docs.map((d: any) => (
                          <div key={d.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
-                            <div className="flex items-center gap-5">
-                               <div className="size-12 rounded-[18px] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                            <div className="flex items-center gap-5 min-w-0">
+                               <div className={cn(
+                                 "size-12 rounded-[18px] flex items-center justify-center shrink-0",
+                                 d.file_path ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-slate-100 dark:bg-white/5 text-slate-400"
+                               )}>
                                   <FileText className="size-6" />
                                </div>
-                               <div>
-                                  <p className="font-bold text-slate-900 dark:text-white">{d.name}</p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">Enviado em {formatDate(d.created_at)}</p>
+                               <div className="min-w-0">
+                                  <p className="font-bold text-slate-900 dark:text-white truncate">{d.name}</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">
+                                    {d.file_path ? `Enviado em ${formatDate(d.created_at)}` : "Pendente de envio"}
+                                  </p>
                                </div>
                             </div>
-                            <Button variant="outline" size="sm" className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all">
-                               <Download className="size-4" /> Download
-                            </Button>
+                            {d.file_path ? (
+                              <Button
+                                variant="outline" size="sm"
+                                className="rounded-xl gap-2 h-10 border-slate-200 dark:border-white/10 hover:bg-primary hover:text-white transition-all shrink-0"
+                                onClick={() => downloadDoc(d.file_path, d.name)}
+                              >
+                                 <Download className="size-4" /> Download
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline" size="sm"
+                                className="rounded-xl gap-2 h-10 shrink-0"
+                                onClick={() => setActiveTab("checklist")}
+                              >
+                                 <Upload className="size-4" /> Enviar
+                              </Button>
+                            )}
                          </div>
                        ))}
                        {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-muted-foreground">Sua biblioteca de documentos está vazia.</p>}
