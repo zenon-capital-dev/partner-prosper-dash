@@ -37,7 +37,7 @@ export function ClientContracts({ clientId }: { clientId: string }) {
           <h3 className="text-lg font-bold tracking-tight">Contratos</h3>
           <p className="text-xs text-muted-foreground">Formalização e assinaturas</p>
         </div>
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate(`/contratos?clientId=${clientId}&new=1`)}>
           <Plus className="size-4 mr-2" /> Novo Contrato
         </Button>
       </div>
