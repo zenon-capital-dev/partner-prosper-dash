@@ -15,6 +15,7 @@ import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { confirmAction } from "@/lib/confirm";
 import { ClientOverview } from "@/components/clients/tabs/ClientOverview";
 import { ClientProducts } from "@/components/clients/tabs/ClientProducts";
 import { ClientDocuments } from "@/components/clients/tabs/ClientDocuments";
@@ -153,6 +154,43 @@ export default function ClientDetail() {
     },
     enabled: !!id,
   });
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ["client-companies", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: interactions = [] } = useQuery({
+    queryKey: ["client-interactions", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_timeline")
+        .select("*")
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const suspendClient = async () => {
+    if (!id) return;
+    const ok = await confirmAction({ title: "Suspender cliente?", description: "O cliente ficará marcado como inativo. Você pode reativar depois.", confirmText: "Suspender", destructive: true });
+    if (!ok) return;
+    const { error } = await supabase.from("clients").update({ status: "inativo" as any }).eq("id", id);
+    if (error) return toast.error("Erro ao suspender cliente");
+    toast.success("Cliente suspenso");
+    qc.invalidateQueries({ queryKey: ["client", id] });
+  };
 
   const isLoading = clientLoading || productsLoading || paymentsLoading || docsLoading;
 
@@ -299,9 +337,9 @@ export default function ClientDetail() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive">
-                    <AlertCircle className="size-4 mr-2" /> Suspender Cliente
-                  </DropdownMenuItem>
+                   <DropdownMenuItem onClick={suspendClient} className="text-destructive focus:text-destructive">
+                     <AlertCircle className="size-4 mr-2" /> Suspender Cliente
+                   </DropdownMenuItem>
                </DropdownMenuContent>
              </DropdownMenu>
           </div>
@@ -426,17 +464,36 @@ export default function ClientDetail() {
           </TabsContent>
 
           <TabsContent value="empresas" className="m-0">
-            <div className="cp-panel p-12 text-center space-y-4">
-              <Building2 className="size-12 text-muted-foreground/20 mx-auto" />
-              <div className="space-y-2">
-                <h3 className="text-lg font-bold">Gestão de Empresas</h3>
-                <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Vincule múltiplas empresas ou filiais a este cliente para centralizar faturamento e demandas.
-                </p>
+            <div className="cp-panel p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold flex items-center gap-2">
+                  <Building2 className="size-4 text-primary" /> Empresas vinculadas
+                </h3>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("Cadastro de empresa em breve — use Editar Cadastro para registrar a empresa principal.")}>
+                  <Plus className="size-4" /> Adicionar empresa
+                </Button>
               </div>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Plus className="size-4" /> Adicionar empresa
-              </Button>
+              {companies.length === 0 ? (
+                <div className="p-8 text-center text-sm text-muted-foreground border border-dashed border-border/40 rounded-xl">
+                  Nenhuma empresa vinculada. {client.company ? `Razão social principal: ${client.company}` : "Cadastre a empresa principal pelo botão Editar Cadastro."}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {companies.map((co: any) => (
+                    <div key={co.id} className="p-4 rounded-xl border border-border/40 bg-muted/20 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="size-4 text-primary" />
+                        <p className="font-bold text-sm truncate">{co.name}</p>
+                      </div>
+                      {co.trade_name && <p className="text-xs text-muted-foreground truncate">{co.trade_name}</p>}
+                      {co.document && <p className="text-[11px] font-mono text-muted-foreground">{formatDoc(co.document)}</p>}
+                      {(co.address_city || co.address_state) && (
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="size-3" /> {co.address_city}{co.address_state ? ` / ${co.address_state}` : ""}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -461,50 +518,35 @@ export default function ClientDetail() {
           </TabsContent>
 
           <TabsContent value="relacionamento" className="m-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="cp-panel p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold flex items-center gap-2">
-                    <MessageSquare className="size-4 text-indigo-500" /> Registro de Interações
-                  </h3>
-                  <Button onClick={() => setInteractionOpen(true)} variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">Novo Registro</Button>
-                </div>
-                <div className="space-y-4 py-4">
-                  <div className="flex gap-4 p-4 rounded-xl bg-muted/30 border border-border/40">
-                    <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Phone className="size-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold">Chamada de Alinhamento</p>
-                      <p className="text-[11px] text-muted-foreground">Realizada por {(client as any).responsible?.full_name || "Equipe"} • Ontem</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4 p-4 rounded-xl bg-muted/30 border border-border/40 opacity-60">
-                    <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Mail className="size-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold">Follow-up Financeiro</p>
-                      <p className="text-[11px] text-muted-foreground">Enviado automaticamente • 3 dias atrás</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="cp-panel p-6 space-y-4">
+            <div className="cp-panel p-6 space-y-4">
+              <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2">
-                  <Star className="size-4 text-indigo-500" /> Satisfação (NPS)
+                  <MessageSquare className="size-4 text-indigo-500" /> Registro de Interações
                 </h3>
-                <div className="py-8 flex flex-col items-center justify-center text-center space-y-3">
-                  <div className="size-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <TrendingUp className="size-8 text-emerald-500" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">9.2</p>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Score NPS Atual</p>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground italic">"Excelente atendimento e rapidez nas entregas."</p>
-                </div>
+                <Button onClick={() => setInteractionOpen(true)} variant="ghost" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider">
+                  <Plus className="size-3.5 mr-1" /> Novo Registro
+                </Button>
               </div>
+              {interactions.length === 0 ? (
+                <div className="p-8 text-center text-sm text-muted-foreground border border-dashed border-border/40 rounded-xl">
+                  Nenhuma interação registrada ainda. Clique em "Novo Registro" para começar o histórico de relacionamento.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {interactions.map((it: any) => (
+                    <div key={it.id} className="flex gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+                      <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <MessageSquare className="size-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold truncate">{it.title}</p>
+                        {it.description && <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{it.description}</p>}
+                        <p className="text-[10px] text-muted-foreground/70 mt-1">{formatDate(it.created_at)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
 
