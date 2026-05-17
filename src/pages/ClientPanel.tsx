@@ -20,6 +20,8 @@ import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { PageHero } from "@/components/PageHero";
 import { ProsperLogo } from "@/components/VendxLogo";
+import { NotificationBell } from "@/components/NotificationBell";
+import { useSystemSettings, buildWhatsAppLink, buildMailtoLink } from "@/hooks/useSystemSettings";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator,
