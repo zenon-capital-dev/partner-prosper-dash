@@ -57,7 +57,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
                   <span className="text-[10px] text-muted-foreground">•</span>
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                     <User className="size-3" />
-                    {task.responsible_id || "Não atribuído"}
+                    {task.assigned_profile?.full_name || "Não atribuído"}
                   </div>
                 </div>
               </div>
@@ -66,7 +66,7 @@ export function ClientTasks({ clientId }: { clientId: string }) {
             <div className="flex items-center gap-4">
               <PriorityBadge priority={task.priority} />
               <div className="h-6 w-px bg-border/40" />
-              <Button variant="ghost" size="sm" className="text-xs font-bold">
+              <Button variant="ghost" size="sm" className="text-xs font-bold" onClick={() => navigate(`/tarefas?focus=${task.id}`)}>
                 Detalhes
               </Button>
             </div>
