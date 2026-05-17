@@ -52,13 +52,13 @@ function AdminShell() {
   if (blocked) return <Navigate to="/admin" replace />;
 
   return (
-    <div className="min-h-screen flex w-full text-foreground bg-background admin-shell">
+    <div className="min-h-screen flex w-full text-slate-900 bg-[#f7f8fb] admin-shell">
         <div className="hidden md:block shrink-0">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
 
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-card text-foreground [&>button]:hidden">
+          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-white text-slate-900 [&>button]:hidden">
             <AdminSidebar
               collapsed={false}
               onToggle={() => setMobileMenuOpen(false)}
