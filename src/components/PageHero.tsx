@@ -22,14 +22,14 @@ interface Props {
   hideBreadcrumbs?: boolean;
 }
 
-const toneCfg: Record<string, { text: string; bg: string; ring: string; dot: string; grad: string }> = {
-  primary: { text: "text-slate-900", bg: "bg-slate-100", ring: "ring-slate-200/60", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
-  success: { text: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-200/60", dot: "bg-emerald-500 shadow-sm", grad: "from-emerald-500 to-emerald-600" },
-  warning: { text: "text-amber-600", bg: "bg-amber-50", ring: "ring-amber-200/60", dot: "bg-amber-500 shadow-sm", grad: "from-amber-500 to-amber-600" },
-  info: { text: "text-sky-600", bg: "bg-sky-50", ring: "ring-sky-200/60", dot: "bg-sky-500 shadow-sm", grad: "from-sky-500 to-sky-600" },
-  danger: { text: "text-rose-600", bg: "bg-rose-50", ring: "ring-rose-200/60", dot: "bg-rose-500 shadow-sm", grad: "from-rose-500 to-rose-600" },
-  violet: { text: "text-slate-900", bg: "bg-slate-100", ring: "ring-slate-200/60", dot: "bg-slate-600 shadow-sm", grad: "from-slate-700 to-slate-900" },
-  default: { text: "text-slate-700", bg: "bg-slate-100", ring: "ring-slate-200", dot: "bg-slate-400", grad: "from-slate-500 to-slate-600" },
+const toneCfg: Record<string, { text: string; bg: string; ring: string; dot: string; grad: string; iconBg: string }> = {
+  primary: { text: "text-indigo-700", bg: "bg-indigo-50", ring: "ring-indigo-100", dot: "bg-indigo-500", grad: "from-indigo-500 to-indigo-600", iconBg: "bg-indigo-600" },
+  success: { text: "text-emerald-700", bg: "bg-emerald-50", ring: "ring-emerald-100", dot: "bg-emerald-500", grad: "from-emerald-500 to-emerald-600", iconBg: "bg-emerald-600" },
+  warning: { text: "text-amber-700", bg: "bg-amber-50", ring: "ring-amber-100", dot: "bg-amber-500", grad: "from-amber-500 to-amber-600", iconBg: "bg-amber-600" },
+  info: { text: "text-sky-700", bg: "bg-sky-50", ring: "ring-sky-100", dot: "bg-sky-500", grad: "from-sky-500 to-sky-600", iconBg: "bg-sky-600" },
+  danger: { text: "text-rose-700", bg: "bg-rose-50", ring: "ring-rose-100", dot: "bg-rose-500", grad: "from-rose-500 to-rose-600", iconBg: "bg-rose-600" },
+  violet: { text: "text-violet-700", bg: "bg-violet-50", ring: "ring-violet-100", dot: "bg-violet-500", grad: "from-violet-500 to-violet-600", iconBg: "bg-violet-600" },
+  default: { text: "text-slate-700", bg: "bg-slate-100", ring: "ring-slate-200", dot: "bg-slate-400", grad: "from-slate-400 to-slate-500", iconBg: "bg-slate-700" },
 };
 
 export function PageHero({
@@ -45,42 +45,42 @@ export function PageHero({
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
 
   return (
-    <section className="relative px-5 lg:px-8 pt-7 lg:pt-9 pb-3 space-y-7">
-      {/* ambient orbs — refined */}
+    <section className="relative px-5 lg:px-8 pt-8 lg:pt-10 pb-2 space-y-7">
+      {/* ambient — soft indigo wash, almost invisible */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-40 -left-40 size-[560px] rounded-full bg-slate-200/25 blur-[160px]" />
-        <div className="absolute top-1/3 -right-40 size-[440px] rounded-full bg-slate-200/20 blur-[160px]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
+        <div className="absolute -top-44 -left-32 size-[520px] rounded-full bg-indigo-200/25 blur-[140px]" />
+        <div className="absolute -top-32 right-0 size-[440px] rounded-full bg-sky-200/20 blur-[140px]" />
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-300/40 to-transparent" />
       </div>
 
       {!hideBreadcrumbs && <Breadcrumbs />}
 
-      <header className="flex flex-wrap items-start justify-between gap-5">
+      <header className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex items-start gap-5 min-w-0 flex-1">
           {icon && (
             <div className="relative shrink-0">
-              <div className="size-14 lg:size-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl ring-1 ring-white/10">
+              <div className="size-14 lg:size-[60px] rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-[0_10px_30px_-12px_rgba(79,70,229,0.5)] ring-1 ring-indigo-600/30">
                 {icon}
               </div>
-              <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-2 ring-background shadow-md" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-[2.5px] ring-white shadow-sm" />
             </div>
           )}
           <div className="min-w-0">
             {(eyebrow || category) && (
-              <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.24em] font-bold text-slate-400">
-                <CalendarClock className="size-3" />
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] font-bold">
+                <CalendarClock className="size-3 text-slate-400" />
                 <span className="text-slate-500">{eyebrow}</span>
                 {category && (
                   <>
                     <span className="size-1 rounded-full bg-slate-300" />
-                    <Sparkles className="size-3 text-slate-500" />
-                    <span className="text-slate-700">{category}</span>
+                    <Sparkles className="size-3 text-indigo-500" />
+                    <span className="text-indigo-700">{category}</span>
                   </>
                 )}
               </div>
             )}
-            <h1 className="text-[26px] lg:text-[32px] font-bold text-slate-900 tracking-[-0.02em] mt-1.5 leading-[1.1] font-display">
+            <h1 className="text-[26px] lg:text-[32px] font-bold text-slate-900 tracking-[-0.025em] mt-2 leading-[1.05] font-display">
               {title}
             </h1>
             {description && (
@@ -88,7 +88,7 @@ export function PageHero({
                 {description}
               </p>
             )}
-            <p className="text-[10.5px] text-slate-400 mt-2 capitalize tracking-wide">{today}</p>
+            <p className="text-[10.5px] text-slate-400 mt-2.5 capitalize tracking-wide font-medium">{today}</p>
           </div>
         </div>
 
@@ -99,7 +99,7 @@ export function PageHero({
 
       {kpis && kpis.length > 0 && (
         <div
-          className="grid gap-3.5"
+          className="grid gap-3"
           style={{ gridTemplateColumns: `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` }}
         >
           {kpis.map((k, i) => {
@@ -108,42 +108,40 @@ export function PageHero({
               <div
                 key={i}
                 className={cn(
-                  "group/kpi relative overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-300",
-                  "border-slate-200/80",
-                  "hover:shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:border-slate-300"
+                  "group/kpi relative overflow-hidden rounded-xl border bg-white p-4 lg:p-[18px] transition-all duration-300",
+                  "border-slate-200/70 shadow-[0_1px_0_rgba(15,23,42,0.04)]",
+                  "hover:shadow-[0_8px_28px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-[1px] hover:border-slate-300/80"
                 )}
               >
-                {/* subtle radial glow on hover */}
+                {/* soft top accent — coloured by tone */}
+                <div className={cn("absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r opacity-80", cfg.grad)} />
+                {/* radial glow on hover */}
                 <div className={cn(
                   "absolute inset-0 opacity-0 group-hover/kpi:opacity-100 transition-opacity duration-500 pointer-events-none",
-                  "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_60%)]"
+                  "bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.07),transparent_60%)]"
                 )} />
                 <div className="flex items-center justify-between mb-3 relative">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={cn("size-1.5 rounded-full shrink-0", cfg.dot)} />
-                    <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-500 truncate">
+                    <p className="text-[9.5px] font-bold uppercase tracking-[0.18em] text-slate-500 truncate">
                       {k.label}
                     </p>
                   </div>
                   {k.icon && (
                     <div className={cn(
-                      "size-8 rounded-xl flex items-center justify-center shrink-0 ring-1 transition-transform group-hover/kpi:scale-110",
+                      "size-8 rounded-lg flex items-center justify-center shrink-0 ring-1 transition-all group-hover/kpi:scale-[1.08]",
                       cfg.bg, cfg.text, cfg.ring
                     )}>
                       {k.icon}
                     </div>
                   )}
                 </div>
-                <p className="font-display text-[24px] lg:text-[30px] font-bold tracking-[-0.02em] tabular-nums leading-none truncate text-slate-900 relative">
+                <p className="font-display text-[24px] lg:text-[28px] font-bold tracking-[-0.025em] tabular-nums leading-none truncate text-slate-900 relative">
                   {k.value}
                 </p>
                 {k.hint && (
-                  <p className="text-[11px] text-slate-400 mt-2 truncate relative">{k.hint}</p>
+                  <p className="text-[11px] text-slate-400 mt-2 truncate relative font-medium">{k.hint}</p>
                 )}
-                <div className={cn(
-                  "absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r opacity-70 group-hover/kpi:opacity-100 transition-opacity",
-                  cfg.grad
-                )} />
               </div>
             );
           })}
