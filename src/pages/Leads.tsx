@@ -37,6 +37,8 @@ const statusColors: Record<string, string> = {
   "Sem resposta": "bg-zinc-100 text-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-400",
 };
 
+const PAGE_SIZE = 25;
+
 export default function Leads() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
@@ -48,6 +50,7 @@ export default function Leads() {
   const [followUpLead, setFollowUpLead] = useState<any>(null);
   const [convertOpen, setConvertOpen] = useState(false);
   const [convertLead, setConvertLead] = useState<any>(null);
+  const [page, setPage] = useState(1);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
