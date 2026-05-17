@@ -184,7 +184,7 @@ export default function ClientDetail() {
 
   const suspendClient = async () => {
     if (!id) return;
-    const ok = await confirmAction({ title: "Suspender cliente?", description: "O cliente ficará marcado como inativo. Você pode reativar depois.", confirmText: "Suspender", tone: "danger" });
+    const ok = await confirmAction({ title: "Suspender cliente?", description: "O cliente ficará marcado como inativo. Você pode reativar depois.", confirmText: "Suspender", destructive: true });
     if (!ok) return;
     const { error } = await supabase.from("clients").update({ status: "inativo" as any }).eq("id", id);
     if (error) return toast.error("Erro ao suspender cliente");
