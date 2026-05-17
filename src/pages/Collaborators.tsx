@@ -1,353 +1,465 @@
 import { useState } from "react";
-import { UserCircle, Search, Plus, Filter, Mail, Phone, MoreHorizontal, LayoutDashboard, Users, CheckCircle2, Clock, AlertCircle, History, Package } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { UserCircle, Search, Plus, Mail, Phone, Shield, Loader2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
+type CollabRow = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  active: boolean | null;
+  has_system_access: boolean | null;
+  internal_notes: string | null;
+  role: "admin" | "admin_secondary" | "colaborador";
+};
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Admin",
+  admin_secondary: "Admin Secundário",
+  colaborador: "Colaborador",
+};
 
 export default function Collaborators() {
-  const [selectedCollaborator, setSelectedCollaborator] = useState<any>(null);
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editing, setEditing] = useState<CollabRow | null>(null);
 
-  const collaborators = [
-    {
-      id: "1",
-      name: "Ana Silva",
-      email: "ana.silva@empresa.com",
-      phone: "(11) 98888-7777",
-      role: "Gerente de Contas",
-      function: "Atendimento Premium",
-      status: "active",
-      has_access: true,
-      stats: {
-        clients: 15,
-        in_progress: 10,
-        pending: 3,
-        completed: 2,
-        tasks_open: 8,
-        tasks_done: 45,
-        tasks_delayed: 1
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["collaborators-list"],
+    queryFn: async (): Promise<CollabRow[]> => {
+      const { data: ur, error } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["admin", "admin_secondary", "colaborador"]);
+      if (error) throw error;
+      const ids = (ur ?? []).map((r) => r.user_id);
+      if (!ids.length) return [];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, phone, active, has_system_access, internal_notes")
+        .in("id", ids);
+      const byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return (ur ?? []).map((r: any) => {
+        const p: any = byId.get(r.user_id) ?? {};
+        return {
+          id: r.user_id,
+          full_name: p.full_name ?? null,
+          email: p.email ?? null,
+          phone: p.phone ?? null,
+          active: p.active ?? true,
+          has_system_access: p.has_system_access ?? true,
+          internal_notes: p.internal_notes ?? null,
+          role: r.role,
+        };
+      });
+    },
+  });
+
+  const filtered = rows.filter((r) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (r.full_name ?? "").toLowerCase().includes(q) ||
+      (r.email ?? "").toLowerCase().includes(q) ||
+      (r.phone ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const updateProfile = useMutation({
+    mutationFn: async (payload: Partial<CollabRow> & { id: string; role?: string }) => {
+      const { id, role, ...rest } = payload;
+      const { error } = await supabase.from("profiles").update(rest).eq("id", id);
+      if (error) throw error;
+      if (role) {
+        await supabase.from("user_roles").delete().eq("user_id", id);
+        await supabase.from("user_roles").insert({ user_id: id, role: role as any });
       }
     },
-    {
-      id: "2",
-      name: "Carlos Souza",
-      email: "carlos.souza@empresa.com",
-      phone: "(11) 97777-6666",
-      role: "Analista Financeiro",
-      function: "Gestão de Custos",
-      status: "active",
-      has_access: true,
-      stats: {
-        clients: 24,
-        in_progress: 18,
-        pending: 4,
-        completed: 2,
-        tasks_open: 12,
-        tasks_done: 120,
-        tasks_delayed: 0
-      }
-    }
-  ];
+    onSuccess: () => {
+      toast.success("Colaborador atualizado");
+      qc.invalidateQueries({ queryKey: ["collaborators-list"] });
+      setEditing(null);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao atualizar"),
+  });
 
   return (
-    <div className="page-shell space-y-7">
+    <div className="page-shell space-y-6">
       <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
-        <div className="min-w-0 space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            <UserCircle className="size-3 text-primary" />
-            Equipe Interna
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-slate-500">
+            <UserCircle className="size-3 text-indigo-600" /> Equipe Interna
           </div>
-          <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
+          <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-slate-900 mt-3">
             Colaboradores
           </h1>
-          <p className="text-sm text-muted-foreground">Gerencie sua equipe, permissões e acessos internos.</p>
+          <p className="text-sm text-slate-500 mt-1">
+            Gerencie sua equipe, permissões e acessos ao sistema.
+          </p>
         </div>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20">
-              <Plus className="size-3.5 mr-2" />
-              Novo Colaborador
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+        <Button
+          onClick={() => setCreateOpen(true)}
+          className="h-9 text-xs font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700"
+        >
+          <Plus className="size-3.5 mr-2" /> Novo Colaborador
+        </Button>
+      </header>
+
+      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Input
+            className="pl-10 h-10 text-sm"
+            placeholder="Buscar por nome, e-mail ou telefone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+        {isLoading ? (
+          <div className="p-12 text-center text-slate-400">
+            <Loader2 className="size-5 animate-spin mx-auto" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center">
+            <UserCircle className="size-10 text-slate-200 mx-auto mb-3" />
+            <p className="text-sm font-medium text-slate-600">Nenhum colaborador encontrado</p>
+          </div>
+        ) : (
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 border-b border-slate-200/70">
+              <tr>
+                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Nome</th>
+                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Contato</th>
+                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Função</th>
+                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Acesso</th>
+                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((c) => (
+                <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="size-9 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                        {(c.full_name ?? c.email ?? "?").charAt(0).toUpperCase()}
+                      </div>
+                      <div className="font-semibold text-sm text-slate-900">{c.full_name ?? "—"}</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-slate-600">
+                    <div className="flex items-center gap-1.5"><Mail className="size-3 text-slate-400" /> {c.email ?? "—"}</div>
+                    {c.phone && <div className="flex items-center gap-1.5 mt-0.5"><Phone className="size-3 text-slate-400" /> {c.phone}</div>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant="outline" className="font-mono text-[10px]">
+                      {ROLE_LABEL[c.role]}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    {c.has_system_access ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                        <Shield className="size-3" /> Habilitado
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400 font-bold">Bloqueado</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge className={c.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-slate-200 text-slate-600 hover:bg-slate-200"}>
+                      {c.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => setEditing(c)}>
+                      Editar
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <CreateCollaboratorDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["collaborators-list"] })} />
+
+      {editing && (
+        <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
+          <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Cadastrar Colaborador</DialogTitle>
+              <DialogTitle>Editar colaborador</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4 py-4">
-              <div className="space-y-2">
-                <Label>Nome Completo</Label>
-                <Input placeholder="Ex: Ana Silva" />
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Nome</Label>
+                  <Input value={editing.full_name ?? ""} onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Telefone</Label>
+                  <Input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
+                </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>E-mail</Label>
-                <Input type="email" placeholder="ana@empresa.com" />
+                <Input value={editing.email ?? ""} disabled />
               </div>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Função</Label>
+                  <Select value={editing.role} onValueChange={(v) => setEditing({ ...editing, role: v as any })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="colaborador">Colaborador</SelectItem>
+                      <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select value={editing.active ? "1" : "0"} onValueChange={(v) => setEditing({ ...editing, active: v === "1" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Ativo</SelectItem>
+                      <SelectItem value="0">Inativo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
+                <div>
+                  <Label>Acesso ao sistema</Label>
+                  <p className="text-xs text-slate-500">Permite login na plataforma.</p>
+                </div>
+                <Switch
+                  checked={!!editing.has_system_access}
+                  onCheckedChange={(v) => setEditing({ ...editing, has_system_access: v })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Observações internas</Label>
+                <Textarea
+                  rows={3}
+                  value={editing.internal_notes ?? ""}
+                  onChange={(e) => setEditing({ ...editing, internal_notes: e.target.value })}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button
+                disabled={updateProfile.isPending}
+                onClick={() =>
+                  updateProfile.mutate({
+                    id: editing.id,
+                    full_name: editing.full_name,
+                    phone: editing.phone,
+                    active: editing.active,
+                    has_system_access: editing.has_system_access,
+                    internal_notes: editing.internal_notes,
+                    role: editing.role,
+                  })
+                }
+              >
+                {updateProfile.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+function CreateCollaboratorDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onCreated: () => void;
+}) {
+  const [form, setForm] = useState({
+    email: "",
+    full_name: "",
+    phone: "",
+    role: "colaborador" as "colaborador" | "admin_secondary" | "admin",
+    has_system_access: true,
+    internal_notes: "",
+    send_invite: true,
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+
+  const reset = () => {
+    setForm({
+      email: "",
+      full_name: "",
+      phone: "",
+      role: "colaborador",
+      has_system_access: true,
+      internal_notes: "",
+      send_invite: true,
+      password: "",
+    });
+    setTempPassword(null);
+  };
+
+  const submit = async () => {
+    if (!form.email || !form.full_name) {
+      toast.error("Nome e e-mail são obrigatórios");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: {
+          email: form.email,
+          full_name: form.full_name,
+          phone: form.phone || undefined,
+          role: form.role,
+          has_system_access: form.has_system_access,
+          internal_notes: form.internal_notes || undefined,
+          send_invite: form.send_invite && !form.password,
+          password: form.password || undefined,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      const tp = (data as any)?.temp_password as string | null;
+      toast.success("Colaborador criado");
+      onCreated();
+      if (tp) {
+        setTempPassword(tp);
+      } else {
+        onOpenChange(false);
+        reset();
+      }
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao criar colaborador");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Cadastrar colaborador</DialogTitle>
+        </DialogHeader>
+
+        {tempPassword ? (
+          <div className="space-y-4 py-2">
+            <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
+              <p className="text-sm font-bold text-emerald-800 mb-1">Senha temporária gerada</p>
+              <p className="text-xs text-emerald-700 mb-3">
+                Compartilhe com o colaborador. Ele poderá alterá-la após o primeiro login.
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-white border border-emerald-200 rounded px-3 py-2 font-mono text-sm">
+                  {tempPassword}
+                </code>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { navigator.clipboard.writeText(tempPassword); toast.success("Copiado"); }}
+                >
+                  <Copy className="size-3.5" />
+                </Button>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={() => { onOpenChange(false); reset(); }}>Fechar</Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3 py-2">
+              <div className="space-y-1.5">
+                <Label>Nome completo *</Label>
+                <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: Ana Silva" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>E-mail *</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ana@empresa.com" />
+              </div>
+              <div className="space-y-1.5">
                 <Label>Telefone</Label>
-                <Input placeholder="(00) 00000-0000" />
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" />
               </div>
-              <div className="space-y-2">
-                <Label>Cargo</Label>
-                <Input placeholder="Ex: Gerente de Contas" />
-              </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Função</Label>
-                <Input placeholder="Ex: Atendimento Premium" />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select defaultValue="active">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
+                <Select value={form.role} onValueChange={(v: any) => setForm({ ...form, role: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="colaborador">Colaborador</SelectItem>
+                    <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="col-span-2 flex items-center justify-between p-3 border rounded-lg bg-muted/20">
-                <div className="space-y-0.5">
-                  <Label>Acesso ao Sistema</Label>
-                  <p className="text-xs text-muted-foreground">Permitir que este colaborador faça login na plataforma.</p>
-                </div>
-                <Switch />
+              <div className="space-y-1.5 col-span-2">
+                <Label>Senha personalizada (opcional)</Label>
+                <Input
+                  type="text"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Deixe vazio para gerar automaticamente ou enviar convite por e-mail"
+                />
+                <p className="text-[11px] text-slate-500">
+                  Se preenchido, o colaborador acessa imediatamente com esta senha.
+                </p>
               </div>
-              <div className="col-span-2 space-y-2">
-                <Label>Observações Internas</Label>
-                <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+              <div className="col-span-2 flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
+                <div>
+                  <Label>Enviar convite por e-mail</Label>
+                  <p className="text-[11px] text-slate-500">Ignorado se senha personalizada for definida.</p>
+                </div>
+                <Switch checked={form.send_invite} onCheckedChange={(v) => setForm({ ...form, send_invite: v })} />
+              </div>
+              <div className="col-span-2 flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
+                <div>
+                  <Label>Acesso ao sistema</Label>
+                  <p className="text-[11px] text-slate-500">Permite login imediato no painel.</p>
+                </div>
+                <Switch checked={form.has_system_access} onCheckedChange={(v) => setForm({ ...form, has_system_access: v })} />
+              </div>
+              <div className="col-span-2 space-y-1.5">
+                <Label>Observações internas</Label>
+                <Textarea rows={2} value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button variant="outline">Cancelar</Button>
-              <Button>Salvar Colaborador</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </header>
-
-      <div className="vx-card p-4">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input className="pl-10 h-10 text-sm" placeholder="Buscar por nome, cargo ou departamento..." />
-          </div>
-          <Button variant="outline" className="h-10 text-xs font-bold px-4">
-            <Filter className="size-3.5 mr-2" />
-            Filtros
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {collaborators.map((collab) => (
-          <Dialog key={collab.id}>
-            <DialogTrigger asChild>
-              <div 
-                className="vx-card p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all cursor-pointer relative"
-                onClick={() => setSelectedCollaborator(collab)}
-              >
-                <div className="absolute top-4 right-4">
-                  <Badge variant={collab.status === 'active' ? 'default' : 'secondary'} className={`text-[9px] uppercase tracking-wider ${collab.status === 'active' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}>
-                    {collab.status === 'active' ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </div>
-                
-                <div className="relative mb-4">
-                  <div className="size-20 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-xl text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors capitalize">
-                    {collab.name.charAt(0)}
-                  </div>
-                  {collab.has_access && (
-                    <div className="absolute -bottom-1 -right-1 size-6 rounded-full bg-primary border-4 border-card flex items-center justify-center shadow-sm">
-                      <LayoutDashboard className="size-2.5 text-white" />
-                    </div>
-                  )}
-                </div>
-                
-                <h3 className="text-lg font-bold group-hover:text-primary transition-colors">{collab.name}</h3>
-                <p className="text-xs text-muted-foreground font-medium mb-1">{collab.role}</p>
-                <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-4 opacity-70">{collab.function}</p>
-                
-                <div className="w-full pt-4 border-t border-border/50 grid grid-cols-2 gap-2">
-                  <div className="text-center p-2 rounded-lg bg-muted/20 group-hover:bg-primary/5 transition-colors">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">Clientes</p>
-                    <p className="text-sm font-bold">{collab.stats.clients}</p>
-                  </div>
-                  <div className="text-center p-2 rounded-lg bg-muted/20 group-hover:bg-primary/5 transition-colors">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-0.5">Tarefas</p>
-                    <p className="text-sm font-bold">{collab.stats.tasks_open}</p>
-                  </div>
-                </div>
-              </div>
-            </DialogTrigger>
-            
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              {selectedCollaborator && (
-                <div className="space-y-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex gap-4">
-                      <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-                        {selectedCollaborator.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold">{selectedCollaborator.name}</h2>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                          <span className="flex items-center gap-1"><Mail className="size-3.5" /> {selectedCollaborator.email}</span>
-                          <span className="flex items-center gap-1"><Phone className="size-3.5" /> {selectedCollaborator.phone}</span>
-                        </div>
-                        <div className="flex gap-2 mt-3">
-                          <Badge variant="outline" className="rounded-md">{selectedCollaborator.role}</Badge>
-                          <Badge variant="outline" className="rounded-md opacity-70">{selectedCollaborator.function}</Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm">Editar Perfil</Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="vx-card p-4 bg-primary/5 border-primary/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <Users className="size-4 text-primary" />
-                        <Badge className="bg-primary/10 text-primary border-none text-[10px]">Total</Badge>
-                      </div>
-                      <p className="text-2xl font-bold">{selectedCollaborator.stats.clients}</p>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Clientes Ativos</p>
-                    </div>
-                    <div className="vx-card p-4 bg-emerald-500/5 border-emerald-500/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <CheckCircle2 className="size-4 text-emerald-500" />
-                        <Badge className="bg-emerald-500/10 text-emerald-500 border-none text-[10px]">Meta</Badge>
-                      </div>
-                      <p className="text-2xl font-bold">{selectedCollaborator.stats.tasks_done}</p>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Tarefas Concluídas</p>
-                    </div>
-                    <div className="vx-card p-4 bg-amber-500/5 border-amber-500/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <Clock className="size-4 text-amber-500" />
-                        <Badge className="bg-amber-500/10 text-amber-500 border-none text-[10px]">Fila</Badge>
-                      </div>
-                      <p className="text-2xl font-bold">{selectedCollaborator.stats.tasks_open}</p>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Tarefas Abertas</p>
-                    </div>
-                    <div className="vx-card p-4 bg-rose-500/5 border-rose-500/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <AlertCircle className="size-4 text-rose-500" />
-                        <Badge className="bg-rose-500/10 text-rose-500 border-none text-[10px]">Alerta</Badge>
-                      </div>
-                      <p className="text-2xl font-bold">{selectedCollaborator.stats.tasks_delayed}</p>
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Atrasos</p>
-                    </div>
-                  </div>
-
-                  <Tabs defaultValue="clients" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 h-12">
-                      <TabsTrigger value="clients">Clientes</TabsTrigger>
-                      <TabsTrigger value="tasks">Tarefas</TabsTrigger>
-                      <TabsTrigger value="products">Produtos</TabsTrigger>
-                      <TabsTrigger value="history">Histórico</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="clients" className="pt-4">
-                      <div className="vx-card overflow-hidden">
-                        <table className="w-full text-left">
-                          <thead className="bg-muted/30">
-                            <tr>
-                              <th className="px-4 py-3 text-[11px] font-bold uppercase text-muted-foreground">Cliente</th>
-                              <th className="px-4 py-3 text-[11px] font-bold uppercase text-muted-foreground">Status</th>
-                              <th className="px-4 py-3 text-[11px] font-bold uppercase text-muted-foreground">Entrada</th>
-                              <th className="px-4 py-3 text-[11px] font-bold uppercase text-muted-foreground text-right">Ações</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {[1, 2, 3].map(i => (
-                              <tr key={i} className="border-t border-border/40 hover:bg-muted/20 transition-colors">
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center gap-3">
-                                    <div className="size-8 rounded bg-slate-100 flex items-center justify-center font-bold text-xs">J{i}</div>
-                                    <div>
-                                      <p className="text-sm font-bold">João Silva {i}</p>
-                                      <p className="text-[10px] text-muted-foreground tracking-tight">CPF: 000.000.000-0{i}</p>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Badge variant="default" className={`text-[9px] ${i % 2 === 0 ? "bg-emerald-500 hover:bg-emerald-600" : "bg-amber-500 hover:bg-amber-600"}`}>
-                                    {i % 2 === 0 ? "Finalizado" : "Em Andamento"}
-                                  </Badge>
-                                </td>
-                                <td className="px-4 py-3 text-xs text-muted-foreground">12/04/2026</td>
-                                <td className="px-4 py-3 text-right">
-                                  <Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="tasks" className="pt-4">
-                      <div className="space-y-3">
-                        {[1, 2].map(i => (
-                          <div key={i} className="flex items-center justify-between p-4 border rounded-xl hover:bg-muted/20 transition-colors border-l-4 border-l-amber-500">
-                            <div className="flex items-start gap-4">
-                              <div className="size-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                                <Clock className="size-5 text-amber-500" />
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-bold">Analisar documentação de cliente {i}</h4>
-                                <p className="text-xs text-muted-foreground mt-1">Prazo: Amanhã às 14:00</p>
-                              </div>
-                            </div>
-                            <Button variant="outline" size="sm" className="h-8 text-[11px] font-bold">Ver Tarefa</Button>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="products" className="pt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {['Gestão Financeira', 'Regularização CPF', 'Jurídico Premium'].map((prod, i) => (
-                          <div key={i} className="vx-card p-4 flex items-center gap-4">
-                            <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <Package className="size-5 text-primary" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold">{prod}</p>
-                              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Expertise Nível {i + 1}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="history" className="pt-4">
-                      <div className="space-y-4">
-                        {[1, 2, 3].map(i => (
-                          <div key={i} className="flex gap-3 relative pb-4 border-l-2 border-border ml-3 pl-6 last:border-0 last:pb-0">
-                            <div className="absolute -left-[9px] top-0 size-4 rounded-full bg-background border-2 border-primary" />
-                            <div>
-                              <p className="text-sm font-medium">Alterou status do cliente <span className="font-bold">João Silva</span> para "Finalizado"</p>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                <Clock className="size-3" /> Hoje às 15:{i}0
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-        ))}
-      </div>
-    </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button onClick={submit} disabled={loading}>
+                {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                Salvar colaborador
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
