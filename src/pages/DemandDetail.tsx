@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmAction } from "@/lib/confirm";
 import { 
   ArrowLeft, Package, User, Clock, 
   AlertCircle, CheckCircle2, FileText, 
@@ -50,8 +51,12 @@ export default function DemandDetail() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
-  const { user } = useAuth();
-  const isAdmin = user?.user_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin_secondary';
+  const { user, isAdmin, isAdminSecondary, isColaborador } = useAuth();
+  const canManage = isAdmin || isAdminSecondary || isColaborador;
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [deliveryOpen, setDeliveryOpen] = useState(false);
+  const [deliveryForm, setDeliveryForm] = useState({ title: "", description: "" });
 
   const openNotesEditor = () => {
     setNotesDraft((demand as any)?.internal_notes ?? "");
@@ -110,6 +115,91 @@ export default function DemandDetail() {
     },
     enabled: !!id,
   });
+
+  const { data: demandTasks = [], refetch: refetchTasks } = useQuery({
+    queryKey: ["demand-tasks", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tasks")
+        .select("id, title, status_new, status, priority, due_date, assigned_to")
+        .eq("client_product_id", id!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: history = [] } = useQuery({
+    queryKey: ["demand-history", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("activity_logs")
+        .select("id, action, new_data, created_at, user_id")
+        .eq("entity_type", "client_product")
+        .eq("entity_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const finalizeDemand = async () => {
+    if (!demand) return;
+    const ok = await confirmAction("Finalizar esta demanda?");
+    if (!ok) return;
+    const { error } = await supabase
+      .from("client_products")
+      .update({ status: "concluido", end_date: new Date().toISOString().slice(0, 10) })
+      .eq("id", demand.id);
+    if (error) return toast.error(error.message);
+    toast.success("Demanda finalizada");
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
+  const completeNextStep = async () => {
+    if (!nextAction) return;
+    const { error } = await supabase
+      .from("client_product_steps")
+      .update({ completed: true, status: "concluido", completed_at: new Date().toISOString() })
+      .eq("id", nextAction.id);
+    if (error) return toast.error(error.message);
+    toast.success(`Etapa "${nextAction.label}" concluída`);
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
+  const createTask = async () => {
+    if (!taskTitle.trim()) return toast.error("Título obrigatório");
+    const { error } = await supabase.from("tasks").insert({
+      title: taskTitle,
+      status: "a_fazer",
+      status_new: "a_fazer",
+      priority: "normal",
+      client_product_id: id,
+      client_id: demand?.client_id,
+      created_by: user?.id ?? null,
+    } as any);
+    if (error) return toast.error(error.message);
+    toast.success("Tarefa criada");
+    setTaskTitle("");
+    setTaskOpen(false);
+    refetchTasks();
+  };
+
+  const createDelivery = async () => {
+    if (!deliveryForm.title.trim()) return toast.error("Título obrigatório");
+    const { error } = await supabase.from("demand_deliveries").insert({
+      client_product_id: id,
+      title: deliveryForm.title,
+      description: deliveryForm.description || null,
+      status: "pending",
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Entrega registrada");
+    setDeliveryForm({ title: "", description: "" });
+    setDeliveryOpen(false);
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
 
   if (isLoading) return <div className="p-20 text-center animate-pulse">Carregando detalhes da demanda...</div>;
   if (!demand) return <div className="p-20 text-center text-rose-500 font-bold">Demanda não encontrada.</div>;
@@ -182,7 +272,7 @@ export default function DemandDetail() {
                  <AlertTriangle className="size-4" /> Registrar Atraso
                </DropdownMenuItem>
                <DropdownMenuSeparator />
-               <DropdownMenuItem className="gap-2 cursor-pointer">
+               <DropdownMenuItem onClick={finalizeDemand} disabled={demand.status === 'concluido'} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-700">
                  <CheckCircle2 className="size-4" /> Finalizar Demanda
                </DropdownMenuItem>
              </DropdownMenuContent>
@@ -247,8 +337,8 @@ export default function DemandDetail() {
                     <h3 className="text-base font-bold text-foreground">{nextAction.label}</h3>
                   </div>
                 </div>
-                <Button className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
-                  Executar Agora <ArrowRight className="size-4" />
+                <Button onClick={completeNextStep} className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                  Concluir Etapa <CheckCircle2 className="size-4" />
                 </Button>
               </div>
             )}
@@ -290,7 +380,7 @@ export default function DemandDetail() {
 
                <TabsContent value="checklist" className="animate-fade-up">
                   <div className="vx-card p-8 bg-card border-slate-100">
-                     <OperationalChecklist clientProductId={demand.id} canEdit={isAdmin} canManage={isAdmin} />
+                     <OperationalChecklist clientProductId={demand.id} canEdit={canManage} canManage={canManage} />
                   </div>
                </TabsContent>
                
@@ -379,14 +469,28 @@ export default function DemandDetail() {
                   <div className="vx-card p-8 bg-card">
                     <div className="flex items-center justify-between mb-6">
                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Tarefas Internas</h3>
-                       <Button size="sm" className="h-8 gap-2">
+                       <Button size="sm" className="h-8 gap-2" onClick={() => setTaskOpen(true)}>
                           <Plus className="size-3.5" /> Adicionar Tarefa
                        </Button>
                     </div>
-                    <div className="space-y-3">
-                       {/* Simplified task list view for demand-specific tasks */}
-                       <p className="text-sm text-center text-muted-foreground py-10">Use a aba de checklist para gerenciar as etapas principais do processo.</p>
-                    </div>
+                    {demandTasks.length === 0 ? (
+                      <p className="text-sm text-center text-muted-foreground py-10">Nenhuma tarefa vinculada a esta demanda.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {demandTasks.map((t: any) => (
+                          <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/20">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold truncate">{t.title}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                                {(t.status_new || t.status || "—").replace(/_/g, " ")} · {t.priority}
+                                {t.due_date && ` · ${formatDate(t.due_date)}`}
+                              </p>
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => navigate(`/tarefas`)}>Ver</Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                </TabsContent>
 
@@ -394,7 +498,7 @@ export default function DemandDetail() {
                   <div className="vx-card p-8 bg-card">
                     <div className="flex items-center justify-between mb-6">
                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Entregas de Valor</h3>
-                       <Button size="sm" className="h-8 gap-2">
+                       <Button size="sm" className="h-8 gap-2" onClick={() => setDeliveryOpen(true)}>
                           <Plus className="size-3.5" /> Registrar Entrega
                        </Button>
                     </div>
@@ -426,12 +530,33 @@ export default function DemandDetail() {
 
                <TabsContent value="comments" className="animate-fade-up">
                   <div className="vx-card p-6 bg-card border-slate-100">
-                     <DemandComments clientProductId={demand.id} role={isAdmin ? "admin" : "provider"} />
+                     <DemandComments clientProductId={demand.id} role={canManage ? "admin" : "provider"} />
                   </div>
                </TabsContent>
                
                <TabsContent value="history" className="animate-fade-up">
-                  <div className="vx-card p-8 bg-card text-center text-muted-foreground">Histórico de mudanças da demanda...</div>
+                  <div className="vx-card p-6 bg-card">
+                    {history.length === 0 ? (
+                      <p className="text-sm text-center text-muted-foreground py-10">Nenhum evento registrado.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {history.map((h: any) => (
+                          <div key={h.id} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/10">
+                            <div className="size-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                              <History className="size-3.5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[12px] font-semibold capitalize">{String(h.action).toLowerCase().replace(/_/g, " ")}</p>
+                              {h.new_data?.description && (
+                                <p className="text-[11px] text-muted-foreground mt-0.5">{h.new_data.description}</p>
+                              )}
+                              <p className="text-[10px] text-muted-foreground/60 font-mono mt-1">{formatDate(h.created_at)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                </TabsContent>
              </Tabs>
         </div>
@@ -557,6 +682,36 @@ export default function DemandDetail() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setNotesOpen(false)}>Cancelar</Button>
             <Button onClick={saveNotes} disabled={savingNotes}>{savingNotes ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Nova tarefa para esta demanda</DialogTitle></DialogHeader>
+          <Textarea rows={3} value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="O que precisa ser feito?" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTaskOpen(false)}>Cancelar</Button>
+            <Button onClick={createTask}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deliveryOpen} onOpenChange={setDeliveryOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Registrar entrega</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <input className="w-full h-10 px-3 rounded-md border border-border bg-background text-sm"
+              placeholder="Título da entrega"
+              value={deliveryForm.title}
+              onChange={(e) => setDeliveryForm({ ...deliveryForm, title: e.target.value })} />
+            <Textarea rows={4} placeholder="Descrição (opcional)"
+              value={deliveryForm.description}
+              onChange={(e) => setDeliveryForm({ ...deliveryForm, description: e.target.value })} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancelar</Button>
+            <Button onClick={createDelivery}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
