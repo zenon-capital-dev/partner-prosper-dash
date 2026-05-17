@@ -481,10 +481,10 @@ export default function DemandDetail() {
                       <span className="text-muted-foreground font-medium">Especialidade</span>
                       <span className="font-bold text-foreground">{(demand.service_providers as any).specialty || "—"}</span>
                    </div>
-                   <Button variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>
+                   <Button onClick={() => setDelegateOpen(true)} variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>
                 </div>
               ) : (
-                <Button className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-none text-[11px] font-bold uppercase tracking-wider">Delegar Prestador</Button>
+                <Button onClick={() => setDelegateOpen(true)} className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-none text-[11px] font-bold uppercase tracking-wider">Delegar Prestador</Button>
               )}
            </div>
 
@@ -494,10 +494,10 @@ export default function DemandDetail() {
                  <MessageSquare className="size-4 text-amber-500" />
                  <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">Observações Internas</h3>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed italic">
+              <p className="text-xs text-muted-foreground leading-relaxed italic whitespace-pre-wrap">
                  {demand.internal_notes || "Nenhuma observação interna para esta demanda."}
               </p>
-              <Button variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/20 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
+              <Button onClick={openNotesEditor} variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/20 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
            </div>
         </div>
       </div>
