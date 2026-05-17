@@ -26,8 +26,8 @@ const roleLabel: Record<string, string> = {
   lead: "Lead / Convidado",
 };
 const roleClass: Record<string, string> = {
-  admin: "bg-slate-900 text-white",
-  admin_secondary: "bg-slate-700 text-white",
+  admin: "bg-indigo-600 text-white",
+  admin_secondary: "bg-indigo-100 text-indigo-700 border border-indigo-200",
   colaborador: "bg-blue-100 text-blue-700",
   parceiro: "bg-amber-100 text-amber-700",
   prestador: "bg-emerald-100 text-emerald-700",
