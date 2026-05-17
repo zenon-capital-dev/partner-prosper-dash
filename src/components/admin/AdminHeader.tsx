@@ -13,49 +13,53 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
   return (
-    <header className="h-[60px] sm:h-[64px] px-3 sm:px-5 lg:px-7 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-card/90 backdrop-blur-xl border-b border-border/80 shadow-sm">
+    <header className="h-[60px] sm:h-[62px] px-3 sm:px-5 lg:px-7 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 shadow-[0_1px_0_rgba(15,23,42,0.02)]">
       <button
         type="button"
         onClick={onMenuClick}
-        className="md:hidden size-10 shrink-0 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors flex items-center justify-center"
+        className="md:hidden size-10 shrink-0 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center"
         aria-label="Abrir menu"
       >
         <Menu className="size-4" />
       </button>
       <div className="hidden lg:flex items-center gap-3 min-w-0 flex-1">
         <Breadcrumbs />
-        <div className="h-4 w-px bg-border" />
+        <div className="h-4 w-px bg-slate-200" />
         <EnvBadge />
-        <div className="hidden xl:flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-success/20 bg-success-muted text-success text-[10px] font-bold uppercase tracking-[0.12em]">
-          <Activity className="size-3" /> Operação online
+        <div className="hidden xl:flex items-center gap-1.5 h-6 px-2 rounded-full border border-emerald-200/70 bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-[0.12em]">
+          <span className="relative flex size-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500" />
+          </span>
+          Operação online
         </div>
       </div>
 
       <div className="flex-1 min-w-0 max-w-[520px]">
         <button
           onClick={onSearchClick}
-          className="w-full h-10 pl-9 sm:pl-10 pr-2 sm:pr-3 bg-background hover:bg-muted/60 border border-border hover:border-primary/30 rounded-lg text-[12.5px] flex items-center justify-between transition-all group relative shadow-sm"
+          className="w-full h-10 pl-10 pr-3 bg-slate-50/80 hover:bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] rounded-lg text-[12.5px] flex items-center justify-between transition-all group relative"
         >
-          <Search className="absolute left-3 sm:left-3.5 size-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-          <span className="font-medium text-muted-foreground group-hover:text-foreground transition-colors truncate tracking-tight text-left">
+          <Search className="absolute left-3.5 size-3.5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+          <span className="font-medium text-slate-500 group-hover:text-slate-700 transition-colors truncate tracking-tight text-left">
             <span className="hidden sm:inline">Buscar clientes, demandas, contratos e documentos</span>
             <span className="sm:hidden">Buscar…</span>
           </span>
-          <div className="hidden sm:flex items-center gap-1 opacity-50 group-hover:opacity-90 transition-opacity">
-            <kbd className="text-[9.5px] font-mono font-bold bg-card border border-border rounded px-1.5 py-0.5 text-muted-foreground flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+            <kbd className="text-[9.5px] font-mono font-bold bg-white border border-slate-200 rounded px-1.5 py-0.5 text-slate-500 flex items-center gap-1 shadow-sm">
               <Command className="size-2.5" /> K
             </kbd>
           </div>
         </button>
       </div>
 
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0 sm:flex-1 justify-end">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 sm:flex-1 justify-end">
         <ThemeToggle />
         <QuickCreateButton />
-        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-border hover:bg-muted/60 transition-colors">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-900">
           <InternalChat />
         </div>
-        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-border hover:bg-muted/60 transition-colors">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-900">
           <NotificationBell />
         </div>
       </div>
