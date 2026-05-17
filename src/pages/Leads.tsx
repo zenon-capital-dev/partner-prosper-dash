@@ -87,6 +87,13 @@ export default function Leads() {
     );
   }, [leads, search]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedLeads = useMemo(
+    () => filteredLeads.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredLeads, currentPage]
+  );
+
   const handleEdit = (lead: any) => {
     setSelectedLead(lead);
     setOpen(true);
