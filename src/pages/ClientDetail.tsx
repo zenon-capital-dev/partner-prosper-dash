@@ -337,9 +337,9 @@ export default function ClientDetail() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive focus:text-destructive">
-                    <AlertCircle className="size-4 mr-2" /> Suspender Cliente
-                  </DropdownMenuItem>
+                   <DropdownMenuItem onClick={suspendClient} className="text-destructive focus:text-destructive">
+                     <AlertCircle className="size-4 mr-2" /> Suspender Cliente
+                   </DropdownMenuItem>
                </DropdownMenuContent>
              </DropdownMenu>
           </div>
