@@ -102,9 +102,13 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
                   <StatusPill status={payment.status} />
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-emerald-500/10 hover:text-emerald-600">
-                    Baixar <ArrowUpRight className="size-3 ml-1" />
-                  </Button>
+                  {payment.status === "pago" ? (
+                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Quitado</span>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-emerald-500/10 hover:text-emerald-600" disabled={marking === payment.id} onClick={() => markPaid(payment.id, Number(payment.amount || 0))}>
+                      {marking === payment.id ? "..." : "Dar baixa"} <ArrowUpRight className="size-3 ml-1" />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}
