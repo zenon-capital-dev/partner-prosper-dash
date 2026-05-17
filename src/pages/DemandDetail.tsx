@@ -160,7 +160,7 @@ export default function DemandDetail() {
     if (!nextAction) return;
     const { error } = await supabase
       .from("client_product_steps")
-      .update({ completed: true, status: "concluida", completed_at: new Date().toISOString() })
+      .update({ completed: true, status: "concluido", completed_at: new Date().toISOString() })
       .eq("id", nextAction.id);
     if (error) return toast.error(error.message);
     toast.success(`Etapa "${nextAction.label}" concluída`);
