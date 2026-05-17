@@ -146,7 +146,7 @@ export default function DemandDetail() {
 
   const finalizeDemand = async () => {
     if (!demand) return;
-    const ok = await (await import("@/lib/confirm")).confirmAction("Finalizar esta demanda?");
+    const ok = await confirmAction("Finalizar esta demanda?");
     if (!ok) return;
     const { error } = await supabase
       .from("client_products")
