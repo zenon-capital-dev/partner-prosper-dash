@@ -85,7 +85,9 @@ export default function FinanceCenter() {
     const totalReceivable = payments.filter((p: any) => isOpen(p.status)).reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
     const totalOverdue = payments.filter(isOverdue).reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
     const commissionsPending = commissions.filter((c: any) => c.status !== "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    return { totalReceived, totalReceivable, totalOverdue, commissionsPending };
+    const commissionsPaid = commissions.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const netCommission = totalReceived - commissionsPaid;
+    return { totalReceived, totalReceivable, totalOverdue, commissionsPending, netCommission };
   }, [payments, commissions, todayIso]);
 
   const processAlerts = async () => {
@@ -110,7 +112,8 @@ export default function FinanceCenter() {
           </Button>
         }
         kpis={[
-          { label: "Recebido", value: formatBRL(kpis.totalReceived), tone: "success" },
+          { label: "Recebido (Bruto)", value: formatBRL(kpis.totalReceived), tone: "success" },
+          { label: "Comissão Líquida", value: formatBRL(kpis.netCommission), tone: "primary" },
           { label: "A receber", value: formatBRL(kpis.totalReceivable), tone: "info" },
           { label: "Vencido", value: formatBRL(kpis.totalOverdue), tone: "danger" },
           { label: "Comissões a pagar", value: formatBRL(kpis.commissionsPending), tone: "warning" },
@@ -186,9 +189,11 @@ function PaymentsTable({
 
   const total = filtered.reduce((a, p) => a + Number(p.amount || 0), 0);
 
-  const markPaid = async (id: string) => {
+  const markPaid = async (id: string, amount: number) => {
     const { error } = await supabase.from("payments").update({
-      status: "pago", paid_at: new Date().toISOString(),
+      status: "pago", 
+      paid_at: new Date().toISOString(),
+      amount_paid: amount,
     }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Pagamento confirmado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
@@ -256,7 +261,7 @@ function PaymentsTable({
                   <td className="px-4 py-3"><Badge className={cn("font-normal", meta.cls)}>{meta.label}</Badge></td>
                   <td className="px-4 py-3 text-right">
                     {p._status !== "pago" && p._status !== "cancelado" && (
-                      <Button size="sm" variant="outline" onClick={() => markPaid(p.id)}>
+                      <Button size="sm" variant="outline" onClick={() => markPaid(p.id, p.amount)}>
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Confirmar
                       </Button>
                     )}
@@ -286,12 +291,14 @@ function PaymentsTable({
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({ commissions }: { commissions: any[] }) {
   const qc = useQueryClient();
-  const pending = commissions.filter((c: any) => c.status !== "pago");
-  const paid = commissions.filter((c: any) => c.status === "pago");
+  const pending = commissions.filter((c: any) => c.workflow_status !== "paga" && c.status !== "paga");
+  const paid = commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga");
 
   const markPaid = async (id: string) => {
     const { error } = await supabase.from("commissions").update({
-      status: "pago", paid_at: new Date().toISOString(),
+      status: "paga",
+      workflow_status: "paga",
+      paid_at: new Date().toISOString(),
     }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Comissão paga"); qc.invalidateQueries({ queryKey: ["fin-commissions"] }); }
@@ -355,7 +362,7 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
       const key = (p.paid_at || "").slice(0, 10);
       if (map[key]) map[key].entrada += Number(p.amount_paid || p.amount || 0);
     });
-    commissions.filter((c: any) => c.status === "pago").forEach((c: any) => {
+    commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga").forEach((c: any) => {
       const key = (c.paid_at || "").slice(0, 10);
       if (map[key]) map[key].saida += Number(c.amount || 0);
     });
@@ -385,21 +392,24 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
 }
 
 // -------------------- Reports --------------------
-function Reports({ payments, commissions }: { payments: any[]; commissions: any[] }) {
+ function Reports({ payments, commissions }: { payments: any[]; commissions: any[] }) {
   const monthly = useMemo(() => {
-    const map: Record<string, { label: string; receita: number; comissao: number }> = {};
+    const map: Record<string, { label: string; receita: number; comissao: number; liquida: number }> = {};
     for (let i = 5; i >= 0; i--) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      map[key] = { label: key, receita: 0, comissao: 0 };
+      map[key] = { label: key, receita: 0, comissao: 0, liquida: 0 };
     }
     payments.filter((p: any) => p.status === "pago").forEach((p: any) => {
       const key = (p.paid_at || "").slice(0, 7);
       if (map[key]) map[key].receita += Number(p.amount_paid || p.amount || 0);
     });
-    commissions.filter((c: any) => c.status === "pago").forEach((c: any) => {
+    commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga").forEach((c: any) => {
       const key = (c.paid_at || "").slice(0, 7);
       if (map[key]) map[key].comissao += Number(c.amount || 0);
+    });
+    Object.keys(map).forEach(k => {
+      map[k].liquida = map[k].receita - map[k].comissao;
     });
     return Object.values(map);
   }, [payments, commissions]);
@@ -425,9 +435,15 @@ function Reports({ payments, commissions }: { payments: any[]; commissions: any[
       <div className="rounded-lg border bg-card p-6 space-y-3">
         <h3 className="text-base font-semibold">Resumo geral</h3>
         {monthly.map((m, i) => (
-          <div key={i} className="flex justify-between text-sm border-b pb-2">
-            <span>{m.label}</span>
-            <span className="text-muted-foreground">Receita {formatBRL(m.receita)} · Comissão {formatBRL(m.comissao)}</span>
+          <div key={i} className="flex justify-between items-center text-sm border-b py-3 hover:bg-muted/30 px-2 transition-colors">
+            <span className="font-medium">{m.label}</span>
+            <div className="text-right">
+               <div className="flex gap-4 text-xs">
+                 <span className="text-muted-foreground">Receita: {formatBRL(m.receita)}</span>
+                 <span className="text-destructive/70">Comissão: {formatBRL(m.comissao)}</span>
+               </div>
+               <div className="font-bold text-emerald-600 mt-1">Líquida: {formatBRL(m.liquida)}</div>
+            </div>
           </div>
         ))}
       </div>

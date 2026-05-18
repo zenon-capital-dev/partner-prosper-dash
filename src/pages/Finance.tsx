@@ -7,13 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import {
   TrendingUp, TrendingDown, Wallet, Plus, ArrowDownToLine, ArrowUpFromLine,
   Receipt, Trash2, CheckCircle2, Clock3, Download, Search,
   CalendarRange, Sparkles, BarChart3, PiggyBank, Pencil, Filter, ArrowUpRight,
-  Users, AlertCircle,
+  Users, AlertCircle, CircleDollarSign,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -29,6 +34,46 @@ export default function Finance() {
   const { user } = useAuth();
   const [range, setRange] = useState<RangeKey>("this_month");
   const [tab, setTab] = useState("overview");
+  
+  // States for new expense
+  const [isExpenseOpen, setIsExpenseOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({
+    description: "",
+    amount: "",
+    category: "Operacional",
+    expense_date: new Date().toISOString().slice(0, 10),
+  });
+
+  const handleAddExpense = async () => {
+    if (!expenseForm.description || !expenseForm.amount) {
+      toast.error("Preencha a descrição e o valor");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("expenses").insert({
+        description: expenseForm.description,
+        amount: Number(expenseForm.amount),
+        category: expenseForm.category,
+        expense_date: expenseForm.expense_date,
+      });
+      if (error) throw error;
+      toast.success("Despesa registrada com sucesso!");
+      setIsExpenseOpen(false);
+      setExpenseForm({
+        description: "",
+        amount: "",
+        category: "Operacional",
+        expense_date: new Date().toISOString().slice(0, 10),
+      });
+      qc.invalidateQueries({ queryKey: ["finance-expenses"] });
+    } catch (err: any) {
+      toast.error("Erro ao salvar despesa: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Range logic simplified for the shell
   const { from, to, label } = useMemo(() => {
@@ -94,9 +139,10 @@ export default function Finance() {
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
     const commissionsTotal = splits.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsPaid = splits.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const profit = revenue - commissionsTotal - expensesTotal;
+    const netCommission = revenue - commissionsTotal;
+    const profit = netCommission - expensesTotal;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { revenue, expensesTotal, commissionsPaid, commissionsTotal, profit, margin };
+    return { revenue, expensesTotal, commissionsPaid, commissionsTotal, profit, margin, netCommission };
   }, [sales, expenses, splits]);
 
   // Group data for charts
@@ -192,7 +238,11 @@ export default function Finance() {
             >
               <AlertCircle className="size-4" /> Processar Alertas
             </Button>
-            <Button size="sm" className="btn-premium h-10 px-5 gap-2 font-semibold">
+            <Button 
+              size="sm" 
+              className="btn-premium h-10 px-5 gap-2 font-semibold"
+              onClick={() => setIsExpenseOpen(true)}
+            >
               <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
             </Button>
           </>
@@ -200,9 +250,10 @@ export default function Finance() {
         kpis={[
           { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
           { label: "Comissões", value: formatBRL(kpis.commissionsTotal), tone: "warning", icon: <Wallet className="size-4" /> },
+          { label: "Comissão Líquida", value: formatBRL(kpis.netCommission), tone: "info", icon: <CircleDollarSign className="size-4" /> },
           { label: "Despesas", value: formatBRL(kpis.expensesTotal), tone: "danger", icon: <ArrowDownToLine className="size-4" /> },
-          { label: "Lucro Líquido", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
-          { label: "Margem", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
+          { label: "Lucro Real", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
+          { label: "Margem Final", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
         ]}
       />
 
@@ -411,7 +462,78 @@ export default function Finance() {
                {sourcePerformance.length === 0 && <p className="text-xs text-muted-foreground italic">Sem dados de leads.</p>}
             </div>
          </div>
-      </div>
+      {/* Modal Nova Despesa */}
+      <Dialog open={isExpenseOpen} onOpenChange={setIsExpenseOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowDownToLine className="size-5 text-destructive" />
+              Nova Despesa
+            </DialogTitle>
+            <DialogDescription>
+              Registre uma nova saída financeira no sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Input
+                id="description"
+                placeholder="Ex: Aluguel, Internet, Impostos..."
+                value={expenseForm.description}
+                onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="amount">Valor (R$)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0,00"
+                  value={expenseForm.amount}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="date">Data</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={expenseForm.expense_date}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, expense_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select
+                value={expenseForm.category}
+                onValueChange={(v) => setExpenseForm({ ...expenseForm, category: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Operacional">Operacional</SelectItem>
+                  <SelectItem value="Impostos">Impostos</SelectItem>
+                  <SelectItem value="Salários">Salários</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Ferramentas">Ferramentas</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsExpenseOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddExpense} disabled={isSubmitting} className="btn-premium">
+              {isSubmitting ? "Salvando..." : "Salvar Despesa"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
 
       {/* Transaction Feed */}
       <div className="vx-card overflow-hidden">
