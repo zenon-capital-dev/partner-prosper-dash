@@ -81,7 +81,7 @@ function AdminShell() {
 
 export default function AdminLayout() {
   return (
-    <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
+    <RouteGuard allow={["admin", "admin_secondary", "colaborador", "vendedor"]}>
       <AdminShell />
     </RouteGuard>
   );
