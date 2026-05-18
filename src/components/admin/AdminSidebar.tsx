@@ -25,7 +25,7 @@ const SECTIONS: NavSection[] = [
     { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
     { title: "Tarefas", url: "/tarefas", icon: Target },
-    { title: "SLA & Prazos", url: "/sla", icon: Zap },
+    { title: "Prazos", url: "/sla", icon: Zap },
   ]},
   { label: "Clientes", adminOnly: true, items: [
     { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },

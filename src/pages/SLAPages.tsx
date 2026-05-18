@@ -102,8 +102,8 @@ export default function SLAPages() {
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
         eyebrow="Operations"
-        category="SLA & Prazos"
-        title="Controle de SLA e Prazos"
+        category="Prazos"
+        title="Controle de Prazos"
         description="Visualize, filtre e priorize todas as demandas pelo status do SLA."
         icon={<Zap className="size-6 text-primary fill-primary/20" />}
         kpis={[
