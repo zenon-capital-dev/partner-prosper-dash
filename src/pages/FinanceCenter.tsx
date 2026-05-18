@@ -291,8 +291,8 @@ function PaymentsTable({
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({ commissions }: { commissions: any[] }) {
   const qc = useQueryClient();
-  const pending = commissions.filter((c: any) => c.status !== "pago");
-  const paid = commissions.filter((c: any) => c.status === "pago");
+  const pending = commissions.filter((c: any) => c.workflow_status !== "paga" && c.status !== "paga");
+  const paid = commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga");
 
   const markPaid = async (id: string) => {
     const { error } = await supabase.from("commissions").update({
