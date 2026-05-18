@@ -259,6 +259,9 @@ export default function Providers() {
                             <DropdownMenuItem onClick={() => { setEditing(p); setCreateOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => toggleActive(p)}><Power className="size-4 mr-2" /> {p.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => removeProvider(p)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="size-4 mr-2" /> Excluir
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
