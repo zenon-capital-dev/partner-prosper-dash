@@ -154,6 +154,21 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       clientId = created.id;
     }
 
+    // Cria pendências de documentos (apenas no cadastro novo)
+    if (!client?.id && clientId) {
+      const allDocs = [...selectedTemplateDocs, ...customDocs];
+      if (allDocs.length > 0) {
+        const rows = allDocs.map((name) => ({
+          client_id: clientId!,
+          request_title: name,
+          status: "pendente",
+        }));
+        const { error: docErr } = await supabase.from("document_requests").insert(rows);
+        if (docErr) toast.warning("Cliente salvo, mas pendências falharam: " + docErr.message);
+      }
+    }
+
+
     // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
     if (!client?.id && createAccess && clientId) {
       const { error: invErr } = await supabase.functions.invoke("invite-user", {
