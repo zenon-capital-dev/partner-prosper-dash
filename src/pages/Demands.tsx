@@ -31,6 +31,9 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { DailyAgenda } from "@/components/demands/DailyAgenda";
+import { CalendarDays } from "lucide-react";
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
