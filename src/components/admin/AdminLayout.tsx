@@ -41,12 +41,9 @@ function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 🔒 Admin SEMPRE em tema claro premium SaaS B2B. Remove .dark global enquanto montado.
+  // 🔒 Admin agora suporta modo dark novamente a pedido do usuário.
   useEffect(() => {
-    const root = document.documentElement;
-    const had = root.classList.contains("dark");
-    if (had) root.classList.remove("dark");
-    return () => { if (had) root.classList.add("dark"); };
+    // Logic for forcing theme removed to allow global dark mode
   }, []);
   const { isAdmin, isAdminSecondary } = useAuth();
   const { pathname } = useLocation();
