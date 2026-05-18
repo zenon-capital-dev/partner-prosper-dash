@@ -362,7 +362,7 @@ export default function DashboardAdmin() {
                   <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
                   <span className="size-1 rounded-full bg-slate-300" />
                   <Sparkles className="size-3 text-primary" />
-                  <span className="text-primary">Painel de Comando</span>
+                  <span className="text-primary">​</span>
                 </div>
                 <h1 className="text-[18px] sm:text-[22px] lg:text-[26px] font-bold text-slate-950 tracking-tight mt-1 leading-tight">
                   {greeting}, <span className="text-primary">{firstName}</span>

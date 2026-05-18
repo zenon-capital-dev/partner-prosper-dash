@@ -73,7 +73,7 @@ export default function Dashboard() {
           <span className="text-[10px] font-black uppercase tracking-[0.2em]">{format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}</span>
           <span className="text-border/20">/</span>
           <Zap className="size-3.5 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Painel de Comando Admin</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">​</span>
         </div>
 
         {/* KPI Grid */}
