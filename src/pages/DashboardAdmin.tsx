@@ -1121,6 +1121,27 @@ function MiniMetric({ icon: Icon, label, value, sub, tone }: {
   );
 }
 
+function FinanceTile({ icon: Icon, label, value, sub, tone }: {
+  icon: any; label: string; value: string; sub: string; tone: Tone;
+}) {
+  const t = toneColor[tone];
+  return (
+    <div className={cn("relative p-3.5 rounded-xl bg-white border hover:shadow-md transition-all overflow-hidden group", t.border)}>
+      <div className={cn("absolute -top-4 -right-4 size-16 rounded-full opacity-10 blur-xl", t.bg)} />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          <div className={cn("size-8 rounded-lg flex items-center justify-center", t.bg, t.text)}>
+            <Icon className="size-4" strokeWidth={2.2} />
+          </div>
+        </div>
+        <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{label}</p>
+        <p className="text-[17px] font-bold text-slate-900 tabular-nums leading-tight mt-1">{value}</p>
+        <p className="text-[10px] text-slate-500 mt-0.5">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
   return (
     <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all">
