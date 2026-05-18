@@ -20,14 +20,17 @@ import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { RequestDocumentDialog } from "@/components/provider/RequestDocumentDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
+import { ProviderAtuacao } from "@/components/provider/ProviderAtuacao";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PROVIDER_PATH_TO_TAB: Record<string, string> = {
+  atuacao: "atuacao",
   "por-cliente": "por-cliente", demandas: "clientes", documentos: "documentos",
   reportes: "reportes", contratos: "contratos",
 };
 const PROVIDER_TAB_TO_PATH: Record<string, string> = {
+  atuacao: "atuacao",
   "por-cliente": "por-cliente", clientes: "demandas", documentos: "documentos",
   reportes: "reportes", contratos: "contratos",
 };
@@ -398,6 +401,7 @@ export default function ProviderPanel() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12 flex-wrap">
                 <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="atuacao" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Atuação</TabsTrigger>
                 <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
                 <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
                 <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Documentos ({documents.length})</TabsTrigger>
@@ -505,6 +509,10 @@ export default function ProviderPanel() {
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="atuacao" className="outline-none animate-fade-up">
+              <ProviderAtuacao providerId={providerId!} clientProducts={clientProducts} />
             </TabsContent>
 
             <TabsContent value="por-cliente" className="space-y-6 outline-none animate-fade-up">

@@ -3209,6 +3209,169 @@ export type Database = {
           },
         ]
       }
+      provider_interactions: {
+        Row: {
+          channel: string
+          client_id: string
+          client_product_id: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          id: string
+          next_action: string | null
+          next_action_at: string | null
+          notes: string | null
+          occurred_at: string
+          provider_id: string
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          client_id: string
+          client_product_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          id?: string
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          occurred_at?: string
+          provider_id: string
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          client_id?: string
+          client_product_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          id?: string
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          occurred_at?: string
+          provider_id?: string
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "provider_interactions_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_interactions_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_schedule: {
+        Row: {
+          client_id: string
+          client_product_id: string | null
+          completed_at: string | null
+          completion_notes: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          priority: string
+          provider_id: string
+          scheduled_date: string
+          scheduled_time: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_product_id?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          provider_id: string
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_product_id?: string | null
+          completed_at?: string | null
+          completion_notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          priority?: string
+          provider_id?: string
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_schedule_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "provider_schedule_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_schedule_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrers: {
         Row: {
           active: boolean
@@ -3753,6 +3916,10 @@ export type Database = {
         | { Args: { _user_id: string }; Returns: boolean }
       is_delegated_provider: {
         Args: { _client_product_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_provider_owner: {
+        Args: { _provider_id: string; _user_id: string }
         Returns: boolean
       }
       log_action: {
