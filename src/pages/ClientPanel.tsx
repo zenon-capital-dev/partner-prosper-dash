@@ -87,8 +87,8 @@ export default function ClientPanel() {
       const productIds = (productIdRows ?? []).map((p: any) => p.id);
 
       // Helpers tolerantes a falhas — uma sub-query quebrada não derruba o painel
-      const safe = async <T,>(p: Promise<{ data: T | null }>): Promise<T[]> => {
-        try { const r = await p; return ((r as any).data ?? []) as T[]; }
+      const safe = async (builder: any): Promise<any[]> => {
+        try { const r = await builder; return (r?.data ?? []) as any[]; }
         catch (e) { console.error("[ClientPanel] sub-query falhou:", e); return []; }
       };
 
