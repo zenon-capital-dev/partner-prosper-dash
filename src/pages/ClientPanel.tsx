@@ -139,6 +139,19 @@ export default function ClientPanel() {
   );
 
   const { client, docs: allDocs, catalog, requests, contracts, payments, granularProducts: allProducts, reports: allReports, formalDeliveries: allFormalDeliveries } = data;
+  const allDocumentItems = [
+    ...allDocs.map((d: any) => ({ ...d, source: "documents" })),
+    ...requests.map((r: any) => ({
+      ...r,
+      source: "document_requests",
+      name: r.request_title,
+      file_path: r.file_url,
+      due_date: r.deadline,
+      uploaded_at: r.submission_date,
+      reviewed_at: r.approval_date,
+      created_at: r.requested_at,
+    })),
+  ];
   const companies = (client as any).companies || [];
   const hasMultipleCompanies = companies.length > 1;
   const granularProducts = selectedCompanyId === "all"
@@ -146,8 +159,8 @@ export default function ClientPanel() {
     : allProducts.filter((p: any) => p.company_id === selectedCompanyId);
   const filteredProductIds = new Set(granularProducts.map((p: any) => p.id));
   const docs = selectedCompanyId === "all"
-    ? allDocs
-    : allDocs.filter((d: any) => !d.client_product_id || filteredProductIds.has(d.client_product_id));
+    ? allDocumentItems
+    : allDocumentItems.filter((d: any) => !d.client_product_id || filteredProductIds.has(d.client_product_id));
   const reports = selectedCompanyId === "all"
     ? allReports
     : allReports.filter((r: any) => filteredProductIds.has(r.client_product_id));
