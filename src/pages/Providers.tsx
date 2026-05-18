@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Briefcase, Plus, Search, ArrowUpRight, Star, Users2, Package, ClipboardCheck,
   Mail, Phone, Link2, Pencil, LayoutGrid, List, Power, MoreHorizontal,
-  CheckCircle2, AlertCircle, TrendingUp,
+  CheckCircle2, AlertCircle, TrendingUp, Trash2,
 } from "lucide-react";
+import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
@@ -94,6 +95,24 @@ export default function Providers() {
     const { error } = await supabase.from("service_providers").update({ active: !p.active }).eq("id", p.id);
     if (error) toast.error(error.message);
     else { toast.success(p.active ? "Prestador desativado" : "Prestador ativado"); qc.invalidateQueries({ queryKey: ["providers-rich"] }); }
+  };
+
+  const removeProvider = async (p: any) => {
+    const refs = (p.client_products?.length ?? 0) + (p.contracts?.length ?? 0);
+    if (refs > 0) {
+      toast.error(
+        `Não é possível excluir: existem ${refs} vínculo(s) (demandas/contratos). Desative o prestador em vez de excluir.`
+      );
+      return;
+    }
+    if (!(await confirmAction(`Excluir definitivamente "${p.name}"? Esta ação é irreversível.`))) return;
+    const { error } = await supabase.from("service_providers").delete().eq("id", p.id);
+    if (error) {
+      toast.error("Não foi possível excluir. Há vínculos no sistema — desative em vez de excluir.");
+      return;
+    }
+    toast.success("Prestador excluído");
+    qc.invalidateQueries({ queryKey: ["providers-rich"] });
   };
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["providers-rich"] });
@@ -240,6 +259,9 @@ export default function Providers() {
                             <DropdownMenuItem onClick={() => { setEditing(p); setCreateOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => toggleActive(p)}><Power className="size-4 mr-2" /> {p.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => removeProvider(p)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="size-4 mr-2" /> Excluir
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
