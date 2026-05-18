@@ -8,7 +8,7 @@ import {
   Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter, Zap,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
