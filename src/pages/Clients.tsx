@@ -631,7 +631,12 @@ export default function Clients() {
           </div>
         )}
 
-        <ClientFormDialog open={open} onOpenChange={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })} />
+        <ClientFormDialog
+          open={open}
+          onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}
+          client={editing}
+          onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
+        />
       </div>
     </TooltipProvider>
   );
