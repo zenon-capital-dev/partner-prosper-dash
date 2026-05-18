@@ -64,6 +64,16 @@ export default function DemandDetail() {
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+    if (action === "edit") setEditOpen(true);
+    if (action === "delegate") setDelegateOpen(true);
+    if (action === "pause") setPauseDialogOpen(true);
+    searchParams.delete("action");
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const openNotesEditor = () => {
     setNotesDraft((demand as any)?.internal_notes ?? "");
     setNotesOpen(true);
