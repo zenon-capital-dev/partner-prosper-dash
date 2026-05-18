@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Target, Search, Plus, Filter, Download, MoreHorizontal, Eye, UserPlus, Phone, Mail, MessageSquare, Trash2, Pencil, LayoutGrid, List, Upload, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +56,13 @@ export default function Leads() {
   const [page, setPage] = useState(1);
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setOpen(true);
+    }
+  }, [searchParams]);
 
   const openFollowUp = (lead: any) => {
     setFollowUpLead(lead);

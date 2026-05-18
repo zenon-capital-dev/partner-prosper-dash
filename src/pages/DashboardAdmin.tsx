@@ -8,7 +8,7 @@ import {
   Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter, Zap,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,6 +39,7 @@ const statusLabel: Record<string, { label: string; tone: Tone }> = {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
+  const [rangeKey, setRangeKey] = useState("HOJE");
   const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
   const firstName = String(fullName).split(/[ @]/)[0];
   const hour = new Date().getHours();
@@ -91,11 +92,35 @@ export default function DashboardAdmin() {
   // ===== Stats =====
   const stats = useMemo(() => {
     const now = new Date();
-    const M = now.getMonth();
-    const Y = now.getFullYear();
+    // Brasilia Time (UTC-3)
+    const brNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    
+    const startOfRange = new Date(brNow);
+    if (rangeKey === "HOJE") {
+      startOfRange.setHours(0, 0, 0, 0);
+    } else if (rangeKey === "7 DIAS") {
+      startOfRange.setDate(brNow.getDate() - 7);
+      startOfRange.setHours(0, 0, 0, 0);
+    } else if (rangeKey === "30 DIAS") {
+      startOfRange.setDate(brNow.getDate() - 30);
+      startOfRange.setHours(0, 0, 0, 0);
+    } else { // MÊS
+      startOfRange.setDate(1);
+      startOfRange.setHours(0, 0, 0, 0);
+    }
+
+    const M = brNow.getMonth();
+    const Y = brNow.getFullYear();
     const startMonth = new Date(Y, M, 1);
     const startLast = new Date(Y, M - 1, 1);
     const endLast = new Date(Y, M, 0);
+
+    // Filter sales by range
+    const filteredSales = sales.filter((s: any) => {
+      if (!s.sale_date) return false;
+      const d = new Date(s.sale_date);
+      return d >= startOfRange && d <= brNow;
+    });
 
     const monthSales = sales.filter((s: any) => s.sale_date && new Date(s.sale_date) >= startMonth);
     const lastMonthSales = sales.filter((s: any) => {
@@ -108,6 +133,11 @@ export default function DashboardAdmin() {
       ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
       : monthRevenue > 0 ? 100 : 0;
     const avgTicket = monthSales.length > 0 ? monthRevenue / monthSales.length : 0;
+
+    // KPIs based on range
+    const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
+    const rangeNewClients = clients.filter((c: any) => c.created_at && new Date(c.created_at) >= startOfRange).length;
+    const rangeSalesCount = filteredSales.length;
 
     const activeClients = clients.filter((c: any) => c.status === "ativo").length;
     const newClientsMonth = clients.filter((c: any) => c.created_at && new Date(c.created_at) >= startMonth).length;
@@ -225,7 +255,7 @@ export default function DashboardAdmin() {
       .sort((a: any, b: any) => (a.deadline ? new Date(a.deadline).getTime() : Infinity) - (b.deadline ? new Date(b.deadline).getTime() : Infinity))
       .slice(0, 7);
 
-    const recentSales = sales.slice(0, 6).map((s: any) => {
+    const recentSales = filteredSales.slice(0, 6).map((s: any) => {
       const client = clients.find((c: any) => c.id === s.client_id);
       return { ...s, clientName: client?.full_name || "Cliente removido" };
     });
@@ -237,10 +267,10 @@ export default function DashboardAdmin() {
       .slice(0, 6);
 
     const recentActivity = [
-      ...proposals.slice(0, 4).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
-      ...leads.slice(0, 4).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
-      ...sales.slice(0, 4).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
-      ...contracts.slice(0, 3).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
+      ...proposals.filter((p: any) => new Date(p.created_at) >= startOfRange).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
+      ...leads.filter((l: any) => new Date(l.created_at) >= startOfRange).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
+      ...sales.filter((s: any) => new Date(s.sale_date || s.created_at) >= startOfRange).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
+      ...contracts.filter((c: any) => new Date(c.created_at) >= startOfRange).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
     ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 9);
 
     const todayTasks = tasks.filter((t: any) => {
@@ -268,6 +298,7 @@ export default function DashboardAdmin() {
     const conversionGoal = [{ name: "Conversão", value: conversionRate, fill: conversionRate >= 25 ? "#34d399" : "#fbbf24" }];
 
     return {
+      rangeRevenue, rangeNewClients, rangeSalesCount, rangeKey,
       monthRevenue, lastMonthRevenue, revenueDelta, avgTicket,
       activeClients, newClientsMonth, churnRisk,
       inProgress, awaiting, completed, delayed,
@@ -325,8 +356,17 @@ export default function DashboardAdmin() {
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
-                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
-                  <button key={p} className={cn("px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950")}>{p}</button>
+                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p) => (
+                  <button 
+                    key={p} 
+                    onClick={() => setRangeKey(p)}
+                    className={cn(
+                      "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", 
+                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950"
+                    )}
+                  >
+                    {p}
+                  </button>
                 ))}
               </div>
               <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-semibold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
@@ -349,10 +389,10 @@ export default function DashboardAdmin() {
 
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          <KpiPremium label="Receita Bruta" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`Mês atual vs anterior`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
-          <KpiPremium label="Aquisição" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="primary" sparkData={dealsSpark} caption={`Novos contratos fechados`} progress={78} />
+          <KpiPremium label="Receita Período" value={formatBRL(stats.rangeRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={rangeKey === "HOJE" ? "Total hoje" : `Últimos ${rangeKey}`} progress={Math.min(100, Math.round((stats.rangeRevenue / 150000) * 100))} />
+          <KpiPremium label="Novos Clientes" value={stats.rangeNewClients.toString()} delta={`+${stats.rangeNewClients}`} up={stats.rangeNewClients > 0} icon={Users} tone="primary" sparkData={dealsSpark} caption={rangeKey === "HOJE" ? "Iniciados hoje" : `Últimos ${rangeKey}`} progress={78} />
           <KpiPremium label="Taxa de Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Ótima" : "Revisar"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads em clientes`} progress={stats.conversionRate} />
-          <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
+          <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.rangeSalesCount} vendas`} up={stats.rangeSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
         </section>
 
         {/* ============ MINI METRIC PILLS ============ */}
@@ -599,38 +639,48 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-5">
             <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Ver tudo</Link>} />
             <div className="overflow-hidden -mx-1">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
                 <thead>
-                  <tr className="text-[9.5px] uppercase tracking-widest text-slate-800 font-bold">
-                    <th className="text-left py-2 px-2 font-bold">Cliente</th>
-                    <th className="text-left py-2 px-2 font-bold">Data</th>
-                    <th className="text-right py-2 px-2 font-bold">Valor</th>
-                    <th className="text-right py-2 px-2 font-bold">Status</th>
+                  <tr className="text-[9.5px] uppercase tracking-[0.12em] text-slate-400 font-black">
+                    <th className="text-left pb-2 px-2">Cliente</th>
+                    <th className="text-left pb-2 px-2">Data</th>
+                    <th className="text-right pb-2 px-2">Valor</th>
+                    <th className="text-right pb-2 px-2">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="space-y-1">
                   {stats.recentSales.length > 0 ? stats.recentSales.map((s: any) => (
-                    <tr key={s.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 px-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/15 to-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-700">
+                    <tr key={s.id} className="group hover:bg-slate-50/80 transition-all duration-200">
+                      <td className="py-2.5 px-2 rounded-l-xl border-y border-l border-transparent group-hover:border-slate-100">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
                             {s.clientName.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-slate-800 font-medium truncate max-w-[120px]">{s.clientName}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[11.5px] text-slate-900 font-bold truncate max-w-[140px] leading-tight">{s.clientName}</span>
+                            <span className="text-[9.5px] text-slate-400 leading-none mt-0.5">ID: {s.id.slice(0, 8).toUpperCase()}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2 text-slate-800 tabular-nums">
+                      <td className="py-2.5 px-2 border-y border-transparent group-hover:border-slate-100 text-slate-600 font-medium tabular-nums">
                         {s.sale_date ? new Date(s.sale_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—"}
                       </td>
-                      <td className="py-2.5 px-2 text-right text-slate-950 font-semibold tabular-nums">{formatBRL(s.amount)}</td>
-                      <td className="py-2.5 px-2 text-right">
-                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-800 border-emerald-500/25" : "bg-amber-500/10 text-amber-800 border-amber-500/25")}>
+                      <td className="py-2.5 px-2 border-y border-transparent group-hover:border-slate-100 text-right text-indigo-900 font-black tabular-nums tracking-tight">
+                        {formatBRL(s.amount)}
+                      </td>
+                      <td className="py-2.5 px-2 rounded-r-xl border-y border-r border-transparent group-hover:border-slate-100 text-right">
+                        <span className={cn(
+                          "text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest", 
+                          s.status === "concluida" || s.status === "pago"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100" 
+                            : "bg-amber-50 text-amber-700 border border-amber-100"
+                        )}>
                           {s.status || "pendente"}
                         </span>
                       </td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={4}><Empty label="Nenhuma venda registrada" /></td></tr>
+                    <tr><td colSpan={4}><Empty label="Sem registros no período" /></td></tr>
                   )}
                 </tbody>
               </table>
@@ -741,26 +791,37 @@ export default function DashboardAdmin() {
           {/* Activity feed */}
           <Card className="lg:col-span-4">
             <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Histórico</Link>} />
-            <div className="relative">
+            <div className="relative mt-2">
               {stats.recentActivity.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {stats.recentActivity.map((act, idx) => (
-                    <div key={act.id} className="relative pl-6">
-                      <div className={cn("absolute left-0.5 top-1 size-2.5 rounded-full ring-4 ring-white", toneColor[act.tone].bg)}>
-                        <div className={cn("size-1 rounded-full mx-auto mt-0.5", toneColor[act.tone].text.replace("text-", "bg-"))} />
-                      </div>
+                    <div key={act.id} className="group relative pl-8 pb-4 last:pb-0">
+                      {/* Timeline Line */}
                       {idx !== stats.recentActivity.length - 1 && (
-                        <div className="absolute left-[7px] top-3.5 bottom-[-12px] w-px bg-slate-200" />
+                        <div className="absolute left-[11px] top-7 bottom-0 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors" />
                       )}
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[11px] font-semibold text-slate-800 truncate">{act.title}</p>
-                        <span className="text-[9px] text-slate-600 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+                      
+                      {/* Icon / Marker */}
+                      <div className={cn(
+                        "absolute left-0 top-1 size-[22px] rounded-lg flex items-center justify-center border shadow-sm transition-all group-hover:scale-110",
+                        toneColor[act.tone].bg, toneColor[act.tone].border, toneColor[act.tone].text
+                      )}>
+                        <act.icon className="size-3" strokeWidth={2.5} />
                       </div>
-                      <p className="text-[10px] text-slate-800 truncate">{act.sub}</p>
+
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[11.5px] font-bold text-slate-950 leading-tight">{act.title}</p>
+                          <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 tabular-nums">
+                            {new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} · {new Date(act.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-[10.5px] text-slate-600 line-clamp-1 group-hover:text-slate-900 transition-colors">{act.sub}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
-              ) : <Empty label="Sem atividade recente" />}
+              ) : <Empty label="Sem atividade no período selecionado" />}
             </div>
           </Card>
         </section>

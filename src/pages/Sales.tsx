@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
@@ -33,6 +34,13 @@ export default function Sales() {
   const [dateTo, setDateTo] = useState("");
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setOpen(true);
+    }
+  }, [searchParams]);
 
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ["sales-rich"],
