@@ -80,6 +80,27 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     },
   });
 
+  const { data: docTemplates } = useQuery({
+    queryKey: ["doc-templates-setting"],
+    queryFn: async () => {
+      const { data } = await supabase.from("system_settings").select("value").eq("key", "doc_templates").maybeSingle();
+      const raw = (data?.value as any);
+      const arr = Array.isArray(raw) ? raw : (raw?.items ?? raw?.value ?? []);
+      return (arr as any[])
+        .map((it: any) => (typeof it === "string" ? it : it?.label ?? it?.name))
+        .filter(Boolean) as string[];
+    },
+  });
+
+  const toggleTemplate = (name: string) =>
+    setSelectedTemplateDocs((p) => (p.includes(name) ? p.filter((d) => d !== name) : [...p, name]));
+  const addCustomDoc = () => {
+    const v = newDocInput.trim();
+    if (!v) return;
+    setCustomDocs((p) => [...p, v]);
+    setNewDocInput("");
+  };
+
   const submit = async () => {
     if (!form.full_name) {
       toast.error("Nome obrigatório");
