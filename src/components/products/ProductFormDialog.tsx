@@ -37,12 +37,18 @@ const PRESETS = [
 ];
 
 export function ProductFormDialog({ open, onOpenChange, editing, categories, onSaved }: Props) {
-  const [tab, setTab] = useState<"basico" | "operacional" | "financeiro" | "comunicacao">("basico");
+  const [tab, setTab] = useState<"basico" | "operacional" | "financeiro" | "comunicacao" | "automacao">("basico");
   const [docs, setDocs] = useState<string[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [docInput, setDocInput] = useState("");
   const [stepInput, setStepInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [customFields, setCustomFields] = useState<{ label: string; type: string }[]>([]);
+  const [cfLabel, setCfLabel] = useState("");
+  const [cfType, setCfType] = useState("text");
+  const [autoTasks, setAutoTasks] = useState<{ title: string; priority: string }[]>([]);
+  const [atTitle, setAtTitle] = useState("");
+  const [atPriority, setAtPriority] = useState("normal");
 
   const [form, setForm] = useState<any>({
     name: "", description: "", category_id: "",
