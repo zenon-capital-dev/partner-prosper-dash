@@ -17,7 +17,7 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       <button
         type="button"
         onClick={onMenuClick}
-        className="md:hidden size-10 shrink-0 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center justify-center"
+        className="md:hidden size-10 shrink-0 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-slate-950 hover:bg-slate-50 transition-colors flex items-center justify-center"
         aria-label="Abrir menu"
       >
         <Menu className="size-4" />
@@ -40,13 +40,13 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
           onClick={onSearchClick}
           className="w-full h-10 pl-10 pr-3 bg-slate-50/80 hover:bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] rounded-lg text-[12.5px] flex items-center justify-between transition-all group relative"
         >
-          <Search className="absolute left-3.5 size-3.5 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+          <Search className="absolute left-3.5 size-3.5 text-slate-800 group-hover:text-indigo-800 transition-colors" />
           <span className="font-bold text-slate-600 group-hover:text-slate-800 transition-colors truncate tracking-tight text-left">
             <span className="hidden sm:inline">Buscar clientes, demandas, contratos e documentos</span>
             <span className="sm:hidden">Buscar…</span>
           </span>
           <div className="hidden sm:flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-            <kbd className="text-[9.5px] font-mono font-bold bg-white border border-slate-200 rounded px-1.5 py-0.5 text-slate-500 flex items-center gap-1 shadow-sm">
+            <kbd className="text-[9.5px] font-mono font-bold bg-white border border-slate-200 rounded px-1.5 py-0.5 text-slate-800 flex items-center gap-1 shadow-sm">
               <Command className="size-2.5" /> K
             </kbd>
           </div>
@@ -56,10 +56,10 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 sm:flex-1 justify-end">
         <ThemeToggle />
         <QuickCreateButton />
-        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-900">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-950">
           <InternalChat />
         </div>
-        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-900">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-950">
           <NotificationBell />
         </div>
       </div>

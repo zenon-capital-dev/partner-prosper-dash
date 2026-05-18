@@ -120,11 +120,11 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                   </p>
                 </div>
               )}
-              {!collapsed && <ChevronDown className="size-3.5 text-slate-500 shrink-0 group-hover:text-slate-700 transition-colors" />}
+              {!collapsed && <ChevronDown className="size-3.5 text-slate-800 shrink-0 group-hover:text-slate-700 transition-colors" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
-            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Workspace</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Workspace</DropdownMenuLabel>
             {isFullAdmin && (
               <>
                 <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
@@ -144,7 +144,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-[11px] top-1/2 -translate-y-1/2 size-[22px] rounded-full bg-white border border-slate-200 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.15)] flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:scale-110 transition-all z-10"
+            className="absolute -right-[11px] top-1/2 -translate-y-1/2 size-[22px] rounded-full bg-white border border-slate-200 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.15)] flex items-center justify-center text-slate-800 hover:text-indigo-800 hover:border-indigo-300 hover:scale-110 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
@@ -155,7 +155,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       {collapsed && (
         <button
           onClick={onToggle}
-          className="mx-auto mt-2 size-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+          className="mx-auto mt-2 size-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-800 hover:text-slate-950 transition-colors"
           title="Expandir"
         >
           <PanelLeftOpen className="size-4" />
@@ -168,7 +168,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-2.5 mb-2">
-                <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500/90">
+                <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-800/90">
                   {section.label}
                 </span>
               </div>
@@ -203,7 +203,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                       className={cn(
                         "shrink-0 transition-all",
                         collapsed ? "size-[18px]" : "size-[15px]",
-                        active ? "text-indigo-700" : "text-slate-500 group-hover:text-slate-800",
+                        active ? "text-indigo-700" : "text-slate-800 group-hover:text-slate-800",
                       )}
                       strokeWidth={active ? 2.4 : 2}
                     />
@@ -238,13 +238,13 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                     <p className="text-[12.5px] font-bold text-slate-950 truncate leading-tight">{displayName}</p>
                     <p className="text-[10.5px] font-medium text-slate-600 truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
-                  <ChevronDown className="size-3.5 text-slate-400 shrink-0 group-hover:text-slate-600 transition-colors" />
+                  <ChevronDown className="size-3.5 text-slate-600 shrink-0 group-hover:text-slate-600 transition-colors" />
                 </>
               )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-[220px]">
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Conta</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-wider text-slate-800">Conta</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => navigate("/perfil")}>
               <UserCircle className="size-4 mr-2" /> Meu Perfil
             </DropdownMenuItem>
@@ -252,7 +252,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               <Settings className="size-4 mr-2" /> Preferências
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut} className="text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+            <DropdownMenuItem onClick={signOut} className="text-rose-800 focus:text-rose-700 focus:bg-rose-50">
               <LogOut className="size-4 mr-2" /> Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

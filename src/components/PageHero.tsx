@@ -69,7 +69,7 @@ export function PageHero({
           <div className="min-w-0">
             {(eyebrow || category) && (
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] font-bold">
-                <CalendarClock className="size-3 text-slate-500" />
+                <CalendarClock className="size-3 text-slate-800" />
                 <span className="text-slate-600">{eyebrow}</span>
                 {category && (
                   <>
@@ -88,7 +88,7 @@ export function PageHero({
                 {description}
               </p>
             )}
-            <p className="text-[10.5px] text-slate-500 mt-2.5 capitalize tracking-wide font-bold">{today}</p>
+            <p className="text-[10.5px] text-slate-800 mt-2.5 capitalize tracking-wide font-bold">{today}</p>
           </div>
         </div>
 

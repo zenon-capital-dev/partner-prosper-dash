@@ -21,10 +21,10 @@ import {
 type Tone = "primary" | "success" | "warning" | "danger" | "info";
 
 const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string; grad: string; ring: string }> = {
-  primary: { text: "text-indigo-600", bg: "bg-indigo-100", border: "border-indigo-200", chart: "#6366f1", soft: "bg-indigo-50", grad: "from-indigo-500 to-indigo-600", ring: "ring-indigo-200/60" },
-  success: { text: "text-emerald-600", bg: "bg-emerald-100", border: "border-emerald-200", chart: "#10b981", soft: "bg-emerald-50", grad: "from-emerald-500 to-emerald-600", ring: "ring-emerald-200/60" },
-  warning: { text: "text-amber-600", bg: "bg-amber-100", border: "border-amber-200", chart: "#f59e0b", soft: "bg-amber-50", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60" },
-  danger: { text: "text-rose-600", bg: "bg-rose-100", border: "border-rose-200", chart: "#f43f5e", soft: "bg-rose-50", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60" },
+  primary: { text: "text-indigo-800", bg: "bg-indigo-100", border: "border-indigo-200", chart: "#6366f1", soft: "bg-indigo-50", grad: "from-indigo-500 to-indigo-600", ring: "ring-indigo-200/60" },
+  success: { text: "text-emerald-800", bg: "bg-emerald-100", border: "border-emerald-200", chart: "#10b981", soft: "bg-emerald-50", grad: "from-emerald-500 to-emerald-600", ring: "ring-emerald-200/60" },
+  warning: { text: "text-amber-800", bg: "bg-amber-100", border: "border-amber-200", chart: "#f59e0b", soft: "bg-amber-50", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60" },
+  danger: { text: "text-rose-800", bg: "bg-rose-100", border: "border-rose-200", chart: "#f43f5e", soft: "bg-rose-50", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60" },
   info: { text: "text-sky-600", bg: "bg-sky-100", border: "border-sky-200", chart: "#0ea5e9", soft: "bg-sky-50", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60" },
 };
 
@@ -300,33 +300,33 @@ export default function DashboardAdmin() {
                 <div className="absolute -bottom-1 -right-1 size-3 sm:size-4 rounded-full bg-emerald-400 ring-2 ring-white shadow-md" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[10px] sm:text-[10.5px] uppercase tracking-[0.18em] sm:tracking-[0.22em] font-bold text-slate-400 flex-wrap">
+                <div className="flex items-center gap-2 text-[10px] sm:text-[10.5px] uppercase tracking-[0.18em] sm:tracking-[0.22em] font-bold text-slate-600 flex-wrap">
                   <CalendarClock className="size-3" />
                   <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
                   <span className="size-1 rounded-full bg-slate-300" />
                   <Sparkles className="size-3 text-primary" />
                   <span className="text-primary">Painel de Comando</span>
                 </div>
-                <h1 className="text-[18px] sm:text-[22px] lg:text-[26px] font-bold text-slate-900 tracking-tight mt-1 leading-tight">
+                <h1 className="text-[18px] sm:text-[22px] lg:text-[26px] font-bold text-slate-950 tracking-tight mt-1 leading-tight">
                   {greeting}, <span className="text-primary">{firstName}</span>
                 </h1>
-                <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <p className="text-[11px] sm:text-[12px] text-slate-800 mt-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
                   <span className="text-slate-300">·</span>
-                  <span><span className="text-indigo-600 font-semibold">{stats.activeLeads.length}</span> negociações</span>
+                  <span><span className="text-indigo-800 font-semibold">{stats.activeLeads.length}</span> negociações</span>
                   <span className="text-slate-300">·</span>
-                  <span><span className="text-amber-600 font-semibold">{stats.delayed}</span> atrasos</span>
+                  <span><span className="text-amber-800 font-semibold">{stats.delayed}</span> atrasos</span>
                   <span className="text-slate-300">·</span>
-                  <span><span className="text-rose-600 font-semibold">{stats.overduePayments.length}</span> inadimplentes</span>
+                  <span><span className="text-rose-800 font-semibold">{stats.overduePayments.length}</span> inadimplentes</span>
                   <span className="hidden sm:inline text-slate-300">·</span>
-                  <span className="hidden sm:inline text-slate-500 capitalize">{today}</span>
+                  <span className="hidden sm:inline text-slate-800 capitalize">{today}</span>
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
                 {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
-                  <button key={p} className={cn("px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-500 hover:text-slate-900")}>{p}</button>
+                  <button key={p} className={cn("px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950")}>{p}</button>
                 ))}
               </div>
               <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-semibold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
@@ -335,7 +335,7 @@ export default function DashboardAdmin() {
               <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
                 <TrendingUp className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar fechamento</span><span className="xs:hidden sm:hidden">Fechar</span>
               </Link>
-              <button className="size-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-all relative shadow-sm">
+              <button className="size-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 hover:text-slate-950 transition-all relative shadow-sm">
                 <Bell className="size-4" />
                 {stats.alerts.length > 0 && (
                   <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">{stats.alerts.length}</span>
@@ -380,7 +380,7 @@ export default function DashboardAdmin() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="size-2 rounded-full border border-slate-400" />
-                    <span className="text-slate-400">Meta Estabelecida</span>
+                    <span className="text-slate-600">Meta Estabelecida</span>
                   </div>
                 </div>
               }
@@ -400,14 +400,14 @@ export default function DashboardAdmin() {
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fill: "currentColor", fontSize: 10, fontWeight: 600 }} 
-                    className="text-slate-400"
+                    className="text-slate-600"
                     dy={10}
                   />
                   <YAxis 
                     axisLine={false} 
                     tickLine={false} 
                     tick={{ fill: "currentColor", fontSize: 10, fontWeight: 500 }}
-                    className="text-slate-400"
+                    className="text-slate-600"
                     tickFormatter={(v) => `R$ ${v/1000}k`}
                   />
                   <Tooltip 
@@ -458,8 +458,8 @@ export default function DashboardAdmin() {
                       <a.icon className="size-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-[13px] font-bold text-slate-900 leading-none">{a.title}</h4>
-                      <p className="text-[11px] text-slate-500 mt-1.5 truncate">{a.sub}</p>
+                      <h4 className="text-[13px] font-bold text-slate-950 leading-none">{a.title}</h4>
+                      <p className="text-[11px] text-slate-800 mt-1.5 truncate">{a.sub}</p>
                     </div>
                     <ChevronRight className="size-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
                   </Link>
@@ -468,8 +468,8 @@ export default function DashboardAdmin() {
                     <div className="size-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
                       <CheckCircle2 className="size-8 text-emerald-500" />
                     </div>
-                    <p className="text-sm font-bold text-slate-900">Operação Saudável</p>
-                    <p className="text-xs text-slate-500 mt-1">Nenhum risco imediato detectado</p>
+                    <p className="text-sm font-bold text-slate-950">Operação Saudável</p>
+                    <p className="text-xs text-slate-800 mt-1">Nenhum risco imediato detectado</p>
                   </div>
                 )}
               </div>
@@ -482,11 +482,11 @@ export default function DashboardAdmin() {
               </div>
               <div className="flex items-end justify-between">
                 <div>
-                  <h3 className="text-3xl font-black text-slate-900 tabular-nums tracking-tighter">
+                  <h3 className="text-3xl font-black text-slate-950 tabular-nums tracking-tighter">
                     {stats.conversionRate}%
                   </h3>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    Meta global: <span className="font-bold text-indigo-600">25.0%</span>
+                  <p className="text-[11px] text-slate-800 mt-1">
+                    Meta global: <span className="font-bold text-indigo-800">25.0%</span>
                   </p>
                 </div>
                 <div className="size-16 relative">
@@ -506,7 +506,7 @@ export default function DashboardAdmin() {
         {/* ============ ROW: PIPELINE FUNNEL + DEMANDS DONUT + ORIGEM ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           <Card className="lg:col-span-5 min-h-[280px]">
-            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Abrir CRM</Link>} />
+            <CardHeader eyebrow="Comercial" title="Funil de vendas" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Abrir CRM</Link>} />
             <div className="space-y-2 mt-1">
               {stats.pipelineByStage.map((stage, i) => {
                 const max = Math.max(...stats.pipelineByStage.map((s) => s.value), 1);
@@ -516,7 +516,7 @@ export default function DashboardAdmin() {
                   <div key={stage.name} className="group">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-[11px] font-medium text-slate-700">{stage.name}</span>
-                      <span className="text-[10.5px] text-slate-500 tabular-nums">{stage.count} · <span className="text-slate-700 font-semibold">{formatBRL(stage.value)}</span></span>
+                      <span className="text-[10.5px] text-slate-800 tabular-nums">{stage.count} · <span className="text-slate-700 font-semibold">{formatBRL(stage.value)}</span></span>
                     </div>
                     <div className="h-7 rounded-md bg-slate-50 border border-slate-100 overflow-hidden relative">
                       <div
@@ -533,7 +533,7 @@ export default function DashboardAdmin() {
           </Card>
 
           <Card className="lg:col-span-4 min-h-[280px] flex flex-col">
-            <CardHeader eyebrow="Operação" title="Demandas por status" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Ver todas</Link>} />
+            <CardHeader eyebrow="Operação" title="Demandas por status" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Ver todas</Link>} />
             <div className="flex-1 flex items-center gap-4">
               <div className="w-[140px] h-[140px] shrink-0">
                 <ResponsiveContainer>
@@ -560,12 +560,12 @@ export default function DashboardAdmin() {
                       <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
                       <span className="text-[11px] text-slate-700 truncate">{d.name}</span>
                     </div>
-                    <span className="text-[11.5px] font-bold text-slate-900 tabular-nums">{d.value}</span>
+                    <span className="text-[11.5px] font-bold text-slate-950 tabular-nums">{d.value}</span>
                   </div>
                 ))}
                 <div className="pt-2 border-t border-slate-100 mt-2">
-                  <p className="text-[9.5px] uppercase tracking-widest text-slate-500 font-bold">Total</p>
-                  <p className="text-lg font-bold text-slate-900 tabular-nums">{stats.demandsByStatus.reduce((a, d) => a + d.value, 0)}</p>
+                  <p className="text-[9.5px] uppercase tracking-widest text-slate-800 font-bold">Total</p>
+                  <p className="text-lg font-bold text-slate-950 tabular-nums">{stats.demandsByStatus.reduce((a, d) => a + d.value, 0)}</p>
                 </div>
               </div>
             </div>
@@ -581,7 +581,7 @@ export default function DashboardAdmin() {
                   <div key={s.name}>
                     <div className="flex items-center justify-between text-[10.5px] mb-1">
                       <span className="text-slate-700 capitalize truncate">{s.name.replace(/_/g, " ")}</span>
-                      <span className="font-bold text-slate-900 tabular-nums">{s.value}</span>
+                      <span className="font-bold text-slate-950 tabular-nums">{s.value}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-50 overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full" style={{ width: `${pct}%` }} />
@@ -597,11 +597,11 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Recent sales table */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Ver tudo</Link>} />
+            <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Ver tudo</Link>} />
             <div className="overflow-hidden -mx-1">
               <table className="w-full text-[11px]">
                 <thead>
-                  <tr className="text-[9.5px] uppercase tracking-widest text-slate-500 font-bold">
+                  <tr className="text-[9.5px] uppercase tracking-widest text-slate-800 font-bold">
                     <th className="text-left py-2 px-2 font-bold">Cliente</th>
                     <th className="text-left py-2 px-2 font-bold">Data</th>
                     <th className="text-right py-2 px-2 font-bold">Valor</th>
@@ -619,12 +619,12 @@ export default function DashboardAdmin() {
                           <span className="text-slate-800 font-medium truncate max-w-[120px]">{s.clientName}</span>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2 text-slate-500 tabular-nums">
+                      <td className="py-2.5 px-2 text-slate-800 tabular-nums">
                         {s.sale_date ? new Date(s.sale_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—"}
                       </td>
-                      <td className="py-2.5 px-2 text-right text-slate-900 font-semibold tabular-nums">{formatBRL(s.amount)}</td>
+                      <td className="py-2.5 px-2 text-right text-slate-950 font-semibold tabular-nums">{formatBRL(s.amount)}</td>
                       <td className="py-2.5 px-2 text-right">
-                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/25" : "bg-amber-500/10 text-amber-600 border-amber-500/25")}>
+                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-800 border-emerald-500/25" : "bg-amber-500/10 text-amber-800 border-amber-500/25")}>
                           {s.status || "pendente"}
                         </span>
                       </td>
@@ -639,7 +639,7 @@ export default function DashboardAdmin() {
 
           {/* Urgent demands */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Operação" title="Demandas urgentes" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Gerenciar</Link>} />
+            <CardHeader eyebrow="Operação" title="Demandas urgentes" right={<Link to="/demandas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Gerenciar</Link>} />
             <div className="space-y-1.5">
               {stats.urgentDemands.length > 0 ? stats.urgentDemands.map((d: any) => {
                 const overdue = d.deadline && new Date(d.deadline) < new Date();
@@ -649,8 +649,8 @@ export default function DashboardAdmin() {
                   <div key={d.id} className="group flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className={cn("size-2 rounded-full shrink-0", overdue ? "bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(244,63,94,0.6)]" : "bg-zinc-600")} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold text-slate-900 truncate">{client?.full_name || `Demanda #${d.id.slice(0, 6)}`}</p>
-                      <p className="text-[9.5px] text-slate-500 truncate">
+                      <p className="text-[11px] font-semibold text-slate-950 truncate">{client?.full_name || `Demanda #${d.id.slice(0, 6)}`}</p>
+                      <p className="text-[9.5px] text-slate-800 truncate">
                         Prazo {d.deadline ? new Date(d.deadline).toLocaleDateString("pt-BR") : "—"} · {formatBRL(d.value || 0)}
                       </p>
                     </div>
@@ -665,7 +665,7 @@ export default function DashboardAdmin() {
 
           {/* Today tasks / reminders */}
           <Card className="lg:col-span-3">
-            <CardHeader eyebrow="Hoje" title="Tarefas & lembretes" right={<Link to="/tarefas" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Tudo</Link>} />
+            <CardHeader eyebrow="Hoje" title="Tarefas & lembretes" right={<Link to="/tarefas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Tudo</Link>} />
             <div className="space-y-1.5">
               {stats.todayTasks.length > 0 ? stats.todayTasks.map((t: any) => {
                 const overdue = t.due_date && new Date(t.due_date) < new Date();
@@ -675,7 +675,7 @@ export default function DashboardAdmin() {
                     <button className="size-4 rounded border border-slate-300 hover:border-indigo-400 hover:bg-indigo-500/10 transition-colors shrink-0 mt-0.5" />
                     <div className="min-w-0 flex-1">
                       <p className={cn("text-[11px] font-medium truncate", overdue ? "text-rose-700" : "text-slate-800")}>{t.title}</p>
-                      <p className="text-[9px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <p className="text-[9px] text-slate-800 mt-0.5 flex items-center gap-1.5">
                         {t.due_date && <><CalendarClock className="size-2.5" />{new Date(t.due_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</>}
                         {t.priority && <span className={cn("size-1 rounded-full ml-1", toneColor[pTone].bg.replace("/10", "/60"))} />}
                       </p>
@@ -691,7 +691,7 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Follow-ups / próximas ações */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Agenda</Link>} />
+            <CardHeader eyebrow="Comercial" title="Próximos follow-ups" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Agenda</Link>} />
             <div className="space-y-2">
               {stats.upcomingActions.length > 0 ? stats.upcomingActions.map((l: any) => {
                 const d = new Date(l.next_action_date);
@@ -699,17 +699,17 @@ export default function DashboardAdmin() {
                 return (
                   <div key={l.id} className="group flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className={cn("size-10 rounded-lg flex flex-col items-center justify-center shrink-0 border", overdue ? "bg-rose-500/10 border-rose-500/25" : "bg-indigo-500/10 border-indigo-500/25")}>
-                      <span className={cn("text-[8px] font-bold uppercase leading-none", overdue ? "text-rose-600" : "text-indigo-600")}>{d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
-                      <span className="text-[12px] font-bold text-slate-900 leading-none mt-0.5 tabular-nums">{d.getDate()}</span>
+                      <span className={cn("text-[8px] font-bold uppercase leading-none", overdue ? "text-rose-800" : "text-indigo-800")}>{d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
+                      <span className="text-[12px] font-bold text-slate-950 leading-none mt-0.5 tabular-nums">{d.getDate()}</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11.5px] font-semibold text-slate-900 truncate">{l.full_name}</p>
-                      <p className="text-[10px] text-slate-500 truncate mt-0.5">{l.next_action || "Follow-up agendado"} · {l.company || "—"}</p>
+                      <p className="text-[11.5px] font-semibold text-slate-950 truncate">{l.full_name}</p>
+                      <p className="text-[10px] text-slate-800 truncate mt-0.5">{l.next_action || "Follow-up agendado"} · {l.company || "—"}</p>
                       {l.estimated_value > 0 && (
-                        <p className="text-[10px] text-emerald-600 font-medium tabular-nums mt-0.5">{formatBRL(l.estimated_value)} · {l.close_probability}% prob.</p>
+                        <p className="text-[10px] text-emerald-800 font-medium tabular-nums mt-0.5">{formatBRL(l.estimated_value)} · {l.close_probability}% prob.</p>
                       )}
                     </div>
-                    <button className="size-7 rounded-md bg-slate-50 hover:bg-indigo-500/20 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-colors shrink-0 opacity-0 group-hover:opacity-100">
+                    <button className="size-7 rounded-md bg-slate-50 hover:bg-indigo-500/20 border border-slate-200 flex items-center justify-center text-slate-800 hover:text-indigo-800 transition-colors shrink-0 opacity-0 group-hover:opacity-100">
                       <Phone className="size-3" />
                     </button>
                   </div>
@@ -720,19 +720,19 @@ export default function DashboardAdmin() {
 
           {/* Top clients */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Carteira" title="Top clientes por valor" right={<Link to="/clientes" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Carteira</Link>} />
+            <CardHeader eyebrow="Carteira" title="Top clientes por valor" right={<Link to="/clientes" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Carteira</Link>} />
             <div className="space-y-1.5">
               {stats.topClients.length > 0 ? stats.topClients.map((c: any, i: number) => (
                 <Link to={`/clientes/${c.id}`} key={c.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                  <span className="text-[10px] font-bold text-slate-400 tabular-nums w-4">{(i + 1).toString().padStart(2, "0")}</span>
+                  <span className="text-[10px] font-bold text-slate-600 tabular-nums w-4">{(i + 1).toString().padStart(2, "0")}</span>
                   <div className="size-7 rounded-full bg-gradient-to-br from-indigo-500/15 to-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-700 shrink-0">
                     {c.full_name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[11px] font-semibold text-slate-900 truncate">{c.full_name}</p>
-                    <p className="text-[9.5px] text-slate-500 truncate">Engajamento {c.health_score ?? "—"}/100 · {c.status}</p>
+                    <p className="text-[11px] font-semibold text-slate-950 truncate">{c.full_name}</p>
+                    <p className="text-[9.5px] text-slate-800 truncate">Engajamento {c.health_score ?? "—"}/100 · {c.status}</p>
                   </div>
-                  <span className="text-[11px] font-bold text-emerald-600 tabular-nums">{formatBRL(c._value)}</span>
+                  <span className="text-[11px] font-bold text-emerald-800 tabular-nums">{formatBRL(c._value)}</span>
                 </Link>
               )) : <Empty label="Sem clientes com valor" />}
             </div>
@@ -740,7 +740,7 @@ export default function DashboardAdmin() {
 
           {/* Activity feed */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Histórico</Link>} />
+            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Histórico</Link>} />
             <div className="relative">
               {stats.recentActivity.length > 0 ? (
                 <div className="space-y-3">
@@ -754,9 +754,9 @@ export default function DashboardAdmin() {
                       )}
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[11px] font-semibold text-slate-800 truncate">{act.title}</p>
-                        <span className="text-[9px] text-slate-400 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+                        <span className="text-[9px] text-slate-600 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
                       </div>
-                      <p className="text-[10px] text-slate-500 truncate">{act.sub}</p>
+                      <p className="text-[10px] text-slate-800 truncate">{act.sub}</p>
                     </div>
                   ))}
                 </div>
@@ -769,7 +769,7 @@ export default function DashboardAdmin() {
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Financial summary */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Central</Link>} />
+            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Central</Link>} />
             <div className="grid grid-cols-2 gap-3">
               <MiniMetric icon={PiggyBank} label="A receber 7 dias" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
               <MiniMetric icon={FileWarning} label="Inadimplente" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
@@ -780,7 +780,7 @@ export default function DashboardAdmin() {
 
           {/* Top partners */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">Rede</Link>} />
+            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Rede</Link>} />
             <div className="space-y-2">
               {stats.topPartners.length > 0 ? stats.topPartners.map((p, i) => {
                 const max = stats.topPartners[0].amount;
@@ -789,10 +789,10 @@ export default function DashboardAdmin() {
                   <div key={p.id}>
                     <div className="flex items-center justify-between text-[11px] mb-1">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[9px] font-bold text-slate-400 tabular-nums w-3">{i + 1}</span>
+                        <span className="text-[9px] font-bold text-slate-600 tabular-nums w-3">{i + 1}</span>
                         <span className="text-slate-800 font-medium truncate">{p.name}</span>
                       </div>
-                      <span className="text-emerald-600 font-bold tabular-nums">{formatBRL(p.amount)}</span>
+                      <span className="text-emerald-800 font-bold tabular-nums">{formatBRL(p.amount)}</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-slate-50">
                       <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
@@ -817,7 +817,7 @@ export default function DashboardAdmin() {
           </Card>
         </section>
 
-        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-slate-400">
+        <div className="pt-2 flex items-center justify-center gap-2 text-[9px] tracking-[0.3em] uppercase text-slate-600">
           <div className="h-px w-12 bg-gradient-to-r from-transparent to-slate-300" />
           Prosper CRM · {new Date().getFullYear()}
           <div className="h-px w-12 bg-gradient-to-l from-transparent to-slate-300" />
@@ -886,22 +886,22 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
         <div className={cn(
           "flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md",
           up 
-            ? "text-emerald-600 bg-emerald-50 border-emerald-100" 
-            : "text-rose-600 bg-rose-50 border-rose-100"
+            ? "text-emerald-800 bg-emerald-50 border-emerald-100" 
+            : "text-rose-800 bg-rose-50 border-rose-100"
         )}>
           {up ? <ArrowUpRight className="size-3.5" /> : <TrendingDown className="size-3.5" />}
           {delta}
         </div>
       </div>
       <div className="relative space-y-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
-        <h3 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tighter leading-none tabular-nums">{value}</h3>
-        <p className="text-[11px] font-bold text-slate-400 tracking-tight">{caption}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-800">{label}</p>
+        <h3 className="text-3xl lg:text-4xl font-black text-slate-950 tracking-tighter leading-none tabular-nums">{value}</h3>
+        <p className="text-[11px] font-bold text-slate-600 tracking-tight">{caption}</p>
       </div>
       <div className="relative mt-8 pt-5 border-t border-slate-100">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Índice de Crescimento</span>
-          <span className="text-[11px] font-black text-slate-900">{Math.round(progress)}%</span>
+          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Índice de Crescimento</span>
+          <span className="text-[11px] font-black text-slate-950">{Math.round(progress)}%</span>
         </div>
         <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
           <div className={cn("h-full rounded-full transition-all duration-1000 ease-out", t.grad)} style={{ width: `${Math.min(100, progress)}%` }} />
@@ -926,8 +926,8 @@ function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: st
         <Icon className={cn("size-6", pulse && "animate-pulse")} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 truncate">{label}</p>
-        <p className="text-xl font-black text-slate-900 tracking-tighter truncate tabular-nums">{value}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 truncate">{label}</p>
+        <p className="text-xl font-black text-slate-950 tracking-tighter truncate tabular-nums">{value}</p>
       </div>
       <ChevronRight className="size-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
       {pulse && (
@@ -954,13 +954,13 @@ function Kpi({ label, value, delta, up, icon: Icon, tone }: {
           <div className={cn("size-7 rounded-lg flex items-center justify-center border", t.bg, t.border, t.text)}>
             <Icon className="size-3.5" strokeWidth={2} />
           </div>
-          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200")}>
+          <div className={cn("flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-bold border tabular-nums", up ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-rose-50 text-rose-800 border-rose-200")}>
             {up ? <TrendingUp className="size-2.5" /> : <TrendingDown className="size-2.5" />}
             {delta}
           </div>
         </div>
-        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500 leading-tight">{label}</p>
-        <p className="text-[16px] lg:text-[18px] font-bold text-slate-900 tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
+        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-800 leading-tight">{label}</p>
+        <p className="text-[16px] lg:text-[18px] font-bold text-slate-950 tabular-nums tracking-tight mt-0.5 leading-none">{value}</p>
       </div>
     </div>
   );
@@ -976,10 +976,10 @@ function MiniMetric({ icon: Icon, label, value, sub, tone }: {
         <div className={cn("size-6 rounded-md flex items-center justify-center", t.bg, t.text)}>
           <Icon className="size-3" />
         </div>
-        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-800">{label}</p>
       </div>
-      <p className="text-[16px] font-bold text-slate-900 tabular-nums leading-none">{value}</p>
-      <p className="text-[9.5px] text-slate-500 mt-1">{sub}</p>
+      <p className="text-[16px] font-bold text-slate-950 tabular-nums leading-none">{value}</p>
+      <p className="text-[9.5px] text-slate-800 mt-1">{sub}</p>
     </div>
   );
 }
@@ -987,7 +987,7 @@ function MiniMetric({ icon: Icon, label, value, sub, tone }: {
 function QuickAction({ to, icon: Icon, label }: { to: string; icon: any; label: string }) {
   return (
     <Link to={to} className="group flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all">
-      <Icon className="size-4 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+      <Icon className="size-4 text-slate-800 group-hover:text-indigo-800 transition-colors" />
       <span className="text-[10px] font-semibold text-slate-700 group-hover:text-indigo-700 text-center leading-tight">{label}</span>
     </Link>
   );
@@ -995,7 +995,7 @@ function QuickAction({ to, icon: Icon, label }: { to: string; icon: any; label: 
 
 function Legend2({ color, label, dashed }: { color: string; label: string; dashed?: boolean }) {
   return (
-    <span className="flex items-center gap-1.5 text-slate-500">
+    <span className="flex items-center gap-1.5 text-slate-800">
       <span className={cn("inline-block w-3 h-0.5 rounded", dashed && "border-t border-dashed bg-transparent")} style={{ backgroundColor: dashed ? "transparent" : color, borderColor: dashed ? color : "transparent" }} />
       {label}
     </span>
@@ -1006,7 +1006,7 @@ function Empty({ label }: { label: string }) {
   return (
     <div className="py-8 text-center">
       <CheckCircle2 className="size-7 mx-auto text-slate-300 mb-2" />
-      <p className="text-[10.5px] text-slate-500 italic">{label}</p>
+      <p className="text-[10.5px] text-slate-800 italic">{label}</p>
     </div>
   );
 }
