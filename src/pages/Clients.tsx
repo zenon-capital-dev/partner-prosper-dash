@@ -8,7 +8,7 @@ import {
   MoreHorizontal, ArrowUpRight, Filter, Calendar, Building2,
   MapPin, CreditCard, User, Mail, Phone, ShoppingBag,
   ChevronDown, ChevronUp, Activity, AlertTriangle, TrendingUp,
-  Eye, FileText, MessageSquare,
+  Eye, FileText, MessageSquare, Pencil, Archive, ArchiveRestore,
 } from "lucide-react";
 import { formatBRL, initials, formatDoc } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
