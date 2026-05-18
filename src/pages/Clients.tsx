@@ -229,7 +229,7 @@ export default function Clients() {
               <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search}>
                 Limpar
               </Button>
-              <Button size="sm" onClick={() => setOpen(true)}>
+              <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }}>
                 <Plus className="size-4 mr-2" /> Novo cliente
               </Button>
             </div>
