@@ -296,7 +296,9 @@ function CommissionsTable({ commissions }: { commissions: any[] }) {
 
   const markPaid = async (id: string) => {
     const { error } = await supabase.from("commissions").update({
-      status: "pago", paid_at: new Date().toISOString(),
+      status: "paga",
+      workflow_status: "paga",
+      paid_at: new Date().toISOString(),
     }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Comissão paga"); qc.invalidateQueries({ queryKey: ["fin-commissions"] }); }
