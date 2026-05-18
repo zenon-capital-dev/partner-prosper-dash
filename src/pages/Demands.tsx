@@ -271,6 +271,7 @@ export default function Demands() {
         <TabsContent value="operacional" className="mt-0 space-y-4">
       <div className="space-y-4">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
+          <div className="relative flex-1 w-full lg:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input 
               placeholder="Buscar por cliente, empresa ou serviço..." 
