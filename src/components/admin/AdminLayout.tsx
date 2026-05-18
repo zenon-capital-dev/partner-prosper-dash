@@ -52,7 +52,7 @@ function AdminShell() {
   if (blocked) return <Navigate to="/admin" replace />;
 
   return (
-    <div className="min-h-screen flex w-full text-slate-900 bg-[#f7f8fb] admin-shell">
+    <div className="min-h-screen flex w-full text-slate-900 dark:text-slate-100 admin-shell">
         <div className="hidden md:block shrink-0">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
