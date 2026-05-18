@@ -13,7 +13,7 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
   return (
-    <header className="h-[60px] sm:h-[62px] px-3 sm:px-5 lg:px-7 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 shadow-[0_1px_0_rgba(15,23,42,0.02)]">
+    <header className="h-[60px] sm:h-[62px] px-3 sm:px-5 lg:px-7 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.03)]">
       <button
         type="button"
         onClick={onMenuClick}

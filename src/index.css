@@ -63,8 +63,8 @@
     --admin-sidebar-surface-strong: 224 38% 96%;
     --admin-sidebar-border: 220 13% 88%;
     --admin-sidebar-text: 222 47% 8%;
-    --admin-sidebar-muted: 220 12% 38%;
-    --admin-sidebar-heading: 222 47% 12%;
+    --admin-sidebar-muted: 222 20% 32%;
+    --admin-sidebar-heading: 222 47% 6%;
     --admin-sidebar-active: 231 72% 46%;
     --admin-sidebar-active-2: 217 80% 48%;
     --admin-sidebar-online: 154 76% 48%;
@@ -344,9 +344,12 @@
     color-scheme: light;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-weight: 450;
+    font-weight: 475;
+    letter-spacing: -0.01em;
   }
   .dark .admin-shell {
+    font-weight: 400;
+    letter-spacing: normal;
     --background: 224 32% 6%;
     --foreground: 220 14% 96%;
     --card: 224 28% 9%;
