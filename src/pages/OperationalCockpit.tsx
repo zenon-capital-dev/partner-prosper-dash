@@ -427,7 +427,7 @@ export default function OperationalCockpit() {
   return (
     <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up pb-20">
       <PageHeader 
-        eyebrow="Daily Control Center"
+        eyebrow="​"
         title="Alertas"
         description="Gestão diária de pendências e ações prioritárias."
         actions={
