@@ -40,8 +40,8 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
           onClick={onSearchClick}
           className="w-full h-10 pl-10 pr-3 bg-slate-50/80 hover:bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] rounded-lg text-[12.5px] flex items-center justify-between transition-all group relative"
         >
-          <Search className="absolute left-3.5 size-3.5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
-          <span className="font-medium text-slate-500 group-hover:text-slate-700 transition-colors truncate tracking-tight text-left">
+          <Search className="absolute left-3.5 size-3.5 text-slate-500 group-hover:text-indigo-600 transition-colors" />
+          <span className="font-bold text-slate-600 group-hover:text-slate-800 transition-colors truncate tracking-tight text-left">
             <span className="hidden sm:inline">Buscar clientes, demandas, contratos e documentos</span>
             <span className="sm:hidden">Buscar…</span>
           </span>

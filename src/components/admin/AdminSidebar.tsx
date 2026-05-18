@@ -114,13 +114,13 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13px] font-bold text-slate-900 leading-tight tracking-tight truncate">VendxCRM</p>
-                  <p className="text-[9.5px] font-bold text-indigo-600 leading-tight mt-0.5 truncate uppercase tracking-[0.14em]">
+                  <p className="text-[13px] font-bold text-slate-950 leading-tight tracking-tight truncate">VendxCRM</p>
+                  <p className="text-[9.5px] font-bold text-indigo-700 leading-tight mt-0.5 truncate uppercase tracking-[0.14em]">
                     {portalLabel}
                   </p>
                 </div>
               )}
-              {!collapsed && <ChevronDown className="size-3.5 text-slate-400 shrink-0 group-hover:text-slate-600 transition-colors" />}
+              {!collapsed && <ChevronDown className="size-3.5 text-slate-500 shrink-0 group-hover:text-slate-700 transition-colors" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
@@ -168,7 +168,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
           <div key={section.label}>
             {!collapsed ? (
               <div className="px-2.5 mb-2">
-                <span className="text-[9.5px] font-bold uppercase tracking-[0.22em] text-slate-400">
+                <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500/90">
                   {section.label}
                 </span>
               </div>
@@ -189,8 +189,8 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                       "group relative flex items-center rounded-[7px] text-[13px] font-semibold transition-all duration-150",
                       collapsed ? "justify-center mx-auto size-10" : "px-2.5 h-[34px] gap-2.5",
                       active
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
+                        ? "bg-indigo-50 text-indigo-800"
+                        : "text-slate-700 hover:text-slate-950 hover:bg-slate-100/60"
                     )}
                   >
                     {active && !collapsed && (
@@ -203,7 +203,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                       className={cn(
                         "shrink-0 transition-all",
                         collapsed ? "size-[18px]" : "size-[15px]",
-                        active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-700",
+                        active ? "text-indigo-700" : "text-slate-500 group-hover:text-slate-800",
                       )}
                       strokeWidth={active ? 2.4 : 2}
                     />
@@ -235,8 +235,8 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-semibold text-slate-900 truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] text-slate-500 truncate leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12.5px] font-bold text-slate-950 truncate leading-tight">{displayName}</p>
+                    <p className="text-[10.5px] font-medium text-slate-600 truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
                   <ChevronDown className="size-3.5 text-slate-400 shrink-0 group-hover:text-slate-600 transition-colors" />
                 </>

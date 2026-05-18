@@ -62,9 +62,9 @@
     --admin-sidebar-surface: 220 20% 98%;
     --admin-sidebar-surface-strong: 224 38% 96%;
     --admin-sidebar-border: 220 13% 88%;
-    --admin-sidebar-text: 222 28% 22%;
-    --admin-sidebar-muted: 220 9% 46%;
-    --admin-sidebar-heading: 220 12% 48%;
+    --admin-sidebar-text: 222 47% 8%;
+    --admin-sidebar-muted: 220 12% 38%;
+    --admin-sidebar-heading: 222 47% 12%;
     --admin-sidebar-active: 231 72% 46%;
     --admin-sidebar-active-2: 217 80% 48%;
     --admin-sidebar-online: 154 76% 48%;
@@ -180,7 +180,7 @@
   html { color-scheme: light; }
   html.dark { color-scheme: dark; }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'ss03';
     -webkit-font-smoothing: antialiased;
@@ -245,7 +245,7 @@
     @apply w-full text-left text-[13px];
   }
   .vx-table-head {
-    @apply bg-muted/40 border-b border-border text-[10.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+    @apply bg-muted/40 border-b border-border text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground/90;
   }
   .vx-table-row {
     @apply border-b border-border/60 transition-colors hover:bg-muted/30 last:border-0;
@@ -323,7 +323,7 @@
     --secondary: 220 16% 95%;
     --secondary-foreground: 222 40% 14%;
     --muted: 220 14% 94%;
-    --muted-foreground: 220 9% 40%;
+    --muted-foreground: 220 12% 32%;
     --accent: 217 80% 96%;
     --accent-foreground: 231 72% 34%;
     --border: 220 13% 88%;
@@ -344,6 +344,7 @@
     color-scheme: light;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-weight: 450;
   }
   .dark .admin-shell {
     --background: 224 32% 6%;
