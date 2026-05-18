@@ -392,21 +392,24 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
 }
 
 // -------------------- Reports --------------------
-function Reports({ payments, commissions }: { payments: any[]; commissions: any[] }) {
+ function Reports({ payments, commissions }: { payments: any[]; commissions: any[] }) {
   const monthly = useMemo(() => {
-    const map: Record<string, { label: string; receita: number; comissao: number }> = {};
+    const map: Record<string, { label: string; receita: number; comissao: number; liquida: number }> = {};
     for (let i = 5; i >= 0; i--) {
       const d = new Date(); d.setMonth(d.getMonth() - i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      map[key] = { label: key, receita: 0, comissao: 0 };
+      map[key] = { label: key, receita: 0, comissao: 0, liquida: 0 };
     }
     payments.filter((p: any) => p.status === "pago").forEach((p: any) => {
       const key = (p.paid_at || "").slice(0, 7);
       if (map[key]) map[key].receita += Number(p.amount_paid || p.amount || 0);
     });
-    commissions.filter((c: any) => c.status === "pago").forEach((c: any) => {
+    commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga").forEach((c: any) => {
       const key = (c.paid_at || "").slice(0, 7);
       if (map[key]) map[key].comissao += Number(c.amount || 0);
+    });
+    Object.keys(map).forEach(k => {
+      map[k].liquida = map[k].receita - map[k].comissao;
     });
     return Object.values(map);
   }, [payments, commissions]);
