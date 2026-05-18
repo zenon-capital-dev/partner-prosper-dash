@@ -161,6 +161,42 @@ export default function Documents() {
     refetch();
   };
 
+  const deleteDoc = async (doc: any) => {
+    if (!confirm(`Excluir definitivamente o documento "${doc.name}"? Esta ação não pode ser desfeita.`)) return;
+    // Remove arquivos do storage (versão atual + versões antigas)
+    const paths: string[] = [];
+    if (doc.file_path) paths.push(doc.file_path);
+    const { data: versions } = await supabase.from("document_versions").select("file_path").eq("document_id", doc.id);
+    (versions ?? []).forEach((v: any) => { if (v.file_path) paths.push(v.file_path); });
+    if (paths.length > 0) await supabase.storage.from("documents").remove(paths);
+    const { error } = await supabase.from("documents").delete().eq("id", doc.id);
+    if (error) return toast.error(error.message);
+    logAudit("DOCUMENT_DELETE" as any, "documents", doc.id, { name: doc.name });
+    toast.success("Documento excluído");
+    refetch();
+  };
+
+  const openHistory = async (doc: any) => {
+    setHistoryDoc(doc);
+    setHistoryVersions([]);
+    setHistoryAudit([]);
+    const [{ data: versions }, { data: audit }] = await Promise.all([
+      supabase.from("document_versions").select("*").eq("document_id", doc.id).order("version_number", { ascending: false }),
+      supabase.from("activity_logs").select("id, action, new_data, old_data, created_at, user_id")
+        .eq("entity_type", "documents").eq("entity_id", doc.id).order("created_at", { ascending: false }).limit(50),
+    ]);
+    setHistoryVersions(versions ?? []);
+    setHistoryAudit(audit ?? []);
+  };
+
+  const downloadVersion = async (filePath: string, fileName: string) => {
+    const { data, error } = await supabase.storage.from("documents").download(filePath);
+    if (error) return toast.error(error.message);
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url; a.download = fileName; a.click();
+  };
+
   const openActionDialog = (mode: ActionMode, doc: any) => {
     setActionMode(mode);
     setActionDoc(doc);
