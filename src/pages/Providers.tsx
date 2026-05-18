@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Briefcase, Plus, Search, ArrowUpRight, Star, Users2, Package, ClipboardCheck,
   Mail, Phone, Link2, Pencil, LayoutGrid, List, Power, MoreHorizontal,
-  CheckCircle2, AlertCircle, TrendingUp,
+  CheckCircle2, AlertCircle, TrendingUp, Trash2,
 } from "lucide-react";
+import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
