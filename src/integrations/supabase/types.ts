@@ -4084,7 +4084,28 @@ export type Database = {
         | "lead"
       beneficiary_type: "partner" | "referrer" | "collaborator"
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
-      client_status: "ativo" | "inativo" | "prospecto"
+      client_status:
+        | "ativo"
+        | "inativo"
+        | "prospecto"
+        | "novo_cliente"
+        | "aguardando_atendimento"
+        | "aguardando_documentos"
+        | "documentos_enviados"
+        | "documentos_analise"
+        | "documentos_aprovados"
+        | "documentos_reprovados"
+        | "aguardando_contrato"
+        | "contrato_enviado"
+        | "contrato_assinado"
+        | "pagamento_pendente"
+        | "pagamento_parcial"
+        | "pagamento_confirmado"
+        | "em_andamento"
+        | "aguardando_terceiro"
+        | "finalizado"
+        | "cancelado"
+        | "reembolso"
       comment_visibility:
         | "internal"
         | "provider"
@@ -4306,7 +4327,29 @@ export const Constants = {
       ],
       beneficiary_type: ["partner", "referrer", "collaborator"],
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
-      client_status: ["ativo", "inativo", "prospecto"],
+      client_status: [
+        "ativo",
+        "inativo",
+        "prospecto",
+        "novo_cliente",
+        "aguardando_atendimento",
+        "aguardando_documentos",
+        "documentos_enviados",
+        "documentos_analise",
+        "documentos_aprovados",
+        "documentos_reprovados",
+        "aguardando_contrato",
+        "contrato_enviado",
+        "contrato_assinado",
+        "pagamento_pendente",
+        "pagamento_parcial",
+        "pagamento_confirmado",
+        "em_andamento",
+        "aguardando_terceiro",
+        "finalizado",
+        "cancelado",
+        "reembolso",
+      ],
       comment_visibility: ["internal", "provider", "client", "system", "admin"],
       commission_status: ["pendente", "pago", "cancelado"],
       commission_status_enum: [
