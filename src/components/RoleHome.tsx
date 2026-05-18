@@ -9,14 +9,21 @@ function RoleClientRedirect() {
   const { data: client, isLoading } = useQuery({
     queryKey: ["client-redirect-check", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      if (!user?.id) return null;
+      const { data, error } = await supabase
         .from("clients")
         .select("onboarding_status")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .maybeSingle();
+      
+      if (error) {
+        console.error("[RoleClientRedirect] Error checking onboarding:", error);
+        return null;
+      }
       return data;
     },
-    enabled: !!user
+    enabled: !!user?.id,
+    staleTime: 0, // Always check fresh for redirection
   });
 
   if (isLoading) return <LoadingScreen message="Redirecionando..." />;

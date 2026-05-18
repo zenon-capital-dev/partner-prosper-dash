@@ -113,27 +113,48 @@ export default function ClientPanel() {
     retry: 1,
   });
 
-  if (isLoading) return <div className="p-20 text-center animate-pulse"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>;
-
-  if (error) return (
-    <div className="min-h-[70vh] flex items-center justify-center p-8">
-      <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white">
-        <AlertCircle className="size-12 text-rose-500 mx-auto mb-6" />
-        <h2 className="font-display text-2xl font-bold mb-3">Erro ao carregar painel</h2>
-        <p className="text-sm text-muted-foreground mb-6">{(error as any)?.message ?? "Tente recarregar a página."}</p>
-        <Button onClick={() => window.location.reload()}>Recarregar</Button>
+  if (isLoading) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
+      <div className="text-center space-y-4 animate-pulse">
+        <Loader2 className="size-10 animate-spin mx-auto text-primary/30" />
+        <p className="text-sm font-medium text-slate-400 tracking-wide uppercase">Carregando seu portal...</p>
       </div>
     </div>
   );
+
+  if (error) {
+    console.error("[ClientPanel] Render error:", error);
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 bg-slate-50">
+        <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white border border-slate-100 rounded-[40px]">
+          <div className="size-16 rounded-3xl bg-rose-50 flex items-center justify-center text-rose-500 mx-auto mb-6">
+            <AlertCircle className="size-8" />
+          </div>
+          <h2 className="font-editorial text-2xl font-bold mb-3 text-slate-900">Ops! Algo deu errado</h2>
+          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            Não conseguimos carregar suas informações agora. Por favor, tente recarregar a página ou contate o suporte.
+          </p>
+          <Button onClick={() => window.location.reload()} className="h-12 rounded-2xl px-8 bg-slate-900 shadow-xl">
+            Tentar Novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   if (!data) return (
-    <div className="min-h-[70vh] flex items-center justify-center p-8 bg-premium">
-      <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white/40 backdrop-blur-xl border-white/20">
-        <Inbox className="size-12 text-primary/30 mx-auto mb-6" />
-        <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3">Sua experiência está sendo preparada</h2>
-        <p className="text-muted-foreground leading-relaxed">
-          Nossa equipe está configurando seu acesso personalizado. <br/>Em breve você terá acesso a todo o seu ecossistema.
+    <div className="min-h-screen flex items-center justify-center p-8 bg-premium">
+      <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white border border-white/20 rounded-[40px]">
+        <div className="size-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
+          <Inbox className="size-8" />
+        </div>
+        <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3 text-slate-900">Preparando seu acesso</h2>
+        <p className="text-slate-500 leading-relaxed mb-8">
+          Nossa equipe está finalizando a configuração da sua conta. Em breve você terá acesso total ao seu ecossistema.
         </p>
+        <div className="h-1 w-24 bg-primary/10 mx-auto rounded-full overflow-hidden">
+          <div className="h-full bg-primary animate-[loading_2s_infinite]" />
+        </div>
       </div>
     </div>
   );
