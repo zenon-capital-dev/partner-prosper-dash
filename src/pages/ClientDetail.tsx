@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { CompanyFormDialog } from "@/components/clients/CompanyFormDialog";
+import { CompanyContactsManager } from "@/components/clients/CompanyContactsManager";
 import { confirmAction } from "@/lib/confirm";
 import { ClientOverview } from "@/components/clients/tabs/ClientOverview";
 import { ClientProducts } from "@/components/clients/tabs/ClientProducts";
