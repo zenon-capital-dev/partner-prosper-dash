@@ -314,20 +314,20 @@ export default function Finance() {
           </div>
         </div>
 
-        <div className="vx-card p-6 bg-slate-900 text-white border-slate-900">
+        <div className="vx-card p-6 bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20">
            <div className="flex items-center justify-between mb-8">
               <PiggyBank className="size-10 text-primary" />
-              <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-[0.2em] text-[9px]">Live Status</Badge>
+              <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-[0.2em] text-[9px]">Status em Tempo Real</Badge>
            </div>
-           <h3 className="font-editorial text-2xl font-bold mb-2">Liquidez Imediata</h3>
-           <p className="text-xs text-white/50 leading-relaxed mb-6">Considerando todas as comissões pagas e despesas liquidadas no período selecionado.</p>
+           <h3 className="text-2xl font-bold mb-2 tracking-tight">Liquidez Atual</h3>
+           <p className="text-xs text-white/50 leading-relaxed mb-6">Saldo disponível após todas as comissões pagas e despesas liquidadas no período.</p>
            <div className="space-y-4 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between">
                  <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Saldo em Caixa</span>
                  <span className="text-lg font-bold tabular-nums text-white">{formatBRL(kpis.profit)}</span>
               </div>
               <div className="flex items-center justify-between">
-                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Comprometido</span>
+                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Previsão de Saída</span>
                  <span className="text-xs font-bold tabular-nums text-warning">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</span>
               </div>
            </div>
