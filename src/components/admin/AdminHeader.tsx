@@ -4,7 +4,7 @@ import { InternalChat } from "@/components/chat/InternalChat";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
 import { EnvBadge } from "@/components/EnvBadge";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ThemeToggle } from "@/components/ThemeToggle";
+// ThemeToggle removido do admin: painel forçado em tema claro premium SaaS B2B.
 
 interface AdminHeaderProps {
   onSearchClick: () => void;
