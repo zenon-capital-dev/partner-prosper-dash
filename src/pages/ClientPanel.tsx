@@ -63,10 +63,10 @@ export default function ClientPanel() {
     a.remove();
   };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["client-panel", user?.id],
     queryFn: async () => {
-      const { data: client } = await supabase
+      const { data: client, error: clientErr } = await supabase
         .from("clients")
         .select(`
           id, full_name, email, phone, company, status, created_at, onboarding_status, onboarding_progress,
@@ -74,35 +74,57 @@ export default function ClientPanel() {
         `)
         .eq("user_id", user!.id)
         .maybeSingle();
+      if (clientErr) {
+        console.error("[ClientPanel] erro ao buscar cliente:", clientErr);
+      }
       if (!client) return null;
 
+      // Primeiro: buscar IDs de produtos do cliente uma única vez
+      const { data: productIdRows } = await supabase
+        .from("client_products")
+        .select("id")
+        .eq("client_id", client.id);
+      const productIds = (productIdRows ?? []).map((p: any) => p.id);
+
+      // Helpers tolerantes a falhas — uma sub-query quebrada não derruba o painel
+      const safe = async (builder: any): Promise<any[]> => {
+        try { const r = await builder; return (r?.data ?? []) as any[]; }
+        catch (e) { console.error("[ClientPanel] sub-query falhou:", e); return []; }
+      };
+
       const [docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries] = await Promise.all([
-        supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
-        supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true),
-        supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false }),
-        supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false }),
-        supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false }),
-        supabase.from("client_products").select("id, client_id, product_id, custom_product_name, status, value, custom_value, discount, priority, sla_start_date, sla_due_date, sla_status, is_sla_frozen, deadline, start_date, end_date, current_step_id, current_steps, notes, adjustment_description, adjustment_due_date, delay_reason, created_at, updated_at, company_id, service_provider_id, responsible_provider_id, products(name, description), companies(id, name, trade_name)").eq("client_id", client.id).order("created_at", { ascending: false }),
-        supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
-        supabase.from("demand_deliveries").select("*, client_products(id, products(name))").in("client_product_id", (await supabase.from("client_products").select("id").eq("client_id", client.id)).data?.map(p => p.id) || []).order("created_at", { ascending: false }),
+        safe(supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false })),
+        safe(supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true)),
+        safe(supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false })),
+        safe(supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false })),
+        safe(supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false })),
+        safe(supabase.from("client_products").select("id, client_id, product_id, custom_product_name, status, value, custom_value, discount, priority, sla_start_date, sla_due_date, sla_status, is_sla_frozen, deadline, start_date, end_date, current_step_id, current_steps, notes, adjustment_description, adjustment_due_date, delay_reason, created_at, updated_at, company_id, service_provider_id, responsible_provider_id, products(name, description), companies(id, name, trade_name)").eq("client_id", client.id).order("created_at", { ascending: false })),
+        productIds.length > 0
+          ? safe(supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", productIds).order("created_at", { ascending: false }))
+          : Promise.resolve([] as any[]),
+        productIds.length > 0
+          ? safe(supabase.from("demand_deliveries").select("*, client_products(id, products(name))").in("client_product_id", productIds).order("created_at", { ascending: false }))
+          : Promise.resolve([] as any[]),
       ]);
 
-      return {
-        client,
-        docs: docs.data ?? [],
-        catalog: catalog.data ?? [],
-        requests: requests.data ?? [],
-        contracts: contracts.data ?? [],
-        payments: payments.data ?? [],
-        granularProducts: granularProducts.data ?? [],
-        reports: reports.data ?? [],
-        formalDeliveries: formalDeliveries.data ?? [],
-      };
+      return { client, docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries };
     },
     enabled: !!user,
+    retry: 1,
   });
 
   if (isLoading) return <div className="p-20 text-center animate-pulse"><Loader2 className="size-8 animate-spin mx-auto text-primary/20" /></div>;
+
+  if (error) return (
+    <div className="min-h-[70vh] flex items-center justify-center p-8">
+      <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white">
+        <AlertCircle className="size-12 text-rose-500 mx-auto mb-6" />
+        <h2 className="font-display text-2xl font-bold mb-3">Erro ao carregar painel</h2>
+        <p className="text-sm text-muted-foreground mb-6">{(error as any)?.message ?? "Tente recarregar a página."}</p>
+        <Button onClick={() => window.location.reload()}>Recarregar</Button>
+      </div>
+    </div>
+  );
   
   if (!data) return (
     <div className="min-h-[70vh] flex items-center justify-center p-8 bg-premium">
