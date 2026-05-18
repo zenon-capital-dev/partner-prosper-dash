@@ -401,6 +401,7 @@ export default function ProviderPanel() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12 flex-wrap">
                 <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Home</TabsTrigger>
+                <TabsTrigger value="atuacao" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Atuação</TabsTrigger>
                 <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
                 <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
                 <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Documentos ({documents.length})</TabsTrigger>
