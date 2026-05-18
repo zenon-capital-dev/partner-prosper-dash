@@ -593,6 +593,14 @@ export default function ClientDetail() {
         client={client} 
       />
 
+      <CompanyFormDialog
+        open={companyOpen}
+        onOpenChange={(v) => { setCompanyOpen(v); if (!v) setEditingCompany(null); }}
+        clientId={id!}
+        company={editingCompany}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["client-companies", id] })}
+      />
+
       <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
         <DialogContent>
           <DialogHeader>
