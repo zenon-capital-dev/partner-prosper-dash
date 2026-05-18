@@ -511,6 +511,10 @@ export default function ProviderPanel() {
               </div>
             </TabsContent>
 
+            <TabsContent value="atuacao" className="outline-none animate-fade-up">
+              <ProviderAtuacao providerId={providerId!} clientProducts={clientProducts} />
+            </TabsContent>
+
             <TabsContent value="por-cliente" className="space-y-6 outline-none animate-fade-up">
               {groupedByClient.length === 0 ? (
                 <EmptyState message="Nenhum cliente delegado." />
