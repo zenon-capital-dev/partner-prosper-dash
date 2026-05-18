@@ -139,9 +139,10 @@ export default function Finance() {
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
     const commissionsTotal = splits.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsPaid = splits.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const profit = revenue - commissionsTotal - expensesTotal;
+    const netCommission = revenue - commissionsTotal;
+    const profit = netCommission - expensesTotal;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { revenue, expensesTotal, commissionsPaid, commissionsTotal, profit, margin };
+    return { revenue, expensesTotal, commissionsPaid, commissionsTotal, profit, margin, netCommission };
   }, [sales, expenses, splits]);
 
   // Group data for charts
