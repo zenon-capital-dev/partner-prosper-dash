@@ -472,21 +472,36 @@ export default function ClientDetail() {
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <Building2 className="size-4 text-primary" /> Empresas vinculadas
                 </h3>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.info("Cadastro de empresa em breve — use Editar Cadastro para registrar a empresa principal.")}>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => { setEditingCompany(null); setCompanyOpen(true); }}>
                   <Plus className="size-4" /> Adicionar empresa
                 </Button>
               </div>
               {companies.length === 0 ? (
                 <div className="p-8 text-center text-sm text-muted-foreground border border-dashed border-border/40 rounded-xl">
-                  Nenhuma empresa vinculada. {client.company ? `Razão social principal: ${client.company}` : "Cadastre a empresa principal pelo botão Editar Cadastro."}
+                  Nenhuma empresa vinculada. {client.company ? `Razão social principal: ${client.company}` : "Clique em \"Adicionar empresa\" para cadastrar."}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {companies.map((co: any) => (
-                    <div key={co.id} className="p-4 rounded-xl border border-border/40 bg-muted/20 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="size-4 text-primary" />
-                        <p className="font-bold text-sm truncate">{co.name}</p>
+                    <div key={co.id} className="group p-4 rounded-xl border border-border/40 bg-muted/20 space-y-1 hover:border-primary/40 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Building2 className="size-4 text-primary shrink-0" />
+                          <p className="font-bold text-sm truncate">{co.name}</p>
+                        </div>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button size="icon" variant="ghost" className="size-7" onClick={() => { setEditingCompany(co); setCompanyOpen(true); }}>
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={async () => {
+                            if (!(await confirmAction("Remover esta empresa?"))) return;
+                            const { error } = await supabase.from("companies").delete().eq("id", co.id);
+                            if (error) toast.error(error.message);
+                            else { toast.success("Empresa removida"); qc.invalidateQueries({ queryKey: ["client-companies", id] }); }
+                          }}>
+                            <Info className="size-3.5 rotate-180" />
+                          </Button>
+                        </div>
                       </div>
                       {co.trade_name && <p className="text-xs text-muted-foreground truncate">{co.trade_name}</p>}
                       {co.document && <p className="text-[11px] font-mono text-muted-foreground">{formatDoc(co.document)}</p>}
