@@ -775,26 +775,37 @@ export default function DashboardAdmin() {
           {/* Activity feed */}
           <Card className="lg:col-span-4">
             <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Histórico</Link>} />
-            <div className="relative">
+            <div className="relative mt-2">
               {stats.recentActivity.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {stats.recentActivity.map((act, idx) => (
-                    <div key={act.id} className="relative pl-6">
-                      <div className={cn("absolute left-0.5 top-1 size-2.5 rounded-full ring-4 ring-white", toneColor[act.tone].bg)}>
-                        <div className={cn("size-1 rounded-full mx-auto mt-0.5", toneColor[act.tone].text.replace("text-", "bg-"))} />
-                      </div>
+                    <div key={act.id} className="group relative pl-8 pb-4 last:pb-0">
+                      {/* Timeline Line */}
                       {idx !== stats.recentActivity.length - 1 && (
-                        <div className="absolute left-[7px] top-3.5 bottom-[-12px] w-px bg-slate-200" />
+                        <div className="absolute left-[11px] top-7 bottom-0 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors" />
                       )}
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[11px] font-semibold text-slate-800 truncate">{act.title}</p>
-                        <span className="text-[9px] text-slate-600 tabular-nums shrink-0">{new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+                      
+                      {/* Icon / Marker */}
+                      <div className={cn(
+                        "absolute left-0 top-1 size-[22px] rounded-lg flex items-center justify-center border shadow-sm transition-all group-hover:scale-110",
+                        toneColor[act.tone].bg, toneColor[act.tone].border, toneColor[act.tone].text
+                      )}>
+                        <act.icon className="size-3" strokeWidth={2.5} />
                       </div>
-                      <p className="text-[10px] text-slate-800 truncate">{act.sub}</p>
+
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[11.5px] font-bold text-slate-950 leading-tight">{act.title}</p>
+                          <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 tabular-nums">
+                            {new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} · {new Date(act.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-[10.5px] text-slate-600 line-clamp-1 group-hover:text-slate-900 transition-colors">{act.sub}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
-              ) : <Empty label="Sem atividade recente" />}
+              ) : <Empty label="Sem atividade no período selecionado" />}
             </div>
           </Card>
         </section>
