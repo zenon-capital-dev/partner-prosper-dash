@@ -556,6 +556,7 @@ export default function Tasks() {
                 </Select>
               </div>
             </div>
+            {editing && <TaskDetailsExtras taskId={editing.id} />}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setCreateOpen(false); resetForm(); }}>Cancelar</Button>
