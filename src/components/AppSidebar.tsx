@@ -49,7 +49,7 @@ const adminSections: NavSection[] = [
     items: [{ title: "Clientes", url: "/clientes", icon: Users }],
   },
   {
-    label: "Operação",
+    label: "​​",
     items: [
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ListChecks },
@@ -124,7 +124,7 @@ const clientSections: NavSection[] = [
 
 const prestadorSections: NavSection[] = [
   {
-    label: "Operação",
+    label: "​​",
     items: [
       { title: "Dashboard", url: "/prestador", icon: LayoutDashboard },
       { title: "Por Cliente", url: "/prestador/por-cliente", icon: Users },
@@ -209,7 +209,7 @@ export function AppSidebar() {
     : showPrestador ? "Prestador"
     : showClient ? "Cliente"
     : showReferrer ? "Indicador"
-    : "Operações";
+    : "​​";
 
   const portalTitle = showAdmin ? "Admin"
     : showPartner ? "Parceiro"
