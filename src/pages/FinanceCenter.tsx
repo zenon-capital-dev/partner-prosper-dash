@@ -435,9 +435,15 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
       <div className="rounded-lg border bg-card p-6 space-y-3">
         <h3 className="text-base font-semibold">Resumo geral</h3>
         {monthly.map((m, i) => (
-          <div key={i} className="flex justify-between text-sm border-b pb-2">
-            <span>{m.label}</span>
-            <span className="text-muted-foreground">Receita {formatBRL(m.receita)} · Comissão {formatBRL(m.comissao)}</span>
+          <div key={i} className="flex justify-between items-center text-sm border-b py-3 hover:bg-muted/30 px-2 transition-colors">
+            <span className="font-medium">{m.label}</span>
+            <div className="text-right">
+               <div className="flex gap-4 text-xs">
+                 <span className="text-muted-foreground">Receita: {formatBRL(m.receita)}</span>
+                 <span className="text-destructive/70">Comissão: {formatBRL(m.comissao)}</span>
+               </div>
+               <div className="font-bold text-emerald-600 mt-1">Líquida: {formatBRL(m.liquida)}</div>
+            </div>
           </div>
         ))}
       </div>
