@@ -6,12 +6,17 @@ import {
   Plus, ArrowUpRight, Phone, CalendarClock, AlertTriangle, Bell,
   FileText, ChevronRight, Crown, Briefcase, ClipboardList, Sparkles,
   Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter, Zap,
+  Calendar as CalendarIcon, Wallet, TrendingUp as TrendUp,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, RadialBarChart, RadialBar, PolarAngleAxis,
