@@ -199,6 +199,30 @@ function PaymentsTable({
     else { toast.success("Pagamento confirmado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
   };
 
+  const cancelPayment = async (id: string) => {
+    const reason = window.prompt("Motivo do cancelamento (opcional):") ?? "";
+    const { error } = await supabase.from("payments").update({
+      status: "cancelado",
+      cancellation_reason: reason || null,
+    }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Pagamento cancelado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
+  };
+
+  const refundPayment = async (id: string, amount: number) => {
+    const input = window.prompt(`Valor a reembolsar (máx ${amount}):`, String(amount));
+    if (!input) return;
+    const refund = Number(input);
+    if (!Number.isFinite(refund) || refund <= 0) return toast.error("Valor inválido");
+    const { error } = await supabase.from("payments").update({
+      status: "reembolsado",
+      refunded_at: new Date().toISOString(),
+      refund_amount: refund,
+    }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Reembolso registrado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -260,14 +284,26 @@ function PaymentsTable({
                   <td className="px-4 py-3 text-xs">{p.is_recurring ? (p.recurrence_period ?? "Sim") : "—"}</td>
                   <td className="px-4 py-3"><Badge className={cn("font-normal", meta.cls)}>{meta.label}</Badge></td>
                   <td className="px-4 py-3 text-right">
-                    {p._status !== "pago" && p._status !== "cancelado" && (
-                      <Button size="sm" variant="outline" onClick={() => markPaid(p.id, p.amount)}>
-                        <CheckCircle2 className="h-3 w-3 mr-1" /> Confirmar
-                      </Button>
-                    )}
-                    {p.receipt_url && (
-                      <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-primary ml-2 underline">Comprovante</a>
-                    )}
+                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                      {p._status !== "pago" && p._status !== "cancelado" && p._status !== "reembolsado" && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => markPaid(p.id, p.amount)}>
+                            <CheckCircle2 className="h-3 w-3 mr-1" /> Confirmar
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={() => cancelPayment(p.id)}>
+                            Cancelar
+                          </Button>
+                        </>
+                      )}
+                      {p._status === "pago" && (
+                        <Button size="sm" variant="ghost" className="text-indigo-600 hover:text-indigo-700" onClick={() => refundPayment(p.id, p.amount)}>
+                          Reembolsar
+                        </Button>
+                      )}
+                      {p.receipt_url && (
+                        <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">Comprovante</a>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
