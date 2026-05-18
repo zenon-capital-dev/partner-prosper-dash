@@ -447,6 +447,9 @@ export default function Clients() {
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}>
                             <Eye className="size-3.5 mr-2" /> Ver perfil
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(c)}>
+                            <Pencil className="size-3.5 mr-2" /> Editar cadastro
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}>
                             <CreditCard className="size-3.5 mr-2" /> Financeiro
                           </DropdownMenuItem>
@@ -454,6 +457,9 @@ export default function Clients() {
                             <FileText className="size-3.5 mr-2" /> Documentos
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleArchive(c)}>
+                            {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive">
                             <Trash2 className="size-3.5 mr-2" /> Excluir
                           </DropdownMenuItem>
