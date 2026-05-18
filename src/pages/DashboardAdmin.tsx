@@ -633,38 +633,48 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-5">
             <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Ver tudo</Link>} />
             <div className="overflow-hidden -mx-1">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
                 <thead>
-                  <tr className="text-[9.5px] uppercase tracking-widest text-slate-800 font-bold">
-                    <th className="text-left py-2 px-2 font-bold">Cliente</th>
-                    <th className="text-left py-2 px-2 font-bold">Data</th>
-                    <th className="text-right py-2 px-2 font-bold">Valor</th>
-                    <th className="text-right py-2 px-2 font-bold">Status</th>
+                  <tr className="text-[9.5px] uppercase tracking-[0.12em] text-slate-400 font-black">
+                    <th className="text-left pb-2 px-2">Cliente</th>
+                    <th className="text-left pb-2 px-2">Data</th>
+                    <th className="text-right pb-2 px-2">Valor</th>
+                    <th className="text-right pb-2 px-2">Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="space-y-1">
                   {stats.recentSales.length > 0 ? stats.recentSales.map((s: any) => (
-                    <tr key={s.id} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="py-2.5 px-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="size-6 rounded-md bg-gradient-to-br from-indigo-500/15 to-indigo-600/15 border border-indigo-500/20 flex items-center justify-center text-[9px] font-bold text-indigo-700">
+                    <tr key={s.id} className="group hover:bg-slate-50/80 transition-all duration-200">
+                      <td className="py-2.5 px-2 rounded-l-xl border-y border-l border-transparent group-hover:border-slate-100">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
                             {s.clientName.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-slate-800 font-medium truncate max-w-[120px]">{s.clientName}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[11.5px] text-slate-900 font-bold truncate max-w-[140px] leading-tight">{s.clientName}</span>
+                            <span className="text-[9.5px] text-slate-400 leading-none mt-0.5">ID: {s.id.slice(0, 8).toUpperCase()}</span>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-2.5 px-2 text-slate-800 tabular-nums">
+                      <td className="py-2.5 px-2 border-y border-transparent group-hover:border-slate-100 text-slate-600 font-medium tabular-nums">
                         {s.sale_date ? new Date(s.sale_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—"}
                       </td>
-                      <td className="py-2.5 px-2 text-right text-slate-950 font-semibold tabular-nums">{formatBRL(s.amount)}</td>
-                      <td className="py-2.5 px-2 text-right">
-                        <span className={cn("text-[9.5px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider", s.status === "pago" ? "bg-emerald-500/10 text-emerald-800 border-emerald-500/25" : "bg-amber-500/10 text-amber-800 border-amber-500/25")}>
+                      <td className="py-2.5 px-2 border-y border-transparent group-hover:border-slate-100 text-right text-indigo-900 font-black tabular-nums tracking-tight">
+                        {formatBRL(s.amount)}
+                      </td>
+                      <td className="py-2.5 px-2 rounded-r-xl border-y border-r border-transparent group-hover:border-slate-100 text-right">
+                        <span className={cn(
+                          "text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest", 
+                          s.status === "concluida" || s.status === "pago"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100" 
+                            : "bg-amber-50 text-amber-700 border border-amber-100"
+                        )}>
                           {s.status || "pendente"}
                         </span>
                       </td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={4}><Empty label="Nenhuma venda registrada" /></td></tr>
+                    <tr><td colSpan={4}><Empty label="Sem registros no período" /></td></tr>
                   )}
                 </tbody>
               </table>
