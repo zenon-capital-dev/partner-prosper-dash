@@ -104,7 +104,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     const clientId = propClientId || selectedClientId;
     if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do documento é obrigatório"); return; }
-    
+    if (!form.client_product_id || form.client_product_id === "none") {
+      toast.error("Selecione a demanda/produto vinculado (obrigatório)");
+      return;
+    }
+
     setSubmitting(true);
 
     let file_path = editDoc?.file_path || null;
@@ -118,6 +122,24 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       const path = `${clientId}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
       if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
+
+      // Versionamento: ao reenviar, arquiva o arquivo anterior em document_versions
+      if (editDoc?.id && editDoc.file_path) {
+        const { count } = await supabase
+          .from("document_versions")
+          .select("id", { count: "exact", head: true })
+          .eq("document_id", editDoc.id);
+        await supabase.from("document_versions").insert({
+          document_id: editDoc.id,
+          version_number: (count ?? 0) + 1,
+          file_path: editDoc.file_path,
+          file_size: editDoc.file_size,
+          mime_type: editDoc.mime_type,
+          uploaded_by: editDoc.uploaded_by,
+          note: "Versão substituída por novo upload",
+        });
+      }
+
       file_path = path;
       file_size = file.size;
       mime_type = file.type;
@@ -130,7 +152,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       name: form.name,
       description: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
-      client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
+      client_product_id: form.client_product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       is_required: form.is_required ?? true,
@@ -143,13 +165,13 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       uploaded_at,
     };
 
-    const { error } = editDoc 
+    const { error } = editDoc
       ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
       : await supabase.from("documents").insert(payload);
 
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
-    
+
     toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : "Documento solicitado ao cliente"));
     onSuccess?.();
     onOpenChange(false);
