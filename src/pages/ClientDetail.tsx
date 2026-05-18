@@ -8,7 +8,7 @@ import {
   History, Info, CreditCard, Sparkles, AlertCircle,
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
-  ChevronRight, Phone, Mail, Globe, MapPin, 
+  ChevronRight, Phone, Mail, Globe, MapPin, Trash2,
   Wallet, PieChart, Star, Users, CalendarClock
 } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
