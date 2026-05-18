@@ -329,10 +329,10 @@ export default function Sales() {
                   <Td><StatusPill status={s.status} /></Td>
                   <Td>
                     <div className="min-w-0">
-                      <p className="font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
+                      <p className="font-bold text-slate-950 truncate cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
                         {s.clients?.full_name ?? "—"}
                       </p>
-                      <p className="text-[11px] text-muted-foreground/60 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                      <p className="text-[11px] font-bold text-slate-500 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
                     </div>
                   </Td>
                   <Td>
