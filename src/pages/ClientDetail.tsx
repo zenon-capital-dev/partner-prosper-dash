@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { CompanyFormDialog } from "@/components/clients/CompanyFormDialog";
+import { CompanyContactsManager } from "@/components/clients/CompanyContactsManager";
 import { confirmAction } from "@/lib/confirm";
 import { ClientOverview } from "@/components/clients/tabs/ClientOverview";
 import { ClientProducts } from "@/components/clients/tabs/ClientProducts";
@@ -508,6 +509,7 @@ export default function ClientDetail() {
                       {(co.address_city || co.address_state) && (
                         <p className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="size-3" /> {co.address_city}{co.address_state ? ` / ${co.address_state}` : ""}</p>
                       )}
+                      <CompanyContactsManager companyId={co.id} />
                     </div>
                   ))}
                 </div>
