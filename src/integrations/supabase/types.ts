@@ -277,6 +277,66 @@ export type Database = {
           },
         ]
       }
+      client_interactions: {
+        Row: {
+          channel: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          done_at: string | null
+          id: string
+          next_action_at: string | null
+          next_action_note: string | null
+          occurred_at: string
+          status: string
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          id?: string
+          next_action_at?: string | null
+          next_action_note?: string | null
+          occurred_at?: string
+          status?: string
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          id?: string
+          next_action_at?: string | null
+          next_action_note?: string | null
+          occurred_at?: string
+          status?: string
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_interactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_product_delays: {
         Row: {
           client_product_id: string | null

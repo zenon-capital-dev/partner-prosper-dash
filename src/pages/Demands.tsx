@@ -31,6 +31,9 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { DailyAgenda } from "@/components/demands/DailyAgenda";
+import { CalendarDays } from "lucide-react";
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
@@ -245,6 +248,27 @@ export default function Demands() {
         ]}
       />
 
+      <Tabs defaultValue="agenda" className="space-y-6">
+        <TabsList className="bg-white border border-slate-200/70 p-1 h-12 shadow-sm">
+          <TabsTrigger
+            value="agenda"
+            className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 gap-2 h-10 px-4 font-semibold"
+          >
+            <CalendarDays className="size-4" /> Agenda diária
+          </TabsTrigger>
+          <TabsTrigger
+            value="operacional"
+            className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 gap-2 h-10 px-4 font-semibold"
+          >
+            <ClipboardList className="size-4" /> Demandas operacionais
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="agenda" className="mt-0">
+          <DailyAgenda />
+        </TabsContent>
+
+        <TabsContent value="operacional" className="mt-0 space-y-4">
       <div className="space-y-4">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
           <div className="relative flex-1 w-full lg:max-w-md">
@@ -727,6 +751,8 @@ export default function Demands() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 
