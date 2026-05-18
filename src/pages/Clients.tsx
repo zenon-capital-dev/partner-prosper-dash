@@ -34,6 +34,7 @@ import { confirmAction } from "@/lib/confirm";
 export default function Clients() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<"grid" | "table">("grid");
 
