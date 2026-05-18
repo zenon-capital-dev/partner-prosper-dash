@@ -37,12 +37,18 @@ const PRESETS = [
 ];
 
 export function ProductFormDialog({ open, onOpenChange, editing, categories, onSaved }: Props) {
-  const [tab, setTab] = useState<"basico" | "operacional" | "financeiro" | "comunicacao">("basico");
+  const [tab, setTab] = useState<"basico" | "operacional" | "financeiro" | "comunicacao" | "automacao">("basico");
   const [docs, setDocs] = useState<string[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [docInput, setDocInput] = useState("");
   const [stepInput, setStepInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [customFields, setCustomFields] = useState<{ label: string; type: string }[]>([]);
+  const [cfLabel, setCfLabel] = useState("");
+  const [cfType, setCfType] = useState("text");
+  const [autoTasks, setAutoTasks] = useState<{ title: string; priority: string }[]>([]);
+  const [atTitle, setAtTitle] = useState("");
+  const [atPriority, setAtPriority] = useState("normal");
 
   const [form, setForm] = useState<any>({
     name: "", description: "", category_id: "",
@@ -78,9 +84,11 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
       });
       setDocs(Array.isArray(editing.required_documents) ? editing.required_documents.map((d: any) => d.name) : []);
       setSteps(Array.isArray(editing.standard_steps) ? editing.standard_steps.map((s: any) => s.label) : []);
+      setCustomFields(Array.isArray(editing.custom_fields_template) ? editing.custom_fields_template : []);
+      setAutoTasks(Array.isArray(editing.auto_tasks_template) ? editing.auto_tasks_template : []);
     } else {
       setForm((f: any) => ({ ...f, category_id: categories[0]?.id ?? "" }));
-      setDocs([]); setSteps([]);
+      setDocs([]); setSteps([]); setCustomFields([]); setAutoTasks([]);
     }
     setTab("basico");
   }, [open, editing, categories]);
@@ -123,6 +131,8 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
       provider_welcome_message: form.provider_welcome_message?.trim() || null,
       required_documents: docs.map((name) => ({ name })),
       standard_steps: steps.map((label) => ({ label })),
+      custom_fields_template: customFields,
+      auto_tasks_template: autoTasks,
       active: !!form.active,
       recurring: !!form.recurring,
       allow_partner: !!form.allow_partner,
@@ -144,6 +154,7 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
     { id: "operacional", label: "Operação", icon: ListChecks },
     { id: "financeiro", label: "Financeiro & SLA", icon: Wallet },
     { id: "comunicacao", label: "Comunicação", icon: FileText },
+    { id: "automacao", label: "Automação", icon: Plus },
   ] as const;
 
   return (
@@ -416,6 +427,76 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
                     <SelectItem value="em_execucao">Em execução</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </>
+          )}
+
+          {tab === "automacao" && (
+            <>
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Plus className="size-3.5" /> Campos personalizados</Label>
+                <p className="text-[11px] text-muted-foreground">Coletados em cada demanda deste produto.</p>
+                <div className="flex gap-2">
+                  <Input value={cfLabel} onChange={(e) => setCfLabel(e.target.value)} placeholder="Ex: CNPJ a consultar" className="flex-1" />
+                  <Select value={cfType} onValueChange={setCfType}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Texto</SelectItem>
+                      <SelectItem value="number">Número</SelectItem>
+                      <SelectItem value="date">Data</SelectItem>
+                      <SelectItem value="textarea">Texto longo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" size="sm" variant="outline" onClick={() => {
+                    const v = cfLabel.trim(); if (!v) return;
+                    setCustomFields([...customFields, { label: v, type: cfType }]); setCfLabel("");
+                  }}><Plus className="size-4" /></Button>
+                </div>
+                <div className="flex flex-col gap-1 pt-1">
+                  {customFields.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-md border border-border bg-card text-[12px]">
+                      <span className="flex-1">{f.label}</span>
+                      <Badge variant="secondary" className="text-[10px]">{f.type}</Badge>
+                      <button onClick={() => setCustomFields(customFields.filter((_, x) => x !== i))} className="size-6 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center">
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {customFields.length === 0 && <p className="text-[11px] text-muted-foreground italic">Nenhum campo personalizado.</p>}
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-border">
+                <Label className="flex items-center gap-2"><ListChecks className="size-3.5" /> Tarefas automáticas iniciais</Label>
+                <p className="text-[11px] text-muted-foreground">Criadas no momento em que a demanda é gerada.</p>
+                <div className="flex gap-2">
+                  <Input value={atTitle} onChange={(e) => setAtTitle(e.target.value)} placeholder="Ex: Enviar boas-vindas ao cliente" className="flex-1" />
+                  <Select value={atPriority} onValueChange={setAtPriority}>
+                    <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="baixa">Baixa</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="alta">Alta</SelectItem>
+                      <SelectItem value="urgente">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" size="sm" variant="outline" onClick={() => {
+                    const v = atTitle.trim(); if (!v) return;
+                    setAutoTasks([...autoTasks, { title: v, priority: atPriority }]); setAtTitle("");
+                  }}><Plus className="size-4" /></Button>
+                </div>
+                <div className="flex flex-col gap-1 pt-1">
+                  {autoTasks.map((t, i) => (
+                    <div key={i} className="flex items-center gap-2 p-2 rounded-md border border-border bg-card text-[12px]">
+                      <span className="flex-1">{t.title}</span>
+                      <Badge variant="secondary" className="text-[10px]">{t.priority}</Badge>
+                      <button onClick={() => setAutoTasks(autoTasks.filter((_, x) => x !== i))} className="size-6 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center">
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {autoTasks.length === 0 && <p className="text-[11px] text-muted-foreground italic">Nenhuma tarefa automática.</p>}
+                </div>
               </div>
             </>
           )}
