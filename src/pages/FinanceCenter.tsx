@@ -362,7 +362,7 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
       const key = (p.paid_at || "").slice(0, 10);
       if (map[key]) map[key].entrada += Number(p.amount_paid || p.amount || 0);
     });
-    commissions.filter((c: any) => c.status === "pago").forEach((c: any) => {
+    commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga").forEach((c: any) => {
       const key = (c.paid_at || "").slice(0, 10);
       if (map[key]) map[key].saida += Number(c.amount || 0);
     });
