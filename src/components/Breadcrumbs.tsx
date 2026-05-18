@@ -35,7 +35,7 @@ const LABELS: Record<string, string> = {
   colaboradores: "Colaboradores",
   indicadores: "Indicadores",
   projetos: "Projetos",
-  cockpit: "Cockpit",
+  cockpit: "Alertas",
   sla: "SLA",
 };
 

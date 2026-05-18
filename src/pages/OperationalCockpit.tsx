@@ -409,7 +409,7 @@ export default function OperationalCockpit() {
   if (loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports) {
     return (
       <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up">
-        <PageHeader title="Cockpit Operacional" description="Carregando sua central de comando..." />
+        <PageHeader title="Alertas Operacionais" description="Carregando seus alertas prioritários..." />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-32 rounded-3xl" />
@@ -428,7 +428,7 @@ export default function OperationalCockpit() {
     <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up pb-20">
       <PageHeader 
         eyebrow="Daily Control Center"
-        title="Cockpit Operacional"
+        title="Alertas Operacionais"
         description="Gestão diária de pendências e ações prioritárias."
         actions={
           <div className="flex items-center gap-3">
