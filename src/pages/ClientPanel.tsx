@@ -116,7 +116,22 @@ export default function ClientPanel() {
     </div>
   );
 
-  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries } = data;
+  const { client, docs: allDocs, catalog, requests, contracts, payments, granularProducts: allProducts, reports: allReports, formalDeliveries: allFormalDeliveries } = data;
+  const companies = (client as any).companies || [];
+  const hasMultipleCompanies = companies.length > 1;
+  const granularProducts = selectedCompanyId === "all"
+    ? allProducts
+    : allProducts.filter((p: any) => p.company_id === selectedCompanyId);
+  const filteredProductIds = new Set(granularProducts.map((p: any) => p.id));
+  const docs = selectedCompanyId === "all"
+    ? allDocs
+    : allDocs.filter((d: any) => !d.client_product_id || filteredProductIds.has(d.client_product_id));
+  const reports = selectedCompanyId === "all"
+    ? allReports
+    : allReports.filter((r: any) => filteredProductIds.has(r.client_product_id));
+  const formalDeliveries = selectedCompanyId === "all"
+    ? allFormalDeliveries
+    : allFormalDeliveries.filter((d: any) => filteredProductIds.has(d.client_product_id));
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
@@ -132,8 +147,8 @@ export default function ClientPanel() {
     ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
     ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
   ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  
-  const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
+
+  const selectedProduct = allProducts.find((p: any) => p.id === selectedProductId);
 
   return (
     <div className="bg-premium min-h-screen">
