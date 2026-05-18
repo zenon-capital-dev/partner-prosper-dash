@@ -544,19 +544,19 @@ export default function Finance() {
             <tbody className="divide-y divide-border/5">
               {expenses.slice(0, 10).map((e: any) => (
                 <tr key={e.id} className="hover:bg-muted/30 transition-colors group">
-                  <Td><span className="vx-pill vx-pill-danger px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">expense</span></Td>
+                  <Td><span className="vx-pill vx-pill-danger px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">Saída</span></Td>
                   <Td><span className="font-semibold text-foreground">{e.description}</span></Td>
-                  <Td><span className="text-muted-foreground/40 font-bold uppercase tracking-[0.15em] text-[9px]">{e.category}</span></Td>
-                  <Td className="text-muted-foreground/30 font-bold text-[10px] uppercase tracking-wider">{formatDate(e.expense_date)}</Td>
+                  <Td><span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[9px]">{e.category}</span></Td>
+                  <Td className="text-muted-foreground font-bold text-[10px] uppercase tracking-wider">{formatDate(e.expense_date)}</Td>
                   <Td align="right"><span className="font-bold text-destructive tabular-nums">-{formatBRL(e.amount)}</span></Td>
                 </tr>
               ))}
               {sales.slice(0, 10).map((s: any) => (
                 <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
-                  <Td><span className="vx-pill vx-pill-success px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">revenue</span></Td>
-                  <Td><span className="font-semibold text-foreground">Sale Concluded</span></Td>
-                  <Td><span className="text-muted-foreground/40 font-bold uppercase tracking-[0.15em] text-[9px]">Sales</span></Td>
-                  <Td className="text-muted-foreground/30 font-bold text-[10px] uppercase tracking-wider">{formatDate(s.sale_date)}</Td>
+                  <Td><span className="vx-pill vx-pill-success px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">Entrada</span></Td>
+                  <Td><span className="font-semibold text-foreground">Venda Concluída</span></Td>
+                  <Td><span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[9px]">Vendas</span></Td>
+                  <Td className="text-muted-foreground font-bold text-[10px] uppercase tracking-wider">{formatDate(s.sale_date)}</Td>
                   <Td align="right"><span className="font-bold text-success tabular-nums">+{formatBRL(s.amount)}</span></Td>
                 </tr>
               ))}
