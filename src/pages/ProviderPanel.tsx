@@ -24,10 +24,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PROVIDER_PATH_TO_TAB: Record<string, string> = {
+  atuacao: "atuacao",
   "por-cliente": "por-cliente", demandas: "clientes", documentos: "documentos",
   reportes: "reportes", contratos: "contratos",
 };
 const PROVIDER_TAB_TO_PATH: Record<string, string> = {
+  atuacao: "atuacao",
   "por-cliente": "por-cliente", clientes: "demandas", documentos: "documentos",
   reportes: "reportes", contratos: "contratos",
 };
