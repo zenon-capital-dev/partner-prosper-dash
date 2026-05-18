@@ -382,24 +382,53 @@ export default function DashboardAdmin() {
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
-                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p) => (
+                {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((p) => (
                   <button 
                     key={p} 
                     onClick={() => setRangeKey(p)}
                     className={cn(
                       "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", 
-                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950"
+                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
                     )}
                   >
                     {p}
                   </button>
                 ))}
+                <Popover open={customOpen} onOpenChange={setCustomOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={() => { setRangeKey("PERSONALIZADO"); setCustomOpen(true); }}
+                      className={cn(
+                        "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap inline-flex items-center gap-1",
+                        rangeKey === "PERSONALIZADO" ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
+                      )}
+                    >
+                      <CalendarIcon className="size-3" />
+                      {rangeKey === "PERSONALIZADO" && customRange.from && customRange.to
+                        ? `${format(customRange.from, "dd/MM")} - ${format(customRange.to, "dd/MM")}`
+                        : "PERSONALIZADO"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white" align="end">
+                    <Calendar
+                      mode="range"
+                      selected={{ from: customRange.from, to: customRange.to }}
+                      onSelect={(r: any) => {
+                        setCustomRange({ from: r?.from, to: r?.to });
+                        if (r?.from && r?.to) setCustomOpen(false);
+                      }}
+                      locale={ptBR}
+                      numberOfMonths={2}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-semibold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
-                <Plus className="size-3.5" /> Negociação
+                <Target className="size-3.5" /> Nova Negociação
               </Link>
               <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
-                <TrendingUp className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar fechamento</span><span className="xs:hidden sm:hidden">Fechar</span>
+                <CircleDollarSign className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar Venda</span><span className="xs:hidden sm:hidden">Venda</span>
               </Link>
               <button className="size-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 hover:text-slate-950 transition-all relative shadow-sm">
                 <Bell className="size-4" />
