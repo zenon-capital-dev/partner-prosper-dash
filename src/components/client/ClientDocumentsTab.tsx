@@ -20,6 +20,7 @@ import {
 
 type DocRequest = {
   id: string;
+  source?: "documents" | "document_requests";
   client_id: string;
   product_id: string | null;
   client_product_id: string | null;
@@ -27,9 +28,11 @@ type DocRequest = {
   description: string | null;
   status: string;
   file_path: string | null;
+  file_url?: string | null;
   due_date: string | null;
   rejection_reason: string | null;
   uploaded_at: string | null;
+  submission_date?: string | null;
   reviewed_at: string | null;
   created_at: string;
 };
@@ -37,6 +40,7 @@ type DocRequest = {
 type Product = { id: string; name: string };
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
+  pendente: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
   solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
   enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200", icon: Loader2 },
   em_analise: { label: "Em Análise", tone: "bg-primary-muted text-primary border-primary/20", icon: Loader2 },
@@ -48,7 +52,7 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
 };
 
 function getEffectiveStatus(req: { status: string; due_date: string | null }): string {
-  const pending = ["solicitado", "reprovado", "pendente_correcao"].includes(req.status);
+  const pending = ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(req.status);
   if (pending && req.due_date && new Date(req.due_date) < new Date(new Date().toDateString())) {
     return "atrasado";
   }
@@ -56,7 +60,7 @@ function getEffectiveStatus(req: { status: string; due_date: string | null }): s
 }
 
 const STATUS_ORDER: Record<string, number> = {
-  atrasado: 0, reprovado: 1, pendente_correcao: 2, solicitado: 3,
+  atrasado: 0, reprovado: 1, pendente_correcao: 2, pendente: 3, solicitado: 3,
   enviado: 4, em_analise: 5, aprovado: 6, vencido: 7,
 };
 
@@ -107,17 +111,10 @@ export function ClientDocumentsTab({
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
       if (upErr) throw upErr;
 
-      const { error: updErr } = await supabase
-        .from("documents")
-        .update({ 
-          file_path: path, 
-          status: "enviado", 
-          uploaded_at: new Date().toISOString(),
-          rejection_reason: null,
-          file_size: file.size,
-          mime_type: file.type
-        })
-        .eq("id", req.id);
+      const now = new Date().toISOString();
+      const { error: updErr } = req.source === "document_requests"
+        ? await supabase.from("document_requests").update({ file_url: path, submission_date: now, status: "enviado", rejection_reason: null }).eq("id", req.id)
+        : await supabase.from("documents").update({ file_path: path, status: "enviado", uploaded_at: now, rejection_reason: null, file_size: file.size, mime_type: file.type }).eq("id", req.id);
       if (updErr) throw updErr;
 
       toast.success("Documento enviado para análise");
@@ -131,8 +128,10 @@ export function ClientDocumentsTab({
   }
 
   async function handleDownload(req: DocRequest) {
-    if (!req.file_path) return;
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(req.file_path, 3600);
+    const path = req.file_path || req.file_url;
+    if (!path) return;
+    if (path.startsWith("http")) return window.open(path, "_blank");
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
     if (error || !data) return toast.error("Não foi possível acessar o arquivo");
     window.open(data.signedUrl, "_blank");
   }
@@ -148,7 +147,7 @@ export function ClientDocumentsTab({
   }
 
   const totals = {
-    pending: requests.filter((r) => r.status === "solicitado" || r.status === "reprovado" || r.status === "pendente_correcao").length,
+    pending: requests.filter((r) => r.status === "pendente" || r.status === "solicitado" || r.status === "reprovado" || r.status === "pendente_correcao").length,
     review: requests.filter((r) => r.status === "enviado" || r.status === "em_analise").length,
     done: requests.filter((r) => r.status === "aprovado").length,
   };

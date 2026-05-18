@@ -28,9 +28,11 @@ export function NotificationBell() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
+
+    const channelName = `notifications-rt-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel("notifications-rt")
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
@@ -40,7 +42,7 @@ export function NotificationBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, qc]);
+  }, [user?.id, qc]);
 
   const unread = (notes ?? []).filter((n: any) => !n.read).length;
 
