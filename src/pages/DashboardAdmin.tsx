@@ -882,39 +882,61 @@ export default function DashboardAdmin() {
 
         {/* ============ ROW: FINANCIAL SUMMARY + TOP PARTNERS + QUICK ACTIONS ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Financial summary */}
+          {/* Financial summary — premium grid */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Central</Link>} />
-            <div className="grid grid-cols-2 gap-3">
-              <MiniMetric icon={PiggyBank} label="A receber 7 dias" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
-              <MiniMetric icon={FileWarning} label="Inadimplente" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
-              <MiniMetric icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="primary" />
-              <MiniMetric icon={FileSignature} label="Contratos pendentes" value={stats.contractsAwaiting.toString()} sub="Aguardando assinatura" tone="warning" />
+            <CardHeader 
+              eyebrow="Financeiro" 
+              title="Resumo financeiro" 
+              right={
+                <Link to="/financeiro" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Central <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
+            <div className="grid grid-cols-2 gap-2.5">
+              <FinanceTile icon={PiggyBank} label="A receber (7 dias)" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
+              <FinanceTile icon={FileWarning} label="Inadimplência" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
+              <FinanceTile icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="primary" />
+              <FinanceTile icon={FileSignature} label="Contratos pendentes" value={stats.contractsAwaiting.toString()} sub="Aguardando assinatura" tone="warning" />
             </div>
           </Card>
 
-          {/* Top partners */}
+          {/* Top partners — clean ranking */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Rede</Link>} />
+            <CardHeader 
+              eyebrow="Parcerias" 
+              title="Top parceiros" 
+              right={
+                <Link to="/parceiros" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Rede <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
             <div className="space-y-2">
               {stats.topPartners.length > 0 ? stats.topPartners.map((p, i) => {
                 const max = stats.topPartners[0].amount;
                 const pct = (p.amount / max) * 100;
+                const medals = ["bg-amber-400 text-amber-900", "bg-slate-300 text-slate-800", "bg-orange-300 text-orange-900"];
                 return (
-                  <div key={p.id}>
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[9px] font-bold text-slate-600 tabular-nums w-3">{i + 1}</span>
-                        <span className="text-slate-800 font-medium truncate">{p.name}</span>
+                  <Link to={`/parceiros/${p.id}`} key={p.id} className="group block p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <div className={cn(
+                        "size-7 rounded-full flex items-center justify-center text-[11px] font-black shrink-0",
+                        i < 3 ? medals[i] : "bg-slate-100 text-slate-600"
+                      )}>
+                        {i + 1}
                       </div>
-                      <span className="text-emerald-800 font-bold tabular-nums">{formatBRL(p.amount)}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">{p.name}</p>
+                      </div>
+                      <span className="text-[12px] text-emerald-700 font-bold tabular-nums shrink-0">{formatBRL(p.amount)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-50">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden ml-10">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
                     </div>
-                  </div>
+                  </Link>
                 );
-              }) : <Empty label="Sem comissões registradas" />}
+              }) : <Empty label="Nenhuma comissão registrada ainda" />}
             </div>
           </Card>
 
