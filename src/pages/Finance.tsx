@@ -462,7 +462,78 @@ export default function Finance() {
                {sourcePerformance.length === 0 && <p className="text-xs text-muted-foreground italic">Sem dados de leads.</p>}
             </div>
          </div>
-      </div>
+      {/* Modal Nova Despesa */}
+      <Dialog open={isExpenseOpen} onOpenChange={setIsExpenseOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowDownToLine className="size-5 text-destructive" />
+              Nova Despesa
+            </DialogTitle>
+            <DialogDescription>
+              Registre uma nova saída financeira no sistema.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="description">Descrição</Label>
+              <Input
+                id="description"
+                placeholder="Ex: Aluguel, Internet, Impostos..."
+                value={expenseForm.description}
+                onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="amount">Valor (R$)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0,00"
+                  value={expenseForm.amount}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="date">Data</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={expenseForm.expense_date}
+                  onChange={(e) => setExpenseForm({ ...expenseForm, expense_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category">Categoria</Label>
+              <Select
+                value={expenseForm.category}
+                onValueChange={(v) => setExpenseForm({ ...expenseForm, category: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Operacional">Operacional</SelectItem>
+                  <SelectItem value="Impostos">Impostos</SelectItem>
+                  <SelectItem value="Salários">Salários</SelectItem>
+                  <SelectItem value="Marketing">Marketing</SelectItem>
+                  <SelectItem value="Ferramentas">Ferramentas</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsExpenseOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddExpense} disabled={isSubmitting} className="btn-premium">
+              {isSubmitting ? "Salvando..." : "Salvar Despesa"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
 
       {/* Transaction Feed */}
       <div className="vx-card overflow-hidden">
