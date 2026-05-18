@@ -112,7 +112,8 @@ export default function FinanceCenter() {
           </Button>
         }
         kpis={[
-          { label: "Recebido", value: formatBRL(kpis.totalReceived), tone: "success" },
+          { label: "Recebido (Bruto)", value: formatBRL(kpis.totalReceived), tone: "success" },
+          { label: "Comissão Líquida", value: formatBRL(kpis.netCommission), tone: "primary" },
           { label: "A receber", value: formatBRL(kpis.totalReceivable), tone: "info" },
           { label: "Vencido", value: formatBRL(kpis.totalOverdue), tone: "danger" },
           { label: "Comissões a pagar", value: formatBRL(kpis.commissionsPending), tone: "warning" },
