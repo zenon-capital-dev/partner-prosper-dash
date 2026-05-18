@@ -58,10 +58,18 @@ export default function ClientOnboarding() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-panel"] });
+      qc.invalidateQueries({ queryKey: ["client-redirect-check"] });
       toast.success("Onboarding finalizado com sucesso!");
       navigate("/cliente");
     }
   });
+
+  // Auto-skip if already completed
+  useEffect(() => {
+    if (data?.client?.onboarding_status === 'completo') {
+      navigate("/cliente", { replace: true });
+    }
+  }, [data?.client?.onboarding_status, navigate]);
 
   if (isLoading) return <div className="p-20 text-center animate-pulse">Iniciando sua jornada...</div>;
   if (!data?.client) return null;
@@ -149,6 +157,7 @@ export default function ClientOnboarding() {
                     <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                   </div>
                 ))}
+                {prods.length === 0 && <p className="text-sm text-muted-foreground italic">Nenhum produto vinculado ainda.</p>}
               </div>
               <p className="text-sm text-muted-foreground">Cada serviço terá um fluxo operacional dedicado para você acompanhar.</p>
             </div>
@@ -169,6 +178,7 @@ export default function ClientOnboarding() {
                       {d.name}
                     </div>
                   ))}
+                  {docs.length === 0 && <p className="text-xs italic text-muted-foreground">Nenhuma pendência imediata!</p>}
                   {docs.length > 4 && <p className="text-[10px] font-bold text-amber-600/60">+ {docs.length - 4} outros documentos</p>}
                 </div>
               </div>
@@ -213,9 +223,10 @@ export default function ClientOnboarding() {
           </Button>
           <Button 
             onClick={nextStep}
+            disabled={completeMutation.isPending}
             className="rounded-2xl h-14 px-8 bg-slate-900 hover:bg-primary hover:text-white transition-all font-bold gap-3 shadow-xl"
           >
-            {step === totalSteps ? "Concluir Onboarding" : "Continuar Jornada"}
+            {completeMutation.isPending ? "Concluindo..." : (step === totalSteps ? "Concluir Onboarding" : "Continuar Jornada")}
             <ArrowRight className="size-4" />
           </Button>
         </div>
