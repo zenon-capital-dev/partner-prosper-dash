@@ -357,23 +357,23 @@ export default function Finance() {
 
         {/* Breakdown */}
         <div className="col-span-12 lg:col-span-4 bg-card p-6 border-l border-border/10">
-           <h2 className="text-sm font-bold tracking-tight text-foreground mb-6">Operations breakdown</h2>
+           <h2 className="text-sm font-bold tracking-tight text-foreground mb-6">Detalhamento de Operações</h2>
            
            <div className="space-y-6">
-             <BreakdownItem label="Direct Sales" value={formatBRL(kpis.revenue * 0.7)} percent={70} color="bg-success" />
-             <BreakdownItem label="Partner Leads" value={formatBRL(kpis.revenue * 0.3)} percent={30} color="bg-success/30" />
+             <BreakdownItem label="Vendas Diretas" value={formatBRL(kpis.revenue * 0.7)} percent={70} color="bg-success" />
+             <BreakdownItem label="Indicações" value={formatBRL(kpis.revenue * 0.3)} percent={30} color="bg-success/30" />
              <div className="h-px bg-border/10 my-2" />
-             <BreakdownItem label="Operational Expenses" value={formatBRL(kpis.expensesTotal * 0.6)} percent={60} color="bg-destructive" />
-             <BreakdownItem label="Commission Payouts" value={formatBRL(kpis.commissionsPaid)} percent={40} color="bg-warning" />
+             <BreakdownItem label="Despesas Operacionais" value={formatBRL(kpis.expensesTotal * 0.6)} percent={60} color="bg-destructive" />
+             <BreakdownItem label="Pagamento de Comissões" value={formatBRL(kpis.commissionsPaid)} percent={40} color="bg-warning" />
            </div>
 
            <div className="mt-8 p-5 rounded-xl bg-muted/30 border border-border/50">
              <div className="flex items-center gap-2 mb-2.5">
                <Sparkles className="size-3.5 text-primary" />
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projeção</p>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Considerando o volume atual de vendas e a taxa de conversão de leads, o lucro projetado para este período é de <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.2)}</span>.
+                Considerando o volume atual de vendas e a taxa de conversão, a previsão de lucro para este período é de <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.2)}</span>.
               </p>
            </div>
         </div>
