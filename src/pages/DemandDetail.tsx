@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,8 +10,10 @@ import {
   MessageSquare, History, ListChecks, 
   Calendar, ShieldAlert, Paperclip, ArrowRight,
   PauseCircle, PlayCircle, AlertTriangle, FileCheck,
-  Zap, FilePlus, Download, Info, ClipboardList, Plus
+  Zap, FilePlus, Download, Info, ClipboardList, Plus,
+  Pencil, Copy, Trash2, XCircle
 } from "lucide-react";
+import { EditDemandDialog } from "@/components/demands/EditDemandDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,6 +44,7 @@ import { AutoStatusBadge } from "@/components/StatusBadge";
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const qc = useQueryClient();
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
@@ -57,6 +60,19 @@ export default function DemandDetail() {
   const [taskTitle, setTaskTitle] = useState("");
   const [deliveryOpen, setDeliveryOpen] = useState(false);
   const [deliveryForm, setDeliveryForm] = useState({ title: "", description: "" });
+  const [editOpen, setEditOpen] = useState(false);
+  const [rejectFor, setRejectFor] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+    if (action === "edit") setEditOpen(true);
+    if (action === "delegate") setDelegateOpen(true);
+    if (action === "pause") setPauseDialogOpen(true);
+    searchParams.delete("action");
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const openNotesEditor = () => {
     setNotesDraft((demand as any)?.internal_notes ?? "");
@@ -201,6 +217,68 @@ export default function DemandDetail() {
     qc.invalidateQueries({ queryKey: ["demand-detail", id] });
   };
 
+  const duplicateDemand = async () => {
+    if (!demand) return;
+    const ok = await confirmAction({
+      title: "Duplicar demanda",
+      description: "Será criada uma nova demanda com os mesmos dados, sem documentos, checklist nem histórico.",
+      confirmText: "Duplicar",
+    });
+    if (!ok) return;
+    const { id: _id, created_at, updated_at, sla_start_date, sla_status, completed_at, current_step_id, ...base } = demand as any;
+    const insertPayload = {
+      ...base,
+      status: "aguardando_inicio",
+      sla_start_date: null,
+      sla_status: null,
+      completed_at: null,
+      current_step_id: null,
+      end_date: null,
+      paused_at: null,
+      resumed_at: null,
+    };
+    // Remove relacionamentos populados pelo select para não estourar insert
+    ["clients","companies","products","service_providers","documents","steps","deliveries","reports"].forEach(k => delete insertPayload[k]);
+    const { data, error } = await supabase
+      .from("client_products")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+    if (error) return toast.error(error.message);
+    toast.success("Demanda duplicada");
+    qc.invalidateQueries({ queryKey: ["admin-demands"] });
+    navigate(`/demandas/${data!.id}`);
+  };
+
+  const deleteDemand = async () => {
+    if (!demand) return;
+    const ok = await confirmAction({
+      title: "Excluir demanda",
+      description: "Esta ação remove permanentemente a demanda, seu checklist, comentários, reportes e documentos vinculados. Não é possível desfazer.",
+      confirmText: "Excluir",
+      destructive: true,
+    });
+    if (!ok) return;
+    const { error } = await supabase.from("client_products").delete().eq("id", demand.id);
+    if (error) return toast.error(error.message);
+    toast.success("Demanda excluída");
+    qc.invalidateQueries({ queryKey: ["admin-demands"] });
+    navigate("/demandas");
+  };
+
+  const reviewDocument = async (docId: string, status: "aprovado" | "reprovado", reason?: string) => {
+    const patch: any = {
+      status,
+      reviewed_at: new Date().toISOString(),
+      approved_by: status === "aprovado" ? (user?.id ?? null) : null,
+      rejection_reason: status === "reprovado" ? (reason ?? null) : null,
+    };
+    const { error } = await supabase.from("documents").update(patch).eq("id", docId);
+    if (error) return toast.error(error.message);
+    toast.success(status === "aprovado" ? "Documento aprovado" : "Documento rejeitado");
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
   if (isLoading) return <div className="p-20 text-center animate-pulse">Carregando detalhes da demanda...</div>;
   if (!demand) return <div className="p-20 text-center text-rose-500 font-bold">Demanda não encontrada.</div>;
 
@@ -248,6 +326,9 @@ export default function DemandDetail() {
              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-xl">
                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Operações</DropdownMenuLabel>
                <DropdownMenuSeparator />
+               <DropdownMenuItem onClick={() => setEditOpen(true)} className="gap-2 cursor-pointer">
+                 <Pencil className="size-4" /> Editar Demanda
+               </DropdownMenuItem>
                <DropdownMenuItem 
                  onClick={() => setPauseDialogOpen(true)}
                  className={cn("gap-2 cursor-pointer", demand.status === 'pausado' ? "text-emerald-600 focus:text-emerald-700" : "text-amber-600 focus:text-amber-700")}
@@ -272,8 +353,15 @@ export default function DemandDetail() {
                  <AlertTriangle className="size-4" /> Registrar Atraso
                </DropdownMenuItem>
                <DropdownMenuSeparator />
+               <DropdownMenuItem onClick={duplicateDemand} className="gap-2 cursor-pointer">
+                 <Copy className="size-4" /> Duplicar Demanda
+               </DropdownMenuItem>
                <DropdownMenuItem onClick={finalizeDemand} disabled={demand.status === 'concluido'} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-700">
                  <CheckCircle2 className="size-4" /> Finalizar Demanda
+               </DropdownMenuItem>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem onClick={deleteDemand} className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700">
+                 <Trash2 className="size-4" /> Excluir Demanda
                </DropdownMenuItem>
              </DropdownMenuContent>
            </DropdownMenu>
@@ -442,6 +530,29 @@ export default function DemandDetail() {
                                >
                                   <Download className="size-3.5" /> Ver arquivo
                                </Button>
+                            )}
+                            {canManage && doc.file_path && !["aprovado","reprovado"].includes(doc.status) && (
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 h-8 text-[11px] gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                  onClick={() => reviewDocument(doc.id, "aprovado")}
+                                >
+                                  <CheckCircle2 className="size-3.5" /> Aprovar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 h-8 text-[11px] gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50"
+                                  onClick={() => { setRejectReason(""); setRejectFor(doc.id); }}
+                                >
+                                  <XCircle className="size-3.5" /> Rejeitar
+                                </Button>
+                              </div>
+                            )}
+                            {canManage && doc.status === "reprovado" && doc.rejection_reason && (
+                              <p className="text-[10px] text-rose-600 mt-2 italic">Motivo: {doc.rejection_reason}</p>
                             )}
                          </div>
                        );
@@ -712,6 +823,33 @@ export default function DemandDetail() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeliveryOpen(false)}>Cancelar</Button>
             <Button onClick={createDelivery}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <EditDemandDialog open={editOpen} onOpenChange={setEditOpen} demand={demand} />
+
+      <Dialog open={!!rejectFor} onOpenChange={(v) => { if (!v) setRejectFor(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Rejeitar documento</DialogTitle></DialogHeader>
+          <Textarea
+            rows={4}
+            placeholder="Descreva o motivo da rejeição para o cliente corrigir"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectFor(null)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!rejectReason.trim()) return toast.error("Informe o motivo");
+                await reviewDocument(rejectFor!, "reprovado", rejectReason.trim());
+                setRejectFor(null);
+              }}
+            >
+              Confirmar rejeição
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
