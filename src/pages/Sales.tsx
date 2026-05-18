@@ -174,14 +174,14 @@ export default function Sales() {
         <div className="lg:col-span-7 vx-card p-5 relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600">
                 <BarChart3 className="size-3 text-indigo-500" /> Performance · 30 dias
               </div>
-              <h3 className="font-display text-base font-bold mt-1 text-slate-900">Fluxo de Receita Diário</h3>
+              <h3 className="font-display text-base font-bold mt-1 text-slate-950">Fluxo de Receita Diário</h3>
             </div>
             <div className="text-right">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total no período</p>
-              <p className="font-display text-lg font-bold tabular-nums text-indigo-600">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
+              <p className="font-display text-lg font-bold tabular-nums text-indigo-800">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
             </div>
           </div>
           <div className="h-[160px] -mx-2">
@@ -207,7 +207,7 @@ export default function Sales() {
 
         <div className="lg:col-span-5 space-y-4">
           <div className="vx-card p-5">
-            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400 mb-3">
+            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600 mb-3">
               <Sparkles className="size-3 text-indigo-500" /> Distribuição por Status
             </div>
             <div className="space-y-2.5">
@@ -215,7 +215,7 @@ export default function Sales() {
                 <div key={row.key}>
                   <div className="flex items-center justify-between text-[11px] mb-1">
                     <span className="font-semibold text-slate-700">{row.label}</span>
-                    <span className="tabular-nums font-bold text-slate-900">{formatBRL(row.value)} <span className="text-muted-foreground font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
+                    <span className="tabular-nums font-bold text-slate-950">{formatBRL(row.value)} <span className="text-muted-foreground font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
                   </div>
                   <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                     <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
@@ -227,7 +227,7 @@ export default function Sales() {
 
           <div className="vx-card p-5">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-400">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600">
                 <Trophy className="size-3 text-amber-500" /> Top Parceiros
               </div>
               <Users className="size-3.5 text-muted-foreground/40" />
@@ -243,7 +243,7 @@ export default function Sales() {
                       i === 0 && "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md",
                       i === 1 && "bg-gradient-to-br from-slate-300 to-slate-500 text-white",
                       i === 2 && "bg-gradient-to-br from-amber-700 to-amber-900 text-white",
-                      i > 2 && "bg-slate-100 text-slate-500",
+                      i > 2 && "bg-slate-100 text-slate-800",
                     )}>
                       {i + 1}
                     </div>
@@ -251,7 +251,7 @@ export default function Sales() {
                       <p className="text-[12.5px] font-semibold text-slate-800 truncate">{p.name}</p>
                       <p className="text-[10px] text-muted-foreground">{p.deals} {p.deals === 1 ? "venda" : "vendas"}</p>
                     </div>
-                    <p className="text-[12px] font-bold tabular-nums text-indigo-600">{formatBRL(p.total)}</p>
+                    <p className="text-[12px] font-bold tabular-nums text-indigo-800">{formatBRL(p.total)}</p>
                   </div>
                 ))}
               </div>
@@ -329,10 +329,10 @@ export default function Sales() {
                   <Td><StatusPill status={s.status} /></Td>
                   <Td>
                     <div className="min-w-0">
-                      <p className="font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
+                      <p className="font-bold text-slate-950 truncate cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
                         {s.clients?.full_name ?? "—"}
                       </p>
-                      <p className="text-[11px] text-muted-foreground/60 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                      <p className="text-[11px] font-bold text-slate-500 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
                     </div>
                   </Td>
                   <Td>
@@ -347,7 +347,7 @@ export default function Sales() {
                   </Td>
                   <Td>
                     {s.partners?.full_name ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 text-[11px] font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-800 text-[11px] font-semibold">
                         <span className="size-1.5 rounded-full bg-indigo-500" />
                         {s.partners.full_name}
                       </span>
@@ -360,7 +360,7 @@ export default function Sales() {
                   <Td align="right">
                     {commissionVal > 0 ? (
                       <div>
-                        <p className="font-semibold text-emerald-600 tabular-nums text-[12px]">{formatBRL(commissionVal)}</p>
+                        <p className="font-semibold text-emerald-800 tabular-nums text-[12px]">{formatBRL(commissionVal)}</p>
                         <p className="text-[10px] text-muted-foreground tabular-nums">{commissionPct}%</p>
                       </div>
                     ) : (
