@@ -94,7 +94,7 @@ export default function MessageTemplates() {
             Comunicação
           </div>
           <h1 className="font-display text-[34px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.02] text-foreground">
-            Templates de Mensagens
+            Templates(Desenvolvimento) de Mensagens
           </h1>
           <p className="text-sm text-muted-foreground">
             Modelos prontos para WhatsApp, e-mail e SMS. Use variáveis como{" "}

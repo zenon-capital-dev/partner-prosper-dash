@@ -54,7 +54,7 @@ const adminSections: NavSection[] = [
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ListChecks },
       { title: "Projetos", url: "/projetos", icon: Briefcase },
-      { title: "Templates", url: "/templates", icon: MessageSquare },
+      { title: "Templates(Desenvolvimento)", url: "/templates", icon: MessageSquare },
     ],
   },
   {
