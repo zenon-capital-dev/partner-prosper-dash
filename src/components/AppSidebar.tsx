@@ -31,7 +31,7 @@ const adminSections: NavSection[] = [
     label: "Visão Geral",
     items: [
       { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-      { title: "Cockpit", url: "/cockpit", icon: Zap },
+      { title: "Alertas", url: "/cockpit", icon: Zap },
       { title: "SLA & Prazos", url: "/sla", icon: TrendingUp },
       { title: "Auditoria", url: "/auditoria", icon: History },
     ],

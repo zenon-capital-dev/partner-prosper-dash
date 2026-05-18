@@ -21,7 +21,7 @@ type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean };
 const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-    { title: "Cockpit", url: "/cockpit", icon: Activity },
+    { title: "Alertas", url: "/cockpit", icon: Activity },
     { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
     { title: "Tarefas", url: "/tarefas", icon: Target },
