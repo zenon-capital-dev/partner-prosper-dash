@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { confirmAction } from "@/lib/confirm";
+import { TaskDetailsExtras } from "@/components/tasks/TaskDetailsExtras";
 
 const STATUSES = [
   { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200" },
@@ -555,6 +556,7 @@ export default function Tasks() {
                 </Select>
               </div>
             </div>
+            {editing && <TaskDetailsExtras taskId={editing.id} />}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setCreateOpen(false); resetForm(); }}>Cancelar</Button>
