@@ -315,6 +315,9 @@ export default function DemandDetail() {
              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-xl">
                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Operações</DropdownMenuLabel>
                <DropdownMenuSeparator />
+               <DropdownMenuItem onClick={() => setEditOpen(true)} className="gap-2 cursor-pointer">
+                 <Pencil className="size-4" /> Editar Demanda
+               </DropdownMenuItem>
                <DropdownMenuItem 
                  onClick={() => setPauseDialogOpen(true)}
                  className={cn("gap-2 cursor-pointer", demand.status === 'pausado' ? "text-emerald-600 focus:text-emerald-700" : "text-amber-600 focus:text-amber-700")}
@@ -339,8 +342,15 @@ export default function DemandDetail() {
                  <AlertTriangle className="size-4" /> Registrar Atraso
                </DropdownMenuItem>
                <DropdownMenuSeparator />
+               <DropdownMenuItem onClick={duplicateDemand} className="gap-2 cursor-pointer">
+                 <Copy className="size-4" /> Duplicar Demanda
+               </DropdownMenuItem>
                <DropdownMenuItem onClick={finalizeDemand} disabled={demand.status === 'concluido'} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-700">
                  <CheckCircle2 className="size-4" /> Finalizar Demanda
+               </DropdownMenuItem>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem onClick={deleteDemand} className="gap-2 cursor-pointer text-rose-600 focus:text-rose-700">
+                 <Trash2 className="size-4" /> Excluir Demanda
                </DropdownMenuItem>
              </DropdownMenuContent>
            </DropdownMenu>
