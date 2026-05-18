@@ -44,13 +44,23 @@ const statusLabel: Record<string, { label: string; tone: Tone }> = {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
-  const [rangeKey, setRangeKey] = useState("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "PERSONALIZADO">("HOJE");
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [customOpen, setCustomOpen] = useState(false);
+
+  // Helper: today in Brasília
+  const brasiliaToday = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
+    const [y, m, d] = fmt.format(new Date()).split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }, []);
+
   const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
   const firstName = String(fullName).split(/[ @]/)[0];
-  const hour = new Date().getHours();
+  const hour = Number(new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()));
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
-  const timeNow = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const today = brasiliaToday.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+  const timeNow = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" }).format(new Date());
 
   // ===== Queries =====
   const { data: clients = [] } = useQuery({
