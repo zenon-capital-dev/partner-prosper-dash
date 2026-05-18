@@ -242,26 +242,26 @@ export default function Finance() {
       />
 
 
-      <div className="grid grid-cols-12 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
+      <div className="grid grid-cols-12 gap-6">
         {/* Main Chart */}
-        <div className="col-span-12 lg:col-span-8 bg-card p-6">
+        <div className="col-span-12 lg:col-span-8 vx-card p-6 bg-white">
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
              <div>
-               <h2 className="text-sm font-bold tracking-tight text-foreground">Capital flow</h2>
-               <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest mt-1">daily revenue vs operational costs</p>
+               <h2 className="text-sm font-bold tracking-tight text-foreground">Fluxo de Caixa</h2>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Comparativo de entradas e saídas</p>
              </div>
              <div className="flex flex-wrap items-center gap-4 text-[9px] font-black uppercase tracking-[0.15em]">
                <span className="flex items-center gap-1.5 text-success">
-                 <span className="size-1.5 rounded-full bg-success" /> Revenue
+                 <span className="size-1.5 rounded-full bg-success" /> Entradas
                </span>
                <span className="flex items-center gap-1.5 text-destructive">
-                 <span className="size-1.5 rounded-full bg-destructive" /> Expenses
+                 <span className="size-1.5 rounded-full bg-destructive" /> Saídas
                </span>
-               <span className="flex items-center gap-1.5 text-muted-foreground/40">
-                 <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Net Balance
+               <span className="flex items-center gap-1.5 text-muted-foreground">
+                 <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Saldo Médio
                </span>
              </div>
-      </div>
+       </div>
 
       {/* Top Beneficiaries */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
