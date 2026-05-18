@@ -287,11 +287,16 @@ export default function DashboardAdmin() {
       .sort((a: any, b: any) => b._value - a._value)
       .slice(0, 6);
 
+    const inRangeTs = (s?: string | null) => {
+      if (!s) return false;
+      const d = String(s).slice(0, 10);
+      return d >= startISO && d <= endISO;
+    };
     const recentActivity = [
-      ...proposals.filter((p: any) => new Date(p.created_at) >= startOfRange).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
-      ...leads.filter((l: any) => new Date(l.created_at) >= startOfRange).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
-      ...sales.filter((s: any) => new Date(s.sale_date || s.created_at) >= startOfRange).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
-      ...contracts.filter((c: any) => new Date(c.created_at) >= startOfRange).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
+      ...proposals.filter((p: any) => inRangeTs(p.created_at)).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
+      ...leads.filter((l: any) => inRangeTs(l.created_at)).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
+      ...sales.filter((s: any) => inRangeTs(s.sale_date || s.created_at)).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
+      ...contracts.filter((c: any) => inRangeTs(c.created_at)).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
     ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 9);
 
     const todayTasks = tasks.filter((t: any) => {
