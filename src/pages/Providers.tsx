@@ -97,6 +97,24 @@ export default function Providers() {
     else { toast.success(p.active ? "Prestador desativado" : "Prestador ativado"); qc.invalidateQueries({ queryKey: ["providers-rich"] }); }
   };
 
+  const removeProvider = async (p: any) => {
+    const refs = (p.client_products?.length ?? 0) + (p.contracts?.length ?? 0);
+    if (refs > 0) {
+      toast.error(
+        `Não é possível excluir: existem ${refs} vínculo(s) (demandas/contratos). Desative o prestador em vez de excluir.`
+      );
+      return;
+    }
+    if (!(await confirmAction(`Excluir definitivamente "${p.name}"? Esta ação é irreversível.`))) return;
+    const { error } = await supabase.from("service_providers").delete().eq("id", p.id);
+    if (error) {
+      toast.error("Não foi possível excluir. Há vínculos no sistema — desative em vez de excluir.");
+      return;
+    }
+    toast.success("Prestador excluído");
+    qc.invalidateQueries({ queryKey: ["providers-rich"] });
+  };
+
   const refresh = () => qc.invalidateQueries({ queryKey: ["providers-rich"] });
 
   return (
