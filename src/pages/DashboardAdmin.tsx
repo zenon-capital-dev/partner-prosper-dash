@@ -298,6 +298,7 @@ export default function DashboardAdmin() {
     const conversionGoal = [{ name: "Conversão", value: conversionRate, fill: conversionRate >= 25 ? "#34d399" : "#fbbf24" }];
 
     return {
+      rangeRevenue, rangeNewClients, rangeSalesCount, rangeKey,
       monthRevenue, lastMonthRevenue, revenueDelta, avgTicket,
       activeClients, newClientsMonth, churnRisk,
       inProgress, awaiting, completed, delayed,
