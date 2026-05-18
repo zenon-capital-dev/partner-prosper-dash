@@ -267,6 +267,13 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="space-y-2">
+            <Label>Comissão parceiro (%)</Label>
+            <Input type="number" step="0.01" min="0" max="100" placeholder="Ex: 10"
+              value={form.partner_commission_percent ?? ""}
+              disabled={!form.partner_id}
+              onChange={(e) => setForm({ ...form, partner_commission_percent: e.target.value })} />
+          </div>
+          <div className="space-y-2">
             <Label>Indicador</Label>
             <Select value={form.referrer_id ?? "none"} onValueChange={(v) => setForm({ ...form, referrer_id: v === "none" ? null : v })}>
               <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
@@ -277,6 +284,13 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="space-y-2">
+            <Label>Comissão indicador (%)</Label>
+            <Input type="number" step="0.01" min="0" max="100" placeholder="Ex: 5"
+              value={form.referrer_commission_percent ?? ""}
+              disabled={!form.referrer_id}
+              onChange={(e) => setForm({ ...form, referrer_commission_percent: e.target.value })} />
+          </div>
+          <div className="space-y-2">
             <Label>Colaborador responsável</Label>
             <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
               <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
@@ -285,6 +299,13 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                 {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Comissão colaborador (%)</Label>
+            <Input type="number" step="0.01" min="0" max="100" placeholder="Ex: 3"
+              value={form.collaborator_commission_percent ?? ""}
+              disabled={!form.collaborator_id}
+              onChange={(e) => setForm({ ...form, collaborator_commission_percent: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label>Prestador de serviço</Label>
