@@ -46,6 +46,7 @@ export default function ClientPanel() {
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
   const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
 
   const downloadDoc = async (path?: string | null, name?: string) => {
     if (!path) return toast.error("Arquivo indisponível");
