@@ -238,7 +238,11 @@ export default function Finance() {
             >
               <AlertCircle className="size-4" /> Processar Alertas
             </Button>
-            <Button size="sm" className="btn-premium h-10 px-5 gap-2 font-semibold">
+            <Button 
+              size="sm" 
+              className="btn-premium h-10 px-5 gap-2 font-semibold"
+              onClick={() => setIsExpenseOpen(true)}
+            >
               <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
             </Button>
           </>
@@ -246,9 +250,10 @@ export default function Finance() {
         kpis={[
           { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
           { label: "Comissões", value: formatBRL(kpis.commissionsTotal), tone: "warning", icon: <Wallet className="size-4" /> },
+          { label: "Comissão Líquida", value: formatBRL(kpis.netCommission), tone: "info", icon: <CircleDollarSign className="size-4" /> },
           { label: "Despesas", value: formatBRL(kpis.expensesTotal), tone: "danger", icon: <ArrowDownToLine className="size-4" /> },
-          { label: "Lucro Líquido", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
-          { label: "Margem", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
+          { label: "Lucro Real", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
+          { label: "Margem Final", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
         ]}
       />
 
