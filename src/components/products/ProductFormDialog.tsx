@@ -84,9 +84,11 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
       });
       setDocs(Array.isArray(editing.required_documents) ? editing.required_documents.map((d: any) => d.name) : []);
       setSteps(Array.isArray(editing.standard_steps) ? editing.standard_steps.map((s: any) => s.label) : []);
+      setCustomFields(Array.isArray(editing.custom_fields_template) ? editing.custom_fields_template : []);
+      setAutoTasks(Array.isArray(editing.auto_tasks_template) ? editing.auto_tasks_template : []);
     } else {
       setForm((f: any) => ({ ...f, category_id: categories[0]?.id ?? "" }));
-      setDocs([]); setSteps([]);
+      setDocs([]); setSteps([]); setCustomFields([]); setAutoTasks([]);
     }
     setTab("basico");
   }, [open, editing, categories]);
