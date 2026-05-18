@@ -85,7 +85,9 @@ export default function FinanceCenter() {
     const totalReceivable = payments.filter((p: any) => isOpen(p.status)).reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
     const totalOverdue = payments.filter(isOverdue).reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
     const commissionsPending = commissions.filter((c: any) => c.status !== "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    return { totalReceived, totalReceivable, totalOverdue, commissionsPending };
+    const commissionsPaid = commissions.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const netCommission = totalReceived - commissionsPaid;
+    return { totalReceived, totalReceivable, totalOverdue, commissionsPending, netCommission };
   }, [payments, commissions, todayIso]);
 
   const processAlerts = async () => {
