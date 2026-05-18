@@ -6,12 +6,17 @@ import {
   Plus, ArrowUpRight, Phone, CalendarClock, AlertTriangle, Bell,
   FileText, ChevronRight, Crown, Briefcase, ClipboardList, Sparkles,
   Mail, MessageSquare, UserPlus, PiggyBank, Receipt, BarChart3, Filter, Zap,
+  Calendar as CalendarIcon, Wallet, TrendingUp as TrendUp,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, RadialBarChart, RadialBar, PolarAngleAxis,
@@ -39,13 +44,23 @@ const statusLabel: Record<string, { label: string; tone: Tone }> = {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
-  const [rangeKey, setRangeKey] = useState("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "PERSONALIZADO">("HOJE");
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [customOpen, setCustomOpen] = useState(false);
+
+  // Helper: today in Brasília
+  const brasiliaToday = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
+    const [y, m, d] = fmt.format(new Date()).split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }, []);
+
   const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
   const firstName = String(fullName).split(/[ @]/)[0];
-  const hour = new Date().getHours();
+  const hour = Number(new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()));
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
-  const timeNow = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const today = brasiliaToday.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+  const timeNow = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" }).format(new Date());
 
   // ===== Queries =====
   const { data: clients = [] } = useQuery({
@@ -92,22 +107,27 @@ export default function DashboardAdmin() {
   // ===== Stats =====
   const stats = useMemo(() => {
     const now = new Date();
-    // Brasilia Time (UTC-3)
-    const brNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-    
-    const startOfRange = new Date(brNow);
+    const brNow = brasiliaToday;
+
+    // Compute date range as ISO strings (YYYY-MM-DD) for reliable comparison
+    const toISO = (d: Date) => d.toISOString().slice(0, 10);
+    let rangeStart = new Date(brNow);
+    let rangeEnd = new Date(brNow);
     if (rangeKey === "HOJE") {
-      startOfRange.setHours(0, 0, 0, 0);
+      // both start and end = today
     } else if (rangeKey === "7 DIAS") {
-      startOfRange.setDate(brNow.getDate() - 7);
-      startOfRange.setHours(0, 0, 0, 0);
+      rangeStart = new Date(brNow); rangeStart.setDate(brNow.getDate() - 6);
     } else if (rangeKey === "30 DIAS") {
-      startOfRange.setDate(brNow.getDate() - 30);
-      startOfRange.setHours(0, 0, 0, 0);
-    } else { // MÊS
-      startOfRange.setDate(1);
-      startOfRange.setHours(0, 0, 0, 0);
+      rangeStart = new Date(brNow); rangeStart.setDate(brNow.getDate() - 29);
+    } else if (rangeKey === "MÊS") {
+      rangeStart = new Date(brNow.getFullYear(), brNow.getMonth(), 1);
+    } else if (rangeKey === "PERSONALIZADO") {
+      if (customRange.from) rangeStart = customRange.from;
+      if (customRange.to) rangeEnd = customRange.to;
     }
+    const startISO = toISO(rangeStart);
+    const endISO = toISO(rangeEnd);
+    const startOfRange = rangeStart;
 
     const M = brNow.getMonth();
     const Y = brNow.getFullYear();
@@ -115,12 +135,13 @@ export default function DashboardAdmin() {
     const startLast = new Date(Y, M - 1, 1);
     const endLast = new Date(Y, M, 0);
 
-    // Filter sales by range
-    const filteredSales = sales.filter((s: any) => {
-      if (!s.sale_date) return false;
-      const d = new Date(s.sale_date);
-      return d >= startOfRange && d <= brNow;
-    });
+    // Filter sales by range using ISO date comparison
+    const inRange = (dateStr: string | null | undefined) => {
+      if (!dateStr) return false;
+      const d = String(dateStr).slice(0, 10);
+      return d >= startISO && d <= endISO;
+    };
+    const filteredSales = sales.filter((s: any) => inRange(s.sale_date));
 
     const monthSales = sales.filter((s: any) => s.sale_date && new Date(s.sale_date) >= startMonth);
     const lastMonthSales = sales.filter((s: any) => {
@@ -266,11 +287,16 @@ export default function DashboardAdmin() {
       .sort((a: any, b: any) => b._value - a._value)
       .slice(0, 6);
 
+    const inRangeTs = (s?: string | null) => {
+      if (!s) return false;
+      const d = String(s).slice(0, 10);
+      return d >= startISO && d <= endISO;
+    };
     const recentActivity = [
-      ...proposals.filter((p: any) => new Date(p.created_at) >= startOfRange).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
-      ...leads.filter((l: any) => new Date(l.created_at) >= startOfRange).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
-      ...sales.filter((s: any) => new Date(s.sale_date || s.created_at) >= startOfRange).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
-      ...contracts.filter((c: any) => new Date(c.created_at) >= startOfRange).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
+      ...proposals.filter((p: any) => inRangeTs(p.created_at)).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
+      ...leads.filter((l: any) => inRangeTs(l.created_at)).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
+      ...sales.filter((s: any) => inRangeTs(s.sale_date || s.created_at)).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
+      ...contracts.filter((c: any) => inRangeTs(c.created_at)).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
     ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 9);
 
     const todayTasks = tasks.filter((t: any) => {
@@ -310,7 +336,7 @@ export default function DashboardAdmin() {
       alerts, upcomingActions, urgentDemands, recentSales, topClients, recentActivity, todayTasks, topPartners,
       conversionGoal,
     };
-  }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks]);
+  }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks, rangeKey, customRange, brasiliaToday]);
 
   // Sparkline data per KPI
   const revSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.receita }));
@@ -356,24 +382,53 @@ export default function DashboardAdmin() {
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
-                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p) => (
+                {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((p) => (
                   <button 
                     key={p} 
                     onClick={() => setRangeKey(p)}
                     className={cn(
                       "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", 
-                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950"
+                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
                     )}
                   >
                     {p}
                   </button>
                 ))}
+                <Popover open={customOpen} onOpenChange={setCustomOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      onClick={() => { setRangeKey("PERSONALIZADO"); setCustomOpen(true); }}
+                      className={cn(
+                        "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap inline-flex items-center gap-1",
+                        rangeKey === "PERSONALIZADO" ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
+                      )}
+                    >
+                      <CalendarIcon className="size-3" />
+                      {rangeKey === "PERSONALIZADO" && customRange.from && customRange.to
+                        ? `${format(customRange.from, "dd/MM")} - ${format(customRange.to, "dd/MM")}`
+                        : "PERSONALIZADO"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white" align="end">
+                    <Calendar
+                      mode="range"
+                      selected={{ from: customRange.from, to: customRange.to }}
+                      onSelect={(r: any) => {
+                        setCustomRange({ from: r?.from, to: r?.to });
+                        if (r?.from && r?.to) setCustomOpen(false);
+                      }}
+                      locale={ptBR}
+                      numberOfMonths={2}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-semibold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
-                <Plus className="size-3.5" /> Negociação
+                <Target className="size-3.5" /> Nova Negociação
               </Link>
               <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
-                <TrendingUp className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar fechamento</span><span className="xs:hidden sm:hidden">Fechar</span>
+                <CircleDollarSign className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar Venda</span><span className="xs:hidden sm:hidden">Venda</span>
               </Link>
               <button className="size-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 hover:text-slate-950 transition-all relative shadow-sm">
                 <Bell className="size-4" />
@@ -635,55 +690,51 @@ export default function DashboardAdmin() {
 
         {/* ============ ROW: TABLES — RECENT SALES + URGENT DEMANDS + TASKS ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Recent sales table */}
+          {/* Recent sales — clean cards */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Fechamentos" title="Vendas recentes" right={<Link to="/vendas" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Ver tudo</Link>} />
-            <div className="overflow-hidden -mx-1">
-              <table className="w-full text-[11px] border-separate border-spacing-y-1.5">
-                <thead>
-                  <tr className="text-[9.5px] uppercase tracking-[0.12em] text-slate-400 font-black">
-                    <th className="text-left pb-2 px-2">Cliente</th>
-                    <th className="text-left pb-2 px-2">Data</th>
-                    <th className="text-right pb-2 px-2">Valor</th>
-                    <th className="text-right pb-2 px-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="space-y-1">
-                  {stats.recentSales.length > 0 ? stats.recentSales.map((s: any) => (
-                    <tr key={s.id} className="group hover:bg-slate-50/80 transition-all duration-200">
-                      <td className="py-2.5 px-2 rounded-l-xl border-y border-l border-transparent group-hover:border-slate-100">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="size-7 rounded-lg bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 flex items-center justify-center text-[10px] font-black text-indigo-600 shadow-sm group-hover:scale-110 transition-transform">
-                            {s.clientName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-[11.5px] text-slate-900 font-bold truncate max-w-[140px] leading-tight">{s.clientName}</span>
-                            <span className="text-[9.5px] text-slate-400 leading-none mt-0.5">ID: {s.id.slice(0, 8).toUpperCase()}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-2 border-y border-transparent group-hover:border-slate-100 text-slate-600 font-medium tabular-nums">
-                        {s.sale_date ? new Date(s.sale_date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : "—"}
-                      </td>
-                      <td className="py-2.5 px-2 border-y border-transparent group-hover:border-slate-100 text-right text-indigo-900 font-black tabular-nums tracking-tight">
-                        {formatBRL(s.amount)}
-                      </td>
-                      <td className="py-2.5 px-2 rounded-r-xl border-y border-r border-transparent group-hover:border-slate-100 text-right">
-                        <span className={cn(
-                          "text-[9px] px-2 py-1 rounded-md font-black uppercase tracking-widest", 
-                          s.status === "concluida" || s.status === "pago"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100" 
-                            : "bg-amber-50 text-amber-700 border border-amber-100"
-                        )}>
-                          {s.status || "pendente"}
-                        </span>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr><td colSpan={4}><Empty label="Sem registros no período" /></td></tr>
-                  )}
-                </tbody>
-              </table>
+            <CardHeader 
+              eyebrow="Fechamentos" 
+              title="Vendas recentes" 
+              right={
+                <Link to="/vendas" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Ver todas <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
+            <div className="space-y-2">
+              {stats.recentSales.length > 0 ? stats.recentSales.map((s: any) => {
+                const isPaid = s.status === "concluida" || s.status === "pago";
+                return (
+                  <Link 
+                    to="/vendas"
+                    key={s.id} 
+                    className="group flex items-center gap-3 p-3 rounded-lg border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all"
+                  >
+                    <div className={cn(
+                      "size-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 transition-transform group-hover:scale-110",
+                      isPaid ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"
+                    )}>
+                      {s.clientName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-slate-900 truncate">{s.clientName}</p>
+                      <p className="text-[10.5px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                        <CalendarClock className="size-2.5" />
+                        {s.sale_date ? new Date(s.sale_date + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[13px] font-bold text-slate-900 tabular-nums">{formatBRL(s.amount)}</p>
+                      <span className={cn(
+                        "inline-block mt-0.5 text-[8.5px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider",
+                        isPaid ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      )}>
+                        {isPaid ? "Pago" : "Pendente"}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              }) : <Empty label="Nenhuma venda no período selecionado" />}
             </div>
           </Card>
 
@@ -788,79 +839,104 @@ export default function DashboardAdmin() {
             </div>
           </Card>
 
-          {/* Activity feed */}
+          {/* Activity feed — clean timeline */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Histórico</Link>} />
-            <div className="relative mt-2">
-              {stats.recentActivity.length > 0 ? (
-                <div className="space-y-4">
-                  {stats.recentActivity.map((act, idx) => (
-                    <div key={act.id} className="group relative pl-8 pb-4 last:pb-0">
-                      {/* Timeline Line */}
-                      {idx !== stats.recentActivity.length - 1 && (
-                        <div className="absolute left-[11px] top-7 bottom-0 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors" />
-                      )}
-                      
-                      {/* Icon / Marker */}
-                      <div className={cn(
-                        "absolute left-0 top-1 size-[22px] rounded-lg flex items-center justify-center border shadow-sm transition-all group-hover:scale-110",
-                        toneColor[act.tone].bg, toneColor[act.tone].border, toneColor[act.tone].text
-                      )}>
-                        <act.icon className="size-3" strokeWidth={2.5} />
-                      </div>
-
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[11.5px] font-bold text-slate-950 leading-tight">{act.title}</p>
-                          <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 tabular-nums">
-                            {new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} · {new Date(act.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                        </div>
-                        <p className="text-[10.5px] text-slate-600 line-clamp-1 group-hover:text-slate-900 transition-colors">{act.sub}</p>
-                      </div>
+            <CardHeader 
+              eyebrow="Auditoria" 
+              title="Fluxo recente" 
+              right={
+                <Link to="/auditoria" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Histórico <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
+            <div className="space-y-2 mt-1">
+              {stats.recentActivity.length > 0 ? stats.recentActivity.map((act) => {
+                const dt = new Date(act.at);
+                return (
+                  <div key={act.id} className="group flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className={cn(
+                      "size-9 rounded-lg flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105",
+                      toneColor[act.tone].bg, toneColor[act.tone].border, toneColor[act.tone].text
+                    )}>
+                      <act.icon className="size-4" strokeWidth={2.2} />
                     </div>
-                  ))}
-                </div>
-              ) : <Empty label="Sem atividade no período selecionado" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-slate-900 leading-tight truncate">{act.title}</p>
+                      <p className="text-[10.5px] text-slate-500 mt-0.5 truncate">{act.sub}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-bold text-slate-700 tabular-nums leading-none">
+                        {dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                      </p>
+                      <p className="text-[9px] text-slate-400 tabular-nums mt-0.5">
+                        {dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }) : <Empty label="Sem atividade no período selecionado" />}
             </div>
           </Card>
         </section>
 
         {/* ============ ROW: FINANCIAL SUMMARY + TOP PARTNERS + QUICK ACTIONS ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Financial summary */}
+          {/* Financial summary — premium grid */}
           <Card className="lg:col-span-5">
-            <CardHeader eyebrow="Financeiro" title="Resumo financeiro" right={<Link to="/financeiro" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Central</Link>} />
-            <div className="grid grid-cols-2 gap-3">
-              <MiniMetric icon={PiggyBank} label="A receber 7 dias" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
-              <MiniMetric icon={FileWarning} label="Inadimplente" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
-              <MiniMetric icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="primary" />
-              <MiniMetric icon={FileSignature} label="Contratos pendentes" value={stats.contractsAwaiting.toString()} sub="Aguardando assinatura" tone="warning" />
+            <CardHeader 
+              eyebrow="Financeiro" 
+              title="Resumo financeiro" 
+              right={
+                <Link to="/financeiro" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Central <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
+            <div className="grid grid-cols-2 gap-2.5">
+              <FinanceTile icon={PiggyBank} label="A receber (7 dias)" value={formatBRL(stats.upcomingAmount)} sub={`${stats.upcomingPayments.length} título(s)`} tone="success" />
+              <FinanceTile icon={FileWarning} label="Inadimplência" value={formatBRL(stats.overdueAmount)} sub={`${stats.overduePayments.length} título(s)`} tone="danger" />
+              <FinanceTile icon={Handshake} label="Comissões a pagar" value={formatBRL(stats.pendingCommissions)} sub="Aguardando liberação" tone="primary" />
+              <FinanceTile icon={FileSignature} label="Contratos pendentes" value={stats.contractsAwaiting.toString()} sub="Aguardando assinatura" tone="warning" />
             </div>
           </Card>
 
-          {/* Top partners */}
+          {/* Top partners — clean ranking */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Parcerias" title="Top parceiros por comissão" right={<Link to="/parceiros" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Rede</Link>} />
+            <CardHeader 
+              eyebrow="Parcerias" 
+              title="Top parceiros" 
+              right={
+                <Link to="/parceiros" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Rede <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
             <div className="space-y-2">
               {stats.topPartners.length > 0 ? stats.topPartners.map((p, i) => {
                 const max = stats.topPartners[0].amount;
                 const pct = (p.amount / max) * 100;
+                const medals = ["bg-amber-400 text-amber-900", "bg-slate-300 text-slate-800", "bg-orange-300 text-orange-900"];
                 return (
-                  <div key={p.id}>
-                    <div className="flex items-center justify-between text-[11px] mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[9px] font-bold text-slate-600 tabular-nums w-3">{i + 1}</span>
-                        <span className="text-slate-800 font-medium truncate">{p.name}</span>
+                  <Link to={`/parceiros/${p.id}`} key={p.id} className="group block p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <div className={cn(
+                        "size-7 rounded-full flex items-center justify-center text-[11px] font-black shrink-0",
+                        i < 3 ? medals[i] : "bg-slate-100 text-slate-600"
+                      )}>
+                        {i + 1}
                       </div>
-                      <span className="text-emerald-800 font-bold tabular-nums">{formatBRL(p.amount)}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">{p.name}</p>
+                      </div>
+                      <span className="text-[12px] text-emerald-700 font-bold tabular-nums shrink-0">{formatBRL(p.amount)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-50">
-                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="h-1 rounded-full bg-slate-100 overflow-hidden ml-10">
+                      <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
                     </div>
-                  </div>
+                  </Link>
                 );
-              }) : <Empty label="Sem comissões registradas" />}
+              }) : <Empty label="Nenhuma comissão registrada ainda" />}
             </div>
           </Card>
 
@@ -1041,6 +1117,27 @@ function MiniMetric({ icon: Icon, label, value, sub, tone }: {
       </div>
       <p className="text-[16px] font-bold text-slate-950 tabular-nums leading-none">{value}</p>
       <p className="text-[9.5px] text-slate-800 mt-1">{sub}</p>
+    </div>
+  );
+}
+
+function FinanceTile({ icon: Icon, label, value, sub, tone }: {
+  icon: any; label: string; value: string; sub: string; tone: Tone;
+}) {
+  const t = toneColor[tone];
+  return (
+    <div className={cn("relative p-3.5 rounded-xl bg-white border hover:shadow-md transition-all overflow-hidden group", t.border)}>
+      <div className={cn("absolute -top-4 -right-4 size-16 rounded-full opacity-10 blur-xl", t.bg)} />
+      <div className="relative">
+        <div className="flex items-center justify-between mb-2">
+          <div className={cn("size-8 rounded-lg flex items-center justify-center", t.bg, t.text)}>
+            <Icon className="size-4" strokeWidth={2.2} />
+          </div>
+        </div>
+        <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 leading-tight">{label}</p>
+        <p className="text-[17px] font-bold text-slate-900 tabular-nums leading-tight mt-1">{value}</p>
+        <p className="text-[10px] text-slate-500 mt-0.5">{sub}</p>
+      </div>
     </div>
   );
 }
