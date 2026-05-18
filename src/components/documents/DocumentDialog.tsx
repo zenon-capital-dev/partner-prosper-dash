@@ -104,7 +104,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     const clientId = propClientId || selectedClientId;
     if (!clientId) { toast.error("Selecione um cliente"); return; }
     if (!form.name) { toast.error("Nome do documento é obrigatório"); return; }
-    
+    if (!form.client_product_id || form.client_product_id === "none") {
+      toast.error("Selecione a demanda/produto vinculado (obrigatório)");
+      return;
+    }
+
     setSubmitting(true);
 
     let file_path = editDoc?.file_path || null;
@@ -118,6 +122,24 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       const path = `${clientId}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
       if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
+
+      // Versionamento: ao reenviar, arquiva o arquivo anterior em document_versions
+      if (editDoc?.id && editDoc.file_path) {
+        const { count } = await supabase
+          .from("document_versions")
+          .select("id", { count: "exact", head: true })
+          .eq("document_id", editDoc.id);
+        await supabase.from("document_versions").insert({
+          document_id: editDoc.id,
+          version_number: (count ?? 0) + 1,
+          file_path: editDoc.file_path,
+          file_size: editDoc.file_size,
+          mime_type: editDoc.mime_type,
+          uploaded_by: editDoc.uploaded_by,
+          note: "Versão substituída por novo upload",
+        });
+      }
+
       file_path = path;
       file_size = file.size;
       mime_type = file.type;
@@ -130,7 +152,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       name: form.name,
       description: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
-      client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
+      client_product_id: form.client_product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       is_required: form.is_required ?? true,
@@ -143,13 +165,13 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       uploaded_at,
     };
 
-    const { error } = editDoc 
+    const { error } = editDoc
       ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
       : await supabase.from("documents").insert(payload);
 
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
-    
+
     toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : "Documento solicitado ao cliente"));
     onSuccess?.();
     onOpenChange(false);
@@ -194,9 +216,9 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label>Produto / Demanda vinculada</Label>
-              <Select 
-                value={form.client_product_id || "none"} 
+              <Label>Produto / Demanda vinculada *</Label>
+              <Select
+                value={form.client_product_id || ""}
                 onValueChange={(v) => {
                    const cp = clientProducts?.find((x: any) => x.id === v);
                    setForm({ ...form, client_product_id: v, product_id: cp?.product_id || "none" });
@@ -204,11 +226,12 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
               >
                 <SelectTrigger>
                   <Package className="size-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Geral / Selecione a demanda" />
+                  <SelectValue placeholder="Selecione a demanda (obrigatório)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Geral / Nenhuma demanda</SelectItem>
-                  {clientProducts?.map((cp: any) => (
+                  {(clientProducts?.length ?? 0) === 0 ? (
+                    <div className="p-3 text-xs text-muted-foreground">Nenhuma demanda para este cliente.</div>
+                  ) : clientProducts!.map((cp: any) => (
                     <SelectItem key={cp.id} value={cp.id}>{cp.products?.name || cp.custom_product_name}</SelectItem>
                   ))}
                 </SelectContent>

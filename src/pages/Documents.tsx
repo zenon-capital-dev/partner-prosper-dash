@@ -69,6 +69,11 @@ export default function Documents() {
   const [actionDoc, setActionDoc] = useState<any>(null);
   const [actionReason, setActionReason] = useState("");
 
+  // History dialog
+  const [historyDoc, setHistoryDoc] = useState<any>(null);
+  const [historyVersions, setHistoryVersions] = useState<any[]>([]);
+  const [historyAudit, setHistoryAudit] = useState<any[]>([]);
+
   const { data: docs, refetch } = useQuery({
     queryKey: ["docs-all"],
     queryFn: async () => {
@@ -154,6 +159,42 @@ export default function Documents() {
     if (error) return toast.error(error.message);
     toast.success(`Visibilidade alterada para ${!doc.is_public ? "público" : "interno"}`);
     refetch();
+  };
+
+  const deleteDoc = async (doc: any) => {
+    if (!confirm(`Excluir definitivamente o documento "${doc.name}"? Esta ação não pode ser desfeita.`)) return;
+    // Remove arquivos do storage (versão atual + versões antigas)
+    const paths: string[] = [];
+    if (doc.file_path) paths.push(doc.file_path);
+    const { data: versions } = await supabase.from("document_versions").select("file_path").eq("document_id", doc.id);
+    (versions ?? []).forEach((v: any) => { if (v.file_path) paths.push(v.file_path); });
+    if (paths.length > 0) await supabase.storage.from("documents").remove(paths);
+    const { error } = await supabase.from("documents").delete().eq("id", doc.id);
+    if (error) return toast.error(error.message);
+    logAudit("DOCUMENT_DELETE" as any, "documents", doc.id, { name: doc.name });
+    toast.success("Documento excluído");
+    refetch();
+  };
+
+  const openHistory = async (doc: any) => {
+    setHistoryDoc(doc);
+    setHistoryVersions([]);
+    setHistoryAudit([]);
+    const [{ data: versions }, { data: audit }] = await Promise.all([
+      supabase.from("document_versions").select("*").eq("document_id", doc.id).order("version_number", { ascending: false }),
+      supabase.from("activity_logs").select("id, action, new_data, old_data, created_at, user_id")
+        .eq("entity_type", "documents").eq("entity_id", doc.id).order("created_at", { ascending: false }).limit(50),
+    ]);
+    setHistoryVersions(versions ?? []);
+    setHistoryAudit(audit ?? []);
+  };
+
+  const downloadVersion = async (filePath: string, fileName: string) => {
+    const { data, error } = await supabase.storage.from("documents").download(filePath);
+    if (error) return toast.error(error.message);
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url; a.download = fileName; a.click();
   };
 
   const openActionDialog = (mode: ActionMode, doc: any) => {
@@ -486,6 +527,13 @@ export default function Documents() {
                               <DropdownMenuItem onClick={() => { setSelectedDoc(d); setIsDialogOpen(true); }}>
                                 <FilePlus className="size-4 mr-2" /> Editar solicitação
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openHistory(d)}>
+                                <History className="size-4 mr-2" /> Ver histórico e versões
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => deleteDoc(d)} className="text-destructive">
+                                <X className="size-4 mr-2" /> Excluir documento
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
@@ -540,6 +588,76 @@ export default function Documents() {
             <Button onClick={submitActionDialog} variant={actionMode === "reject" ? "destructive" : "default"}>
               Confirmar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* History & Versions dialog */}
+      <Dialog open={!!historyDoc} onOpenChange={(o) => { if (!o) setHistoryDoc(null); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Histórico — {historyDoc?.name}</DialogTitle>
+            <DialogDescription>Versões arquivadas e linha do tempo de eventos do documento.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Versões do arquivo</h4>
+              {historyDoc?.file_path && (
+                <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 flex items-center justify-between mb-2">
+                  <div className="text-xs">
+                    <div className="font-bold">Versão atual</div>
+                    <div className="text-muted-foreground">{historyDoc.uploaded_at ? formatDate(historyDoc.uploaded_at) : "—"}</div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => downloadVersion(historyDoc.file_path, historyDoc.name)} className="gap-1.5">
+                    <Download className="size-3.5" /> Baixar
+                  </Button>
+                </div>
+              )}
+              {historyVersions.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Nenhuma versão anterior arquivada.</p>
+              ) : historyVersions.map((v: any) => (
+                <div key={v.id} className="p-3 rounded-lg border border-border flex items-center justify-between mb-1.5">
+                  <div className="text-xs">
+                    <div className="font-bold">Versão {v.version_number}</div>
+                    <div className="text-muted-foreground">{formatDate(v.created_at)} {v.note ? `· ${v.note}` : ""}</div>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => downloadVersion(v.file_path, `${historyDoc.name}-v${v.version_number}`)} className="gap-1.5">
+                    <Download className="size-3.5" /> Baixar
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Linha do tempo</h4>
+              {historyAudit.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Nenhum evento registrado.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {historyAudit.map((h: any) => {
+                    const oldStatus = h.old_data?.status;
+                    const newStatus = h.new_data?.status;
+                    const statusChanged = oldStatus && newStatus && oldStatus !== newStatus;
+                    return (
+                      <div key={h.id} className="p-2.5 rounded-lg bg-muted/30 border border-border text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold capitalize">{String(h.action).toLowerCase().replace(/_/g, " ")}</span>
+                          <span className="text-muted-foreground font-mono text-[10px]">{formatDate(h.created_at)}</span>
+                        </div>
+                        {statusChanged && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Status: {oldStatus} → {newStatus}</p>
+                        )}
+                        {h.new_data?.rejection_reason && oldStatus !== newStatus && (
+                          <p className="text-[11px] text-rose-600 mt-0.5">Motivo: {h.new_data.rejection_reason}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistoryDoc(null)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
