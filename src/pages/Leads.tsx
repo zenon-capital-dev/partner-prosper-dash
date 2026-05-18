@@ -56,6 +56,13 @@ export default function Leads() {
   const [page, setPage] = useState(1);
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setOpen(true);
+    }
+  }, [searchParams]);
 
   const openFollowUp = (lead: any) => {
     setFollowUpLead(lead);
