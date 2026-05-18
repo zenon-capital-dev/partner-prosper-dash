@@ -261,7 +261,7 @@ function PaymentsTable({
                   <td className="px-4 py-3"><Badge className={cn("font-normal", meta.cls)}>{meta.label}</Badge></td>
                   <td className="px-4 py-3 text-right">
                     {p._status !== "pago" && p._status !== "cancelado" && (
-                      <Button size="sm" variant="outline" onClick={() => markPaid(p.id)}>
+                      <Button size="sm" variant="outline" onClick={() => markPaid(p.id, p.amount)}>
                         <CheckCircle2 className="h-3 w-3 mr-1" /> Confirmar
                       </Button>
                     )}
