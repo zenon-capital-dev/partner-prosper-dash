@@ -199,6 +199,30 @@ function PaymentsTable({
     else { toast.success("Pagamento confirmado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
   };
 
+  const cancelPayment = async (id: string) => {
+    const reason = window.prompt("Motivo do cancelamento (opcional):") ?? "";
+    const { error } = await supabase.from("payments").update({
+      status: "cancelado",
+      cancellation_reason: reason || null,
+    }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Pagamento cancelado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
+  };
+
+  const refundPayment = async (id: string, amount: number) => {
+    const input = window.prompt(`Valor a reembolsar (máx ${amount}):`, String(amount));
+    if (!input) return;
+    const refund = Number(input);
+    if (!Number.isFinite(refund) || refund <= 0) return toast.error("Valor inválido");
+    const { error } = await supabase.from("payments").update({
+      status: "reembolsado",
+      refunded_at: new Date().toISOString(),
+      refund_amount: refund,
+    }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Reembolso registrado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
