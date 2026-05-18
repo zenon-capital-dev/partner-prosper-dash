@@ -184,10 +184,10 @@ export default function Finance() {
   return (
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
-        eyebrow="Treasury"
-        category="Financial Operations"
+        eyebrow="Tesouraria"
+        category="Operações Financeiras"
         title="Financeiro"
-        description={`Saldo: ${formatBRL(kpis.profit)} · margem líquida ${kpis.margin.toFixed(1)}%`}
+        description={`Saldo atual: ${formatBRL(kpis.profit)} · Margem de lucro ${kpis.margin.toFixed(1)}%`}
         icon={<PiggyBank className="size-6" />}
         actions={
           <>
@@ -209,7 +209,7 @@ export default function Finance() {
               size="sm"
               className="h-10 px-4 gap-2"
               onClick={() => {
-                const headers = ["Produto", "Vendas", "Receita Bruta", "Comissoes", "Receita Liquida"];
+                const headers = ["Produto", "Vendas", "Receita Bruta", "Comissões", "Receita Líquida"];
                 const rows = productPerformance.map((p: any) => [
                   p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
                 ]);
@@ -225,22 +225,7 @@ export default function Finance() {
             </Button>
             <Button 
               size="sm" 
-              variant="outline"
-              className="h-10 px-4 gap-2 border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
-              onClick={async () => {
-                const { data, error } = await supabase.functions.invoke('process-alerts');
-                if (error) toast.error("Erro ao processar alertas");
-                else {
-                  toast.success(`${data.alerts_processed} novos alertas gerados`);
-                  qc.invalidateQueries({ queryKey: ["notifications"] });
-                }
-              }}
-            >
-              <AlertCircle className="size-4" /> Processar Alertas
-            </Button>
-            <Button 
-              size="sm" 
-              className="btn-premium h-10 px-5 gap-2 font-semibold"
+              className="btn-premium h-10 px-5 gap-2 font-semibold shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-indigo-600 border-none"
               onClick={() => setIsExpenseOpen(true)}
             >
               <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
@@ -250,9 +235,8 @@ export default function Finance() {
         kpis={[
           { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
           { label: "Comissões", value: formatBRL(kpis.commissionsTotal), tone: "warning", icon: <Wallet className="size-4" /> },
-          { label: "Comissão Líquida", value: formatBRL(kpis.netCommission), tone: "info", icon: <CircleDollarSign className="size-4" /> },
           { label: "Despesas", value: formatBRL(kpis.expensesTotal), tone: "danger", icon: <ArrowDownToLine className="size-4" /> },
-          { label: "Lucro Real", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
+          { label: "Saldo Líquido", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
           { label: "Margem Final", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
         ]}
       />
