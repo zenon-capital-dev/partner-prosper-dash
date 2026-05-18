@@ -109,7 +109,7 @@ export default function Automations() {
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Zap className="h-6 w-6" /> Automações Internas
+          <Zap className="h-6 w-6" /> Automações(Desenvolvimento) Internas
         </h1>
         <p className="text-muted-foreground">
           Configure gatilhos automáticos para notificações, lembretes e ações no sistema.
