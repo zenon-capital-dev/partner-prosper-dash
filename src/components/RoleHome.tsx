@@ -37,7 +37,8 @@ export default function RoleHome() {
     loading, 
     isAdmin, 
     isAdminSecondary, 
-    isColaborador, 
+    isColaborador,
+    isVendedor,
     isParceiro, 
     isPrestador, 
     isCliente, 
@@ -49,8 +50,8 @@ export default function RoleHome() {
     return <LoadingScreen message="Identificando perfil..." />;
   }
 
-  // Admin, Admin Secondary e Colaborador usam o painel administrativo
-  if (isAdmin || isAdminSecondary || isColaborador) return <Navigate to="/admin" replace />;
+  // Admin, Admin Secondary, Colaborador e Vendedor (Comercial) usam o painel administrativo
+  if (isAdmin || isAdminSecondary || isColaborador || isVendedor) return <Navigate to="/admin" replace />;
 
   // Specific role panels
   if (isParceiro) return <Navigate to="/parceiro" replace />;

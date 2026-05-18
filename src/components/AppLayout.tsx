@@ -21,15 +21,16 @@ export default function AppLayout() {
 function AppLayoutInner() {
   const {
     user,
-    isAdmin, isAdminSecondary, isColaborador,
+    isAdmin, isAdminSecondary, isColaborador, isVendedor,
     isParceiro, isPrestador, isCliente, isLead, isIndicador,
   } = useAuth();
   const { pathname } = useLocation();
 
   // 🔒 Cada role só pode entrar no seu próprio painel.
-  // Admin e Colaborador usam o painel administrativo (/admin).
+  // Admin, Colaborador e Vendedor (Comercial) usam o painel administrativo (/admin).
+  const isStaff = isAdmin || isAdminSecondary || isColaborador || isVendedor;
   const allowedPrefix = (() => {
-    if (isAdmin || isAdminSecondary || isColaborador) return "/admin";
+    if (isStaff) return "/admin";
     if (isParceiro) return "/parceiro";
     if (isPrestador) return "/prestador";
     if (isIndicador) return "/indicador";
@@ -37,7 +38,7 @@ function AppLayoutInner() {
     return null;
   })();
 
-  if ((isAdmin || isAdminSecondary || isColaborador) && !pathname.startsWith("/admin")) {
+  if (isStaff && !pathname.startsWith("/admin")) {
     return <Navigate to="/admin" replace />;
   }
 
@@ -52,7 +53,7 @@ function AppLayoutInner() {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   // QuickCreate is only meaningful for staff/admin profiles
-  const showQuickCreate = isAdmin || isAdminSecondary || isColaborador;
+  const showQuickCreate = isStaff;
 
   return (
     <SidebarProvider style={{ "--sidebar-width": "17rem" } as React.CSSProperties}>

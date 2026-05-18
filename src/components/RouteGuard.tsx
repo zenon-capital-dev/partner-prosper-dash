@@ -7,6 +7,7 @@ type AppRole =
   | "admin"
   | "admin_secondary"
   | "colaborador"
+  | "vendedor"
   | "parceiro"
   | "prestador"
   | "cliente"

@@ -43,6 +43,7 @@ function AdminShell() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const { pathname } = useLocation();
   const isFullAdmin = isAdmin || isAdminSecondary;
+  // Colaboradores e Vendedores são staff interno mas com escopo restrito (RLS já bloqueia dados sensíveis).
   const blocked = !isFullAdmin && ADMIN_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   const handleSearchClick = () => {
@@ -80,7 +81,7 @@ function AdminShell() {
 
 export default function AdminLayout() {
   return (
-    <RouteGuard allow={["admin", "admin_secondary", "colaborador"]}>
+    <RouteGuard allow={["admin", "admin_secondary", "colaborador", "vendedor"]}>
       <AdminShell />
     </RouteGuard>
   );
