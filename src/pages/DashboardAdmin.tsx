@@ -336,7 +336,7 @@ export default function DashboardAdmin() {
       alerts, upcomingActions, urgentDemands, recentSales, topClients, recentActivity, todayTasks, topPartners,
       conversionGoal,
     };
-  }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks]);
+  }, [clients, clientProducts, sales, payments, leads, proposals, contracts, commissions, partners, tasks, rangeKey, customRange, brasiliaToday]);
 
   // Sparkline data per KPI
   const revSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.receita }));
