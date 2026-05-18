@@ -406,7 +406,7 @@ export default function Settings() {
               </Card>
               <ShortcutCard
                 icon={FileText}
-                title="Templates de Mensagens"
+                title="Templates(Desenvolvimento) de Mensagens"
                 description="Modelos de e-mail e WhatsApp para envios automáticos."
                 href="/templates"
               />

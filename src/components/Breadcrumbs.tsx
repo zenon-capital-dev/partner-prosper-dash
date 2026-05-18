@@ -30,7 +30,7 @@ const LABELS: Record<string, string> = {
   performance: "Performance",
   reportes: "Reportes",
   usuarios: "Usuários",
-  templates: "Templates",
+  templates: "Templates(Desenvolvimento)",
   suporte: "Suporte",
   colaboradores: "Colaboradores",
   indicadores: "Indicadores",
