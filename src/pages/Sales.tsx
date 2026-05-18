@@ -34,6 +34,13 @@ export default function Sales() {
   const [dateTo, setDateTo] = useState("");
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") {
+      setOpen(true);
+    }
+  }, [searchParams]);
 
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ["sales-rich"],
