@@ -223,7 +223,7 @@ export default function Settings() {
                 <Bell className="size-4" /> Notificações
               </TabsTrigger>
               <TabsTrigger value="automations" className="rounded-lg h-9 gap-2">
-                <Zap className="size-4" /> Automações
+                <Zap className="size-4" /> Automações(Desenvolvimento)
               </TabsTrigger>
               <TabsTrigger value="appearance" className="rounded-lg h-9 gap-2">
                 <Palette className="size-4" /> Aparência
@@ -514,7 +514,7 @@ export default function Settings() {
             <TabsContent value="automations" className="space-y-4">
               <ShortcutCard
                 icon={Zap}
-                title="Automações Internas"
+                title="Automações(Desenvolvimento) Internas"
                 description="Configure gatilhos automáticos para notificações e ações."
                 href="/automacoes"
               />

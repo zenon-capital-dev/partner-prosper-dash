@@ -95,7 +95,7 @@ const adminSections: NavSection[] = [
     label: "Sistema",
     items: [
       { title: "Usuários & Acessos", url: "/usuarios", icon: UserCog },
-      { title: "Automações", url: "/automacoes", icon: Zap },
+      { title: "Automações(Desenvolvimento)", url: "/automacoes", icon: Zap },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },
