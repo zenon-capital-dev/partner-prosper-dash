@@ -142,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: roles.includes("admin"),
         isAdminSecondary: roles.includes("admin_secondary"),
         isColaborador: roles.includes("colaborador"),
+        isVendedor: roles.includes("vendedor"),
         isParceiro: roles.includes("parceiro"),
         isPrestador: roles.includes("prestador"),
         isCliente: roles.includes("cliente"),
