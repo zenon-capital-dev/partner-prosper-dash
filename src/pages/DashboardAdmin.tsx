@@ -949,7 +949,7 @@ export default function DashboardAdmin() {
               <QuickAction to="/propostas?new=1" icon={FileText} label="Proposta" />
               <QuickAction to="/contratos?new=1" icon={FileSignature} label="Contrato" />
               <QuickAction to="/tarefas?new=1" icon={ClipboardList} label="Tarefa" />
-              <QuickAction to="/templates" icon={MessageSquare} label="Templates" />
+              <QuickAction to="/templates" icon={MessageSquare} label="Templates(Desenvolvimento)" />
             </div>
           </Card>
         </section>
