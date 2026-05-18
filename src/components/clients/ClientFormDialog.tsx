@@ -412,6 +412,67 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
 
+          {/* Pendências de documentos — apenas no cadastro novo */}
+          {!client?.id && (
+            <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-amber-300/60 bg-amber-50/40">
+              <div className="flex items-center gap-2">
+                <FileText className="size-4 text-amber-700" />
+                <div>
+                  <p className="text-sm font-bold">Pendências de documentos</p>
+                  <p className="text-[11px] text-muted-foreground">Aparecerão para o cliente no painel assim que ele logar.</p>
+                </div>
+              </div>
+
+              {docTemplates && docTemplates.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-[11px]">Selecione dos templates</Label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {docTemplates.map((doc) => (
+                      <label key={doc} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white cursor-pointer border border-transparent hover:border-amber-200">
+                        <Checkbox checked={selectedTemplateDocs.includes(doc)} onCheckedChange={() => toggleTemplate(doc)} />
+                        <span className="text-xs">{doc}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2 pt-1">
+                <Label className="text-[11px]">Adicionar pendência personalizada</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newDocInput}
+                    onChange={(e) => setNewDocInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustomDoc(); } }}
+                    placeholder="Ex: Certidão Negativa de Débitos"
+                    className="h-9"
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={addCustomDoc} className="h-9">
+                    <Plus className="size-3.5 mr-1" /> Add
+                  </Button>
+                </div>
+                {customDocs.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {customDocs.map((doc, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 text-[11px] bg-white border border-amber-200 px-2 py-0.5 rounded-full">
+                        {doc}
+                        <button type="button" onClick={() => setCustomDocs((p) => p.filter((_, idx) => idx !== i))} className="text-amber-700 hover:text-amber-900">
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {(selectedTemplateDocs.length + customDocs.length) > 0 && (
+                <p className="text-[10.5px] font-semibold text-amber-800">
+                  {selectedTemplateDocs.length + customDocs.length} documento(s) serão solicitado(s) ao cliente.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Acesso ao painel — apenas no cadastro novo */}
           {!client?.id && (
             <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
