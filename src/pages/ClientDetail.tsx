@@ -508,6 +508,7 @@ export default function ClientDetail() {
                       {(co.address_city || co.address_state) && (
                         <p className="text-[11px] text-muted-foreground flex items-center gap-1"><MapPin className="size-3" /> {co.address_city}{co.address_state ? ` / ${co.address_state}` : ""}</p>
                       )}
+                      <CompanyContactsManager companyId={co.id} />
                     </div>
                   ))}
                 </div>
