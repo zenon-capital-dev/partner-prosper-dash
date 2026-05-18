@@ -189,9 +189,11 @@ function PaymentsTable({
 
   const total = filtered.reduce((a, p) => a + Number(p.amount || 0), 0);
 
-  const markPaid = async (id: string) => {
+  const markPaid = async (id: string, amount: number) => {
     const { error } = await supabase.from("payments").update({
-      status: "pago", paid_at: new Date().toISOString(),
+      status: "pago", 
+      paid_at: new Date().toISOString(),
+      amount_paid: amount,
     }).eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Pagamento confirmado"); qc.invalidateQueries({ queryKey: ["fin-payments"] }); }
