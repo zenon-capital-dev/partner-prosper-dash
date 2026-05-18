@@ -155,14 +155,47 @@ export default function PartnerPanel() {
 
               <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden">
                 <div className="absolute top-0 right-0 size-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full" />
-                <div className="relative z-10 space-y-2">
-                  <h3 className="font-editorial text-2xl font-bold">Como funciona a sua comissão</h3>
-                  <p className="text-white/60 text-sm max-w-xl">
-                    Toda comissão fica como <strong>aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong>liberada</strong> para repasse.
-                  </p>
-                  <p className="text-white/40 text-xs pt-2">Código de indicação: <span className="font-mono text-white/80">{partner.id.slice(0, 8).toUpperCase()}</span></p>
+                <div className="relative z-10 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="font-editorial text-2xl font-bold">Como funciona a sua comissão</h3>
+                    <p className="text-white/60 text-sm max-w-xl">
+                      Toda comissão fica como <strong>aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong>liberada</strong> para repasse.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-white/10">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Seu link de indicação</p>
+                      <code className="text-xs text-white/80 font-mono break-all">{`${window.location.origin}/?ref=${partner.id.slice(0, 8).toUpperCase()}`}</code>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                        onClick={() => {
+                          const link = `${window.location.origin}/?ref=${partner.id.slice(0, 8).toUpperCase()}`;
+                          navigator.clipboard.writeText(link);
+                          toast.success("Link copiado");
+                        }}
+                      >
+                        <Copy className="size-3 mr-1.5" /> Copiar
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                        onClick={() => {
+                          const link = `${window.location.origin}/?ref=${partner.id.slice(0, 8).toUpperCase()}`;
+                          const msg = encodeURIComponent(`Olá! Quero te indicar nossos serviços. Confira: ${link}`);
+                          window.open(`https://wa.me/?text=${msg}`, "_blank");
+                        }}
+                      >
+                        <Share2 className="size-3 mr-1.5" /> WhatsApp
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
+
            </TabsContent>
 
            <TabsContent value="clientes" className="animate-fade-up space-y-4">
