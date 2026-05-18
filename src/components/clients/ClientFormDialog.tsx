@@ -65,7 +65,10 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   });
   const { data: serviceProviders } = useQuery({
     queryKey: ["service-providers-select"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name");
+      return (data ?? []).map((p: any) => ({ id: p.id, full_name: p.name }));
+    },
   });
 
   const submit = async () => {

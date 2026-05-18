@@ -8,7 +8,7 @@ import {
   MoreHorizontal, ArrowUpRight, Filter, Calendar, Building2,
   MapPin, CreditCard, User, Mail, Phone, ShoppingBag,
   ChevronDown, ChevronUp, Activity, AlertTriangle, TrendingUp,
-  Eye, FileText, MessageSquare,
+  Eye, FileText, MessageSquare, Pencil, Archive, ArchiveRestore,
 } from "lucide-react";
 import { formatBRL, initials, formatDoc } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +34,7 @@ import { confirmAction } from "@/lib/confirm";
 export default function Clients() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<"grid" | "table">("grid");
 
@@ -188,6 +189,23 @@ export default function Clients() {
     }
   };
 
+  const handleArchive = async (c: any) => {
+    const next = c.status === "inativo" ? "ativo" : "inativo";
+    const label = next === "inativo" ? "Arquivar" : "Reativar";
+    if (!(await confirmAction(`${label} este cliente?`))) return;
+    const { error } = await supabase.from("clients").update({ status: next }).eq("id", c.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(next === "inativo" ? "Cliente arquivado" : "Cliente reativado");
+      qc.invalidateQueries({ queryKey: ["clients-admin-list"] });
+    }
+  };
+
+  const openEdit = (c: any) => {
+    setEditing(c);
+    setOpen(true);
+  };
+
   const resetFilters = () => {
     setStatusFilter("all"); setProductFilter("all"); setPartnerFilter("all");
     setProviderFilter("all"); setCityFilter("all"); setPaymentFilter("all");
@@ -211,7 +229,7 @@ export default function Clients() {
               <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search}>
                 Limpar
               </Button>
-              <Button size="sm" onClick={() => setOpen(true)}>
+              <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }}>
                 <Plus className="size-4 mr-2" /> Novo cliente
               </Button>
             </div>
@@ -429,6 +447,9 @@ export default function Clients() {
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}>
                             <Eye className="size-3.5 mr-2" /> Ver perfil
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(c)}>
+                            <Pencil className="size-3.5 mr-2" /> Editar cadastro
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}>
                             <CreditCard className="size-3.5 mr-2" /> Financeiro
                           </DropdownMenuItem>
@@ -436,6 +457,9 @@ export default function Clients() {
                             <FileText className="size-3.5 mr-2" /> Documentos
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleArchive(c)}>
+                            {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive">
                             <Trash2 className="size-3.5 mr-2" /> Excluir
                           </DropdownMenuItem>
@@ -583,8 +607,12 @@ export default function Clients() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-52">
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> Ver perfil</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleArchive(c)}>
+                              {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -603,7 +631,12 @@ export default function Clients() {
           </div>
         )}
 
-        <ClientFormDialog open={open} onOpenChange={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })} />
+        <ClientFormDialog
+          open={open}
+          onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}
+          client={editing}
+          onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
+        />
       </div>
     </TooltipProvider>
   );
