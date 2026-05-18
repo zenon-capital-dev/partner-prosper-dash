@@ -34,6 +34,46 @@ export default function Finance() {
   const { user } = useAuth();
   const [range, setRange] = useState<RangeKey>("this_month");
   const [tab, setTab] = useState("overview");
+  
+  // States for new expense
+  const [isExpenseOpen, setIsExpenseOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({
+    description: "",
+    amount: "",
+    category: "Operacional",
+    expense_date: new Date().toISOString().slice(0, 10),
+  });
+
+  const handleAddExpense = async () => {
+    if (!expenseForm.description || !expenseForm.amount) {
+      toast.error("Preencha a descrição e o valor");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("expenses").insert({
+        description: expenseForm.description,
+        amount: Number(expenseForm.amount),
+        category: expenseForm.category,
+        expense_date: expenseForm.expense_date,
+      });
+      if (error) throw error;
+      toast.success("Despesa registrada com sucesso!");
+      setIsExpenseOpen(false);
+      setExpenseForm({
+        description: "",
+        amount: "",
+        category: "Operacional",
+        expense_date: new Date().toISOString().slice(0, 10),
+      });
+      qc.invalidateQueries({ queryKey: ["finance-expenses"] });
+    } catch (err: any) {
+      toast.error("Erro ao salvar despesa: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Range logic simplified for the shell
   const { from, to, label } = useMemo(() => {
