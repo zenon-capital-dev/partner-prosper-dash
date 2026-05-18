@@ -514,7 +514,7 @@ export default function Settings() {
             <TabsContent value="automations" className="space-y-4">
               <ShortcutCard
                 icon={Zap}
-                title="Automações Internas"
+                title="Automações(Desenvolvimento) Internas"
                 description="Configure gatilhos automáticos para notificações e ações."
                 href="/automacoes"
               />
