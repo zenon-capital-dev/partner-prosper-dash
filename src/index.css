@@ -652,10 +652,18 @@
     box-shadow: 0 4px 14px -4px rgba(79,70,229,0.55), inset 0 1px 0 rgba(255,255,255,0.2);
   }
   .admin-shell .btn-outline {
-    @apply bg-white border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-slate-700 hover:text-indigo-700 shadow-sm;
+    background-color: #ffffff;
+    @apply border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-700 shadow-sm;
+  }
+  .admin-shell .btn-outline:hover {
+    background-color: hsl(210 40% 98%);
   }
   .admin-shell .btn-success {
-    @apply bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100;
+    @apply border border-emerald-200 text-emerald-700;
+    background-color: hsl(152 76% 96%);
+  }
+  .admin-shell .btn-success:hover {
+    background-color: hsl(152 70% 92%);
   }
 
   .suggested-card {
