@@ -39,6 +39,7 @@ const statusLabel: Record<string, { label: string; tone: Tone }> = {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
+  const [rangeKey, setRangeKey] = useState("HOJE");
   const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
   const firstName = String(fullName).split(/[ @]/)[0];
   const hour = new Date().getHours();
