@@ -326,8 +326,17 @@ export default function DashboardAdmin() {
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
               <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
-                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p, i) => (
-                  <button key={p} className={cn("px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", i === 3 ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950")}>{p}</button>
+                {["HOJE", "7 DIAS", "30 DIAS", "MÊS"].map((p) => (
+                  <button 
+                    key={p} 
+                    onClick={() => setRangeKey(p)}
+                    className={cn(
+                      "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", 
+                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-800 hover:text-slate-950"
+                    )}
+                  >
+                    {p}
+                  </button>
                 ))}
               </div>
               <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-semibold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
