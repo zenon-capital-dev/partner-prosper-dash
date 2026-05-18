@@ -20,6 +20,7 @@ import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { RequestDocumentDialog } from "@/components/provider/RequestDocumentDialog";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
 import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
+import { ProviderAtuacao } from "@/components/provider/ProviderAtuacao";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
