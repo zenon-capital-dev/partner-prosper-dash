@@ -112,14 +112,12 @@ export function ClientDocumentsTab({
       if (upErr) throw upErr;
 
       const { error: updErr } = await supabase
-        .from("documents")
+        .from(req.source === "document_requests" ? "document_requests" : "documents")
         .update({ 
-          file_path: path, 
+          ...(req.source === "document_requests" ? { file_url: path, submission_date: new Date().toISOString() } : { file_path: path, uploaded_at: new Date().toISOString() }),
           status: "enviado", 
-          uploaded_at: new Date().toISOString(),
           rejection_reason: null,
-          file_size: file.size,
-          mime_type: file.type
+          ...(req.source === "document_requests" ? {} : { file_size: file.size, mime_type: file.type })
         })
         .eq("id", req.id);
       if (updErr) throw updErr;
@@ -135,8 +133,10 @@ export function ClientDocumentsTab({
   }
 
   async function handleDownload(req: DocRequest) {
-    if (!req.file_path) return;
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(req.file_path, 3600);
+    const path = req.file_path || req.file_url;
+    if (!path) return;
+    if (path.startsWith("http")) return window.open(path, "_blank");
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
     if (error || !data) return toast.error("Não foi possível acessar o arquivo");
     window.open(data.signedUrl, "_blank");
   }
@@ -152,7 +152,7 @@ export function ClientDocumentsTab({
   }
 
   const totals = {
-    pending: requests.filter((r) => r.status === "solicitado" || r.status === "reprovado" || r.status === "pendente_correcao").length,
+    pending: requests.filter((r) => r.status === "pendente" || r.status === "solicitado" || r.status === "reprovado" || r.status === "pendente_correcao").length,
     review: requests.filter((r) => r.status === "enviado" || r.status === "em_analise").length,
     done: requests.filter((r) => r.status === "aprovado").length,
   };
