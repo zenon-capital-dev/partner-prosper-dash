@@ -839,40 +839,43 @@ export default function DashboardAdmin() {
             </div>
           </Card>
 
-          {/* Activity feed */}
+          {/* Activity feed — clean timeline */}
           <Card className="lg:col-span-4">
-            <CardHeader eyebrow="Auditoria" title="Fluxo recente" right={<Link to="/auditoria" className="text-[10px] font-bold text-indigo-800 hover:text-indigo-700 uppercase tracking-wider">Histórico</Link>} />
-            <div className="relative mt-2">
-              {stats.recentActivity.length > 0 ? (
-                <div className="space-y-4">
-                  {stats.recentActivity.map((act, idx) => (
-                    <div key={act.id} className="group relative pl-8 pb-4 last:pb-0">
-                      {/* Timeline Line */}
-                      {idx !== stats.recentActivity.length - 1 && (
-                        <div className="absolute left-[11px] top-7 bottom-0 w-px bg-slate-100 group-hover:bg-indigo-100 transition-colors" />
-                      )}
-                      
-                      {/* Icon / Marker */}
-                      <div className={cn(
-                        "absolute left-0 top-1 size-[22px] rounded-lg flex items-center justify-center border shadow-sm transition-all group-hover:scale-110",
-                        toneColor[act.tone].bg, toneColor[act.tone].border, toneColor[act.tone].text
-                      )}>
-                        <act.icon className="size-3" strokeWidth={2.5} />
-                      </div>
-
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[11.5px] font-bold text-slate-950 leading-tight">{act.title}</p>
-                          <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 tabular-nums">
-                            {new Date(act.at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} · {new Date(act.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                        </div>
-                        <p className="text-[10.5px] text-slate-600 line-clamp-1 group-hover:text-slate-900 transition-colors">{act.sub}</p>
-                      </div>
+            <CardHeader 
+              eyebrow="Auditoria" 
+              title="Fluxo recente" 
+              right={
+                <Link to="/auditoria" className="text-[10px] font-bold text-indigo-700 hover:text-indigo-800 uppercase tracking-wider inline-flex items-center gap-1">
+                  Histórico <ArrowUpRight className="size-3" />
+                </Link>
+              } 
+            />
+            <div className="space-y-2 mt-1">
+              {stats.recentActivity.length > 0 ? stats.recentActivity.map((act) => {
+                const dt = new Date(act.at);
+                return (
+                  <div key={act.id} className="group flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div className={cn(
+                      "size-9 rounded-lg flex items-center justify-center shrink-0 border transition-transform group-hover:scale-105",
+                      toneColor[act.tone].bg, toneColor[act.tone].border, toneColor[act.tone].text
+                    )}>
+                      <act.icon className="size-4" strokeWidth={2.2} />
                     </div>
-                  ))}
-                </div>
-              ) : <Empty label="Sem atividade no período selecionado" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-slate-900 leading-tight truncate">{act.title}</p>
+                      <p className="text-[10.5px] text-slate-500 mt-0.5 truncate">{act.sub}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] font-bold text-slate-700 tabular-nums leading-none">
+                        {dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                      </p>
+                      <p className="text-[9px] text-slate-400 tabular-nums mt-0.5">
+                        {dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }) : <Empty label="Sem atividade no período selecionado" />}
             </div>
           </Card>
         </section>
