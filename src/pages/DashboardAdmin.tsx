@@ -134,6 +134,11 @@ export default function DashboardAdmin() {
       : monthRevenue > 0 ? 100 : 0;
     const avgTicket = monthSales.length > 0 ? monthRevenue / monthSales.length : 0;
 
+    // KPIs based on range
+    const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
+    const rangeNewClients = clients.filter((c: any) => c.created_at && new Date(c.created_at) >= startOfRange).length;
+    const rangeSalesCount = filteredSales.length;
+
     const activeClients = clients.filter((c: any) => c.status === "ativo").length;
     const newClientsMonth = clients.filter((c: any) => c.created_at && new Date(c.created_at) >= startMonth).length;
     const churnRisk = clients.filter((c: any) => (c.health_score ?? 100) < 50).length;
