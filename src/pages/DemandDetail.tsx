@@ -206,6 +206,68 @@ export default function DemandDetail() {
     qc.invalidateQueries({ queryKey: ["demand-detail", id] });
   };
 
+  const duplicateDemand = async () => {
+    if (!demand) return;
+    const ok = await confirmAction({
+      title: "Duplicar demanda",
+      description: "Será criada uma nova demanda com os mesmos dados, sem documentos, checklist nem histórico.",
+      confirmText: "Duplicar",
+    });
+    if (!ok) return;
+    const { id: _id, created_at, updated_at, sla_start_date, sla_status, completed_at, current_step_id, ...base } = demand as any;
+    const insertPayload = {
+      ...base,
+      status: "aguardando_inicio",
+      sla_start_date: null,
+      sla_status: null,
+      completed_at: null,
+      current_step_id: null,
+      end_date: null,
+      paused_at: null,
+      resumed_at: null,
+    };
+    // Remove relacionamentos populados pelo select para não estourar insert
+    ["clients","companies","products","service_providers","documents","steps","deliveries","reports"].forEach(k => delete insertPayload[k]);
+    const { data, error } = await supabase
+      .from("client_products")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+    if (error) return toast.error(error.message);
+    toast.success("Demanda duplicada");
+    qc.invalidateQueries({ queryKey: ["admin-demands"] });
+    navigate(`/demandas/${data!.id}`);
+  };
+
+  const deleteDemand = async () => {
+    if (!demand) return;
+    const ok = await confirmAction({
+      title: "Excluir demanda",
+      description: "Esta ação remove permanentemente a demanda, seu checklist, comentários, reportes e documentos vinculados. Não é possível desfazer.",
+      confirmText: "Excluir",
+      destructive: true,
+    });
+    if (!ok) return;
+    const { error } = await supabase.from("client_products").delete().eq("id", demand.id);
+    if (error) return toast.error(error.message);
+    toast.success("Demanda excluída");
+    qc.invalidateQueries({ queryKey: ["admin-demands"] });
+    navigate("/demandas");
+  };
+
+  const reviewDocument = async (docId: string, status: "aprovado" | "reprovado", reason?: string) => {
+    const patch: any = {
+      status,
+      reviewed_at: new Date().toISOString(),
+      approved_by: status === "aprovado" ? (user?.id ?? null) : null,
+      rejection_reason: status === "reprovado" ? (reason ?? null) : null,
+    };
+    const { error } = await supabase.from("documents").update(patch).eq("id", docId);
+    if (error) return toast.error(error.message);
+    toast.success(status === "aprovado" ? "Documento aprovado" : "Documento rejeitado");
+    qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+  };
+
   if (isLoading) return <div className="p-20 text-center animate-pulse">Carregando detalhes da demanda...</div>;
   if (!demand) return <div className="p-20 text-center text-rose-500 font-bold">Demanda não encontrada.</div>;
 
