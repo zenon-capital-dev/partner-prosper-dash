@@ -51,7 +51,7 @@ export function PageHeader({
                 <span>{eyebrow}</span>
                 <span className="hidden sm:inline size-1 rounded-full bg-border" />
                 <Sparkles className="hidden sm:inline size-3 text-primary" />
-                <span className="hidden sm:inline text-primary">Operacional</span>
+                <span className="hidden sm:inline text-primary">​​</span>
               </div>
             )}
             <h1 className="text-[19px] sm:text-[22px] lg:text-[28px] font-bold text-foreground tracking-tight mt-1 leading-tight font-display">
