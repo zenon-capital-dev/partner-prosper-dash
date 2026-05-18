@@ -527,6 +527,13 @@ export default function Documents() {
                               <DropdownMenuItem onClick={() => { setSelectedDoc(d); setIsDialogOpen(true); }}>
                                 <FilePlus className="size-4 mr-2" /> Editar solicitação
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openHistory(d)}>
+                                <History className="size-4 mr-2" /> Ver histórico e versões
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => deleteDoc(d)} className="text-destructive">
+                                <X className="size-4 mr-2" /> Excluir documento
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
