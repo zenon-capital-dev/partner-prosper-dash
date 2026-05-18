@@ -26,7 +26,8 @@ export default function ClientOnboarding() {
         .from("clients")
         .select("*")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
+      if (!client) return { client: null, prods: [], docs: [] };
       
       const { data: prods } = await supabase
         .from("client_products")

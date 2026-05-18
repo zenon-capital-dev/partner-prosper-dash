@@ -13,7 +13,7 @@ function RoleClientRedirect() {
         .from("clients")
         .select("onboarding_status")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
       return data;
     },
     enabled: !!user
