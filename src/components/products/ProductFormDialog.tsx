@@ -154,6 +154,7 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
     { id: "operacional", label: "Operação", icon: ListChecks },
     { id: "financeiro", label: "Financeiro & SLA", icon: Wallet },
     { id: "comunicacao", label: "Comunicação", icon: FileText },
+    { id: "automacao", label: "Automação", icon: Plus },
   ] as const;
 
   return (
