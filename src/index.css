@@ -347,31 +347,11 @@
     font-weight: 475;
     letter-spacing: -0.01em;
   }
+  /* Admin shell SEMPRE em tema claro premium SaaS B2B (feedback explícito do usuário).
+     Mesmo quando .dark é aplicado globalmente, /admin/* permanece claro. */
   .dark .admin-shell {
-    font-weight: 400;
-    letter-spacing: normal;
-    --background: 224 32% 6%;
-    --foreground: 220 14% 96%;
-    --card: 224 28% 9%;
-    --card-foreground: 220 14% 96%;
-    --popover: 224 28% 9%;
-    --popover-foreground: 220 14% 96%;
-    --primary: 231 80% 64%;
-    --primary-foreground: 224 32% 6%;
-    --primary-muted: 231 40% 18%;
-    --primary-glow: 217 90% 64%;
-    --secondary: 224 22% 14%;
-    --secondary-foreground: 220 14% 92%;
-    --muted: 224 22% 14%;
-    --muted-foreground: 220 10% 64%;
-    --accent: 224 30% 16%;
-    --accent-foreground: 220 14% 96%;
-    --border: 224 18% 18%;
-    --input: 224 18% 18%;
-    --ring: 231 80% 64%;
-    color-scheme: dark;
+    color-scheme: light;
   }
-  .dark .admin-shell::before { display: none; }
 
   /* Smooth scrollbar inside admin */
   .admin-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
