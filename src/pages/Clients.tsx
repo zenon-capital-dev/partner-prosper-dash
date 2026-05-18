@@ -189,6 +189,23 @@ export default function Clients() {
     }
   };
 
+  const handleArchive = async (c: any) => {
+    const next = c.status === "inativo" ? "ativo" : "inativo";
+    const label = next === "inativo" ? "Arquivar" : "Reativar";
+    if (!(await confirmAction(`${label} este cliente?`))) return;
+    const { error } = await supabase.from("clients").update({ status: next }).eq("id", c.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success(next === "inativo" ? "Cliente arquivado" : "Cliente reativado");
+      qc.invalidateQueries({ queryKey: ["clients-admin-list"] });
+    }
+  };
+
+  const openEdit = (c: any) => {
+    setEditing(c);
+    setOpen(true);
+  };
+
   const resetFilters = () => {
     setStatusFilter("all"); setProductFilter("all"); setPartnerFilter("all");
     setProviderFilter("all"); setCityFilter("all"); setPaymentFilter("all");
