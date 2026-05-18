@@ -826,6 +826,7 @@ export type Database = {
           birth_date: string | null
           churn_risk: string | null
           city: string | null
+          collaborator_commission_percent: number | null
           collaborator_id: string | null
           commission_value: number | null
           company: string | null
@@ -847,6 +848,7 @@ export type Database = {
           onboarding_progress: number | null
           onboarding_status: string | null
           origin: string | null
+          partner_commission_percent: number | null
           partner_id: string | null
           payment_method: string | null
           payment_status: string | null
@@ -854,6 +856,7 @@ export type Database = {
           priority: string | null
           provider_id: string | null
           referral_id: string | null
+          referrer_commission_percent: number | null
           referrer_id: string | null
           responsible_id: string | null
           sale_date: string | null
@@ -880,6 +883,7 @@ export type Database = {
           birth_date?: string | null
           churn_risk?: string | null
           city?: string | null
+          collaborator_commission_percent?: number | null
           collaborator_id?: string | null
           commission_value?: number | null
           company?: string | null
@@ -901,6 +905,7 @@ export type Database = {
           onboarding_progress?: number | null
           onboarding_status?: string | null
           origin?: string | null
+          partner_commission_percent?: number | null
           partner_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
@@ -908,6 +913,7 @@ export type Database = {
           priority?: string | null
           provider_id?: string | null
           referral_id?: string | null
+          referrer_commission_percent?: number | null
           referrer_id?: string | null
           responsible_id?: string | null
           sale_date?: string | null
@@ -934,6 +940,7 @@ export type Database = {
           birth_date?: string | null
           churn_risk?: string | null
           city?: string | null
+          collaborator_commission_percent?: number | null
           collaborator_id?: string | null
           commission_value?: number | null
           company?: string | null
@@ -955,6 +962,7 @@ export type Database = {
           onboarding_progress?: number | null
           onboarding_status?: string | null
           origin?: string | null
+          partner_commission_percent?: number | null
           partner_id?: string | null
           payment_method?: string | null
           payment_status?: string | null
@@ -962,6 +970,7 @@ export type Database = {
           priority?: string | null
           provider_id?: string | null
           referral_id?: string | null
+          referrer_commission_percent?: number | null
           referrer_id?: string | null
           responsible_id?: string | null
           sale_date?: string | null
