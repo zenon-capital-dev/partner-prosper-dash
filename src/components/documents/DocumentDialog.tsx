@@ -216,9 +216,9 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label>Produto / Demanda vinculada</Label>
-              <Select 
-                value={form.client_product_id || "none"} 
+              <Label>Produto / Demanda vinculada *</Label>
+              <Select
+                value={form.client_product_id || ""}
                 onValueChange={(v) => {
                    const cp = clientProducts?.find((x: any) => x.id === v);
                    setForm({ ...form, client_product_id: v, product_id: cp?.product_id || "none" });
@@ -226,11 +226,12 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
               >
                 <SelectTrigger>
                   <Package className="size-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Geral / Selecione a demanda" />
+                  <SelectValue placeholder="Selecione a demanda (obrigatório)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Geral / Nenhuma demanda</SelectItem>
-                  {clientProducts?.map((cp: any) => (
+                  {(clientProducts?.length ?? 0) === 0 ? (
+                    <div className="p-3 text-xs text-muted-foreground">Nenhuma demanda para este cliente.</div>
+                  ) : clientProducts!.map((cp: any) => (
                     <SelectItem key={cp.id} value={cp.id}>{cp.products?.name || cp.custom_product_name}</SelectItem>
                   ))}
                 </SelectContent>
