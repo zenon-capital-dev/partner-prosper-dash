@@ -27,12 +27,7 @@ import AdminProfile from "./pages/AdminProfile";
 import Contracts from "./pages/Contracts";
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
-import Indicators from "./pages/Indicators";
-
-import PartnerPanel from "./pages/PartnerPanel";
-import ClientPanel from "./pages/ClientPanel";
-import ClientOnboarding from "./pages/ClientOnboarding";
-// Leads removido — apenas clientes fechados manualmente
+import Leads from "./pages/Leads";
 import Collaborators from "./pages/Collaborators";
 import Providers from "./pages/Providers";
 import Tasks from "./pages/Tasks";
