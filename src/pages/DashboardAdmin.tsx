@@ -250,7 +250,7 @@ export default function DashboardAdmin() {
       .sort((a: any, b: any) => (a.deadline ? new Date(a.deadline).getTime() : Infinity) - (b.deadline ? new Date(b.deadline).getTime() : Infinity))
       .slice(0, 7);
 
-    const recentSales = sales.slice(0, 6).map((s: any) => {
+    const recentSales = filteredSales.slice(0, 6).map((s: any) => {
       const client = clients.find((c: any) => c.id === s.client_id);
       return { ...s, clientName: client?.full_name || "Cliente removido" };
     });
@@ -262,10 +262,10 @@ export default function DashboardAdmin() {
       .slice(0, 6);
 
     const recentActivity = [
-      ...proposals.slice(0, 4).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
-      ...leads.slice(0, 4).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
-      ...sales.slice(0, 4).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
-      ...contracts.slice(0, 3).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
+      ...proposals.filter((p: any) => new Date(p.created_at) >= startOfRange).map((p: any) => ({ id: `p-${p.id}`, title: "Proposta enviada", sub: formatBRL(p.total), at: p.sent_at || p.created_at, icon: FileText, tone: "info" as Tone })),
+      ...leads.filter((l: any) => new Date(l.created_at) >= startOfRange).map((l: any) => ({ id: `l-${l.id}`, title: "Nova negociação", sub: l.full_name, at: l.created_at, icon: Target, tone: "primary" as Tone })),
+      ...sales.filter((s: any) => new Date(s.sale_date || s.created_at) >= startOfRange).map((s: any) => ({ id: `s-${s.id}`, title: "Venda registrada", sub: formatBRL(s.amount), at: s.sale_date || s.created_at, icon: CircleDollarSign, tone: "success" as Tone })),
+      ...contracts.filter((c: any) => new Date(c.created_at) >= startOfRange).map((c: any) => ({ id: `c-${c.id}`, title: "Contrato " + (c.status || "criado"), sub: c.name, at: c.created_at, icon: FileSignature, tone: "primary" as Tone })),
     ].sort((a, b) => new Date(b.at || 0).getTime() - new Date(a.at || 0).getTime()).slice(0, 9);
 
     const todayTasks = tasks.filter((t: any) => {
