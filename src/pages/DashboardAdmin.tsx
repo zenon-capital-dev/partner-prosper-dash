@@ -92,11 +92,35 @@ export default function DashboardAdmin() {
   // ===== Stats =====
   const stats = useMemo(() => {
     const now = new Date();
-    const M = now.getMonth();
-    const Y = now.getFullYear();
+    // Brasilia Time (UTC-3)
+    const brNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    
+    const startOfRange = new Date(brNow);
+    if (rangeKey === "HOJE") {
+      startOfRange.setHours(0, 0, 0, 0);
+    } else if (rangeKey === "7 DIAS") {
+      startOfRange.setDate(brNow.getDate() - 7);
+      startOfRange.setHours(0, 0, 0, 0);
+    } else if (rangeKey === "30 DIAS") {
+      startOfRange.setDate(brNow.getDate() - 30);
+      startOfRange.setHours(0, 0, 0, 0);
+    } else { // MÊS
+      startOfRange.setDate(1);
+      startOfRange.setHours(0, 0, 0, 0);
+    }
+
+    const M = brNow.getMonth();
+    const Y = brNow.getFullYear();
     const startMonth = new Date(Y, M, 1);
     const startLast = new Date(Y, M - 1, 1);
     const endLast = new Date(Y, M, 0);
+
+    // Filter sales by range
+    const filteredSales = sales.filter((s: any) => {
+      if (!s.sale_date) return false;
+      const d = new Date(s.sale_date);
+      return d >= startOfRange && d <= brNow;
+    });
 
     const monthSales = sales.filter((s: any) => s.sale_date && new Date(s.sale_date) >= startMonth);
     const lastMonthSales = sales.filter((s: any) => {
