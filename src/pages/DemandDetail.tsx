@@ -520,6 +520,29 @@ export default function DemandDetail() {
                                   <Download className="size-3.5" /> Ver arquivo
                                </Button>
                             )}
+                            {canManage && doc.file_path && !["aprovado","reprovado"].includes(doc.status) && (
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 h-8 text-[11px] gap-1.5 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                  onClick={() => reviewDocument(doc.id, "aprovado")}
+                                >
+                                  <CheckCircle2 className="size-3.5" /> Aprovar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1 h-8 text-[11px] gap-1.5 border-rose-200 text-rose-700 hover:bg-rose-50"
+                                  onClick={() => { setRejectReason(""); setRejectFor(doc.id); }}
+                                >
+                                  <XCircle className="size-3.5" /> Rejeitar
+                                </Button>
+                              </div>
+                            )}
+                            {canManage && doc.status === "reprovado" && doc.rejection_reason && (
+                              <p className="text-[10px] text-rose-600 mt-2 italic">Motivo: {doc.rejection_reason}</p>
+                            )}
                          </div>
                        );
                      })}
