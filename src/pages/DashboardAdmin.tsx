@@ -389,10 +389,10 @@ export default function DashboardAdmin() {
 
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          <KpiPremium label="Receita Bruta" value={formatBRL(stats.monthRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={`Mês atual vs anterior`} progress={Math.min(100, Math.round((stats.monthRevenue / 150000) * 100))} />
-          <KpiPremium label="Aquisição" value={stats.newClientsMonth.toString()} delta={`+${stats.newClientsMonth}`} up={stats.newClientsMonth > 0} icon={Users} tone="primary" sparkData={dealsSpark} caption={`Novos contratos fechados`} progress={78} />
+          <KpiPremium label="Receita Período" value={formatBRL(stats.rangeRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={rangeKey === "HOJE" ? "Total hoje" : `Últimos ${rangeKey}`} progress={Math.min(100, Math.round((stats.rangeRevenue / 150000) * 100))} />
+          <KpiPremium label="Novos Clientes" value={stats.rangeNewClients.toString()} delta={`+${stats.rangeNewClients}`} up={stats.rangeNewClients > 0} icon={Users} tone="primary" sparkData={dealsSpark} caption={rangeKey === "HOJE" ? "Iniciados hoje" : `Últimos ${rangeKey}`} progress={78} />
           <KpiPremium label="Taxa de Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Ótima" : "Revisar"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads em clientes`} progress={stats.conversionRate} />
-          <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.monthSalesCount} vendas`} up={stats.monthSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
+          <KpiPremium label="Ticket Médio" value={formatBRL(stats.avgTicket)} delta={`${stats.rangeSalesCount} vendas`} up={stats.rangeSalesCount > 0} icon={Receipt} tone="info" sparkData={revSpark} caption="Por transação" progress={65} />
         </section>
 
         {/* ============ MINI METRIC PILLS ============ */}
