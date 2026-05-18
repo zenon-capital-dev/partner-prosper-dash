@@ -68,6 +68,8 @@ export default function ClientDetail() {
   const [interactionTitle, setInteractionTitle] = useState("");
   const [interactionDesc, setInteractionDesc] = useState("");
   const [savingInteraction, setSavingInteraction] = useState(false);
+  const [companyOpen, setCompanyOpen] = useState(false);
+  const [editingCompany, setEditingCompany] = useState<any>(null);
 
   const openNotesEditor = () => {
     setNotesDraft((client as any)?.internal_notes ?? "");
