@@ -69,6 +69,11 @@ export default function Documents() {
   const [actionDoc, setActionDoc] = useState<any>(null);
   const [actionReason, setActionReason] = useState("");
 
+  // History dialog
+  const [historyDoc, setHistoryDoc] = useState<any>(null);
+  const [historyVersions, setHistoryVersions] = useState<any[]>([]);
+  const [historyAudit, setHistoryAudit] = useState<any[]>([]);
+
   const { data: docs, refetch } = useQuery({
     queryKey: ["docs-all"],
     queryFn: async () => {
