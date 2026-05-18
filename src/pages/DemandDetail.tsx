@@ -815,6 +815,33 @@ export default function DemandDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EditDemandDialog open={editOpen} onOpenChange={setEditOpen} demand={demand} />
+
+      <Dialog open={!!rejectFor} onOpenChange={(v) => { if (!v) setRejectFor(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Rejeitar documento</DialogTitle></DialogHeader>
+          <Textarea
+            rows={4}
+            placeholder="Descreva o motivo da rejeição para o cliente corrigir"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectFor(null)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!rejectReason.trim()) return toast.error("Informe o motivo");
+                await reviewDocument(rejectFor!, "reprovado", rejectReason.trim());
+                setRejectFor(null);
+              }}
+            >
+              Confirmar rejeição
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
