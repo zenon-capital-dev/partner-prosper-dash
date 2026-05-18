@@ -609,14 +609,24 @@ export default function Demands() {
                           <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}`)} className="gap-2 cursor-pointer font-medium py-2">
                             <ArrowUpRight className="size-4 text-primary" /> Abrir Detalhes
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
-                            <MessageSquare className="size-4 text-blue-500" /> Notificar Cliente
+                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}?action=edit`)} className="gap-2 cursor-pointer font-medium py-2">
+                            <ClipboardList className="size-4 text-blue-500" /> Editar / Status
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2">
+                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}?action=delegate`)} className="gap-2 cursor-pointer font-medium py-2">
                             <UserRound className="size-4 text-emerald-500" /> Delegar Prestador
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer font-medium py-2 text-rose-600 focus:text-rose-700">
-                            <ShieldAlert className="size-4" /> Alterar Status
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              const ok = window.confirm("Excluir esta demanda? Não é possível desfazer.");
+                              if (!ok) return;
+                              const { error } = await supabase.from("client_products").delete().eq("id", d.id);
+                              if (error) return toast.error(error.message);
+                              toast.success("Demanda excluída");
+                              qc.invalidateQueries({ queryKey: ["admin-demands"] });
+                            }}
+                            className="gap-2 cursor-pointer font-medium py-2 text-rose-600 focus:text-rose-700"
+                          >
+                            <ShieldAlert className="size-4" /> Excluir Demanda
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
