@@ -54,7 +54,7 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 sm:flex-1 justify-end">
-        {/* ThemeToggle removido — admin sempre em tema claro */}
+        <ThemeToggle />
         <QuickCreateButton />
         <div className="size-9 flex items-center justify-center rounded-lg border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-950">
           <InternalChat />
