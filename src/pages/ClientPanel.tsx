@@ -164,6 +164,19 @@ export default function ClientPanel() {
           </div>
 
           <div className="flex items-center gap-2">
+            {hasMultipleCompanies && (
+              <select
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+                className="h-9 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-semibold text-foreground px-2.5 max-w-[180px] truncate focus:outline-none focus:ring-2 focus:ring-primary/20"
+                title="Filtrar por empresa"
+              >
+                <option value="all">Todas as empresas</option>
+                {companies.map((co: any) => (
+                  <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>
+                ))}
+              </select>
+            )}
             <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
