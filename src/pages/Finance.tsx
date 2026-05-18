@@ -523,22 +523,22 @@ export default function Finance() {
       <div className="vx-card overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 gap-4 border-b border-border/10">
            <div className="space-y-1">
-             <h2 className="text-sm font-bold tracking-tight text-foreground">Recent movements</h2>
-             <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">combined ledger activity</p>
+             <h2 className="text-sm font-bold tracking-tight text-foreground">Extrato Recente</h2>
+             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Histórico consolidado de entradas e saídas</p>
            </div>
            <Button variant="ghost" size="sm" className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2">
-             full ledger <ArrowUpRight className="size-3" />
+             Ver Tudo <ArrowUpRight className="size-3" />
            </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border/10 bg-muted/20">
-                <Th>Type</Th>
-                <Th>Description</Th>
-                <Th>Category</Th>
-                <Th>Date</Th>
-                <Th align="right">Amount</Th>
+                <Th>Tipo</Th>
+                <Th>Descrição</Th>
+                <Th>Categoria</Th>
+                <Th>Data</Th>
+                <Th align="right">Valor</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/5">
