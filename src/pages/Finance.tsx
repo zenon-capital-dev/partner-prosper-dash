@@ -184,10 +184,10 @@ export default function Finance() {
   return (
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
-        eyebrow="Treasury"
-        category="Financial Operations"
+        eyebrow="Tesouraria"
+        category="Operações Financeiras"
         title="Financeiro"
-        description={`Saldo: ${formatBRL(kpis.profit)} · margem líquida ${kpis.margin.toFixed(1)}%`}
+        description={`Saldo atual: ${formatBRL(kpis.profit)} · Margem de lucro ${kpis.margin.toFixed(1)}%`}
         icon={<PiggyBank className="size-6" />}
         actions={
           <>
@@ -209,7 +209,7 @@ export default function Finance() {
               size="sm"
               className="h-10 px-4 gap-2"
               onClick={() => {
-                const headers = ["Produto", "Vendas", "Receita Bruta", "Comissoes", "Receita Liquida"];
+                const headers = ["Produto", "Vendas", "Receita Bruta", "Comissões", "Receita Líquida"];
                 const rows = productPerformance.map((p: any) => [
                   p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
                 ]);
@@ -225,22 +225,7 @@ export default function Finance() {
             </Button>
             <Button 
               size="sm" 
-              variant="outline"
-              className="h-10 px-4 gap-2 border-orange-500/30 text-orange-600 hover:bg-orange-500/10"
-              onClick={async () => {
-                const { data, error } = await supabase.functions.invoke('process-alerts');
-                if (error) toast.error("Erro ao processar alertas");
-                else {
-                  toast.success(`${data.alerts_processed} novos alertas gerados`);
-                  qc.invalidateQueries({ queryKey: ["notifications"] });
-                }
-              }}
-            >
-              <AlertCircle className="size-4" /> Processar Alertas
-            </Button>
-            <Button 
-              size="sm" 
-              className="btn-premium h-10 px-5 gap-2 font-semibold"
+              className="btn-premium h-10 px-5 gap-2 font-semibold shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-indigo-600 border-none"
               onClick={() => setIsExpenseOpen(true)}
             >
               <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
@@ -250,34 +235,33 @@ export default function Finance() {
         kpis={[
           { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
           { label: "Comissões", value: formatBRL(kpis.commissionsTotal), tone: "warning", icon: <Wallet className="size-4" /> },
-          { label: "Comissão Líquida", value: formatBRL(kpis.netCommission), tone: "info", icon: <CircleDollarSign className="size-4" /> },
           { label: "Despesas", value: formatBRL(kpis.expensesTotal), tone: "danger", icon: <ArrowDownToLine className="size-4" /> },
-          { label: "Lucro Real", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
+          { label: "Saldo Líquido", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
           { label: "Margem Final", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
         ]}
       />
 
 
-      <div className="grid grid-cols-12 gap-px bg-border/10 rounded-2xl overflow-hidden border border-border/10 shadow-sm">
+      <div className="grid grid-cols-12 gap-6">
         {/* Main Chart */}
-        <div className="col-span-12 lg:col-span-8 bg-card p-6">
+        <div className="col-span-12 lg:col-span-8 vx-card p-6 bg-white">
            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
              <div>
-               <h2 className="text-sm font-bold tracking-tight text-foreground">Capital flow</h2>
-               <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest mt-1">daily revenue vs operational costs</p>
+               <h2 className="text-sm font-bold tracking-tight text-foreground">Fluxo de Caixa</h2>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Comparativo de entradas e saídas</p>
              </div>
              <div className="flex flex-wrap items-center gap-4 text-[9px] font-black uppercase tracking-[0.15em]">
                <span className="flex items-center gap-1.5 text-success">
-                 <span className="size-1.5 rounded-full bg-success" /> Revenue
+                 <span className="size-1.5 rounded-full bg-success" /> Entradas
                </span>
                <span className="flex items-center gap-1.5 text-destructive">
-                 <span className="size-1.5 rounded-full bg-destructive" /> Expenses
+                 <span className="size-1.5 rounded-full bg-destructive" /> Saídas
                </span>
-               <span className="flex items-center gap-1.5 text-muted-foreground/40">
-                 <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Net Balance
+               <span className="flex items-center gap-1.5 text-muted-foreground">
+                 <span className="size-1.5 rounded-full bg-muted-foreground/20" /> Saldo Médio
                </span>
              </div>
-      </div>
+       </div>
 
       {/* Top Beneficiaries */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -330,20 +314,20 @@ export default function Finance() {
           </div>
         </div>
 
-        <div className="vx-card p-6 bg-slate-900 text-white border-slate-900">
+        <div className="vx-card p-6 bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/20">
            <div className="flex items-center justify-between mb-8">
               <PiggyBank className="size-10 text-primary" />
-              <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-[0.2em] text-[9px]">Live Status</Badge>
+              <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-[0.2em] text-[9px]">Status em Tempo Real</Badge>
            </div>
-           <h3 className="font-editorial text-2xl font-bold mb-2">Liquidez Imediata</h3>
-           <p className="text-xs text-white/50 leading-relaxed mb-6">Considerando todas as comissões pagas e despesas liquidadas no período selecionado.</p>
+           <h3 className="text-2xl font-bold mb-2 tracking-tight">Liquidez Atual</h3>
+           <p className="text-xs text-white/50 leading-relaxed mb-6">Saldo disponível após todas as comissões pagas e despesas liquidadas no período.</p>
            <div className="space-y-4 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between">
                  <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Saldo em Caixa</span>
                  <span className="text-lg font-bold tabular-nums text-white">{formatBRL(kpis.profit)}</span>
               </div>
               <div className="flex items-center justify-between">
-                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Comprometido</span>
+                 <span className="text-[10px] uppercase font-bold tracking-widest text-white/40">Previsão de Saída</span>
                  <span className="text-xs font-bold tabular-nums text-warning">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</span>
               </div>
            </div>
@@ -373,23 +357,23 @@ export default function Finance() {
 
         {/* Breakdown */}
         <div className="col-span-12 lg:col-span-4 bg-card p-6 border-l border-border/10">
-           <h2 className="text-sm font-bold tracking-tight text-foreground mb-6">Operations breakdown</h2>
+           <h2 className="text-sm font-bold tracking-tight text-foreground mb-6">Detalhamento de Operações</h2>
            
            <div className="space-y-6">
-             <BreakdownItem label="Direct Sales" value={formatBRL(kpis.revenue * 0.7)} percent={70} color="bg-success" />
-             <BreakdownItem label="Partner Leads" value={formatBRL(kpis.revenue * 0.3)} percent={30} color="bg-success/30" />
+             <BreakdownItem label="Vendas Diretas" value={formatBRL(kpis.revenue * 0.7)} percent={70} color="bg-success" />
+             <BreakdownItem label="Indicações" value={formatBRL(kpis.revenue * 0.3)} percent={30} color="bg-success/30" />
              <div className="h-px bg-border/10 my-2" />
-             <BreakdownItem label="Operational Expenses" value={formatBRL(kpis.expensesTotal * 0.6)} percent={60} color="bg-destructive" />
-             <BreakdownItem label="Commission Payouts" value={formatBRL(kpis.commissionsPaid)} percent={40} color="bg-warning" />
+             <BreakdownItem label="Despesas Operacionais" value={formatBRL(kpis.expensesTotal * 0.6)} percent={60} color="bg-destructive" />
+             <BreakdownItem label="Pagamento de Comissões" value={formatBRL(kpis.commissionsPaid)} percent={40} color="bg-warning" />
            </div>
 
            <div className="mt-8 p-5 rounded-xl bg-muted/30 border border-border/50">
              <div className="flex items-center gap-2 mb-2.5">
                <Sparkles className="size-3.5 text-primary" />
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projection</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Projeção</p>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Considerando o volume atual de vendas e a taxa de conversão de leads, o lucro projetado para este período é de <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.2)}</span>.
+                Considerando o volume atual de vendas e a taxa de conversão, a previsão de lucro para este período é de <span className="text-foreground font-bold">{formatBRL(kpis.profit * 1.2)}</span>.
               </p>
            </div>
         </div>
@@ -539,40 +523,40 @@ export default function Finance() {
       <div className="vx-card overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 gap-4 border-b border-border/10">
            <div className="space-y-1">
-             <h2 className="text-sm font-bold tracking-tight text-foreground">Recent movements</h2>
-             <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">combined ledger activity</p>
+             <h2 className="text-sm font-bold tracking-tight text-foreground">Extrato Recente</h2>
+             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Histórico consolidado de entradas e saídas</p>
            </div>
            <Button variant="ghost" size="sm" className="h-8 px-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2">
-             full ledger <ArrowUpRight className="size-3" />
+             Ver Tudo <ArrowUpRight className="size-3" />
            </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border/10 bg-muted/20">
-                <Th>Type</Th>
-                <Th>Description</Th>
-                <Th>Category</Th>
-                <Th>Date</Th>
-                <Th align="right">Amount</Th>
+                <Th>Tipo</Th>
+                <Th>Descrição</Th>
+                <Th>Categoria</Th>
+                <Th>Data</Th>
+                <Th align="right">Valor</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/5">
               {expenses.slice(0, 10).map((e: any) => (
                 <tr key={e.id} className="hover:bg-muted/30 transition-colors group">
-                  <Td><span className="vx-pill vx-pill-danger px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">expense</span></Td>
+                  <Td><span className="vx-pill vx-pill-danger px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">Saída</span></Td>
                   <Td><span className="font-semibold text-foreground">{e.description}</span></Td>
-                  <Td><span className="text-muted-foreground/40 font-bold uppercase tracking-[0.15em] text-[9px]">{e.category}</span></Td>
-                  <Td className="text-muted-foreground/30 font-bold text-[10px] uppercase tracking-wider">{formatDate(e.expense_date)}</Td>
+                  <Td><span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[9px]">{e.category}</span></Td>
+                  <Td className="text-muted-foreground font-bold text-[10px] uppercase tracking-wider">{formatDate(e.expense_date)}</Td>
                   <Td align="right"><span className="font-bold text-destructive tabular-nums">-{formatBRL(e.amount)}</span></Td>
                 </tr>
               ))}
               {sales.slice(0, 10).map((s: any) => (
                 <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
-                  <Td><span className="vx-pill vx-pill-success px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">revenue</span></Td>
-                  <Td><span className="font-semibold text-foreground">Sale Concluded</span></Td>
-                  <Td><span className="text-muted-foreground/40 font-bold uppercase tracking-[0.15em] text-[9px]">Sales</span></Td>
-                  <Td className="text-muted-foreground/30 font-bold text-[10px] uppercase tracking-wider">{formatDate(s.sale_date)}</Td>
+                  <Td><span className="vx-pill vx-pill-success px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">Entrada</span></Td>
+                  <Td><span className="font-semibold text-foreground">Venda Concluída</span></Td>
+                  <Td><span className="text-muted-foreground font-bold uppercase tracking-[0.15em] text-[9px]">Vendas</span></Td>
+                  <Td className="text-muted-foreground font-bold text-[10px] uppercase tracking-wider">{formatDate(s.sale_date)}</Td>
                   <Td align="right"><span className="font-bold text-success tabular-nums">+{formatBRL(s.amount)}</span></Td>
                 </tr>
               ))}
@@ -616,7 +600,7 @@ function BreakdownItem({ label, value, percent, color }: { label: string; value:
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      "px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
