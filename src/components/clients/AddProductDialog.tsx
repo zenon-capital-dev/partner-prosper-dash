@@ -41,7 +41,7 @@ function CustomFieldsForm({ productId, onChange }: { productId: string, onChange
   const { data: product } = useQuery({
     queryKey: ["product-fields", productId],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("custom_fields_template").eq("id", productId).single();
+      const { data } = await supabase.from("products").select("custom_fields_template").eq("id", productId).maybeSingle();
       return data;
     },
     enabled: !!productId

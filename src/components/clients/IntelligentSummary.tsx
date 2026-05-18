@@ -33,11 +33,11 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
         .from("clients")
         .select("*, partners(full_name)")
         .eq("id", clientId)
-        .single();
+        .maybeSingle();
       
       let responsible_name = null;
       if (data?.responsible_id) {
-        const { data: resp } = await supabase.from("profiles").select("full_name").eq("id", data.responsible_id).single();
+        const { data: resp } = await supabase.from("profiles").select("full_name").eq("id", data.responsible_id).maybeSingle();
         responsible_name = resp?.full_name;
       }
       
