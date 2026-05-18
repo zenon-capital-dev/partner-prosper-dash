@@ -10,8 +10,10 @@ import {
   MessageSquare, History, ListChecks, 
   Calendar, ShieldAlert, Paperclip, ArrowRight,
   PauseCircle, PlayCircle, AlertTriangle, FileCheck,
-  Zap, FilePlus, Download, Info, ClipboardList, Plus
+  Zap, FilePlus, Download, Info, ClipboardList, Plus,
+  Pencil, Copy, Trash2, XCircle
 } from "lucide-react";
+import { EditDemandDialog } from "@/components/demands/EditDemandDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,6 +59,9 @@ export default function DemandDetail() {
   const [taskTitle, setTaskTitle] = useState("");
   const [deliveryOpen, setDeliveryOpen] = useState(false);
   const [deliveryForm, setDeliveryForm] = useState({ title: "", description: "" });
+  const [editOpen, setEditOpen] = useState(false);
+  const [rejectFor, setRejectFor] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const openNotesEditor = () => {
     setNotesDraft((demand as any)?.internal_notes ?? "");
