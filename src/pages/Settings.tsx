@@ -223,7 +223,7 @@ export default function Settings() {
                 <Bell className="size-4" /> Notificações
               </TabsTrigger>
               <TabsTrigger value="automations" className="rounded-lg h-9 gap-2">
-                <Zap className="size-4" /> Automações
+                <Zap className="size-4" /> Automações(Desenvolvimento)
               </TabsTrigger>
               <TabsTrigger value="appearance" className="rounded-lg h-9 gap-2">
                 <Palette className="size-4" /> Aparência
