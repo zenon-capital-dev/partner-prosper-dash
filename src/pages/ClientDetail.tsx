@@ -499,7 +499,7 @@ export default function ClientDetail() {
                             if (error) toast.error(error.message);
                             else { toast.success("Empresa removida"); qc.invalidateQueries({ queryKey: ["client-companies", id] }); }
                           }}>
-                            <Info className="size-3.5 rotate-180" />
+                            <Trash2 className="size-3.5" />
                           </Button>
                         </div>
                       </div>
