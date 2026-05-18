@@ -20,6 +20,7 @@ import {
 
 type DocRequest = {
   id: string;
+  source?: "documents" | "document_requests";
   client_id: string;
   product_id: string | null;
   client_product_id: string | null;
@@ -27,9 +28,11 @@ type DocRequest = {
   description: string | null;
   status: string;
   file_path: string | null;
+  file_url?: string | null;
   due_date: string | null;
   rejection_reason: string | null;
   uploaded_at: string | null;
+  submission_date?: string | null;
   reviewed_at: string | null;
   created_at: string;
 };
@@ -37,6 +40,7 @@ type DocRequest = {
 type Product = { id: string; name: string };
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
+  pendente: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
   solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
   enviado: { label: "Enviado", tone: "bg-blue-50 text-blue-700 border-blue-200", icon: Loader2 },
   em_analise: { label: "Em Análise", tone: "bg-primary-muted text-primary border-primary/20", icon: Loader2 },
@@ -48,7 +52,7 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
 };
 
 function getEffectiveStatus(req: { status: string; due_date: string | null }): string {
-  const pending = ["solicitado", "reprovado", "pendente_correcao"].includes(req.status);
+  const pending = ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(req.status);
   if (pending && req.due_date && new Date(req.due_date) < new Date(new Date().toDateString())) {
     return "atrasado";
   }
@@ -56,7 +60,7 @@ function getEffectiveStatus(req: { status: string; due_date: string | null }): s
 }
 
 const STATUS_ORDER: Record<string, number> = {
-  atrasado: 0, reprovado: 1, pendente_correcao: 2, solicitado: 3,
+  atrasado: 0, reprovado: 1, pendente_correcao: 2, pendente: 3, solicitado: 3,
   enviado: 4, em_analise: 5, aprovado: 6, vencido: 7,
 };
 
