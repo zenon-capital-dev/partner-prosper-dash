@@ -131,6 +131,8 @@ export function ProductFormDialog({ open, onOpenChange, editing, categories, onS
       provider_welcome_message: form.provider_welcome_message?.trim() || null,
       required_documents: docs.map((name) => ({ name })),
       standard_steps: steps.map((label) => ({ label })),
+      custom_fields_template: customFields,
+      auto_tasks_template: autoTasks,
       active: !!form.active,
       recurring: !!form.recurring,
       allow_partner: !!form.allow_partner,
