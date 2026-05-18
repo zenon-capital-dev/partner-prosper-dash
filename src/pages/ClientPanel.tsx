@@ -46,6 +46,7 @@ export default function ClientPanel() {
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
   const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
 
   const downloadDoc = async (path?: string | null, name?: string) => {
     if (!path) return toast.error("Arquivo indisponível");
@@ -115,7 +116,22 @@ export default function ClientPanel() {
     </div>
   );
 
-  const { client, docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries } = data;
+  const { client, docs: allDocs, catalog, requests, contracts, payments, granularProducts: allProducts, reports: allReports, formalDeliveries: allFormalDeliveries } = data;
+  const companies = (client as any).companies || [];
+  const hasMultipleCompanies = companies.length > 1;
+  const granularProducts = selectedCompanyId === "all"
+    ? allProducts
+    : allProducts.filter((p: any) => p.company_id === selectedCompanyId);
+  const filteredProductIds = new Set(granularProducts.map((p: any) => p.id));
+  const docs = selectedCompanyId === "all"
+    ? allDocs
+    : allDocs.filter((d: any) => !d.client_product_id || filteredProductIds.has(d.client_product_id));
+  const reports = selectedCompanyId === "all"
+    ? allReports
+    : allReports.filter((r: any) => filteredProductIds.has(r.client_product_id));
+  const formalDeliveries = selectedCompanyId === "all"
+    ? allFormalDeliveries
+    : allFormalDeliveries.filter((d: any) => filteredProductIds.has(d.client_product_id));
   const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
   const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
   const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
@@ -131,8 +147,8 @@ export default function ClientPanel() {
     ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
     ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
   ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  
-  const selectedProduct = granularProducts.find((p: any) => p.id === selectedProductId);
+
+  const selectedProduct = allProducts.find((p: any) => p.id === selectedProductId);
 
   return (
     <div className="bg-premium min-h-screen">
@@ -148,6 +164,19 @@ export default function ClientPanel() {
           </div>
 
           <div className="flex items-center gap-2">
+            {hasMultipleCompanies && (
+              <select
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+                className="h-9 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-semibold text-foreground px-2.5 max-w-[180px] truncate focus:outline-none focus:ring-2 focus:ring-primary/20"
+                title="Filtrar por empresa"
+              >
+                <option value="all">Todas as empresas</option>
+                {companies.map((co: any) => (
+                  <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>
+                ))}
+              </select>
+            )}
             <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
