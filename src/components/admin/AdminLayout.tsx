@@ -40,6 +40,14 @@ const ROUTE_LABEL: Record<string, string> = {
 function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // 🔒 Admin SEMPRE em tema claro premium SaaS B2B. Remove .dark global enquanto montado.
+  useEffect(() => {
+    const root = document.documentElement;
+    const had = root.classList.contains("dark");
+    if (had) root.classList.remove("dark");
+    return () => { if (had) root.classList.add("dark"); };
+  }, []);
   const { isAdmin, isAdminSecondary } = useAuth();
   const { pathname } = useLocation();
   const isFullAdmin = isAdmin || isAdminSecondary;
