@@ -107,22 +107,27 @@ export default function DashboardAdmin() {
   // ===== Stats =====
   const stats = useMemo(() => {
     const now = new Date();
-    // Brasilia Time (UTC-3)
-    const brNow = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-    
-    const startOfRange = new Date(brNow);
+    const brNow = brasiliaToday;
+
+    // Compute date range as ISO strings (YYYY-MM-DD) for reliable comparison
+    const toISO = (d: Date) => d.toISOString().slice(0, 10);
+    let rangeStart = new Date(brNow);
+    let rangeEnd = new Date(brNow);
     if (rangeKey === "HOJE") {
-      startOfRange.setHours(0, 0, 0, 0);
+      // both start and end = today
     } else if (rangeKey === "7 DIAS") {
-      startOfRange.setDate(brNow.getDate() - 7);
-      startOfRange.setHours(0, 0, 0, 0);
+      rangeStart = new Date(brNow); rangeStart.setDate(brNow.getDate() - 6);
     } else if (rangeKey === "30 DIAS") {
-      startOfRange.setDate(brNow.getDate() - 30);
-      startOfRange.setHours(0, 0, 0, 0);
-    } else { // MÊS
-      startOfRange.setDate(1);
-      startOfRange.setHours(0, 0, 0, 0);
+      rangeStart = new Date(brNow); rangeStart.setDate(brNow.getDate() - 29);
+    } else if (rangeKey === "MÊS") {
+      rangeStart = new Date(brNow.getFullYear(), brNow.getMonth(), 1);
+    } else if (rangeKey === "PERSONALIZADO") {
+      if (customRange.from) rangeStart = customRange.from;
+      if (customRange.to) rangeEnd = customRange.to;
     }
+    const startISO = toISO(rangeStart);
+    const endISO = toISO(rangeEnd);
+    const startOfRange = rangeStart;
 
     const M = brNow.getMonth();
     const Y = brNow.getFullYear();
@@ -130,12 +135,13 @@ export default function DashboardAdmin() {
     const startLast = new Date(Y, M - 1, 1);
     const endLast = new Date(Y, M, 0);
 
-    // Filter sales by range
-    const filteredSales = sales.filter((s: any) => {
-      if (!s.sale_date) return false;
-      const d = new Date(s.sale_date);
-      return d >= startOfRange && d <= brNow;
-    });
+    // Filter sales by range using ISO date comparison
+    const inRange = (dateStr: string | null | undefined) => {
+      if (!dateStr) return false;
+      const d = String(dateStr).slice(0, 10);
+      return d >= startISO && d <= endISO;
+    };
+    const filteredSales = sales.filter((s: any) => inRange(s.sale_date));
 
     const monthSales = sales.filter((s: any) => s.sale_date && new Date(s.sale_date) >= startMonth);
     const lastMonthSales = sales.filter((s: any) => {
