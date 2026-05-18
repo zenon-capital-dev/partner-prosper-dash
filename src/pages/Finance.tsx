@@ -600,7 +600,7 @@ function BreakdownItem({ label, value, percent, color }: { label: string; value:
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-white/40",
+      "px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
