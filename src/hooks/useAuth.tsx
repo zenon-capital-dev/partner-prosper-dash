@@ -3,7 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 
-type AppRole = "admin" | "admin_secondary" | "colaborador" | "parceiro" | "prestador" | "cliente" | "lead" | "indicador";
+type AppRole = "admin" | "admin_secondary" | "colaborador" | "vendedor" | "parceiro" | "prestador" | "cliente" | "lead" | "indicador";
 
 interface AuthContextValue {
   user: User | null;
@@ -13,6 +13,7 @@ interface AuthContextValue {
   isAdmin: boolean;
   isAdminSecondary: boolean;
   isColaborador: boolean;
+  isVendedor: boolean;
   isParceiro: boolean;
   isPrestador: boolean;
   isCliente: boolean;
