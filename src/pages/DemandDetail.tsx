@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +44,7 @@ import { AutoStatusBadge } from "@/components/StatusBadge";
 export default function DemandDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const qc = useQueryClient();
   const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
