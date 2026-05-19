@@ -23,39 +23,41 @@ const SECTIONS: NavSection[] = [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Alertas", url: "/cockpit", icon: Activity },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
-    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
+    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, staffOnly: true },
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
   { label: "CRM & Vendas", items: [
     { title: "Clientes", url: "/clientes", icon: Users, staffOnly: true },
     { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
-    { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
-    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
+    { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
+    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
   ]},
-  { label: "Catálogo", adminOnly: true, items: [
+  { label: "Catálogo", staffOnly: true, items: [
     { title: "Serviços", url: "/produtos", icon: Package },
-    { title: "Templates", url: "/templates", icon: MessageSquare },
+    { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", items: [
-    { title: "Parceiros", url: "/parceiros", icon: Handshake, adminOnly: true },
+    { title: "Parceiros", url: "/parceiros", icon: Handshake, staffOnly: true },
     { title: "Prestadores", url: "/prestadores", icon: Truck, staffOnly: true },
-    { title: "Indicadores", url: "/indicadores", icon: Sparkles, adminOnly: true },
+    { title: "Indicadores", url: "/indicadores", icon: Sparkles, staffOnly: true },
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
+  ]},
+  { label: "Documentos & Contratos", staffOnly: true, items: [
+    { title: "Contratos", url: "/contratos", icon: FileSignature },
+    { title: "Arquivos", url: "/documentos", icon: FileText },
   ]},
   { label: "Financeiro", adminOnly: true, items: [
     { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
     { title: "Faturamento", url: "/financeiro", icon: Banknote },
     { title: "Comissões", url: "/comissoes", icon: Wallet },
-    { title: "Contratos", url: "/contratos", icon: FileSignature },
-    { title: "Arquivos", url: "/documentos", icon: FileText },
   ]},
-  { label: "Sistema", adminOnly: true, items: [
-    { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-    { title: "Auditoria", url: "/auditoria", icon: History },
-    { title: "Usuários", url: "/usuarios", icon: UserCog },
-    { title: "Automações", url: "/automacoes", icon: Zap },
-    { title: "Configurações", url: "/configuracoes", icon: Settings },
+  { label: "Sistema", items: [
+    { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
+    { title: "Auditoria", url: "/auditoria", icon: History, adminOnly: true },
+    { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true },
+    { title: "Automações", url: "/automacoes", icon: Zap, adminOnly: true },
+    { title: "Configurações", url: "/configuracoes", icon: Settings, adminOnly: true },
   ]},
 ];
 
