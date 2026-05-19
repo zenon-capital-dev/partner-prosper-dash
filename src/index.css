@@ -108,10 +108,10 @@
     --background: 240 10% 2%;
     --foreground: 0 0% 100%;
 
-    --card: 240 10% 4%;
+    --card: 240 10% 3%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 240 10% 4%;
+    --popover: 240 10% 3%;
     --popover-foreground: 0 0% 100%;
 
     --primary: 0 0% 100%;
@@ -351,9 +351,9 @@
   .dark .admin-shell {
     --background: 240 10% 2%;
     --foreground: 0 0% 100%;
-    --card: 240 10% 4%;
+    --card: 240 10% 3%;
     --card-foreground: 0 0% 100%;
-    --popover: 240 10% 4%;
+    --popover: 240 10% 3%;
     --popover-foreground: 0 0% 100%;
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
