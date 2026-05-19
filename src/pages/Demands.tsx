@@ -199,6 +199,13 @@ export default function Demands() {
     });
   }, [demands, search, statusFilter, priorityFilter, productFilter, providerFilter, partnerFilter, deadlineFilter, rangeKey]);
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+
   const stats = useMemo(() => {
     return {
       total: demands.length,
