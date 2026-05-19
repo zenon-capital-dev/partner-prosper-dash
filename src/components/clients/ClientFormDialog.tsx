@@ -156,17 +156,23 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       clientId = created.id;
     }
 
-    // Cria pendências de documentos (apenas no cadastro novo)
-    if (!client?.id && clientId) {
+    // Onboarding setup
+    if (clientId) {
+      const { error: profErr } = await supabase.from("profiles").update({
+        onboarding_completed: false,
+        onboarding_step: 1,
+        manual_approval_required: manualApproval,
+      } as any).eq("id", clientId); // user_id is profile id usually in this system
+
       const allDocs = [...selectedTemplateDocs, ...customDocs];
       if (allDocs.length > 0) {
         const rows = allDocs.map((name) => ({
           client_id: clientId!,
-          request_title: name,
-          status: "pendente",
+          name: name,
+          is_required: true,
+          status: "pending",
         }));
-        const { error: docErr } = await supabase.from("document_requests").insert(rows);
-        if (docErr) toast.warning("Cliente salvo, mas pendências falharam: " + docErr.message);
+        await supabase.from("onboarding_documents").insert(rows);
       }
     }
 
