@@ -234,15 +234,15 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-slate-200/70 p-2 bg-slate-50/50">
+      <div className="shrink-0 border-t border-slate-200/75 p-3 bg-gradient-to-b from-slate-50/60 to-white">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "w-full flex items-center gap-2.5 rounded-lg p-1.5 hover:bg-white hover:shadow-sm transition-all group border border-transparent hover:border-slate-200",
+              "w-full flex items-center gap-2.5 rounded-xl p-2 hover:bg-white hover:shadow-md transition-all group border border-transparent hover:border-slate-200",
               collapsed && "justify-center"
             )}>
               <div className="relative shrink-0">
-                <div className="size-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-[11px] font-bold ring-2 ring-white shadow-sm">
+                <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-600 to-slate-950 flex items-center justify-center text-white text-[11px] font-black ring-2 ring-white shadow-sm">
                   {initials(displayName)}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-white" />
@@ -250,8 +250,8 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               {!collapsed && (
                 <>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12.5px] font-bold text-slate-950 truncate leading-tight">{displayName}</p>
-                    <p className="text-[10.5px] font-medium text-slate-600 truncate leading-tight mt-0.5">{displayEmail}</p>
+                    <p className="text-[12.5px] font-black text-slate-950 truncate leading-tight">{displayName}</p>
+                    <p className="text-[10.5px] font-semibold text-slate-500 truncate leading-tight mt-0.5">{displayEmail}</p>
                   </div>
                   <ChevronDown className="size-3.5 text-slate-600 shrink-0 group-hover:text-slate-600 transition-colors" />
                 </>
