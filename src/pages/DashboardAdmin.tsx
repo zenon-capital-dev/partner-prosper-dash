@@ -350,7 +350,7 @@ export default function DashboardAdmin() {
         <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_0_hsl(220_13%_88%/0.8),0_28px_70px_-52px_hsl(222_47%_11%/0.55)]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,hsl(231_72%_46%/0.10),transparent_34%),radial-gradient(circle_at_100%_10%,hsl(203_78%_42%/0.08),transparent_30%),linear-gradient(135deg,hsl(0_0%_100%),hsl(220_24%_98%))]" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-300/70 to-transparent" />
-          <div className="relative p-5 sm:p-6 lg:p-7 flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+          <div className="relative p-5 sm:p-6 lg:p-7 grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_420px_auto] items-end gap-6">
             <div className="flex items-start gap-4 sm:gap-5 min-w-0 flex-1">
               <div className="relative shrink-0">
                 <div className="size-12 sm:size-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-slate-950 flex items-center justify-center shadow-[0_18px_34px_-20px_hsl(231_72%_46%/0.85)] ring-1 ring-indigo-300/40">
@@ -382,7 +382,12 @@ export default function DashboardAdmin() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap w-full xl:w-auto xl:justify-end">
+            <div className="grid grid-cols-3 gap-2 w-full">
+              <HeroStat label="Receita mês" value={formatBRL(stats.monthRevenue)} tone="primary" />
+              <HeroStat label="Pipeline" value={formatBRL(stats.weightedPipeline)} tone="info" />
+              <HeroStat label="Alertas" value={String(stats.alerts.length)} tone={stats.alerts.length > 0 ? "danger" : "success"} />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap w-full 2xl:w-auto 2xl:justify-end">
               <div className="inline-flex items-center rounded-xl bg-white/85 border border-slate-200 p-1 shadow-sm overflow-x-auto">
                 {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((p) => (
                   <button 
