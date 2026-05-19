@@ -90,6 +90,9 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
   const displayEmail = user?.email || "";
   const portalLabel = isFullAdmin ? "Admin OS" : "Workspace";
 
+  // Verificamos se está em dark mode para ajustar cores específicas via style se necessário
+  const isDark = document.documentElement.classList.contains("dark");
+
   return (
     <aside
       className={cn(
