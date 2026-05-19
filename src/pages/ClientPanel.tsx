@@ -37,11 +37,24 @@ const CLIENT_TAB_TO_PATH: Record<string, string> = {
   contratos: "contratos", docs: "biblioteca", descobrir: "descobrir",
 };
 
+
+const ACTIVE_STATUSES = new Set(["ativo", "em_andamento", "em_execucao", "aguardando_inicio", "aguardando_documentos", "pendente_cliente", "em_analise"]);
+const DONE_STATUSES = new Set(["concluido", "concluida", "finalizado", "finalizada", "assinado", "pago", "aprovado"]);
+
+const statusLabel = (status?: string | null) => (status || "Em definição")
+  .replace(/_/g, " ")
+  .replace(/\b\w/g, (m) => m.toUpperCase());
+
+const isPendingDoc = (status?: string | null) => ["solicitado", "pendente", "reprovado", "pendente_correcao", "pending", "rejected"].includes(status || "");
+const isOpenPayment = (status?: string | null) => !["pago", "paid", "cancelado", "cancelled"].includes(status || "");
+const isContractPending = (status?: string | null) => ["enviado", "aguardando_assinatura", "pendente", "criado"].includes(status || "");
+
 export default function ClientPanel() {
   const { user, signOut } = useAuth();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
   const settings = useSystemSettings();
+  const queryClient = useQueryClient();
   const wa = (msg?: string) => buildWhatsAppLink(settings.support_whatsapp, msg);
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
   const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
@@ -50,7 +63,6 @@ export default function ClientPanel() {
 
   const downloadDoc = async (path?: string | null, name?: string) => {
     if (!path) return toast.error("Arquivo indisponível");
-    // Se for URL completa, abre direto
     if (path.startsWith("http")) return window.open(path, "_blank");
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
     if (error || !data) return toast.error("Não foi possível baixar");
@@ -74,19 +86,15 @@ export default function ClientPanel() {
         `)
         .eq("user_id", user!.id)
         .maybeSingle();
-      if (clientErr) {
-        console.error("[ClientPanel] erro ao buscar cliente:", clientErr);
-      }
+      if (clientErr) throw clientErr;
       if (!client) return null;
 
-      // Primeiro: buscar IDs de produtos do cliente uma única vez
       const { data: productIdRows } = await supabase
         .from("client_products")
         .select("id")
         .eq("client_id", client.id);
       const productIds = (productIdRows ?? []).map((p: any) => p.id);
 
-      // Helpers tolerantes a falhas — uma sub-query quebrada não derruba o painel
       const safe = async (builder: any): Promise<any[]> => {
         try { const r = await builder; return (r?.data ?? []) as any[]; }
         catch (e) { console.error("[ClientPanel] sub-query falhou:", e); return []; }
@@ -99,12 +107,8 @@ export default function ClientPanel() {
         safe(supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false })),
         safe(supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false })),
         safe(supabase.from("client_products").select("id, client_id, product_id, custom_product_name, status, value, custom_value, discount, priority, sla_start_date, sla_due_date, sla_status, is_sla_frozen, deadline, start_date, end_date, current_step_id, current_steps, notes, adjustment_description, adjustment_due_date, delay_reason, created_at, updated_at, company_id, service_provider_id, responsible_provider_id, products(name, description), companies(id, name, trade_name)").eq("client_id", client.id).order("created_at", { ascending: false })),
-        productIds.length > 0
-          ? safe(supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", productIds).order("created_at", { ascending: false }))
-          : Promise.resolve([] as any[]),
-        productIds.length > 0
-          ? safe(supabase.from("demand_deliveries").select("*, client_products(id, products(name))").in("client_product_id", productIds).order("created_at", { ascending: false }))
-          : Promise.resolve([] as any[]),
+        productIds.length > 0 ? safe(supabase.from("client_product_status_reports").select("*, service_providers(name)").in("client_product_id", productIds).order("created_at", { ascending: false })) : Promise.resolve([] as any[]),
+        productIds.length > 0 ? safe(supabase.from("demand_deliveries").select("*, client_products(id, products(name))").in("client_product_id", productIds).order("created_at", { ascending: false })) : Promise.resolve([] as any[]),
       ]);
 
       return { client, docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries };
@@ -113,50 +117,32 @@ export default function ClientPanel() {
     retry: 1,
   });
 
-  if (isLoading) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8">
-      <div className="text-center space-y-4 animate-pulse">
-        <Loader2 className="size-10 animate-spin mx-auto text-primary/30" />
-        <p className="text-sm font-medium text-slate-400 tracking-wide uppercase">Carregando seu portal...</p>
-      </div>
-    </div>
-  );
+  if (isLoading) return <ClientPanelLoading />;
 
   if (error) {
     console.error("[ClientPanel] Render error:", error);
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 bg-slate-50">
-        <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white border border-slate-100 rounded-[40px]">
-          <div className="size-16 rounded-3xl bg-rose-50 flex items-center justify-center text-rose-500 mx-auto mb-6">
-            <AlertCircle className="size-8" />
-          </div>
-          <h2 className="font-editorial text-2xl font-bold mb-3 text-slate-900">Ops! Algo deu errado</h2>
-          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-            Não conseguimos carregar suas informações agora. Por favor, tente recarregar a página ou contate o suporte.
-          </p>
-          <Button onClick={() => window.location.reload()} className="h-12 rounded-2xl px-8 bg-slate-900 shadow-xl">
-            Tentar Novamente
-          </Button>
-        </div>
-      </div>
+      <ClientPanelShell>
+        <EmptyState
+          icon={AlertCircle}
+          title="Não foi possível carregar seu portal"
+          description="Atualize a página. Se continuar acontecendo, nossa equipe consegue revisar seu acesso rapidamente."
+          action={<Button onClick={() => window.location.reload()} className="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white">Tentar novamente</Button>}
+          tone="danger"
+        />
+      </ClientPanelShell>
     );
   }
-  
+
   if (!data) return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-slate-50">
-      <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white border border-white/20 rounded-[40px]">
-        <div className="size-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
-          <Inbox className="size-8" />
-        </div>
-        <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3 text-slate-900">Preparando seu acesso</h2>
-        <p className="text-slate-500 leading-relaxed mb-8">
-          Nossa equipe está finalizando a configuração da sua conta. Em breve você terá acesso total ao seu ecossistema.
-        </p>
-        <div className="h-1 w-24 bg-primary/10 mx-auto rounded-full overflow-hidden">
-          <div className="h-full bg-primary animate-[loading_2s_infinite]" />
-        </div>
-      </div>
-    </div>
+    <ClientPanelShell>
+      <EmptyState
+        icon={Inbox}
+        title="Acesso ainda não vinculado"
+        description="Seu login existe, mas ainda não encontramos um cadastro de cliente conectado a ele. Fale com a equipe para vincular o acesso."
+        action={<Button onClick={() => window.open(wa("Olá, meu acesso ao portal do cliente ainda não está vinculado."), "_blank")} className="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"><MessageSquare className="size-4 mr-2" /> Falar com a equipe</Button>}
+      />
+    </ClientPanelShell>
   );
 
   const { client, docs: allDocs, catalog, requests, contracts, payments, granularProducts: allProducts, reports: allReports, formalDeliveries: allFormalDeliveries } = data;
@@ -173,49 +159,53 @@ export default function ClientPanel() {
       created_at: r.requested_at,
     })),
   ];
-  const companies = (client as any).companies || [];
+
+  const companies = Array.isArray((client as any).companies) ? (client as any).companies : ((client as any).companies ? [(client as any).companies] : []);
   const hasMultipleCompanies = companies.length > 1;
-  const granularProducts = selectedCompanyId === "all"
-    ? allProducts
-    : allProducts.filter((p: any) => p.company_id === selectedCompanyId);
+  const granularProducts = selectedCompanyId === "all" ? allProducts : allProducts.filter((p: any) => p.company_id === selectedCompanyId);
   const filteredProductIds = new Set(granularProducts.map((p: any) => p.id));
-  const docs = selectedCompanyId === "all"
-    ? allDocumentItems
-    : allDocumentItems.filter((d: any) => !d.client_product_id || filteredProductIds.has(d.client_product_id));
-  const reports = selectedCompanyId === "all"
-    ? allReports
-    : allReports.filter((r: any) => filteredProductIds.has(r.client_product_id));
-  const formalDeliveries = selectedCompanyId === "all"
-    ? allFormalDeliveries
-    : allFormalDeliveries.filter((d: any) => filteredProductIds.has(d.client_product_id));
-  const activeProducts = granularProducts.filter((p: any) => p.status !== 'cancelado' && p.status !== 'finalizado');
-  const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || 0), 0);
-  const pendingDocs = docs.filter((d: any) => ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
-  const pendingPayments = payments.filter((p: any) => p.status !== 'pago').length;
-  const pendingContracts = contracts.filter((c: any) => c.status !== 'assinado').length;
-  const paidTotal = payments.filter((p: any) => p.status === 'pago').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
-  const openTotal = payments.filter((p: any) => p.status !== 'pago').reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
-  const nextDue = payments
-    .filter((p: any) => p.status !== 'pago' && p.due_date)
-    .sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
-  const completionPct = Math.round(client.onboarding_progress || 0);
+  const docs = selectedCompanyId === "all" ? allDocumentItems : allDocumentItems.filter((d: any) => !d.client_product_id || filteredProductIds.has(d.client_product_id));
+  const reports = selectedCompanyId === "all" ? allReports : allReports.filter((r: any) => filteredProductIds.has(r.client_product_id));
+  const formalDeliveries = selectedCompanyId === "all" ? allFormalDeliveries : allFormalDeliveries.filter((d: any) => filteredProductIds.has(d.client_product_id));
+
+  const activeProducts = granularProducts.filter((p: any) => !["cancelado", "finalizado", "concluido", "concluida"].includes(p.status));
+  const completedProducts = granularProducts.filter((p: any) => DONE_STATUSES.has(p.status));
+  const monthlyTotal = granularProducts.reduce((sum: number, p: any) => sum + Number(p.value || p.custom_value || 0), 0);
+  const pendingDocs = docs.filter((d: any) => isPendingDoc(d.status)).length;
+  const reviewDocs = docs.filter((d: any) => ["enviado", "em_analise", "submitted", "reviewing"].includes(d.status)).length;
+  const pendingPayments = payments.filter((p: any) => isOpenPayment(p.status)).length;
+  const pendingContracts = contracts.filter((c: any) => isContractPending(c.status)).length;
+  const paidTotal = payments.filter((p: any) => !isOpenPayment(p.status)).reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+  const openTotal = payments.filter((p: any) => isOpenPayment(p.status)).reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
+  const nextDue = payments.filter((p: any) => isOpenPayment(p.status) && p.due_date).sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
+  const overduePayments = payments.filter((p: any) => isOpenPayment(p.status) && p.due_date && new Date(p.due_date) < new Date()).length;
+  const onboardingProgress = Math.max(0, Math.min(100, Number(client.onboarding_progress ?? 100)));
+  const selectedProduct = allProducts.find((p: any) => p.id === selectedProductId);
+  const latestReports = reports.slice(0, 5);
   const deliveries = [
-    ...docs.filter((d: any) => d.status === 'aprovado' || d.status === 'concluido').map(d => ({ ...d, type: 'document' })),
-    ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: 'delivery' }))
+    ...docs.filter((d: any) => ["aprovado", "concluido", "approved"].includes(d.status)).map((d: any) => ({ ...d, type: "document" })),
+    ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: "delivery" })),
   ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const selectedProduct = allProducts.find((p: any) => p.id === selectedProductId);
+  const criticalActions = [
+    { label: "Documentos pendentes", value: pendingDocs, icon: FileText, tab: "checklist", tone: pendingDocs > 0 ? "warning" : "success" as const },
+    { label: "Contratos aguardando", value: pendingContracts, icon: FileSignature, tab: "contratos", tone: pendingContracts > 0 ? "warning" : "success" as const },
+    { label: "Pagamentos em aberto", value: pendingPayments, icon: Receipt, tab: "financeiro", tone: overduePayments > 0 ? "danger" : pendingPayments > 0 ? "warning" : "success" as const },
+  ];
+
+  const firstName = client.full_name?.split(" ")[0] || "Cliente";
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* ─── Sticky Top Bar ─── */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
-        <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <ProsperLogo size={28} />
+    <div className="min-h-screen bg-slate-50/60 font-sans text-slate-900">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70">
+        <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between gap-5">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-[0_2px_8px_-2px_rgba(79,70,229,0.5)] shrink-0">
+              <Package className="size-4.5 stroke-[2.2]" />
+            </div>
             <div className="min-w-0">
-              <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900">Prosper</p>
-              <p className="hidden sm:block text-[8.5px] text-slate-500 tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
+              <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none">Portal do cliente</p>
+              <p className="text-[13px] font-bold text-slate-900 mt-0.5 leading-tight truncate">Prosper Direct Response</p>
             </div>
           </div>
 
@@ -224,45 +214,31 @@ export default function ClientPanel() {
               <select
                 value={selectedCompanyId}
                 onChange={(e) => setSelectedCompanyId(e.target.value)}
-                className="h-9 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-semibold text-foreground px-2.5 max-w-[180px] truncate focus:outline-none focus:ring-2 focus:ring-primary/20"
-                title="Filtrar por empresa"
+                className="h-9 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 px-2.5 max-w-[190px] truncate focus:outline-none focus:ring-2 focus:ring-indigo-100"
               >
                 <option value="all">Todas as empresas</option>
-                {companies.map((co: any) => (
-                  <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>
-                ))}
+                {companies.map((co: any) => <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>)}
               </select>
             )}
             <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-1 pr-2 sm:pr-3 h-9 rounded-xl border border-slate-200/70 hover:bg-slate-50 transition-colors active:scale-[0.98]">
-                  <span className="size-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">
-                    {initials(client.full_name)}
-                  </span>
-                  <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
-                  <ChevronRight className="size-3.5 text-slate-500 rotate-90" />
+                <button className="flex items-center gap-2 pl-1 pr-2 h-9 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 transition-colors">
+                  <span className="size-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">{initials(client.full_name)}</span>
+                  <span className="hidden sm:inline text-xs font-semibold text-slate-700 max-w-[140px] truncate">{firstName}</span>
+                  <ChevronRight className="size-3.5 text-slate-400 rotate-90" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-bold leading-none truncate">{client.full_name}</p>
-                    <p className="text-[11px] text-slate-500 leading-none truncate">{client.email}</p>
-                  </div>
+                  <p className="text-sm font-bold leading-none truncate">{client.full_name}</p>
+                  <p className="text-[11px] text-slate-500 leading-none truncate mt-1.5">{client.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2">
-                  <LayoutDashboard className="size-4" /> Painel inicial
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.open(wa(), "_blank")} className="gap-2">
-                  <MessageSquare className="size-4" /> Falar com a equipe
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2"><LayoutDashboard className="size-4" /> Painel inicial</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.open(wa(), "_blank")} className="gap-2"><MessageSquare className="size-4" /> Falar com a equipe</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={async () => { await signOut(); toast.success("Sessão encerrada"); navigate("/auth", { replace: true }); }}
-                  className="gap-2 text-rose-600 focus:text-rose-600"
-                >
+                <DropdownMenuItem onClick={async () => { await signOut(); toast.success("Sessão encerrada"); navigate("/auth", { replace: true }); }} className="gap-2 text-rose-600 focus:text-rose-600">
                   <LogOut className="size-4" /> Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -271,706 +247,224 @@ export default function ClientPanel() {
         </div>
       </header>
 
-      <div className="page-shell space-y-6 sm:space-y-10 py-5 sm:py-10 px-4 sm:px-6">
+      <main className="max-w-7xl mx-auto px-5 lg:px-8 py-8 lg:py-10 space-y-8">
         {selectedProductId && selectedProduct ? (
-          /* SINGLE PRODUCT VIEW */
-          <div className="animate-fade-up space-y-8">
-             <Button 
-               variant="ghost" 
-               onClick={() => setSelectedProductId(null)} 
-               className="group text-slate-500 hover:text-primary transition-colors h-10 px-0"
-             >
-               <ChevronLeft className="size-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar para o Painel
-             </Button>
-
-             <PageHero 
-               eyebrow="Solução em Execução"
-               category={selectedProduct.products?.name}
-               title={selectedProduct.products?.name}
-               description={selectedProduct.products?.description || "Acompanhe o progresso e as entregas desta demanda em tempo real."}
-               icon={<Package className="size-6" />}
-               actions={
-                 <div className="flex gap-2">
-                   <Button variant="outline" className="rounded-xl h-11 border-border/40" onClick={() => window.open(wa(), '_blank')}>
-                     <MessageSquare className="size-4 mr-2" /> Falar com Equipe
-                   </Button>
-                   <Button className="btn-premium h-11 rounded-xl" onClick={() => window.open(wa(`Gostaria do relatório completo da demanda ${selectedProduct.products?.name}`), "_blank")}>
-                     Baixar Relatório
-                   </Button>
-                 </div>
-               }
-               kpis={[
-                 { label: "Status", value: selectedProduct.status?.replace(/_/g, ' '), tone: "info", icon: <Activity className="size-4" /> },
-                 { label: "Prazo Estimado", value: selectedProduct.deadline ? formatDate(selectedProduct.deadline) : "Em definição", tone: "warning", icon: <Clock className="size-4" /> },
-                 { label: "Documentos", value: `${docs.filter((d: any) => d.client_product_id === selectedProductId && d.file_path).length} enviados`, tone: "success", icon: <FileText className="size-4" /> },
-               ]}
-             />
-
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
-               <div className="lg:col-span-2 space-y-8">
-                  <div className="vx-card p-10 bg-white border-slate-100 rounded-[40px]">
-                    <h3 className="font-editorial text-2xl font-bold mb-8">Checklist de Execução</h3>
-                    <ClientProductSteps clientProductId={selectedProduct.id} showDetails={true} />
-                  </div>
-
-                  <div className="vx-card p-10 bg-white border-slate-100 rounded-[40px]">
-                    <h3 className="font-editorial text-2xl font-bold mb-8">Documentos da Demanda</h3>
-                    <div className="space-y-4">
-                       {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 ? (
-                         <p className="text-sm text-slate-500 italic">Nenhum documento específico solicitado para esta demanda.</p>
-                       ) : (
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
-                             <div key={d.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:border-primary/20 transition-all">
-                                <div className="flex items-center gap-4 min-w-0">
-                                   <div className={cn(
-                                     "size-10 rounded-xl flex items-center justify-center shrink-0",
-                                     d.file_path ? "bg-emerald-500/10 text-emerald-500" : "bg-primary/5 text-primary"
-                                   )}>
-                                      <FileText className="size-5" />
-                                   </div>
-                                   <div className="min-w-0">
-                                      <p className="text-sm font-bold truncate">{d.name}</p>
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">
-                                         {d.file_path ? "Enviado" : "Pendente"}
-                                      </p>
-                                   </div>
-                                </div>
-                                {d.file_path ? (
-                                   <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:text-primary" onClick={() => downloadDoc(d.file_path, d.name)}>
-                                      <Download className="size-4" />
-                                   </Button>
-                                ) : (
-                                   <Button variant="outline" size="sm" className="rounded-xl h-8 text-[10px] font-bold uppercase tracking-widest" onClick={() => setActiveTab("checklist")}>
-                                      <Upload className="size-3 mr-1.5" /> Upload
-                                   </Button>
-                                )}
-                             </div>
-                           ))}
-                         </div>
-                       )}
-                    </div>
-                  </div>
-               </div>
-
-               <div className="space-y-8">
-                  <div className="vx-card p-8 bg-slate-900 text-white rounded-[40px] space-y-6 relative overflow-hidden shadow-2xl">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="size-20" /></div>
-                    <h3 className="font-editorial text-xl font-bold">Mensagens & Atualizações</h3>
-                    <div className="space-y-6 relative">
-                       {reports.filter((r: any) => r.client_product_id === selectedProductId).length === 0 ? (
-                         <p className="text-xs text-white/70 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
-                       ) : (
-                         reports.filter((r: any) => r.client_product_id === selectedProductId).slice(0, 5).map((r: any) => (
-                           <div key={r.id} className="flex gap-4 group">
-                             <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                             <div className="space-y-1">
-                               <p className="text-xs font-medium text-white/90 leading-relaxed">{r.notes}</p>
-                               <div className="flex items-center gap-2 pt-1">
-                                  <p className="text-[9px] font-bold text-white/70 uppercase">{formatDate(r.created_at)}</p>
-                                  <span className="text-[9px] font-bold text-primary italic lowercase">por {r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
-                               </div>
-                             </div>
-                           </div>
-                         ))
-                       )}
-                    </div>
-                  </div>
-
-                  <div className="vx-card p-8 bg-white border-slate-100 rounded-[40px] space-y-6">
-                    <h3 className="font-editorial text-xl font-bold">Histórico de Atividades</h3>
-                    <div className="space-y-4">
-                       <div className="flex items-start gap-4">
-                          <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                             <CheckCircle2 className="size-4" />
-                          </div>
-                          <div>
-                             <p className="text-xs font-bold text-slate-900">Demanda Criada</p>
-                             <p className="text-[10px] text-slate-500 mt-0.5">{formatDate(selectedProduct.created_at)}</p>
-                          </div>
-                       </div>
-                    </div>
-                  </div>
-               </div>
-             </div>
-          </div>
+          <ProductDetailView
+            product={selectedProduct}
+            docs={docs}
+            reports={reports}
+            onBack={() => setSelectedProductId(null)}
+            onOpenDocs={() => { setSelectedProductId(null); setActiveTab("checklist"); }}
+            onSupport={() => window.open(wa(`Gostaria de falar sobre a demanda ${selectedProduct.products?.name || selectedProduct.custom_product_name}`), "_blank")}
+            onDownload={downloadDoc}
+          />
         ) : (
-          /* MAIN HOME VIEW */
           <>
-            {/* ─── Refined Hero ─── */}
-            <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white p-6 sm:p-10 lg:p-12 shadow-xl">
-              <div className="absolute -top-32 -right-32 size-[420px] rounded-full bg-primary/30 blur-[120px] opacity-60 pointer-events-none" />
-              <div className="absolute -bottom-24 -left-24 size-[320px] rounded-full bg-blue-500/20 blur-[100px] opacity-50 pointer-events-none" />
-              <div
-                className="absolute inset-0 opacity-[0.05] pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)",
-                  backgroundSize: "48px 48px",
-                  maskImage: "radial-gradient(ellipse 70% 60% at 30% 30%, #000 30%, transparent 100%)",
-                }}
-              />
-
-              <div className="relative grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-8 lg:gap-12 items-center">
-                <div className="space-y-5">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-xl px-3 py-1.5">
-                    <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/70">Sua jornada</span>
-                  </div>
-
-                  <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.05]">
-                    Olá, <span className="text-primary italic">{client.full_name?.split(" ")[0] || ""}</span>.
-                    <span className="block text-white/80 text-base sm:text-lg lg:text-xl font-normal italic mt-2 tracking-tight">
-                      Tudo o que importa, num só lugar.
-                    </span>
-                  </h1>
-
-                  <div className="space-y-2 max-w-md pt-1">
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/75">
-                      <span>Progresso do onboarding</span>
-                      <span className="text-white tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
+            <section className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8 items-stretch">
+              <div className="bg-white border border-slate-200/70 rounded-2xl shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_28px_-16px_rgba(15,23,42,0.1)] p-7 lg:p-9 overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 ring-1 ring-indigo-100 mb-4">
+                      <ShieldCheck className="size-3 text-indigo-600" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-700">Acesso liberado · Portal ativo</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-700"
-                        style={{ width: `${Math.max(4, Math.round(client.onboarding_progress || 0))}%` }}
-                      />
-                    </div>
+                    <h1 className="font-display text-[32px] lg:text-[42px] font-bold tracking-[-0.025em] text-slate-900 leading-[1.06]">
+                      Olá, {firstName}.<br />Sua operação está organizada aqui.
+                    </h1>
+                    <p className="text-[14px] text-slate-600 mt-4 leading-relaxed max-w-xl">
+                      Acompanhe demandas, documentos, contratos e pagamentos com visão clara do que precisa de ação e do que já foi entregue.
+                    </p>
                   </div>
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <button
-                      onClick={() => setActiveTab("checklist")}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl bg-white text-slate-950 text-[13px] font-semibold hover:bg-white/90 transition-all active:scale-[0.98] shadow-lg shadow-black/20"
-                    >
-                      <ListChecks className="size-4" /> Ver pendências
-                      {pendingDocs > 0 && (
-                        <span className="ml-1 inline-flex items-center justify-center size-5 rounded-md bg-rose-500 text-white text-[10px] font-bold tabular-nums">{pendingDocs}</span>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => window.open(wa(), "_blank")}
-                      className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-md text-white text-[13px] font-semibold hover:bg-white/10 transition-all active:scale-[0.98]"
-                    >
-                      <MessageSquare className="size-4" /> Falar com a equipe
-                    </button>
+                  <div className="md:text-right shrink-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Status do cadastro</p>
+                    <p className="text-sm font-bold text-slate-900 mt-1">{statusLabel(client.status)}</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Desde {formatDate(client.created_at)}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:border-l lg:border-white/10 lg:pl-10">
-                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} sub={activeProducts.length > 0 ? "em execução" : "nenhum"} icon={<Package className="size-3.5" />} />
-                  <HeroKpi label="Documentos" value={String(pendingDocs)} sub={pendingDocs > 0 ? "pendentes" : "em dia"} tone={pendingDocs > 0 ? "warning" : "success"} icon={<FileText className="size-3.5" />} />
-                  <HeroKpi label="Em aberto" value={formatBRL(openTotal)} sub={pendingPayments > 0 ? `${pendingPayments} título(s)` : "quitado"} tone={openTotal > 0 ? "warning" : "success"} icon={<Receipt className="size-3.5" />} />
-                  <HeroKpi label="Contratos" value={String(pendingContracts)} sub={pendingContracts > 0 ? "p/ assinar" : "assinados"} tone={pendingContracts > 0 ? "warning" : "success"} icon={<FileSignature className="size-3.5" />} />
+                <div className="mt-8 grid grid-cols-2 xl:grid-cols-4 gap-3">
+                  <MetricTile label="Serviços ativos" value={String(activeProducts.length)} sub={`${completedProducts.length} concluído(s)`} icon={Package} tone="info" />
+                  <MetricTile label="Pendências" value={String(pendingDocs + pendingContracts)} sub="documentos e contratos" icon={ListChecks} tone={(pendingDocs + pendingContracts) > 0 ? "warning" : "success"} />
+                  <MetricTile label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} icon={Receipt} tone={openTotal > 0 ? "warning" : "success"} />
+                  <MetricTile label="Entregas" value={String(deliveries.length)} sub="arquivos disponíveis" icon={Download} tone="success" />
                 </div>
+              </div>
+
+              <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 flex flex-col">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Prioridades</p>
+                    <h2 className="text-lg font-bold text-slate-900 mt-1">Ações necessárias</h2>
+                  </div>
+                  <span className="size-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Bell className="size-4" /></span>
+                </div>
+                <div className="space-y-3 flex-1">
+                  {criticalActions.map((item) => (
+                    <ActionRow key={item.label} {...item} onClick={() => setActiveTab(item.tab)} />
+                  ))}
+                </div>
+                <Button onClick={() => window.open(wa(), "_blank")} variant="outline" className="mt-5 h-10 rounded-lg border-slate-200 font-semibold text-slate-700 hover:bg-slate-50">
+                  <MessageSquare className="size-4 mr-2" /> Falar com a equipe
+                </Button>
               </div>
             </section>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-8">
-              {/* Mobile: scroller horizontal */}
-              <div className="lg:hidden -mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-slate-50/95 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/70">
-                <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max px-4 sm:px-0 rounded-none">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-7">
+              <div className="sticky top-16 z-30 bg-slate-50/90 backdrop-blur-md py-2 -mx-5 px-5 lg:mx-0 lg:px-0">
+                <TabsList className="h-auto bg-white border border-slate-200/70 rounded-xl p-1 shadow-sm overflow-x-auto max-w-full justify-start">
                   <PillTab value="home" label="Início" icon={LayoutDashboard} />
-                  <PillTab value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
-                  <PillTab value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} alert={pendingDocs > 0} />
-                  <PillTab value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} alert={pendingPayments > 0} />
+                  <PillTab value="servicos" label="Serviços" icon={Package} count={activeProducts.length} />
+                  <PillTab value="checklist" label="Documentos" icon={FileText} count={pendingDocs} alert={pendingDocs > 0} />
+                  <PillTab value="financeiro" label="Financeiro" icon={Receipt} count={pendingPayments} alert={pendingPayments > 0} />
                   <PillTab value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} alert={pendingContracts > 0} />
-                  <PillTab value="docs" label="Biblioteca" icon={FileText} count={docs.length} />
-                  <PillTab value="descobrir" label="Novas soluções" icon={Sparkles} />
+                  <PillTab value="docs" label="Biblioteca" icon={Inbox} count={deliveries.length} />
+                  <PillTab value="descobrir" label="Soluções" icon={Sparkles} />
                 </TabsList>
               </div>
 
-              {/* Desktop: layout com sidebar lateral */}
-              <div className="lg:grid lg:grid-cols-[244px_minmax(0,1fr)] lg:gap-8 lg:items-start">
-                <aside className="hidden lg:block">
-                  <div className="sticky top-20">
-                    <nav className="rounded-2xl bg-white border border-slate-200/70 shadow-sm p-2">
-                      <p className="px-3 pt-2 pb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Navegação</p>
-                      <TabsList className="flex flex-col bg-transparent h-auto p-0 gap-0.5 w-full">
-                        <SideNavItem value="home" label="Início" icon={LayoutDashboard} />
-                        <SideNavItem value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
-                        <SideNavItem value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} alert={pendingDocs > 0} />
-                        <SideNavItem value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} alert={pendingPayments > 0} />
-                        <SideNavItem value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} alert={pendingContracts > 0} />
-                        <SideNavItem value="docs" label="Biblioteca" icon={FileText} count={docs.length} />
-                        <SideNavItem value="descobrir" label="Novas soluções" icon={Sparkles} />
-                      </TabsList>
-                      <div className="mt-3 mx-2 mb-1 rounded-xl bg-slate-50 border border-slate-200/70 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Precisa de ajuda?</p>
-                        <p className="text-[11px] text-slate-600 leading-snug mb-2.5">Nossa equipe responde em minutos pelo WhatsApp.</p>
-                        <button onClick={() => window.open(wa(), '_blank')} className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-lg bg-slate-900 text-white text-[11px] font-semibold hover:bg-slate-800 transition-colors">
-                          <MessageSquare className="size-3.5" /> Falar com a equipe
-                        </button>
-                      </div>
-                    </nav>
-                  </div>
-                </aside>
-
-                <div className="min-w-0 space-y-6 sm:space-y-8">
-
-
-              <TabsContent value="home" className="animate-fade-up space-y-10">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
-                  <div className="lg:col-span-2 space-y-8">
-                    {/* Próximas Etapas */}
-                    <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Próximas Etapas</h3>
-                      <div className="space-y-4">
-                        {activeProducts.length === 0 ? (
-                          <p className="text-sm text-slate-500 italic">Nenhuma etapa pendente no momento.</p>
-                        ) : (
-                          activeProducts.slice(0, 3).map((p: any) => (
-                            <div key={p.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100">
-                               <div className="flex items-center gap-4">
-                                  <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                     <Activity className="size-5" />
-                                  </div>
-                                  <div>
-                                     <p className="font-bold text-slate-900">{p.products?.name}</p>
-                                     <p className="text-xs text-slate-500">Etapa: {p.status?.replace(/_/g, ' ')}</p>
-                                  </div>
-                               </div>
-                               <Button variant="ghost" size="sm" className="text-primary font-bold" onClick={() => setSelectedProductId(p.id)}>Ver Detalhes</Button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Entregas Recentes */}
-                    <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
-                      <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Entregas Disponíveis</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {deliveries.length === 0 ? (
-                          <div className="col-span-full py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                            <p className="text-sm text-slate-500 italic">Suas entregas aparecerão aqui assim que forem concluídas.</p>
-                          </div>
-                        ) : (
-                          deliveries.slice(0, 4).map((d: any) => (
-                            <div key={d.id} className="flex items-center justify-between p-4 rounded-xl bg-emerald-50/50 border border-emerald-100">
-                                <div className="flex items-center gap-3 min-w-0">
-                                   {d.type === 'document' ? <CheckCircle2 className="size-4 text-emerald-500 shrink-0" /> : <Package className="size-4 text-indigo-500 shrink-0" />}
-                                   <div className="min-w-0">
-                                      <p className="text-xs font-bold truncate">{d.name}</p>
-                                      {d.client_products?.products?.name && <p className="text-[9px] text-slate-500 truncate">{d.client_products.products.name}</p>}
-                                   </div>
+              <TabsContent value="home" className="space-y-6 animate-fade-up">
+                <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8">
+                  <PanelCard title="Demandas em andamento" eyebrow="Execução" action={activeProducts.length > 3 ? <button onClick={() => setActiveTab("servicos")} className="text-xs font-bold text-indigo-700">Ver todas</button> : null}>
+                    <div className="space-y-3">
+                      {activeProducts.length === 0 ? (
+                        <MiniEmpty icon={Package} text="Nenhuma demanda ativa no momento." />
+                      ) : activeProducts.slice(0, 4).map((p: any) => {
+                        const productDocs = docs.filter((d: any) => d.client_product_id === p.id && isPendingDoc(d.status)).length;
+                        const latestReport = reports.find((r: any) => r.client_product_id === p.id);
+                        return (
+                          <button key={p.id} onClick={() => setSelectedProductId(p.id)} className="w-full text-left rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 hover:border-indigo-200 transition-all p-4 group">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-start gap-3 min-w-0">
+                                <span className="size-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><Package className="size-5" /></span>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-slate-900 truncate">{p.products?.name || p.custom_product_name || "Solução contratada"}</p>
+                                  <p className="text-xs text-slate-500 mt-1 truncate">{latestReport?.notes || `Status: ${statusLabel(p.status)}`}</p>
                                 </div>
-                               <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}>
-                                  <Download className="size-4" />
-                               </Button>
+                              </div>
+                              <StatusBadge status={p.status} />
                             </div>
-                          ))
-                        )}
-                      </div>
+                            <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
+                              <InfoCell label="Prazo" value={p.deadline ? formatDate(p.deadline) : "Em definição"} />
+                              <InfoCell label="Pendências" value={productDocs > 0 ? `${productDocs} doc.` : "Em dia"} tone={productDocs > 0 ? "warning" : "success"} />
+                              <InfoCell label="Atualizado" value={formatDate(latestReport?.created_at || p.updated_at || p.created_at)} />
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </div>
+                  </PanelCard>
 
-                  <div className="space-y-8">
-                    {/* Ações Necessárias */}
-                    <div className="vx-card p-5 sm:p-8 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] shadow-xl relative overflow-hidden">
-                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6 relative">Ações Necessárias</h3>
-                       <div className="space-y-4 relative">
-                          <ActionItem icon={FileText} label="Documentos pendentes" count={pendingDocs} onClick={() => setActiveTab("checklist")} />
-                          <ActionItem icon={Receipt} label="Pagamentos em aberto" count={pendingPayments} onClick={() => setActiveTab("financeiro")} />
-                          <ActionItem icon={FileSignature} label="Contratos para assinar" count={pendingContracts} onClick={() => setActiveTab("contratos")} />
-                       </div>
-                    </div>
+                  <div className="space-y-6">
+                    <PanelCard title="Próximo vencimento" eyebrow="Financeiro">
+                      {nextDue ? (
+                        <div className="rounded-xl bg-amber-50 border border-amber-200/70 p-5">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">{formatDate(nextDue.due_date)}</p>
+                          <p className="text-3xl font-bold tabular-nums text-slate-900 mt-2">{formatBRL(nextDue.amount)}</p>
+                          <p className="text-sm text-slate-600 mt-2">{overduePayments > 0 ? "Existe pagamento vencido. Regularize para evitar bloqueios." : "Pagamento em aberto para acompanhamento."}</p>
+                          <Button onClick={() => setActiveTab("financeiro")} className="mt-4 h-10 rounded-lg bg-slate-900 hover:bg-slate-800 text-white w-full">Ver financeiro</Button>
+                        </div>
+                      ) : <MiniEmpty icon={CheckCircle2} text="Nenhuma cobrança pendente." />}
+                    </PanelCard>
 
-                    {/* Canal de Suporte */}
-                    <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
-                       <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6">Suporte & Sucesso</h3>
-                       <div className="space-y-6">
-                          <p className="text-sm text-slate-500 leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
-                          <div className="space-y-3">
-                             <Button className="w-full rounded-xl bg-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open(wa(), '_blank')}>
-                                <MessageSquare className="size-4 mr-2" /> Iniciar Chat
-                             </Button>
-                             <Button variant="outline" className="w-full rounded-xl h-12 border-border/40 font-bold" onClick={() => window.location.href = buildMailtoLink(settings.support_email)}>
-                                <Mail className="size-4 mr-2" /> Enviar E-mail
-                             </Button>
+                    <PanelCard title="Atualizações recentes" eyebrow="Linha do tempo">
+                      <div className="space-y-4">
+                        {latestReports.length === 0 ? <MiniEmpty icon={Activity} text="Ainda não há atualizações registradas." /> : latestReports.map((r: any) => (
+                          <div key={r.id} className="flex gap-3">
+                            <span className="mt-1 size-2 rounded-full bg-indigo-600 ring-4 ring-indigo-50 shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{r.notes || statusLabel(r.status)}</p>
+                              <p className="text-[11px] text-slate-500 mt-1">{formatDate(r.created_at)} · {r.service_providers?.name || "Equipe Prosper"}</p>
+                            </div>
                           </div>
-                       </div>
-                    </div>
+                        ))}
+                      </div>
+                    </PanelCard>
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="servicos" className="animate-fade-up">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                  {granularProducts.map((p: any) => {
-                    const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && ["solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length;
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {granularProducts.length === 0 ? <div className="md:col-span-2 xl:col-span-3"><EmptyState icon={Package} title="Nenhum serviço contratado" description="Quando uma solução for vinculada ao seu cadastro, ela aparecerá aqui." /></div> : granularProducts.map((p: any) => {
+                    const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && isPendingDoc(d.status)).length;
                     const latestReport = reports.find((r: any) => r.client_product_id === p.id);
-                    return (
-                      <div 
-                        key={p.id} 
-                        className="vx-card p-5 sm:p-8 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl transition-all duration-500 rounded-2xl sm:rounded-[32px] group/item cursor-pointer flex flex-col h-full"
-                        onClick={() => setSelectedProductId(p.id)}
-                      >
-                        <div className="flex justify-between items-start mb-8">
-                          <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary transition-transform group-hover/item:scale-110">
-                             <Package className="size-7" />
-                          </div>
-                          <StatusBadge status={p.status} />
-                        </div>
-                        
-                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
-                          {p.products?.name}
-                        </h3>
-                        <p className="text-[14px] text-slate-500 mt-3 line-clamp-2 leading-relaxed">
-                          {p.products?.description}
-                        </p>
-                        
-                        <div className="mt-auto pt-8 space-y-5">
-                           <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                              <div>
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Última Atualização</p>
-                                 <p className="text-xs font-bold text-slate-700">{latestReport ? formatDate(latestReport.created_at) : formatDate(p.created_at)}</p>
-                              </div>
-                              <div className="text-right">
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Prazo Estimado</p>
-                                 <p className="text-xs font-bold text-slate-700">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
-                              </div>
-                              <div>
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Pendências</p>
-                                 <p className={cn("text-xs font-bold", productPendingDocs > 0 ? "text-amber-500" : "text-emerald-500")}>
-                                    {productPendingDocs > 0 ? `${productPendingDocs} documentos` : "Tudo em dia"}
-                                 </p>
-                              </div>
-                              <div className="text-right">
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Início</p>
-                                 <p className="text-xs font-bold text-slate-700">{formatDate(p.created_at)}</p>
-                              </div>
-                           </div>
-
-                           <div className="pt-6 border-t border-slate-50 flex items-center justify-between group/link">
-                              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Ver detalhes da execução</span>
-                              <ArrowRight className="size-4 text-primary group-hover/link:translate-x-1 transition-transform" />
-                           </div>
-                        </div>
-                      </div>
-                    );
+                    return <ServiceCard key={p.id} product={p} pendingDocs={productPendingDocs} latestReport={latestReport} onClick={() => setSelectedProductId(p.id)} />;
                   })}
                 </div>
               </TabsContent>
 
               <TabsContent value="checklist" className="animate-fade-up">
+                <SectionHeader title="Documentos" description="Envie pendências, acompanhe análise e visualize arquivos aprovados." counters={[`${pendingDocs} pendente(s)`, `${reviewDocs} em análise`]} />
                 <ClientDocumentsTab clientId={client.id} requests={docs as any} products={catalog as any} />
               </TabsContent>
 
-              <TabsContent value="descobrir" className="animate-fade-up">
-                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                    {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                      <div key={p.id} className="vx-card p-5 sm:p-7 bg-white border-slate-100 hover:border-primary/30 hover:shadow-xl transition-all rounded-2xl sm:rounded-[28px] flex flex-col">
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          {p.product_categories?.name && (
-                            <Badge variant="outline" className="text-[10px] font-bold rounded-full" style={{ borderColor: p.product_categories?.color, color: p.product_categories?.color }}>
-                              {p.product_categories.name}
-                            </Badge>
-                          )}
-                          {p.recurring && <Badge variant="secondary" className="text-[10px] font-bold rounded-full">Recorrente</Badge>}
-                        </div>
-                        <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 leading-tight">{p.name}</h3>
-                        <p className="text-sm text-slate-500 mt-2 line-clamp-3 flex-1">{p.description}</p>
-                        <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
-                           <div>
-                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{p.recurring ? "A partir de" : "Investimento"}</p>
-                             <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-slate-500 font-normal">/mês</span>}</p>
-                           </div>
-                           <Button className="rounded-xl h-10 px-4 bg-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), '_blank')}>
-                             Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
-                           </Button>
-                        </div>
-                      </div>
-                    ))}
-                    {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).length === 0 && (
-                      <div className="col-span-full vx-card p-10 sm:p-16 text-center bg-white rounded-2xl border-slate-100">
-                        <Sparkles className="size-10 mx-auto text-slate-500/30 mb-3" />
-                        <p className="text-sm text-slate-500 italic">Você já tem acesso a todas as soluções disponíveis.</p>
-                      </div>
-                    )}
-                 </div>
-              </TabsContent>
-
-              <TabsContent value="docs" className="animate-fade-up">
-                 <div className="vx-card bg-white rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100">
-                    <div className="p-5 sm:p-8 border-b border-slate-50 bg-slate-50/30">
-                       <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900">Repositório de Arquivos</h3>
-                    </div>
-                    <div className="divide-y divide-slate-50">
-                       {docs.map((d: any) => (
-                         <div key={d.id} className="p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                            <div className="flex items-center gap-5 min-w-0">
-                               <div className={cn(
-                                 "size-12 rounded-[18px] flex items-center justify-center shrink-0",
-                                 d.file_path ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"
-                               )}>
-                                  <FileText className="size-6" />
-                               </div>
-                               <div className="min-w-0">
-                                  <p className="font-bold text-slate-900 truncate">{d.name}</p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1 opacity-60">
-                                    {d.file_path ? `Enviado em ${formatDate(d.created_at)}` : "Pendente de envio"}
-                                  </p>
-                               </div>
-                            </div>
-                            {d.file_path ? (
-                              <Button
-                                variant="outline" size="sm"
-                                className="rounded-xl gap-2 h-10 border-slate-200 hover:bg-primary hover:text-white transition-all shrink-0"
-                                onClick={() => downloadDoc(d.file_path, d.name)}
-                              >
-                                 <Download className="size-4" /> Download
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline" size="sm"
-                                className="rounded-xl gap-2 h-10 shrink-0"
-                                onClick={() => setActiveTab("checklist")}
-                              >
-                                 <Upload className="size-4" /> Enviar
-                              </Button>
-                            )}
-                         </div>
-                       ))}
-                       {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-slate-500">Sua biblioteca de documentos está vazia.</p>}
-                    </div>
-                 </div>
-              </TabsContent>
-
-              <TabsContent value="financeiro" className="animate-fade-up space-y-6 sm:space-y-8">
-                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <FinanceStat label="Mensalidade" value={formatBRL(monthlyTotal)} sub="recorrência ativa" tone="default" icon={<Activity className="size-4" />} />
-                    <FinanceStat label="Total pago" value={formatBRL(paidTotal)} sub={`${payments.filter((p:any)=>p.status==='pago').length} título(s)`} tone="success" icon={<CheckCircle2 className="size-4" />} />
-                    <FinanceStat label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} tone={openTotal>0?"warning":"success"} icon={<Clock className="size-4" />} />
-                    <FinanceStat label="Próximo vencimento" value={nextDue ? formatDate(nextDue.due_date) : "—"} sub={nextDue ? formatBRL(nextDue.amount) : "sem pendência"} tone={nextDue?"warning":"success"} icon={<Calendar className="size-4" />} />
-                 </div>
-
-                 <div className="grid lg:grid-cols-3 gap-5 sm:gap-8">
-                    <div className="lg:col-span-2 vx-card bg-white rounded-2xl sm:rounded-[32px] overflow-hidden border-slate-100">
-                       <div className="p-5 sm:p-8 border-b border-slate-50 flex items-center justify-between">
-                          <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900">Extrato de pagamentos</h3>
-                          <Badge variant="outline" className="text-[10px] font-bold rounded-full">{payments.length} registros</Badge>
-                       </div>
-                       {payments.length === 0 ? (
-                         <div className="p-12 text-center">
-                           <Receipt className="size-10 mx-auto text-slate-500/30 mb-3" />
-                           <p className="text-sm text-slate-500 italic">Nenhum pagamento registrado ainda.</p>
-                         </div>
-                       ) : (
-                         <>
-                           {/* Mobile: cards */}
-                           <div className="sm:hidden divide-y divide-slate-50">
-                             {payments.map((p: any) => (
-                               <div key={p.id} className="p-4 flex items-center justify-between gap-3">
-                                 <div className="min-w-0">
-                                   <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{formatDate(p.due_date)}</p>
-                                   <p className="text-base font-bold tabular-nums text-slate-900 mt-0.5">{formatBRL(p.amount)}</p>
-                                   {p.installment_number && p.installments_count && (
-                                     <p className="text-[10px] text-slate-500 mt-0.5">Parcela {p.installment_number}/{p.installments_count}</p>
-                                   )}
-                                 </div>
-                                 <span className={cn(
-                                   "vx-pill uppercase tracking-widest text-[9px] px-3 py-1 shrink-0",
-                                   p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
-                                 )}>{p.status}</span>
-                               </div>
-                             ))}
-                           </div>
-                           {/* Desktop: table */}
-                           <div className="hidden sm:block overflow-x-auto">
-                              <table className="w-full text-sm">
-                                 <thead>
-                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 bg-slate-50/50">
-                                       <th className="px-8 py-5 text-left">Vencimento</th>
-                                       <th className="px-8 py-5 text-left">Parcela</th>
-                                       <th className="px-8 py-5 text-left">Status</th>
-                                       <th className="px-8 py-5 text-right">Valor</th>
-                                    </tr>
-                                 </thead>
-                                 <tbody className="divide-y divide-slate-50">
-                                    {payments.map((p: any) => (
-                                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                                         <td className="px-8 py-6 font-bold text-slate-700">{formatDate(p.due_date)}</td>
-                                         <td className="px-8 py-6 text-slate-500 text-xs">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td>
-                                         <td className="px-8 py-6">
-                                            <span className={cn(
-                                              "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
-                                              p.status === 'pago' ? "vx-pill-success" : "vx-pill-warning"
-                                            )}>{p.status}</span>
-                                         </td>
-                                         <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900 text-lg">{formatBRL(p.amount)}</td>
-                                      </tr>
-                                    ))}
-                                 </tbody>
-                              </table>
-                           </div>
-                         </>
-                       )}
-                    </div>
-                    <div className="vx-card p-6 sm:p-10 bg-slate-900 text-white rounded-2xl sm:rounded-[32px] space-y-5 sm:space-y-8 relative overflow-hidden shadow-2xl">
-                       <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mt-16 -mr-16 rounded-full" />
-                       <Receipt className="size-10 sm:size-12 text-primary relative" />
-                       <div className="space-y-3 relative">
-                          <h3 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Faturamento & cobrança</h3>
-                          <p className="text-sm text-white/75 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
-                       </div>
-                       <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open(wa(), '_blank')}>
-                         <MessageSquare className="size-4 mr-2" /> Solicitar ajuste
-                       </Button>
-                    </div>
-                 </div>
+              <TabsContent value="financeiro" className="animate-fade-up space-y-6">
+                <SectionHeader title="Financeiro" description="Extrato de cobranças, vencimentos e pagamentos registrados." counters={[formatBRL(openTotal), `${pendingPayments} aberto(s)`]} />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <MetricTile label="Recorrência" value={formatBRL(monthlyTotal)} sub="base contratada" icon={Activity} tone="info" />
+                  <MetricTile label="Total pago" value={formatBRL(paidTotal)} sub="histórico" icon={CheckCircle2} tone="success" />
+                  <MetricTile label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} icon={Clock} tone={openTotal > 0 ? "warning" : "success"} />
+                  <MetricTile label="Próximo" value={nextDue ? formatDate(nextDue.due_date) : "—"} sub={nextDue ? formatBRL(nextDue.amount) : "sem pendência"} icon={Calendar} tone={nextDue ? "warning" : "success"} />
+                </div>
+                <PanelCard title="Extrato de pagamentos" eyebrow={`${payments.length} registros`}>
+                  {payments.length === 0 ? <MiniEmpty icon={Receipt} text="Nenhum pagamento registrado ainda." /> : <PaymentTable payments={payments} />}
+                </PanelCard>
               </TabsContent>
 
               <TabsContent value="contratos" className="animate-fade-up">
+                <SectionHeader title="Contratos" description="Contratos disponíveis para consulta e assinatura digital." counters={[`${pendingContracts} aguardando`]} />
                 <ClientContractsTab clientId={client.id} contracts={contracts as any} />
               </TabsContent>
-                </div>
-              </div>
-            </Tabs>
 
+              <TabsContent value="docs" className="animate-fade-up">
+                <SectionHeader title="Biblioteca" description="Arquivos, entregas e documentos aprovados ficam centralizados aqui." counters={[`${deliveries.length} arquivo(s)`]} />
+                <PanelCard title="Repositório de arquivos" eyebrow="Downloads">
+                  {deliveries.length === 0 ? <MiniEmpty icon={Inbox} text="Sua biblioteca ainda está vazia." /> : (
+                    <div className="divide-y divide-slate-100">
+                      {deliveries.map((d: any) => (
+                        <div key={`${d.type}-${d.id}`} className="py-4 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="size-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><FileText className="size-5" /></span>
+                            <div className="min-w-0">
+                              <p className="font-bold text-slate-900 truncate">{d.name}</p>
+                              <p className="text-[11px] text-slate-500 mt-0.5">{formatDate(d.created_at)}</p>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="h-9 rounded-lg border-slate-200" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}><Download className="size-4 mr-2" />Baixar</Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </PanelCard>
+              </TabsContent>
+
+              <TabsContent value="descobrir" className="animate-fade-up">
+                <SectionHeader title="Novas soluções" description="Produtos disponíveis para ampliar sua operação." />
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
+                    <div key={p.id} className="bg-white border border-slate-200/70 rounded-2xl p-6 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all flex flex-col">
+                      <div className="flex items-center justify-between gap-3 mb-5">
+                        {p.product_categories?.name ? <Badge variant="outline" className="text-[10px] font-bold rounded-lg border-slate-200 text-slate-600">{p.product_categories.name}</Badge> : <span />}
+                        {p.recurring && <Badge className="text-[10px] font-bold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-50">Recorrente</Badge>}
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 leading-tight">{p.name}</h3>
+                      <p className="text-sm text-slate-600 mt-2 line-clamp-3 flex-1">{p.description}</p>
+                      <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Investimento</p>
+                          <p className="text-lg font-bold tabular-nums text-slate-900">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-slate-500 font-normal">/mês</span>}</p>
+                        </div>
+                        <Button className="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), "_blank")}>Tenho interesse</Button>
+                      </div>
+                    </div>
+                  ))}
+                  {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).length === 0 && <div className="md:col-span-2 xl:col-span-3"><EmptyState icon={Sparkles} title="Tudo liberado" description="Você já tem acesso a todas as soluções disponíveis no catálogo." /></div>}
+                </div>
+              </TabsContent>
+            </Tabs>
           </>
         )}
-      </div>
-    </div>
-  );
-}
-
-function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone?: "default" | "success" | "warning" }) {
-  const accent = tone === "warning" ? "text-amber-300" : tone === "success" ? "text-emerald-300" : "text-white";
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-3 sm:p-4 hover:bg-white/[0.07] transition-colors min-w-0">
-      <div className="flex items-center justify-between mb-1.5 text-white/75">
-        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] truncate">{label}</span>
-        {icon && <span className="shrink-0 opacity-70">{icon}</span>}
-      </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className={cn("font-display text-xl sm:text-2xl font-bold tabular-nums leading-none", accent)}>{value}</span>
-        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/70 truncate">{sub}</span>}
-      </div>
-    </div>
-  );
-}
-
-function PremiumStat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "success" | "warning" | "default" }) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p>
-      <div className="flex items-baseline gap-2">
-         <span className={cn(
-           "font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tighter",
-           tone === "success" ? "text-emerald-500" : tone === "warning" ? "text-amber-500" : "text-slate-900"
-         )}>{value}</span>
-         {sub && <span className="text-[11px] text-slate-500 uppercase font-bold tracking-widest opacity-70">{sub}</span>}
-      </div>
-    </div>
-  );
-}
-
-function SideNavItem({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
-  return (
-    <TabsTrigger
-      value={value}
-      className={cn(
-        "group/nav w-full justify-start gap-3 h-10 px-3 rounded-xl text-[13px] font-semibold transition-all relative",
-        "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-        "data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm"
-      )}
-    >
-      <Icon className="size-4 shrink-0 opacity-80 group-data-[state=active]/nav:opacity-100" />
-      <span className="flex-1 text-left truncate">{label}</span>
-      {count !== undefined && count > 0 && (
-        <span className={cn(
-          "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums",
-          alert
-            ? "bg-rose-500 text-white"
-            : "bg-slate-200 text-slate-700 group-data-[state=active]/nav:bg-white/15 group-data-[state=active]/nav:text-white"
-        )}>{count}</span>
-      )}
-    </TabsTrigger>
-  );
-}
-
-function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
-  return (
-    <TabsTrigger
-      value={value}
-      className={cn(
-        "shrink-0 inline-flex items-center gap-2 h-10 px-4 rounded-full text-[12.5px] font-semibold tracking-tight",
-        "bg-white border border-slate-200/70 text-slate-600",
-        "hover:bg-slate-50 hover:text-slate-900 transition-all",
-        "data-[state=active]:bg-slate-900 data-[state=active]:text-white",
-        "data-[state=active]:border-slate-900 data-[state=active]:shadow-md"
-      )}
-    >
-      <Icon className="size-3.5" />
-      <span>{label}</span>
-      {count !== undefined && count > 0 && (
-        <span className={cn(
-          "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold tabular-nums",
-          alert
-            ? "bg-rose-500 text-white"
-            : "bg-slate-200 text-slate-700 group-data-[state=active]:bg-white/20"
-        )}>{count}</span>
-      )}
-    </TabsTrigger>
-  );
-}
-
-function FinanceStat({ label, value, sub, tone = "default", icon }: { label: string; value: string; sub?: string; tone?: "default" | "success" | "warning"; icon?: React.ReactNode }) {
-  const tint =
-    tone === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200/60"
-    : tone === "warning" ? "bg-amber-50 text-amber-600 border-amber-200/60"
-    : "bg-slate-100 text-slate-600 border-slate-200/70";
-  return (
-    <div className="vx-card p-4 sm:p-5 bg-white rounded-2xl border-slate-100 shadow-sm">
-      <div className="flex items-center justify-between mb-2 sm:mb-3">
-        <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
-        <span className={cn("size-7 rounded-lg border flex items-center justify-center shrink-0", tint)}>{icon}</span>
-      </div>
-      <p className="font-editorial text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 tabular-nums leading-none">{value}</p>
-      {sub && <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1.5 truncate">{sub}</p>}
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: any = {
-    aguardando_documentos: { label: "PENDENTE DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
-    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
-    aguardando_cliente: { label: "AGUARDANDO VOCÊ", className: "bg-orange-500/10 text-orange-700 border-orange-500/20" },
-    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
-    pendente_correcao: { label: "AJUSTE NECESSÁRIO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
-    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200" },
-    ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-  };
-  const cfg = map[status] || { label: (status || "—").toUpperCase(), className: "bg-slate-100 text-slate-600 border-slate-200" };
-  return (
-    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border px-2 py-0.5 rounded-lg", cfg.className)}>
-      {cfg.label}
-    </Badge>
-  );
-}
-
-function ActionItem({ icon: Icon, label, count, onClick }: { icon: any; label: string; count: number; onClick: () => void }) {
-  return (
-    <div 
-      className={cn(
-        "flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer",
-        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-60 pointer-events-none"
-      )}
-      onClick={onClick}
-    >
-       <div className="flex items-center gap-3">
-          <Icon className="size-4 text-primary" />
-          <span className="text-[13px] font-bold">{label}</span>
-       </div>
-       {count > 0 && (
-         <div className="size-6 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
-            {count}
-         </div>
-       )}
+      </main>
     </div>
   );
 }
