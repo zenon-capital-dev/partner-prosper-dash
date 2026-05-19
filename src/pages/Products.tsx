@@ -250,10 +250,48 @@ export default function Products() {
   };
 
   const handleDelete = async (p: Product) => {
+    // Verifica vínculos antes de excluir (vendas, demandas, contratos, etc.)
+    const [salesQ, cpQ, contractsQ, commissionsQ, leadsQ, paymentsQ, documentsQ] = await Promise.all([
+      supabase.from("sales").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+      supabase.from("client_products").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+      supabase.from("contracts").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+      supabase.from("commissions").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+      supabase.from("leads").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+      supabase.from("payments").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+      supabase.from("documents").select("id", { count: "exact", head: true }).eq("product_id", p.id),
+    ]);
+    const counts = {
+      vendas: salesQ.count ?? 0,
+      demandas: cpQ.count ?? 0,
+      contratos: contractsQ.count ?? 0,
+      comissões: commissionsQ.count ?? 0,
+      leads: leadsQ.count ?? 0,
+      faturas: paymentsQ.count ?? 0,
+      documentos: documentsQ.count ?? 0,
+    };
+    const vinculos = Object.entries(counts).filter(([, n]) => n > 0);
+
+    if (vinculos.length > 0) {
+      const resumo = vinculos.map(([k, n]) => `${n} ${k}`).join(", ");
+      const ok = await confirmAction(
+        `"${p.name}" está vinculado a ${resumo} e não pode ser excluído sem perder histórico.\n\nDeseja DESATIVAR este produto? Ele sairá do catálogo, mas todo o histórico será preservado.`,
+      );
+      if (!ok) return;
+      const { error } = await supabase.from("products").update({ active: false }).eq("id", p.id);
+      if (error) { toast.error(error.message); return; }
+      toast.success("Produto desativado (histórico preservado)");
+      qc.invalidateQueries({ queryKey: ["products-list"] });
+      return;
+    }
+
     if (!(await confirmAction(`Excluir "${p.name}"? Esta ação não pode ser desfeita.`))) return;
     const { error } = await supabase.from("products").delete().eq("id", p.id);
-    if (error) toast.error(error.message);
-    else { toast.success("Produto excluído"); qc.invalidateQueries({ queryKey: ["products-list"] }); }
+    if (error) {
+      toast.error("Não foi possível excluir: existem registros vinculados. Use 'Desativar'.");
+      return;
+    }
+    toast.success("Produto excluído");
+    qc.invalidateQueries({ queryKey: ["products-list"] });
   };
 
   const submitCategory = async () => {
