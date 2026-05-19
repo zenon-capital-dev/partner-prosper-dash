@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Target, Search, Plus, Filter, Download, MoreHorizontal, Eye, UserPlus, Phone, Mail, MessageSquare, Trash2, Pencil, LayoutGrid, List, Upload, CalendarClock, Sparkles, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
