@@ -112,18 +112,16 @@ export default function Demands() {
           companies(id, name, trade_name),
           products(id, name),
           service_providers:service_provider_id(id, name),
-          documents(id, status),
-          reports:client_product_status_reports(id, notes, created_at)
+          documents(id, status)
         `)
         .order("created_at", { ascending: false });
+      const { data: reports = [] } = await supabase.from("client_product_status_reports").select("id, client_product_id, notes, created_at").order("created_at", { ascending: false });
       if (error) throw error;
       
       // Post-process to get last report
       return data?.map(d => ({
         ...d,
-        last_report: d.reports && d.reports.length > 0 
-          ? d.reports.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] 
-          : null
+        last_report: reports.find((r: any) => r.client_product_id === d.id) || null
       })) ?? [];
     },
   });
