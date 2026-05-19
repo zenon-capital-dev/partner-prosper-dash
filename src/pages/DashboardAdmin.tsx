@@ -295,19 +295,20 @@ export default function DashboardAdmin() {
           <div className="lg:col-span-4 grid grid-cols-1 gap-4">
             <SideKpi
               label="Clientes ativos"
-              value={stats.activeClients.toString()}
-              sub={`${stats.newClientsRange} novos · ${stats.totalClients} totais`}
+              value={isGlobalLoading ? "..." : stats.activeClients.toString()}
+              sub={isGlobalLoading ? "Carregando..." : `${stats.newClientsRange} novos · ${stats.totalClients} totais`}
               icon={Users}
               accent="emerald"
             />
             <SideKpi
               label="Pipeline aberto"
-              value={formatBRL(stats.pipelineTotal)}
-              sub={`${stats.leadsCount} leads · ${stats.conversionRate.toFixed(1)}% conv.`}
+              value={isGlobalLoading ? "..." : formatBRL(stats.pipelineTotal)}
+              sub={isGlobalLoading ? "Carregando..." : `${stats.leadsCount} leads · ${stats.conversionRate.toFixed(1)}% conv.`}
               icon={Target}
               accent="indigo"
               compact
             />
+
           </div>
         </section>
 
