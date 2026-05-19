@@ -278,11 +278,28 @@ export default function Partners() {
 
       {view === "list" ? (
         <div className="bg-white border border-slate-200/70 rounded-lg overflow-hidden shadow-sm">
-          <ListView partners={filtered} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+          <ListView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       ) : (
-        <GridView partners={filtered} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+        <div className="space-y-6">
+          <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
+        </div>
       )}
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border">
