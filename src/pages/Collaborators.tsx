@@ -153,7 +153,9 @@ export default function Collaborators() {
             <p className="text-sm font-medium text-slate-600">Nenhum colaborador encontrado</p>
           </div>
         ) : (
-          <table className="w-full text-left">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left min-w-[800px]">
+
             <thead className="bg-slate-50 border-b border-slate-200/70">
               <tr>
                 <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Nome</th>
