@@ -120,9 +120,9 @@ export default function AuthPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-[58px] xl:text-[64px] leading-[0.98] font-bold tracking-[-0.025em]">
+            <h1 className="font-display text-[58px] xl:text-[64px] leading-[0.98] font-bold tracking-[-0.025em] text-white">
               Onde decisões<br />
-              <span className="bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-200 via-white to-indigo-300 bg-clip-text text-transparent">
                 viram resultado.
               </span>
             </h1>
@@ -266,24 +266,24 @@ export default function AuthPage() {
               </div>
 
               {/* Submit */}
-              <Button
+              <button
                 type="submit"
-                className="group relative w-full h-12 mt-2 font-semibold text-[14px] rounded-xl bg-white text-slate-950 hover:bg-white/95 shadow-[0_8px_24px_-8px_rgba(255,255,255,0.4)] hover:shadow-[0_12px_32px_-8px_rgba(255,255,255,0.5)] transition-all active:scale-[0.99] overflow-hidden"
                 disabled={submitting}
+                className="group relative w-full h-12 mt-2 font-semibold text-[14px] rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-[0_10px_28px_-10px_rgba(79,70,229,0.7)] hover:shadow-[0_14px_36px_-10px_rgba(79,70,229,0.85)] hover:from-indigo-400 hover:via-indigo-500 hover:to-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed transition-all active:scale-[0.99] overflow-hidden ring-1 ring-inset ring-white/15"
               >
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-900/[0.05] to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                 {submitting ? (
-                  <span className="relative flex items-center gap-2.5">
-                    <span className="size-3.5 rounded-full border-2 border-slate-900/20 border-t-slate-900 animate-spin" />
+                  <span className="relative flex items-center justify-center gap-2.5">
+                    <span className="size-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                     Validando…
                   </span>
                 ) : (
-                  <span className="relative flex items-center gap-2.5 tracking-wide">
+                  <span className="relative flex items-center justify-center gap-2.5 tracking-wide">
                     Entrar no painel
                     <ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={2.2} />
                   </span>
                 )}
-              </Button>
+              </button>
             </form>
 
             {/* Hint */}
