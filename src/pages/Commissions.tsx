@@ -173,6 +173,13 @@ export default function Commissions() {
     });
   }, [commissions, statusFilter, partnerFilter, dateFrom, dateTo, search, rangeKey]);
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+
   const totals = useMemo(() => {
     const acc = { paid: 0, pending: 0, total: 0, count: filtered.length };
     filtered.forEach((c: any) => {
