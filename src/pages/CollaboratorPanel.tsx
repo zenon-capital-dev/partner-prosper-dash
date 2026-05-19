@@ -90,7 +90,6 @@ export default function CollaboratorPanel() {
       const { data, error } = await supabase
         .from("tasks")
         .select("id, title, description, due_date, priority, status_new, client_id, client_product_id")
-        .eq("assigned_to", user!.id)
         .order("due_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data ?? [];
@@ -118,15 +117,21 @@ export default function CollaboratorPanel() {
   // --- Documentos das demandas dele ---
   const demandIds = useMemo(() => demandas.map((d: any) => d.id), [demandas]);
   const { data: docs = [] } = useQuery({
-    queryKey: ["collab-docs", demandIds.join(",")],
-    enabled: demandIds.length > 0,
+    queryKey: ["collab-docs", user?.id, demandIds.join(","), clientIds.join(",")],
+    enabled: !!user?.id && (demandIds.length > 0 || clientIds.length > 0),
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("documents")
         .select("id, name, status, created_at, client_id, client_product_id")
-        .in("client_product_id", demandIds)
         .order("created_at", { ascending: false })
         .limit(200);
+
+      const filters: string[] = [];
+      if (demandIds.length) filters.push(`client_product_id.in.(${demandIds.join(",")})`);
+      if (clientIds.length) filters.push(`client_id.in.(${clientIds.join(",")})`);
+      if (filters.length) query = query.or(filters.join(","));
+
+      const { data, error } = await query;
       if (error) throw error;
       return data ?? [];
     },

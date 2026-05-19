@@ -157,6 +157,16 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       clientId = created.id;
     }
 
+    // Garante que o colaborador escolhido no cliente também passe a enxergar demandas
+    // já existentes sem responsável definido.
+    if (clientId && form.collaborator_id) {
+      await supabase
+        .from("client_products")
+        .update({ responsible_employee_id: form.collaborator_id })
+        .eq("client_id", clientId)
+        .is("responsible_employee_id", null);
+    }
+
     // Onboarding setup
     if (clientId) {
       const shouldReleaseAccess = createAccess && !manualApproval;
@@ -219,12 +229,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[calc(100svh-1rem)] overflow-y-auto overscroll-contain">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{client?.id ? "Editar cliente" : "Novo cliente"}</DialogTitle>
           <DialogDescription>Cadastre os dados do cliente. Você pode opcionalmente já criar o acesso ao painel.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-4 py-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
           <div className="col-span-2 space-y-2">
             <Label>Nome completo *</Label>
             <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
@@ -245,8 +255,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label>Empresa</Label>
             <Input value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
           </div>
-          <div className="col-span-2 grid grid-cols-4 gap-4">
-            <div className="col-span-3 space-y-2">
+          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="sm:col-span-3 space-y-2">
               <Label>Logradouro</Label>
               <Input value={form.address_street ?? ""} onChange={(e) => setForm({ ...form, address_street: e.target.value })} placeholder="Ex: Av. Paulista" />
             </div>
@@ -413,7 +423,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-2">
+          <div className="sm:col-span-2 space-y-2">
             <Label>Tags (separadas por vírgula)</Label>
             <Input
               placeholder="VIP, risco, novo, prioridade"
@@ -422,14 +432,14 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             />
             <p className="text-[10px] text-muted-foreground">Sugestões: VIP, risco, novo, prioridade</p>
           </div>
-          <div className="col-span-2 space-y-2">
+          <div className="sm:col-span-2 space-y-2">
             <Label>Observações internas</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
 
           {/* Pendências de documentos — apenas no cadastro novo */}
           {!client?.id && (
-            <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-amber-300/60 bg-amber-50/40">
+            <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-amber-300/60 bg-amber-50/40">
               <div className="flex items-center gap-2">
                 <FileText className="size-4 text-amber-700" />
                 <div>
@@ -441,7 +451,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               {docTemplates && docTemplates.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-[11px]">Selecione dos templates</Label>
-                  <div className="grid grid-cols-2 gap-1.5">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {docTemplates.map((doc) => (
                       <label key={doc} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white cursor-pointer border border-transparent hover:border-amber-200">
                         <Checkbox checked={selectedTemplateDocs.includes(doc)} onCheckedChange={() => toggleTemplate(doc)} />
@@ -454,7 +464,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
               <div className="space-y-2 pt-1">
                 <Label className="text-[11px]">Adicionar pendência personalizada</Label>
-                <div className="flex gap-2">
+                 <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={newDocInput}
                     onChange={(e) => setNewDocInput(e.target.value)}
@@ -490,7 +500,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
           {/* Onboarding Options */}
           {!client?.id && (
-            <div className="col-span-2 space-y-3 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/30">
+            <div className="sm:col-span-2 space-y-3 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/30">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="size-4 text-indigo-600" />
                 <h4 className="text-sm font-bold text-indigo-900">Configuração de Onboarding</h4>
@@ -504,7 +514,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               </div>
               <div className="space-y-2 pt-1">
                 <Label className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Etapas Obrigatórias</Label>
-                <div className="grid grid-cols-2 gap-2">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[
                     { id: "confirm_data", label: "Confirmar Dados" },
                     { id: "upload_docs", label: "Enviar Documentos" },
@@ -530,7 +540,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
           {/* Acesso ao painel — apenas no cadastro novo */}
           {!client?.id && (
-            <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
+            <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <KeyRound className="size-4 text-primary" />
@@ -556,7 +566,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px]">Senha de acesso *</Label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <div className="relative flex-1">
                         <Input
                           type={showPwd ? "text" : "password"}
