@@ -51,6 +51,14 @@ export default function ClientPanel() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
 
+  // Portal do cliente é sempre light mode — remove .dark do <html> enquanto montado
+  useEffect(() => {
+    const html = document.documentElement;
+    const wasDark = html.classList.contains("dark");
+    html.classList.remove("dark");
+    return () => { if (wasDark) html.classList.add("dark"); };
+  }, []);
+
   const downloadDoc = async (path?: string | null, name?: string) => {
     if (!path) return toast.error("Arquivo indisponível");
     if (path.startsWith("http")) return window.open(path, "_blank");
