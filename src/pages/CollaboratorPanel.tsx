@@ -44,21 +44,39 @@ export default function CollaboratorPanel() {
   const setActiveTab = (v: string) => navigate(v === "dashboard" ? "/colaborador" : `/colaborador/${v}`);
   const qc = useQueryClient();
 
-  // --- Demandas atribuídas ---
-  const { data: demandas = [], isLoading: loadingDemandas } = useQuery({
-    queryKey: ["collab-demandas", user?.id],
+  const { data: assignedClients = [] } = useQuery({
+    queryKey: ["collab-assigned-clients", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
+        .from("clients")
+        .select("id, full_name, email, phone, status, created_at")
+        .eq("collaborator_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const assignedClientIds = useMemo(() => assignedClients.map((c: any) => c.id).filter(Boolean), [assignedClients]);
+
+  // --- Demandas atribuídas ---
+  const { data: demandas = [], isLoading: loadingDemandas } = useQuery({
+    queryKey: ["collab-demandas", user?.id, assignedClientIds.join(",")],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      let query = supabase
         .from("client_products")
         .select(`
           id, status, sla_due_date, sla_status, deadline, priority, updated_at, created_at,
           custom_product_name,
           clients ( id, full_name ),
           products ( name )
-        `)
-        .eq("responsible_employee_id", user!.id)
-        .order("updated_at", { ascending: false });
+        `);
+      query = assignedClientIds.length > 0
+        ? query.or(`responsible_employee_id.eq.${user!.id},client_id.in.(${assignedClientIds.join(",")})`)
+        : query.eq("responsible_employee_id", user!.id);
+
+      const { data, error } = await query.order("updated_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -81,8 +99,8 @@ export default function CollaboratorPanel() {
 
   // --- Clientes vinculados (via demandas) ---
   const clientIds = useMemo(
-    () => Array.from(new Set(demandas.map((d: any) => d.clients?.id).filter(Boolean))),
-    [demandas]
+    () => Array.from(new Set([...assignedClientIds, ...demandas.map((d: any) => d.clients?.id).filter(Boolean)])),
+    [assignedClientIds, demandas]
   );
   const { data: clientes = [] } = useQuery({
     queryKey: ["collab-clients", clientIds.join(",")],
