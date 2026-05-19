@@ -570,8 +570,9 @@ export default function Demands() {
           </DragDropContext>
         </div>
       ) : viewMode === 'list' ? (
-        <div className="vx-table-wrap overflow-visible">
-          <table className="vx-table">
+        <div className="vx-table-wrap overflow-x-auto border border-border rounded-xl">
+          <table className="vx-table min-w-[1200px]">
+
             <thead className="vx-table-head">
               <tr>
                 <Th>Cliente</Th>
