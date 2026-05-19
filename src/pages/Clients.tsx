@@ -31,6 +31,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PageHero } from "@/components/PageHero";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmAction } from "@/lib/confirm";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 export default function Clients() {
   const { isAdmin, isAdminSecondary, isColaborador } = useAuth();
