@@ -1223,3 +1223,6 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   --border: 220 20% 90%;
   --input: 220 20% 90%;
 }
+
+/* Quando portal cliente está montado, força bg light no wrapper externo */
+html:has(.client-portal) body > #root > div.dark { background: hsl(220 25% 97%) !important; }
