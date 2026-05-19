@@ -1,19 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserCircle, Search, Plus, Mail, Phone, Shield, Loader2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { PaginationControl } from "@/components/ui/PaginationControl";
-import { useMemo } from "react";
-
 
 type CollabRow = {
   id: string;
@@ -39,7 +37,6 @@ export default function Collaborators() {
   const [editing, setEditing] = useState<CollabRow | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["collaborators-list"],
@@ -88,7 +85,6 @@ export default function Collaborators() {
     return filtered.slice(start, start + itemsPerPage);
   }, [filtered, currentPage]);
 
-
   const updateProfile = useMutation({
     mutationFn: async (payload: Partial<CollabRow> & { id: string; role?: string }) => {
       const { id, role, ...rest } = payload;
@@ -109,7 +105,7 @@ export default function Collaborators() {
 
   return (
     <div className="page-shell space-y-6">
-      <header className="flex items-end justify-between gap-4 flex-wrap pb-2">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-slate-500">
             <UserCircle className="size-3 text-indigo-600" /> Equipe Interna
@@ -124,13 +120,13 @@ export default function Collaborators() {
 
         <Button
           onClick={() => setCreateOpen(true)}
-          className="h-9 text-xs font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700"
+          className="h-11 sm:h-9 text-xs font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto"
         >
           <Plus className="size-3.5 mr-2" /> Novo Colaborador
         </Button>
       </header>
 
-      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-4">
+      <div className="bg-white border border-slate-200/70 rounded-xl shadow-sm p-4">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <Input
@@ -142,7 +138,7 @@ export default function Collaborators() {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200/70 rounded-xl shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-slate-400">
             <Loader2 className="size-5 animate-spin mx-auto" />
@@ -153,62 +149,71 @@ export default function Collaborators() {
             <p className="text-sm font-medium text-slate-600">Nenhum colaborador encontrado</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[800px]">
-
-            <thead className="bg-slate-50 border-b border-slate-200/70">
-              <tr>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Nome</th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Contato</th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Função</th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Acesso</th>
-                <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginated.map((c) => (
-                <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="size-9 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-sm">
-                        {(c.full_name ?? c.email ?? "?").charAt(0).toUpperCase()}
-                      </div>
-                      <div className="font-semibold text-sm text-slate-900">{c.full_name ?? "—"}</div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-slate-600">
-                    <div className="flex items-center gap-1.5"><Mail className="size-3 text-slate-400" /> {c.email ?? "—"}</div>
-                    {c.phone && <div className="flex items-center gap-1.5 mt-0.5"><Phone className="size-3 text-slate-400" /> {c.phone}</div>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline" className="font-mono text-[10px]">
-                      {ROLE_LABEL[c.role]}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    {c.has_system_access ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
-                        <Shield className="size-3" /> Habilitado
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-slate-400 font-bold">Bloqueado</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={c.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-slate-200 text-slate-600 hover:bg-slate-200"}>
-                      {c.active ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => setEditing(c)}>
-                      Editar
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[800px]">
+                <thead className="bg-slate-50 border-b border-slate-200/70">
+                  <tr>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Nome</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Contato</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Função</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Acesso</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-slate-500">Status</th>
+                    <th className="px-6 py-4"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginated.map((c) => (
+                    <tr key={c.id} className="hover:bg-slate-50/60 transition group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="size-9 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                            {(c.full_name ?? c.email ?? "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div className="font-semibold text-sm text-slate-900">{c.full_name ?? "—"}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-slate-600">
+                        <div className="flex items-center gap-1.5"><Mail className="size-3 text-slate-400" /> {c.email ?? "—"}</div>
+                        {c.phone && <div className="flex items-center gap-1.5 mt-1"><Phone className="size-3 text-slate-400" /> {c.phone}</div>}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant="outline" className="font-mono text-[10px]">
+                          {ROLE_LABEL[c.role]}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4">
+                        {c.has_system_access ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+                            <Shield className="size-3" /> Habilitado
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 font-bold">Bloqueado</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge className={c.active ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-slate-200 text-slate-600 hover:bg-slate-200"}>
+                          {c.active ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button variant="ghost" size="sm" className="text-xs" onClick={() => setEditing(c)}>
+                          Editar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </>
         )}
       </div>
 
@@ -221,7 +226,7 @@ export default function Collaborators() {
               <DialogTitle>Editar colaborador</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Nome</Label>
                   <Input value={editing.full_name ?? ""} onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} />
@@ -235,7 +240,7 @@ export default function Collaborators() {
                 <Label>E-mail</Label>
                 <Input value={editing.email ?? ""} disabled />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>Função</Label>
                   <Select value={editing.role} onValueChange={(v) => setEditing({ ...editing, role: v as any })}>
@@ -277,7 +282,7 @@ export default function Collaborators() {
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
               <Button
                 disabled={updateProfile.isPending}
@@ -320,7 +325,7 @@ function CreateCollaboratorDialog({
     role: "colaborador" as "colaborador" | "admin_secondary" | "admin",
     has_system_access: true,
     internal_notes: "",
-    send_invite: false, // Default to false for direct password creation
+    send_invite: false,
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -410,7 +415,7 @@ function CreateCollaboratorDialog({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3 py-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
               <div className="space-y-1.5">
                 <Label>Nome completo *</Label>
                 <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: Ana Silva" />
@@ -434,40 +439,25 @@ function CreateCollaboratorDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5 col-span-2">
-                <Label>Senha do Painel</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    type="password"
-                    value={form.password} 
-                    onChange={(e) => setForm({ ...form, password: e.target.value })} 
-                    placeholder="Defina a senha de acesso"
-                  />
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const pass = Math.random().toString(36).slice(-8) + "A1!";
-                      setForm({ ...form, password: pass });
-                      toast.info("Senha gerada: " + pass);
-                    }}
-                  >
-                    Gerar
-                  </Button>
-                </div>
-                <p className="text-[10px] text-slate-500">Mínimo 6 caracteres. Se não preencher, uma senha aleatória será gerada.</p>
+              <div className="space-y-1.5 col-span-1 sm:col-span-2">
+                <Label>Senha inicial (opcional)</Label>
+                <Input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Se vazio, um convite será enviado"
+                />
               </div>
-
-              <div className="space-y-1.5 col-span-2">
+              <div className="space-y-1.5 col-span-1 sm:col-span-2">
                 <Label>Observações internas</Label>
-                <Textarea value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} placeholder="Notas sobre o colaborador..." />
+                <Textarea value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} placeholder="Ex: Setor comercial, turno manhã..." />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button onClick={submit} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
+              <Button disabled={loading} onClick={submit}>
                 {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                Criar Colaborador
+                Cadastrar
               </Button>
             </DialogFooter>
           </>
