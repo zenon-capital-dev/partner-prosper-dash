@@ -105,22 +105,14 @@ const adminSections: NavSection[] = [
 
 const clientSections: NavSection[] = [
   {
-    label: "Meu Painel",
+    label: "Portal do Cliente",
     items: [
-      { title: "Dashboard", url: "/cliente", icon: Home },
-      { title: "Jornada Onboarding", url: "/cliente/onboarding", icon: Sparkles },
-      { title: "Meus Produtos", url: "/cliente/produtos", icon: Boxes },
+      { title: "Início", url: "/cliente", icon: Home },
+      { title: "Onboarding", url: "/cliente/onboarding", icon: Sparkles },
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
-      { title: "Pagamentos", url: "/cliente/financeiro", icon: Banknote },
       { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
-    ],
-  },
-  {
-    label: "Mais",
-    items: [
-      { title: "Biblioteca", url: "/cliente/biblioteca", icon: FolderArchive },
-      { title: "Novas Soluções", url: "/cliente/descobrir", icon: ShoppingBag },
-      { title: "Suporte", url: "/suporte", icon: LifeBuoy },
+      { title: "Financeiro", url: "/cliente/financeiro", icon: Banknote },
+      { title: "Suporte", url: "/cliente/suporte", icon: LifeBuoy },
     ],
   },
 ];
