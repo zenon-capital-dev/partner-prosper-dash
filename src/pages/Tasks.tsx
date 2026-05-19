@@ -372,7 +372,7 @@ export default function Tasks() {
         ]}
       />
       
-      <div className="px-5 lg:px-8 space-y-7 pb-10">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-7 pb-10">
         <div className="hidden grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total", count: stats.total, tone: "text-primary bg-primary/5 border-primary/10" },

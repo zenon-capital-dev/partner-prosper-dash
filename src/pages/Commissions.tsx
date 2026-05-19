@@ -409,7 +409,7 @@ export default function Commissions() {
         ]}
       />
 
-      <div className="px-5 lg:px-8 space-y-6 pb-10">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10">
 
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="space-y-6">

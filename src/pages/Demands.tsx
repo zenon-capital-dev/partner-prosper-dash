@@ -248,7 +248,7 @@ export default function Demands() {
         ]}
       />
 
-      <Tabs defaultValue="agenda" className="space-y-6">
+      <Tabs defaultValue="agenda" className="max-w-[1600px] mx-auto space-y-6">
         <TabsList className="bg-white border border-slate-200/70 p-1 h-12 shadow-sm ml-5 lg:ml-8">
           <TabsTrigger
             value="agenda"

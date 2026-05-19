@@ -178,7 +178,7 @@ export default function Sales() {
       />
 
       {/* ============ INSIGHTS ROW ============ */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
+      <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
         <div className="lg:col-span-7 vx-card p-5 relative overflow-hidden">
           <div className="flex items-center justify-between mb-3">
             <div>

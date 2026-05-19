@@ -329,7 +329,7 @@ export default function Documents() {
         ]}
       />
 
-      <div className="px-5 lg:px-8 space-y-6">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6">
 
       {/* Filters */}
       <div className="vx-card p-4 space-y-3">
