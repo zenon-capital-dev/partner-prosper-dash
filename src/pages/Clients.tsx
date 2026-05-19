@@ -291,45 +291,45 @@ export default function Clients() {
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
 
         {/* Toolbar: search + filter toggle + view toggle */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="relative flex-1 min-w-0">
-            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
+            <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Buscar nome, empresa, CNPJ..."
               value={search} onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-10"
+              className="pl-10 h-11 rounded-xl bg-white border-slate-200 shadow-sm focus:ring-indigo-500/10 focus:border-indigo-500"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="inline-flex items-center rounded-xl border border-border/60 bg-card/40 p-1 h-10 shrink-0">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white p-1 h-11 shrink-0 shadow-sm">
               <button
                 onClick={() => setView("grid")}
-                className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "grid" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+                className={cn("h-9 px-4 rounded-lg text-xs font-bold transition-all", view === "grid" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900")}
               >Cards</button>
               <button
                 onClick={() => setView("table")}
-                className={cn("h-8 px-3 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}
+                className={cn("h-9 px-4 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900")}
               >Tabela</button>
             </div>
             <Button
-              variant="outline" size="sm"
+              variant="outline"
               onClick={() => setShowFilters((v) => !v)}
-              className="h-10 gap-2 flex-1 sm:flex-none"
+              className="h-11 gap-2 flex-1 sm:flex-none rounded-xl border-slate-200 bg-white shadow-sm hover:bg-slate-50 text-slate-700 font-semibold"
             >
-              <Filter className="size-4" />
-              Filtros
+              <Filter className="size-4 text-slate-400" />
+              <span>Filtros</span>
               {activeFiltersCount > 0 && (
-                <span className="ml-1 inline-flex items-center justify-center rounded-md bg-primary/15 text-primary px-1.5 py-0.5 text-[10px] font-bold">
+                <span className="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-600 text-white size-5 text-[10px] font-bold">
                   {activeFiltersCount}
                 </span>
               )}
-              {showFilters ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+              {showFilters ? <ChevronUp className="size-4 text-slate-400" /> : <ChevronDown className="size-4 text-slate-400" />}
             </Button>
           </div>
         </div>
 
         {showFilters && (
-          <div className="rounded-xl border border-border/60 bg-card/40 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 lg:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shadow-md animate-in slide-in-from-top-2 duration-300">
 
             <FilterField label="Status">
               <Select value={statusFilter} onValueChange={setStatusFilter}>

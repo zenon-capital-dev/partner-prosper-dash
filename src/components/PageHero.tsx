@@ -101,7 +101,7 @@ export function PageHero({
 
       {kpis && kpis.length > 0 && (
         <div
-          className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-2.5 sm:gap-3 lg:[grid-template-columns:var(--hero-kpi-cols)]"
+          className="grid grid-cols-2 lg:[grid-template-columns:var(--hero-kpi-cols)] gap-3 lg:gap-4 lg:[grid-template-columns:var(--hero-kpi-cols)]"
           style={{ "--hero-kpi-cols": `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` } as CSSProperties}
         >
           {kpis.map((k, i) => {
