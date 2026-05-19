@@ -5,6 +5,7 @@ import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
+import { AIAssistant } from "@/components/chat/AIAssistant";
 
 // Rotas que SOMENTE admin pleno pode acessar. Colaborador fica restrito a operação.
 const ADMIN_ONLY_PREFIXES = [
@@ -92,8 +93,9 @@ function AdminShell() {
 
         <div className="flex-1 flex flex-col min-w-0 relative">
           <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden admin-content-scroll">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden admin-content-scroll relative">
             <Outlet />
+            <AIAssistant />
           </main>
         </div>
       </div>
@@ -107,4 +109,3 @@ export default function AdminLayout() {
     </RouteGuard>
   );
 }
-
