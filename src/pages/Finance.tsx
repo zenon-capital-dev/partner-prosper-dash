@@ -161,22 +161,22 @@ export default function Finance() {
   }, [sales, expenses, splits]);
 
   return (
-    <div className=\"min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900\">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
-        eyebrow=\"Tesouraria\"
-        category=\"Operações Financeiras\"
-        title=\"Financeiro\"
+        eyebrow="Tesouraria"
+        category="Operações Financeiras"
+        title="Financeiro"
         description={`Saldo atual: ${formatBRL(kpis.profit)} · Margem de lucro ${kpis.margin.toFixed(1)}%`}
-        icon={<PiggyBank className=\"size-6\" />}
+        icon={<PiggyBank className="size-6" />}
         actions={
-          <div className=\"flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2\">
+          <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
             {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
               <button
                 key={k}
                 onClick={() => setRangeKey(k)}
                 className={cn(
-                  \"px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase\",
-                  rangeKey === k ? \"bg-slate-900 text-white shadow-lg\" : \"text-slate-400 hover:text-slate-600\"
+                  "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                  rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
                 )}
               >
                 {k}
@@ -185,51 +185,51 @@ export default function Finance() {
           </div>
         }
         kpis={[
-          { label: \"Receita Bruta\", value: formatBRL(kpis.revenue), tone: \"success\", icon: <TrendingUp className=\"size-4\" /> },
-          { label: \"Comissões\", value: formatBRL(kpis.commissionsTotal), tone: \"warning\", icon: <Wallet className=\"size-4\" /> },
-          { label: \"Despesas\", value: formatBRL(kpis.expensesTotal), tone: \"danger\", icon: <ArrowDownToLine className=\"size-4\" /> },
-          { label: \"Saldo Líquido\", value: formatBRL(kpis.profit), tone: \"primary\", icon: <PiggyBank className=\"size-4\" /> },
-          { label: \"Margem Final\", value: `${kpis.margin.toFixed(1)}%`, tone: \"info\", icon: <BarChart3 className=\"size-4\" /> },
+          { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
+          { label: "Comissões", value: formatBRL(kpis.commissionsTotal), tone: "warning", icon: <Wallet className="size-4" /> },
+          { label: "Despesas", value: formatBRL(kpis.expensesTotal), tone: "danger", icon: <ArrowDownToLine className="size-4" /> },
+          { label: "Saldo Líquido", value: formatBRL(kpis.profit), tone: "primary", icon: <PiggyBank className="size-4" /> },
+          { label: "Margem Final", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
         ]}
       />
 
-      <div className=\"max-w-[1600px] mx-auto px-5 lg:px-8 space-y-8 pb-10\">
-        <div className=\"grid grid-cols-2 md:grid-cols-4 gap-5\">
-           <Link to=\"/financeiro\" className=\"bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all\">
-              <p className=\"text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1\">A RECEBER (7D)</p>
-              <p className=\"text-2xl font-black text-slate-900 tracking-tight\">R$ 0,00</p>
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-8 pb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+           <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A RECEBER (7D)</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tight">R$ 0,00</p>
            </Link>
-           <Link to=\"/financeiro\" className=\"bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all\">
-              <p className=\"text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1\">INADIMPLÊNCIA</p>
-              <p className=\"text-2xl font-black text-rose-600 tracking-tight\">R$ 0,00</p>
+           <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">INADIMPLÊNCIA</p>
+              <p className="text-2xl font-black text-rose-600 tracking-tight">R$ 0,00</p>
            </Link>
-           <Link to=\"/comissoes\" className=\"bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all\">
-              <p className=\"text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1\">COMISSÕES A PAGAR</p>
-              <p className=\"text-2xl font-black text-amber-600 tracking-tight\">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</p>
+           <Link to="/comissoes" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">COMISSÕES A PAGAR</p>
+              <p className="text-2xl font-black text-amber-600 tracking-tight">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</p>
            </Link>
-           <div className=\"bg-indigo-600 rounded-[24px] p-6 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between\">
+           <div className="bg-indigo-600 rounded-[24px] p-6 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between">
               <div>
-                <p className=\"text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-1\">LUCRO ESTIMADO</p>
-                <p className=\"text-2xl font-black tracking-tight\">{formatBRL(kpis.profit)}</p>
+                <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-1">LUCRO ESTIMADO</p>
+                <p className="text-2xl font-black tracking-tight">{formatBRL(kpis.profit)}</p>
               </div>
-              <button onClick={() => setIsExpenseOpen(true)} className=\"mt-2 text-[10px] font-black uppercase bg-white/20 py-2 rounded-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2\">
-                <Plus className=\"size-3\" /> Nova Despesa
+              <button onClick={() => setIsExpenseOpen(true)} className="mt-2 text-[10px] font-black uppercase bg-white/20 py-2 rounded-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2">
+                <Plus className="size-3" /> Nova Despesa
               </button>
            </div>
         </div>
 
-        <div className=\"col-span-12 lg:col-span-8 vx-card p-6 bg-white\">
-            <h2 className=\"text-sm font-bold tracking-tight text-foreground mb-8\">Fluxo de Caixa</h2>
-            <div className=\"h-[320px] w-full\">
-              <ResponsiveContainer width=\"100%\" height=\"100%\">
+        <div className="col-span-12 lg:col-span-8 vx-card p-6 bg-white">
+            <h2 className="text-sm font-bold tracking-tight text-foreground mb-8">Fluxo de Caixa</h2>
+            <div className="h-[320px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray=\"3 3\" vertical={false} stroke=\"#f1f5f9\" />
-                  <XAxis dataKey=\"label\" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
                   <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} tickFormatter={(v) => `R$${v}`} />
                   <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                  <Area type=\"monotone\" dataKey=\"revenue\" stroke=\"#10b981\" fill=\"#10b981\" fillOpacity={0.1} />
-                  <Bar dataKey=\"expenses\" fill=\"#f43f5e\" radius={[2, 2, 0, 0]} barSize={12} />
-                  <Line type=\"monotone\" dataKey=\"commissions\" stroke=\"#f59e0b\" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="#10b981" fillOpacity={0.1} />
+                  <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={12} />
+                  <Line type="monotone" dataKey="commissions" stroke="#f59e0b" strokeWidth={2} dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -237,23 +237,23 @@ export default function Finance() {
       </div>
 
       <Dialog open={isExpenseOpen} onOpenChange={setIsExpenseOpen}>
-        <DialogContent className=\"sm:max-w-[425px]\">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Nova Despesa</DialogTitle>
           </DialogHeader>
-          <div className=\"grid gap-4 py-4\">
-            <div className=\"grid gap-2\">
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
               <Label>Descrição</Label>
               <Input value={expenseForm.description} onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })} />
             </div>
-            <div className=\"grid grid-cols-2 gap-4\">
-              <div className=\"grid gap-2\">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
                 <Label>Valor (R$)</Label>
-                <Input type=\"number\" value={expenseForm.amount} onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
+                <Input type="number" value={expenseForm.amount} onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })} />
               </div>
-              <div className=\"grid gap-2\">
+              <div className="grid gap-2">
                 <Label>Data</Label>
-                <Input type=\"date\" value={expenseForm.expense_date} onChange={(e) => setExpenseForm({ ...expenseForm, expense_date: e.target.value })} />
+                <Input type="date" value={expenseForm.expense_date} onChange={(e) => setExpenseForm({ ...expenseForm, expense_date: e.target.value })} />
               </div>
             </div>
           </div>
