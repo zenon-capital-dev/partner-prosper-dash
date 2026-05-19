@@ -120,9 +120,9 @@ export default function AuthPage() {
               </span>
             </div>
 
-            <h1 className="font-display text-[58px] xl:text-[64px] leading-[0.98] font-bold tracking-[-0.025em]">
+            <h1 className="font-display text-[58px] xl:text-[64px] leading-[0.98] font-bold tracking-[-0.025em] text-white">
               Onde decisões<br />
-              <span className="bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-indigo-200 via-white to-indigo-300 bg-clip-text text-transparent">
                 viram resultado.
               </span>
             </h1>
