@@ -347,55 +347,58 @@ export default function DashboardAdmin() {
       <div className="relative p-3 sm:p-5 lg:p-8 space-y-6 max-w-[1720px] mx-auto animate-in fade-in duration-500">
 
         {/* ============ EXECUTIVE HEADER ============ */}
-        <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_0_hsl(220_13%_88%/0.8),0_28px_70px_-52px_hsl(222_47%_11%/0.55)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,hsl(231_72%_46%/0.10),transparent_34%),radial-gradient(circle_at_100%_10%,hsl(203_78%_42%/0.08),transparent_30%),linear-gradient(135deg,hsl(0_0%_100%),hsl(220_24%_98%))]" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-300/70 to-transparent" />
-          <div className="relative p-5 sm:p-6 lg:p-7 grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_420px_auto] items-end gap-6">
-            <div className="flex items-start gap-4 sm:gap-5 min-w-0 flex-1">
+        <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_0_hsl(220_13%_88%/0.8),0_20px_50px_-40px_hsl(222_47%_11%/0.45)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,hsl(231_72%_46%/0.06),transparent_40%),linear-gradient(180deg,hsl(0_0%_100%),hsl(220_24%_98.5%))]" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" />
+
+          <div className="relative p-5 lg:px-7 lg:py-5 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
+            {/* Identity + greeting */}
+            <div className="flex items-center gap-4 min-w-0 lg:max-w-[420px]">
               <div className="relative shrink-0">
-                <div className="size-12 sm:size-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-slate-950 flex items-center justify-center shadow-[0_18px_34px_-20px_hsl(231_72%_46%/0.85)] ring-1 ring-indigo-300/40">
-                  <Crown className="size-5 sm:size-6 text-white" strokeWidth={2.2} />
+                <div className="size-12 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-slate-950 flex items-center justify-center shadow-[0_14px_28px_-16px_hsl(231_72%_46%/0.85)] ring-1 ring-indigo-300/40">
+                  <Crown className="size-5 text-white" strokeWidth={2.2} />
                 </div>
-                <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-400 ring-2 ring-white shadow-md" />
+                <div className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-white" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[10px] sm:text-[10.5px] uppercase tracking-[0.2em] font-black text-slate-500 flex-wrap">
-                  <CalendarClock className="size-3" />
-                  <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.22em] font-black text-slate-500">
+                  <Sparkles className="size-2.5 text-indigo-600" />
+                  <span className="text-indigo-700">Painel Executivo</span>
                   <span className="size-1 rounded-full bg-slate-300" />
-                  <Sparkles className="size-3 text-primary" />
-                  <span className="text-indigo-700">Painel executivo</span>
+                  <span className="text-slate-500 truncate">{today}</span>
                 </div>
-                <h1 className="text-[28px] sm:text-[36px] lg:text-[44px] font-black text-slate-950 tracking-tight mt-2 leading-[0.98]">
+                <h1 className="text-[22px] lg:text-[26px] font-black text-slate-950 tracking-tight mt-1.5 leading-tight truncate">
                   {greeting}, <span className="text-primary">{firstName}</span>
                 </h1>
-                <p className="text-[12px] sm:text-[13px] text-slate-600 mt-3 flex items-center gap-1.5 sm:gap-2 flex-wrap font-semibold">
-                  <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
+                <p className="text-[11.5px] text-slate-600 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                  <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-emerald-500" /> {stats.activeClients} ativos</span>
                   <span className="text-slate-300">·</span>
-                  <span><span className="text-indigo-800 font-semibold">{stats.activeLeads.length}</span> negociações</span>
+                  <span><span className="text-indigo-800">{stats.activeLeads.length}</span> negociações</span>
                   <span className="text-slate-300">·</span>
-                  <span><span className="text-amber-800 font-semibold">{stats.delayed}</span> atrasos</span>
+                  <span><span className="text-amber-700">{stats.delayed}</span> atrasos</span>
                   <span className="text-slate-300">·</span>
-                  <span><span className="text-rose-800 font-semibold">{stats.overduePayments.length}</span> inadimplentes</span>
-                  <span className="hidden sm:inline text-slate-300">·</span>
-                  <span className="hidden sm:inline text-slate-800 capitalize">{today}</span>
+                  <span><span className="text-rose-700">{stats.overduePayments.length}</span> inadimplentes</span>
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2 w-full">
+
+            {/* Stats inline */}
+            <div className="flex-1 grid grid-cols-3 gap-2 min-w-0">
               <HeroStat label="Receita mês" value={formatBRL(stats.monthRevenue)} tone="primary" />
               <HeroStat label="Vencidos" value={formatBRL(stats.overdueAmount)} tone="danger" />
-              <HeroStat label="Prazos em SLA" value={stats.inProgress.toString()} tone="success" />
+              <HeroStat label="Em SLA" value={stats.inProgress.toString()} tone="success" />
             </div>
-            <div className="flex items-center gap-2 flex-wrap w-full 2xl:w-auto 2xl:justify-end">
-              <div className="inline-flex items-center rounded-xl bg-white/85 border border-slate-200 p-1 shadow-sm overflow-x-auto">
+
+            {/* Range + actions */}
+            <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap shrink-0">
+              <div className="inline-flex items-center rounded-lg bg-slate-50 border border-slate-200 p-0.5 shadow-sm">
                 {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((p) => (
-                  <button 
-                    key={p} 
+                  <button
+                    key={p}
                     onClick={() => setRangeKey(p)}
                     className={cn(
-                      "px-3 h-8 rounded-lg text-[10px] font-black tracking-wider transition-all whitespace-nowrap", 
-                      rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
+                      "px-2.5 h-7 rounded-md text-[10px] font-black tracking-wider transition-all whitespace-nowrap",
+                      rangeKey === p ? "bg-white text-primary shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:text-slate-950"
                     )}
                   >
                     {p}
@@ -406,14 +409,14 @@ export default function DashboardAdmin() {
                     <button
                       onClick={() => { setRangeKey("PERSONALIZADO"); setCustomOpen(true); }}
                       className={cn(
-                        "px-3 h-8 rounded-lg text-[10px] font-black tracking-wider transition-all whitespace-nowrap inline-flex items-center gap-1",
-                        rangeKey === "PERSONALIZADO" ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
+                        "px-2 h-7 rounded-md text-[10px] font-black tracking-wider transition-all inline-flex items-center gap-1",
+                        rangeKey === "PERSONALIZADO" ? "bg-white text-primary shadow-sm ring-1 ring-slate-200" : "text-slate-600 hover:text-slate-950"
                       )}
                     >
                       <CalendarIcon className="size-3" />
                       {rangeKey === "PERSONALIZADO" && customRange.from && customRange.to
-                        ? `${format(customRange.from, "dd/MM")} - ${format(customRange.to, "dd/MM")}`
-                        : "PERSONALIZADO"}
+                        ? `${format(customRange.from, "dd/MM")}-${format(customRange.to, "dd/MM")}`
+                        : "CUSTOM"}
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-white" align="end">
@@ -431,13 +434,16 @@ export default function DashboardAdmin() {
                   </PopoverContent>
                 </Popover>
               </div>
-              <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-bold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
-                <Target className="size-3.5" /> Nova Negociação
+
+              <div className="h-7 w-px bg-slate-200 hidden lg:block" />
+
+              <Link to="/leads?new=1" className="hidden xl:inline-flex h-9 px-3 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-[11px] font-bold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
+                <Target className="size-3.5" /> Negociação
               </Link>
-              <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-xl bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-black text-primary-foreground flex items-center gap-1.5 shadow-[0_14px_28px_-20px_hsl(222_47%_11%/0.65)] ring-1 ring-primary/15 transition-all">
-                <CircleDollarSign className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar Venda</span><span className="xs:hidden sm:hidden">Venda</span>
+              <Link to="/vendas?new=1" className="h-9 px-3.5 rounded-lg bg-primary hover:bg-primary/90 text-[11px] font-black text-primary-foreground inline-flex items-center gap-1.5 shadow-[0_10px_22px_-14px_hsl(222_47%_11%/0.6)] ring-1 ring-primary/15 transition-all">
+                <CircleDollarSign className="size-3.5" /> Registrar Venda
               </Link>
-              <button className="size-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 hover:text-slate-950 transition-all relative shadow-sm">
+              <button className="size-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 transition-all relative shadow-sm">
                 <Bell className="size-4" />
                 {stats.alerts.length > 0 && (
                   <span className="absolute -top-1 -right-1 size-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white">{stats.alerts.length}</span>
@@ -446,6 +452,7 @@ export default function DashboardAdmin() {
             </div>
           </div>
         </header>
+
 
 {/* Quick Terminal removido — ações rápidas já estão no header e na seção dedicada abaixo */}
 
