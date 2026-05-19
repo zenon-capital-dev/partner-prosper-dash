@@ -556,7 +556,7 @@ export default function Commissions() {
                   <p className="text-sm text-muted-foreground">Nenhuma comissão encontrada</p>
                   {activeFiltersCount > 0 && <Button size="sm" variant="ghost" onClick={clearFilters} className="mt-2">Limpar filtros</Button>}
                 </td></tr>
-              ) : filtered.map((c: any) => (
+              ) : paginated.map((c: any) => (
                 <tr key={c.id} className={`hover:bg-muted/30 transition-colors ${selected[c.id] ? "bg-primary/5" : ""}`}>
                   <td className="px-4 py-3">
                     <Checkbox checked={!!selected[c.id]} onCheckedChange={(v) => setSelected((s) => ({ ...s, [c.id]: !!v }))} />
