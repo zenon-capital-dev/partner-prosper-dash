@@ -36,7 +36,7 @@ function applySelect(row: Row, _cols: string, db: MockDB): Row {
   return { ...row };
 }
 
-class Query {
+class Query implements PromiseLike<{ data: any; error: any }> {
   private filters: Array<(r: Row) => boolean> = [];
   private _orderKey?: string;
   private _orderAsc = true;
