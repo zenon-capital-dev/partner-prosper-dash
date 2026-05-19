@@ -113,7 +113,7 @@ export default function PartnerPanel() {
   return (
     <div className="bg-premium min-h-screen">
       <div className="page-shell space-y-12 py-12">
-        <section className="relative overflow-hidden rounded-[40px] bg-slate-900 p-10 lg:p-16 text-white group shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)]">
+        <section className="relative overflow-hidden rounded-[40px] bg-slate-900 p-10 lg:p-16 text-white group shadow-2xl">
            <div className="absolute bottom-0 right-0 size-96 bg-primary/10 blur-[100px] -mb-48 -mr-48 rounded-full" />
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 relative">
               <div className="space-y-6">
@@ -206,20 +206,20 @@ export default function PartnerPanel() {
                   {clients.map((c: any) => {
                     const cd = demands.filter((d: any) => d.clients?.full_name === c.full_name);
                     return (
-                      <div key={c.id} className="vx-card bg-white border border-slate-100 rounded-[24px] p-6 space-y-3">
+                      <div key={c.id} className="vx-card bg-white border border-slate-200/60 rounded-[24px] p-6 space-y-3 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-3">
                           <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">{initials(c.full_name)}</div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold truncate">{c.full_name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{c.company || c.email || "—"}</p>
+                            <p className="font-bold text-slate-900 truncate">{c.full_name}</p>
+                            <p className="text-xs text-slate-500 truncate">{c.company || c.email || "—"}</p>
                           </div>
-                          <Badge variant="outline" className="text-[9px]">{c.status}</Badge>
+                          <Badge variant="outline" className="text-[9px] font-bold text-slate-600 border-slate-200">{c.status}</Badge>
                         </div>
-                        <div className="text-xs text-muted-foreground">Produtos contratados: <strong className="text-foreground">{cd.length}</strong></div>
+                        <div className="text-xs text-slate-500 font-medium">Produtos contratados: <strong className="text-slate-900">{cd.length}</strong></div>
                         {cd.slice(0, 3).map((d: any) => (
-                          <div key={d.id} className="text-xs flex justify-between gap-2 border-t border-slate-100 pt-2">
-                            <span className="truncate">{d.products?.name || d.custom_product_name || "Produto"}</span>
-                            <Badge variant="outline" className="text-[9px]">{d.status}</Badge>
+                          <div key={d.id} className="text-xs flex justify-between gap-2 border-t border-slate-100/80 pt-2">
+                            <span className="truncate text-slate-700 font-medium">{d.products?.name || d.custom_product_name || "Produto"}</span>
+                            <Badge variant="outline" className="text-[9px] font-bold text-slate-500 border-slate-100">{d.status}</Badge>
                           </div>
                         ))}
                       </div>
@@ -243,9 +243,9 @@ export default function PartnerPanel() {
                    <tbody className="divide-y divide-slate-50">
                       {filteredSplits.map((s: any) => (
                         <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                           <td className="px-8 py-6 font-bold">{s.sales?.products?.name ?? "—"}</td>
-                           <td className="px-8 py-6">{s.sales?.clients?.full_name ?? "—"}</td>
-                           <td className="px-8 py-6 text-right font-bold tabular-nums">{formatBRL(s.amount)}</td>
+                           <td className="px-8 py-6 font-bold text-slate-900">{s.sales?.products?.name ?? "—"}</td>
+                           <td className="px-8 py-6 text-slate-600 font-medium">{s.sales?.clients?.full_name ?? "—"}</td>
+                           <td className="px-8 py-6 text-right font-bold tabular-nums text-slate-900">{formatBRL(s.amount)}</td>
                            <td className="px-8 py-6 text-center"><CommissionStatusBadge status={s.workflow_status || 'pendente'} /></td>
                         </tr>
                       ))}
@@ -275,9 +275,9 @@ export default function PartnerPanel() {
                     <tbody className="divide-y divide-slate-50">
                       {demands.map((d: any) => (
                         <tr key={d.id} className="hover:bg-slate-50/50">
-                          <td className="px-6 py-5 font-bold">{d.clients?.full_name ?? "—"}</td>
-                          <td className="px-6 py-5">{d.products?.name || d.custom_product_name || "—"}</td>
-                          <td className="px-6 py-5 text-center"><Badge variant="outline" className="text-[9px]">{d.status}</Badge></td>
+                           <td className="px-6 py-5 font-bold text-slate-900">{d.clients?.full_name ?? "—"}</td>
+                           <td className="px-6 py-5 text-slate-600 font-medium">{d.products?.name || d.custom_product_name || "—"}</td>
+                           <td className="px-6 py-5 text-center"><Badge variant="outline" className="text-[9px] font-bold text-slate-600 border-slate-200">{d.status}</Badge></td>
                           <td className="px-6 py-5 text-center"><Badge variant="outline" className={cn("text-[9px]", d.sla_status === 'no_prazo' ? 'text-emerald-600 border-emerald-200' : d.sla_status === 'atrasado' ? 'text-rose-600 border-rose-200' : 'text-amber-600 border-amber-200')}>{d.sla_status || '—'}</Badge></td>
                           <td className="px-6 py-5 text-xs text-muted-foreground">{d.deadline ? formatDate(d.deadline) : (d.sla_due_date ? formatDate(d.sla_due_date) : "—")}</td>
                         </tr>
@@ -294,17 +294,17 @@ export default function PartnerPanel() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {contracts.map((c: any) => (
-                    <div key={c.id} className="vx-card bg-white border border-slate-100 rounded-[24px] p-6 space-y-3">
+                    <div key={c.id} className="vx-card bg-white border border-slate-200/60 rounded-[24px] p-6 space-y-3 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="font-bold">{c.name}</p>
-                          <p className="text-xs text-muted-foreground">{c.contract_type || c.contract_kind} · {formatDate(c.created_at)}</p>
+                          <p className="font-bold text-slate-900">{c.name}</p>
+                          <p className="text-xs text-slate-500 font-medium">{c.contract_type || c.contract_kind} · {formatDate(c.created_at)}</p>
                         </div>
-                        <Badge variant="outline" className="text-[9px] uppercase">{c.status}</Badge>
+                        <Badge variant="outline" className="text-[9px] font-bold uppercase text-slate-600 border-slate-200">{c.status}</Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground text-xs">Valor</span>
-                        <span className="font-bold tabular-nums">{c.amount ? formatBRL(c.amount) : "—"}</span>
+                        <span className="text-slate-500 text-xs font-medium">Valor</span>
+                        <span className="font-bold tabular-nums text-slate-900">{c.amount ? formatBRL(c.amount) : "—"}</span>
                       </div>
                       {c.expires_at && <div className="text-xs text-muted-foreground">Expira: {formatDate(c.expires_at)}</div>}
                       <Button size="sm" variant="outline" className="w-full" disabled={!c.file_path} onClick={() => downloadContract(c.file_path, c.name)}>
@@ -338,13 +338,13 @@ function CommissionStatusBadge({ status }: { status: string }) {
 function KpiCard({ label, value, icon: Icon, tone, description }: any) {
   const tones: any = { info: "text-blue-500 bg-blue-500/5", success: "text-emerald-500 bg-emerald-500/5", warning: "text-amber-500 bg-amber-500/5" };
   return (
-    <div className="vx-card p-6 bg-white border border-slate-100 rounded-[32px] shadow-sm">
+    <div className="vx-card p-6 bg-white border border-slate-200/60 rounded-[32px] shadow-sm hover:shadow-md transition-all">
        <div className={cn("size-10 rounded-xl flex items-center justify-center mb-4", tones[tone])}>
           <Icon className="size-5" />
        </div>
-       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
        <p className="text-2xl font-bold font-editorial text-slate-900 mt-1">{value}</p>
-       <p className="text-[10px] text-muted-foreground mt-1">{description}</p>
+       <p className="text-[10px] text-slate-500 font-medium mt-1">{description}</p>
     </div>
   );
 }
