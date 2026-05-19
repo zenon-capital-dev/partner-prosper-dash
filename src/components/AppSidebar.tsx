@@ -107,7 +107,8 @@ const clientSections: NavSection[] = [
   {
     label: "Meu Painel",
     items: [
-      { title: "Início", url: "/cliente", icon: Home },
+      { title: "Dashboard", url: "/cliente", icon: Home },
+      { title: "Jornada Onboarding", url: "/cliente/onboarding", icon: Sparkles },
       { title: "Meus Produtos", url: "/cliente/produtos", icon: Boxes },
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
       { title: "Pagamentos", url: "/cliente/financeiro", icon: Banknote },
