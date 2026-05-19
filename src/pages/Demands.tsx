@@ -96,6 +96,9 @@ export default function Demands() {
   const [providerFilter, setProviderFilter] = useState<string>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
   const [deadlineFilter, setDeadlineFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const { data: demands = [], isLoading } = useQuery({
     queryKey: ["admin-demands"],
