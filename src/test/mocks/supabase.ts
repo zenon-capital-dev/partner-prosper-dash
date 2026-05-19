@@ -74,7 +74,10 @@ class Query implements PromiseLike<{ data: any; error: any }> {
   order(key: string, opts?: { ascending?: boolean }) { this._orderKey = key; this._orderAsc = opts?.ascending !== false; return this; }
   single() { this._single = true; return this.run(); }
   maybeSingle() { this._maybeSingle = true; return this.run(); }
-  then(resolve: any, reject?: any) { return this.run().then(resolve, reject); }
+  then<T1 = { data: any; error: any }, T2 = never>(
+    onfulfilled?: ((value: { data: any; error: any }) => T1 | PromiseLike<T1>) | null,
+    onrejected?: ((reason: any) => T2 | PromiseLike<T2>) | null,
+  ): PromiseLike<T1 | T2> { return this.run().then(onfulfilled!, onrejected!); }
 
   private fireTriggers(event: "insert" | "update", row: Row, oldRow: Row | null) {
     const hooks = this.triggers[this.table] ?? [];
