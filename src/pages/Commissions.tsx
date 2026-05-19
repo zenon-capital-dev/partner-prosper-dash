@@ -27,7 +27,7 @@ import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 
-type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "cancelada" | "estornada";
+type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "pago" | "cancelada" | "estornada";
 
 const statusBadge: Record<string, string> = {
   aguardando_confirmacao: "bg-blue-50 text-blue-600 border-blue-200",
