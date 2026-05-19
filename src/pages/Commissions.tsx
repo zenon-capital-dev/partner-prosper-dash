@@ -364,24 +364,42 @@ export default function Commissions() {
         description="Gestão de regras e pagamentos para parceiros e indicadores."
         icon={<Wallet className="size-6" />}
         actions={
-          <div className="flex gap-2">
-            {activeTab === "rules" ? (
-              <Button onClick={() => setRuleCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
-                <Plus className="size-4" strokeWidth={2.5} /> Nova Regra
-              </Button>
-            ) : (
-              <>
-                <Button variant="outline" onClick={exportCSV} className="h-10 gap-2">
-                  <FileSpreadsheet className="size-4" /> Exportar CSV
-                </Button>
-                <Button onClick={() => setCreateOpen(true)} className="btn-premium h-10 px-5 gap-2 font-semibold">
-                  <Plus className="size-4" strokeWidth={2.5} /> Nova Comissão
-                </Button>
-              </>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                  statusFilter === "all" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                TUDO
+              </button>
+              <button
+                onClick={() => setStatusFilter("pendente")}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                  statusFilter === "pendente" ? "bg-amber-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                PENDENTE
+              </button>
+              <button
+                onClick={() => setStatusFilter("pago")}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                  statusFilter === "pago" ? "bg-emerald-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                PAGO
+              </button>
+            </div>
+            <Button onClick={() => setCreateOpen(true)} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+              <Plus className="size-4 mr-2 stroke-[3]" />
+              NOVA COMISSÃO
+            </Button>
           </div>
         }
-
         kpis={[
           { label: "Total filtrado", value: formatBRL(totals.total), tone: "primary", hint: `${totals.count} registros`, icon: <CircleDollarSign className="size-4" /> },
           { label: "Pendente / Análise", value: formatBRL(totals.pending), tone: "warning", icon: <Clock className="size-4" /> },
@@ -389,6 +407,8 @@ export default function Commissions() {
           { label: "Taxa Conversão", value: `${totals.total ? Math.round((totals.paid / totals.total) * 100) : 0}%`, tone: "info", icon: <TrendingUp className="size-4" /> },
         ]}
       />
+
+      <div className="px-5 lg:px-8 space-y-6 pb-10">
 
 
       <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="space-y-6">

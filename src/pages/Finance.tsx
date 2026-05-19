@@ -34,6 +34,12 @@ export default function Finance() {
   const { user } = useAuth();
   const [range, setRange] = useState<RangeKey>("this_month");
   const [tab, setTab] = useState("overview");
+
+  const brasiliaToday = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
+    const [y, m, d] = fmt.format(new Date()).split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }, []);
   
   // States for new expense
   const [isExpenseOpen, setIsExpenseOpen] = useState(false);
@@ -190,47 +196,20 @@ export default function Finance() {
         description={`Saldo atual: ${formatBRL(kpis.profit)} · Margem de lucro ${kpis.margin.toFixed(1)}%`}
         icon={<PiggyBank className="size-6" />}
         actions={
-          <>
-            <Select value={range} onValueChange={(v) => setRange(v as RangeKey)}>
-              <SelectTrigger className="h-10 w-[170px] rounded-xl bg-background/60">
-                <CalendarRange className="size-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="this_month">Este mês</SelectItem>
-                <SelectItem value="last_month">Mês passado</SelectItem>
-                <SelectItem value="this_quarter">Este trimestre</SelectItem>
-                <SelectItem value="this_year">Este ano</SelectItem>
-                <SelectItem value="all">Todos</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-10 px-4 gap-2"
-              onClick={() => {
-                const headers = ["Produto", "Vendas", "Receita Bruta", "Comissões", "Receita Líquida"];
-                const rows = productPerformance.map((p: any) => [
-                  p.product_name, p.total_sales, p.gross_revenue, p.total_commissions, p.net_revenue
-                ]);
-                const csv = [headers, ...rows].map(r => r.join(";")).join("\n");
-                const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `performance_produtos_${new Date().toISOString().slice(0, 10)}.csv`;
-                link.click();
-              }}
-            >
-              <Download className="size-4" /> Exportar
-            </Button>
-            <Button 
-              size="sm" 
-              className="btn-premium h-10 px-5 gap-2 font-semibold shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-indigo-600 border-none"
-              onClick={() => setIsExpenseOpen(true)}
-            >
-              <Plus className="size-4" strokeWidth={2.5} /> Nova Despesa
-            </Button>
-          </>
+          <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
+            {(["this_month", "last_month", "this_quarter", "this_year", "all"] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => setRange(k)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                  range === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                )}
+              >
+                {k === 'this_month' ? 'Mês' : k === 'last_month' ? 'Ant.' : k === 'this_quarter' ? 'Tri' : k === 'this_year' ? 'Ano' : 'Tudo'}
+              </button>
+            ))}
+          </div>
         }
         kpis={[
           { label: "Receita Bruta", value: formatBRL(kpis.revenue), tone: "success", icon: <TrendingUp className="size-4" /> },
@@ -240,6 +219,35 @@ export default function Finance() {
           { label: "Margem Final", value: `${kpis.margin.toFixed(1)}%`, tone: "info", icon: <BarChart3 className="size-4" /> },
         ]}
       />
+
+      <div className="px-5 lg:px-8 space-y-8 pb-10">
+        {/* ROW 1: MINI KPI GRID */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+           <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A RECEBER (7D)</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tight">R$ 0,00</p>
+              <p className="text-[11px] font-bold text-slate-400 mt-1">0 título(s)</p>
+           </Link>
+           <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">INADIMPLÊNCIA</p>
+              <p className="text-2xl font-black text-rose-600 tracking-tight">R$ 0,00</p>
+              <p className="text-[11px] font-bold text-slate-400 mt-1">0 título(s) vencidos</p>
+           </Link>
+           <Link to="/comissoes" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">COMISSÕES A PAGAR</p>
+              <p className="text-2xl font-black text-amber-600 tracking-tight">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</p>
+              <p className="text-[11px] font-bold text-slate-400 mt-1">Aguardando liberação</p>
+           </Link>
+           <div className="bg-indigo-600 rounded-[24px] p-6 text-white shadow-xl shadow-indigo-100 flex flex-col justify-between">
+              <div>
+                <p className="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-1">LUCRO ESTIMADO</p>
+                <p className="text-2xl font-black tracking-tight">{formatBRL(kpis.profit)}</p>
+              </div>
+              <button onClick={() => setIsExpenseOpen(true)} className="mt-2 text-[10px] font-black uppercase bg-white/20 py-2 rounded-lg hover:bg-white/30 transition-all flex items-center justify-center gap-2">
+                <Plus className="size-3" /> Nova Despesa
+              </button>
+           </div>
+        </div>
 
 
       <div className="grid grid-cols-12 gap-6">
