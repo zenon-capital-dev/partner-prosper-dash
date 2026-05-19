@@ -79,7 +79,7 @@ export default function ClientOnboarding() {
             </div>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none">Portal do Cliente</p>
-              <h2 className="text-lg font-bold text-slate-900 mt-1">{client?.companies?.trade_name || client?.companies?.name || "Empresa"}</h2>
+              <h2 className="text-lg font-bold text-slate-900 mt-1">{(client as any)?.companies?.trade_name || (client as any)?.companies?.name || "Empresa"}</h2>
             </div>
           </div>
 
