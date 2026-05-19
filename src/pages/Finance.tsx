@@ -161,7 +161,7 @@ export default function Finance() {
   }, [sales, expenses, splits]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
       <PageHero
         eyebrow="Tesouraria"
         category="Operações Financeiras"
@@ -169,14 +169,14 @@ export default function Finance() {
         description={`Saldo atual: ${formatBRL(kpis.profit)} · Margem de lucro ${kpis.margin.toFixed(1)}%`}
         icon={<PiggyBank className="size-6" />}
         actions={
-          <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
+          <div className="flex bg-white dark:bg-card p-1 rounded-2xl border border-slate-200 dark:border-border shadow-sm mr-2">
             {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
               <button
                 key={k}
                 onClick={() => setRangeKey(k)}
                 className={cn(
                   "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                  rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                  rangeKey === k ? "bg-slate-900 dark:bg-primary text-white dark:text-primary-foreground shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                 )}
               >
                 {k}
@@ -195,15 +195,15 @@ export default function Finance() {
 
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-8 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-           <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+           <Link to="/financeiro" className="bg-white dark:bg-card rounded-[24px] p-6 border border-slate-200 dark:border-border shadow-sm hover:shadow-lg transition-all">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A RECEBER (7D)</p>
-              <p className="text-2xl font-black text-slate-900 tracking-tight">R$ 0,00</p>
+              <p className="text-2xl font-black text-slate-900 dark:text-foreground tracking-tight">R$ 0,00</p>
            </Link>
-           <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+           <Link to="/financeiro" className="bg-white dark:bg-card rounded-[24px] p-6 border border-slate-200 dark:border-border shadow-sm hover:shadow-lg transition-all">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">INADIMPLÊNCIA</p>
               <p className="text-2xl font-black text-rose-600 tracking-tight">R$ 0,00</p>
            </Link>
-           <Link to="/comissoes" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
+           <Link to="/comissoes" className="bg-white dark:bg-card rounded-[24px] p-6 border border-slate-200 dark:border-border shadow-sm hover:shadow-lg transition-all">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">COMISSÕES A PAGAR</p>
               <p className="text-2xl font-black text-amber-600 tracking-tight">{formatBRL(kpis.commissionsTotal - kpis.commissionsPaid)}</p>
            </Link>
@@ -218,14 +218,14 @@ export default function Finance() {
            </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-8 vx-card p-6 bg-white">
+        <div className="col-span-12 lg:col-span-8 vx-card p-6 bg-white dark:bg-card">
             <h2 className="text-sm font-bold tracking-tight text-foreground mb-8">Fluxo de Caixa</h2>
             <div className="h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} tickFormatter={(v) => `R$${v}`} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.5, fontSize: 10}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.5, fontSize: 10}} tickFormatter={(v) => `R$${v}`} />
                   <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                   <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="#10b981" fillOpacity={0.1} />
                   <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={12} />
