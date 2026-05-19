@@ -176,6 +176,13 @@ export default function Clients() {
     });
   }, [enriched, search, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+
   const kpis = useMemo(() => {
     const total = enriched.length;
     const active = enriched.filter((c: any) => c.status === "ativo").length;
