@@ -940,3 +940,91 @@ function EmptyState({ message }: { message: string }) {
     </div>
   );
 }
+
+function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
+  const [form, setForm] = useState({
+    name: provider?.name ?? "",
+    email: provider?.email ?? "",
+    phone: provider?.phone ?? "",
+    specialty: provider?.specialty ?? "",
+    document_number: provider?.document_number ?? "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [pwd, setPwd] = useState({ new: "", confirm: "" });
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("service_providers").update({
+      name: form.name, phone: form.phone, specialty: form.specialty,
+      document_number: form.document_number,
+    }).eq("id", provider.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Perfil atualizado");
+  };
+
+  const changePwd = async () => {
+    if (!pwd.new || pwd.new.length < 8) return toast.error("Senha precisa ter ao menos 8 caracteres");
+    if (pwd.new !== pwd.confirm) return toast.error("Senhas não coincidem");
+    const { error } = await supabase.auth.updateUser({ password: pwd.new });
+    if (error) return toast.error(error.message);
+    setPwd({ new: "", confirm: "" });
+    toast.success("Senha atualizada");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 p-6 shadow-sm space-y-5">
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Dados profissionais</h3>
+          <p className="text-xs text-slate-500">Mantenha seus dados atualizados para o admin.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nome completo</label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">E-mail</label>
+            <Input value={form.email} disabled className="mt-1.5 h-10 bg-slate-50" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Telefone</label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" className="mt-1.5 h-10" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">CPF/CNPJ</label>
+            <Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Especialidade</label>
+            <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+        </div>
+        <div className="flex justify-end pt-2">
+          <Button onClick={save} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-sm space-y-5">
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Alterar senha</h3>
+          <p className="text-xs text-slate-500">Mínimo 8 caracteres.</p>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nova senha</label>
+            <Input type="password" value={pwd.new} onChange={(e) => setPwd({ ...pwd, new: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Confirmar nova senha</label>
+            <Input type="password" value={pwd.confirm} onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+        </div>
+        <Button onClick={changePwd} variant="outline" className="w-full">Atualizar senha</Button>
+      </div>
+    </div>
+  );
+}
