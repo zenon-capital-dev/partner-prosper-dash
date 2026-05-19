@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Sparkles, CalendarClock } from "lucide-react";
@@ -98,7 +98,7 @@ export function PageHero({
       {kpis && kpis.length > 0 && (
         <div
           className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:[grid-template-columns:var(--hero-kpi-cols)]"
-          style={{ "--hero-kpi-cols": `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` } as React.CSSProperties}
+          style={{ "--hero-kpi-cols": `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` } as CSSProperties}
         >
           {kpis.map((k, i) => {
             const cfg = toneCfg[k.tone || "default"];
@@ -127,7 +127,7 @@ export function PageHero({
                   </div>
                   {k.icon && (
                     <div className={cn(
-                      "hidden xs:flex size-8 rounded-lg items-center justify-center shrink-0 ring-1 transition-all group-hover/kpi:scale-[1.08]",
+                      "hidden sm:flex size-8 rounded-lg items-center justify-center shrink-0 ring-1 transition-all group-hover/kpi:scale-[1.08]",
                       cfg.bg, cfg.text, cfg.ring
                     )}>
                       {k.icon}
