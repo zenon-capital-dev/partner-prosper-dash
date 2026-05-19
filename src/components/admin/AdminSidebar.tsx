@@ -34,8 +34,8 @@ const SECTIONS: NavSection[] = [
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
   ]},
   { label: "Catálogo", adminOnly: true, items: [
-    { title: "Produtos", url: "/produtos", icon: Package, adminOnly: true },
-    { title: "Templates(Desenvolvimento)", url: "/templates", icon: MessageSquare, adminOnly: true },
+    { title: "Serviços", url: "/produtos", icon: Package, adminOnly: true },
+    { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", adminOnly: true, items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, adminOnly: true },
