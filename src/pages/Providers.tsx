@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import {
 type ViewMode = "grid" | "list";
 
 export default function Providers() {
+  const { isAdmin, isAdminSecondary } = useAuth();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -126,9 +128,11 @@ export default function Providers() {
         description="Gerencie sua rede de fornecedores externos. Delegue demandas, controle entregas e acompanhe a operação terceirizada."
         icon={<Briefcase className="size-6" />}
         actions={
-          <Button onClick={() => { setEditing(null); setCreateOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
-            <Plus className="size-4 mr-1.5" /> Novo Prestador
-          </Button>
+          (isAdmin || isAdminSecondary) && (
+            <Button onClick={() => { setEditing(null); setCreateOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
+              <Plus className="size-4 mr-1.5" /> Novo Prestador
+            </Button>
+          )
         }
         kpis={[
           { label: "Total da Rede", value: kpis.total, tone: "primary", icon: <Briefcase className="size-4" /> },

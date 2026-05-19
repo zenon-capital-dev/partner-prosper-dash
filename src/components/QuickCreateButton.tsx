@@ -3,6 +3,7 @@ import {
   Plus, Users, Briefcase, Truck, ClipboardList, FileText, FileSignature,
   Banknote, ChevronDown, Sparkles,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -25,6 +26,9 @@ interface Props {
 
 export function QuickCreateButton({ variant = "default" }: Props) {
   const navigate = useNavigate();
+  const { isAdmin, isAdminSecondary } = useAuth();
+
+  if (!isAdmin && !isAdminSecondary) return null;
 
   return (
     <DropdownMenu>

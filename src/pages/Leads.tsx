@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
 import { formatDate, formatPhone, initials } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ const statusColors: Record<string, string> = {
 const PAGE_SIZE = 25;
 
 export default function Leads() {
+  const { isAdmin, isAdminSecondary } = useAuth();
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [open, setOpen] = useState(false);
@@ -200,10 +202,12 @@ export default function Leads() {
                 <Upload className="size-3.5 mr-2" />
                 Importar CSV
               </Button>
-              <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
-                <Plus className="size-3.5 mr-2" />
-                Novo Lead
-              </Button>
+              {(isAdmin || isAdminSecondary) && (
+                <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
+                  <Plus className="size-3.5 mr-2" />
+                  Novo Lead
+                </Button>
+              )}
             </div>
           </div>
         }

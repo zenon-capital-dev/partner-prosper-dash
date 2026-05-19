@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight, Handshake,
   Users2, Wallet, TrendingUp, CheckCircle2, Clock3, Award, Crown,
@@ -29,6 +30,7 @@ type SortKey = "recent" | "name" | "commissions" | "clients";
 type ViewMode = "list" | "grid";
 
 export default function Partners() {
+  const { isAdmin, isAdminSecondary } = useAuth();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -219,9 +221,11 @@ export default function Partners() {
         description="Gerencie sua rede de indicações e parceiros estratégicos com visibilidade total de ganhos e performance."
         icon={<Handshake className="size-6" />}
         actions={
-          <Button size="sm" onClick={openNew} className="action-button btn-primary shadow-xl">
-            <Plus className="size-4" strokeWidth={3} /> Novo Parceiro
-          </Button>
+          (isAdmin || isAdminSecondary) && (
+            <Button size="sm" onClick={openNew} className="action-button btn-primary shadow-xl">
+              <Plus className="size-4" strokeWidth={3} /> Novo Parceiro
+            </Button>
+          )
         }
         kpis={[
           { label: "Total Rede", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" /> },
