@@ -58,6 +58,13 @@ export default function Indicators() {
     }).filter((r: any) => !search || r.full_name?.toLowerCase().includes(search.toLowerCase()) || r.email?.toLowerCase().includes(search.toLowerCase()));
   }, [referrers, splits, clientsByReferrer, search]);
 
+  const totalPages = Math.ceil(enriched.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return enriched.slice(start, start + itemsPerPage);
+  }, [enriched, currentPage]);
+
+
   const totals = useMemo(() => ({
     count: enriched.length,
     active: enriched.filter((r: any) => r.active).length,
