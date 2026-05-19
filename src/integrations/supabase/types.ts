@@ -2540,6 +2540,105 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_documents: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          description: string | null
+          file_name: string | null
+          file_url: string | null
+          id: string
+          is_required: boolean | null
+          name: string
+          product_id: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          description?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          is_required?: boolean | null
+          name: string
+          product_id?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          description?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          is_required?: boolean | null
+          name?: string
+          product_id?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_documents_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_documents_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      onboarding_history: {
+        Row: {
+          action: string
+          client_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          client_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          client_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          performed_by?: string | null
+        }
+        Relationships: []
+      }
       partner_products: {
         Row: {
           active: boolean
@@ -3034,6 +3133,10 @@ export type Database = {
           has_system_access: boolean | null
           id: string
           internal_notes: string | null
+          manual_approval_required: boolean | null
+          onboarding_completed: boolean | null
+          onboarding_started_at: string | null
+          onboarding_step: number | null
           phone: string | null
           referral_id: string | null
           updated_at: string
@@ -3056,6 +3159,10 @@ export type Database = {
           has_system_access?: boolean | null
           id: string
           internal_notes?: string | null
+          manual_approval_required?: boolean | null
+          onboarding_completed?: boolean | null
+          onboarding_started_at?: string | null
+          onboarding_step?: number | null
           phone?: string | null
           referral_id?: string | null
           updated_at?: string
@@ -3078,6 +3185,10 @@ export type Database = {
           has_system_access?: boolean | null
           id?: string
           internal_notes?: string | null
+          manual_approval_required?: boolean | null
+          onboarding_completed?: boolean | null
+          onboarding_started_at?: string | null
+          onboarding_step?: number | null
           phone?: string | null
           referral_id?: string | null
           updated_at?: string
