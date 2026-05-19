@@ -122,11 +122,11 @@
     --secondary: 240 10% 8%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 224 45% 10%;
-    --muted-foreground: 220 10% 65%;
+    --muted: 240 10% 8%;
+    --muted-foreground: 240 5% 75%;
 
-    --accent: 250 90% 70% / 0.15;
-    --accent-foreground: 250 90% 85%;
+    --accent: 240 10% 12%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 85% 65%;
     --destructive-foreground: 0 0% 100%;
