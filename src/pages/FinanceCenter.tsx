@@ -100,7 +100,7 @@ export default function FinanceCenter() {
   };
 
   return (
-    <div className="page-shell space-y-6 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Financeiro"
         title="Central Financeira"
@@ -120,6 +120,7 @@ export default function FinanceCenter() {
         ]}
       />
 
+      <div className="px-5 lg:px-8 space-y-6 pb-10">
       {alerts.length > 0 && (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -155,6 +156,7 @@ export default function FinanceCenter() {
         <TabsContent value="por_cliente" className="mt-6"><ByClient payments={payments} /></TabsContent>
         <TabsContent value="relatorios" className="mt-6"><Reports payments={payments} commissions={commissions} /></TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

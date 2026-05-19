@@ -233,7 +233,7 @@ export default function Demands() {
   };
 
   return (
-    <div className="page-shell space-y-8 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Operations"
         category="Demand Center"
@@ -249,7 +249,7 @@ export default function Demands() {
       />
 
       <Tabs defaultValue="agenda" className="space-y-6">
-        <TabsList className="bg-white border border-slate-200/70 p-1 h-12 shadow-sm">
+        <TabsList className="bg-white border border-slate-200/70 p-1 h-12 shadow-sm ml-5 lg:ml-8">
           <TabsTrigger
             value="agenda"
             className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 gap-2 h-10 px-4 font-semibold"
@@ -268,7 +268,7 @@ export default function Demands() {
           <DailyAgenda />
         </TabsContent>
 
-        <TabsContent value="operacional" className="mt-0 space-y-4">
+        <TabsContent value="operacional" className="mt-0 space-y-4 px-5 lg:px-8">
       <div className="space-y-4">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
           <div className="relative flex-1 w-full lg:max-w-md">
@@ -759,5 +759,4 @@ export default function Demands() {
       </Tabs>
     </div>
   );
-
 }

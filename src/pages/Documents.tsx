@@ -308,7 +308,7 @@ export default function Documents() {
   };
 
   return (
-    <div className="page-shell space-y-6 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Documentos"
         category="Central de Arquivos"
