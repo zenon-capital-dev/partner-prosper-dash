@@ -175,8 +175,16 @@ const partnerSections: NavSection[] = [
     ],
   },
   {
+    label: "Recursos",
+    items: [
+      { title: "Materiais", url: "/parceiro/materiais", icon: FolderArchive },
+      { title: "Suporte", url: "/parceiro/suporte", icon: LifeBuoy },
+    ],
+  },
+  {
     label: "Conta",
     items: [
+      { title: "Dados Bancários", url: "/parceiro/perfil", icon: Wallet },
       { title: "Meu Perfil", url: "/perfil", icon: UserCog },
     ],
   },
@@ -193,12 +201,21 @@ const referrerSections: NavSection[] = [
     label: "Indicações",
     items: [
       { title: "Meus Indicados", url: "/indicador/indicacoes", icon: Users },
+      { title: "Nova Indicação", url: "/indicador/nova", icon: Sparkles },
     ],
   },
   {
     label: "Financeiro",
     items: [
       { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
+      { title: "Comissões", url: "/indicador/comissoes", icon: CircleDollarSign },
+    ],
+  },
+  {
+    label: "Recursos",
+    items: [
+      { title: "Materiais", url: "/indicador/materiais", icon: FolderArchive },
+      { title: "Suporte", url: "/indicador/suporte", icon: LifeBuoy },
     ],
   },
   {
