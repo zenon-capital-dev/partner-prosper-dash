@@ -281,9 +281,9 @@ export default function Commissions() {
 
   const confirmPay = async () => {
     if (!payTarget?.ids?.length) return;
-    const payload = {
-      workflow_status: "pago" as const,
-      status: "pago" as const,
+    const payload: any = {
+      workflow_status: "paga",
+      status: "pago",
       paid_at: new Date(payForm.paid_at).toISOString(),
       payment_method: payForm.payment_method,
       notes: payForm.notes || null,
