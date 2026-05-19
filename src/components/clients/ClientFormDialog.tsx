@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { KeyRound, Eye, EyeOff, Sparkles, Copy, FileText, Plus, X, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits, maskCPFCNPJ, maskPhoneBR, maskCEP } from "@/lib/masks";
+import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
 
 interface Props {
   open: boolean;
@@ -115,17 +118,25 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     }
 
     setSubmitting(true);
+    // Validações de máscara
+    if (form.document && !isValidCPFOrCNPJ(form.document)) {
+      toast.error("CPF/CNPJ inválido"); return;
+    }
+    if (form.phone && !isValidPhoneBR(form.phone)) {
+      toast.error("Telefone inválido"); return;
+    }
+
     const payload = {
       full_name: form.full_name,
       email: form.email || null,
-      phone: form.phone || null,
-      document: form.document || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      document: form.document ? onlyDigits(form.document) : null,
       company: form.company || null,
       address: form.address || null,
       address_street: form.address_street || null,
       address_number: form.address_number || null,
       address_neighborhood: form.address_neighborhood || null,
-      address_zip_code: form.address_zip_code || null,
+      address_zip_code: form.address_zip_code ? onlyDigits(form.address_zip_code) : null,
       city: form.city || null,
       state: form.state || null,
       status: form.status,
@@ -245,11 +256,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           </div>
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
           </div>
           <div className="space-y-2">
             <Label>CPF/CNPJ</Label>
-            <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} />
+            <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
           </div>
           <div className="space-y-2">
             <Label>Empresa</Label>
@@ -271,7 +282,25 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           </div>
           <div className="space-y-2">
             <Label>CEP</Label>
-            <Input value={form.address_zip_code ?? ""} onChange={(e) => setForm({ ...form, address_zip_code: e.target.value })} />
+            <MaskedInput
+              mask="cep"
+              value={form.address_zip_code ?? ""}
+              onChange={(v) => setForm({ ...form, address_zip_code: v })}
+              onBlur={async () => {
+                const r = await lookupCEP(form.address_zip_code ?? "");
+                if (r) {
+                  setForm((p: any) => ({
+                    ...p,
+                    address_street: p.address_street || r.logradouro,
+                    address_neighborhood: p.address_neighborhood || r.bairro,
+                    city: p.city || r.localidade,
+                    state: p.state || r.uf,
+                  }));
+                  toast.success("Endereço preenchido pelo CEP");
+                }
+              }}
+              placeholder="00000-000"
+            />
           </div>
           <div className="space-y-2">
             <Label>Cidade</Label>

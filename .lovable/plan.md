@@ -1,83 +1,85 @@
-# Plano de execução
+# Continuação — CRUD completo + máscaras + sincronização
 
-Vou dividir em 4 frentes. Tudo entra em um único ciclo de implementação, com verificação ao final.
+Pego de onde paramos. Foco em garantir que **criar, vincular, editar, salvar e apagar** funcione 100% em todas as entidades, com máscaras profissionais e propagação correta entre admin/colaborador/parceiro/prestador.
 
-## 1. Testes automatizados de isolamento por colaborador
+## 1. Finalizar máscaras BR em todos os formulários
 
-Configurar Vitest + Testing Library (se ainda não estiver) e criar suíte de testes de RLS direto no banco usando `supabase-js` com JWT de usuários de teste.
+Já criei `src/lib/masks.ts`, `src/lib/validators.ts` e `src/components/ui/masked-input.tsx`. Falta aplicar:
 
-**Arquivos novos:**
-- `vitest.config.ts`, `src/test/setup.ts` (se não existirem)
-- `src/test/rls/collaborator-isolation.test.ts` — cria 2 colaboradores fake via service role, cria clientes/demandas/tasks vinculados a cada um, autentica como cada colaborador e valida:
-  - `clients`: só vê os próprios (via `collaborator_id` ou demanda atribuída)
-  - `client_products`: só vê onde `responsible_employee_id = auth.uid()`
-  - `tasks`: só vê onde `assigned_to = auth.uid()`
-  - `commissions` / `commission_splits`: só vê onde `beneficiary_id = auth.uid()` quando `beneficiary_type='collaborator'`
-  - `sales`: só vê onde `collaborator_id = auth.uid()`
-  - `documents`: só vê documentos de demandas dele
-  - Contadores do dashboard batem com os registros visíveis
-- `src/test/rls/admin-write-flow.test.ts` — simula o fluxo completo como admin (registrar cliente → vincular colaborador + prestador → criar demanda → criar venda → conferir propagação automática via triggers)
-- `src/test/helpers/test-users.ts` — helper para criar/limpar usuários de teste com `SUPABASE_SERVICE_ROLE_KEY`
+- `ClientFormDialog` — CPF/CNPJ (auto-detect), telefone, CEP com **auto-fill ViaCEP** (preenche rua/bairro/cidade/UF). Salvar apenas dígitos no banco.
+- `LeadFormDialog` — telefone, WhatsApp.
+- `CompanyFormDialog` — CNPJ, telefone, CEP + ViaCEP.
+- `ProviderFormDialog` — CPF/CNPJ, telefone.
+- `Partners.tsx`, `Collaborators.tsx`, `Indicators.tsx` (formulários inline) — CPF/CNPJ, telefone.
+- `Perfil.tsx`, `ClientOnboarding.tsx` — telefone, documento, CEP.
 
-**Política de execução:** rodar em banco de teste (skip se `SUPABASE_SERVICE_ROLE_KEY` não estiver presente no env local).
+## 2. Auditoria de CRUD — fluxo end-to-end
 
-## 2. Auditoria + correção dos bugs encontrados pelos testes
+Vou rodar cada operação manualmente no banco e validar:
 
-Cada falha vira correção imediata:
-- RLS faltando em alguma tabela → migration adicional
-- Trigger de propagação não disparando → ajuste no trigger
-- Contadores do `CollaboratorPanel` somando registros que não deviam → corrigir queries com `.or('collaborator_id.eq...,responsible_id.eq...')`
-- Comissões: garantir que `commission_splits` para `beneficiary_type='collaborator'` aparecem em `/colaborador/comissoes` (criar a aba se não existir)
+**Criar:**
+- Cliente com colaborador + parceiro + prestador → checar que `clients.collaborator_id`, `partner_id`, `referrer_id`, `service_provider_id` ficam preenchidos.
+- Trigger `propagate_client_collaborator` propaga para `client_products.responsible_employee_id`.
+- Demanda nova herda `responsible_employee_id` via `fill_client_product_responsible`.
+- Task nova herda `assigned_to` via `fill_task_assigned_from_demand`.
+- Venda gera comissão via `handle_new_sale` + splits via `generate_commission_splits`.
 
-## 3. Máscaras profissionais BR
+**Editar:**
+- Trocar colaborador de um cliente já existente → propaga para demandas órfãs/desse colaborador (trigger já faz, validar).
+- Editar lead e converter → garante que `responsible_id` vai pra `clients.collaborator_id` e `client_products.responsible_employee_id`.
 
-Criar utilitários reutilizáveis e aplicar em **todos** os formulários (Clientes, Leads, Parceiros, Prestadores, Colaboradores, Perfil):
+**Apagar / Arquivar:**
+- `Products.handleDelete` já trata FK (feito).
+- Replicar mesma lógica para: **Clientes** (verificar `sales`, `client_products`, `contracts`, `payments`, `documents` → desativar se vinculado, deletar se órfão), **Leads** (deletar limpo, sem FK pesada), **Parceiros/Prestadores/Colaboradores/Indicadores** (desativar via `active=false` se tem vínculo, deletar se órfão).
+- Adicionar confirmação clara com contagem de vínculos antes de qualquer destrutivo.
 
-**Arquivos novos:**
-- `src/lib/masks.ts` — funções `maskCPF`, `maskCNPJ`, `maskCPFCNPJ` (auto-detect), `maskCEP`, `maskPhoneBR` (fixo + celular 9 dígitos), `maskCurrencyBR`, `unmask`
-- `src/lib/validators.ts` — `isValidCPF`, `isValidCNPJ`, `isValidCEP`, `isValidPhoneBR` (algoritmo de dígitos verificadores reais, não só regex)
-- `src/components/ui/masked-input.tsx` — wrapper de `<Input>` que aceita `mask="cpf|cnpj|cpfcnpj|cep|phone|currency"`
-- Integração com schemas Zod já existentes (refine com validators)
-- Auto-fill de endereço via ViaCEP ao completar 8 dígitos no CEP
+**Visualização cruzada:**
+- Cliente criado por admin com colaborador X → aparece em `/colaborador` (Dashboard, Minhas Demandas, Clientes, Tarefas).
+- Cliente vinculado a parceiro Y → aparece em `/parceiro`.
+- Demanda delegada a prestador Z → aparece em `/prestador`.
+- Comissão gerada → aparece em `/colaborador/comissoes`, `/parceiro/comissoes`, `/indicador`.
 
-**Arquivos editados:** `ClientFormDialog.tsx`, `LeadFormDialog.tsx`, `PartnerFormDialog.tsx`, `ProviderFormDialog.tsx`, `EmployeeFormDialog.tsx`, `Perfil.tsx`, `ClienteOnboarding.tsx`.
+Cada gap encontrado vira correção imediata (migration de RLS, ajuste de query, ajuste de trigger).
 
-## 4. Redesign Leads + Criar Cliente
+## 3. Padronizar handlers CRUD
 
-Manter o tema admin claro premium (Linear/Attio/Stripe) que está na memória do projeto. Não tocar em paleta/fontes — só elevar composição:
+Criar helpers reutilizáveis:
 
-**`/admin/leads`:**
-- Header com busca proeminente + filtros como chips removíveis (não dropdowns soltos)
-- Toggle Kanban/Tabela mais elegante (segmented control)
-- Cards do Kanban: avatar do lead, badge de origem colorida, valor estimado em mono, próxima ação com ícone, footer com dias na coluna
-- Coluna com contador + valor total no topo
-- Empty states ilustrativos
+- `src/lib/safe-delete.ts` — `safeDelete({ table, id, fkChecks: [{ table, column }] })` que retorna `{ canDelete, blockedBy }` e oferece fallback de desativar.
+- `src/lib/format-display.ts` — `formatCPFCNPJ`, `formatPhone`, `formatCEP` para exibir formatado em listas/cards (dados salvos em dígitos puros).
 
-**`ClientFormDialog`:**
-- Dialog vira wizard de 3 passos (Dados básicos → Endereço/Documentos → Vínculos: colaborador, parceiro, prestador) com stepper no topo
-- Cada passo com validação antes de avançar
-- Resumo no último passo antes de salvar
-- Em mobile: vira full-screen sheet com footer fixo
+Aplicar nos botões Excluir de: `Clients.tsx`, `Leads.tsx`, `Partners.tsx`, `Providers.tsx`, `Collaborators.tsx`, `Indicators.tsx`, `Sales.tsx`, `Contracts.tsx`.
 
-**`LeadFormDialog`:** mesmo padrão de wizard 2 passos (Contato → Qualificação).
+## 4. Smoke test de RLS + fluxo
+
+Criar `src/test/rls/end-to-end-flow.test.ts` que usa `SUPABASE_SERVICE_ROLE_KEY` (skip se ausente):
+
+1. Cria 2 colaboradores (A, B)
+2. Como admin: cria cliente vinculado a A, cria demanda, cria task, cria venda
+3. Loga como A → vê cliente, demanda, task, comissão
+4. Loga como B → **não** vê nada
+5. Como admin: troca responsável para B
+6. Loga como B → agora vê; A não vê mais
+
+Adicionar script `npm run test:rls`.
+
+## 5. Polish visual do Leads e ClientFormDialog
+
+(O que já tinha sido prometido no plano anterior)
+
+- `/admin/leads`: header com busca proeminente, filtros como chips removíveis, segmented control Kanban/Tabela, cards do Kanban com avatar + badge de origem + valor mono + footer com idade.
+- `ClientFormDialog`: virar **wizard de 3 passos** (Dados → Endereço/Documentos → Vínculos+Acesso) com stepper, validação por passo, resumo no último.
+- `LeadFormDialog`: wizard 2 passos (Contato → Qualificação).
 
 ---
 
-## Detalhes técnicos
-
-- **Triggers já existentes** (`propagate_client_collaborator`, `fill_client_product_responsible`, `fill_task_assigned_from_demand`) serão validados pelos testes — se houver gap, corrijo via migration.
-- **ViaCEP** é endpoint público, sem chave.
-- **Testes RLS** usam `createClient` com JWT manual (assinado pelo service role criando usuários temporários) — abordagem padrão pra testar policies sem mock.
-- **Stepper** usa componentes existentes do shadcn (Progress + estado local), sem nova dependência.
-
 ## Ordem de execução
 
-1. Setup de testes + suíte de isolamento → rodar → coletar falhas
-2. Corrigir falhas de RLS/trigger (migrations)
-3. Implementar máscaras + validators + aplicar em todos os forms
-4. Redesign do Leads (página + kanban)
-5. Redesign do ClientFormDialog e LeadFormDialog (wizard)
-6. Rodar testes novamente até 100% verde
-7. QA visual no mobile (375px) das telas refeitas
+1. Aplicar máscaras em todos os forms (item 1) + ViaCEP
+2. Criar `safe-delete.ts` e aplicar em Clientes, Parceiros, Prestadores, Colaboradores, Indicadores, Leads (item 3)
+3. Auditar fluxo CRUD via queries SQL e corrigir gaps (item 2)
+4. Wizard nos dialogs de Cliente e Lead + polish do Leads (item 5)
+5. Smoke test RLS (item 4)
+6. QA mobile 375px nas telas refeitas
 
 Posso seguir?

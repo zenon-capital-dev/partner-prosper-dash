@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Briefcase, User, Mail, Phone, IdCard, Star, Lock, Building2, Wallet } from "lucide-react";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits } from "@/lib/masks";
+import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
 
 interface Props {
   open: boolean;
@@ -42,13 +45,15 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
 
   const submit = async () => {
     if (!form.name?.trim()) { toast.error("Nome é obrigatório"); return; }
+    if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
     setSubmitting(true);
 
     const payload = {
       name: form.name,
       email: form.email || null,
-      phone: form.phone || null,
-      document_number: form.document_number || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      document_number: form.document_number ? onlyDigits(form.document_number) : null,
       specialty: form.specialty === "Outro" ? form.specialty_other : form.specialty || null,
       internal_notes: form.internal_notes || null,
       internal_rating: form.internal_rating ?? null,
@@ -114,7 +119,7 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
                 <Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Alpha Contabilidade ME" />
               </Field>
               <Field label="CPF / CNPJ">
-                <Input value={form.document_number ?? ""} onChange={(e) => setForm({ ...form, document_number: e.target.value })} placeholder="00.000.000/0001-00" />
+                <MaskedInput mask="cpfcnpj" value={form.document_number ?? ""} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="00.000.000/0001-00" />
               </Field>
               <Field label="Especialidade / Área">
                 <Select value={form.specialty ?? ""} onValueChange={(v) => setForm({ ...form, specialty: v })}>
@@ -138,7 +143,7 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
                 <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="contato@empresa.com" />
               </Field>
               <Field label="Telefone / WhatsApp">
-                <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+                <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
               </Field>
             </div>
           </Section>
