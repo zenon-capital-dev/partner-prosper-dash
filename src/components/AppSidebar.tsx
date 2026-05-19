@@ -340,7 +340,12 @@ export function AppSidebar() {
                 {portalLabel}
               </span>
               <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
-                Somente leitura
+                {showAdmin ? "Acesso total"
+                  : showPartner ? "Acesso parceiro"
+                  : showReferrer ? "Comissionado"
+                  : showPrestador ? "Operacional"
+                  : showClient ? "Portal cliente"
+                  : "Workspace"}
               </span>
             </div>
           )}
