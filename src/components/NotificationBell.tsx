@@ -62,7 +62,7 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="size-9 rounded-lg border border-border hover:bg-accent flex items-center justify-center transition-colors relative" aria-label="Notificações">
+        <button className="size-9 rounded-lg border border-border bg-white dark:bg-card hover:bg-accent flex items-center justify-center transition-colors relative" aria-label="Notificações">
           <Bell className="size-4 text-muted-foreground" />
           {unread > 0 && (
             <span className="absolute top-1 right-1 size-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">

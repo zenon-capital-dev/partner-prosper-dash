@@ -47,7 +47,7 @@ export function QuickCreateButton({ variant = "default" }: Props) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64 p-1.5">
-        <DropdownMenuLabel className="px-2.5 py-2 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+        <DropdownMenuLabel className="px-2.5 py-2 flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-muted-foreground">
           <Sparkles className="size-3" /> Criação rápida
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -59,7 +59,7 @@ export function QuickCreateButton({ variant = "default" }: Props) {
           >
             <item.icon className="size-4 text-muted-foreground" />
             <span className="flex-1">{item.label}</span>
-            <kbd className="text-[9.5px] font-mono font-semibold bg-muted border border-border rounded px-1.5 py-0.5 text-muted-foreground/70">
+            <kbd className="text-[9.5px] font-mono font-semibold bg-slate-100 dark:bg-muted border border-border rounded px-1.5 py-0.5 text-slate-500 dark:text-muted-foreground/70">
               {item.hint}
             </kbd>
           </DropdownMenuItem>
