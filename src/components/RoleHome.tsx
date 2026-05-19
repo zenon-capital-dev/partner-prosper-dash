@@ -63,8 +63,9 @@ export default function RoleHome() {
     return <LoadingScreen message="Identificando perfil..." />;
   }
 
-  // Admin, Admin Secondary, Colaborador e Vendedor (Comercial) usam o painel administrativo
-  if (isAdmin || isAdminSecondary || isColaborador || isVendedor) return <Navigate to="/admin" replace />;
+  // Admin, Admin Secondary e Vendedor (Comercial) usam o painel administrativo
+  if (isAdmin || isAdminSecondary || isVendedor) return <Navigate to="/admin" replace />;
+  if (isColaborador) return <Navigate to="/colaborador" replace />;
 
   // Specific role panels
   if (isParceiro) return <Navigate to="/parceiro" replace />;
