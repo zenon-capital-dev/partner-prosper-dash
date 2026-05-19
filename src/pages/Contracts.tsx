@@ -36,15 +36,15 @@ import { StatCard } from "@/components/StatCard";
 export type ContractStatus = 'rascunho' | 'enviado' | 'aguardando_assinatura' | 'assinado' | 'vencido' | 'cancelado' | 'finalizado' | 'criado' | 'pendente_correcao';
 
 const statusConfig: Record<ContractStatus, { label: string; color: string; icon: any }> = {
-  rascunho: { label: "Rascunho", color: "bg-slate-100 text-slate-600 border-slate-200", icon: FileText },
-  criado: { label: "Criado", color: "bg-slate-100 text-slate-600 border-slate-200", icon: FileText },
-  enviado: { label: "Enviado", color: "bg-info-muted text-info border-info/20", icon: Clock },
-  aguardando_assinatura: { label: "Aguar. Assinatura", color: "bg-warning-muted text-warning border-warning/20", icon: FileSignature },
-  assinado: { label: "Assinado", color: "bg-success-muted text-success border-success/20", icon: FileCheck2 },
-  vencido: { label: "Vencido", color: "bg-destructive-muted text-destructive border-destructive/20", icon: AlertCircle },
-  pendente_correcao: { label: "Pendente correção", color: "bg-orange-100 text-orange-700 border-orange-200", icon: AlertCircle },
-  cancelado: { label: "Cancelado", color: "bg-destructive-muted text-destructive border-destructive/20", icon: Ban },
-  finalizado: { label: "Finalizado", color: "bg-primary-muted text-primary border-primary/20", icon: CheckCircle2 },
+  rascunho: { label: "Rascunho", color: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20", icon: FileText },
+  criado: { label: "Criado", color: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20", icon: FileText },
+  enviado: { label: "Enviado", color: "bg-info-muted text-info border-info/20 dark:bg-info/10 dark:text-info dark:border-info/20", icon: Clock },
+  aguardando_assinatura: { label: "Aguar. Assinatura", color: "bg-warning-muted text-warning border-warning/20 dark:bg-warning/10 dark:text-warning dark:border-warning/20", icon: FileSignature },
+  assinado: { label: "Assinado", color: "bg-success-muted text-success border-success/20 dark:bg-success/10 dark:text-success dark:border-success/20", icon: FileCheck2 },
+  vencido: { label: "Vencido", color: "bg-destructive-muted text-destructive border-destructive/20 dark:bg-destructive/10 dark:text-destructive dark:border-destructive/20", icon: AlertCircle },
+  pendente_correcao: { label: "Pendente correção", color: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20", icon: AlertCircle },
+  cancelado: { label: "Cancelada", color: "bg-destructive-muted text-destructive border-destructive/20 dark:bg-destructive/10 dark:text-destructive dark:border-destructive/20", icon: Ban },
+  finalizado: { label: "Finalizado", color: "bg-primary-muted text-primary border-primary/20 dark:bg-primary/10 dark:text-primary dark:border-primary/20", icon: CheckCircle2 },
 };
 
 export default function Contracts() {

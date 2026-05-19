@@ -30,18 +30,18 @@ import { PageHero } from "@/components/PageHero";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<string, string> = {
-  "Novo": "bg-blue-100 text-blue-700",
-  "Em contato": "bg-indigo-100 text-indigo-700",
-  "Interessado": "bg-amber-100 text-amber-700",
-  "Proposta enviada": "bg-purple-100 text-purple-700",
-  "Aguardando resposta": "bg-slate-100 text-slate-700",
-  "Negociação": "bg-orange-100 text-orange-700",
-  "Fechado": "bg-emerald-100 text-emerald-700",
-  "Primeiro contato": "bg-cyan-100 text-cyan-700",
-  "Diagnóstico": "bg-indigo-100 text-indigo-700",
-  "Contrato enviado": "bg-amber-100 text-amber-700",
-  "Perdido": "bg-rose-100 text-rose-700",
-  "Sem resposta": "bg-zinc-100 text-zinc-700",
+  "Novo": "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
+  "Em contato": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300",
+  "Interessado": "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+  "Proposta enviada": "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
+  "Aguardando resposta": "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300",
+  "Negociação": "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300",
+  "Fechado": "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+  "Primeiro contato": "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300",
+  "Diagnóstico": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300",
+  "Contrato enviado": "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+  "Perdido": "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300",
+  "Sem resposta": "bg-zinc-100 text-zinc-700 dark:bg-zinc-500/20 dark:text-zinc-300",
 };
 
 const PAGE_SIZE = 25;
@@ -245,7 +245,7 @@ export default function Leads() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-border/50 bg-muted/20">
+                <tr className="border-b border-border/50 bg-muted/20 dark:bg-muted/10">
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Lead</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Origem / Indicação</th>

@@ -13,7 +13,7 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
   return (
-    <header className="h-[66px] px-3 sm:px-5 lg:px-8 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/88 dark:bg-card/88 backdrop-blur-2xl border-b border-slate-200/75 dark:border-border/75 shadow-[0_1px_0_hsl(220_13%_88%/0.65),0_18px_44px_-34px_hsl(222_47%_11%/0.32)]">
+    <header className="h-[66px] px-3 sm:px-5 lg:px-8 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/88 dark:bg-background/88 backdrop-blur-2xl border-b border-slate-200/75 dark:border-border/50 shadow-sm">
       <button
         type="button"
         onClick={onMenuClick}
@@ -60,10 +60,10 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
           Central Admin
         </div>
         <QuickCreateButton />
-        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card shadow-sm hover:border-slate-300 dark:hover:border-border/80 hover:bg-slate-50 dark:hover:bg-accent transition-colors text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border/50 bg-white dark:bg-card shadow-sm hover:border-slate-300 dark:hover:border-border hover:bg-slate-50 dark:hover:bg-accent transition-colors text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground">
           <InternalChat />
         </div>
-        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card shadow-sm hover:border-slate-300 dark:hover:border-border/80 hover:bg-slate-50 dark:hover:bg-accent transition-colors text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border/50 bg-white dark:bg-card shadow-sm hover:border-slate-300 dark:hover:border-border hover:bg-slate-50 dark:hover:bg-accent transition-colors text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground">
           <NotificationBell />
         </div>
       </div>

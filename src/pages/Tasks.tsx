@@ -36,12 +36,12 @@ import { confirmAction } from "@/lib/confirm";
 import { TaskDetailsExtras } from "@/components/tasks/TaskDetailsExtras";
 
 const STATUSES = [
-  { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200" },
-  { value: "em_andamento", label: "Em andamento", color: "bg-blue-50 text-blue-700 border-blue-200" },
-  { value: "aguardando_terceiros", label: "Aguardando terceiros", color: "bg-amber-50 text-amber-700 border-amber-200" },
-  { value: "bloqueada", label: "Bloqueada", color: "bg-rose-50 text-rose-700 border-rose-200" },
-  { value: "concluida", label: "Concluída", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  { value: "cancelada", label: "Cancelada", color: "bg-muted text-muted-foreground border-border" },
+  { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/20" },
+  { value: "em_andamento", label: "Em andamento", color: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20" },
+  { value: "aguardando_terceiros", label: "Aguardando terceiros", color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20" },
+  { value: "bloqueada", label: "Bloqueada", color: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20" },
+  { value: "concluida", label: "Concluída", color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20" },
+  { value: "cancelada", label: "Cancelada", color: "bg-muted text-muted-foreground border-border dark:bg-muted/10" },
 ] as const;
 
 const PRIORITIES = [

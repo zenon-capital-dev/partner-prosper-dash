@@ -105,35 +105,35 @@
 
   .dark {
     /* Obsidian — deep, cinematic */
-    --background: 224 45% 4%;
-    --foreground: 220 14% 96%;
+    --background: 224 45% 5%;
+    --foreground: 220 14% 98%;
 
-    --card: 224 40% 7%;
-    --card-foreground: 220 14% 96%;
+    --card: 224 45% 8%;
+    --card-foreground: 220 14% 98%;
 
-    --popover: 224 40% 8%;
-    --popover-foreground: 220 14% 96%;
+    --popover: 224 45% 8%;
+    --popover-foreground: 220 14% 98%;
 
-    --primary: 220 14% 96%;
-    --primary-foreground: 222 47% 11%;
-    --primary-muted: 224 28% 12%;
-    --primary-glow: 220 14% 96%;
+    --primary: 250 90% 70%;
+    --primary-foreground: 224 45% 5%;
+    --primary-muted: 224 45% 10%;
+    --primary-glow: 250 90% 70%;
 
-    --secondary: 224 30% 12%;
-    --secondary-foreground: 220 14% 96%;
+    --secondary: 224 45% 10%;
+    --secondary-foreground: 220 14% 98%;
 
-    --muted: 224 28% 11%;
-    --muted-foreground: 220 12% 64%;
+    --muted: 224 45% 10%;
+    --muted-foreground: 220 10% 65%;
 
-    --accent: 243 60% 16%;
-    --accent-foreground: 250 90% 80%;
+    --accent: 250 90% 70% / 0.15;
+    --accent-foreground: 250 90% 85%;
 
-    --destructive: 0 75% 60%;
+    --destructive: 0 85% 65%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 60% 16%;
+    --destructive-muted: 0 85% 15%;
 
-    --border: 224 30% 14%;
-    --input: 224 30% 14%;
+    --border: 224 45% 12%;
+    --input: 224 45% 12%;
     --ring: 250 90% 70%;
 
     --sidebar-background: 224 50% 2%;
@@ -180,7 +180,7 @@
   html { color-scheme: light; }
   html.dark { color-scheme: dark; }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900;
+    @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'ss03';
     -webkit-font-smoothing: antialiased;
@@ -220,7 +220,7 @@
 
   /* Premium Card — flat, hairline border, no glow */
   .vx-card {
-    @apply relative rounded-xl border border-border bg-card transition-all duration-200 shadow-sm;
+    @apply relative rounded-xl border border-border bg-card transition-all duration-300 shadow-sm;
   }
   .vx-card-hover { @apply transition-colors duration-200; }
   .vx-card-hover:hover {
@@ -349,20 +349,20 @@
   }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    --background: 224 45% 4%;
-    --foreground: 220 14% 96%;
-    --card: 224 40% 7%;
-    --card-foreground: 220 14% 96%;
-    --popover: 224 40% 8%;
-    --popover-foreground: 220 14% 96%;
+    --background: 224 45% 5%;
+    --foreground: 220 14% 98%;
+    --card: 224 45% 8%;
+    --card-foreground: 220 14% 98%;
+    --popover: 224 45% 8%;
+    --popover-foreground: 220 14% 98%;
     --primary: 250 90% 70%;
-    --primary-foreground: 224 45% 4%;
-    --secondary: 224 30% 12%;
-    --secondary-foreground: 220 14% 96%;
-    --muted: 224 28% 11%;
-    --muted-foreground: 220 12% 64%;
-    --border: 224 30% 14%;
-    --input: 224 30% 14%;
+    --primary-foreground: 224 45% 5%;
+    --secondary: 224 45% 10%;
+    --secondary-foreground: 220 14% 98%;
+    --muted: 224 45% 10%;
+    --muted-foreground: 220 10% 65%;
+    --border: 224 45% 12%;
+    --input: 224 45% 12%;
     --ring: 250 90% 70%;
     color-scheme: dark;
   }

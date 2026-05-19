@@ -23,13 +23,13 @@ interface Props {
 }
 
 const toneCfg: Record<string, { text: string; bg: string; ring: string; dot: string; grad: string; iconBg: string }> = {
-  primary: { text: "text-indigo-700", bg: "bg-indigo-50", ring: "ring-indigo-100", dot: "bg-indigo-500", grad: "from-indigo-500 to-indigo-600", iconBg: "bg-indigo-600" },
-  success: { text: "text-emerald-700", bg: "bg-emerald-50", ring: "ring-emerald-100", dot: "bg-emerald-500", grad: "from-emerald-500 to-emerald-600", iconBg: "bg-emerald-600" },
-  warning: { text: "text-amber-700", bg: "bg-amber-50", ring: "ring-amber-100", dot: "bg-amber-500", grad: "from-amber-500 to-amber-600", iconBg: "bg-amber-600" },
-  info: { text: "text-sky-700", bg: "bg-sky-50", ring: "ring-sky-100", dot: "bg-sky-500", grad: "from-sky-500 to-sky-600", iconBg: "bg-sky-600" },
-  danger: { text: "text-rose-700", bg: "bg-rose-50", ring: "ring-rose-100", dot: "bg-rose-500", grad: "from-rose-500 to-rose-600", iconBg: "bg-rose-600" },
-  violet: { text: "text-violet-700", bg: "bg-violet-50", ring: "ring-violet-100", dot: "bg-violet-500", grad: "from-violet-500 to-violet-600", iconBg: "bg-violet-600" },
-  default: { text: "text-slate-700", bg: "bg-slate-100", ring: "ring-slate-200", dot: "bg-slate-400", grad: "from-slate-400 to-slate-500", iconBg: "bg-slate-700" },
+  primary: { text: "text-indigo-700 dark:text-indigo-300", bg: "bg-indigo-50 dark:bg-indigo-500/10", ring: "ring-indigo-100 dark:ring-indigo-500/20", dot: "bg-indigo-500", grad: "from-indigo-500 to-indigo-600", iconBg: "bg-indigo-600" },
+  success: { text: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-500/10", ring: "ring-emerald-100 dark:ring-emerald-500/20", dot: "bg-emerald-500", grad: "from-emerald-500 to-emerald-600", iconBg: "bg-emerald-600" },
+  warning: { text: "text-amber-700 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", ring: "ring-amber-100 dark:ring-amber-500/20", dot: "bg-amber-500", grad: "from-amber-500 to-amber-600", iconBg: "bg-amber-600" },
+  info: { text: "text-sky-700 dark:text-sky-300", bg: "bg-sky-50 dark:bg-sky-500/10", ring: "ring-sky-100 dark:ring-sky-500/20", dot: "bg-sky-500", grad: "from-sky-500 to-sky-600", iconBg: "bg-sky-600" },
+  danger: { text: "text-rose-700 dark:text-rose-300", bg: "bg-rose-50 dark:bg-rose-500/10", ring: "ring-rose-100 dark:ring-rose-500/20", dot: "bg-rose-500", grad: "from-rose-500 to-rose-600", iconBg: "bg-rose-600" },
+  violet: { text: "text-violet-700 dark:text-violet-300", bg: "bg-violet-50 dark:bg-violet-500/10", ring: "ring-violet-100 dark:ring-violet-500/20", dot: "bg-violet-500", grad: "from-violet-500 to-violet-600", iconBg: "bg-violet-600" },
+  default: { text: "text-slate-700 dark:text-slate-300", bg: "bg-slate-100 dark:bg-slate-500/10", ring: "ring-slate-200 dark:ring-slate-500/20", dot: "bg-slate-400", grad: "from-slate-400 to-slate-500", iconBg: "bg-slate-700" },
 };
 
 export function PageHero({
@@ -48,8 +48,8 @@ export function PageHero({
     <section className="relative max-w-[1600px] mx-auto px-5 lg:px-8 pt-8 lg:pt-10 pb-2 space-y-7">
       {/* ambient — soft indigo wash, almost invisible */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-44 -left-32 size-[520px] rounded-full bg-indigo-200/25 blur-[140px]" />
-        <div className="absolute -top-32 right-0 size-[440px] rounded-full bg-sky-200/20 blur-[140px]" />
+        <div className="absolute -top-44 -left-32 size-[520px] rounded-full bg-indigo-200/25 dark:bg-indigo-950/20 blur-[140px]" />
+        <div className="absolute -top-32 right-0 size-[440px] rounded-full bg-sky-200/20 dark:bg-sky-900/10 blur-[140px]" />
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-300/40 to-transparent" />
       </div>
 
