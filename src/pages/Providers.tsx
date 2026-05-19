@@ -201,17 +201,27 @@ export default function Providers() {
             </Button>
           </div>
         ) : view === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {filtered.map((p: any) => (
-              <ProviderCard key={p.id}
-                provider={p}
-                onDetail={() => navigate(`/prestadores/${p.id}`)}
-                onEdit={() => { setEditing(p); setCreateOpen(true); }}
-                onAssign={() => { setAssignTarget(p); setAssignOpen(true); }}
-                onToggle={() => toggleActive(p)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              {paginated.map((p: any) => (
+                <ProviderCard key={p.id}
+                  provider={p}
+                  onDetail={() => navigate(`/prestadores/${p.id}`)}
+                  onEdit={() => { setEditing(p); setCreateOpen(true); }}
+                  onAssign={() => { setAssignTarget(p); setAssignOpen(true); }}
+                  onToggle={() => toggleActive(p)}
+                />
+              ))}
+            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </>
+
         ) : (
           <div className="vx-card overflow-hidden">
             <table className="w-full text-sm">
