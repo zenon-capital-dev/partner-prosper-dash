@@ -314,11 +314,12 @@ export default function DashboardAdmin() {
 
         {/* ============ OPERATIONAL ROW ============ */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <MiniStat label="Demandas atrasadas" value={stats.delayedDemands} hint={`${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={stats.delayedDemands > 0} />
-          <MiniStat label="Contratos abertos" value={stats.openContracts} hint={`${stats.waitingSignatureContracts} aguardando`} icon={FileSignature} to="/contratos" />
-          <MiniStat label="Docs pendentes" value={stats.pendingDocs} hint="Solicitações" icon={FileText} to="/documentos" />
-          <MiniStat label="Tarefas atrasadas" value={stats.overdueTasks} hint={`${stats.todayTasks} hoje`} icon={ClipboardList} to="/tarefas" negative={stats.overdueTasks > 0} />
-          <MiniStat label="Comissões" value={formatBRL(stats.commissionsToPay)} hint={`${stats.commissionsCount} lançamentos`} icon={Wallet} to="/comissoes" />
+            <MiniStat label="Demandas atrasadas" value={isGlobalLoading ? "-" : stats.delayedDemands} hint={isGlobalLoading ? "..." : `${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={!isGlobalLoading && stats.delayedDemands > 0} />
+            <MiniStat label="Contratos abertos" value={isGlobalLoading ? "-" : stats.openContracts} hint={isGlobalLoading ? "..." : `${stats.waitingSignatureContracts} aguardando`} icon={FileSignature} to="/contratos" />
+            <MiniStat label="Docs pendentes" value={isGlobalLoading ? "-" : stats.pendingDocs} hint="Solicitações" icon={FileText} to="/documentos" />
+            <MiniStat label="Tarefas atrasadas" value={isGlobalLoading ? "-" : stats.overdueTasks} hint={isGlobalLoading ? "..." : `${stats.todayTasks} hoje`} icon={ClipboardList} to="/tarefas" negative={!isGlobalLoading && stats.overdueTasks > 0} />
+            <MiniStat label="Comissões" value={isGlobalLoading ? "-" : formatBRL(stats.commissionsToPay)} hint={isGlobalLoading ? "..." : `${stats.commissionsCount} lançamentos`} icon={Wallet} to="/comissoes" />
+
         </section>
 
         {/* ============ CHART + STATUS PIE ============ */}
