@@ -34,7 +34,7 @@ const toneColor: Record<Tone, { text: string; bg: string; border: string; chart:
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "PERSONALIZADO">("30 DIAS");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "PERSONALIZADO">("HOJE");
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [customOpen, setCustomOpen] = useState(false);
 
@@ -72,7 +72,19 @@ export default function DashboardAdmin() {
   });
   const { data: tasks = [] } = useQuery({
     queryKey: ["dash-tasks"],
-    queryFn: async () => (await supabase.from("tasks").select("*").limit(20)).data ?? [],
+    queryFn: async () => (await supabase.from("tasks").select("*")).data ?? [],
+  });
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["dash-contracts"],
+    queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at")).data ?? [],
+  });
+  const { data: docRequests = [] } = useQuery({
+    queryKey: ["dash-doc-requests"],
+    queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [],
+  });
+  const { data: payments = [] } = useQuery({
+    queryKey: ["dash-payments"],
+    queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [],
   });
 
   const stats = useMemo(() => {
@@ -96,13 +108,51 @@ export default function DashboardAdmin() {
     const filteredSales = sales.filter((s: any) => s.sale_date && s.sale_date >= startISO && s.sale_date <= endISO);
     const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
     const activeClients = clients.filter((c: any) => c.status === "ativo").length;
-    
-    const delayedDemands = clientProducts.filter((p: any) => 
-      p.status === "atrasado" || 
+
+    const delayedDemands = clientProducts.filter((p: any) =>
+      p.status === "atrasado" ||
       (p.deadline && new Date(p.deadline) < now && !["concluido", "cancelado"].includes(p.status))
     ).length;
 
     const pipelineTotal = leads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
+
+    // === Novos indicadores ===
+    const openContracts = contracts.filter((c: any) =>
+      ["criado", "enviado", "aguardando_assinatura"].includes(c.status)
+    ).length;
+    const waitingSignatureContracts = contracts.filter((c: any) =>
+      c.status === "aguardando_assinatura" || c.status === "enviado"
+    ).length;
+    const pendingDocs = docRequests.filter((d: any) =>
+      ["solicitado", "pendente_correcao", "pendente", "enviado", "em_analise"].includes(d.status)
+    ).length;
+    const overdueTasks = tasks.filter((t: any) =>
+      t.status !== "concluida" && t.status !== "completed" && t.due_date && new Date(t.due_date) < now
+    ).length;
+    const todayTasks = tasks.filter((t: any) => {
+      if (!t.due_date) return false;
+      const due = new Date(t.due_date);
+      return due.toDateString() === now.toDateString();
+    }).length;
+    const commissionsToPay = commissions
+      .filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status))
+      .reduce((a, c: any) => a + Number(c.amount || 0), 0);
+    const commissionsCount = commissions.filter((c: any) =>
+      ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status)
+    ).length;
+
+    // Financeiro
+    const in7d = new Date(brasiliaToday); in7d.setDate(brasiliaToday.getDate() + 7);
+    const todayISO = toISO(brasiliaToday);
+    const in7ISO = toISO(in7d);
+    const receivable7d = payments
+      .filter((p: any) => ["pendente", "em_aberto", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date >= todayISO && p.due_date <= in7ISO)
+      .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
+    const receivable7dCount = payments.filter((p: any) => ["pendente", "em_aberto", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date >= todayISO && p.due_date <= in7ISO).length;
+    const overdueAmount = payments
+      .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO)
+      .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
+    const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
 
     // Chart data (last 6 months)
     const chartData = Array.from({ length: 6 }).map((_, i) => {
@@ -130,20 +180,25 @@ export default function DashboardAdmin() {
       rangeRevenue, activeClients, delayedDemands, pipelineTotal,
       chartData, demandsByStatus, recentSales: recentSalesEnriched,
       leadsCount: leads.length,
-      commissionsTotal: commissions.filter(c => c.status === "pendente").reduce((a, c) => a + Number(c.amount || 0), 0)
+      openContracts, waitingSignatureContracts,
+      pendingDocs, overdueTasks, todayTasks,
+      commissionsToPay, commissionsCount,
+      receivable7d, receivable7dCount,
+      overdueAmount, overdueCount,
+      totalClients: clients.length,
     };
-  }, [clients, clientProducts, sales, leads, commissions, rangeKey, customRange, brasiliaToday]);
+  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, customRange, brasiliaToday]);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      <div className="max-w-[1600px] mx-auto px-6 py-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-        
+      <div className="max-w-[1600px] mx-auto px-6 py-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+
         {/* TOP BAR / NAVIGATION */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                PRO DASHBOARD
+                PAINEL ADMIN
               </div>
               <div className="h-px w-8 bg-slate-200" />
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
@@ -158,7 +213,7 @@ export default function DashboardAdmin() {
 
           <div className="flex items-center gap-3">
             <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
-              {(["7 DIAS", "30 DIAS", "MÊS"] as const).map((k) => (
+              {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setRangeKey(k)}
@@ -171,8 +226,8 @@ export default function DashboardAdmin() {
                 </button>
               ))}
             </div>
-            <Link 
-              to="/vendas?new=1" 
+            <Link
+              to="/vendas?new=1"
               className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:shadow-indigo-200 transition-all active:scale-95"
             >
               <Plus className="size-4 stroke-[3]" />
@@ -181,42 +236,81 @@ export default function DashboardAdmin() {
           </div>
         </header>
 
-        {/* BENTO GRID START */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          {/* MAIN STATS */}
-          <StatCard 
-            label="RECEITA TOTAL" 
-            value={formatBRL(stats.rangeRevenue)} 
-            trend="+12.5%" 
-            icon={CircleDollarSign} 
+        {/* === LINHA 1: KPIs PRINCIPAIS === */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <StatCard
+            label="RECEITA DO PERÍODO"
+            value={formatBRL(stats.rangeRevenue)}
+            trend={rangeKey}
+            icon={CircleDollarSign}
             tone="primary"
-            subText="Baseado no período selecionado"
+            subText="Vendas no período selecionado"
           />
-          <StatCard 
-            label="CLIENTES ATIVOS" 
-            value={stats.activeClients.toString()} 
-            trend="+3" 
-            icon={Users} 
+          <StatCard
+            label="CLIENTES ATIVOS"
+            value={stats.activeClients.toString()}
+            trend={`${stats.totalClients} total`}
+            icon={Users}
             tone="success"
             subText="Contas com contratos vigentes"
           />
-          <StatCard 
-            label="PIPELINE CRM" 
-            value={formatBRL(stats.pipelineTotal)} 
-            trend="Stable" 
-            icon={Target} 
+          <StatCard
+            label="OPORTUNIDADES ABERTAS"
+            value={formatBRL(stats.pipelineTotal)}
+            trend={`${stats.leadsCount} leads`}
+            icon={Target}
             tone="warning"
-            subText={`${stats.leadsCount} negociações abertas`}
+            subText="Valor estimado em negociação"
           />
-          <StatCard 
-            label="ENTREGAS ATRASADAS" 
-            value={stats.delayedDemands.toString()} 
-            trend="-2" 
-            icon={Clock} 
+          <StatCard
+            label="ENTREGAS ATRASADAS"
+            value={stats.delayedDemands.toString()}
+            trend="SLA"
+            icon={Clock}
             tone="danger"
-            subText="Demandas fora do prazo legal"
+            subText="Demandas fora do prazo"
           />
+        </div>
+
+        {/* === LINHA 2: OPERACIONAL DETALHADO === */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <MiniStat label="Contratos abertos" value={stats.openContracts} hint={`${stats.waitingSignatureContracts} aguardando assinatura`} icon={FileSignature} to="/contratos" tone="primary" />
+          <MiniStat label="Docs pendentes" value={stats.pendingDocs} hint="Solicitações em aberto" icon={FileText} to="/documentos" tone="info" />
+          <MiniStat label="Tarefas em atraso" value={stats.overdueTasks} hint={`${stats.todayTasks} previstas para hoje`} icon={ClipboardList} to="/tarefas" tone="danger" />
+          <MiniStat label="Comissões a pagar" value={formatBRL(stats.commissionsToPay)} hint={`${stats.commissionsCount} lançamento(s)`} icon={Wallet} to="/comissoes" tone="warning" />
+        </div>
+
+        {/* === LINHA 3: RESUMO FINANCEIRO === */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <FinanceCard
+            label="A RECEBER (7 DIAS)"
+            value={formatBRL(stats.receivable7d)}
+            sub={`${stats.receivable7dCount} título(s) a vencer`}
+            icon={PiggyBank}
+            tone="success"
+            to="/financeiro"
+          />
+          <FinanceCard
+            label="INADIMPLÊNCIA"
+            value={formatBRL(stats.overdueAmount)}
+            sub={`${stats.overdueCount} título(s) vencido(s)`}
+            icon={AlertTriangle}
+            tone="danger"
+            to="/financeiro"
+          />
+          <FinanceCard
+            label="COMISSÕES A LIBERAR"
+            value={formatBRL(stats.commissionsToPay)}
+            sub="Aguardando liberação"
+            icon={Receipt}
+            tone="warning"
+            to="/comissoes"
+          />
+        </div>
+
+        {/* BENTO GRID START */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
 
           {/* REVENUE CHART - LARGE */}
           <div className="md:col-span-2 lg:col-span-3 bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm overflow-hidden relative group">
