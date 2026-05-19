@@ -423,7 +423,12 @@ export default function DashboardAdmin() {
               right={<Link to="/vendas" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">Ver todas <ArrowUpRight className="size-3.5" /></Link>}
             />
             <div className="divide-y divide-slate-100 border-t border-slate-100">
-              {stats.recentSales.length > 0 ? stats.recentSales.map((s: any, i: number) => (
+              {isGlobalLoading ? (
+                <div className="py-12 flex justify-center">
+                  <div className="size-6 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : stats.recentSales.length > 0 ? stats.recentSales.map((s: any, i: number) => (
+
                 <Link to="/vendas" key={i} className="flex items-center justify-between px-6 py-3.5 hover:bg-slate-50/70 transition-colors group">
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="size-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 ring-1 ring-slate-200 flex items-center justify-center text-slate-700 font-bold text-[14px] shrink-0">
