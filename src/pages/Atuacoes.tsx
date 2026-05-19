@@ -175,7 +175,7 @@ export default function Atuacoes() {
     filtered.historico;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-black text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700 admin-shell">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#060608] text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700 admin-shell">
       <PageHero
         eyebrow="Operação"
         category="Atuações"
