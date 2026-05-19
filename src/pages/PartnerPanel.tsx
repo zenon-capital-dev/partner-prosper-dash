@@ -19,7 +19,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReferralDialog } from "@/components/ReferralDialog";
 
-const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos", "materiais", "suporte"] as const;
+const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos", "materiais", "perfil", "suporte"] as const;
 
 export default function PartnerPanel() {
   const { user } = useAuth();
@@ -148,6 +148,7 @@ export default function PartnerPanel() {
               <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Demandas ({demands.length})</TabsTrigger>
               <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Documentos ({contracts.length})</TabsTrigger>
               <TabsTrigger value="materiais" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Materiais</TabsTrigger>
+              <TabsTrigger value="perfil" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Dados Bancários</TabsTrigger>
               <TabsTrigger value="suporte" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Suporte</TabsTrigger>
            </TabsList>
 
@@ -327,6 +328,56 @@ export default function PartnerPanel() {
                 <h3 className="font-editorial text-2xl font-bold text-slate-900 mb-2">Central de Materiais</h3>
                 <p>Nesta área, você encontrará materiais de apoio, apresentações e templates para suas vendas.</p>
                 <div className="mt-8 text-sm text-slate-400 italic">Em desenvolvimento.</div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="perfil" className="animate-fade-up space-y-4">
+              <div className="vx-card bg-white rounded-[32px] overflow-hidden border border-slate-100">
+                <div className="p-8 border-b border-slate-100">
+                   <h3 className="font-editorial text-2xl font-bold text-slate-900">Seus dados de recebimento</h3>
+                   <p className="text-slate-500 text-sm mt-1">Mantenha seus dados atualizados para garantir os repasses das comissões.</p>
+                </div>
+                <div className="p-8 grid md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nome do Titular</p>
+                         <p className="font-bold text-slate-900 text-lg">{partner.full_name}</p>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">E-mail</p>
+                         <p className="font-bold text-slate-900">{partner.email}</p>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Documento</p>
+                         <p className="font-bold text-slate-900">{partner.document || "—"}</p>
+                      </div>
+                   </div>
+                   <div className="space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Chave PIX</p>
+                         <p className="font-bold text-slate-900 text-lg">{partner.pix_key || "—"}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Banco</p>
+                           <p className="font-bold text-slate-900 text-sm">{partner.bank_name || "—"}</p>
+                        </div>
+                        <div className="space-y-1">
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Agência</p>
+                           <p className="font-bold text-slate-900 text-sm">{partner.bank_agency || "—"}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Conta</p>
+                         <p className="font-bold text-slate-900 text-sm">{partner.bank_account || "—"}</p>
+                      </div>
+                   </div>
+                </div>
+                <div className="bg-slate-50 p-6 border-t border-slate-100 flex justify-end">
+                   <Button variant="outline" className="rounded-xl" onClick={() => window.open(`https://wa.me/?text=Olá, gostaria de atualizar meus dados bancários no Portal do Parceiro.`, "_blank")}>
+                      Solicitar Alteração
+                   </Button>
+                </div>
               </div>
             </TabsContent>
 
