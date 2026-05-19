@@ -224,24 +224,28 @@ export default function ClientPanel() {
         ) : (
           <>
             <section className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8 items-stretch">
-              <div className="bg-white border border-slate-200/70 rounded-2xl shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_28px_-16px_rgba(15,23,42,0.1)] p-7 lg:p-9 overflow-hidden">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                  <div className="max-w-2xl">
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 ring-1 ring-indigo-100 mb-4">
-                      <ShieldCheck className="size-3 text-indigo-600" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-700">Acesso liberado · Portal ativo</span>
+              <div className="relative overflow-hidden bg-slate-900 rounded-[32px] p-8 lg:p-12 text-white group shadow-2xl border border-slate-800">
+                <div className="absolute top-0 right-0 size-96 bg-indigo-500/20 blur-[100px] -mt-48 -mr-48 rounded-full" />
+                <div className="absolute bottom-0 left-0 size-64 bg-primary/10 blur-[80px] -mb-32 -ml-32 rounded-full" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-8">
+                  <div className="max-w-2xl space-y-5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
+                      <ShieldCheck className="size-3.5 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90">Portal Seguro · Ativo</span>
                     </div>
-                    <h1 className="font-display text-[32px] lg:text-[42px] font-bold tracking-[-0.025em] text-slate-900 leading-[1.06]">
-                      Olá, {firstName}.<br />Sua operação está organizada aqui.
+                    <h1 className="font-editorial text-[40px] lg:text-[56px] font-bold tracking-tight text-white leading-[1.05]">
+                      Olá, {firstName}.<br /><span className="italic text-primary font-medium">Sua operação</span> organizada.
                     </h1>
-                    <p className="text-[14px] text-slate-600 mt-4 leading-relaxed max-w-xl">
-                      Acompanhe demandas, documentos, contratos e pagamentos com visão clara do que precisa de ação e do que já foi entregue.
+                    <p className="text-[15px] text-white/70 mt-4 leading-relaxed max-w-xl font-medium">
+                      Acompanhe demandas, documentos, contratos e pagamentos com visão clara e suporte prioritário Prosper.
                     </p>
                   </div>
-                  <div className="md:text-right shrink-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Status do cadastro</p>
-                    <p className="text-sm font-bold text-slate-900 mt-1">{statusLabel(client.status)}</p>
-                    <p className="text-[11px] text-slate-500 mt-1">Desde {formatDate(client.created_at)}</p>
+                  <div className="md:text-right shrink-0 bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 mb-1">Status Geral</p>
+                    <p className="text-lg font-bold text-white tracking-tight">{statusLabel(client.status)}</p>
+                    <div className="h-px bg-white/10 my-3" />
+                    <p className="text-[11px] font-bold text-white/60">Desde {formatDate(client.created_at)}</p>
                   </div>
                 </div>
 
@@ -253,20 +257,20 @@ export default function ClientPanel() {
                 </div>
               </div>
 
-              <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 flex flex-col">
-                <div className="flex items-center justify-between mb-5">
+              <div className="bg-white border border-slate-200/70 rounded-[28px] shadow-xl p-7 flex flex-col group hover:shadow-2xl transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Prioridades</p>
-                    <h2 className="text-lg font-bold text-slate-900 mt-1">Ações necessárias</h2>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Fluxo de Trabalho</p>
+                    <h2 className="text-xl font-bold text-slate-900 mt-1">Ações prioritárias</h2>
                   </div>
-                  <span className="size-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Bell className="size-4" /></span>
+                  <span className="size-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm group-hover:rotate-12 transition-transform"><Bell className="size-5" /></span>
                 </div>
-                <div className="space-y-3 flex-1">
+                <div className="space-y-4 flex-1">
                   {criticalActions.map((item) => (
                     <ActionRow key={item.label} {...item} onClick={() => setActiveTab(item.tab)} />
                   ))}
                 </div>
-                <Button onClick={() => window.open(wa(), "_blank")} variant="outline" className="mt-5 h-10 rounded-lg border-slate-200 font-semibold text-slate-700 hover:bg-slate-50">
+                <Button onClick={() => window.open(wa(), "_blank")} className="mt-6 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
                   <MessageSquare className="size-4 mr-2" /> Falar com a equipe
                 </Button>
               </div>
@@ -483,13 +487,13 @@ function MetricTile({ label, value, sub, icon: Icon, tone = "info" }: { label: s
     danger: "bg-rose-50 text-rose-700 border-rose-100",
   }[tone];
   return (
-    <div className="rounded-xl border border-slate-200/70 bg-white p-4 min-w-0">
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 truncate">{label}</p>
-        <span className={cn("size-8 rounded-lg border flex items-center justify-center shrink-0", styles)}><Icon className="size-4" /></span>
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 min-w-0 shadow-sm group hover:shadow-md transition-all duration-300">
+      <div className="flex items-center justify-between gap-2 mb-5">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 truncate">{label}</p>
+        <span className={cn("size-9 rounded-xl border flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110", styles)}><Icon className="size-4.5" /></span>
       </div>
-      <p className="text-2xl font-bold tabular-nums text-slate-900 truncate leading-none">{value}</p>
-      {sub && <p className="text-[11px] text-slate-500 mt-2 truncate">{sub}</p>}
+      <p className="text-[28px] font-bold tabular-nums text-slate-900 truncate leading-none tracking-tight">{value}</p>
+      {sub && <p className="text-[11px] font-bold text-slate-500 mt-2.5 truncate">{sub}</p>}
     </div>
   );
 }
@@ -618,7 +622,7 @@ function ProductDetailView({ product, docs, reports, onBack, onOpenDocs, onSuppo
 
 function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
   return (
-    <TabsTrigger value={value} className="shrink-0 h-9 rounded-lg px-3 gap-2 text-[12px] font-semibold text-slate-600 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+    <TabsTrigger value={value} className="shrink-0 h-9 rounded-lg px-3 gap-2 text-[12px] font-semibold text-slate-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
       <Icon className="size-3.5" /><span>{label}</span>
       {count !== undefined && count > 0 && <span className={cn("min-w-5 h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums flex items-center justify-center", alert ? "bg-rose-500 text-white" : "bg-slate-100 text-slate-700")}>{count}</span>}
     </TabsTrigger>

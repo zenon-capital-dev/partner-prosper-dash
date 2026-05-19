@@ -273,11 +273,11 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-display text-[16px] font-extrabold tracking-tight text-slate-950">
-                  {portalTitle}
+                <p className="font-editorial text-[20px] font-bold tracking-tight text-slate-950">
+                  Prosper
                 </p>
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-indigo-700 mt-0.5">
-                  {portalLabel}
+                <p className="text-[10px] font-extrabold tracking-[0.25em] uppercase text-indigo-700 mt-0.5">
+                  {portalLabel} Portal
                 </p>
               </div>
             )}
@@ -303,7 +303,7 @@ export function AppSidebar() {
             <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
                 <div className="px-2.5 mb-2">
-                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
                     {section.label}
                   </span>
                 </div>

@@ -19,7 +19,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReferralDialog } from "@/components/ReferralDialog";
 
-const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos"] as const;
+const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos", "materiais", "perfil", "suporte"] as const;
 
 export default function PartnerPanel() {
   const { user } = useAuth();
@@ -113,38 +113,43 @@ export default function PartnerPanel() {
   return (
     <div className="bg-premium min-h-screen">
       <div className="page-shell space-y-12 py-12">
-        <section className="relative overflow-hidden rounded-[32px] bg-slate-900 p-8 lg:p-12 text-white group shadow-2xl">
-           <div className="absolute bottom-0 right-0 size-96 bg-primary/20 blur-[100px] -mb-48 -mr-48 rounded-full" />
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative">
-              <div className="space-y-4">
-                 <div className="flex items-center gap-3">
-                   <div className="size-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]" />
-                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Portal do Parceiro</span>
+        <section className="relative overflow-hidden rounded-[32px] bg-slate-900 p-8 lg:p-12 text-white group shadow-2xl border border-slate-800">
+           <div className="absolute top-0 right-0 size-96 bg-primary/20 blur-[100px] -mt-48 -mr-48 rounded-full" />
+           <div className="absolute bottom-0 left-0 size-64 bg-indigo-500/10 blur-[80px] -mb-32 -ml-32 rounded-full" />
+           
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8 relative z-10">
+              <div className="space-y-5">
+                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
+                   <div className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
+                   <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/90">Rede de Parceiros Prosper</span>
                  </div>
-                 <h1 className="font-editorial text-4xl lg:text-6xl font-bold tracking-tight leading-tight">
-                   Gerencie suas <br/><span className="italic text-primary">indicações</span> e ganhos.
+                 <h1 className="font-editorial text-[40px] lg:text-[56px] font-bold tracking-tight leading-[1.05]">
+                   Seus ganhos e <br/><span className="italic text-primary font-medium">indicações.</span>
                  </h1>
-                 <div className="flex items-center gap-4 text-white/80 font-medium text-lg">
+                 <div className="flex items-center gap-4 text-white/80 font-bold text-lg">
                    <span>{partner.full_name}</span>
                    <span className="size-1 bg-white/30 rounded-full" />
-                   <span className="text-primary">{Number(partner.commission_percent).toFixed(1)}% comissão</span>
+                   <span className="text-primary">{Number(partner.commission_percent).toFixed(1)}% comissão ativa</span>
                  </div>
               </div>
                <div className="flex flex-col sm:flex-row gap-3">
-                 <Button onClick={() => setReferralOpen(true)} className="w-full sm:w-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 px-8 shadow-lg shadow-primary/20">
-                   <Share2 className="size-4 mr-2" /> Indicar Novo Cliente
+                 <Button onClick={() => setReferralOpen(true)} className="w-full sm:w-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-14 px-8 shadow-xl shadow-primary/20 text-base transition-all hover:scale-[1.02] active:scale-[0.98]">
+                   <Share2 className="size-5 mr-2" /> Indicar Novo Cliente
                  </Button>
                </div>
-           </div>
+            </div>
         </section>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
            <TabsList className="bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl border border-slate-200 shadow-sm h-14 inline-flex flex-wrap overflow-x-auto whitespace-nowrap">
               <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Dashboard</TabsTrigger>
-              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Meus Indicados ({clients.length})</TabsTrigger>
-              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Minhas Comissões ({commissions.length})</TabsTrigger>
-              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Status de Demandas ({demands.length})</TabsTrigger>
+              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Indicados ({clients.length})</TabsTrigger>
+              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Comissões ({commissions.length})</TabsTrigger>
+              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Demandas ({demands.length})</TabsTrigger>
               <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Documentos ({contracts.length})</TabsTrigger>
+              <TabsTrigger value="materiais" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Materiais</TabsTrigger>
+              <TabsTrigger value="perfil" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Dados Bancários</TabsTrigger>
+              <TabsTrigger value="suporte" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Suporte</TabsTrigger>
            </TabsList>
 
            <TabsContent value="home" className="animate-fade-up space-y-8">
@@ -155,18 +160,18 @@ export default function PartnerPanel() {
                  <KpiCard label="Pagamento" value={totals.nextPayment ? formatDate(totals.nextPayment) : "—"} icon={Calendar} description="Próxima data prevista" />
               </div>
 
-              <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden">
+              <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden shadow-2xl border border-slate-800">
                 <div className="absolute top-0 right-0 size-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full" />
                 <div className="relative z-10 space-y-4">
                   <div className="space-y-2">
-                    <h3 className="font-editorial text-2xl font-bold">Como funciona a sua comissão</h3>
-                    <p className="text-white/60 text-sm max-w-xl">
-                      Toda comissão fica como <strong>aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong>liberada</strong> para repasse.
+                    <h3 className="font-editorial text-[28px] font-bold text-white tracking-tight leading-tight">Como funciona a sua comissão</h3>
+                    <p className="text-white/70 text-sm max-w-xl font-medium">
+                      Toda comissão fica como <strong className="text-white">aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong className="text-emerald-400">liberada</strong> para repasse.
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-white/10">
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Seu link de indicação</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-1">Seu link de indicação</p>
                       <code className="text-xs text-white/80 font-mono break-all">{`${window.location.origin}/?ref=${partner.id.slice(0, 8).toUpperCase()}`}</code>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -235,7 +240,7 @@ export default function PartnerPanel() {
               <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
                 <table className="w-full text-sm">
                    <thead>
-                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500 bg-slate-50/80 border-b border-slate-100">
+                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 bg-slate-50/80 border-b border-slate-100">
                          <th className="px-8 py-4 text-left">Produto / Serviço</th>
                          <th className="px-8 py-4 text-left">Cliente Final</th>
                          <th className="px-8 py-4 text-right">Valor Comissão</th>
@@ -266,7 +271,7 @@ export default function PartnerPanel() {
                 <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500 bg-slate-50/80 border-b border-slate-100">
+                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 bg-slate-50/80 border-b border-slate-100">
                         <th className="px-6 py-4 text-left">Cliente</th>
                         <th className="px-6 py-4 text-left">Produto / Demanda</th>
                         <th className="px-6 py-4 text-center">Etapa Atual</th>
@@ -316,7 +321,75 @@ export default function PartnerPanel() {
                   ))}
                 </div>
               )}
-           </TabsContent>
+            </TabsContent>
+
+            <TabsContent value="materiais" className="animate-fade-up space-y-4">
+              <div className="vx-card bg-white rounded-[32px] p-16 text-center text-slate-600">
+                <h3 className="font-editorial text-2xl font-bold text-slate-900 mb-2">Central de Materiais</h3>
+                <p>Nesta área, você encontrará materiais de apoio, apresentações e templates para suas vendas.</p>
+                <div className="mt-8 text-sm text-slate-400 italic">Em desenvolvimento.</div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="perfil" className="animate-fade-up space-y-4">
+              <div className="vx-card bg-white rounded-[32px] overflow-hidden border border-slate-100">
+                <div className="p-8 border-b border-slate-100">
+                   <h3 className="font-editorial text-2xl font-bold text-slate-900">Seus dados de recebimento</h3>
+                   <p className="text-slate-500 text-sm mt-1">Mantenha seus dados atualizados para garantir os repasses das comissões.</p>
+                </div>
+                <div className="p-8 grid md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Nome do Titular</p>
+                         <p className="font-bold text-slate-900 text-lg">{partner.full_name}</p>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">E-mail</p>
+                         <p className="font-bold text-slate-900">{partner.email}</p>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Documento</p>
+                         <p className="font-bold text-slate-900">{partner.document || "—"}</p>
+                      </div>
+                   </div>
+                   <div className="space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chave PIX</p>
+                         <p className="font-bold text-slate-900 text-lg">{partner.pix_key || "—"}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Banco</p>
+                           <p className="font-bold text-slate-900 text-sm">{partner.bank_name || "—"}</p>
+                        </div>
+                        <div className="space-y-1">
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Agência</p>
+                           <p className="font-bold text-slate-900 text-sm">{partner.bank_agency || "—"}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Conta</p>
+                         <p className="font-bold text-slate-900 text-sm">{partner.bank_account || "—"}</p>
+                      </div>
+                   </div>
+                </div>
+                <div className="bg-slate-50 p-6 border-t border-slate-100 flex justify-end">
+                   <Button variant="outline" className="rounded-xl" onClick={() => window.open(`https://wa.me/?text=Olá, gostaria de atualizar meus dados bancários no Portal do Parceiro.`, "_blank")}>
+                      Solicitar Alteração
+                   </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="suporte" className="animate-fade-up space-y-4">
+              <div className="vx-card bg-white rounded-[32px] p-16 text-center text-slate-600">
+                <h3 className="font-editorial text-2xl font-bold text-slate-900 mb-2">Suporte ao Parceiro</h3>
+                <p>Precisa de ajuda com uma indicação ou comissão? Fale diretamente com nossa equipe.</p>
+                <Button className="mt-8 rounded-xl bg-slate-900 text-white h-12 px-8 shadow-lg hover:bg-slate-800" onClick={() => window.open(`https://wa.me/?text=Olá, preciso de suporte no Portal do Parceiro.`, "_blank")}>
+                   Falar com equipe
+                </Button>
+              </div>
+            </TabsContent>
         </Tabs>
         <ReferralDialog open={referralOpen} onOpenChange={setReferralOpen} mode="partner" ownerId={partner.id} queryKey={panelQueryKey} />
       </div>
@@ -344,13 +417,13 @@ function KpiCard({ label, value, icon: Icon, tone, description }: any) {
     warning: "text-amber-600 bg-amber-50 border-amber-100" 
   };
   return (
-    <div className="vx-card p-6 bg-white border border-slate-200 rounded-[24px] shadow-sm hover:shadow-md transition-all group">
+    <div className="vx-card p-6 bg-white border border-slate-200/80 rounded-[28px] shadow-sm hover:shadow-xl transition-all group hover:-translate-y-1 duration-300">
        <div className={cn("size-12 rounded-2xl flex items-center justify-center mb-4 border transition-transform group-hover:scale-110", tones[tone] || "text-slate-600 bg-slate-50 border-slate-100")}>
           <Icon className="size-6" />
        </div>
-       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{label}</p>
+       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-1">{label}</p>
        <p className="text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
-       <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">{description}</p>
+       <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">{description}</p>
     </div>
   );
 }
