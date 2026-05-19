@@ -303,7 +303,7 @@ export function AppSidebar() {
             <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
                 <div className="px-2.5 mb-2">
-                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
                     {section.label}
                   </span>
                 </div>

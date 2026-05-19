@@ -239,7 +239,7 @@ export default function ClientPanel() {
                     </p>
                   </div>
                   <div className="md:text-right shrink-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Status do cadastro</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Status do cadastro</p>
                     <p className="text-sm font-bold text-slate-900 mt-1">{statusLabel(client.status)}</p>
                     <p className="text-[11px] text-slate-500 mt-1">Desde {formatDate(client.created_at)}</p>
                   </div>
@@ -256,7 +256,7 @@ export default function ClientPanel() {
               <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-6 flex flex-col">
                 <div className="flex items-center justify-between mb-5">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Prioridades</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Prioridades</p>
                     <h2 className="text-lg font-bold text-slate-900 mt-1">Ações necessárias</h2>
                   </div>
                   <span className="size-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Bell className="size-4" /></span>
@@ -618,7 +618,7 @@ function ProductDetailView({ product, docs, reports, onBack, onOpenDocs, onSuppo
 
 function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
   return (
-    <TabsTrigger value={value} className="shrink-0 h-9 rounded-lg px-3 gap-2 text-[12px] font-semibold text-slate-600 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+    <TabsTrigger value={value} className="shrink-0 h-9 rounded-lg px-3 gap-2 text-[12px] font-semibold text-slate-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
       <Icon className="size-3.5" /><span>{label}</span>
       {count !== undefined && count > 0 && <span className={cn("min-w-5 h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums flex items-center justify-center", alert ? "bg-rose-500 text-white" : "bg-slate-100 text-slate-700")}>{count}</span>}
     </TabsTrigger>
