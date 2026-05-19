@@ -345,7 +345,7 @@ export default function DashboardAdmin() {
           </div>
 
           {/* STATUS PIE - SMALL */}
-          <div className="bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm flex flex-col items-center justify-between">
+          <div className="bg-white dark:bg-[#0c0c0e] dark:border-white/10 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm flex flex-col items-center justify-between">
             <div className="w-full text-center">
               <h3 className="text-lg font-black text-slate-900 dark:text-foreground tracking-tight">Status de Demandas</h3>
               <p className="text-slate-400 text-[11px] font-bold uppercase mt-1">Divisão Operacional</p>
@@ -386,7 +386,7 @@ export default function DashboardAdmin() {
           </div>
 
           {/* RECENT SALES - LIST */}
-          <div className="md:col-span-2 bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm">
+          <div className="md:col-span-2 bg-white dark:bg-[#0c0c0e] dark:border-white/10 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Vendas Recentes</h3>
               <Link to="/vendas" className="text-indigo-600 font-bold text-xs uppercase hover:underline">Ver todas</Link>
