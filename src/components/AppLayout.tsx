@@ -28,6 +28,15 @@ function AppLayoutInner() {
     isParceiro, isPrestador, isCliente, isLead, isIndicador,
   } = useAuth();
   const { pathname } = useLocation();
+  const { isLoading: onboardingLoading, checkAccess } = useOnboardingGuard();
+
+  useEffect(() => {
+    checkAccess();
+  }, [pathname, onboardingLoading]);
+
+  if (onboardingLoading) {
+    return <LoadingScreen message="Verificando acesso..." />;
+  }
 
   // 🔒 Cada role só pode entrar no seu próprio painel.
   // Admin, Colaborador e Vendedor (Comercial) usam o painel administrativo (/admin).
