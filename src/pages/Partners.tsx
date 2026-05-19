@@ -9,6 +9,7 @@ import {
   Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight, Handshake,
   Users2, Wallet, TrendingUp, CheckCircle2, Clock3, Award, Crown,
   LayoutGrid, List, Download, X, Power, PowerOff, Mail, Phone, Copy,
+  KeyRound, Eye, EyeOff, Sparkles,
 } from "lucide-react";
 import { formatBRL, formatPercent, initials, formatPhone, formatDate } from "@/lib/format";
 import { toast } from "sonner";
@@ -36,6 +37,13 @@ export default function Partners() {
   const [view, setView] = useState<ViewMode>("list");
   const [statusFilter, setStatusFilter] = useState<"todos" | "ativos" | "inativos">("todos");
   const [sortBy, setSortBy] = useState<SortKey>("commissions");
+
+  // Acesso ao painel
+  const [createAccess, setCreateAccess] = useState(false);
+  const [accessPwd, setAccessPwd] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   const qc = useQueryClient();
 
   const { data: partners } = useQuery({
@@ -113,23 +121,85 @@ export default function Partners() {
     return { total, active, totalComms, totalPending, totalClients };
   }, [enriched]);
 
-  const openNew = () => { setEditing(null); setForm(emptyForm); setOpen(true); };
+  const generatePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let p = "";
+    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    p += "!" + Math.floor(Math.random() * 90 + 10);
+    setAccessPwd(p);
+    setShowPwd(true);
+  };
+
+  const openNew = () => { 
+    setEditing(null); 
+    setForm(emptyForm); 
+    setCreateAccess(false);
+    setAccessPwd("");
+    setOpen(true); 
+  };
+  
   const openEdit = (p: any) => {
     setEditing(p);
     setForm({ ...p });
+    setCreateAccess(false);
+    setAccessPwd("");
     setOpen(true);
   };
 
   const submit = async () => {
     if (!form.full_name) { toast.error("Nome obrigatório"); return; }
-    const { error } = editing
-      ? await supabase.from("partners").update(form).eq("id", editing.id)
-      : await supabase.from("partners").insert(form);
-    if (error) { toast.error(error.message); return; }
-    toast.success(editing ? "Parceiro atualizado" : "Parceiro cadastrado");
-    setOpen(false); setEditing(null);
+    if (!editing && createAccess) {
+      if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
+      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
+    }
+
+    setSubmitting(true);
+    const { data: partner, error } = editing
+      ? await supabase.from("partners").update(form).eq("id", editing.id).select().single()
+      : await supabase.from("partners").insert(form).select().single();
+
+    if (error) { 
+      setSubmitting(false);
+      toast.error(error.message); 
+      return; 
+    }
+
+    // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
+    if (!editing && createAccess && partner) {
+      const { error: invErr } = await supabase.functions.invoke("invite-user", {
+        body: {
+          email: form.email,
+          full_name: form.full_name,
+          phone: form.phone || null,
+          role: "parceiro",
+          send_invite: false,
+          password: accessPwd,
+          link_partner_id: partner.id,
+        },
+      });
+
+      if (invErr) {
+        setSubmitting(false);
+        toast.warning("Parceiro criado, mas o acesso falhou: " + invErr.message);
+        qc.invalidateQueries({ queryKey: ["partners-rich"] });
+        return;
+      }
+
+      try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
+      toast.success(`Acesso criado para ${form.email}`, {
+        description: `Senha: ${accessPwd} (copiada para a área de transferência)`,
+        duration: 20000,
+      });
+    } else {
+      toast.success(editing ? "Parceiro atualizado" : "Parceiro cadastrado");
+    }
+
+    setSubmitting(false);
+    setOpen(false); 
+    setEditing(null);
     qc.invalidateQueries({ queryKey: ["partners-rich"] });
   };
+
 
   const toggleActive = async (p: any) => {
     const { error } = await supabase.from("partners").update({ active: !p.active }).eq("id", p.id);
@@ -286,14 +356,72 @@ export default function Partners() {
                 <Switch checked={!!form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
               </div>
             </PartnerSection>
+
+            {!editing && (
+              <PartnerSection title="Acesso ao Painel" icon={<KeyRound className="size-3.5" />}>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between rounded-xl border border-border bg-indigo-50/30 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700">
+                        <KeyRound className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-900">Criar acesso ao painel</p>
+                        <p className="text-[11px] text-slate-500">O parceiro poderá logar e ver suas comissões</p>
+                      </div>
+                    </div>
+                    <Switch checked={createAccess} onCheckedChange={setCreateAccess} />
+                  </div>
+
+                  {createAccess && (
+                    <div className="grid grid-cols-1 gap-4 p-4 rounded-xl border border-indigo-100 bg-white animate-fade-in">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">Senha de acesso *</Label>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Input 
+                              type={showPwd ? "text" : "password"} 
+                              value={accessPwd} 
+                              onChange={(e) => setAccessPwd(e.target.value)}
+                              placeholder="Mínimo 8 caracteres"
+                              className="pr-10"
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => setShowPwd(!showPwd)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                            >
+                              {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                            </button>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={generatePassword}
+                            title="Gerar senha forte"
+                            className="shrink-0"
+                          >
+                            <Sparkles className="size-4 text-indigo-600" />
+                          </Button>
+                        </div>
+                        <p className="text-[10px] text-slate-500 flex items-center gap-1">
+                          <Copy className="size-3" /> A senha será copiada ao salvar
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </PartnerSection>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={submit} className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg">
-              {editing ? "Salvar alterações" : "Cadastrar parceiro"}
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Cancelar</Button>
+            <Button onClick={submit} disabled={submitting} className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg">
+              {submitting ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar parceiro"}
             </Button>
           </div>
+
         </DialogContent>
       </Dialog>
 
