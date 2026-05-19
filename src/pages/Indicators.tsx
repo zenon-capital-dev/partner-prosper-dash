@@ -28,6 +28,9 @@ export default function Indicators() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(empty);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["referrers-rich"],
