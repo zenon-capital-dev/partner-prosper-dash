@@ -214,7 +214,7 @@ export default function DashboardAdmin() {
                   onClick={() => setRangeKey(k)}
                   className={cn(
                     "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                    rangeKey === k ? "bg-slate-900 dark:bg-primary text-white dark:text-primary-foreground shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
+                    rangeKey === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                   )}
                 >
                   {k}
@@ -399,15 +399,15 @@ export default function DashboardAdmin() {
                       {s.client.charAt(0)}
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-900 truncate max-w-[150px]">{s.client}</p>
-                      <p className="text-[11px] font-bold text-slate-400">{format(new Date(s.sale_date), "dd MMM, yyyy")}</p>
+                      <p className="text-sm font-black text-slate-900 dark:text-foreground truncate max-w-[150px]">{s.client}</p>
+                      <p className="text-[11px] font-bold text-slate-400 dark:text-muted-foreground">{format(new Date(s.sale_date), "dd MMM, yyyy")}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-black text-indigo-600">{formatBRL(s.amount)}</p>
+                    <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">{formatBRL(s.amount)}</p>
                     <div className="flex items-center justify-end gap-1 mt-0.5">
                       <div className="size-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Confirmado</span>
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-muted-foreground uppercase">Confirmado</span>
                     </div>
                   </div>
                 </div>

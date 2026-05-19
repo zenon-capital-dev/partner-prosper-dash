@@ -228,7 +228,7 @@ export default function Clients() {
         icon={<Users className="size-6" />}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search} className="h-12 px-5 rounded-xl font-bold uppercase text-[10px]">
+            <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search} className="h-12 px-5 rounded-xl font-bold uppercase text-[10px] dark:border-white/10 dark:text-white dark:hover:bg-white/5">
               Limpar
             </Button>
             <Button onClick={() => { setEditing(null); setOpen(true); }} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">

@@ -170,7 +170,7 @@ export default function Contracts() {
                   onClick={() => setRangeKey(k)}
                   className={cn(
                     "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                    rangeKey === k ? "bg-slate-900 dark:bg-primary text-white dark:text-primary-foreground shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
+                    rangeKey === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                   )}
                 >
                   {k}
@@ -184,7 +184,7 @@ export default function Contracts() {
                   onClick={() => setStatusFilter(k)}
                   className={cn(
                     "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                    statusFilter === k ? "bg-slate-900 dark:bg-primary text-white dark:text-primary-foreground shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
+                    statusFilter === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                   )}
                 >
                   {k === 'all' ? 'Todos' : k === 'aguardando_assinatura' ? 'Assinatura' : 'Assinados'}
