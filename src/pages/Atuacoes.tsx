@@ -46,10 +46,10 @@ type DailyAction = {
 };
 
 const RESULT_LABELS: Record<string, { label: string; tone: string }> = {
-  contatado: { label: "Contatado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  sem_resposta: { label: "Sem resposta", tone: "bg-amber-50 text-amber-700 border-amber-200" },
-  fechado: { label: "Fechado", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-  reagendar: { label: "Reagendar", tone: "bg-slate-100 text-slate-700 border-slate-200" },
+  contatado: { label: "Contatado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20" },
+  sem_resposta: { label: "Sem resposta", tone: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20" },
+  fechado: { label: "Fechado", tone: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:border-indigo-500/20" },
+  reagendar: { label: "Reagendar", tone: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/20" },
 };
 
 const PRIORITY_TONE: Record<string, string> = {
