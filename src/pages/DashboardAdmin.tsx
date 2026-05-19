@@ -497,7 +497,12 @@ export default function DashboardAdmin() {
           <Card>
             <CardHeader title="Top clientes" subtitle="Maior receita acumulada" />
             <div className="px-6 pb-5 pt-1 space-y-3">
-              {stats.topClients.length > 0 ? stats.topClients.map((c, i) => {
+              {isGlobalLoading ? (
+                <div className="py-8 flex justify-center">
+                   <div className="size-5 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : stats.topClients.length > 0 ? stats.topClients.map((c, i) => {
+
                 const pct = (c.total / stats.maxTopClient) * 100;
                 const medal = ["bg-amber-500", "bg-slate-400", "bg-amber-700/70", "bg-slate-300", "bg-slate-300"];
                 return (
