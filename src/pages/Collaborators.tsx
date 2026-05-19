@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+import { useMemo } from "react";
+
 
 type CollabRow = {
   id: string;
