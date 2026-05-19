@@ -83,6 +83,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           client_id: client.id,
           product_id: form.product_id,
           service_provider_id: null,
+          responsible_employee_id: lead.responsible_id ?? null,
           status: "aguardando_inicio",
           priority: "normal",
           value: form.contract_value ? Number(form.contract_value) : null,

@@ -162,53 +162,53 @@ export default function Leads() {
         description="Gerencie potenciais clientes e indicações em um só lugar."
         icon={<Target className="size-6" />}
         actions={
-          <div className="flex items-center gap-3">
-            <div className="flex bg-white dark:bg-card p-1 rounded-2xl border border-slate-200 dark:border-border shadow-sm mr-2">
+          <div className="flex items-center gap-2">
+            <div className="flex bg-white dark:bg-card p-1 rounded-xl border border-slate-200 dark:border-border shadow-sm">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setRangeKey(k)}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                    rangeKey === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
+                    "px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] font-black transition-all uppercase",
+                    rangeKey === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                   )}
                 >
                   {k}
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-2">
-              <div className="inline-flex rounded-lg border border-border/70 bg-card p-0.5">
-                <button
-                  onClick={() => setView("kanban")}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-3 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors",
-                    view === "kanban" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <LayoutGrid className="size-3.5" /> Kanban
-                </button>
-                <button
-                  onClick={() => setView("table")}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-3 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors",
-                    view === "table" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <List className="size-3.5" /> Tabela
-                </button>
-              </div>
-              <Button variant="outline" size="sm" className="h-9 text-xs font-bold uppercase tracking-wider" onClick={() => setCsvOpen(true)}>
-                <Upload className="size-3.5 mr-2" />
-                Importar CSV
-              </Button>
-              {(isAdmin || isAdminSecondary) && (
-                <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
-                  <Plus className="size-3.5 mr-2" />
-                  Novo Lead
-                </Button>
-              )}
+            <div className="inline-flex rounded-lg border border-border/70 bg-card p-0.5">
+              <button
+                onClick={() => setView("kanban")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors",
+                  view === "kanban" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <LayoutGrid className="size-3.5" /> Kanban
+              </button>
+              <button
+                onClick={() => setView("table")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-2.5 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors",
+                  view === "table" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <List className="size-3.5" /> Tabela
+              </button>
             </div>
+            <Button variant="outline" size="sm" className="h-9 text-xs font-bold uppercase tracking-wider" onClick={() => setCsvOpen(true)}>
+              <Upload className="size-3.5 mr-2" />
+              <span className="hidden sm:inline">Importar CSV</span>
+              <span className="sm:hidden">CSV</span>
+            </Button>
+            {(isAdmin || isAdminSecondary) && (
+              <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
+                <Plus className="size-3.5 mr-2" />
+                <span className="hidden sm:inline">Novo Lead</span>
+                <span className="sm:hidden">Novo</span>
+              </Button>
+            )}
           </div>
         }
         kpis={[
@@ -219,19 +219,19 @@ export default function Leads() {
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-7 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
-        <div className="vx-card p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-md">
+      <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 space-y-5 sm:space-y-7 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
+        <div className="vx-card p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+            <div className="relative flex-1 min-w-0 sm:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input 
-                className="pl-10 h-10 text-sm" 
-                placeholder="Buscar por nome, email ou telefone..." 
+              <Input
+                className="pl-10 h-10 text-sm w-full"
+                placeholder="Buscar nome, email ou telefone..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="h-10 text-xs font-bold px-4">
+            <Button variant="outline" className="h-10 text-xs font-bold px-4 shrink-0 w-full sm:w-auto">
               <Filter className="size-3.5 mr-2" />
               Filtros
             </Button>
