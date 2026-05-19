@@ -36,19 +36,22 @@ export default function DashboardAdmin() {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
   const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
 
-  const { data: clients = [] } = useQuery({ queryKey: ["dash-clients"], queryFn: async () => (await supabase.from("clients").select("*")).data ?? [] });
-  const { data: clientProducts = [] } = useQuery({ queryKey: ["dash-demands"], queryFn: async () => (await supabase.from("client_products").select("*")).data ?? [] });
-  const { data: sales = [] } = useQuery({ queryKey: ["dash-sales"], queryFn: async () => (await supabase.from("sales").select("*").order("sale_date", { ascending: false }).limit(200)).data ?? [] });
-  const { data: leads = [] } = useQuery({ queryKey: ["dash-leads"], queryFn: async () => (await supabase.from("leads").select("*")).data ?? [] });
-  const { data: commissions = [] } = useQuery({ queryKey: ["dash-commissions"], queryFn: async () => (await supabase.from("commissions").select("*")).data ?? [] });
-  const { data: tasks = [] } = useQuery({ queryKey: ["dash-tasks"], queryFn: async () => (await supabase.from("tasks").select("*")).data ?? [] });
-  const { data: contracts = [] } = useQuery({ queryKey: ["dash-contracts"], queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at")).data ?? [] });
-  const { data: docRequests = [] } = useQuery({ queryKey: ["dash-doc-requests"], queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [] });
-  const { data: payments = [] } = useQuery({ queryKey: ["dash-payments"], queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] });
-  const { data: activityLogs = [] } = useQuery({
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({ queryKey: ["dash-clients"], queryFn: async () => (await supabase.from("clients").select("*")).data ?? [] });
+  const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({ queryKey: ["dash-demands"], queryFn: async () => (await supabase.from("client_products").select("*")).data ?? [] });
+  const { data: sales = [], isLoading: isLoadingSales } = useQuery({ queryKey: ["dash-sales"], queryFn: async () => (await supabase.from("sales").select("*").order("sale_date", { ascending: false }).limit(200)).data ?? [] });
+  const { data: leads = [], isLoading: isLoadingLeads } = useQuery({ queryKey: ["dash-leads"], queryFn: async () => (await supabase.from("leads").select("*")).data ?? [] });
+  const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({ queryKey: ["dash-commissions"], queryFn: async () => (await supabase.from("commissions").select("*")).data ?? [] });
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({ queryKey: ["dash-tasks"], queryFn: async () => (await supabase.from("tasks").select("*")).data ?? [] });
+  const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({ queryKey: ["dash-contracts"], queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at")).data ?? [] });
+  const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({ queryKey: ["dash-doc-requests"], queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [] });
+  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ queryKey: ["dash-payments"], queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] });
+  const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
+
+  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity;
+
 
   const stats = useMemo(() => {
     const now = new Date();
