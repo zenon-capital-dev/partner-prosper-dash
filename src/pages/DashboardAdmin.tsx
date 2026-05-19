@@ -618,34 +618,34 @@ function SideKpi({ label, value, sub, icon: Icon, accent, compact }: { label: st
   };
   const a = accents[accent];
   return (
-    <div className="group relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.12)] hover:border-slate-300/80 transition-all flex flex-col min-h-[160px] overflow-hidden">
+    <div className="group relative rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.12)] hover:border-slate-300/80 transition-all flex flex-col min-h-[140px] overflow-hidden">
       {/* Decorative gradient background */}
       <div className={cn("absolute inset-0 bg-gradient-to-br to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none", a.gradient)} />
       
       <div className="relative flex items-center justify-between z-10">
         <span className="inline-flex items-center gap-1.5">
-          <span className={cn("size-1.5 rounded-full", a.dot)} />
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
+          <span className={cn("size-1 rounded-full", a.dot)} />
+          <span className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-slate-500">{label}</span>
         </span>
-        <div className={cn("size-9 rounded-xl flex items-center justify-center ring-1 transition-transform group-hover:scale-105", a.iconBg, a.iconColor, a.ring)}>
-          <Icon className="size-4 stroke-[2]" />
+        <div className={cn("size-7 rounded-lg flex items-center justify-center ring-1 transition-transform group-hover:scale-105", a.iconBg, a.iconColor, a.ring)}>
+          <Icon className="size-3.5 stroke-[2]" />
         </div>
       </div>
 
-      <div className="relative flex-1 flex flex-col justify-end py-2 z-10">
+      <div className="relative flex-1 flex flex-col justify-end py-1 z-10">
         <p className={cn(
-          "font-display font-bold tabular-nums leading-none tracking-[-0.025em] text-slate-900 group-hover:translate-x-1 transition-transform",
-          compact ? "text-[28px]" : "text-[34px]"
+          "font-display font-bold tabular-nums leading-none tracking-[-0.02em] text-slate-900 group-hover:translate-x-1 transition-transform",
+          compact ? "text-[26px]" : "text-[30px]"
         )}>
           {value}
         </p>
-        <p className="text-[11.5px] text-slate-500 font-medium mt-1.5 truncate">{sub}</p>
+        <p className="text-[11px] text-slate-500 font-medium mt-1 truncate">{sub}</p>
       </div>
 
-      <div className="relative pt-3 mt-auto border-t border-slate-100 flex items-center justify-between z-10">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atualizado agora</span>
-        <span className={cn("inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-wider", a.iconColor)}>
-          <span className={cn("size-1.5 rounded-full animate-pulse", a.dot)} />
+      <div className="relative pt-2 mt-auto border-t border-slate-100 flex items-center justify-between z-10">
+        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Atualizado</span>
+        <span className={cn("inline-flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wider", a.iconColor)}>
+          <span className={cn("size-1 rounded-full animate-pulse", a.dot)} />
           ao vivo
         </span>
       </div>
