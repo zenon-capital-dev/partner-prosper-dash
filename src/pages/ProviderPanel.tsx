@@ -338,36 +338,26 @@ export default function ProviderPanel() {
 
               <div className="space-y-6">
                 {/* Actions */}
-                <div className="vx-card p-6 bg-slate-900 text-white rounded-xl shadow-xl space-y-4">
-                   <h3 className=" text-xl font-bold mb-4">Ações Rápidas</h3>
-                   <Button 
-                     className="w-full h-12 rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all font-bold"
+                <div className="vx-card p-6 bg-white border border-slate-200/70 rounded-xl shadow-sm space-y-3">
+                   <h3 className="text-sm font-bold text-slate-900 mb-2">Ações Rápidas</h3>
+                   <Button
+                     className="w-full h-11 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
                      onClick={() => setReportTarget({ id: selectedProduct.id, productName: selectedProduct.products?.name, clientName: selectedProduct.clients?.full_name })}
                    >
                      <ClipboardCheck className="size-4 mr-2" /> Reportar Status
                    </Button>
-                   <Button
-                     variant="outline"
-                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
-                     onClick={() => setDocRequestTarget({
-                       clientId: selectedProduct.clients?.id,
-                       cpId: selectedProduct.id,
-                       context: selectedProduct.products?.name,
-                     })}
-                   >
-                     <FileText className="size-4 mr-2" /> Solicitar Documento
-                   </Button>
-                   <Button
-                     variant="outline"
-                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
-                     onClick={() => setReportTarget({
-                       id: selectedProduct.id,
-                       productName: selectedProduct.products?.name,
-                       clientName: selectedProduct.clients?.full_name,
-                     })}
-                   >
-                     <CheckCircle2 className="size-4 mr-2" /> Enviar Conclusão
-                   </Button>
+                   {selectedProduct.clients?.phone && (
+                     <Button
+                       variant="outline"
+                       className="w-full h-11 rounded-lg border-slate-200 hover:border-indigo-300 hover:text-indigo-700 font-semibold"
+                       onClick={() => window.open(`https://wa.me/55${(selectedProduct.clients.phone || '').replace(/\D/g,'')}`, '_blank')}
+                     >
+                       <MessageSquare className="size-4 mr-2" /> Falar com Cliente
+                     </Button>
+                   )}
+                   <p className="text-[11px] text-slate-500 leading-relaxed pt-1">
+                     Use Reportes para atualizar o admin sobre andamento, pendências e próximos passos da demanda.
+                   </p>
                 </div>
 
                 {/* Documents for this product */}
