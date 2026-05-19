@@ -242,32 +242,38 @@ export default function DashboardAdmin() {
           <MiniStat label="Comissões a pagar" value={formatBRL(stats.commissionsToPay)} hint={`${stats.commissionsCount} lançamento(s)`} icon={Wallet} to="/comissoes" tone="warning" />
         </div>
 
-        {/* === LINHA 3: RESUMO FINANCEIRO === */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <FinanceCard
-            label="A RECEBER (7 DIAS)"
-            value={formatBRL(stats.receivable7d)}
-            sub={`${stats.receivable7dCount} título(s) a vencer`}
-            icon={PiggyBank}
-            tone="success"
-            to="/financeiro"
-          />
-          <FinanceCard
-            label="INADIMPLÊNCIA"
-            value={formatBRL(stats.overdueAmount)}
-            sub={`${stats.overdueCount} título(s) vencido(s)`}
-            icon={AlertTriangle}
-            tone="danger"
-            to="/financeiro"
-          />
-          <FinanceCard
-            label="COMISSÕES A LIBERAR"
-            value={formatBRL(stats.commissionsToPay)}
-            sub="Aguardando liberação"
-            icon={Receipt}
-            tone="warning"
-            to="/comissoes"
-          />
+        {/* === LINHA 2: RESUMO FINANCEIRO === */}
+        <div className="vx-card p-6 bg-white space-y-6">
+           <div>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">Resumo Financeiro</h3>
+              <p className="text-slate-400 text-sm font-medium">Situação atual da tesouraria e conciliação</p>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <FinanceCard
+                label="A RECEBER (7 DIAS)"
+                value={formatBRL(stats.receivable7d)}
+                sub={`${stats.receivable7dCount} título(s) a vencer`}
+                icon={PiggyBank}
+                tone="success"
+                to="/financeiro"
+              />
+              <FinanceCard
+                label="INADIMPLÊNCIA"
+                value={formatBRL(stats.overdueAmount)}
+                sub={`${stats.overdueCount} título(s) vencido(s)`}
+                icon={AlertTriangle}
+                tone="danger"
+                to="/financeiro"
+              />
+              <FinanceCard
+                label="COMISSÕES A LIBERAR"
+                value={formatBRL(stats.commissionsToPay)}
+                sub="Aguardando liberação"
+                icon={Receipt}
+                tone="warning"
+                to="/comissoes"
+              />
+           </div>
         </div>
 
         {/* BENTO GRID START */}
