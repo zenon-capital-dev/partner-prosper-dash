@@ -121,7 +121,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         form.address_street = r.logradouro;
         form.address_neighborhood = r.bairro;
         form.city = r.localidade;
-        form.state = r.state || r.uf;
+        form.state = r.uf;
       }
     }
 
