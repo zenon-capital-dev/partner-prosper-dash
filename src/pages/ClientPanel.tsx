@@ -196,58 +196,21 @@ export default function ClientPanel() {
   const firstName = client.full_name?.split(" ")[0] || "Cliente";
 
   return (
-    <div className="min-h-screen bg-slate-50/60 font-sans text-slate-900">
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/70">
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center justify-between gap-5">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="size-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-[0_2px_8px_-2px_rgba(79,70,229,0.5)] shrink-0">
-              <Package className="size-4.5 stroke-[2.2]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none">Portal do cliente</p>
-              <p className="text-[13px] font-bold text-slate-900 mt-0.5 leading-tight truncate">Prosper Direct Response</p>
-            </div>
+    <div className="animate-fade-in">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Company Selector and Hero contextual info */}
+        {hasMultipleCompanies && activeTab === "home" && (
+          <div className="flex justify-end mb-4">
+            <select
+              value={selectedCompanyId}
+              onChange={(e) => setSelectedCompanyId(e.target.value)}
+              className="h-10 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-100 shadow-sm"
+            >
+              <option value="all">Todas as empresas</option>
+              {companies.map((co: any) => <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>)}
+            </select>
           </div>
-
-          <div className="flex items-center gap-2">
-            {hasMultipleCompanies && (
-              <select
-                value={selectedCompanyId}
-                onChange={(e) => setSelectedCompanyId(e.target.value)}
-                className="h-9 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 px-2.5 max-w-[190px] truncate focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              >
-                <option value="all">Todas as empresas</option>
-                {companies.map((co: any) => <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>)}
-              </select>
-            )}
-            <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 pl-1 pr-2 h-9 rounded-lg border border-slate-200/70 bg-white hover:bg-slate-50 transition-colors">
-                  <span className="size-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">{initials(client.full_name)}</span>
-                  <span className="hidden sm:inline text-xs font-semibold text-slate-700 max-w-[140px] truncate">{firstName}</span>
-                  <ChevronRight className="size-3.5 text-slate-400 rotate-90" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel className="font-normal">
-                  <p className="text-sm font-bold leading-none truncate">{client.full_name}</p>
-                  <p className="text-[11px] text-slate-500 leading-none truncate mt-1.5">{client.email}</p>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setActiveTab("home")} className="gap-2"><LayoutDashboard className="size-4" /> Painel inicial</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => window.open(wa(), "_blank")} className="gap-2"><MessageSquare className="size-4" /> Falar com a equipe</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={async () => { await signOut(); toast.success("Sessão encerrada"); navigate("/auth", { replace: true }); }} className="gap-2 text-rose-600 focus:text-rose-600">
-                  <LogOut className="size-4" /> Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-5 lg:px-8 py-8 lg:py-10 space-y-8">
+        )}
         {selectedProductId && selectedProduct ? (
           <ProductDetailView
             product={selectedProduct}
