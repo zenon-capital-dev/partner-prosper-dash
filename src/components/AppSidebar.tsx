@@ -224,10 +224,11 @@ export function AppSidebar() {
       ...section,
       items: section.items.filter(item => 
         item.url === "/cliente/onboarding" || 
-        item.url === "/suporte" || 
+        item.url === "/cliente/suporte" || 
         item.url === "/cliente/documentos" || 
         item.url === "/cliente/financeiro" || 
-        item.url === "/cliente/contratos"
+        item.url === "/cliente/contratos" ||
+        item.url === "/cliente"
       )
     })).filter(section => section.items.length > 0);
   }, [rawSections, onboardingBlocked]);
