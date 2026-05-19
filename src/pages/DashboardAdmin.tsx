@@ -548,7 +548,12 @@ export default function DashboardAdmin() {
           <Card>
             <CardHeader title="Atividades recentes" subtitle="Eventos do sistema" right={<Link to="/auditoria" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">Log <ArrowUpRight className="size-3.5" /></Link>} />
             <div className="divide-y divide-slate-100 border-t border-slate-100 max-h-[340px] overflow-y-auto">
-              {activityLogs.length > 0 ? activityLogs.map((a: any) => (
+              {isGlobalLoading ? (
+                <div className="py-12 flex justify-center">
+                  <div className="size-6 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : activityLogs.length > 0 ? activityLogs.map((a: any) => (
+
                 <div key={a.id} className="px-6 py-3">
                   <div className="flex items-start gap-3">
                     <div className="size-7 rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
