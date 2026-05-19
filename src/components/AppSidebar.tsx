@@ -341,6 +341,7 @@ export function AppSidebar() {
   }, [rawSections, onboardingBlocked]);
 
   const portalLabel = showAdmin ? "Direct Response"
+    : showColaborador ? "Colaborador"
     : showPartner ? "Parceiro"
     : showPrestador ? "Prestador"
     : showClient ? "Cliente"
