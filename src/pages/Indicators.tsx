@@ -205,7 +205,16 @@ export default function Indicators() {
               ))}
             </tbody>
           </table>
+          </div>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={enriched.length}
+            itemsPerPage={itemsPerPage}
+          />
         )}
+
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
