@@ -1086,8 +1086,15 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    Flips hardcoded white/slate surfaces to dark surfaces
    ============================================================ */
 .dark .admin-shell {
-  background: linear-gradient(180deg, hsl(224 32% 6%) 0%, hsl(224 30% 8%) 100%) !important;
+  background:
+    radial-gradient(1100px 600px at 8% -10%, hsl(231 72% 50% / 0.10), transparent 60%),
+    radial-gradient(900px 520px at 100% 0%, hsl(265 60% 50% / 0.08), transparent 60%),
+    linear-gradient(180deg, hsl(224 32% 5%) 0%, hsl(224 30% 7%) 100%) !important;
   color: hsl(var(--foreground));
+}
+.dark .admin-shell::before {
+  background-image: none !important;
+  background: none !important;
 }
 .dark .admin-shell .vx-card,
 .dark .admin-shell .glass-card,
