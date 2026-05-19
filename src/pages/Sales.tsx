@@ -199,9 +199,11 @@ export default function Sales() {
             <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
               <Download className="size-4" /> Exportar
             </Button>
-            <Button size="sm" onClick={() => setOpen(true)} className="action-button btn-primary shadow-xl">
-              <Plus className="size-4" strokeWidth={3} /> Nova Venda
-            </Button>
+            {canManage && (
+              <Button size="sm" onClick={() => setOpen(true)} className="action-button btn-primary shadow-xl">
+                <Plus className="size-4" strokeWidth={3} /> Nova Venda
+              </Button>
+            )}
           </div>
         }
         kpis={[
