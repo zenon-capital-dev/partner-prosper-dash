@@ -237,7 +237,8 @@ export default function Providers() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {filtered.map((p: any) => (
+                {paginated.map((p: any) => (
+
                   <tr key={p.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/prestadores/${p.id}`)}>
