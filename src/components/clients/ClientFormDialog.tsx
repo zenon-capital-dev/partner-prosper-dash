@@ -481,6 +481,46 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </div>
           )}
 
+          {/* Onboarding Options */}
+          {!client?.id && (
+            <div className="col-span-2 space-y-3 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/30">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="size-4 text-indigo-600" />
+                <h4 className="text-sm font-bold text-indigo-900">Configuração de Onboarding</h4>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-indigo-100">
+                <div className="space-y-0.5">
+                  <Label className="text-sm cursor-pointer" htmlFor="manual-approval">Aprovação Manual Obrigatória</Label>
+                  <p className="text-[10px] text-muted-foreground">O acesso ao painel só é liberado após o admin validar tudo.</p>
+                </div>
+                <Switch id="manual-approval" checked={manualApproval} onCheckedChange={setManualApproval} />
+              </div>
+              <div className="space-y-2 pt-1">
+                <Label className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Etapas Obrigatórias</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: "confirm_data", label: "Confirmar Dados" },
+                    { id: "upload_docs", label: "Enviar Documentos" },
+                    { id: "sign_contracts", label: "Assinar Contratos" },
+                    { id: "initial_payment", label: "Pagamento Inicial" },
+                  ].map((step) => (
+                    <div key={step.id} className="flex items-center gap-2">
+                      <Checkbox 
+                        id={`step-${step.id}`} 
+                        checked={mandatorySteps.includes(step.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) setMandatorySteps(prev => [...prev, step.id]);
+                          else setMandatorySteps(prev => prev.filter(s => s !== step.id));
+                        }}
+                      />
+                      <Label htmlFor={`step-${step.id}`} className="text-xs cursor-pointer">{step.label}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Acesso ao painel — apenas no cadastro novo */}
           {!client?.id && (
             <div className="col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
