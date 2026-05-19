@@ -82,6 +82,13 @@ export default function Collaborators() {
     );
   });
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+
   const updateProfile = useMutation({
     mutationFn: async (payload: Partial<CollabRow> & { id: string; role?: string }) => {
       const { id, role, ...rest } = payload;
