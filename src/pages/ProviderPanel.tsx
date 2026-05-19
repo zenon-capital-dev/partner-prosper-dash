@@ -482,23 +482,31 @@ export default function ProviderPanel() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="vx-card p-6 bg-slate-900 text-white rounded-2xl shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
-                    <h3 className=" text-xl font-bold mb-6 relative">Central do Prestador</h3>
-                    <div className="space-y-4 relative">
-                       <p className="text-sm text-white/60 leading-relaxed">
-                         Mantenha seus reportes em dia para garantir a liberação dos pagamentos. 
-                         Em caso de dúvidas sobre o escopo, entre em contato com o gestor operacional.
-                       </p>
-                       <div className="pt-4 space-y-3">
-                          <Button className="w-full bg-white text-slate-900 hover:bg-primary hover:text-white font-bold h-11 rounded-xl">
-                             Manual de Procedimentos
-                          </Button>
-                          <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 h-11 rounded-xl">
-                             Suporte Operacional
-                          </Button>
-                       </div>
-                    </div>
+                  <div className="vx-card p-6 bg-white rounded-2xl border border-slate-200/70 shadow-sm">
+                    <h3 className="text-sm font-bold text-slate-900 mb-1">Reportes recentes</h3>
+                    <p className="text-[11px] text-slate-500 mb-4">Últimas 5 atualizações enviadas ao admin.</p>
+                    {reports.length === 0 ? (
+                      <div className="text-center py-8">
+                        <ClipboardCheck className="size-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs text-slate-500">Nenhum reporte ainda. Mantenha o admin informado.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {reports.slice(0, 5).map((r: any) => {
+                          const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
+                          return (
+                            <button key={r.id} onClick={() => cp && setSelectedProductId(cp.id)} className="w-full text-left p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-semibold text-slate-900 truncate">{cp?.clients?.full_name || "—"}</p>
+                                <span className="text-[10px] text-slate-500 shrink-0">{formatDate(r.created_at)}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 truncate mt-0.5">{cp?.products?.name}</p>
+                              {r.notes && <p className="text-[11px] text-slate-600 line-clamp-2 mt-1">{r.notes}</p>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
