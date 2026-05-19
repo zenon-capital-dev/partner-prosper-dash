@@ -41,6 +41,9 @@ export default function Partners() {
   const [view, setView] = useState<ViewMode>("list");
   const [statusFilter, setStatusFilter] = useState<"todos" | "ativos" | "inativos">("todos");
   const [sortBy, setSortBy] = useState<SortKey>("commissions");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
 
   // Acesso ao painel
   const [createAccess, setCreateAccess] = useState(false);
