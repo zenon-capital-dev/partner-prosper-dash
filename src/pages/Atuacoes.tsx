@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { PageHero } from "@/components/PageHero";
 
 type DailyAction = {
   id: string;
@@ -174,63 +175,29 @@ export default function Atuacoes() {
     filtered.historico;
 
   return (
-    <div className="px-4 sm:px-8 py-5 sm:py-8 max-w-[1400px] mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 mb-1">
-            <Target className="size-3.5" /> Operação · Atuações
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            Atuações do dia
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Agende clientes para atuar, registre o que foi feito e mantenha o histórico de cada interação.
-          </p>
-        </div>
-        <Button onClick={() => setOpenCreate(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm self-start sm:self-auto">
-          <Plus className="size-4 mr-1.5" /> Nova atuação
-        </Button>
-      </div>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
+      <PageHero
+        eyebrow="Operação"
+        category="Atuações"
+        title="Atuações do dia"
+        description="Agende clientes para atuar, registre o que foi feito e mantenha o histórico de cada interação."
+        icon={<Target className="size-6" />}
+        actions={
+          <Button onClick={() => setOpenCreate(true)} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">
+            <Plus className="size-4 mr-2 stroke-[3]" />
+            NOVA ATUAÇÃO
+          </Button>
+        }
+        kpis={[
+          { label: "Hoje", value: filtered.hoje.length.toString(), tone: "primary", icon: <CalendarClock className="size-4" /> },
+          { label: "Atrasadas", value: filtered.atrasadas.length.toString(), tone: "danger", icon: <AlertTriangle className="size-4" /> },
+          { label: "Próximas", value: filtered.proximas.length.toString(), tone: "default", icon: <CalendarDays className="size-4" /> },
+          { label: "Concluídas", value: filtered.executadasHoje.toString(), tone: "success", icon: <CheckCircle2 className="size-4" /> },
+        ]}
+      />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard
-          icon={<CalendarClock className="size-4" />}
-          label="Hoje"
-          value={filtered.hoje.length}
-          tone="indigo"
-          onClick={() => setTab("hoje")}
-          active={tab === "hoje"}
-        />
-        <KpiCard
-          icon={<AlertTriangle className="size-4" />}
-          label="Atrasadas"
-          value={filtered.atrasadas.length}
-          tone="rose"
-          onClick={() => setTab("atrasadas")}
-          active={tab === "atrasadas"}
-        />
-        <KpiCard
-          icon={<CalendarDays className="size-4" />}
-          label="Próximas"
-          value={filtered.proximas.length}
-          tone="slate"
-          onClick={() => setTab("proximas")}
-          active={tab === "proximas"}
-        />
-        <KpiCard
-          icon={<CheckCircle2 className="size-4" />}
-          label="Executadas hoje"
-          value={filtered.executadasHoje}
-          tone="emerald"
-          onClick={() => setTab("historico")}
-          active={tab === "historico"}
-        />
-      </div>
-
-      {/* Search + tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-6 animate-in slide-in-from-bottom-4 duration-1000">
+        {/* Search + tabs */}
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex-1">
           <TabsList className="bg-white border border-slate-200/70 rounded-lg p-1 h-auto w-full sm:w-auto overflow-x-auto flex-nowrap justify-start">
             <TabsTrigger value="hoje" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
