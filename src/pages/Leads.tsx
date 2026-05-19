@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useSearchParams } from "react-router-dom";
 import { Target, Search, Plus, Filter, Download, MoreHorizontal, Eye, UserPlus, Phone, Mail, MessageSquare, Trash2, Pencil, LayoutGrid, List, Upload, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,8 @@ const PAGE_SIZE = 25;
 
 export default function Leads() {
   const [search, setSearch] = useState("");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -88,14 +92,34 @@ export default function Leads() {
 
   const filteredLeads = useMemo(() => {
     if (!leads) return [];
-    if (!search) return leads;
-    const q = search.toLowerCase();
-    return leads.filter((l: any) => 
-      l.full_name?.toLowerCase().includes(q) ||
-      l.email?.toLowerCase().includes(q) ||
-      l.phone?.includes(q)
-    );
-  }, [leads, search]);
+    
+    const today = startOfToday();
+    let start = today;
+    let end = endOfDay(today);
+
+    if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "30 DIAS") {
+      start = subDays(today, 29);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      start = new Date(0);
+      end = new Date(8640000000000000);
+    }
+
+    return leads.filter((l: any) => {
+      const createdAt = new Date(l.created_at);
+      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        l.full_name?.toLowerCase().includes(q) ||
+        l.email?.toLowerCase().includes(q) ||
+        l.phone?.includes(q)
+      );
+    });
+  }, [leads, search, rangeKey]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -320,6 +344,7 @@ export default function Leads() {
         lead={convertLead}
         onConverted={() => qc.invalidateQueries({ queryKey: ["leads"] })}
       />
+      </div>
     </div>
   );
 }
