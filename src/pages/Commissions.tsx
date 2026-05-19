@@ -264,7 +264,7 @@ export default function Commissions() {
       payment_method: editForm.payment_method || null,
       approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
       paid_at: editForm.status === "pago" || editForm.status === "paga" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : (editing.paid_at || null),
-      status: editForm.status === "paga" ? "pago" : editForm.status, // Normalize status value
+      status: (editForm.status === "paga" || editForm.status === "pago") ? "paga" : editForm.status, // Normalize to "paga" to match enum
     };
     const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }
@@ -304,7 +304,8 @@ export default function Commissions() {
     if (!payTarget?.ids?.length) return;
     const payload: any = {
       workflow_status: "paga",
-      status: "pago",
+      status: "paga",
+
       paid_at: new Date(payForm.paid_at).toISOString(),
       payment_method: payForm.payment_method,
       notes: payForm.notes || null,
