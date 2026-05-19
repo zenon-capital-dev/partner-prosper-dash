@@ -53,7 +53,7 @@ export function useOnboardingGuard() {
     } else {
       // If completed but still on onboarding page, move to dashboard
       if (isOnOnboardingPage) {
-        navigate("/cliente", { replace: true });
+        navigate("/portal-cliente", { replace: true });
         return false;
       }
     }

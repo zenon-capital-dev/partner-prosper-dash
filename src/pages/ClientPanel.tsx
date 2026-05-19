@@ -57,7 +57,7 @@ export default function ClientPanel() {
   const queryClient = useQueryClient();
   const wa = (msg?: string) => buildWhatsAppLink(settings.support_whatsapp, msg);
   const activeTab = tabParam && CLIENT_PATH_TO_TAB[tabParam] ? CLIENT_PATH_TO_TAB[tabParam] : "home";
-  const setActiveTab = (v: string) => navigate(v === "home" ? "/cliente" : `/cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
+  const setActiveTab = (v: string) => navigate(v === "home" ? "/portal-cliente" : `/portal-cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
 

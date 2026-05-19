@@ -38,7 +38,7 @@ function RoleClientRedirect() {
     return <Navigate to="/cliente/onboarding" replace />;
   }
 
-  return <Navigate to="/cliente" replace />;
+  return <Navigate to="/portal-cliente" replace />;
 }
 
 /**

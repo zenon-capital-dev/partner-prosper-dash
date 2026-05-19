@@ -107,11 +107,10 @@ const clientSections: NavSection[] = [
   {
     label: "Portal do Cliente",
     items: [
-      { title: "Início", url: "/cliente", icon: Home },
+      { title: "Início", url: "/portal-cliente", icon: Home },
       { title: "Onboarding", url: "/cliente/onboarding", icon: Sparkles },
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
       { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
-      { title: "Financeiro", url: "/cliente/financeiro", icon: Banknote },
       { title: "Suporte", url: "/cliente/suporte", icon: LifeBuoy },
     ],
   },
