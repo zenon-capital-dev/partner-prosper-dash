@@ -466,7 +466,7 @@ export default function DashboardAdmin() {
              </div>
              <div className="space-y-4">
                 <AlertItem icon={Clock} title="Atraso Operacional" count={stats.delayedDemands} />
-                <AlertItem icon={Wallet} title="Comissões Pendentes" value={formatBRL(stats.commissionsTotal)} />
+                <AlertItem icon={Wallet} title="Comissões Pendentes" value={formatBRL(stats.commissionsToPay)} />
                 <AlertItem icon={ClipboardList} title="Tarefas de Hoje" count={tasks.length} />
              </div>
              <div className="mt-10 p-5 rounded-2xl bg-white/5 border border-white/10 text-center">
