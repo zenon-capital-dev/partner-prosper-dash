@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean };
-type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean };
+type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean; staffOnly?: boolean };
+type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean; staffOnly?: boolean };
 
 const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
@@ -27,28 +27,28 @@ const SECTIONS: NavSection[] = [
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
-  { label: "CRM & Vendas", adminOnly: true, items: [
-    { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },
-    { title: "Leads", url: "/leads", icon: UserPlus, adminOnly: true },
+  { label: "CRM & Vendas", items: [
+    { title: "Clientes", url: "/clientes", icon: Users, staffOnly: true },
+    { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
     { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
   ]},
   { label: "Catálogo", adminOnly: true, items: [
-    { title: "Serviços", url: "/produtos", icon: Package, adminOnly: true },
-    { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
+    { title: "Serviços", url: "/produtos", icon: Package },
+    { title: "Templates", url: "/templates", icon: MessageSquare },
   ]},
-  { label: "Rede", adminOnly: true, items: [
+  { label: "Rede", items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, adminOnly: true },
-    { title: "Prestadores", url: "/prestadores", icon: Truck, adminOnly: true },
+    { title: "Prestadores", url: "/prestadores", icon: Truck, staffOnly: true },
     { title: "Indicadores", url: "/indicadores", icon: Sparkles, adminOnly: true },
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
   { label: "Financeiro", adminOnly: true, items: [
-    { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
-    { title: "Faturamento", url: "/financeiro", icon: Banknote, adminOnly: true },
-    { title: "Comissões", url: "/comissoes", icon: Wallet, adminOnly: true },
-    { title: "Contratos", url: "/contratos", icon: FileSignature, adminOnly: true },
-    { title: "Arquivos", url: "/documentos", icon: FileText, adminOnly: true },
+    { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
+    { title: "Faturamento", url: "/financeiro", icon: Banknote },
+    { title: "Comissões", url: "/comissoes", icon: Wallet },
+    { title: "Contratos", url: "/contratos", icon: FileSignature },
+    { title: "Arquivos", url: "/documentos", icon: FileText },
   ]},
   { label: "Sistema", adminOnly: true, items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
@@ -64,8 +64,9 @@ interface Props { collapsed: boolean; onToggle: () => void; onNavigate?: () => v
 export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, isAdmin, isAdminSecondary } = useAuth();
+  const { user, signOut, isAdmin, isAdminSecondary, isColaborador, isVendedor } = useAuth();
   const isFullAdmin = isAdmin || isAdminSecondary;
+  const isStaff = isFullAdmin || isColaborador || isVendedor;
   const [, setCmdOpen] = useState(false);
 
   useEffect(() => {
@@ -82,8 +83,8 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
     path === "/admin" ? pathname === "/admin" : pathname === path || pathname.startsWith(path + "/");
 
   const sections = SECTIONS
-    .filter((s) => isFullAdmin || !s.adminOnly)
-    .map((s) => ({ ...s, items: s.items.filter((i) => isFullAdmin || !i.adminOnly) }))
+    .filter((s) => isFullAdmin || (!s.adminOnly && (isStaff || !s.staffOnly)))
+    .map((s) => ({ ...s, items: s.items.filter((i) => isFullAdmin || (!i.adminOnly && (isStaff || !i.staffOnly))) }))
     .filter((s) => s.items.length > 0);
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Admin";
