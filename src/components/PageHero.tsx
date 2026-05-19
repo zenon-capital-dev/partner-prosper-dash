@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Sparkles, CalendarClock } from "lucide-react";
@@ -45,7 +45,7 @@ export function PageHero({
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
 
   return (
-    <section className="relative max-w-[1600px] mx-auto px-5 lg:px-8 pt-8 lg:pt-10 pb-2 space-y-7">
+    <section className="relative max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 pt-5 sm:pt-8 lg:pt-10 pb-2 space-y-5 sm:space-y-7">
       {/* ambient — soft indigo wash, almost invisible */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-300/40 dark:via-indigo-500/20 to-transparent" />
@@ -53,11 +53,11 @@ export function PageHero({
 
       {!hideBreadcrumbs && <Breadcrumbs />}
 
-      <header className="flex flex-wrap items-start justify-between gap-6">
-        <div className="flex items-start gap-5 min-w-0 flex-1">
+      <header className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-start justify-between gap-4 sm:gap-6">
+        <div className="flex items-start gap-3 sm:gap-5 min-w-0 flex-1">
           {icon && (
             <div className="relative shrink-0">
-              <div className="size-14 lg:size-[60px] rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg ring-1 ring-white/10">
+              <div className="size-11 sm:size-14 lg:size-[60px] rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg ring-1 ring-white/10">
                 {icon}
               </div>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
@@ -78,7 +78,7 @@ export function PageHero({
                 )}
               </div>
             )}
-            <h1 className="text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground tracking-[-0.025em] mt-2 leading-[1.05] font-display">
+            <h1 className="text-[24px] sm:text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground mt-2 leading-[1.08] font-display">
               {title}
             </h1>
             {description && (
@@ -91,14 +91,14 @@ export function PageHero({
         </div>
 
         {actions && (
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">{actions}</div>
+          <div className="flex w-full sm:w-auto items-center gap-2 shrink-0 flex-wrap [&>*]:min-w-0 [&>button]:flex-1 [&>button]:sm:flex-none [&>a]:flex-1 [&>a]:sm:flex-none">{actions}</div>
         )}
       </header>
 
       {kpis && kpis.length > 0 && (
         <div
-          className="grid gap-3"
-          style={{ gridTemplateColumns: `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` }}
+          className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:[grid-template-columns:var(--hero-kpi-cols)]"
+          style={{ "--hero-kpi-cols": `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` } as CSSProperties}
         >
           {kpis.map((k, i) => {
             const cfg = toneCfg[k.tone || "default"];
@@ -106,7 +106,7 @@ export function PageHero({
               <div
                 key={i}
                 className={cn(
-                  "group/kpi relative overflow-hidden rounded-xl border bg-white dark:bg-card p-4 lg:p-[18px] transition-all duration-300",
+                  "group/kpi relative min-w-0 overflow-hidden rounded-xl border bg-white dark:bg-card p-3 sm:p-4 lg:p-[18px] transition-all duration-300",
                   "border-slate-200/70 dark:border-border shadow-[0_1px_0_rgba(15,23,42,0.04)]",
                   "hover:shadow-[0_8px_28px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-[1px] hover:border-slate-300/80"
                 )}
@@ -121,20 +121,20 @@ export function PageHero({
                 <div className="flex items-center justify-between mb-3 relative">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={cn("size-1.5 rounded-full shrink-0", cfg.dot)} />
-                    <p className="text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-slate-600 dark:text-muted-foreground truncate">
+                    <p className="text-[9px] sm:text-[9.5px] font-extrabold uppercase tracking-[0.14em] sm:tracking-[0.18em] text-slate-600 dark:text-muted-foreground truncate">
                       {k.label}
                     </p>
                   </div>
                   {k.icon && (
                     <div className={cn(
-                      "size-8 rounded-lg flex items-center justify-center shrink-0 ring-1 transition-all group-hover/kpi:scale-[1.08]",
+                      "hidden sm:flex size-8 rounded-lg items-center justify-center shrink-0 ring-1 transition-all group-hover/kpi:scale-[1.08]",
                       cfg.bg, cfg.text, cfg.ring
                     )}>
                       {k.icon}
                     </div>
                   )}
                 </div>
-                <p className="font-display text-[24px] lg:text-[28px] font-extrabold tracking-[-0.025em] tabular-nums leading-none truncate text-slate-950 dark:text-foreground relative">
+                <p className="font-display text-[20px] sm:text-[24px] lg:text-[28px] font-extrabold tabular-nums leading-tight break-words text-slate-950 dark:text-foreground relative">
                   {k.value}
                 </p>
                 {k.hint && (

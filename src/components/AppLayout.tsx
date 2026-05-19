@@ -34,6 +34,13 @@ function AppLayoutInner() {
     checkAccess();
   }, [pathname, onboardingLoading]);
 
+  useEffect(() => {
+    if (pathname.startsWith("/admin") || pathname.startsWith("/clientes") || pathname.startsWith("/demandas")) {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+    }
+  }, [pathname]);
+
   if (onboardingLoading) {
     return <LoadingScreen message="Verificando acesso..." />;
   }
@@ -75,7 +82,7 @@ function AppLayoutInner() {
       <div className="min-h-screen flex w-full bg-background selection:bg-primary/15 selection:text-primary relative">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-          <header className="glass-header h-14 flex items-center px-5 lg:px-7 gap-5 no-print">
+          <header className="glass-header h-14 flex items-center px-3 sm:px-5 lg:px-7 gap-2 sm:gap-5 no-print">
             <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors -ml-1" />
 
             <div className="hidden md:flex items-center gap-2.5 min-w-0 pl-4 border-l border-border">
@@ -93,11 +100,11 @@ function AppLayoutInner() {
               <EnvBadge />
             </div>
 
-            <div className="flex-1 max-w-xl mx-auto">
+            <div className="flex-1 min-w-0 max-w-xl mx-auto">
               {isStaff && <GlobalSearch />}
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               {showQuickCreate && (
                 <>
                   <QuickCreateButton />
@@ -109,7 +116,7 @@ function AppLayoutInner() {
               <ThemeToggle />
             </div>
           </header>
-          <main className="flex-1 overflow-y-auto overflow-x-hidden animate-fade-up scroll-smooth">
+          <main className={`flex-1 overflow-y-auto overflow-x-hidden animate-fade-up scroll-smooth ${pathname.startsWith("/admin") || pathname.startsWith("/clientes") || pathname.startsWith("/demandas") ? "admin-shell" : ""}`}>
             <Outlet />
           </main>
         </div>
