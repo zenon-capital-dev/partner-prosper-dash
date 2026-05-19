@@ -179,16 +179,20 @@ export function AppSidebar() {
 
   const isClientRole = roles.includes("cliente") || roles.includes("lead");
 
-  const { data: profile } = useQuery({
+  const { data: access } = useQuery({
     queryKey: ["sidebar-onboarding-check", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("onboarding_completed").eq("id", user!.id).maybeSingle();
-      return data;
+      const [{ data: profile }, { data: client }] = await Promise.all([
+        supabase.from("profiles").select("onboarding_completed").eq("id", user!.id).maybeSingle(),
+        supabase.from("clients").select("status, onboarding_status").eq("user_id", user!.id).maybeSingle(),
+      ]);
+      return { profile, client };
     },
     enabled: !!user?.id && isClientRole,
   });
 
-  const onboardingBlocked = isClientRole && profile && !profile.onboarding_completed;
+  const onboardingReleased = !!access?.profile?.onboarding_completed || ["completo", "concluido"].includes(access?.client?.onboarding_status || "") || access?.client?.status === "ativo";
+  const onboardingBlocked = isClientRole && access && !onboardingReleased;
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);

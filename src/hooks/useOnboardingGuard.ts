@@ -15,15 +15,14 @@ export function useOnboardingGuard() {
 
   const isClient = roles.includes("cliente") || roles.includes("lead");
   
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: access, isLoading: profileLoading } = useQuery({
     queryKey: ["onboarding-guard-check", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("onboarding_completed, onboarding_step")
-        .eq("id", user!.id)
-        .maybeSingle();
-      return data;
+      const [{ data: profile }, { data: client }] = await Promise.all([
+        supabase.from("profiles").select("onboarding_completed, onboarding_step").eq("id", user!.id).maybeSingle(),
+        supabase.from("clients").select("status, onboarding_status").eq("user_id", user!.id).maybeSingle(),
+      ]);
+      return { profile, client };
     },
     enabled: !!user?.id && isClient,
   });
@@ -34,7 +33,11 @@ export function useOnboardingGuard() {
     if (isLoading) return true; // Still loading, don't redirect yet
     if (!isClient) return true; // Non-clients are never blocked
     
-    const isCompleted = profile?.onboarding_completed;
+    const isCompleted =
+      !access?.client ||
+      !!access?.profile?.onboarding_completed ||
+      ["completo", "concluido"].includes(access?.client?.onboarding_status || "") ||
+      access?.client?.status === "ativo";
     const isOnOnboardingPage = pathname.startsWith("/cliente/onboarding");
     const isSupportPage = pathname.includes("/suporte");
     const isDocsPage = pathname.includes("/documentos");
@@ -58,5 +61,5 @@ export function useOnboardingGuard() {
     return true;
   };
 
-  return { isLoading, checkAccess, profile };
+  return { isLoading, checkAccess, profile: access?.profile };
 }

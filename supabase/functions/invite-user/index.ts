@@ -23,6 +23,8 @@ interface Body {
   link_service_provider_id?: string;
   link_type?: "client" | "partner" | "referrer" | "service_provider";
   link_id?: string;
+  onboarding_completed?: boolean;
+  manual_approval_required?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -117,6 +119,9 @@ Deno.serve(async (req) => {
       phone: body.phone ?? null,
       has_system_access: body.has_system_access ?? true,
       internal_notes: body.internal_notes ?? null,
+      onboarding_completed: body.role === "cliente" ? (body.onboarding_completed ?? true) : undefined,
+      onboarding_step: body.role === "cliente" && (body.onboarding_completed ?? true) ? 5 : undefined,
+      manual_approval_required: body.role === "cliente" ? (body.manual_approval_required ?? false) : undefined,
     });
 
     // Set role: clear existing then set chosen
@@ -125,7 +130,12 @@ Deno.serve(async (req) => {
 
     // Link to entity
     if (body.link_client_id) {
-      await admin.from("clients").update({ user_id: userId }).eq("id", body.link_client_id);
+      await admin.from("clients").update({
+        user_id: userId,
+        ...(body.role === "cliente" && (body.onboarding_completed ?? true)
+          ? { onboarding_status: "concluido", onboarding_progress: 100, onboarding_completed_at: new Date().toISOString() }
+          : {}),
+      }).eq("id", body.link_client_id);
     }
     if (body.link_partner_id) {
       await admin.from("partners").update({ user_id: userId }).eq("id", body.link_partner_id);
@@ -138,7 +148,12 @@ Deno.serve(async (req) => {
       await admin.from("service_providers").update({ user_id: userId }).eq("id", id);
     }
     if (body.link_type === "client" && body.link_id) {
-      await admin.from("clients").update({ user_id: userId }).eq("id", body.link_id);
+      await admin.from("clients").update({
+        user_id: userId,
+        ...(body.role === "cliente" && (body.onboarding_completed ?? true)
+          ? { onboarding_status: "concluido", onboarding_progress: 100, onboarding_completed_at: new Date().toISOString() }
+          : {}),
+      }).eq("id", body.link_id);
     }
     if (body.link_type === "partner" && body.link_id) {
       await admin.from("partners").update({ user_id: userId }).eq("id", body.link_id);
