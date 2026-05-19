@@ -1207,3 +1207,19 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
 }
+
+/* Force light mode inside client portal regardless of global .dark */
+.client-portal,
+.dark .client-portal {
+  color-scheme: light;
+  --background: 220 25% 97%;
+  --foreground: 220 65% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 65% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 65% 15%;
+  --muted: 220 20% 95%;
+  --muted-foreground: 220 15% 45%;
+  --border: 220 20% 90%;
+  --input: 220 20% 90%;
+}
