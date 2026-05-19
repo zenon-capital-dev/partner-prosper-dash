@@ -150,7 +150,7 @@ export default function Partners() {
     if (!form.full_name) { toast.error("Nome obrigatório"); return; }
     if (!editing && createAccess) {
       if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
-      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
+      if (!accessPwd || accessPwd.length < 6) { toast.error("Senha deve ter no mínimo 6 caracteres"); return; }
     }
 
     setSubmitting(true);
