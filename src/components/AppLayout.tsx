@@ -39,10 +39,11 @@ function AppLayoutInner() {
   }
 
   // 🔒 Cada role só pode entrar no seu próprio painel.
-  // Admin, Colaborador e Vendedor (Comercial) usam o painel administrativo (/admin).
-  const isStaff = isAdmin || isAdminSecondary || isColaborador || isVendedor;
+  // Admin e Vendedor (Comercial) usam o painel administrativo (/admin).
+  const isStaff = isAdmin || isAdminSecondary || isVendedor;
   const allowedPrefix = (() => {
     if (isStaff) return "/admin";
+    if (isColaborador) return "/colaborador";
     if (isParceiro) return "/parceiro";
     if (isPrestador) return "/prestador";
     if (isIndicador) return "/indicador";
@@ -54,8 +55,13 @@ function AppLayoutInner() {
     return <Navigate to="/admin" replace />;
   }
 
+  // Colaborador pode entrar no painel dele + /clientes (read-only).
+  if (isColaborador && pathname !== "/" && !pathname.startsWith("/colaborador") && !pathname.startsWith("/clientes") && !pathname.startsWith("/perfil")) {
+    return <Navigate to="/colaborador" replace />;
+  }
+
   // Bloqueia acesso a painéis de outras roles (mas permite "/" raiz para RoleHome)
-  if (allowedPrefix && pathname !== "/" && !pathname.startsWith(allowedPrefix)) {
+  if (!isColaborador && allowedPrefix && pathname !== "/" && !pathname.startsWith(allowedPrefix)) {
     return <Navigate to={allowedPrefix} replace />;
   }
 

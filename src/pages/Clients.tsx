@@ -33,7 +33,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { confirmAction } from "@/lib/confirm";
 
 export default function Clients() {
-  const { isAdmin, isAdminSecondary } = useAuth();
+  const { isAdmin, isAdminSecondary, isColaborador } = useAuth();
+  const canWrite = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -438,22 +439,26 @@ export default function Clients() {
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}>
                             <Eye className="size-3.5 mr-2" /> Ver perfil
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(c)}>
-                            <Pencil className="size-3.5 mr-2" /> Editar cadastro
-                          </DropdownMenuItem>
+                          {canWrite && (
+                            <DropdownMenuItem onClick={() => openEdit(c)}>
+                              <Pencil className="size-3.5 mr-2" /> Editar cadastro
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}>
                             <CreditCard className="size-3.5 mr-2" /> Financeiro
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=documentos`)}>
                             <FileText className="size-3.5 mr-2" /> Documentos
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleArchive(c)}>
-                            {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive">
-                            <Trash2 className="size-3.5 mr-2" /> Excluir
-                          </DropdownMenuItem>
+                          {canWrite && <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleArchive(c)}>
+                              {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive">
+                              <Trash2 className="size-3.5 mr-2" /> Excluir
+                            </DropdownMenuItem>
+                          </>}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -598,13 +603,15 @@ export default function Clients() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-52">
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> Ver perfil</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>
+                            {canWrite && <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleArchive(c)}>
-                              {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
+                            {canWrite && <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleArchive(c)}>
+                                {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
+                            </>}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>
