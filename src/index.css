@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Instrument+Serif:ital@0;1&family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -1179,3 +1179,50 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .dark .admin-shell .data-table tbody tr:hover {
   background-color: hsl(224 24% 13% / 0.7) !important;
 }
+
+/* ============================================================
+   CLIENT PORTAL — Navy Trust premium (Sora + Manrope)
+   Scope: .client-portal (rota /portal-cliente)
+   Palette: #0f1b3d navy · #1e3a5f mid · #3b6fa0 steel · #e8edf3 mist
+   ============================================================ */
+.client-portal {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, hsla(217, 65%, 35%, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 10%, hsla(218, 60%, 25%, 0.06), transparent 60%),
+    linear-gradient(180deg, #f6f8fc 0%, #eef2f8 100%);
+  color: #0f1b3d;
+  letter-spacing: -0.005em;
+}
+.client-portal h1,
+.client-portal h2,
+.client-portal h3,
+.client-portal h4,
+.client-portal .font-display {
+  font-family: 'Sora', 'Manrope', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+.client-portal .num {
+  font-family: 'Sora', 'Manrope', sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Force light mode inside client portal regardless of global .dark */
+.client-portal,
+.dark .client-portal {
+  color-scheme: light;
+  --background: 220 25% 97%;
+  --foreground: 220 65% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 65% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 65% 15%;
+  --muted: 220 20% 95%;
+  --muted-foreground: 220 15% 45%;
+  --border: 220 20% 90%;
+  --input: 220 20% 90%;
+}
+
+/* Quando portal cliente está montado, força bg light no wrapper externo */
+html:has(.client-portal) body > #root > div.dark { background: hsl(220 25% 97%) !important; }

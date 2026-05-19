@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,26 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Package, FileText, Download, Upload, CheckCircle2, Clock, AlertCircle,
-  Calendar, Receipt, ShoppingBag, Inbox, Mail, Phone, ClipboardList, History, ArrowRight,
-  FileSignature, ShieldCheck, ChevronRight, Loader2, ListChecks, Activity,
-  ChevronLeft, Sparkles, MessageSquare, Zap, LayoutDashboard, LogOut, Bell, User as UserIcon,
+  Package, FileText, Download, CheckCircle2, Clock, AlertCircle,
+  Calendar, Receipt, Inbox, ClipboardList, ArrowRight,
+  FileSignature, ShieldCheck, ChevronLeft, Sparkles, MessageSquare,
+  LayoutDashboard, Bell, Activity, ListChecks, Loader2,
 } from "lucide-react";
-import { formatBRL, formatDate, initials } from "@/lib/format";
+import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps";
-import { PageHero } from "@/components/PageHero";
-import { ProsperLogo } from "@/components/VendxLogo";
-import { NotificationBell } from "@/components/NotificationBell";
-import { useSystemSettings, buildWhatsAppLink, buildMailtoLink } from "@/hooks/useSystemSettings";
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
+import { useSystemSettings, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 
 const CLIENT_PATH_TO_TAB: Record<string, string> = {
   produtos: "servicos", documentos: "checklist", financeiro: "financeiro",
@@ -37,8 +29,6 @@ const CLIENT_TAB_TO_PATH: Record<string, string> = {
   contratos: "contratos", docs: "biblioteca", descobrir: "descobrir",
 };
 
-
-const ACTIVE_STATUSES = new Set(["ativo", "em_andamento", "em_execucao", "aguardando_inicio", "aguardando_documentos", "pendente_cliente", "em_analise"]);
 const DONE_STATUSES = new Set(["concluido", "concluida", "finalizado", "finalizada", "assinado", "pago", "aprovado"]);
 
 const statusLabel = (status?: string | null) => (status || "Em definição")
@@ -50,7 +40,7 @@ const isOpenPayment = (status?: string | null) => !["pago", "paid", "cancelado",
 const isContractPending = (status?: string | null) => ["enviado", "aguardando_assinatura", "pendente", "criado"].includes(status || "");
 
 export default function ClientPanel() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { tab: tabParam } = useParams<{ tab?: string }>();
   const navigate = useNavigate();
   const settings = useSystemSettings();
@@ -60,6 +50,14 @@ export default function ClientPanel() {
   const setActiveTab = (v: string) => navigate(v === "home" ? "/portal-cliente" : `/portal-cliente/${CLIENT_TAB_TO_PATH[v] || v}`);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("all");
+
+  // Portal do cliente é sempre light mode — remove .dark do <html> enquanto montado
+  useEffect(() => {
+    const html = document.documentElement;
+    const wasDark = html.classList.contains("dark");
+    html.classList.remove("dark");
+    return () => { if (wasDark) html.classList.add("dark"); };
+  }, []);
 
   const downloadDoc = async (path?: string | null, name?: string) => {
     if (!path) return toast.error("Arquivo indisponível");
@@ -127,7 +125,7 @@ export default function ClientPanel() {
           icon={AlertCircle}
           title="Não foi possível carregar seu portal"
           description="Atualize a página. Se continuar acontecendo, nossa equipe consegue revisar seu acesso rapidamente."
-          action={<Button onClick={() => window.location.reload()} className="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white">Tentar novamente</Button>}
+          action={<Button onClick={() => { queryClient.invalidateQueries({ queryKey: ["client-panel"] }); }} className="h-11 rounded-xl bg-[#0f1b3d] hover:bg-[#1e3a5f] text-white font-semibold">Tentar novamente</Button>}
           tone="danger"
         />
       </ClientPanelShell>
@@ -140,7 +138,7 @@ export default function ClientPanel() {
         icon={Inbox}
         title="Acesso ainda não vinculado"
         description="Seu login existe, mas ainda não encontramos um cadastro de cliente conectado a ele. Fale com a equipe para vincular o acesso."
-        action={<Button onClick={() => window.open(wa("Olá, meu acesso ao portal do cliente ainda não está vinculado."), "_blank")} className="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"><MessageSquare className="size-4 mr-2" /> Falar com a equipe</Button>}
+        action={<Button onClick={() => window.open(wa("Olá, meu acesso ao portal do cliente ainda não está vinculado."), "_blank")} className="h-11 rounded-xl bg-[#0f1b3d] hover:bg-[#1e3a5f] text-white font-semibold"><MessageSquare className="size-4 mr-2" /> Falar com a equipe</Button>}
       />
     </ClientPanelShell>
   );
@@ -149,14 +147,8 @@ export default function ClientPanel() {
   const allDocumentItems = [
     ...allDocs.map((d: any) => ({ ...d, source: "documents" })),
     ...requests.map((r: any) => ({
-      ...r,
-      source: "document_requests",
-      name: r.request_title,
-      file_path: r.file_url,
-      due_date: r.deadline,
-      uploaded_at: r.submission_date,
-      reviewed_at: r.approval_date,
-      created_at: r.requested_at,
+      ...r, source: "document_requests", name: r.request_title, file_path: r.file_url,
+      due_date: r.deadline, uploaded_at: r.submission_date, reviewed_at: r.approval_date, created_at: r.requested_at,
     })),
   ];
 
@@ -179,7 +171,6 @@ export default function ClientPanel() {
   const openTotal = payments.filter((p: any) => isOpenPayment(p.status)).reduce((s: number, p: any) => s + Number(p.amount || 0), 0);
   const nextDue = payments.filter((p: any) => isOpenPayment(p.status) && p.due_date).sort((a: any, b: any) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())[0];
   const overduePayments = payments.filter((p: any) => isOpenPayment(p.status) && p.due_date && new Date(p.due_date) < new Date()).length;
-  const onboardingProgress = Math.max(0, Math.min(100, Number(client.onboarding_progress ?? 100)));
   const selectedProduct = allProducts.find((p: any) => p.id === selectedProductId);
   const latestReports = reports.slice(0, 5);
   const deliveries = [
@@ -196,21 +187,21 @@ export default function ClientPanel() {
   const firstName = client.full_name?.split(" ")[0] || "Cliente";
 
   return (
-    <div className="animate-fade-in min-h-screen bg-slate-50/60">
-      <div className="max-w-7xl mx-auto px-5 lg:px-8 py-8 lg:py-10 space-y-8">
-        {/* Company Selector and Hero contextual info */}
-        {hasMultipleCompanies && activeTab === "home" && (
-          <div className="flex justify-end mb-4">
+    <div className="client-portal animate-fade-in min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
+        {hasMultipleCompanies && activeTab === "home" && !selectedProductId && (
+          <div className="flex justify-end">
             <select
               value={selectedCompanyId}
               onChange={(e) => setSelectedCompanyId(e.target.value)}
-              className="h-10 rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 px-4 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-100 shadow-sm"
+              className="h-10 rounded-xl border border-[#0f1b3d]/10 bg-white text-xs font-semibold text-[#0f1b3d] px-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3b6fa0]/30"
             >
               <option value="all">Todas as empresas</option>
               {companies.map((co: any) => <option key={co.id} value={co.id}>{co.trade_name || co.name}</option>)}
             </select>
           </div>
         )}
+
         {selectedProductId && selectedProduct ? (
           <ProductDetailView
             product={selectedProduct}
@@ -223,62 +214,103 @@ export default function ClientPanel() {
           />
         ) : (
           <>
-            <section className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8 items-stretch">
-              <div className="relative overflow-hidden bg-slate-900 rounded-[32px] p-8 lg:p-12 text-white group shadow-2xl border border-slate-800">
-                <div className="absolute top-0 right-0 size-96 bg-indigo-500/20 blur-[100px] -mt-48 -mr-48 rounded-full" />
-                <div className="absolute bottom-0 left-0 size-64 bg-primary/10 blur-[80px] -mb-32 -ml-32 rounded-full" />
-                
-                <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-                  <div className="max-w-2xl space-y-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
-                      <ShieldCheck className="size-3.5 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90">Portal Seguro · Ativo</span>
+            {/* ===== HERO — Navy gradient ===== */}
+            <section className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_-20px_rgba(15,27,61,0.4)] border border-[#0f1b3d]/10">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0a1430] via-[#0f1b3d] to-[#1e3a5f]" />
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#3b6fa0]/20 blur-[120px] -mt-48 -mr-48 rounded-full" />
+              <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#c9a84c]/10 blur-[100px] -mb-32 -ml-32 rounded-full" />
+              <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+
+              <div className="relative z-10 p-6 sm:p-8 lg:p-12">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 lg:gap-10">
+                  <div className="flex-1 min-w-0 space-y-4 sm:space-y-5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
+                      <ShieldCheck className="size-3.5 text-[#c9a84c]" />
+                      <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90">Portal Seguro · TLS 1.3</span>
                     </div>
-                    <h1 className="font-editorial text-[40px] lg:text-[56px] font-bold tracking-tight text-white leading-[1.05]">
-                      Olá, {firstName}.<br /><span className="italic text-primary font-medium">Sua operação</span> organizada.
+                    <h1 className="font-display text-[28px] sm:text-[36px] lg:text-[48px] font-bold tracking-tight text-white leading-[1.05]">
+                      Olá, {firstName}.<br />
+                      <span className="text-[#e8edf3]/85 font-light">Sua operação,</span>{" "}
+                      <span className="text-[#c9a84c]">sob controle.</span>
                     </h1>
-                    <p className="text-[15px] text-white/70 mt-4 leading-relaxed max-w-xl font-medium">
-                      Acompanhe demandas, documentos, contratos e pagamentos com visão clara e suporte prioritário Prosper.
+                    <p className="text-sm sm:text-[15px] text-white/65 leading-relaxed max-w-xl">
+                      Acompanhe demandas, documentos, contratos e pagamentos com transparência completa e suporte prioritário da equipe Prosper.
                     </p>
                   </div>
-                  <div className="md:text-right shrink-0 bg-white/5 backdrop-blur-md rounded-2xl p-5 border border-white/10">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 mb-1">Status Geral</p>
-                    <p className="text-lg font-bold text-white tracking-tight">{statusLabel(client.status)}</p>
+                  <div className="shrink-0 bg-white/[0.07] backdrop-blur-md rounded-2xl p-5 border border-white/10 min-w-[200px]">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">Status da conta</p>
+                    <p className="text-xl font-bold text-white mt-1.5 tracking-tight">{statusLabel(client.status)}</p>
                     <div className="h-px bg-white/10 my-3" />
-                    <p className="text-[11px] font-bold text-white/60">Desde {formatDate(client.created_at)}</p>
+                    <p className="text-[11px] font-medium text-white/60">Cliente desde {formatDate(client.created_at)}</p>
                   </div>
                 </div>
 
-                <div className="mt-8 grid grid-cols-2 xl:grid-cols-4 gap-3">
-                  <MetricTile label="Serviços ativos" value={String(activeProducts.length)} sub={`${completedProducts.length} concluído(s)`} icon={Package} tone="info" />
-                  <MetricTile label="Pendências" value={String(pendingDocs + pendingContracts)} sub="documentos e contratos" icon={ListChecks} tone={(pendingDocs + pendingContracts) > 0 ? "warning" : "success"} />
-                  <MetricTile label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} icon={Receipt} tone={openTotal > 0 ? "warning" : "success"} />
-                  <MetricTile label="Entregas" value={String(deliveries.length)} sub="arquivos disponíveis" icon={Download} tone="success" />
+                {/* KPI grid — mobile-safe, no truncation */}
+                <div className="mt-7 sm:mt-9 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                  <HeroKpi label="Serviços ativos" value={String(activeProducts.length)} sub={`${completedProducts.length} concluídos`} icon={Package} />
+                  <HeroKpi label="Pendências" value={String(pendingDocs + pendingContracts)} sub="docs e contratos" icon={ListChecks} accent={(pendingDocs + pendingContracts) > 0 ? "warning" : "ok"} />
+                  <HeroKpi label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} icon={Receipt} accent={openTotal > 0 ? "warning" : "ok"} compact />
+                  <HeroKpi label="Entregas" value={String(deliveries.length)} sub="arquivos disponíveis" icon={Download} accent="gold" />
                 </div>
               </div>
+            </section>
 
-              <div className="bg-white border border-slate-200/70 rounded-[28px] shadow-xl p-7 flex flex-col group hover:shadow-2xl transition-all duration-300">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Fluxo de Trabalho</p>
-                    <h2 className="text-xl font-bold text-slate-900 mt-1">Ações prioritárias</h2>
-                  </div>
-                  <span className="size-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm group-hover:rotate-12 transition-transform"><Bell className="size-5" /></span>
+            {/* ===== Ações prioritárias ===== */}
+            <section className="grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,380px)] gap-5 lg:gap-6">
+              <PanelCard
+                title="Demandas em andamento"
+                eyebrow="Execução"
+                action={activeProducts.length > 3 ? <button onClick={() => setActiveTab("servicos")} className="text-xs font-semibold text-[#3b6fa0] hover:text-[#0f1b3d] inline-flex items-center gap-1">Ver todas <ArrowRight className="size-3.5" /></button> : null}
+              >
+                <div className="space-y-3">
+                  {activeProducts.length === 0 ? (
+                    <MiniEmpty icon={Package} text="Nenhuma demanda em andamento no momento." />
+                  ) : activeProducts.slice(0, 4).map((p: any) => {
+                    const productDocs = docs.filter((d: any) => d.client_product_id === p.id && isPendingDoc(d.status)).length;
+                    const latestReport = reports.find((r: any) => r.client_product_id === p.id);
+                    return (
+                      <button key={p.id} onClick={() => setSelectedProductId(p.id)} className="w-full text-left rounded-xl border border-[#0f1b3d]/8 bg-white hover:border-[#3b6fa0]/40 hover:shadow-md transition-all p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <span className="size-10 rounded-xl bg-[#0f1b3d] text-white flex items-center justify-center shrink-0"><Package className="size-5" /></span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-[#0f1b3d] truncate text-[15px]">{p.products?.name || p.custom_product_name || "Solução contratada"}</p>
+                              <p className="text-xs text-[#0f1b3d]/55 mt-1 line-clamp-1">{latestReport?.notes || `Status: ${statusLabel(p.status)}`}</p>
+                            </div>
+                          </div>
+                          <StatusBadge status={p.status} />
+                        </div>
+                        <div className="mt-4 grid grid-cols-3 gap-2">
+                          <InfoCell label="Prazo" value={p.deadline ? formatDate(p.deadline) : "—"} />
+                          <InfoCell label="Pendências" value={productDocs > 0 ? `${productDocs} doc.` : "Em dia"} tone={productDocs > 0 ? "warning" : "success"} />
+                          <InfoCell label="Atualizado" value={formatDate(latestReport?.created_at || p.updated_at || p.created_at)} />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="space-y-4 flex-1">
+              </PanelCard>
+
+              <PanelCard
+                title="Ações prioritárias"
+                eyebrow="Fluxo de trabalho"
+                accent={<span className="size-9 rounded-xl bg-[#0f1b3d]/5 text-[#0f1b3d] flex items-center justify-center"><Bell className="size-4" /></span>}
+              >
+                <div className="space-y-3">
                   {criticalActions.map((item) => (
                     <ActionRow key={item.label} {...item} onClick={() => setActiveTab(item.tab)} />
                   ))}
                 </div>
-                <Button onClick={() => window.open(wa(), "_blank")} className="mt-6 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+                <Button onClick={() => window.open(wa(), "_blank")} className="mt-5 h-11 w-full rounded-xl bg-[#0f1b3d] hover:bg-[#1e3a5f] text-white font-semibold shadow-sm">
                   <MessageSquare className="size-4 mr-2" /> Falar com a equipe
                 </Button>
-              </div>
+              </PanelCard>
             </section>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-7">
-              <div className="sticky top-14 z-30 bg-slate-50/90 backdrop-blur-md py-2 -mx-5 px-5 lg:mx-0 lg:px-0">
-                <TabsList className="h-auto bg-white border border-slate-200/70 rounded-xl p-1 shadow-sm overflow-x-auto max-w-full justify-start">
+            {/* ===== Tabs ===== */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <div className="sticky top-14 z-30 -mx-4 sm:mx-0 px-4 sm:px-0 py-2 bg-gradient-to-b from-[#f6f8fc] via-[#f6f8fc]/95 to-[#f6f8fc]/70 backdrop-blur-md">
+                <TabsList className="h-auto bg-white border border-[#0f1b3d]/8 rounded-2xl p-1.5 shadow-sm overflow-x-auto max-w-full justify-start w-full sm:w-auto scrollbar-none">
                   <PillTab value="home" label="Início" icon={LayoutDashboard} />
                   <PillTab value="servicos" label="Serviços" icon={Package} count={activeProducts.length} />
                   <PillTab value="checklist" label="Documentos" icon={FileText} count={pendingDocs} alert={pendingDocs > 0} />
@@ -289,69 +321,45 @@ export default function ClientPanel() {
                 </TabsList>
               </div>
 
-              <TabsContent value="home" className="space-y-6 animate-fade-up">
-                <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8">
-                  <PanelCard title="Demandas em andamento" eyebrow="Execução" action={activeProducts.length > 3 ? <button onClick={() => setActiveTab("servicos")} className="text-xs font-bold text-indigo-700">Ver todas</button> : null}>
-                    <div className="space-y-3">
-                      {activeProducts.length === 0 ? (
-                        <MiniEmpty icon={Package} text="Nenhuma demanda ativa no momento." />
-                      ) : activeProducts.slice(0, 4).map((p: any) => {
-                        const productDocs = docs.filter((d: any) => d.client_product_id === p.id && isPendingDoc(d.status)).length;
-                        const latestReport = reports.find((r: any) => r.client_product_id === p.id);
-                        return (
-                          <button key={p.id} onClick={() => setSelectedProductId(p.id)} className="w-full text-left rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 hover:border-indigo-200 transition-all p-4 group">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex items-start gap-3 min-w-0">
-                                <span className="size-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0"><Package className="size-5" /></span>
-                                <div className="min-w-0">
-                                  <p className="font-bold text-slate-900 truncate">{p.products?.name || p.custom_product_name || "Solução contratada"}</p>
-                                  <p className="text-xs text-slate-500 mt-1 truncate">{latestReport?.notes || `Status: ${statusLabel(p.status)}`}</p>
-                                </div>
-                              </div>
-                              <StatusBadge status={p.status} />
-                            </div>
-                            <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
-                              <InfoCell label="Prazo" value={p.deadline ? formatDate(p.deadline) : "Em definição"} />
-                              <InfoCell label="Pendências" value={productDocs > 0 ? `${productDocs} doc.` : "Em dia"} tone={productDocs > 0 ? "warning" : "success"} />
-                              <InfoCell label="Atualizado" value={formatDate(latestReport?.created_at || p.updated_at || p.created_at)} />
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+              <TabsContent value="home" className="space-y-5 animate-fade-up">
+                <div className="grid lg:grid-cols-2 gap-5">
+                  <PanelCard title="Próximo vencimento" eyebrow="Financeiro">
+                    {nextDue ? (
+                      <div className="rounded-xl bg-gradient-to-br from-[#fdf6e3] to-[#fbeec6] border border-[#c9a84c]/30 p-5">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="size-3.5 text-[#8a6d1f]" />
+                          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a6d1f]">{formatDate(nextDue.due_date)}</p>
+                        </div>
+                        <p className="num text-3xl sm:text-4xl font-bold text-[#0f1b3d] mt-2">{formatBRL(nextDue.amount)}</p>
+                        <p className="text-sm text-[#0f1b3d]/65 mt-2">{overduePayments > 0 ? "Existe pagamento vencido — regularize para evitar bloqueios." : "Pagamento em aberto para acompanhamento."}</p>
+                        <Button onClick={() => setActiveTab("financeiro")} className="mt-4 h-10 rounded-xl bg-[#0f1b3d] hover:bg-[#1e3a5f] text-white w-full font-semibold">Ver financeiro</Button>
+                      </div>
+                    ) : <MiniEmpty icon={CheckCircle2} text="Nenhuma cobrança pendente — você está em dia." tone="ok" />}
                   </PanelCard>
 
-                  <div className="space-y-6">
-                    <PanelCard title="Próximo vencimento" eyebrow="Financeiro">
-                      {nextDue ? (
-                        <div className="rounded-xl bg-amber-50 border border-amber-200/70 p-5">
-                          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700">{formatDate(nextDue.due_date)}</p>
-                          <p className="text-3xl font-bold tabular-nums text-slate-900 mt-2">{formatBRL(nextDue.amount)}</p>
-                          <p className="text-sm text-slate-600 mt-2">{overduePayments > 0 ? "Existe pagamento vencido. Regularize para evitar bloqueios." : "Pagamento em aberto para acompanhamento."}</p>
-                          <Button onClick={() => setActiveTab("financeiro")} className="mt-4 h-10 rounded-lg bg-slate-900 hover:bg-slate-800 text-white w-full">Ver financeiro</Button>
-                        </div>
-                      ) : <MiniEmpty icon={CheckCircle2} text="Nenhuma cobrança pendente." />}
-                    </PanelCard>
-
-                    <PanelCard title="Atualizações recentes" eyebrow="Linha do tempo">
+                  <PanelCard title="Atualizações recentes" eyebrow="Linha do tempo">
+                    {latestReports.length === 0 ? <MiniEmpty icon={Activity} text="Ainda não há atualizações registradas." /> : (
                       <div className="space-y-4">
-                        {latestReports.length === 0 ? <MiniEmpty icon={Activity} text="Ainda não há atualizações registradas." /> : latestReports.map((r: any) => (
+                        {latestReports.map((r: any) => (
                           <div key={r.id} className="flex gap-3">
-                            <span className="mt-1 size-2 rounded-full bg-indigo-600 ring-4 ring-indigo-50 shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{r.notes || statusLabel(r.status)}</p>
-                              <p className="text-[11px] text-slate-500 mt-1">{formatDate(r.created_at)} · {r.service_providers?.name || "Equipe Prosper"}</p>
+                            <div className="flex flex-col items-center shrink-0">
+                              <span className="size-2.5 rounded-full bg-[#3b6fa0] ring-4 ring-[#3b6fa0]/15 mt-1.5" />
+                              <span className="w-px flex-1 bg-[#0f1b3d]/8 mt-1" />
+                            </div>
+                            <div className="min-w-0 pb-1">
+                              <p className="text-sm font-semibold text-[#0f1b3d] leading-snug line-clamp-2">{r.notes || statusLabel(r.status)}</p>
+                              <p className="text-[11px] text-[#0f1b3d]/50 mt-1">{formatDate(r.created_at)} · {r.service_providers?.name || "Equipe Prosper"}</p>
                             </div>
                           </div>
                         ))}
                       </div>
-                    </PanelCard>
-                  </div>
+                    )}
+                  </PanelCard>
                 </div>
               </TabsContent>
 
               <TabsContent value="servicos" className="animate-fade-up">
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                   {granularProducts.length === 0 ? <div className="md:col-span-2 xl:col-span-3"><EmptyState icon={Package} title="Nenhum serviço contratado" description="Quando uma solução for vinculada ao seu cadastro, ela aparecerá aqui." /></div> : granularProducts.map((p: any) => {
                     const productPendingDocs = docs.filter((d: any) => d.client_product_id === p.id && isPendingDoc(d.status)).length;
                     const latestReport = reports.find((r: any) => r.client_product_id === p.id);
@@ -365,13 +373,13 @@ export default function ClientPanel() {
                 <ClientDocumentsTab clientId={client.id} requests={docs as any} products={catalog as any} />
               </TabsContent>
 
-              <TabsContent value="financeiro" className="animate-fade-up space-y-6">
+              <TabsContent value="financeiro" className="animate-fade-up space-y-5">
                 <SectionHeader title="Financeiro" description="Extrato de cobranças, vencimentos e pagamentos registrados." counters={[formatBRL(openTotal), `${pendingPayments} aberto(s)`]} />
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                  <MetricTile label="Recorrência" value={formatBRL(monthlyTotal)} sub="base contratada" icon={Activity} tone="info" />
-                  <MetricTile label="Total pago" value={formatBRL(paidTotal)} sub="histórico" icon={CheckCircle2} tone="success" />
-                  <MetricTile label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} icon={Clock} tone={openTotal > 0 ? "warning" : "success"} />
-                  <MetricTile label="Próximo" value={nextDue ? formatDate(nextDue.due_date) : "—"} sub={nextDue ? formatBRL(nextDue.amount) : "sem pendência"} icon={Calendar} tone={nextDue ? "warning" : "success"} />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+                  <FinanceTile label="Recorrência" value={formatBRL(monthlyTotal)} sub="base contratada" icon={Activity} />
+                  <FinanceTile label="Total pago" value={formatBRL(paidTotal)} sub="histórico" icon={CheckCircle2} tone="success" />
+                  <FinanceTile label="Em aberto" value={formatBRL(openTotal)} sub={`${pendingPayments} título(s)`} icon={Clock} tone={openTotal > 0 ? "warning" : "success"} />
+                  <FinanceTile label="Próximo" value={nextDue ? formatDate(nextDue.due_date) : "—"} sub={nextDue ? formatBRL(nextDue.amount) : "sem pendência"} icon={Calendar} tone={nextDue ? "warning" : "success"} />
                 </div>
                 <PanelCard title="Extrato de pagamentos" eyebrow={`${payments.length} registros`}>
                   {payments.length === 0 ? <MiniEmpty icon={Receipt} text="Nenhum pagamento registrado ainda." /> : <PaymentTable payments={payments} />}
@@ -387,17 +395,17 @@ export default function ClientPanel() {
                 <SectionHeader title="Biblioteca" description="Arquivos, entregas e documentos aprovados ficam centralizados aqui." counters={[`${deliveries.length} arquivo(s)`]} />
                 <PanelCard title="Repositório de arquivos" eyebrow="Downloads">
                   {deliveries.length === 0 ? <MiniEmpty icon={Inbox} text="Sua biblioteca ainda está vazia." /> : (
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-[#0f1b3d]/6">
                       {deliveries.map((d: any) => (
-                        <div key={`${d.type}-${d.id}`} className="py-4 flex items-center justify-between gap-4">
+                        <div key={`${d.type}-${d.id}`} className="py-3.5 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <span className="size-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><FileText className="size-5" /></span>
+                            <span className="size-10 rounded-xl bg-[#0f1b3d]/5 text-[#3b6fa0] flex items-center justify-center shrink-0"><FileText className="size-5" /></span>
                             <div className="min-w-0">
-                              <p className="font-bold text-slate-900 truncate">{d.name}</p>
-                              <p className="text-[11px] text-slate-500 mt-0.5">{formatDate(d.created_at)}</p>
+                              <p className="font-semibold text-[#0f1b3d] truncate text-sm">{d.name}</p>
+                              <p className="text-[11px] text-[#0f1b3d]/50 mt-0.5">{formatDate(d.created_at)}</p>
                             </div>
                           </div>
-                          <Button variant="outline" size="sm" className="h-9 rounded-lg border-slate-200" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}><Download className="size-4 mr-2" />Baixar</Button>
+                          <Button variant="outline" size="sm" className="h-9 rounded-xl border-[#0f1b3d]/15 text-[#0f1b3d] hover:bg-[#0f1b3d] hover:text-white" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}><Download className="size-4 sm:mr-2" /><span className="hidden sm:inline">Baixar</span></Button>
                         </div>
                       ))}
                     </div>
@@ -407,21 +415,21 @@ export default function ClientPanel() {
 
               <TabsContent value="descobrir" className="animate-fade-up">
                 <SectionHeader title="Novas soluções" description="Produtos disponíveis para ampliar sua operação." />
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                   {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).map((p: any) => (
-                    <div key={p.id} className="bg-white border border-slate-200/70 rounded-2xl p-6 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all flex flex-col">
-                      <div className="flex items-center justify-between gap-3 mb-5">
-                        {p.product_categories?.name ? <Badge variant="outline" className="text-[10px] font-bold rounded-lg border-slate-200 text-slate-600">{p.product_categories.name}</Badge> : <span />}
-                        {p.recurring && <Badge className="text-[10px] font-bold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-50">Recorrente</Badge>}
+                    <div key={p.id} className="bg-white border border-[#0f1b3d]/8 rounded-2xl p-6 shadow-sm hover:border-[#3b6fa0]/40 hover:shadow-md transition-all flex flex-col">
+                      <div className="flex items-center justify-between gap-3 mb-4">
+                        {p.product_categories?.name ? <Badge variant="outline" className="text-[10px] font-bold rounded-lg border-[#0f1b3d]/15 text-[#0f1b3d]/70">{p.product_categories.name}</Badge> : <span />}
+                        {p.recurring && <Badge className="text-[10px] font-bold rounded-lg bg-[#0f1b3d] text-white hover:bg-[#0f1b3d]">Recorrente</Badge>}
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 leading-tight">{p.name}</h3>
-                      <p className="text-sm text-slate-600 mt-2 line-clamp-3 flex-1">{p.description}</p>
-                      <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
+                      <h3 className="text-xl font-bold text-[#0f1b3d] leading-tight">{p.name}</h3>
+                      <p className="text-sm text-[#0f1b3d]/65 mt-2 line-clamp-3 flex-1">{p.description}</p>
+                      <div className="mt-5 pt-4 border-t border-[#0f1b3d]/8 flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Investimento</p>
-                          <p className="text-lg font-bold tabular-nums text-slate-900">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-slate-500 font-normal">/mês</span>}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#0f1b3d]/45">Investimento</p>
+                          <p className="num text-lg font-bold text-[#0f1b3d]">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-[#0f1b3d]/50 font-normal">/mês</span>}</p>
                         </div>
-                        <Button className="h-10 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), "_blank")}>Tenho interesse</Button>
+                        <Button className="h-10 rounded-xl bg-[#0f1b3d] hover:bg-[#1e3a5f] text-white font-semibold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), "_blank")}>Tenho interesse</Button>
                       </div>
                     </div>
                   ))}
@@ -436,31 +444,23 @@ export default function ClientPanel() {
   );
 }
 
+/* ============================================================ */
+/* Subcomponents */
+/* ============================================================ */
+
 function ClientPanelShell({ children }: { children: any }) {
-  return <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-6">{children}</div>;
+  return <div className="client-portal min-h-screen flex items-center justify-center p-6">{children}</div>;
 }
 
 function ClientPanelLoading() {
   return (
-    <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-6">
-      <div className="w-full max-w-4xl space-y-5">
-        <div className="bg-white border border-slate-200/70 rounded-2xl p-7 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="size-10 rounded-xl bg-indigo-50 flex items-center justify-center"><Loader2 className="size-5 animate-spin text-indigo-600" /></div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Carregando portal</p>
-              <p className="text-sm font-bold text-slate-900">Preparando suas informações</p>
-            </div>
-          </div>
-          <div className="h-8 w-2/3 rounded-lg bg-slate-100 animate-pulse" />
-          <div className="h-4 w-1/2 rounded-lg bg-slate-100 animate-pulse mt-4" />
-          <div className="grid grid-cols-4 gap-3 mt-8">
-            {[1,2,3,4].map((i) => <div key={i} className="h-24 rounded-xl bg-slate-100 animate-pulse" />)}
-          </div>
+    <div className="client-portal min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-md text-center">
+        <div className="size-14 rounded-2xl bg-[#0f1b3d] text-white mx-auto flex items-center justify-center shadow-lg">
+          <Loader2 className="size-6 animate-spin" />
         </div>
-        <div className="grid md:grid-cols-3 gap-4">
-          {[1,2,3].map((i) => <div key={i} className="h-36 rounded-2xl bg-white border border-slate-200/70 animate-pulse" />)}
-        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0f1b3d]/50 mt-5">Carregando portal</p>
+        <p className="text-base font-semibold text-[#0f1b3d] mt-1">Preparando suas informações…</p>
       </div>
     </div>
   );
@@ -468,89 +468,120 @@ function ClientPanelLoading() {
 
 function EmptyState({ icon: Icon, title, description, action, tone = "default" }: { icon: any; title: string; description: string; action?: any; tone?: "default" | "danger" }) {
   return (
-    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-10 max-w-lg w-full text-center">
-      <div className={cn("size-14 rounded-2xl mx-auto mb-5 flex items-center justify-center", tone === "danger" ? "bg-rose-50 text-rose-600" : "bg-indigo-50 text-indigo-600")}>
+    <div className="bg-white border border-[#0f1b3d]/10 rounded-2xl shadow-sm p-8 sm:p-10 max-w-lg w-full text-center">
+      <div className={cn("size-14 rounded-2xl mx-auto mb-5 flex items-center justify-center", tone === "danger" ? "bg-rose-50 text-rose-600" : "bg-[#0f1b3d] text-white")}>
         <Icon className="size-7" />
       </div>
-      <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h2>
-      <p className="text-sm text-slate-600 leading-relaxed mt-3 mb-6">{description}</p>
+      <h2 className="font-display text-2xl font-bold text-[#0f1b3d] tracking-tight">{title}</h2>
+      <p className="text-sm text-[#0f1b3d]/65 leading-relaxed mt-3 mb-6">{description}</p>
       {action}
     </div>
   );
 }
 
-function MetricTile({ label, value, sub, icon: Icon, tone = "info" }: { label: string; value: string; sub?: string; icon: any; tone?: "info" | "success" | "warning" | "danger" }) {
-  const styles = {
-    info: "bg-indigo-50 text-indigo-700 border-indigo-100",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    warning: "bg-amber-50 text-amber-700 border-amber-100",
-    danger: "bg-rose-50 text-rose-700 border-rose-100",
-  }[tone];
+function HeroKpi({ label, value, sub, icon: Icon, accent, compact }: { label: string; value: string; sub?: string; icon: any; accent?: "ok" | "warning" | "gold"; compact?: boolean }) {
+  const iconBg =
+    accent === "warning" ? "bg-amber-400/20 text-amber-300" :
+    accent === "ok" ? "bg-emerald-400/15 text-emerald-300" :
+    accent === "gold" ? "bg-[#c9a84c]/20 text-[#c9a84c]" :
+    "bg-white/10 text-white";
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 min-w-0 shadow-sm group hover:shadow-md transition-all duration-300">
-      <div className="flex items-center justify-between gap-2 mb-5">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 truncate">{label}</p>
-        <span className={cn("size-9 rounded-xl border flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110", styles)}><Icon className="size-4.5" /></span>
+    <div className="rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-md p-3.5 sm:p-4 min-w-0">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-white/65 leading-tight">{label}</p>
+        <span className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", iconBg)}><Icon className="size-4" /></span>
       </div>
-      <p className="text-[28px] font-bold tabular-nums text-slate-900 truncate leading-none tracking-tight">{value}</p>
-      {sub && <p className="text-[11px] font-bold text-slate-500 mt-2.5 truncate">{sub}</p>}
+      <p className={cn("num font-bold text-white mt-3 leading-none break-words", compact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl")}>{value}</p>
+      {sub && <p className="text-[10px] sm:text-[11px] font-medium text-white/50 mt-2 leading-tight">{sub}</p>}
+    </div>
+  );
+}
+
+function FinanceTile({ label, value, sub, icon: Icon, tone = "default" }: { label: string; value: string; sub?: string; icon: any; tone?: "default" | "success" | "warning" }) {
+  const ring =
+    tone === "warning" ? "bg-amber-50 text-amber-700" :
+    tone === "success" ? "bg-emerald-50 text-emerald-700" :
+    "bg-[#0f1b3d]/5 text-[#3b6fa0]";
+  return (
+    <div className="rounded-2xl border border-[#0f1b3d]/8 bg-white p-3.5 sm:p-4 shadow-sm min-w-0">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] text-[#0f1b3d]/55 leading-tight">{label}</p>
+        <span className={cn("size-8 rounded-lg flex items-center justify-center shrink-0", ring)}><Icon className="size-4" /></span>
+      </div>
+      <p className="num text-xl sm:text-2xl font-bold text-[#0f1b3d] mt-3 leading-none break-words">{value}</p>
+      {sub && <p className="text-[10px] sm:text-[11px] font-medium text-[#0f1b3d]/50 mt-2">{sub}</p>}
     </div>
   );
 }
 
 function ActionRow({ label, value, icon: Icon, tone, onClick }: { label: string; value: number; icon: any; tone: "success" | "warning" | "danger"; onClick: () => void }) {
   const ok = value === 0;
+  const iconCls = ok ? "bg-emerald-50 text-emerald-600" : tone === "danger" ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600";
   return (
-    <button onClick={onClick} className="w-full rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 transition-all p-4 text-left flex items-center justify-between gap-4">
+    <button onClick={onClick} className="w-full rounded-xl border border-[#0f1b3d]/8 bg-white hover:border-[#3b6fa0]/40 hover:shadow-sm transition-all p-3.5 text-left flex items-center justify-between gap-3 group">
       <div className="flex items-center gap-3 min-w-0">
-        <span className={cn("size-10 rounded-xl flex items-center justify-center shrink-0", ok ? "bg-emerald-50 text-emerald-600" : tone === "danger" ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600")}><Icon className="size-5" /></span>
+        <span className={cn("size-10 rounded-xl flex items-center justify-center shrink-0", iconCls)}><Icon className="size-5" /></span>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">{label}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">{ok ? "Tudo certo" : `${value} item(ns) exigem atenção`}</p>
+          <p className="text-sm font-semibold text-[#0f1b3d] truncate">{label}</p>
+          <p className="text-[11px] text-[#0f1b3d]/55 mt-0.5">{ok ? "Tudo certo" : `${value} item(ns) exigem atenção`}</p>
         </div>
       </div>
-      <ArrowRight className="size-4 text-slate-400 shrink-0" />
+      <ArrowRight className="size-4 text-[#0f1b3d]/30 group-hover:text-[#3b6fa0] group-hover:translate-x-0.5 transition-all shrink-0" />
     </button>
   );
 }
 
-function PanelCard({ title, eyebrow, action, children }: { title: string; eyebrow?: string; action?: any; children: any }) {
+function PanelCard({ title, eyebrow, action, accent, children }: { title: string; eyebrow?: string; action?: any; accent?: any; children: any }) {
   return (
-    <section className="bg-white border border-slate-200/70 rounded-2xl shadow-sm overflow-hidden">
-      <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
-        <div>
-          {eyebrow && <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</p>}
-          <h2 className="text-lg font-bold text-slate-900 mt-1">{title}</h2>
+    <section className="bg-white border border-[#0f1b3d]/8 rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-[#0f1b3d]/6 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          {eyebrow && <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#0f1b3d]/45">{eyebrow}</p>}
+          <h2 className="font-display text-base sm:text-lg font-bold text-[#0f1b3d] mt-0.5 truncate">{title}</h2>
         </div>
-        {action}
+        {accent || action}
       </div>
-      <div className="p-6">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
   );
 }
 
-function MiniEmpty({ icon: Icon, text }: { icon: any; text: string }) {
-  return <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center"><Icon className="size-8 text-slate-300 mx-auto mb-3" /><p className="text-sm text-slate-500">{text}</p></div>;
+function MiniEmpty({ icon: Icon, text, tone }: { icon: any; text: string; tone?: "ok" }) {
+  const cls = tone === "ok"
+    ? "bg-emerald-50/60 border-emerald-200/60 text-emerald-700"
+    : "bg-[#f6f8fc] border-[#0f1b3d]/8 text-[#0f1b3d]/55";
+  return (
+    <div className={cn("rounded-xl border border-dashed p-6 text-center", cls)}>
+      <Icon className={cn("size-7 mx-auto mb-2.5", tone === "ok" ? "text-emerald-500" : "text-[#3b6fa0]/40")} />
+      <p className="text-sm font-medium">{text}</p>
+    </div>
+  );
 }
 
 function InfoCell({ label, value, tone }: { label: string; value: string; tone?: "success" | "warning" }) {
-  return <div className="rounded-lg bg-slate-50 p-3 min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400 truncate">{label}</p><p className={cn("text-xs font-bold mt-1 truncate", tone === "success" ? "text-emerald-700" : tone === "warning" ? "text-amber-700" : "text-slate-700")}>{value}</p></div>;
+  const valueCls = tone === "success" ? "text-emerald-700" : tone === "warning" ? "text-amber-700" : "text-[#0f1b3d]";
+  return (
+    <div className="rounded-lg bg-[#f6f8fc] p-2.5 min-w-0">
+      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#0f1b3d]/45 truncate">{label}</p>
+      <p className={cn("text-[11px] font-semibold mt-0.5 truncate", valueCls)}>{value}</p>
+    </div>
+  );
 }
 
 function ServiceCard({ product, pendingDocs, latestReport, onClick }: { product: any; pendingDocs: number; latestReport: any; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="bg-white border border-slate-200/70 rounded-2xl p-6 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all text-left flex flex-col min-h-[260px]">
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <span className="size-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Package className="size-6" /></span>
+    <button onClick={onClick} className="bg-white border border-[#0f1b3d]/8 rounded-2xl p-5 sm:p-6 shadow-sm hover:border-[#3b6fa0]/40 hover:shadow-md transition-all text-left flex flex-col min-h-[240px] group">
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <span className="size-12 rounded-xl bg-[#0f1b3d] text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform"><Package className="size-6" /></span>
         <StatusBadge status={product.status} />
       </div>
-      <h3 className="text-xl font-bold text-slate-900 leading-tight">{product.products?.name || product.custom_product_name || "Solução contratada"}</h3>
-      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{product.products?.description || "Acompanhamento de execução e entregas."}</p>
-      <div className="mt-auto pt-6 grid grid-cols-2 gap-3">
+      <h3 className="font-display text-lg sm:text-xl font-bold text-[#0f1b3d] leading-tight">{product.products?.name || product.custom_product_name || "Solução contratada"}</h3>
+      <p className="text-sm text-[#0f1b3d]/60 mt-2 line-clamp-2">{product.products?.description || latestReport?.notes || "Acompanhamento de execução e entregas."}</p>
+      <div className="mt-auto pt-5 grid grid-cols-2 gap-2">
         <InfoCell label="Prazo" value={product.deadline ? formatDate(product.deadline) : "Em definição"} />
         <InfoCell label="Pendências" value={pendingDocs > 0 ? `${pendingDocs} doc.` : "Em dia"} tone={pendingDocs > 0 ? "warning" : "success"} />
-        <div className="col-span-2 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-700">
-          <span>Ver detalhes da execução</span><ArrowRight className="size-4" />
+        <div className="col-span-2 mt-3 pt-3 border-t border-[#0f1b3d]/8 flex items-center justify-between text-xs font-semibold text-[#3b6fa0]">
+          <span>Ver detalhes da execução</span><ArrowRight className="size-4 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
     </button>
@@ -559,26 +590,46 @@ function ServiceCard({ product, pendingDocs, latestReport, onClick }: { product:
 
 function SectionHeader({ title, description, counters = [] }: { title: string; description: string; counters?: string[] }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
-        <p className="text-sm text-slate-600 mt-1">{description}</p>
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4 sm:mb-5">
+      <div className="min-w-0">
+        <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#0f1b3d]">{title}</h2>
+        <p className="text-sm text-[#0f1b3d]/60 mt-1">{description}</p>
       </div>
-      {counters.length > 0 && <div className="flex flex-wrap gap-2">{counters.map((c) => <Badge key={c} variant="outline" className="rounded-lg border-slate-200 bg-white text-slate-600">{c}</Badge>)}</div>}
+      {counters.length > 0 && <div className="flex flex-wrap gap-2">{counters.map((c) => <Badge key={c} variant="outline" className="rounded-lg border-[#0f1b3d]/15 bg-white text-[#0f1b3d]/70 font-semibold">{c}</Badge>)}</div>}
     </div>
   );
 }
 
 function PaymentTable({ payments }: { payments: any[] }) {
   return (
-    <div className="overflow-x-auto -mx-6">
-      <table className="w-full text-sm min-w-[640px]">
-        <thead><tr className="bg-slate-50 text-[10px] uppercase tracking-[0.18em] text-slate-500"><th className="px-6 py-4 text-left">Vencimento</th><th className="px-6 py-4 text-left">Parcela</th><th className="px-6 py-4 text-left">Status</th><th className="px-6 py-4 text-right">Valor</th></tr></thead>
-        <tbody className="divide-y divide-slate-100">
-          {payments.map((p) => <tr key={p.id} className="hover:bg-slate-50/70"><td className="px-6 py-4 font-semibold text-slate-700">{formatDate(p.due_date)}</td><td className="px-6 py-4 text-slate-500">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td><td className="px-6 py-4"><StatusBadge status={p.status} /></td><td className="px-6 py-4 text-right font-bold tabular-nums text-slate-900">{formatBRL(p.amount)}</td></tr>)}
-        </tbody>
-      </table>
-    </div>
+    <>
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-2.5">
+        {payments.map((p) => (
+          <div key={p.id} className="rounded-xl border border-[#0f1b3d]/8 p-3.5 bg-white">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#0f1b3d]/45">{formatDate(p.due_date)}</p>
+                <p className="num text-lg font-bold text-[#0f1b3d] mt-1">{formatBRL(p.amount)}</p>
+              </div>
+              <StatusBadge status={p.status} />
+            </div>
+            {p.installment_number && p.installments_count && (
+              <p className="text-[11px] text-[#0f1b3d]/50 mt-2">Parcela {p.installment_number}/{p.installments_count}</p>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto -mx-5 sm:-mx-6">
+        <table className="w-full text-sm min-w-[560px]">
+          <thead><tr className="bg-[#f6f8fc] text-[10px] uppercase tracking-[0.16em] text-[#0f1b3d]/55"><th className="px-6 py-3.5 text-left font-bold">Vencimento</th><th className="px-6 py-3.5 text-left font-bold">Parcela</th><th className="px-6 py-3.5 text-left font-bold">Status</th><th className="px-6 py-3.5 text-right font-bold">Valor</th></tr></thead>
+          <tbody className="divide-y divide-[#0f1b3d]/6">
+            {payments.map((p) => <tr key={p.id} className="hover:bg-[#f6f8fc]/60"><td className="px-6 py-3.5 font-semibold text-[#0f1b3d]/80">{formatDate(p.due_date)}</td><td className="px-6 py-3.5 text-[#0f1b3d]/55">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td><td className="px-6 py-3.5"><StatusBadge status={p.status} /></td><td className="px-6 py-3.5 text-right num font-bold text-[#0f1b3d]">{formatBRL(p.amount)}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
@@ -586,33 +637,64 @@ function ProductDetailView({ product, docs, reports, onBack, onOpenDocs, onSuppo
   const productDocs = docs.filter((d) => d.client_product_id === product.id);
   const productReports = reports.filter((r) => r.client_product_id === product.id);
   return (
-    <div className="space-y-6 animate-fade-up">
-      <Button variant="ghost" onClick={onBack} className="h-9 px-0 text-slate-600 hover:text-indigo-700"><ChevronLeft className="size-4 mr-2" /> Voltar ao painel</Button>
-      <section className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-7 lg:p-9">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div className="max-w-2xl">
-            <Badge className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 rounded-lg mb-4">Solução em execução</Badge>
-            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">{product.products?.name || product.custom_product_name || "Solução contratada"}</h1>
-            <p className="text-sm text-slate-600 leading-relaxed mt-3">{product.products?.description || "Acompanhe checklist, documentos e atualizações desta demanda."}</p>
+    <div className="space-y-5 sm:space-y-6 animate-fade-up">
+      <Button variant="ghost" onClick={onBack} className="h-9 px-0 text-[#0f1b3d]/65 hover:text-[#0f1b3d] hover:bg-transparent"><ChevronLeft className="size-4 mr-1" /> Voltar ao painel</Button>
+      <section className="relative overflow-hidden rounded-3xl shadow-[0_20px_60px_-20px_rgba(15,27,61,0.3)] border border-[#0f1b3d]/10">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0f1b3d] to-[#1e3a5f]" />
+        <div className="absolute top-0 right-0 size-72 bg-[#3b6fa0]/20 blur-[100px] -mt-32 -mr-32 rounded-full" />
+        <div className="relative z-10 p-6 sm:p-8 lg:p-10 text-white">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+            <div className="max-w-2xl min-w-0">
+              <Badge className="bg-white/10 text-[#c9a84c] hover:bg-white/10 rounded-lg border border-white/10 mb-4 font-semibold">Solução em execução</Badge>
+              <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{product.products?.name || product.custom_product_name || "Solução contratada"}</h1>
+              <p className="text-sm text-white/70 leading-relaxed mt-3">{product.products?.description || "Acompanhe checklist, documentos e atualizações desta demanda."}</p>
+            </div>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <Button variant="outline" className="h-10 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15 hover:text-white" onClick={onSupport}><MessageSquare className="size-4 mr-2" /> Suporte</Button>
+              <StatusBadge status={product.status} />
+            </div>
           </div>
-          <div className="flex gap-2"><Button variant="outline" className="h-10 rounded-lg border-slate-200" onClick={onSupport}><MessageSquare className="size-4 mr-2" /> Suporte</Button><StatusBadge status={product.status} /></div>
-        </div>
-        <div className="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <MetricTile label="Status" value={statusLabel(product.status)} sub="situação atual" icon={Activity} tone="info" />
-          <MetricTile label="Prazo" value={product.deadline ? formatDate(product.deadline) : "Em definição"} sub="previsão" icon={Clock} tone="warning" />
-          <MetricTile label="Documentos" value={String(productDocs.length)} sub="vinculados" icon={FileText} tone="success" />
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+            <HeroKpi label="Status" value={statusLabel(product.status)} sub="situação atual" icon={Activity} compact />
+            <HeroKpi label="Prazo" value={product.deadline ? formatDate(product.deadline) : "Em definição"} sub="previsão de entrega" icon={Clock} accent="warning" compact />
+            <HeroKpi label="Documentos" value={String(productDocs.length)} sub="vinculados" icon={FileText} accent="ok" />
+          </div>
         </div>
       </section>
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,380px)] gap-5 lg:gap-6">
         <PanelCard title="Checklist de execução" eyebrow="Etapas">
           <ClientProductSteps clientProductId={product.id} showDetails={true} />
         </PanelCard>
-        <div className="space-y-6">
+        <div className="space-y-5">
           <PanelCard title="Documentos da demanda" eyebrow={`${productDocs.length} arquivo(s)`}>
-            {productDocs.length === 0 ? <MiniEmpty icon={FileText} text="Nenhum documento específico solicitado." /> : <div className="space-y-3">{productDocs.map((d) => <div key={d.id} className="rounded-xl border border-slate-200/70 p-3 flex items-center justify-between gap-3"><div className="min-w-0"><p className="text-sm font-bold text-slate-900 truncate">{d.name}</p><p className="text-[11px] text-slate-500">{statusLabel(d.status)}</p></div>{d.file_path ? <Button variant="ghost" size="icon" className="size-8" onClick={() => onDownload(d.file_path, d.name)}><Download className="size-4" /></Button> : <Button size="sm" className="h-8 rounded-lg bg-indigo-600" onClick={onOpenDocs}>Enviar</Button>}</div>)}</div>}
+            {productDocs.length === 0 ? <MiniEmpty icon={FileText} text="Nenhum documento específico solicitado." /> : (
+              <div className="space-y-2.5">
+                {productDocs.map((d) => (
+                  <div key={d.id} className="rounded-xl border border-[#0f1b3d]/8 p-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#0f1b3d] truncate">{d.name}</p>
+                      <p className="text-[11px] text-[#0f1b3d]/55">{statusLabel(d.status)}</p>
+                    </div>
+                    {d.file_path ? <Button variant="ghost" size="icon" className="size-9 rounded-lg text-[#3b6fa0] hover:bg-[#0f1b3d]/5" onClick={() => onDownload(d.file_path, d.name)}><Download className="size-4" /></Button> : <Button size="sm" className="h-9 rounded-lg bg-[#0f1b3d] hover:bg-[#1e3a5f]" onClick={onOpenDocs}>Enviar</Button>}
+                  </div>
+                ))}
+              </div>
+            )}
           </PanelCard>
           <PanelCard title="Atualizações" eyebrow="Equipe">
-            {productReports.length === 0 ? <MiniEmpty icon={Activity} text="Nenhuma atualização registrada ainda." /> : <div className="space-y-4">{productReports.slice(0, 5).map((r) => <div key={r.id} className="flex gap-3"><span className="mt-1 size-2 rounded-full bg-indigo-600 ring-4 ring-indigo-50 shrink-0" /><div><p className="text-sm font-semibold text-slate-800 leading-snug">{r.notes || statusLabel(r.status)}</p><p className="text-[11px] text-slate-500 mt-1">{formatDate(r.created_at)} · {r.service_providers?.name || "Equipe Prosper"}</p></div></div>)}</div>}
+            {productReports.length === 0 ? <MiniEmpty icon={Activity} text="Nenhuma atualização registrada ainda." /> : (
+              <div className="space-y-4">
+                {productReports.slice(0, 5).map((r) => (
+                  <div key={r.id} className="flex gap-3">
+                    <span className="mt-1.5 size-2.5 rounded-full bg-[#3b6fa0] ring-4 ring-[#3b6fa0]/15 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#0f1b3d] leading-snug">{r.notes || statusLabel(r.status)}</p>
+                      <p className="text-[11px] text-[#0f1b3d]/50 mt-1">{formatDate(r.created_at)} · {r.service_providers?.name || "Equipe Prosper"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </PanelCard>
         </div>
       </div>
@@ -622,15 +704,21 @@ function ProductDetailView({ product, docs, reports, onBack, onOpenDocs, onSuppo
 
 function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
   return (
-    <TabsTrigger value={value} className="shrink-0 h-9 rounded-lg px-3 gap-2 text-[12px] font-semibold text-slate-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
-      <Icon className="size-3.5" /><span>{label}</span>
-      {count !== undefined && count > 0 && <span className={cn("min-w-5 h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums flex items-center justify-center", alert ? "bg-rose-500 text-white" : "bg-slate-100 text-slate-700")}>{count}</span>}
+    <TabsTrigger value={value} className="shrink-0 h-10 rounded-xl px-3 sm:px-3.5 gap-2 text-[12px] sm:text-[13px] font-semibold text-[#0f1b3d]/65 hover:text-[#0f1b3d] data-[state=active]:bg-[#0f1b3d] data-[state=active]:text-white data-[state=active]:shadow-sm transition-colors">
+      <Icon className="size-4" /><span>{label}</span>
+      {count !== undefined && count > 0 && <span className={cn("min-w-5 h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums flex items-center justify-center", alert ? "bg-rose-500 text-white" : "bg-[#0f1b3d]/10 text-[#0f1b3d]/70 group-data-[state=active]:bg-white/15 group-data-[state=active]:text-white")}>{count}</span>}
     </TabsTrigger>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const s = status || "indefinido";
-  const cls = DONE_STATUSES.has(s) ? "bg-emerald-50 text-emerald-700 border-emerald-200" : s.includes("atras") || s.includes("reprov") || s.includes("cancel") ? "bg-rose-50 text-rose-700 border-rose-200" : s.includes("aguard") || s.includes("pend") ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-indigo-50 text-indigo-700 border-indigo-200";
-  return <Badge variant="outline" className={cn("text-[10px] font-bold uppercase tracking-[0.12em] rounded-lg", cls)}>{statusLabel(s)}</Badge>;
+  const cls = DONE_STATUSES.has(s)
+    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+    : s.includes("atras") || s.includes("reprov") || s.includes("cancel")
+    ? "bg-rose-50 text-rose-700 border-rose-200"
+    : s.includes("aguard") || s.includes("pend")
+    ? "bg-amber-50 text-amber-700 border-amber-200"
+    : "bg-[#0f1b3d]/5 text-[#3b6fa0] border-[#3b6fa0]/20";
+  return <Badge variant="outline" className={cn("text-[10px] font-bold uppercase tracking-[0.1em] rounded-lg shrink-0", cls)}>{statusLabel(s)}</Badge>;
 }
