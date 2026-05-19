@@ -97,7 +97,6 @@ function AdminShell() {
           <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
           <main className="flex-1 overflow-y-auto overflow-x-hidden admin-content-scroll relative">
             <Outlet />
-            <AIAssistant />
           </main>
         </div>
       </div>
