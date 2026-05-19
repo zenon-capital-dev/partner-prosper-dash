@@ -163,14 +163,16 @@ export default function Indicators() {
                     <Badge variant={r.active ? "default" : "secondary"} className="text-[10px]">{r.active ? "Ativo" : "Inativo"}</Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => { setEditing(r); setForm(r); setOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toggle(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {canManage ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setEditing(r); setForm(r); setOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toggle(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
                   </td>
                 </tr>
               ))}
