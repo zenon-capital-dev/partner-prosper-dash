@@ -44,11 +44,11 @@ const SECTIONS: NavSection[] = [
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
   { label: "Financeiro", adminOnly: true, items: [
-    { title: "Financeiro", url: "/financeiro", icon: Banknote, adminOnly: true },
-    { title: "Central", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
+    { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
+    { title: "Faturamento", url: "/financeiro", icon: Banknote, adminOnly: true },
     { title: "Comissões", url: "/comissoes", icon: Wallet, adminOnly: true },
     { title: "Contratos", url: "/contratos", icon: FileSignature, adminOnly: true },
-    { title: "Documentos", url: "/documentos", icon: FileText, adminOnly: true },
+    { title: "Arquivos", url: "/documentos", icon: FileText, adminOnly: true },
   ]},
   { label: "Sistema", adminOnly: true, items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
