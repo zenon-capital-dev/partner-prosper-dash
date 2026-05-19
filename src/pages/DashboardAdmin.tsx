@@ -198,7 +198,7 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, customRange, brasiliaToday]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#060608] text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell overflow-x-hidden transition-colors duration-500">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-black text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell overflow-x-hidden transition-colors duration-500">
       <PageHero
         eyebrow="Dashboard"
         category="Visão Geral"
@@ -207,7 +207,7 @@ export default function DashboardAdmin() {
         icon={<Sparkles className="size-6" />}
         actions={
           <div className="flex items-center gap-3">
-            <div className="flex bg-white dark:bg-[#1a1a1c] p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm mr-2">
+            <div className="flex bg-white dark:bg-[#0c0c0e] p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm mr-2">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((k) => (
                 <button
                   key={k}
@@ -250,7 +250,7 @@ export default function DashboardAdmin() {
         </div>
 
         {/* === LINHA 2: RESUMO FINANCEIRO === */}
-        <div className="vx-card p-6 bg-white dark:bg-[#0c0c0e] dark:border-white/10 space-y-6">
+        <div className="vx-card p-6 bg-white dark:bg-[#08080a] dark:border-white/5 space-y-6">
            <div>
               <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Resumo Financeiro</h3>
               <p className="text-slate-400 dark:text-muted-foreground text-sm font-medium">Situação atual da tesouraria e conciliação</p>
@@ -288,7 +288,7 @@ export default function DashboardAdmin() {
 
 
           {/* REVENUE CHART - LARGE */}
-          <div className="md:col-span-2 lg:col-span-3 bg-white dark:bg-[#0c0c0e] dark:border-white/10 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm overflow-hidden relative group">
+          <div className="md:col-span-2 lg:col-span-3 bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm overflow-hidden relative group">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Crescimento de Receita</h3>
@@ -345,7 +345,7 @@ export default function DashboardAdmin() {
           </div>
 
           {/* STATUS PIE - SMALL */}
-          <div className="bg-white dark:bg-[#0c0c0e] dark:border-white/10 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm flex flex-col items-center justify-between">
+          <div className="bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm flex flex-col items-center justify-between">
             <div className="w-full text-center">
               <h3 className="text-lg font-black text-slate-900 dark:text-foreground tracking-tight">Status de Demandas</h3>
               <p className="text-slate-400 text-[11px] font-bold uppercase mt-1">Divisão Operacional</p>
@@ -386,16 +386,16 @@ export default function DashboardAdmin() {
           </div>
 
           {/* RECENT SALES - LIST */}
-          <div className="md:col-span-2 bg-white rounded-[32px] p-8 border border-slate-200 shadow-sm">
+          <div className="md:col-span-2 bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">Vendas Recentes</h3>
+              <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Vendas Recentes</h3>
               <Link to="/vendas" className="text-indigo-600 font-bold text-xs uppercase hover:underline">Ver todas</Link>
             </div>
             <div className="space-y-4">
               {stats.recentSales.length > 0 ? stats.recentSales.map((s, i) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-indigo-200 transition-all group">
+                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-all group">
                   <div className="flex items-center gap-4">
-                    <div className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-900 font-black shadow-sm group-hover:scale-110 transition-transform">
+                    <div className="size-10 rounded-xl bg-white dark:bg-black border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-900 dark:text-foreground font-black shadow-sm group-hover:scale-110 transition-transform">
                       {s.client.charAt(0)}
                     </div>
                     <div>
