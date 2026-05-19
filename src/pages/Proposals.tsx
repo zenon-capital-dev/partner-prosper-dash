@@ -24,6 +24,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { confirmAction } from "@/lib/confirm";
+import { useAuth } from "@/hooks/useAuth";
 
 type Status = "rascunho" | "enviada" | "visualizada" | "aprovada" | "recusada" | "vencida";
 
