@@ -152,7 +152,7 @@ export default function Commissions() {
     filtered.forEach((c: any) => {
       const v = Number(c.amount || 0);
       acc.total += v;
-      if (c.workflow_status === "paga") acc.paid += v;
+      if (c.workflow_status === "paga" || c.workflow_status === "pago") acc.paid += v;
       else if (["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(c.workflow_status)) acc.pending += v;
     });
     return acc;
