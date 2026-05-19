@@ -91,6 +91,13 @@ export default function Providers() {
     });
   }, [enriched, statusFilter, specialtyFilter, search]);
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+
   const kpis = useMemo(() => ({
     total: enriched.length,
     active: enriched.filter((p: any) => p.active).length,
