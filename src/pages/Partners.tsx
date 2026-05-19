@@ -24,6 +24,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { PartnerDetailDrawer } from "@/components/PartnerDetailDrawer";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 const emptyForm = { active: true, commission_percent: 10 };
 type SortKey = "recent" | "name" | "commissions" | "clients";
