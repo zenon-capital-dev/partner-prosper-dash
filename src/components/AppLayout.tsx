@@ -34,6 +34,13 @@ function AppLayoutInner() {
     checkAccess();
   }, [pathname, onboardingLoading]);
 
+  useEffect(() => {
+    if (pathname.startsWith("/admin") || pathname.startsWith("/clientes") || pathname.startsWith("/demandas")) {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
+    }
+  }, [pathname]);
+
   if (onboardingLoading) {
     return <LoadingScreen message="Verificando acesso..." />;
   }
