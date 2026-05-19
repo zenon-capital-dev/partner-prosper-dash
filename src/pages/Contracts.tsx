@@ -132,7 +132,7 @@ export default function Contracts() {
   }), [allContracts, search, statusFilter]);
 
   return (
-    <div className="page-shell space-y-6 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Jurídico"
         category="Contratos & Termos"
@@ -392,6 +392,7 @@ export default function Contracts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
       </div>
     </div>
   );

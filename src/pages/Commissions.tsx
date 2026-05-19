@@ -356,7 +356,7 @@ export default function Commissions() {
   };
 
   return (
-    <div className="page-shell space-y-8 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Financeiro"
         category="Commission Engine"
@@ -913,6 +913,7 @@ export default function Commissions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

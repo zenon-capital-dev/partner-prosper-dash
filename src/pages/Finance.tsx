@@ -188,7 +188,7 @@ export default function Finance() {
   }, [sales, expenses, splits]);
 
   return (
-    <div className="page-shell space-y-8 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Tesouraria"
         category="Operações Financeiras"
@@ -570,6 +570,7 @@ export default function Finance() {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
     </div>
   );
