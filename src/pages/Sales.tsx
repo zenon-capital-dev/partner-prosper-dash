@@ -1,4 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
+import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +30,7 @@ type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelad
 export default function Sales() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [status, setStatus] = useState<StatusKey>("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
   const [dateFrom, setDateFrom] = useState("");
@@ -56,7 +59,24 @@ export default function Sales() {
   });
 
   const filtered = useMemo(() => {
+    const today = startOfToday();
+    let start = today;
+    let end = endOfDay(today);
+
+    if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "30 DIAS") {
+      start = subDays(today, 29);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      start = new Date(0);
+      end = new Date(8640000000000000);
+    }
+
     return sales.filter((s: any) => {
+      const saleDate = new Date(s.sale_date);
+      if (rangeKey !== "TUDO" && (saleDate < start || saleDate > end)) return false;
       if (status !== "todos" && s.status !== status) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
@@ -69,7 +89,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, partnerFilter, dateFrom, dateTo, search]);
+  }, [sales, status, partnerFilter, dateFrom, dateTo, search, rangeKey]);
 
   const kpis = useMemo(() => {
     const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length };
@@ -158,15 +178,28 @@ export default function Sales() {
         description="Log operacional de transações sincronizado em tempo real."
         icon={<ShoppingBag className="size-6" />}
         actions={
-          <>
+          <div className="flex items-center gap-3">
+            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
+              {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setRangeKey(k)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                    rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
             <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
               <Download className="size-4" /> Exportar
             </Button>
             <Button size="sm" onClick={() => setOpen(true)} className="action-button btn-primary shadow-xl">
               <Plus className="size-4" strokeWidth={3} /> Nova Venda
             </Button>
-
-          </>
+          </div>
         }
         kpis={[
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" /> },
