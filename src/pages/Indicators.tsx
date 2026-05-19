@@ -78,6 +78,19 @@ export default function Indicators() {
   };
 
   const remove = async (id: string) => {
+    const { checkFkLinks, summarizeBlocks } = await import("@/lib/safe-delete");
+    const res = await checkFkLinks(id, [
+      { table: "clients", column: "referrer_id", label: "cliente(s)" },
+      { table: "sales", column: "referrer_id", label: "venda(s)" },
+    ]);
+    if (!res.canDelete) {
+      const summary = summarizeBlocks(res.blockedBy);
+      if (!(await confirmAction(`Indicador vinculado a ${summary}. DESATIVAR em vez de excluir?`))) return;
+      const { error } = await supabase.from("referrers").update({ active: false }).eq("id", id);
+      if (error) return toast.error(error.message);
+      toast.success("Indicador desativado"); qc.invalidateQueries({ queryKey: ["referrers-rich"] });
+      return;
+    }
     if (!(await confirmAction("Excluir este indicador?"))) return;
     const { error } = await supabase.from("referrers").delete().eq("id", id);
     if (error) return toast.error(error.message);

@@ -183,7 +183,27 @@ export default function Clients() {
   }, [enriched]);
 
   const handleDelete = async (id: string) => {
-    if (!(await confirmAction("Excluir este cliente permanentemente?"))) return;
+    const { checkFkLinks, summarizeBlocks } = await import("@/lib/safe-delete");
+    const res = await checkFkLinks(id, [
+      { table: "sales", column: "client_id", label: "venda(s)" },
+      { table: "client_products", column: "client_id", label: "demanda(s)" },
+      { table: "contracts", column: "client_id", label: "contrato(s)" },
+      { table: "payments", column: "client_id", label: "pagamento(s)" },
+      { table: "documents", column: "client_id", label: "documento(s)" },
+      { table: "commissions", column: "client_id", label: "comissão(ões)" },
+      { table: "proposals", column: "client_id", label: "proposta(s)" },
+    ]);
+
+    if (!res.canDelete) {
+      const summary = summarizeBlocks(res.blockedBy);
+      if (!(await confirmAction(`Este cliente tem vínculos (${summary}) e não pode ser excluído sem perder histórico. Deseja ARQUIVAR em vez de excluir?`))) return;
+      const { error } = await supabase.from("clients").update({ status: "inativo" }).eq("id", id);
+      if (error) toast.error(error.message);
+      else { toast.success("Cliente arquivado (histórico preservado)"); qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); }
+      return;
+    }
+
+    if (!(await confirmAction("Excluir este cliente permanentemente? Esta ação é irreversível."))) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
