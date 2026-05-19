@@ -105,13 +105,13 @@
 
   .dark {
     /* Obsidian — deep, solid cinematic black */
-    --background: 0 0% 0%;
-    --foreground: 220 14% 98%;
+    --background: 0 0% 1%;
+    --foreground: 0 0% 100%;
 
     --card: 0 0% 3%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 2%;
+    --popover: 0 0% 3%;
     --popover-foreground: 0 0% 100%;
 
     --primary: 0 0% 100%;
@@ -349,7 +349,7 @@
   }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    --background: 0 0% 0%;
+    --background: 0 0% 1%;
     --foreground: 0 0% 100%;
     --card: 0 0% 3%;
     --card-foreground: 0 0% 100%;
