@@ -197,6 +197,8 @@ export default function Atuacoes() {
 
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-6 animate-in slide-in-from-bottom-4 duration-1000">
 
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-6 animate-in slide-in-from-bottom-4 duration-1000">
+
       {/* Search + tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex-1">
@@ -281,6 +283,9 @@ export default function Atuacoes() {
           />
         </DialogContent>
       </Dialog>
+    </div>
+  </div>
+);
     </div>
   );
 }
