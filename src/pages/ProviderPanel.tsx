@@ -388,17 +388,19 @@ export default function ProviderPanel() {
           </div>
         ) : (
           /* MAIN LIST VIEW */
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8 animate-fade-up">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12 flex-wrap">
-                <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Home</TabsTrigger>
-                <TabsTrigger value="atuacao" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Atuação</TabsTrigger>
-                <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
-                <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
-                <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Documentos ({documents.length})</TabsTrigger>
-                <TabsTrigger value="reportes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Reportes ({reports.length})</TabsTrigger>
-                <TabsTrigger value="contratos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Contratos ({contracts.length})</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-fade-up">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <TabsList className="bg-white p-1 rounded-lg border border-slate-200/70 h-10 flex-wrap shadow-sm">
+                <TabsTrigger value="dashboard" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Visão geral</TabsTrigger>
+                <TabsTrigger value="atuacao" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Atuação</TabsTrigger>
+                <TabsTrigger value="por-cliente" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Por Cliente · {groupedByClient.length}</TabsTrigger>
+                <TabsTrigger value="clientes" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Demandas · {clientProducts.length}</TabsTrigger>
+                <TabsTrigger value="documentos" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Documentos · {documents.length}</TabsTrigger>
+                <TabsTrigger value="reportes" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Reportes · {reports.length}</TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Contratos · {contracts.length}</TabsTrigger>
+                <TabsTrigger value="perfil" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Meu Perfil</TabsTrigger>
               </TabsList>
+
 
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
