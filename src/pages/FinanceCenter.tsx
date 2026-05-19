@@ -331,13 +331,20 @@ function CommissionsTable({ commissions }: { commissions: any[] }) {
   const paid = commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga");
 
   const markPaid = async (id: string) => {
+    // Standardizing on 'pago' to match the database enum and common convention
     const { error } = await supabase.from("commissions").update({
-      status: "paga",
-      workflow_status: "paga",
+      status: "pago",
+      workflow_status: "pago",
       paid_at: new Date().toISOString(),
-    }).eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Comissão paga"); qc.invalidateQueries({ queryKey: ["fin-commissions"] }); }
+    } as any).eq("id", id);
+    
+    if (error) {
+      console.error("Error updating commission status:", error);
+      toast.error("Erro ao atualizar status: " + error.message);
+    } else { 
+      toast.success("Comissão marcada como paga"); 
+      qc.invalidateQueries({ queryKey: ["fin-commissions"] }); 
+    }
   };
 
   const Block = ({ rows, title, action }: { rows: any[]; title: string; action: boolean }) => (
