@@ -33,7 +33,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { confirmAction } from "@/lib/confirm";
 
 export default function Clients() {
-  const { isAdmin, isAdminSecondary } = useAuth();
+  const { isAdmin, isAdminSecondary, isColaborador } = useAuth();
+  const canWrite = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
