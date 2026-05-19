@@ -27,12 +27,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const PROVIDER_PATH_TO_TAB: Record<string, string> = {
   atuacao: "atuacao",
   "por-cliente": "por-cliente", demandas: "clientes", documentos: "documentos",
-  reportes: "reportes", contratos: "contratos",
+  reportes: "reportes", contratos: "contratos", perfil: "perfil",
 };
 const PROVIDER_TAB_TO_PATH: Record<string, string> = {
   atuacao: "atuacao",
   "por-cliente": "por-cliente", clientes: "demandas", documentos: "documentos",
-  reportes: "reportes", contratos: "contratos",
+  reportes: "reportes", contratos: "contratos", perfil: "perfil",
 };
 
 export default function ProviderPanel() {
