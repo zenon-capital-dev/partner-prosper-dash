@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useState, useMemo } from "react";
 import { formatDate, formatPhone, initials } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";

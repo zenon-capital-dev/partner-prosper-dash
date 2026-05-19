@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight, Handshake,
   Users2, Wallet, TrendingUp, CheckCircle2, Clock3, Award, Crown,
