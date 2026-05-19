@@ -273,7 +273,7 @@ export default function ClientPanel() {
             </section>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-7">
-              <div className="sticky top-16 z-30 bg-slate-50/90 backdrop-blur-md py-2 -mx-5 px-5 lg:mx-0 lg:px-0">
+              <div className="sticky top-14 z-30 bg-slate-50/90 backdrop-blur-md py-2 -mx-5 px-5 lg:mx-0 lg:px-0">
                 <TabsList className="h-auto bg-white border border-slate-200/70 rounded-xl p-1 shadow-sm overflow-x-auto max-w-full justify-start">
                   <PillTab value="home" label="Início" icon={LayoutDashboard} />
                   <PillTab value="servicos" label="Serviços" icon={Package} count={activeProducts.length} />
