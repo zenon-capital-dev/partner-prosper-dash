@@ -36,19 +36,22 @@ export default function DashboardAdmin() {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
   const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
 
-  const { data: clients = [] } = useQuery({ queryKey: ["dash-clients"], queryFn: async () => (await supabase.from("clients").select("*")).data ?? [] });
-  const { data: clientProducts = [] } = useQuery({ queryKey: ["dash-demands"], queryFn: async () => (await supabase.from("client_products").select("*")).data ?? [] });
-  const { data: sales = [] } = useQuery({ queryKey: ["dash-sales"], queryFn: async () => (await supabase.from("sales").select("*").order("sale_date", { ascending: false }).limit(200)).data ?? [] });
-  const { data: leads = [] } = useQuery({ queryKey: ["dash-leads"], queryFn: async () => (await supabase.from("leads").select("*")).data ?? [] });
-  const { data: commissions = [] } = useQuery({ queryKey: ["dash-commissions"], queryFn: async () => (await supabase.from("commissions").select("*")).data ?? [] });
-  const { data: tasks = [] } = useQuery({ queryKey: ["dash-tasks"], queryFn: async () => (await supabase.from("tasks").select("*")).data ?? [] });
-  const { data: contracts = [] } = useQuery({ queryKey: ["dash-contracts"], queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at")).data ?? [] });
-  const { data: docRequests = [] } = useQuery({ queryKey: ["dash-doc-requests"], queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [] });
-  const { data: payments = [] } = useQuery({ queryKey: ["dash-payments"], queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] });
-  const { data: activityLogs = [] } = useQuery({
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({ queryKey: ["dash-clients"], queryFn: async () => (await supabase.from("clients").select("*")).data ?? [] });
+  const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({ queryKey: ["dash-demands"], queryFn: async () => (await supabase.from("client_products").select("*")).data ?? [] });
+  const { data: sales = [], isLoading: isLoadingSales } = useQuery({ queryKey: ["dash-sales"], queryFn: async () => (await supabase.from("sales").select("*").order("sale_date", { ascending: false }).limit(200)).data ?? [] });
+  const { data: leads = [], isLoading: isLoadingLeads } = useQuery({ queryKey: ["dash-leads"], queryFn: async () => (await supabase.from("leads").select("*")).data ?? [] });
+  const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({ queryKey: ["dash-commissions"], queryFn: async () => (await supabase.from("commissions").select("*")).data ?? [] });
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({ queryKey: ["dash-tasks"], queryFn: async () => (await supabase.from("tasks").select("*")).data ?? [] });
+  const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({ queryKey: ["dash-contracts"], queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at")).data ?? [] });
+  const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({ queryKey: ["dash-doc-requests"], queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [] });
+  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ queryKey: ["dash-payments"], queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] });
+  const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
+
+  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity;
+
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -167,7 +170,7 @@ export default function DashboardAdmin() {
 
   return (
     <div className="min-h-screen bg-background text-foreground admin-shell overflow-x-hidden">
-      <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-10 pb-14 space-y-6 sm:space-y-8">
+      <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-10 pb-14 space-y-6 sm:space-y-8 animate-in fade-in duration-700">
 
         {/* ============ HEADER ============ */}
         <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
@@ -223,88 +226,100 @@ export default function DashboardAdmin() {
             {/* subtle gradient wash */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.08),transparent_55%)] pointer-events-none" />
             <div className="relative p-6 lg:p-7 flex flex-col h-full">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.45)]">
-                      <CircleDollarSign className="size-4 text-white stroke-[2.2]" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Receita no período</p>
-                      <p className="text-[11px] text-slate-400 font-medium">{stats.salesCount} venda(s)</p>
-                    </div>
-                  </div>
+              {isGlobalLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center space-y-4 py-12">
+                  <div className="size-10 rounded-full border-2 border-indigo-600/20 border-t-indigo-600 animate-spin" />
+                  <p className="text-[12px] text-slate-400 font-medium animate-pulse">Carregando dados financeiros...</p>
                 </div>
-                <DeltaBadge value={stats.revenueDelta} />
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="size-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.45)]">
+                          <CircleDollarSign className="size-4 text-white stroke-[2.2]" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Receita no período</p>
+                          <p className="text-[11px] text-slate-400 font-medium">{stats.salesCount} venda(s)</p>
+                        </div>
+                      </div>
+                    </div>
+                    <DeltaBadge value={stats.revenueDelta} />
+                  </div>
 
-              <div className="flex items-baseline gap-2 mb-0.5">
-                <p className="font-display text-[36px] lg:text-[42px] font-bold tabular-nums leading-tight tracking-[-0.03em] text-slate-900">
-                  {formatBRL(stats.rangeRevenue)}
-                </p>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                vs. <span className="text-slate-700 font-semibold tabular-nums">{formatBRL(stats.prevRevenue)}</span> período anterior
-              </p>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <p className="font-display text-[36px] lg:text-[42px] font-bold tabular-nums leading-tight tracking-[-0.03em] text-slate-900">
+                      {formatBRL(stats.rangeRevenue)}
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    vs. <span className="text-slate-700 font-semibold tabular-nums">{formatBRL(stats.prevRevenue)}</span> período anterior
+                  </p>
 
-              {/* sparkline */}
-              <div className="mt-4 h-[100px] -mx-2">
-                {mounted && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={stats.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Tooltip
-                        contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '6px 8px', backgroundColor: '#fff', fontSize: '11px' }}
-                        formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
-                        cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '3 3' }}
-                      />
-                      <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+                  {/* sparkline */}
+                  <div className="mt-4 h-[100px] -mx-2">
+                    {mounted && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={stats.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
+                              <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <Tooltip
+                            contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '6px 8px', backgroundColor: '#fff', fontSize: '11px' }}
+                            formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
+                            cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '3 3' }}
+                          />
+                          <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
 
-              {/* footer stats */}
-              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
-                <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
-                <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
-                <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
-              </div>
+                  {/* footer stats */}
+                  <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
+                    <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
+                    <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
+
 
           {/* Side KPIs grid */}
           <div className="lg:col-span-4 grid grid-cols-1 gap-4">
             <SideKpi
               label="Clientes ativos"
-              value={stats.activeClients.toString()}
-              sub={`${stats.newClientsRange} novos · ${stats.totalClients} totais`}
+              value={isGlobalLoading ? "..." : stats.activeClients.toString()}
+              sub={isGlobalLoading ? "Carregando..." : `${stats.newClientsRange} novos · ${stats.totalClients} totais`}
               icon={Users}
               accent="emerald"
             />
             <SideKpi
               label="Pipeline aberto"
-              value={formatBRL(stats.pipelineTotal)}
-              sub={`${stats.leadsCount} leads · ${stats.conversionRate.toFixed(1)}% conv.`}
+              value={isGlobalLoading ? "..." : formatBRL(stats.pipelineTotal)}
+              sub={isGlobalLoading ? "Carregando..." : `${stats.leadsCount} leads · ${stats.conversionRate.toFixed(1)}% conv.`}
               icon={Target}
               accent="indigo"
               compact
             />
+
           </div>
         </section>
 
         {/* ============ OPERATIONAL ROW ============ */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <MiniStat label="Demandas atrasadas" value={stats.delayedDemands} hint={`${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={stats.delayedDemands > 0} />
-          <MiniStat label="Contratos abertos" value={stats.openContracts} hint={`${stats.waitingSignatureContracts} aguardando`} icon={FileSignature} to="/contratos" />
-          <MiniStat label="Docs pendentes" value={stats.pendingDocs} hint="Solicitações" icon={FileText} to="/documentos" />
-          <MiniStat label="Tarefas atrasadas" value={stats.overdueTasks} hint={`${stats.todayTasks} hoje`} icon={ClipboardList} to="/tarefas" negative={stats.overdueTasks > 0} />
-          <MiniStat label="Comissões" value={formatBRL(stats.commissionsToPay)} hint={`${stats.commissionsCount} lançamentos`} icon={Wallet} to="/comissoes" />
+            <MiniStat label="Demandas atrasadas" value={isGlobalLoading ? "-" : stats.delayedDemands} hint={isGlobalLoading ? "..." : `${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={!isGlobalLoading && stats.delayedDemands > 0} />
+            <MiniStat label="Contratos abertos" value={isGlobalLoading ? "-" : stats.openContracts} hint={isGlobalLoading ? "..." : `${stats.waitingSignatureContracts} aguardando`} icon={FileSignature} to="/contratos" />
+            <MiniStat label="Docs pendentes" value={isGlobalLoading ? "-" : stats.pendingDocs} hint="Solicitações" icon={FileText} to="/documentos" />
+            <MiniStat label="Tarefas atrasadas" value={isGlobalLoading ? "-" : stats.overdueTasks} hint={isGlobalLoading ? "..." : `${stats.todayTasks} hoje`} icon={ClipboardList} to="/tarefas" negative={!isGlobalLoading && stats.overdueTasks > 0} />
+            <MiniStat label="Comissões" value={isGlobalLoading ? "-" : formatBRL(stats.commissionsToPay)} hint={isGlobalLoading ? "..." : `${stats.commissionsCount} lançamentos`} icon={Wallet} to="/comissoes" />
+
         </section>
 
         {/* ============ CHART + STATUS PIE ============ */}
@@ -312,7 +327,7 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-2">
             <CardHeader
               title="Performance comercial"
-              subtitle={`Receita diária · ${rangeKey === "HOJE" ? "hoje" : rangeKey === "7D" ? "últimos 14 dias" : "últimos 30 dias"}`}
+              subtitle={isGlobalLoading ? "Calculando performance..." : `Receita diária · ${rangeKey === "HOJE" ? "hoje" : rangeKey === "7D" ? "últimos 14 dias" : "últimos 30 dias"}`}
               right={
                 <Link to="/financeiro" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">
                   Central financeira <ArrowUpRight className="size-3.5" />
@@ -346,10 +361,15 @@ export default function DashboardAdmin() {
           </Card>
 
           <Card>
-            <CardHeader title="Status das demandas" subtitle="Distribuição operacional" />
+            <CardHeader title="Status das demandas" subtitle={isGlobalLoading ? "Carregando demandas..." : "Distribuição operacional"} />
             <div className="px-6 pb-6">
               <div className="h-[200px] w-full flex items-center justify-center relative">
-                {mounted && stats.demandsByStatus.length > 0 ? (
+                {isGlobalLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="size-6 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                  </div>
+                ) : mounted && stats.demandsByStatus.length > 0 ? (
+
                   <>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -371,7 +391,8 @@ export default function DashboardAdmin() {
                 )}
               </div>
               <div className="space-y-2.5 mt-4">
-                {stats.demandsByStatus.length > 0 ? stats.demandsByStatus.map((s) => {
+                {!isGlobalLoading && stats.demandsByStatus.length > 0 ? stats.demandsByStatus.map((s) => {
+
                   const total = stats.demandsByStatus.reduce((a, x) => a + x.value, 0);
                   const pct = total > 0 ? (s.value / total) * 100 : 0;
                   return (
@@ -397,11 +418,17 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-2">
             <CardHeader
               title="Vendas recentes"
-              subtitle="Últimas transações registradas no período"
+              subtitle={isGlobalLoading ? "Carregando histórico..." : "Últimas transações registradas no período"}
+
               right={<Link to="/vendas" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">Ver todas <ArrowUpRight className="size-3.5" /></Link>}
             />
             <div className="divide-y divide-slate-100 border-t border-slate-100">
-              {stats.recentSales.length > 0 ? stats.recentSales.map((s: any, i: number) => (
+              {isGlobalLoading ? (
+                <div className="py-12 flex justify-center">
+                  <div className="size-6 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : stats.recentSales.length > 0 ? stats.recentSales.map((s: any, i: number) => (
+
                 <Link to="/vendas" key={i} className="flex items-center justify-between px-6 py-3.5 hover:bg-slate-50/70 transition-colors group">
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="size-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 ring-1 ring-slate-200 flex items-center justify-center text-slate-700 font-bold text-[14px] shrink-0">
@@ -427,9 +454,14 @@ export default function DashboardAdmin() {
           </Card>
 
           <Card>
-            <CardHeader title="Funil de leads" subtitle={`${stats.conversionRate.toFixed(1)}% taxa de conversão`} />
+            <CardHeader title="Funil de leads" subtitle={isGlobalLoading ? "..." : `${stats.conversionRate.toFixed(1)}% taxa de conversão`} />
             <div className="px-6 pb-4 space-y-3.5">
-              {stats.leadsByStage.map((stage, i) => {
+              {isGlobalLoading ? (
+                <div className="py-8 flex justify-center">
+                   <div className="size-5 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : stats.leadsByStage.map((stage, i) => {
+
                 const max = Math.max(...stats.leadsByStage.map(s => s.value), 1);
                 const pct = (stage.value / max) * 100;
                 const opacity = 0.45 + (i * 0.18);
@@ -465,7 +497,12 @@ export default function DashboardAdmin() {
           <Card>
             <CardHeader title="Top clientes" subtitle="Maior receita acumulada" />
             <div className="px-6 pb-5 pt-1 space-y-3">
-              {stats.topClients.length > 0 ? stats.topClients.map((c, i) => {
+              {isGlobalLoading ? (
+                <div className="py-8 flex justify-center">
+                   <div className="size-5 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : stats.topClients.length > 0 ? stats.topClients.map((c, i) => {
+
                 const pct = (c.total / stats.maxTopClient) * 100;
                 const medal = ["bg-amber-500", "bg-slate-400", "bg-amber-700/70", "bg-slate-300", "bg-slate-300"];
                 return (
@@ -511,7 +548,12 @@ export default function DashboardAdmin() {
           <Card>
             <CardHeader title="Atividades recentes" subtitle="Eventos do sistema" right={<Link to="/auditoria" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">Log <ArrowUpRight className="size-3.5" /></Link>} />
             <div className="divide-y divide-slate-100 border-t border-slate-100 max-h-[340px] overflow-y-auto">
-              {activityLogs.length > 0 ? activityLogs.map((a: any) => (
+              {isGlobalLoading ? (
+                <div className="py-12 flex justify-center">
+                  <div className="size-6 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : activityLogs.length > 0 ? activityLogs.map((a: any) => (
+
                 <div key={a.id} className="px-6 py-3">
                   <div className="flex items-start gap-3">
                     <div className="size-7 rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
