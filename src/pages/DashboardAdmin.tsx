@@ -625,20 +625,33 @@ function SideKpi({ label, value, sub, icon: Icon, accent, compact }: { label: st
   const a = accents[accent];
   return (
     <div className="group relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.12)] hover:border-slate-300/80 transition-all flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <span className={cn("size-1.5 rounded-full", a.dot)} />
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5">
+          <span className={cn("size-1.5 rounded-full", a.dot)} />
+          <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
+        </span>
         <div className={cn("size-9 rounded-xl flex items-center justify-center ring-1 transition-transform group-hover:scale-105", a.iconBg, a.iconColor, a.ring)}>
           <Icon className="size-4 stroke-[2]" />
         </div>
       </div>
-      <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-slate-500 mb-2">{label}</p>
-      <p className={cn(
-        "font-display font-bold tabular-nums leading-none tracking-[-0.025em] text-slate-900",
-        compact ? "text-[24px]" : "text-[30px]"
-      )}>
-        {value}
-      </p>
-      <p className="text-[11.5px] text-slate-500 font-medium mt-3 truncate">{sub}</p>
+
+      <div className="flex-1 flex flex-col justify-center py-4">
+        <p className={cn(
+          "font-display font-bold tabular-nums leading-none tracking-[-0.025em] text-slate-900",
+          compact ? "text-[28px]" : "text-[34px]"
+        )}>
+          {value}
+        </p>
+        <p className="text-[11.5px] text-slate-500 font-medium mt-2 truncate">{sub}</p>
+      </div>
+
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atualizado agora</span>
+        <span className={cn("inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-wider", a.iconColor)}>
+          <span className={cn("size-1.5 rounded-full animate-pulse", a.dot)} />
+          ao vivo
+        </span>
+      </div>
     </div>
   );
 }
