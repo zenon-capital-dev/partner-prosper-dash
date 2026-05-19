@@ -589,7 +589,8 @@ export default function Demands() {
               </tr>
             </thead>
             <tbody className="bg-card">
-              {filtered.map((d: any) => {
+              {paginated.map((d: any) => {
+
                 const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
                 const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
                 const isOverdue = d.deadline && new Date(d.deadline) < new Date() && d.status !== 'concluido';
