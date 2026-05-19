@@ -218,10 +218,10 @@ export default function ProviderPanel() {
 
   if (!provider) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-8 bg-premium">
+      <div className="min-h-[70vh] flex items-center justify-center p-8 ">
         <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white/40 backdrop-blur-xl border-white/20">
           <Inbox className="size-12 text-primary/30 mx-auto mb-6" />
-          <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3">Acesso pendente</h2>
+          <h2 className=" text-3xl font-bold tracking-tight mb-3">Acesso pendente</h2>
           <p className="text-muted-foreground leading-relaxed">
             Sua conta ainda não foi vinculada a um cadastro de prestador. <br/>Entre em contato com o administrador para liberação.
           </p>
@@ -233,11 +233,11 @@ export default function ProviderPanel() {
   const selectedProduct = clientProducts.find((cp: any) => cp.id === selectedProductId);
 
   return (
-    <div className="bg-premium min-h-screen">
+    <div className=" min-h-screen">
       <div className="page-shell space-y-10 py-10">
         
         {/* Header & Stats Strip */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden group">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white p-8 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-colors group-hover:bg-primary/10" />
           
           <div className="relative space-y-1.5">
@@ -245,7 +245,7 @@ export default function ProviderPanel() {
               <span className="h-px w-8 bg-primary/40" />
               <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Service Provider Console</p>
             </div>
-            <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
+            <h1 className=" text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
               Olá, <span className="text-primary italic">{provider.name.split(' ')[0]}</span>.
             </h1>
             <p className="text-xs text-muted-foreground font-medium flex items-center gap-2">
@@ -274,12 +274,12 @@ export default function ProviderPanel() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
-                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-2xl">
                    <div className="flex items-center gap-3 mb-6">
                       <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                         <Briefcase className="size-5" />
                       </div>
-                      <h3 className="font-editorial text-xl font-bold">Escopo do Serviço</h3>
+                      <h3 className=" text-xl font-bold">Escopo do Serviço</h3>
                    </div>
                    <div className="space-y-4">
                       <p className="text-sm text-slate-600 leading-relaxed">
@@ -288,11 +288,11 @@ export default function ProviderPanel() {
                    </div>
                 </div>
 
-                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-2xl">
                    <div className="flex items-start justify-between mb-8">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Atendimento em Curso</p>
-                        <h2 className="font-editorial text-3xl font-bold text-slate-900">
+                        <h2 className=" text-3xl font-bold text-slate-900">
                            {selectedProduct.clients?.full_name}
                         </h2>
                         <div className="flex items-center gap-3 pt-2">
@@ -322,12 +322,12 @@ export default function ProviderPanel() {
                 </div>
 
                 {/* Checklist / Steps */}
-                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-2xl">
                    <div className="flex items-center gap-3 mb-6">
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <ListChecks className="size-5" />
                       </div>
-                      <h3 className="font-editorial text-xl font-bold">Checklist Operacional</h3>
+                      <h3 className=" text-xl font-bold">Checklist Operacional</h3>
                    </div>
                    <ClientProductSteps clientProductId={selectedProduct.id} />
                 </div>
@@ -337,8 +337,8 @@ export default function ProviderPanel() {
 
               <div className="space-y-6">
                 {/* Actions */}
-                <div className="vx-card p-6 bg-slate-900 text-white rounded-[24px] shadow-xl space-y-4">
-                   <h3 className="font-editorial text-xl font-bold mb-4">Ações Rápidas</h3>
+                <div className="vx-card p-6 bg-slate-900 text-white rounded-xl shadow-xl space-y-4">
+                   <h3 className=" text-xl font-bold mb-4">Ações Rápidas</h3>
                    <Button 
                      className="w-full h-12 rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all font-bold"
                      onClick={() => setReportTarget({ id: selectedProduct.id, productName: selectedProduct.products?.name, clientName: selectedProduct.clients?.full_name })}
@@ -370,8 +370,8 @@ export default function ProviderPanel() {
                 </div>
 
                 {/* Documents for this product */}
-                <div className="vx-card p-6 bg-white border-slate-100 rounded-[24px] space-y-4">
-                   <h3 className="font-editorial text-lg font-bold border-b border-slate-50 pb-3">Documentos Vinculados</h3>
+                <div className="vx-card p-6 bg-white border-slate-100 rounded-xl space-y-4">
+                   <h3 className=" text-lg font-bold border-b border-slate-50 pb-3">Documentos Vinculados</h3>
                    <div className="space-y-3">
                       {documents.filter(d => d.client_product_id === selectedProductId).length === 0 ? (
                         <p className="text-xs text-muted-foreground italic p-4 text-center">Nenhum documento anexado.</p>
@@ -453,9 +453,9 @@ export default function ProviderPanel() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                  <div className="vx-card p-8 bg-white rounded-[32px] border border-slate-100 shadow-sm">
+                  <div className="vx-card p-8 bg-white rounded-2xl border border-slate-100 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
-                       <h3 className="font-editorial text-2xl font-bold">Demandas com Prazo Próximo</h3>
+                       <h3 className=" text-2xl font-bold">Demandas com Prazo Próximo</h3>
                        <Button variant="ghost" className="text-primary text-xs font-bold uppercase tracking-widest" onClick={() => navigate("/prestador")}>Ver todas</Button>
                     </div>
                     {stats.nextDeadlines.length === 0 ? (
@@ -489,9 +489,9 @@ export default function ProviderPanel() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="vx-card p-6 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
+                  <div className="vx-card p-6 bg-slate-900 text-white rounded-2xl shadow-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
-                    <h3 className="font-editorial text-xl font-bold mb-6 relative">Central do Prestador</h3>
+                    <h3 className=" text-xl font-bold mb-6 relative">Central do Prestador</h3>
                     <div className="space-y-4 relative">
                        <p className="text-sm text-white/60 leading-relaxed">
                          Mantenha seus reportes em dia para garantir a liberação dos pagamentos. 
@@ -523,10 +523,10 @@ export default function ProviderPanel() {
                 const active = products.filter(p => p.status !== "concluido" && p.status !== "cancelado").length;
                 const needsRpt = products.filter(p => needsReport(p.id, p.status)).length;
                 return (
-                  <div key={client?.id || "x"} className="vx-card bg-white border border-slate-100 rounded-[28px] overflow-hidden">
+                  <div key={client?.id || "x"} className="vx-card bg-white border border-slate-100 rounded-2xl overflow-hidden">
                     <div className="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-slate-50/50 to-transparent">
                       <div>
-                        <h3 className="font-editorial text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
+                        <h3 className=" text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
                         <p className="text-xs text-muted-foreground">{client?.company || client?.email || "—"}</p>
                       </div>
                       <div className="flex items-center gap-6 text-xs">
@@ -605,7 +605,7 @@ export default function ProviderPanel() {
                     return (
                       <div
                         key={cp.id}
-                        className="vx-card p-6 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card"
+                        className="vx-card p-6 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group/card"
                       >
                         <div className="flex items-start justify-between mb-6">
                           <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
@@ -618,7 +618,7 @@ export default function ProviderPanel() {
                         </div>
 
                         <div className="space-y-1 cursor-pointer" onClick={() => setSelectedProductId(cp.id)}>
-                          <h3 className="font-editorial text-xl font-bold text-slate-900 leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
+                          <h3 className=" text-xl font-bold text-slate-900 leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
                           <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
                         </div>
 
@@ -652,7 +652,7 @@ export default function ProviderPanel() {
               {documents.length === 0 ? (
                 <EmptyState message="Nenhum documento disponível para seus atendimentos." />
               ) : (
-                <div className="vx-card overflow-hidden bg-white border-slate-100 rounded-[24px]">
+                <div className="vx-card overflow-hidden bg-white border-slate-100 rounded-xl">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
@@ -729,7 +729,7 @@ export default function ProviderPanel() {
                   {filteredReports.map((r: any) => {
                     const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
                     return (
-                      <div key={r.id} className="vx-card p-6 bg-white border border-slate-100 rounded-[24px] hover:border-primary/20 transition-all">
+                      <div key={r.id} className="vx-card p-6 bg-white border border-slate-100 rounded-xl hover:border-primary/20 transition-all">
                         <div className="flex items-start gap-4">
                           <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
                             <ClipboardCheck className="size-6" />
@@ -775,7 +775,7 @@ export default function ProviderPanel() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {contracts.map((c: any) => (
-                    <div key={c.id} className="vx-card p-6 bg-white border-slate-100 rounded-[32px] space-y-4">
+                    <div key={c.id} className="vx-card p-6 bg-white border-slate-100 rounded-2xl space-y-4">
                       <div className="flex items-start justify-between">
                         <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                           <FileText className="size-5" />
@@ -866,7 +866,7 @@ function DashboardCard({
   };
   
   return (
-    <div className="vx-card p-6 bg-white border border-slate-100 rounded-[32px] shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
+    <div className="vx-card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
        <div className="flex items-center justify-between mb-4">
           <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone])}>
              <Icon className="size-5" />
@@ -875,7 +875,7 @@ function DashboardCard({
        </div>
        <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
-          <p className="text-2xl font-bold font-editorial text-slate-900 mt-1">{value}</p>
+          <p className="text-2xl font-bold  text-slate-900 mt-1">{value}</p>
           <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
        </div>
     </div>
@@ -891,7 +891,7 @@ function StatItem({ label, value, tone = "default" }: { label: string; value: st
   return (
     <div className="space-y-1">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
-      <p className={cn("text-3xl font-bold font-editorial tracking-tight leading-none", colors[tone])}>{value}</p>
+      <p className={cn("text-3xl font-bold  tracking-tight leading-none", colors[tone])}>{value}</p>
     </div>
   );
 }
@@ -929,9 +929,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="vx-card p-20 text-center bg-white border-slate-100 rounded-[32px] border-dashed border-2">
+    <div className="vx-card p-20 text-center bg-white border-slate-100 rounded-2xl border-dashed border-2">
       <Inbox className="size-12 text-slate-200 mx-auto mb-4" />
-      <p className="font-editorial text-lg text-muted-foreground">{message}</p>
+      <p className=" text-lg text-muted-foreground">{message}</p>
     </div>
   );
 }
