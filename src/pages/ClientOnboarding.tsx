@@ -47,21 +47,20 @@ export default function ClientOnboarding() {
 
   const completeMutation = useMutation({
     mutationFn: async () => {
-      await supabase
-        .from("clients")
-        .update({ 
-          onboarding_status: 'completo', 
-          onboarding_progress: 100,
-          onboarding_completed_at: new Date().toISOString()
-        })
-        .eq("user_id", user!.id);
+      const { error } = await supabase.rpc("complete_client_onboarding" as any);
+      if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["client-panel"] });
-      qc.invalidateQueries({ queryKey: ["client-redirect-check"] });
-      toast.success("Onboarding finalizado com sucesso!");
-      navigate("/cliente");
-    }
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["client-panel"] });
+      await qc.invalidateQueries({ queryKey: ["client-redirect-check"] });
+      await qc.invalidateQueries({ queryKey: ["onboarding-data"] });
+      toast.success("Boas-vindas concluídas!");
+      navigate("/cliente", { replace: true });
+    },
+    onError: (e: any) => {
+      console.error("[onboarding] complete error:", e);
+      toast.error("Não foi possível concluir agora. Tente novamente.");
+    },
   });
 
   // Auto-skip if already completed
