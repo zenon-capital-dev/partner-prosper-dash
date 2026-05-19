@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { KeyRound, Eye, EyeOff, Sparkles, Copy, FileText, Plus, X } from "lucide-react";
+import { KeyRound, Eye, EyeOff, Sparkles, Copy, FileText, Plus, X, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
@@ -30,10 +30,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [accessPwd, setAccessPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
 
-  // Pendências de documentos (apenas novo cadastro)
+  // Onboarding settings
   const [selectedTemplateDocs, setSelectedTemplateDocs] = useState<string[]>([]);
   const [customDocs, setCustomDocs] = useState<string[]>([]);
   const [newDocInput, setNewDocInput] = useState("");
+  const [mandatorySteps, setMandatorySteps] = useState<string[]>(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
+  const [manualApproval, setManualApproval] = useState(true);
 
   useEffect(() => {
     if (client) setForm(client);
@@ -154,17 +156,23 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       clientId = created.id;
     }
 
-    // Cria pendências de documentos (apenas no cadastro novo)
-    if (!client?.id && clientId) {
+    // Onboarding setup
+    if (clientId) {
+      const { error: profErr } = await supabase.from("profiles").update({
+        onboarding_completed: false,
+        onboarding_step: 1,
+        manual_approval_required: manualApproval,
+      } as any).eq("id", clientId); // user_id is profile id usually in this system
+
       const allDocs = [...selectedTemplateDocs, ...customDocs];
       if (allDocs.length > 0) {
         const rows = allDocs.map((name) => ({
           client_id: clientId!,
-          request_title: name,
-          status: "pendente",
+          name: name,
+          is_required: true,
+          status: "pending",
         }));
-        const { error: docErr } = await supabase.from("document_requests").insert(rows);
-        if (docErr) toast.warning("Cliente salvo, mas pendências falharam: " + docErr.message);
+        await supabase.from("onboarding_documents").insert(rows);
       }
     }
 
@@ -470,6 +478,46 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                   {selectedTemplateDocs.length + customDocs.length} documento(s) serão solicitado(s) ao cliente.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Onboarding Options */}
+          {!client?.id && (
+            <div className="col-span-2 space-y-3 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/30">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="size-4 text-indigo-600" />
+                <h4 className="text-sm font-bold text-indigo-900">Configuração de Onboarding</h4>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-indigo-100">
+                <div className="space-y-0.5">
+                  <Label className="text-sm cursor-pointer" htmlFor="manual-approval">Aprovação Manual Obrigatória</Label>
+                  <p className="text-[10px] text-muted-foreground">O acesso ao painel só é liberado após o admin validar tudo.</p>
+                </div>
+                <Switch id="manual-approval" checked={manualApproval} onCheckedChange={setManualApproval} />
+              </div>
+              <div className="space-y-2 pt-1">
+                <Label className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Etapas Obrigatórias</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: "confirm_data", label: "Confirmar Dados" },
+                    { id: "upload_docs", label: "Enviar Documentos" },
+                    { id: "sign_contracts", label: "Assinar Contratos" },
+                    { id: "initial_payment", label: "Pagamento Inicial" },
+                  ].map((step) => (
+                    <div key={step.id} className="flex items-center gap-2">
+                      <Checkbox 
+                        id={`step-${step.id}`} 
+                        checked={mandatorySteps.includes(step.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) setMandatorySteps(prev => [...prev, step.id]);
+                          else setMandatorySteps(prev => prev.filter(s => s !== step.id));
+                        }}
+                      />
+                      <Label htmlFor={`step-${step.id}`} className="text-xs cursor-pointer">{step.label}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

@@ -1,11 +1,13 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, ChevronRight, LogOut, Search,
   Briefcase, CircleDollarSign, Command, Zap, ClipboardList, History,
   Truck, TrendingUp, Home, Boxes, FileCheck2,
-  MessageSquare, FolderArchive, ListChecks, ShoppingBag,
+  MessageSquare, FolderArchive, ListChecks, ShoppingBag, Sparkles
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -105,7 +107,8 @@ const clientSections: NavSection[] = [
   {
     label: "Meu Painel",
     items: [
-      { title: "Início", url: "/cliente", icon: Home },
+      { title: "Dashboard", url: "/cliente", icon: Home },
+      { title: "Jornada Onboarding", url: "/cliente/onboarding", icon: Sparkles },
       { title: "Meus Produtos", url: "/cliente/produtos", icon: Boxes },
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
       { title: "Pagamentos", url: "/cliente/financeiro", icon: Banknote },
@@ -171,8 +174,21 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const {
     user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador,
-    isPrestador, isIndicador, signOut,
+    isPrestador, isIndicador, signOut, roles
   } = useAuth();
+
+  const isClientRole = roles.includes("cliente") || roles.includes("lead");
+
+  const { data: profile } = useQuery({
+    queryKey: ["sidebar-onboarding-check", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("onboarding_completed").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id && isClientRole,
+  });
+
+  const onboardingBlocked = isClientRole && profile && !profile.onboarding_completed;
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -196,13 +212,29 @@ export function AppSidebar() {
   const showPrestador = isPrestador && !showAdmin && !showPartner && !showReferrer;
   const showClient = isCliente && !showAdmin && !showPartner && !showPrestador && !showReferrer;
 
-  const sections = showAdmin
+  const rawSections = showAdmin
     ? adminSections
     : showPartner ? partnerSections
     : showReferrer ? referrerSections
     : showPrestador ? prestadorSections
     : showClient ? clientSections
     : adminSections;
+
+  const sections = useMemo(() => {
+    if (!onboardingBlocked) return rawSections;
+    
+    // Filter sidebar for blocked onboarding
+    return rawSections.map(section => ({
+      ...section,
+      items: section.items.filter(item => 
+        item.url === "/cliente/onboarding" || 
+        item.url === "/suporte" || 
+        item.url === "/cliente/documentos" || 
+        item.url === "/cliente/financeiro" || 
+        item.url === "/cliente/contratos"
+      )
+    })).filter(section => section.items.length > 0);
+  }, [rawSections, onboardingBlocked]);
 
   const portalLabel = showAdmin ? "Direct Response"
     : showPartner ? "Parceiro"
