@@ -235,6 +235,15 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     }
 
     setSubmitting(false);
+    // Invalida caches dos painéis impactados pelos vínculos (parceiro, indicador, colaborador, prestador)
+    [
+      "clients", "client", "client-collaborator", "client-provider", "client-referrer",
+      "collab-assigned-clients", "collab-demandas", "collab-tasks", "collab-clients",
+      "provider-self", "provider-client-products", "provider-documents",
+      "referrer-panel",
+      "partner-panel",
+      "demands", "demands-list", "tasks", "tasks-list", "commissions", "commissions-list",
+    ].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
     onCreated?.();
     onOpenChange(false);
   };
