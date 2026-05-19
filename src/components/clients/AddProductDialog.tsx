@@ -227,6 +227,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           company_id: (form as any).company_id === "none" ? null : (form as any).company_id,
           product_id: form.product_id,
           service_provider_id: form.service_provider_id || null,
+          responsible_employee_id: form.collaborator_id || null,
           partner_commission: form.partner_id ? form.partner_commission : null,
           employee_commission: form.collaborator_id ? form.collaborator_commission : null,
           custom_fields: (form as any).custom_fields || {},
