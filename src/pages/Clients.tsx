@@ -550,11 +550,15 @@ export default function Clients() {
                 </div>
               ))}
             </div>
-            <div className="px-4 py-3 text-xs text-muted-foreground flex items-center justify-between">
-              <span>{filtered.length} de {enriched.length} clientes</span>
-              <span className="font-mono">Receita visível: {formatBRL(filtered.reduce((s: number, c: any) => s + c._totalContracted, 0))}</span>
-            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
           </>
+
         ) : (
           <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
             <div className="overflow-x-auto">
