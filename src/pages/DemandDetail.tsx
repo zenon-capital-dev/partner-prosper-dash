@@ -11,7 +11,7 @@ import {
   Calendar, ShieldAlert, Paperclip, ArrowRight,
   PauseCircle, PlayCircle, AlertTriangle, FileCheck,
   Zap, FilePlus, Download, Info, ClipboardList, Plus,
-  Pencil, Copy, Trash2, XCircle
+  Pencil, Copy, Trash2, XCircle, UserCircle
 } from "lucide-react";
 import { EditDemandDialog } from "@/components/demands/EditDemandDialog";
 import { Button } from "@/components/ui/button";
