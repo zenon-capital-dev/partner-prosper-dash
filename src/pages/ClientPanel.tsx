@@ -468,3 +468,202 @@ export default function ClientPanel() {
     </div>
   );
 }
+
+function ClientPanelShell({ children }: { children: any }) {
+  return <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-6">{children}</div>;
+}
+
+function ClientPanelLoading() {
+  return (
+    <div className="min-h-screen bg-slate-50/60 flex items-center justify-center p-6">
+      <div className="w-full max-w-4xl space-y-5">
+        <div className="bg-white border border-slate-200/70 rounded-2xl p-7 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="size-10 rounded-xl bg-indigo-50 flex items-center justify-center"><Loader2 className="size-5 animate-spin text-indigo-600" /></div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Carregando portal</p>
+              <p className="text-sm font-bold text-slate-900">Preparando suas informações</p>
+            </div>
+          </div>
+          <div className="h-8 w-2/3 rounded-lg bg-slate-100 animate-pulse" />
+          <div className="h-4 w-1/2 rounded-lg bg-slate-100 animate-pulse mt-4" />
+          <div className="grid grid-cols-4 gap-3 mt-8">
+            {[1,2,3,4].map((i) => <div key={i} className="h-24 rounded-xl bg-slate-100 animate-pulse" />)}
+          </div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {[1,2,3].map((i) => <div key={i} className="h-36 rounded-2xl bg-white border border-slate-200/70 animate-pulse" />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, description, action, tone = "default" }: { icon: any; title: string; description: string; action?: any; tone?: "default" | "danger" }) {
+  return (
+    <div className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-10 max-w-lg w-full text-center">
+      <div className={cn("size-14 rounded-2xl mx-auto mb-5 flex items-center justify-center", tone === "danger" ? "bg-rose-50 text-rose-600" : "bg-indigo-50 text-indigo-600")}>
+        <Icon className="size-7" />
+      </div>
+      <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h2>
+      <p className="text-sm text-slate-600 leading-relaxed mt-3 mb-6">{description}</p>
+      {action}
+    </div>
+  );
+}
+
+function MetricTile({ label, value, sub, icon: Icon, tone = "info" }: { label: string; value: string; sub?: string; icon: any; tone?: "info" | "success" | "warning" | "danger" }) {
+  const styles = {
+    info: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    success: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    warning: "bg-amber-50 text-amber-700 border-amber-100",
+    danger: "bg-rose-50 text-rose-700 border-rose-100",
+  }[tone];
+  return (
+    <div className="rounded-xl border border-slate-200/70 bg-white p-4 min-w-0">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 truncate">{label}</p>
+        <span className={cn("size-8 rounded-lg border flex items-center justify-center shrink-0", styles)}><Icon className="size-4" /></span>
+      </div>
+      <p className="text-2xl font-bold tabular-nums text-slate-900 truncate leading-none">{value}</p>
+      {sub && <p className="text-[11px] text-slate-500 mt-2 truncate">{sub}</p>}
+    </div>
+  );
+}
+
+function ActionRow({ label, value, icon: Icon, tone, onClick }: { label: string; value: number; icon: any; tone: "success" | "warning" | "danger"; onClick: () => void }) {
+  const ok = value === 0;
+  return (
+    <button onClick={onClick} className="w-full rounded-xl border border-slate-200/70 bg-white hover:bg-slate-50 transition-all p-4 text-left flex items-center justify-between gap-4">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className={cn("size-10 rounded-xl flex items-center justify-center shrink-0", ok ? "bg-emerald-50 text-emerald-600" : tone === "danger" ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600")}><Icon className="size-5" /></span>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-slate-900 truncate">{label}</p>
+          <p className="text-[11px] text-slate-500 mt-0.5">{ok ? "Tudo certo" : `${value} item(ns) exigem atenção`}</p>
+        </div>
+      </div>
+      <ArrowRight className="size-4 text-slate-400 shrink-0" />
+    </button>
+  );
+}
+
+function PanelCard({ title, eyebrow, action, children }: { title: string; eyebrow?: string; action?: any; children: any }) {
+  return (
+    <section className="bg-white border border-slate-200/70 rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between gap-4">
+        <div>
+          {eyebrow && <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</p>}
+          <h2 className="text-lg font-bold text-slate-900 mt-1">{title}</h2>
+        </div>
+        {action}
+      </div>
+      <div className="p-6">{children}</div>
+    </section>
+  );
+}
+
+function MiniEmpty({ icon: Icon, text }: { icon: any; text: string }) {
+  return <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center"><Icon className="size-8 text-slate-300 mx-auto mb-3" /><p className="text-sm text-slate-500">{text}</p></div>;
+}
+
+function InfoCell({ label, value, tone }: { label: string; value: string; tone?: "success" | "warning" }) {
+  return <div className="rounded-lg bg-slate-50 p-3 min-w-0"><p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400 truncate">{label}</p><p className={cn("text-xs font-bold mt-1 truncate", tone === "success" ? "text-emerald-700" : tone === "warning" ? "text-amber-700" : "text-slate-700")}>{value}</p></div>;
+}
+
+function ServiceCard({ product, pendingDocs, latestReport, onClick }: { product: any; pendingDocs: number; latestReport: any; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="bg-white border border-slate-200/70 rounded-2xl p-6 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all text-left flex flex-col min-h-[260px]">
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <span className="size-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><Package className="size-6" /></span>
+        <StatusBadge status={product.status} />
+      </div>
+      <h3 className="text-xl font-bold text-slate-900 leading-tight">{product.products?.name || product.custom_product_name || "Solução contratada"}</h3>
+      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{product.products?.description || "Acompanhamento de execução e entregas."}</p>
+      <div className="mt-auto pt-6 grid grid-cols-2 gap-3">
+        <InfoCell label="Prazo" value={product.deadline ? formatDate(product.deadline) : "Em definição"} />
+        <InfoCell label="Pendências" value={pendingDocs > 0 ? `${pendingDocs} doc.` : "Em dia"} tone={pendingDocs > 0 ? "warning" : "success"} />
+        <div className="col-span-2 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-700">
+          <span>Ver detalhes da execução</span><ArrowRight className="size-4" />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function SectionHeader({ title, description, counters = [] }: { title: string; description: string; counters?: string[] }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
+        <p className="text-sm text-slate-600 mt-1">{description}</p>
+      </div>
+      {counters.length > 0 && <div className="flex flex-wrap gap-2">{counters.map((c) => <Badge key={c} variant="outline" className="rounded-lg border-slate-200 bg-white text-slate-600">{c}</Badge>)}</div>}
+    </div>
+  );
+}
+
+function PaymentTable({ payments }: { payments: any[] }) {
+  return (
+    <div className="overflow-x-auto -mx-6">
+      <table className="w-full text-sm min-w-[640px]">
+        <thead><tr className="bg-slate-50 text-[10px] uppercase tracking-[0.18em] text-slate-500"><th className="px-6 py-4 text-left">Vencimento</th><th className="px-6 py-4 text-left">Parcela</th><th className="px-6 py-4 text-left">Status</th><th className="px-6 py-4 text-right">Valor</th></tr></thead>
+        <tbody className="divide-y divide-slate-100">
+          {payments.map((p) => <tr key={p.id} className="hover:bg-slate-50/70"><td className="px-6 py-4 font-semibold text-slate-700">{formatDate(p.due_date)}</td><td className="px-6 py-4 text-slate-500">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td><td className="px-6 py-4"><StatusBadge status={p.status} /></td><td className="px-6 py-4 text-right font-bold tabular-nums text-slate-900">{formatBRL(p.amount)}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ProductDetailView({ product, docs, reports, onBack, onOpenDocs, onSupport, onDownload }: { product: any; docs: any[]; reports: any[]; onBack: () => void; onOpenDocs: () => void; onSupport: () => void; onDownload: (path?: string | null, name?: string) => void }) {
+  const productDocs = docs.filter((d) => d.client_product_id === product.id);
+  const productReports = reports.filter((r) => r.client_product_id === product.id);
+  return (
+    <div className="space-y-6 animate-fade-up">
+      <Button variant="ghost" onClick={onBack} className="h-9 px-0 text-slate-600 hover:text-indigo-700"><ChevronLeft className="size-4 mr-2" /> Voltar ao painel</Button>
+      <section className="bg-white border border-slate-200/70 rounded-2xl shadow-sm p-7 lg:p-9">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div className="max-w-2xl">
+            <Badge className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 rounded-lg mb-4">Solução em execução</Badge>
+            <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-slate-900">{product.products?.name || product.custom_product_name || "Solução contratada"}</h1>
+            <p className="text-sm text-slate-600 leading-relaxed mt-3">{product.products?.description || "Acompanhe checklist, documentos e atualizações desta demanda."}</p>
+          </div>
+          <div className="flex gap-2"><Button variant="outline" className="h-10 rounded-lg border-slate-200" onClick={onSupport}><MessageSquare className="size-4 mr-2" /> Suporte</Button><StatusBadge status={product.status} /></div>
+        </div>
+        <div className="mt-7 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <MetricTile label="Status" value={statusLabel(product.status)} sub="situação atual" icon={Activity} tone="info" />
+          <MetricTile label="Prazo" value={product.deadline ? formatDate(product.deadline) : "Em definição"} sub="previsão" icon={Clock} tone="warning" />
+          <MetricTile label="Documentos" value={String(productDocs.length)} sub="vinculados" icon={FileText} tone="success" />
+        </div>
+      </section>
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-8">
+        <PanelCard title="Checklist de execução" eyebrow="Etapas">
+          <ClientProductSteps clientProductId={product.id} showDetails={true} />
+        </PanelCard>
+        <div className="space-y-6">
+          <PanelCard title="Documentos da demanda" eyebrow={`${productDocs.length} arquivo(s)`}>
+            {productDocs.length === 0 ? <MiniEmpty icon={FileText} text="Nenhum documento específico solicitado." /> : <div className="space-y-3">{productDocs.map((d) => <div key={d.id} className="rounded-xl border border-slate-200/70 p-3 flex items-center justify-between gap-3"><div className="min-w-0"><p className="text-sm font-bold text-slate-900 truncate">{d.name}</p><p className="text-[11px] text-slate-500">{statusLabel(d.status)}</p></div>{d.file_path ? <Button variant="ghost" size="icon" className="size-8" onClick={() => onDownload(d.file_path, d.name)}><Download className="size-4" /></Button> : <Button size="sm" className="h-8 rounded-lg bg-indigo-600" onClick={onOpenDocs}>Enviar</Button>}</div>)}</div>}
+          </PanelCard>
+          <PanelCard title="Atualizações" eyebrow="Equipe">
+            {productReports.length === 0 ? <MiniEmpty icon={Activity} text="Nenhuma atualização registrada ainda." /> : <div className="space-y-4">{productReports.slice(0, 5).map((r) => <div key={r.id} className="flex gap-3"><span className="mt-1 size-2 rounded-full bg-indigo-600 ring-4 ring-indigo-50 shrink-0" /><div><p className="text-sm font-semibold text-slate-800 leading-snug">{r.notes || statusLabel(r.status)}</p><p className="text-[11px] text-slate-500 mt-1">{formatDate(r.created_at)} · {r.service_providers?.name || "Equipe Prosper"}</p></div></div>)}</div>}
+          </PanelCard>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
+  return (
+    <TabsTrigger value={value} className="shrink-0 h-9 rounded-lg px-3 gap-2 text-[12px] font-semibold text-slate-600 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+      <Icon className="size-3.5" /><span>{label}</span>
+      {count !== undefined && count > 0 && <span className={cn("min-w-5 h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums flex items-center justify-center", alert ? "bg-rose-500 text-white" : "bg-slate-100 text-slate-700")}>{count}</span>}
+    </TabsTrigger>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const s = status || "indefinido";
+  const cls = DONE_STATUSES.has(s) ? "bg-emerald-50 text-emerald-700 border-emerald-200" : s.includes("atras") || s.includes("reprov") || s.includes("cancel") ? "bg-rose-50 text-rose-700 border-rose-200" : s.includes("aguard") || s.includes("pend") ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-indigo-50 text-indigo-700 border-indigo-200";
+  return <Badge variant="outline" className={cn("text-[10px] font-bold uppercase tracking-[0.12em] rounded-lg", cls)}>{statusLabel(s)}</Badge>;
+}
