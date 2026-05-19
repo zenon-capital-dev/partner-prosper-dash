@@ -196,8 +196,8 @@ export default function ClientPanel() {
   const firstName = client.full_name?.split(" ")[0] || "Cliente";
 
   return (
-    <div className="animate-fade-in">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="animate-fade-in min-h-screen bg-slate-50/60">
+      <div className="max-w-7xl mx-auto px-5 lg:px-8 py-8 lg:py-10 space-y-8">
         {/* Company Selector and Hero contextual info */}
         {hasMultipleCompanies && activeTab === "home" && (
           <div className="flex justify-end mb-4">
