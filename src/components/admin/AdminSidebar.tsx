@@ -170,7 +170,18 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       )}
 
       {!collapsed && (
-        <div className="px-4 pt-4">
+        <div className="px-4 pt-4 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-indigo-700">
+              <span className="size-1.5 rounded-full bg-indigo-600" />
+              {portalLabel}
+            </span>
+            {!isFullAdmin && (
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+                Acesso restrito
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }))}
