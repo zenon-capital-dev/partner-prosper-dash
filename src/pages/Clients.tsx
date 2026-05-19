@@ -658,12 +658,13 @@ export default function Clients() {
                 </tbody>
               </table>
             </div>
-            {filtered.length > 0 && (
-              <div className="px-4 py-3 border-t border-border/60 bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{filtered.length} de {enriched.length} clientes</span>
-                <span className="font-mono">Receita visível: {formatBRL(filtered.reduce((s: number, c: any) => s + c._totalContracted, 0))}</span>
-              </div>
-            )}
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         )}
 
@@ -673,6 +674,7 @@ export default function Clients() {
           client={editing}
           onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
         />
+
       </div>
     </div>
     </TooltipProvider>
