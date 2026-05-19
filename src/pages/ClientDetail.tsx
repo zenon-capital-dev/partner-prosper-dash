@@ -456,6 +456,10 @@ export default function ClientDetail() {
         </div>
 
         <div className="min-h-[500px] animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <TabsContent value="onboarding" className="m-0">
+            <ClientOnboardingTab clientId={id!} />
+          </TabsContent>
+
           <TabsContent value="visao-geral" className="m-0 focus-visible:ring-0">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
