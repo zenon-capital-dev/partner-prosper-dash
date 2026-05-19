@@ -35,6 +35,7 @@ const statusBadge: Record<string, string> = {
   liberada: "bg-indigo-50 text-indigo-600 border-indigo-200",
   em_pagamento: "bg-purple-50 text-purple-600 border-purple-200",
   paga: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  pago: "bg-emerald-100 text-emerald-800 border-emerald-300",
   cancelada: "bg-destructive/10 text-destructive border-destructive/20",
   estornada: "bg-slate-100 text-slate-600 border-slate-300",
 };
