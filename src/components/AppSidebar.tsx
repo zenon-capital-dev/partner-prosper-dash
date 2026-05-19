@@ -112,10 +112,24 @@ const clientSections: NavSection[] = [
     ],
   },
   {
+    label: "Serviços",
+    items: [
+      { title: "Meus Serviços", url: "/portal-cliente?tab=servicos", icon: Package },
+      { title: "Soluções", url: "/portal-cliente?tab=descobrir", icon: ShoppingBag },
+    ],
+  },
+  {
     label: "Arquivos",
     items: [
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
       { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
+      { title: "Biblioteca", url: "/portal-cliente?tab=docs", icon: FolderArchive },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { title: "Pagamentos", url: "/portal-cliente?tab=financeiro", icon: Banknote },
     ],
   },
   {
