@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
 import { FileText, Download, Check, X, Clock, FilePlus, Eye, AlertCircle, MessageSquare, History, Search, RefreshCw, Lock, Unlock, MoreVertical, Filter, FolderOpen, ShieldCheck } from "lucide-react";
@@ -56,6 +58,7 @@ export default function Documents() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [search, setSearch] = useState("");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
@@ -265,8 +268,26 @@ export default function Documents() {
     }).length,
   }), [allDocs]);
 
-  const filteredDocs = useMemo(() => allDocs.filter((d: any) => {
-    const effectiveStatus = (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status))) ? 'atrasado' : d.status;
+  const filteredDocs = useMemo(() => {
+    const today = startOfToday();
+    let start = today;
+    let end = endOfDay(today);
+
+    if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "30 DIAS") {
+      start = subDays(today, 29);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      start = new Date(0);
+      end = new Date(8640000000000000);
+    }
+
+    return allDocs.filter((d: any) => {
+      const createdAt = new Date(d.created_at);
+      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
+      const effectiveStatus = (d.status === 'vencido' || (d.due_date && new Date(d.due_date) < new Date() && !['aprovado', 'enviado', 'em_analise', 'pendente_correcao'].includes(d.status))) ? 'atrasado' : d.status;
 
     if (statusFilter !== "all") {
       if (statusFilter === 'atrasado') {
@@ -300,7 +321,8 @@ export default function Documents() {
       if (!hay.includes(search.toLowerCase())) return false;
     }
     return true;
-  }), [allDocs, search, statusFilter, clientFilter, productFilter, providerFilter, requiredFilter, dateFrom, dateTo]);
+  });
+  }, [allDocs, search, statusFilter, clientFilter, productFilter, providerFilter, requiredFilter, dateFrom, dateTo, rangeKey]);
 
   const clearFilters = () => {
     setStatusFilter("all"); setClientFilter("all"); setProductFilter("all");
@@ -316,9 +338,25 @@ export default function Documents() {
         description="Solicite, valide e arquive documentos de clientes. Cada arquivo fica vinculado a uma demanda e visível apenas para quem tem permissão."
         icon={<FolderOpen className="size-6" />}
         actions={
-          <Button onClick={() => { setSelectedDoc(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
-            <FilePlus className="size-4 mr-1.5" /> Solicitar Documento
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
+              {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setRangeKey(k)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                    rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+            <Button onClick={() => { setSelectedDoc(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
+              <FilePlus className="size-4 mr-1.5" /> Solicitar Documento
+            </Button>
+          </div>
         }
         kpis={[
           { label: "Total de Docs", value: kpis.total, tone: "primary", icon: <FileText className="size-4" /> },
@@ -329,7 +367,7 @@ export default function Documents() {
         ]}
       />
 
-      <div className="px-5 lg:px-8 space-y-6">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6">
 
       {/* Filters */}
       <div className="vx-card p-4 space-y-3">

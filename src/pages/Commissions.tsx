@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
@@ -51,7 +53,7 @@ const commissionTriggerEvents = [
 
 export default function Commissions() {
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"list" | "rules">("list");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
@@ -135,7 +137,24 @@ export default function Commissions() {
 
   // ----- Filtering -----
   const filtered = useMemo(() => {
+    const today = startOfToday();
+    let start = today;
+    let end = endOfDay(today);
+
+    if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "30 DIAS") {
+      start = subDays(today, 29);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      start = new Date(0);
+      end = new Date(8640000000000000);
+    }
+
     return commissions.filter((c: any) => {
+      const createdAt = new Date(c.created_at);
+      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
       if (statusFilter !== "all" && c.workflow_status !== statusFilter) return false;
       if (partnerFilter !== "all" && c.partner_id !== partnerFilter) return false;
       if (dateFrom && c.created_at < dateFrom) return false;
@@ -147,7 +166,7 @@ export default function Commissions() {
       }
       return true;
     });
-  }, [commissions, statusFilter, partnerFilter, dateFrom, dateTo, search]);
+  }, [commissions, statusFilter, partnerFilter, dateFrom, dateTo, search, rangeKey]);
 
   const totals = useMemo(() => {
     const acc = { paid: 0, pending: 0, total: 0, count: filtered.length };
@@ -367,6 +386,20 @@ export default function Commissions() {
         actions={
           <div className="flex items-center gap-3">
             <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+              {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setRangeKey(k)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                    rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  {k}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setStatusFilter("all")}
                 className={cn(
@@ -409,10 +442,10 @@ export default function Commissions() {
         ]}
       />
 
-      <div className="px-5 lg:px-8 space-y-6 pb-10">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10">
 
 
-      <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="space-y-6">
+      <Tabs defaultValue="list" className="space-y-6">
         <TabsList className="bg-white/50 backdrop-blur-sm border border-slate-200/60 p-1 h-12 rounded-2xl w-fit">
           <TabsTrigger value="list" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Histórico de Comissões</TabsTrigger>
           <TabsTrigger value="rules" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Regras de Comissionamento</TabsTrigger>
