@@ -93,8 +93,8 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
   return (
     <aside
       className={cn(
-        "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white/96 dark:bg-background/96 backdrop-blur-xl border-r border-slate-200/75 dark:border-border/50 shadow-sm",
+        "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "bg-white/96 dark:bg-background/96 backdrop-blur-xl border-r border-slate-200/75 dark:border-border/50",
         collapsed ? "w-[76px]" : "w-[286px]",
         className
       )}
@@ -235,7 +235,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-slate-200/75 dark:border-border/75 p-3 bg-gradient-to-b from-slate-50/60 dark:from-muted/20 to-white dark:to-card">
+      <div className="shrink-0 border-t border-slate-200/75 dark:border-border/50 p-3 bg-gradient-to-b from-slate-50/60 dark:from-muted/10 to-white dark:to-background">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(

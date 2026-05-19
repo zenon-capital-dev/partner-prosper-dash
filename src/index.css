@@ -180,7 +180,7 @@
   html { color-scheme: light; }
   html.dark { color-scheme: dark; }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900;
+    @apply bg-background text-foreground antialiased selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300;
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01', 'ss03';
     -webkit-font-smoothing: antialiased;
@@ -220,7 +220,7 @@
 
   /* Premium Card — flat, hairline border, no glow */
   .vx-card {
-    @apply relative rounded-xl border border-border bg-card transition-all duration-200 shadow-sm;
+    @apply relative rounded-xl border border-border bg-card transition-all duration-300 shadow-sm;
   }
   .vx-card-hover { @apply transition-colors duration-200; }
   .vx-card-hover:hover {
