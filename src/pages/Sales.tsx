@@ -24,10 +24,13 @@ import {
 import { cn } from "@/lib/utils";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { confirmAction } from "@/lib/confirm";
+import { useAuth } from "@/hooks/useAuth";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 
 export default function Sales() {
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
