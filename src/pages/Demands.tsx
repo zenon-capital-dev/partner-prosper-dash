@@ -757,7 +757,7 @@ export default function Demands() {
       </Dialog>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
-
 }
