@@ -31,6 +31,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { PageHero } from "@/components/PageHero";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { confirmAction } from "@/lib/confirm";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 export default function Clients() {
   const { isAdmin, isAdminSecondary, isColaborador } = useAuth();
@@ -40,6 +42,9 @@ export default function Clients() {
   const [editing, setEditing] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<"grid" | "table">("grid");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
@@ -170,6 +175,13 @@ export default function Clients() {
       return true;
     });
   }, [enriched, search, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
 
   const kpis = useMemo(() => {
     const total = enriched.length;
@@ -311,7 +323,8 @@ export default function Clients() {
         </div>
 
         {showFilters && (
-          <div className="rounded-xl border border-border/60 bg-card/40 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 animate-fade-in">
+          <div className="rounded-xl border border-border/60 bg-card/40 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
+
             <FilterField label="Status">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
@@ -417,7 +430,8 @@ export default function Clients() {
         ) : view === "grid" ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {filtered.map((c: any) => (
+              {paginated.map((c: any) => (
+
                 <div
                   key={c.id}
                   onClick={() => navigate(`/clientes/${c.id}`)}
@@ -536,11 +550,15 @@ export default function Clients() {
                 </div>
               ))}
             </div>
-            <div className="px-4 py-3 text-xs text-muted-foreground flex items-center justify-between">
-              <span>{filtered.length} de {enriched.length} clientes</span>
-              <span className="font-mono">Receita visível: {formatBRL(filtered.reduce((s: number, c: any) => s + c._totalContracted, 0))}</span>
-            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
           </>
+
         ) : (
           <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
             <div className="overflow-x-auto">
@@ -560,7 +578,7 @@ export default function Clients() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
-                  {filtered.map((c: any) => (
+                  {paginated.map((c: any) => (
                     <tr
                       key={c.id}
                       className="group hover:bg-muted/30 transition-colors cursor-pointer"
@@ -640,12 +658,13 @@ export default function Clients() {
                 </tbody>
               </table>
             </div>
-            {filtered.length > 0 && (
-              <div className="px-4 py-3 border-t border-border/60 bg-muted/20 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{filtered.length} de {enriched.length} clientes</span>
-                <span className="font-mono">Receita visível: {formatBRL(filtered.reduce((s: number, c: any) => s + c._totalContracted, 0))}</span>
-              </div>
-            )}
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         )}
 
@@ -655,6 +674,7 @@ export default function Clients() {
           client={editing}
           onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
         />
+
       </div>
     </div>
     </TooltipProvider>

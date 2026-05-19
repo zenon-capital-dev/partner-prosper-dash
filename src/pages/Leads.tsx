@@ -29,6 +29,8 @@ import { useNavigate } from "react-router-dom";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 const statusColors: Record<string, string> = {
   "Novo": "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
@@ -335,16 +337,15 @@ export default function Leads() {
             </table>
           </div>
           {!isLoading && filteredLeads.length > 0 && (
-            <div className="p-4 border-t border-border/40 bg-muted/5 flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                Página {currentPage} de {totalPages} · Mostrando {pagedLeads.length} de {filteredLeads.length} leads
-              </p>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="h-8 text-[11px]">Anterior</Button>
-                <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="h-8 text-[11px]">Próximo</Button>
-              </div>
-            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              totalItems={filteredLeads.length}
+              itemsPerPage={PAGE_SIZE}
+            />
           )}
+
         </div>
         )}
 

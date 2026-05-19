@@ -36,6 +36,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DailyAgenda } from "@/components/demands/DailyAgenda";
 import { CalendarDays } from "lucide-react";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
@@ -94,6 +96,9 @@ export default function Demands() {
   const [providerFilter, setProviderFilter] = useState<string>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
   const [deadlineFilter, setDeadlineFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const { data: demands = [], isLoading } = useQuery({
     queryKey: ["admin-demands"],
@@ -193,6 +198,13 @@ export default function Demands() {
       return true;
     });
   }, [demands, search, statusFilter, priorityFilter, productFilter, providerFilter, partnerFilter, deadlineFilter, rangeKey]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
 
   const stats = useMemo(() => {
     return {
@@ -348,7 +360,7 @@ export default function Demands() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -558,8 +570,9 @@ export default function Demands() {
           </DragDropContext>
         </div>
       ) : viewMode === 'list' ? (
-        <div className="vx-table-wrap overflow-visible">
-          <table className="vx-table">
+        <div className="vx-table-wrap overflow-x-auto border border-border rounded-xl">
+          <table className="vx-table min-w-[1200px]">
+
             <thead className="vx-table-head">
               <tr>
                 <Th>Cliente</Th>
@@ -576,7 +589,8 @@ export default function Demands() {
               </tr>
             </thead>
             <tbody className="bg-card">
-              {filtered.map((d: any) => {
+              {paginated.map((d: any) => {
+
                 const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
                 const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
                 const isOverdue = d.deadline && new Date(d.deadline) < new Date() && d.status !== 'concluido';
@@ -698,7 +712,15 @@ export default function Demands() {
               })}
             </tbody>
           </table>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
+
 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

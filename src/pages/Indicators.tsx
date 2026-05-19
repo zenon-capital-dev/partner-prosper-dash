@@ -15,6 +15,7 @@ import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 const empty = { active: true, commission_percent: 5 };
 
@@ -26,6 +27,8 @@ export default function Indicators() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(empty);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["referrers-rich"],
@@ -52,6 +55,12 @@ export default function Indicators() {
       return { ...r, _total: total, _paid: paid, _pending: pending, _clients: clients };
     }).filter((r: any) => !search || r.full_name?.toLowerCase().includes(search.toLowerCase()) || r.email?.toLowerCase().includes(search.toLowerCase()));
   }, [referrers, splits, clientsByReferrer, search]);
+
+  const totalPages = Math.ceil(enriched.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return enriched.slice(start, start + itemsPerPage);
+  }, [enriched, currentPage]);
 
   const totals = useMemo(() => ({
     count: enriched.length,
@@ -103,7 +112,7 @@ export default function Indicators() {
   };
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in space-y-6">
       <PageHeader
         title="Indicadores"
         description="Pessoas que indicam clientes e recebem comissão por venda fechada."
@@ -116,7 +125,7 @@ export default function Indicators() {
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi icon={Users2} label="Indicadores" value={String(totals.count)} hint={`${totals.active} ativos`} />
         <Kpi icon={Award} label="Comissões geradas" value={formatBRL(totals.revenue)} />
         <Kpi icon={Wallet} label="A pagar" value={formatBRL(totals.pending)} tone="warning" />
@@ -137,60 +146,71 @@ export default function Indicators() {
             <p className="text-xs text-muted-foreground mt-1">Cadastre quem traz clientes e configure a % de comissão.</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Indicador</th>
-                <th className="px-4 py-3 text-left font-semibold">Contato</th>
-                <th className="px-4 py-3 text-left font-semibold">PIX</th>
-                <th className="px-4 py-3 text-right font-semibold">% padrão</th>
-                <th className="px-4 py-3 text-right font-semibold">Clientes</th>
-                <th className="px-4 py-3 text-right font-semibold">Pago</th>
-                <th className="px-4 py-3 text-right font-semibold">A pagar</th>
-                <th className="px-4 py-3 text-center font-semibold">Status</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {enriched.map((r: any) => (
-                <tr key={r.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-8 rounded-full bg-primary-muted text-primary flex items-center justify-center text-xs font-bold">{initials(r.full_name)}</div>
-                      <div>
-                        <p className="font-medium leading-tight">{r.full_name}</p>
-                        <p className="text-[11px] text-muted-foreground">{r.notes ?? "—"}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    <div>{r.email ?? "—"}</div>
-                    <div>{formatPhone(r.phone)}</div>
-                  </td>
-                  <td className="px-4 py-3 text-xs font-mono">{r.pix_key ?? "—"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatPercent(r.commission_percent)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r._clients}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-success">{formatBRL(r._paid)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums text-warning">{formatBRL(r._pending)}</td>
-                  <td className="px-4 py-3 text-center">
-                    <Badge variant={r.active ? "default" : "secondary"} className="text-[10px]">{r.active ? "Ativo" : "Inativo"}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {canManage ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setEditing(r); setForm(r); setOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toggle(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[1000px]">
+                <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold">Indicador</th>
+                    <th className="px-4 py-3 text-left font-semibold">Contato</th>
+                    <th className="px-4 py-3 text-left font-semibold">PIX</th>
+                    <th className="px-4 py-3 text-right font-semibold">% padrão</th>
+                    <th className="px-4 py-3 text-right font-semibold">Clientes</th>
+                    <th className="px-4 py-3 text-right font-semibold">Pago</th>
+                    <th className="px-4 py-3 text-right font-semibold">A pagar</th>
+                    <th className="px-4 py-3 text-center font-semibold">Status</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paginated.map((r: any) => (
+                    <tr key={r.id} className="hover:bg-muted/30">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="size-8 rounded-full bg-primary-muted text-primary flex items-center justify-center text-xs font-bold">{initials(r.full_name)}</div>
+                          <div>
+                            <p className="font-medium leading-tight">{r.full_name}</p>
+                            <p className="text-[11px] text-muted-foreground">{r.notes ?? "—"}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        <div>{r.email ?? "—"}</div>
+                        <div>{formatPhone(r.phone)}</div>
+                      </td>
+                      <td className="px-4 py-3 text-xs font-mono">{r.pix_key ?? "—"}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{formatPercent(r.commission_percent)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{r._clients}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-success">{formatBRL(r._paid)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums text-warning">{formatBRL(r._pending)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={r.active ? "default" : "secondary"} className="text-[10px]">{r.active ? "Ativo" : "Inativo"}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {canManage ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => { setEditing(r); setForm(r); setOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => toggle(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={enriched.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </>
         )}
       </div>
 

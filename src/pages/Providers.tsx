@@ -23,6 +23,7 @@ import { ProviderAssignDialog } from "@/components/provider/ProviderAssignDialog
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type ViewMode = "grid" | "list";
 
@@ -38,6 +39,8 @@ export default function Providers() {
   const [editing, setEditing] = useState<any>(null);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { data: providers = [] } = useQuery({
     queryKey: ["providers-rich"],
@@ -85,6 +88,12 @@ export default function Providers() {
       return true;
     });
   }, [enriched, statusFilter, specialtyFilter, search]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   const kpis = useMemo(() => ({
     total: enriched.length,
@@ -189,91 +198,110 @@ export default function Providers() {
             </Button>
           </div>
         ) : view === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {filtered.map((p: any) => (
-              <ProviderCard key={p.id}
-                provider={p}
-                onDetail={() => navigate(`/prestadores/${p.id}`)}
-                onEdit={() => { setEditing(p); setCreateOpen(true); }}
-                onAssign={() => { setAssignTarget(p); setAssignOpen(true); }}
-                onToggle={() => toggleActive(p)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              {paginated.map((p: any) => (
+                <ProviderCard key={p.id}
+                  provider={p}
+                  onDetail={() => navigate(`/prestadores/${p.id}`)}
+                  onEdit={() => { setEditing(p); setCreateOpen(true); }}
+                  onAssign={() => { setAssignTarget(p); setAssignOpen(true); }}
+                  onToggle={() => toggleActive(p)}
+                />
+              ))}
+            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+              className="mt-6 border rounded-xl"
+            />
+          </>
         ) : (
           <div className="vx-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  <th className="px-5 py-4 text-left">Prestador</th>
-                  <th className="px-5 py-4 text-left">Especialidade</th>
-                  <th className="px-5 py-4 text-center">Demandas</th>
-                  <th className="px-5 py-4 text-center">Clientes</th>
-                  <th className="px-5 py-4 text-center">Avaliação</th>
-                  <th className="px-5 py-4 text-center">Status</th>
-                  <th className="px-5 py-4 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filtered.map((p: any) => (
-                  <tr key={p.id} className="hover:bg-muted/20 transition-colors group">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/prestadores/${p.id}`)}>
-                        <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 text-indigo-600 flex items-center justify-center font-bold text-sm border border-indigo-500/20">
-                          {initials(p.name)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-foreground group-hover:text-primary transition-colors">{p.name}</p>
-                          <p className="text-[11px] text-muted-foreground">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      {p.specialty ? <Badge variant="outline" className="text-[10px]">{p.specialty}</Badge> : <span className="text-xs text-muted-foreground">—</span>}
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      <p className="font-bold tabular-nums">{p._activeCount}</p>
-                      <p className="text-[10px] text-muted-foreground">{p._doneCount} concluídas</p>
-                    </td>
-                    <td className="px-5 py-4 text-center font-bold tabular-nums">{p._clientsCount}</td>
-                    <td className="px-5 py-4 text-center">
-                      {p.internal_rating != null ? (
-                        <div className="inline-flex items-center gap-1 text-amber-600">
-                          <Star className="size-3.5 fill-current" />
-                          <span className="font-bold tabular-nums">{Number(p.internal_rating).toFixed(1)}</span>
-                        </div>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
-                    </td>
-                    <td className="px-5 py-4 text-center">
-                      <Badge className={cn("text-[10px]", p.active ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30" : "bg-muted text-muted-foreground")}>
-                        {p.active ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button size="sm" variant="outline" onClick={() => { setAssignTarget(p); setAssignOpen(true); }} className="h-8 text-xs">
-                          <Link2 className="size-3 mr-1" /> Delegar
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/prestadores/${p.id}`)}><ArrowUpRight className="size-4 mr-2" /> Ver perfil</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => { setEditing(p); setCreateOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => toggleActive(p)}><Power className="size-4 mr-2" /> {p.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => removeProvider(p)} className="text-destructive focus:text-destructive">
-                              <Trash2 className="size-4 mr-2" /> Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[1000px]">
+                <thead>
+                  <tr className="bg-muted/30 border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    <th className="px-5 py-4 text-left">Prestador</th>
+                    <th className="px-5 py-4 text-left">Especialidade</th>
+                    <th className="px-5 py-4 text-center">Demandas</th>
+                    <th className="px-5 py-4 text-center">Clientes</th>
+                    <th className="px-5 py-4 text-center">Avaliação</th>
+                    <th className="px-5 py-4 text-center">Status</th>
+                    <th className="px-5 py-4 text-right">Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {paginated.map((p: any) => (
+                    <tr key={p.id} className="hover:bg-muted/20 transition-colors group">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/prestadores/${p.id}`)}>
+                          <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 text-indigo-600 flex items-center justify-center font-bold text-sm border border-indigo-500/20">
+                            {initials(p.name)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-foreground group-hover:text-primary transition-colors">{p.name}</p>
+                            <p className="text-[11px] text-muted-foreground">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4">
+                        {p.specialty ? <Badge variant="outline" className="text-[10px]">{p.specialty}</Badge> : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <p className="font-bold tabular-nums">{p._activeCount}</p>
+                        <p className="text-[10px] text-muted-foreground">{p._doneCount} concluídas</p>
+                      </td>
+                      <td className="px-5 py-4 text-center font-bold tabular-nums">{p._clientsCount}</td>
+                      <td className="px-5 py-4 text-center">
+                        {p.internal_rating != null ? (
+                          <div className="inline-flex items-center gap-1 text-amber-600">
+                            <Star className="size-3.5 fill-current" />
+                            <span className="font-bold tabular-nums">{Number(p.internal_rating).toFixed(1)}</span>
+                          </div>
+                        ) : <span className="text-xs text-muted-foreground">—</span>}
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        <Badge className={cn("text-[10px]", p.active ? "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30" : "bg-muted text-muted-foreground")}>
+                          {p.active ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button size="sm" variant="outline" onClick={() => { setAssignTarget(p); setAssignOpen(true); }} className="h-8 text-xs">
+                            <Link2 className="size-3 mr-1" /> Delegar
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/prestadores/${p.id}`)}><ArrowUpRight className="size-4 mr-2" /> Ver perfil</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setEditing(p); setCreateOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => toggleActive(p)}><Power className="size-4 mr-2" /> {p.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => removeProvider(p)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="size-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
           </div>
         )}
       </div>
@@ -334,16 +362,16 @@ function ProviderCard({ provider, onDetail, onEdit, onAssign, onToggle }: any) {
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: number; tone: "info" | "primary" | "success" }) {
+function Stat({ label, value, tone }: any) {
   const colors: any = {
-    info: "text-sky-600",
-    primary: "text-indigo-600",
-    success: "text-emerald-600",
+    primary: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10",
+    success: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10",
+    info: "bg-sky-50 text-sky-700 dark:bg-sky-500/10",
   };
   return (
-    <div className="text-center">
-      <p className={cn("font-display text-lg font-bold tabular-nums", colors[tone])}>{value}</p>
-      <p className="text-[9.5px] uppercase tracking-wider text-muted-foreground font-bold">{label}</p>
+    <div className={cn("p-2 rounded-xl text-center", colors[tone] || "bg-muted")}>
+      <p className="text-[14px] font-bold font-mono leading-none">{value}</p>
+      <p className="text-[9px] uppercase font-bold tracking-wider opacity-60 mt-1">{label}</p>
     </div>
   );
 }

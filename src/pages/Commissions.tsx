@@ -29,6 +29,8 @@ import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "pago" | "cancelada" | "estornada";
 
@@ -60,6 +62,9 @@ export default function Commissions() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
@@ -167,6 +172,13 @@ export default function Commissions() {
       return true;
     });
   }, [commissions, statusFilter, partnerFilter, dateFrom, dateTo, search, rangeKey]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
 
   const totals = useMemo(() => {
     const acc = { paid: 0, pending: 0, total: 0, count: filtered.length };
@@ -544,7 +556,7 @@ export default function Commissions() {
                   <p className="text-sm text-muted-foreground">Nenhuma comissão encontrada</p>
                   {activeFiltersCount > 0 && <Button size="sm" variant="ghost" onClick={clearFilters} className="mt-2">Limpar filtros</Button>}
                 </td></tr>
-              ) : filtered.map((c: any) => (
+              ) : paginated.map((c: any) => (
                 <tr key={c.id} className={`hover:bg-muted/30 transition-colors ${selected[c.id] ? "bg-primary/5" : ""}`}>
                   <td className="px-4 py-3">
                     <Checkbox checked={!!selected[c.id]} onCheckedChange={(v) => setSelected((s) => ({ ...s, [c.id]: !!v }))} />
@@ -621,8 +633,16 @@ export default function Commissions() {
               </tfoot>
             )}
           </table>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       </div>
+
     </TabsContent>
 
 

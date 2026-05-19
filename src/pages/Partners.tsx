@@ -24,6 +24,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { PartnerDetailDrawer } from "@/components/PartnerDetailDrawer";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 const emptyForm = { active: true, commission_percent: 10 };
 type SortKey = "recent" | "name" | "commissions" | "clients";
@@ -39,6 +41,9 @@ export default function Partners() {
   const [view, setView] = useState<ViewMode>("list");
   const [statusFilter, setStatusFilter] = useState<"todos" | "ativos" | "inativos">("todos");
   const [sortBy, setSortBy] = useState<SortKey>("commissions");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
 
   // Acesso ao painel
   const [createAccess, setCreateAccess] = useState(false);
@@ -108,6 +113,13 @@ export default function Partners() {
     else sorted.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     return sorted;
   }, [enriched, search, statusFilter, sortBy]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
 
   const topIds = useMemo(() => {
     const ranking = [...enriched].sort((a, b) => b._total - a._total).slice(0, 3);
@@ -266,11 +278,28 @@ export default function Partners() {
 
       {view === "list" ? (
         <div className="bg-white border border-slate-200/70 rounded-lg overflow-hidden shadow-sm">
-          <ListView partners={filtered} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+          <ListView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       ) : (
-        <GridView partners={filtered} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+        <div className="space-y-6">
+          <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
+        </div>
       )}
+
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border">
@@ -436,7 +465,9 @@ export default function Partners() {
 
 function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
   return (
-    <table className="w-full text-[13px]">
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] min-w-[800px]">
+
       <thead>
         <tr className="border-b border-slate-200 bg-slate-50/60">
           <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Parceiro</th>
@@ -492,8 +523,11 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
         })}
       </tbody>
     </table>
+    </div>
   );
 }
+
+
 
 function GridView({ partners, topIds, onDetail }: any) {
   return (
