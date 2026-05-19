@@ -211,13 +211,29 @@ export function AppSidebar() {
   const showPrestador = isPrestador && !showAdmin && !showPartner && !showReferrer;
   const showClient = isCliente && !showAdmin && !showPartner && !showPrestador && !showReferrer;
 
-  const sections = showAdmin
+  const rawSections = showAdmin
     ? adminSections
     : showPartner ? partnerSections
     : showReferrer ? referrerSections
     : showPrestador ? prestadorSections
     : showClient ? clientSections
     : adminSections;
+
+  const sections = useMemo(() => {
+    if (!onboardingBlocked) return rawSections;
+    
+    // Filter sidebar for blocked onboarding
+    return rawSections.map(section => ({
+      ...section,
+      items: section.items.filter(item => 
+        item.url === "/cliente/onboarding" || 
+        item.url === "/suporte" || 
+        item.url === "/cliente/documentos" || 
+        item.url === "/cliente/financeiro" || 
+        item.url === "/cliente/contratos"
+      )
+    })).filter(section => section.items.length > 0);
+  }, [rawSections, onboardingBlocked]);
 
   const portalLabel = showAdmin ? "Direct Response"
     : showPartner ? "Parceiro"
