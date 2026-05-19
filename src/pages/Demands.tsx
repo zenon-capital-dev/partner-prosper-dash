@@ -36,6 +36,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DailyAgenda } from "@/components/demands/DailyAgenda";
 import { CalendarDays } from "lucide-react";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
 
