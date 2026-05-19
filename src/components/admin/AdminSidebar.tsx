@@ -5,7 +5,7 @@ import {
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Briefcase,
   CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
   PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
-  Building2, Sparkles, Box, CalendarClock, Search,
+  Building2, Sparkles, Box, CalendarClock, Search, UserPlus,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Clientes", adminOnly: true, items: [
     { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },
+    { title: "Leads", url: "/leads", icon: UserPlus, adminOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
     { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
   ]},
