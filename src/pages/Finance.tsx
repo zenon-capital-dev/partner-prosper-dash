@@ -161,7 +161,7 @@ export default function Finance() {
   }, [sales, expenses, splits]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
       <PageHero
         eyebrow="Tesouraria"
         category="Operações Financeiras"
@@ -193,7 +193,7 @@ export default function Finance() {
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-8 pb-10">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-8 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
            <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A RECEBER (7D)</p>

@@ -152,7 +152,7 @@ export default function Leads() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
       <PageHero
         eyebrow="CRM"
         category="Sales Pipeline"
@@ -215,7 +215,7 @@ export default function Leads() {
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-7 pb-10">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-7 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
         <div className="vx-card p-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-1 max-w-md">

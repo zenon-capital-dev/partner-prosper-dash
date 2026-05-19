@@ -377,7 +377,7 @@ export default function Commissions() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
       <PageHero
         eyebrow="Financeiro"
         category="Commission Engine"
@@ -400,7 +400,7 @@ export default function Commissions() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
               <button
                 onClick={() => setStatusFilter("all")}
                 className={cn(
@@ -429,7 +429,7 @@ export default function Commissions() {
                 PAGO
               </button>
             </div>
-            <Button onClick={() => setCreateOpen(true)} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+            <Button onClick={() => setCreateOpen(true)} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">
               <Plus className="size-4 mr-2 stroke-[3]" />
               NOVA COMISSÃO
             </Button>
@@ -443,7 +443,7 @@ export default function Commissions() {
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
 
 
       <Tabs defaultValue="list" className="space-y-6">
