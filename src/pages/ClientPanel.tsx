@@ -466,9 +466,10 @@ export default function ClientPanel() {
               </div>
             </section>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
-              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-slate-50/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60">
-                <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max sm:w-full px-4 sm:px-0 rounded-none">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-8">
+              {/* Mobile: scroller horizontal */}
+              <div className="lg:hidden -mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-slate-50/95 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/70">
+                <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max px-4 sm:px-0 rounded-none">
                   <PillTab value="home" label="Início" icon={LayoutDashboard} />
                   <PillTab value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
                   <PillTab value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} alert={pendingDocs > 0} />
@@ -478,6 +479,35 @@ export default function ClientPanel() {
                   <PillTab value="descobrir" label="Novas soluções" icon={Sparkles} />
                 </TabsList>
               </div>
+
+              {/* Desktop: layout com sidebar lateral */}
+              <div className="lg:grid lg:grid-cols-[244px_minmax(0,1fr)] lg:gap-8 lg:items-start">
+                <aside className="hidden lg:block">
+                  <div className="sticky top-20">
+                    <nav className="rounded-2xl bg-white border border-slate-200/70 shadow-sm p-2">
+                      <p className="px-3 pt-2 pb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">Navegação</p>
+                      <TabsList className="flex flex-col bg-transparent h-auto p-0 gap-0.5 w-full">
+                        <SideNavItem value="home" label="Início" icon={LayoutDashboard} />
+                        <SideNavItem value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
+                        <SideNavItem value="checklist" label="Documentos" icon={ListChecks} count={pendingDocs} alert={pendingDocs > 0} />
+                        <SideNavItem value="financeiro" label="Pagamentos" icon={Receipt} count={pendingPayments} alert={pendingPayments > 0} />
+                        <SideNavItem value="contratos" label="Contratos" icon={FileSignature} count={pendingContracts} alert={pendingContracts > 0} />
+                        <SideNavItem value="docs" label="Biblioteca" icon={FileText} count={docs.length} />
+                        <SideNavItem value="descobrir" label="Novas soluções" icon={Sparkles} />
+                      </TabsList>
+                      <div className="mt-3 mx-2 mb-1 rounded-xl bg-slate-50 border border-slate-200/70 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Precisa de ajuda?</p>
+                        <p className="text-[11px] text-slate-600 leading-snug mb-2.5">Nossa equipe responde em minutos pelo WhatsApp.</p>
+                        <button onClick={() => window.open(wa(), '_blank')} className="w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-lg bg-slate-900 text-white text-[11px] font-semibold hover:bg-slate-800 transition-colors">
+                          <MessageSquare className="size-3.5" /> Falar com a equipe
+                        </button>
+                      </div>
+                    </nav>
+                  </div>
+                </aside>
+
+                <div className="min-w-0 space-y-6 sm:space-y-8">
+
 
               <TabsContent value="home" className="animate-fade-up space-y-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
