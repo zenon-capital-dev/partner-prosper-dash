@@ -331,7 +331,8 @@ function CommissionsTable({ commissions }: { commissions: any[] }) {
   const paid = commissions.filter((c: any) => c.workflow_status === "pago" || c.workflow_status === "paga" || c.status === "pago" || c.status === "paga");
 
   const markPaid = async (id: string) => {
-    // Standardizing on 'pago' to match the database enum and common convention
+    // Standardizing on the correct enum values for split_status
+    // Database enum 'split_status' usually supports 'pago' (not 'paga')
     const { error } = await supabase.from("commissions").update({
       status: "pago",
       workflow_status: "pago",
