@@ -465,7 +465,9 @@ export default function Partners() {
 
 function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
   return (
-    <table className="w-full text-[13px]">
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] min-w-[800px]">
+
       <thead>
         <tr className="border-b border-slate-200 bg-slate-50/60">
           <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Parceiro</th>
