@@ -62,6 +62,9 @@ export default function Commissions() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
