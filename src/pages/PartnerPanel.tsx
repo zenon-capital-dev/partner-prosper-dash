@@ -159,7 +159,7 @@ export default function PartnerPanel() {
                  <KpiCard label="Conversão" value={`${totals.conversionRate.toFixed(1)}%`} icon={TrendingUp} tone="warning" description="Eficiência de indicação" />
                  <KpiCard label="Pagamento" value={totals.nextPayment ? formatDate(totals.nextPayment) : "—"} icon={Calendar} description="Próxima data prevista" />
               </div>
-
+           </TabsContent>
 
            <TabsContent value="clientes" className="animate-fade-up space-y-4">
               {clients.length === 0 ? (
