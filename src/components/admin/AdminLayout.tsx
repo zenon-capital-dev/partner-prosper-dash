@@ -41,19 +41,24 @@ function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 🔒 Painel admin é SEMPRE light premium (decisão fixa do produto).
-  // Forçamos modo claro enquanto o shell estiver montado e restauramos ao sair.
+  // 🔒 Painel admin é majoritariamente light por padrão, mas permitimos o dark mode se o usuário desejar.
   useEffect(() => {
+    // Verificamos se há preferência de tema salva ou do sistema
+    const savedTheme = localStorage.getItem("crm-theme");
     const html = document.documentElement;
-    const hadDark = html.classList.contains("dark");
-    html.classList.remove("dark");
-    html.classList.add("light");
-    html.style.colorScheme = "light";
-    return () => {
+    
+    // Se não houver preferência salva e o sistema preferir dark, ou se a preferência for dark:
+    const shouldBeDark = savedTheme === "\"dark\"" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    
+    if (shouldBeDark) {
+      html.classList.add("dark");
       html.classList.remove("light");
-      html.style.colorScheme = "";
-      if (hadDark) html.classList.add("dark");
-    };
+      html.style.colorScheme = "dark";
+    } else {
+      html.classList.add("light");
+      html.classList.remove("dark");
+      html.style.colorScheme = "light";
+    }
   }, []);
 
   const { isAdmin, isAdminSecondary } = useAuth();

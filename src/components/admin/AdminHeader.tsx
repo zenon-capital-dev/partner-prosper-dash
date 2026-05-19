@@ -4,6 +4,7 @@ import { InternalChat } from "@/components/chat/InternalChat";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
 import { EnvBadge } from "@/components/EnvBadge";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AdminHeaderProps {
   onSearchClick: () => void;
@@ -12,7 +13,7 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
   return (
-    <header className="h-[66px] px-3 sm:px-5 lg:px-8 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/88 backdrop-blur-2xl border-b border-slate-200/75 shadow-[0_1px_0_hsl(220_13%_88%/0.65),0_18px_44px_-34px_hsl(222_47%_11%/0.32)]">
+    <header className="h-[66px] px-3 sm:px-5 lg:px-8 flex items-center gap-2 sm:gap-5 sticky top-0 z-40 bg-white/88 dark:bg-card/88 backdrop-blur-2xl border-b border-slate-200/75 dark:border-border/75 shadow-[0_1px_0_hsl(220_13%_88%/0.65),0_18px_44px_-34px_hsl(222_47%_11%/0.32)]">
       <button
         type="button"
         onClick={onMenuClick}
@@ -53,7 +54,8 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       </div>
 
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 sm:flex-1 justify-end">
-        <div className="hidden 2xl:flex h-9 items-center gap-2 rounded-lg border border-indigo-200/70 bg-indigo-50 px-3 text-[10px] font-extrabold uppercase tracking-[0.16em] text-indigo-700 shadow-sm">
+        <ThemeToggle />
+        <div className="hidden 2xl:flex h-9 items-center gap-2 rounded-lg border border-indigo-200/70 dark:border-primary/30 bg-indigo-50 dark:bg-primary/10 px-3 text-[10px] font-extrabold uppercase tracking-[0.16em] text-indigo-700 dark:text-primary shadow-sm">
           <Sparkles className="size-3.5" />
           Central Admin
         </div>
