@@ -114,6 +114,13 @@ export default function Partners() {
     return sorted;
   }, [enriched, search, statusFilter, sortBy]);
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+
   const topIds = useMemo(() => {
     const ranking = [...enriched].sort((a, b) => b._total - a._total).slice(0, 3);
     return new Map(ranking.filter((r) => r._total > 0).map((r, i) => [r.id, i + 1]));
