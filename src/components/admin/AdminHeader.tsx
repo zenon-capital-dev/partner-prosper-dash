@@ -1,10 +1,9 @@
-import { Activity, Command, Menu, Search } from "lucide-react";
+import { Command, Menu, Search } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { InternalChat } from "@/components/chat/InternalChat";
 import { QuickCreateButton } from "@/components/QuickCreateButton";
 import { EnvBadge } from "@/components/EnvBadge";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface AdminHeaderProps {
   onSearchClick: () => void;
