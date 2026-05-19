@@ -53,6 +53,8 @@ const emptyItem = (): Item => ({
 
 export default function Proposals() {
   const qc = useQueryClient();
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const canManage = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [editing, setEditing] = useState<any | null>(null);
