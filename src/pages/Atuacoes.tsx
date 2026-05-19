@@ -280,8 +280,6 @@ export default function Atuacoes() {
           />
         </DialogContent>
       </Dialog>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
