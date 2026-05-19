@@ -9,6 +9,9 @@ import { QuickCreateButton } from "@/components/QuickCreateButton";
 import { EnvBadge } from "@/components/EnvBadge";
 import { RouteGuard } from "@/components/RouteGuard";
 import { initials } from "@/lib/format";
+import { useOnboardingGuard } from "@/hooks/useOnboardingGuard";
+import { LoadingScreen } from "./LoadingScreen";
+import { useEffect } from "react";
 
 export default function AppLayout() {
   return (
