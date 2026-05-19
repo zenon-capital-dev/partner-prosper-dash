@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,7 @@ export default function Commissions() {
   const qc = useQueryClient();
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
@@ -64,6 +66,10 @@ export default function Commissions() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, partnerFilter, rangeKey, dateFrom, dateTo]);
 
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -164,8 +170,8 @@ export default function Commissions() {
       if (partnerFilter !== "all" && c.partner_id !== partnerFilter) return false;
       if (dateFrom && c.created_at < dateFrom) return false;
       if (dateTo && c.created_at > `${dateTo}T23:59:59`) return false;
-      if (search) {
-        const q = search.toLowerCase();
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
         const hay = `${c.partners?.full_name ?? ""} ${c.sales?.clients?.full_name ?? ""} ${c.sales?.products?.name ?? ""}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
@@ -276,7 +282,7 @@ export default function Commissions() {
       payment_method: editForm.payment_method || null,
       approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
       paid_at: editForm.status === "pago" || editForm.status === "paga" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : (editing.paid_at || null),
-      status: (editForm.status === "paga" || editForm.status === "pago") ? "paga" : editForm.status, // Normalize to "paga" to match enum
+      status: (editForm.status === "paga" || editForm.status === "pago") ? "pago" : editForm.status, // Normalize to "pago"
     };
     const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }
@@ -315,8 +321,8 @@ export default function Commissions() {
   const confirmPay = async () => {
     if (!payTarget?.ids?.length) return;
     const payload: any = {
-      workflow_status: "paga",
-      status: "paga",
+      workflow_status: "pago",
+      status: "pago",
 
       paid_at: new Date(payForm.paid_at).toISOString(),
       payment_method: payForm.payment_method,
