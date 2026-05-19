@@ -14,11 +14,14 @@ import { UserCheck, Plus, Search, MoreHorizontal, Pencil, Trash2, Award, Wallet,
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
+import { useAuth } from "@/hooks/useAuth";
 
 const empty = { active: true, commission_percent: 5 };
 
 export default function Indicators() {
   const qc = useQueryClient();
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(empty);
