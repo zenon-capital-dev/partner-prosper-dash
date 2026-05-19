@@ -20,6 +20,14 @@ export function ClientOverview({ client, stats }: any) {
       return data;
     },
   });
+  const { data: referrer } = useQuery({
+    queryKey: ["client-referrer", client.referrer_id],
+    enabled: !!client.referrer_id,
+    queryFn: async () => {
+      const { data } = await supabase.from("referrers").select("full_name").eq("id", client.referrer_id).maybeSingle();
+      return data;
+    },
+  });
 
   return (
     <div className="space-y-6 animate-fade-up">
