@@ -524,3 +524,39 @@ function AlertItem({ icon: Icon, title, count, value }: { icon: any; title: stri
     </div>
   );
 }
+
+function MiniStat({ label, value, hint, icon: Icon, to, tone }: { label: string; value: string | number; hint: string; icon: any; to: string; tone: Tone }) {
+  const t = toneColor[tone];
+  return (
+    <Link to={to} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-slate-300 transition-all duration-300 group block">
+      <div className="flex items-center justify-between mb-3">
+        <div className={cn("size-9 rounded-xl flex items-center justify-center", t.soft, t.text)}>
+          <Icon className="size-4 stroke-[2.5]" />
+        </div>
+        <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
+      </div>
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-2xl font-black text-slate-900 tracking-tight tabular-nums">{value}</p>
+      <p className="text-[11px] font-bold text-slate-400 mt-1 truncate">{hint}</p>
+    </Link>
+  );
+}
+
+function FinanceCard({ label, value, sub, icon: Icon, tone, to }: { label: string; value: string; sub: string; icon: any; tone: Tone; to: string }) {
+  const t = toneColor[tone];
+  return (
+    <Link to={to} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 group block">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>
+          <p className="text-3xl font-black text-slate-900 tracking-tight tabular-nums truncate">{value}</p>
+          <p className="text-xs font-bold text-slate-500 mt-2">{sub}</p>
+        </div>
+        <div className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner", t.soft, t.text)}>
+          <Icon className="size-6 stroke-[2.5]" />
+        </div>
+      </div>
+      <div className={cn("mt-4 h-1 rounded-full bg-gradient-to-r opacity-70", t.grad)} />
+    </Link>
+  );
+}
