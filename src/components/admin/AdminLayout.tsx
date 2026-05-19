@@ -5,7 +5,7 @@ import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
-import { AIAssistant } from "@/components/chat/AIAssistant";
+
 
 // Rotas em que colaborador pode entrar (somente leitura via UI + RLS).
 const COLABORADOR_ALLOWED_PREFIXES = ["/clientes"];
@@ -97,7 +97,6 @@ function AdminShell() {
           <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
           <main className="flex-1 overflow-y-auto overflow-x-hidden admin-content-scroll relative">
             <Outlet />
-            <AIAssistant />
           </main>
         </div>
       </div>

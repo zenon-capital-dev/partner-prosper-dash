@@ -53,6 +53,12 @@ import FinanceCenter from "./pages/FinanceCenter";
 import Atuacoes from "./pages/Atuacoes";
 import Support from "./pages/Support";
 import { ConfirmRoot } from "@/lib/confirm";
+import { useBodyScrollCleanup } from "@/hooks/use-body-scroll-cleanup";
+
+function GlobalEffects() {
+  useBodyScrollCleanup();
+  return null;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,6 +77,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <ConfirmRoot />
+      <GlobalEffects />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <Routes>
