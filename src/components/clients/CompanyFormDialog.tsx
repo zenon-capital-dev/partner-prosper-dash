@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits } from "@/lib/masks";
+import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
 
 interface Props {
   open: boolean;
@@ -27,21 +30,23 @@ export function CompanyFormDialog({ open, onOpenChange, clientId, company, onSav
       toast.error("Razão social obrigatória");
       return;
     }
+    if (form.document && !isValidCPFOrCNPJ(form.document)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
     setSaving(true);
     const payload = {
       client_id: clientId,
       name: form.name.trim(),
       trade_name: form.trade_name || null,
-      document: form.document || null,
+      document: form.document ? onlyDigits(form.document) : null,
       email: form.email || null,
-      phone: form.phone || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
       address_street: form.address_street || null,
       address_number: form.address_number || null,
       address_complement: form.address_complement || null,
       address_neighborhood: form.address_neighborhood || null,
       address_city: form.address_city || null,
       address_state: form.address_state || null,
-      address_zip_code: form.address_zip_code || null,
+      address_zip_code: form.address_zip_code ? onlyDigits(form.address_zip_code) : null,
     };
     const q = company?.id
       ? supabase.from("companies").update(payload).eq("id", company.id)
@@ -69,16 +74,34 @@ export function CompanyFormDialog({ open, onOpenChange, clientId, company, onSav
             <Input value={form.trade_name ?? ""} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} />
           </Field>
           <Field label="CNPJ / CPF">
-            <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} />
+            <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="00.000.000/0001-00" />
           </Field>
           <Field label="E-mail">
             <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
           <Field label="Telefone">
-            <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
           </Field>
           <Field label="CEP">
-            <Input value={form.address_zip_code ?? ""} onChange={(e) => setForm({ ...form, address_zip_code: e.target.value })} />
+            <MaskedInput
+              mask="cep"
+              value={form.address_zip_code ?? ""}
+              onChange={(v) => setForm({ ...form, address_zip_code: v })}
+              onBlur={async () => {
+                const r = await lookupCEP(form.address_zip_code ?? "");
+                if (r) {
+                  setForm((p: any) => ({
+                    ...p,
+                    address_street: p.address_street || r.logradouro,
+                    address_neighborhood: p.address_neighborhood || r.bairro,
+                    address_city: p.address_city || r.localidade,
+                    address_state: p.address_state || r.uf,
+                  }));
+                  toast.success("Endereço preenchido pelo CEP");
+                }
+              }}
+              placeholder="00000-000"
+            />
           </Field>
           <Field label="Rua" full>
             <Input value={form.address_street ?? ""} onChange={(e) => setForm({ ...form, address_street: e.target.value })} />

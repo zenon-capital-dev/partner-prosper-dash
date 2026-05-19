@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits } from "@/lib/masks";
+import { isValidPhoneBR } from "@/lib/validators";
 
 interface Props {
   open: boolean;
@@ -61,13 +64,15 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
       toast.error("Nome obrigatório");
       return;
     }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
+    if (form.whatsapp && !isValidPhoneBR(form.whatsapp)) { toast.error("WhatsApp inválido"); return; }
     setSubmitting(true);
     const payload = {
       full_name: form.full_name,
       company: form.company || null,
       email: form.email || null,
-      phone: form.phone || null,
-      whatsapp: form.whatsapp || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      whatsapp: form.whatsapp ? onlyDigits(form.whatsapp) : null,
       status: form.status,
       source: form.source || "Manual",
       notes: form.notes || null,
@@ -116,11 +121,11 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
           </div>
           <div className="space-y-2">
             <Label>WhatsApp</Label>
-            <Input value={form.whatsapp ?? ""} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+            <MaskedInput mask="phone" value={form.whatsapp ?? ""} onChange={(v) => setForm({ ...form, whatsapp: v })} placeholder="(11) 99999-9999" />
           </div>
           <div className="space-y-2">
             <Label>Telefone</Label>
-            <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
           </div>
           <div className="space-y-2">
             <Label>Valor estimado (R$)</Label>

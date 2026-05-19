@@ -139,7 +139,10 @@ export default function Leads() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!(await confirmAction("Excluir este lead permanentemente?"))) return;
+    if (!(await confirmAction("Excluir este lead permanentemente? Histórico e propostas vinculadas serão removidos."))) return;
+    // Limpa dependências antes pra evitar FK error
+    await supabase.from("lead_history").delete().eq("lead_id", id);
+    await supabase.from("proposals").delete().eq("lead_id", id);
     const { error } = await supabase.from("leads").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {
