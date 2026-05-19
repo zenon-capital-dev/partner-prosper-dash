@@ -80,7 +80,7 @@ function AdminShell() {
         </div>
 
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-white text-slate-900 [&>button]:hidden">
+          <SheetContent side="left" className="w-[min(88vw,300px)] p-0 bg-white dark:bg-card text-slate-900 dark:text-foreground [&>button]:hidden border-r border-slate-200 dark:border-border">
             <AdminSidebar
               collapsed={false}
               onToggle={() => setMobileMenuOpen(false)}

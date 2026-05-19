@@ -41,13 +41,15 @@ export default function DashboardAdmin() {
 
   const brasiliaToday = useMemo(() => {
     const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
-    const [y, m, d] = fmt.format(new Date()).split("-").map(Number);
+    const formatted = fmt.format(new Date());
+    const [y, m, d] = formatted.split("-").map(Number);
     return new Date(y, m - 1, d);
   }, []);
 
   const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
   const firstName = String(fullName).split(/[ @]/)[0];
-  const hour = Number(new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()));
+  const hourStr = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date());
+  const hour = parseInt(hourStr, 10);
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   // ===== Queries =====
@@ -290,7 +292,7 @@ export default function DashboardAdmin() {
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className="size-3 rounded-full bg-indigo-600" />
-                  <span className="text-[11px] font-bold text-slate-500 uppercase">Receita Real</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase">Receita Real</span>
                 </div>
               </div>
             </div>
@@ -309,17 +311,17 @@ export default function DashboardAdmin() {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} 
+                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11, fontWeight: 700 }} 
                     dy={10}
                   />
                   <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11 }} 
+                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }} 
                     tickFormatter={(v) => `R$${v/1000}k`}
                   />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }}
                   />
                   <Area 
                     type="monotone" 
