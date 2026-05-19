@@ -51,6 +51,7 @@ import OperationalCockpit from "./pages/OperationalCockpit";
 import Proposals from "./pages/Proposals";
 import FinanceCenter from "./pages/FinanceCenter";
 import Atuacoes from "./pages/Atuacoes";
+import Support from "./pages/Support";
 import { ConfirmRoot } from "@/lib/confirm";
 
 const queryClient = new QueryClient({
@@ -117,9 +118,10 @@ const App = () => (
               <Route path="/" element={<RoleHome />} />
               <Route path="/parceiro" element={<PartnerPanel />} />
               <Route path="/parceiro/:tab" element={<PartnerPanel />} />
+              <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
+              <Route path="/cliente/suporte" element={<Support />} />
               <Route path="/cliente" element={<ClientPanel />} />
               <Route path="/cliente/:tab" element={<ClientPanel />} />
-              <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/indicador/:tab" element={<ReferrerPanel />} />
