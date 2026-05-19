@@ -171,8 +171,21 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const {
     user, isAdmin, isAdminSecondary, isParceiro, isCliente, isColaborador,
-    isPrestador, isIndicador, signOut,
+    isPrestador, isIndicador, signOut, roles
   } = useAuth();
+
+  const isClientRole = roles.includes("cliente") || roles.includes("lead");
+
+  const { data: profile } = useQuery({
+    queryKey: ["sidebar-onboarding-check", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("onboarding_completed").eq("id", user!.id).maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id && isClientRole,
+  });
+
+  const onboardingBlocked = isClientRole && profile && !profile.onboarding_completed;
   const collapsed = state === "collapsed";
 
   const [cmdOpen, setCmdOpen] = useState(false);
