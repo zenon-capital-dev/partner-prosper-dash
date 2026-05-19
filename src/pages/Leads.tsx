@@ -29,6 +29,8 @@ import { useNavigate } from "react-router-dom";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 const statusColors: Record<string, string> = {
   "Novo": "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300",
