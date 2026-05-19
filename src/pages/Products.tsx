@@ -313,14 +313,20 @@ export default function Products() {
   };
 
   return (
-    <div className="px-5 lg:px-7 py-5 lg:py-6 space-y-5 max-w-[1680px] mx-auto animate-fade-up">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6 max-w-[1720px] mx-auto animate-fade-up">
       {/* HEADER */}
-      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-border/70">
-        <div>
-          <h1 className="text-[24px] font-bold text-foreground tracking-tight leading-tight">Produtos</h1>
-          <div className="flex items-center gap-2 mt-1.5">
+      <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-[0_1px_0_hsl(220_13%_88%/0.8),0_28px_70px_-52px_hsl(222_47%_11%/0.55)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,hsl(231_72%_46%/0.10),transparent_32%),linear-gradient(135deg,hsl(0_0%_100%),hsl(220_24%_98%))]" />
+        <div className="relative flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-[30px] sm:text-[38px] font-black text-slate-950 tracking-tight leading-none">Produtos</h1>
+            <div className="flex items-center gap-2 mt-3">
             <span className="size-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Catálogo operacional sincronizado</span>
+              <span className="text-[10.5px] font-black uppercase tracking-[0.2em] text-slate-500">Catálogo operacional sincronizado</span>
+            </div>
+          </div>
+          <div className="hidden lg:flex items-center gap-2 rounded-xl border border-indigo-200/70 bg-indigo-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-indigo-700 shadow-sm">
+            <Sparkles className="size-3.5" /> Gestão comercial
           </div>
         </div>
       </header>
@@ -331,13 +337,13 @@ export default function Products() {
           {alerts.slice(0, 3).map((a, i) => {
             const Icon = a.Icon;
             return (
-              <div key={i} className={cn("rounded-lg p-4 flex items-start gap-3 shadow-sm", toneMap[a.tone])}>
-                <div className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+              <div key={i} className={cn("rounded-2xl p-4 flex items-start gap-3 shadow-[0_18px_42px_-34px_hsl(222_47%_11%/0.45)]", toneMap[a.tone])}>
+                <div className="size-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 ring-1 ring-white/15">
                   <Icon className="size-4.5" strokeWidth={2.25} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-90 leading-tight">{a.title}</p>
-                  <p className="text-[12.5px] font-medium leading-snug mt-1 opacity-95">{a.body}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] opacity-90 leading-tight">{a.title}</p>
+                  <p className="text-[12.5px] font-semibold leading-snug mt-1 opacity-95">{a.body}</p>
                 </div>
               </div>
             );
@@ -347,16 +353,16 @@ export default function Products() {
 
       {/* GESTÃO BLOCK */}
       <section className="space-y-5">
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h2 className="text-[18px] font-bold text-foreground tracking-tight">Gestão de Produtos</h2>
-            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-muted-foreground mt-1">Produtos viram demandas com checklist, SLA e financeiro</p>
+            <h2 className="text-[22px] font-black text-slate-950 tracking-tight">Gestão de Produtos</h2>
+            <p className="text-[10.5px] font-black uppercase tracking-[0.18em] text-slate-500 mt-1.5">Produtos viram demandas com checklist, SLA e financeiro</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 px-4 rounded-lg border-border bg-card text-foreground hover:bg-muted gap-2 font-semibold">
+            <Button variant="outline" onClick={() => setCategoryOpen(true)} className="h-10 px-4 rounded-xl border-slate-200 bg-white text-slate-800 hover:bg-slate-50 gap-2 font-bold shadow-sm">
               <Tag className="size-4" /> Categorias
             </Button>
-            <Button onClick={openNew} className="h-10 px-5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-semibold shadow-sm">
+            <Button onClick={openNew} className="h-10 px-5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-black shadow-[0_14px_28px_-20px_hsl(222_47%_11%/0.65)]">
               <Plus className="size-4" strokeWidth={2.5} /> Novo Produto
             </Button>
           </div>
@@ -372,13 +378,13 @@ export default function Products() {
           ].map((k) => {
             const Icon = k.Icon as any;
             return (
-              <div key={k.label} className="bg-card border border-border rounded-lg p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all">
-                <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0", k.chip)}>
+              <div key={k.label} className="bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center gap-3.5 shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_18px_44px_-38px_hsl(222_47%_11%/0.45)] hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_28px_60px_-46px_hsl(222_47%_11%/0.55)] transition-all">
+                <div className={cn("size-11 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-white", k.chip)}>
                   <Icon className="size-5" strokeWidth={2} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 leading-tight">{k.label}</p>
-                  <p className="font-mono text-[18px] font-semibold tabular-nums text-slate-900 leading-tight mt-1 truncate">{k.value}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500 leading-tight">{k.label}</p>
+                  <p className="font-mono text-[18px] font-black tabular-nums text-slate-950 leading-tight mt-1 truncate">{k.value}</p>
                 </div>
               </div>
             );
@@ -461,10 +467,10 @@ export default function Products() {
 
 
 
-      <div className="vx-card p-4 flex flex-col lg:flex-row lg:items-center gap-3">
+      <div className="vx-card p-4 flex flex-col lg:flex-row lg:items-center gap-3 shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_22px_56px_-48px_hsl(222_47%_11%/0.52)]">
         <div className="relative flex-1 max-w-md">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar produto, descrição..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10" />
+          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Input placeholder="Buscar produto, descrição..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-10 rounded-xl bg-white border-slate-200 font-semibold" />
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -507,11 +513,11 @@ export default function Products() {
             const cat = p.product_categories;
             const color = cat?.color ?? "#6366f1";
             return (
-              <div key={p.id} className="bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-muted/40 rounded-bl-[90px] -z-10 transition-colors" />
+              <div key={p.id} className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_20px_50px_-44px_hsl(222_47%_11%/0.48)] hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_30px_68px_-50px_hsl(222_47%_11%/0.6)] transition-all group relative overflow-hidden flex flex-col">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[90px] -z-10 transition-colors" />
                 
                 <div className="flex justify-between items-start mb-4">
-                  <div className="size-12 rounded-xl flex items-center justify-center shadow-sm" style={{ background: `${color}15`, color: color }}>
+                  <div className="size-12 rounded-2xl flex items-center justify-center shadow-sm ring-1 ring-slate-100" style={{ background: `${color}15`, color: color }}>
                     <Package className="size-6" />
                   </div>
                   <DropdownMenu>
@@ -543,18 +549,18 @@ export default function Products() {
                   <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider h-5 px-1.5" style={{ color: color, borderColor: `${color}40` }}>
                     {p.product_categories?.name || "Sem categoria"}
                   </Badge>
-                  <h3 className="text-lg font-bold text-foreground line-clamp-1">{p.name}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
+                  <h3 className="text-lg font-black text-slate-950 line-clamp-1 tracking-tight">{p.name}</h3>
+                  <p className="text-xs font-medium text-slate-500 line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço Base</p>
-                    <p className="text-sm font-black text-foreground">{formatBRL(p.base_price)}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Preço Base</p>
+                    <p className="text-sm font-black text-slate-950 font-mono">{formatBRL(p.base_price)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comissão</p>
-                    <p className="text-sm font-black text-primary">{formatPercent(p.default_commission_percent)}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Comissão</p>
+                    <p className="text-sm font-black text-primary font-mono">{formatPercent(p.default_commission_percent)}</p>
                   </div>
                 </div>
 
@@ -576,10 +582,10 @@ export default function Products() {
           })}
         </div>
       ) : (
-        <div className="vx-card overflow-hidden">
+        <div className="vx-card overflow-hidden rounded-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40">
+              <thead className="bg-slate-50/80">
                 <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   <th className="px-5 py-3 text-left font-semibold">Produto</th>
                   <th className="px-5 py-3 text-left font-semibold">Categoria</th>

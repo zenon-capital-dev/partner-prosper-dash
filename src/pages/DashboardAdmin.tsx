@@ -344,30 +344,32 @@ export default function DashboardAdmin() {
 
   return (
     <div className="relative min-h-full bg-transparent">
-      <div className="relative p-3 sm:p-5 lg:p-7 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-500">
+      <div className="relative p-3 sm:p-5 lg:p-8 space-y-6 max-w-[1720px] mx-auto animate-in fade-in duration-500">
 
         {/* ============ EXECUTIVE HEADER ============ */}
-        <header className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
-            <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+        <header className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_0_hsl(220_13%_88%/0.8),0_28px_70px_-52px_hsl(222_47%_11%/0.55)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,hsl(231_72%_46%/0.10),transparent_34%),radial-gradient(circle_at_100%_10%,hsl(203_78%_42%/0.08),transparent_30%),linear-gradient(135deg,hsl(0_0%_100%),hsl(220_24%_98%))]" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-300/70 to-transparent" />
+          <div className="relative p-5 sm:p-6 lg:p-7 grid grid-cols-1 2xl:grid-cols-[minmax(0,1fr)_420px_auto] items-end gap-6">
+            <div className="flex items-start gap-4 sm:gap-5 min-w-0 flex-1">
               <div className="relative shrink-0">
-                <div className="size-10 sm:size-12 rounded-lg bg-primary flex items-center justify-center shadow-sm ring-1 ring-primary/15">
-                  <Crown className="size-4 sm:size-5 text-primary-foreground" strokeWidth={2.2} />
+                <div className="size-12 sm:size-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-slate-950 flex items-center justify-center shadow-[0_18px_34px_-20px_hsl(231_72%_46%/0.85)] ring-1 ring-indigo-300/40">
+                  <Crown className="size-5 sm:size-6 text-white" strokeWidth={2.2} />
                 </div>
-                <div className="absolute -bottom-1 -right-1 size-3 sm:size-4 rounded-full bg-emerald-400 ring-2 ring-white shadow-md" />
+                <div className="absolute -bottom-1 -right-1 size-4 rounded-full bg-emerald-400 ring-2 ring-white shadow-md" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[10px] sm:text-[10.5px] uppercase tracking-[0.18em] sm:tracking-[0.22em] font-bold text-slate-600 flex-wrap">
+                <div className="flex items-center gap-2 text-[10px] sm:text-[10.5px] uppercase tracking-[0.2em] font-black text-slate-500 flex-wrap">
                   <CalendarClock className="size-3" />
                   <span>{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toUpperCase()}</span>
                   <span className="size-1 rounded-full bg-slate-300" />
                   <Sparkles className="size-3 text-primary" />
-                  <span className="text-primary">​</span>
+                  <span className="text-indigo-700">Painel executivo</span>
                 </div>
-                <h1 className="text-[18px] sm:text-[22px] lg:text-[26px] font-bold text-slate-950 tracking-tight mt-1 leading-tight">
+                <h1 className="text-[28px] sm:text-[36px] lg:text-[44px] font-black text-slate-950 tracking-tight mt-2 leading-[0.98]">
                   {greeting}, <span className="text-primary">{firstName}</span>
                 </h1>
-                <p className="text-[11px] sm:text-[12px] text-slate-800 mt-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <p className="text-[12px] sm:text-[13px] text-slate-600 mt-3 flex items-center gap-1.5 sm:gap-2 flex-wrap font-semibold">
                   <span className="inline-flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" /> {stats.activeClients} ativos</span>
                   <span className="text-slate-300">·</span>
                   <span><span className="text-indigo-800 font-semibold">{stats.activeLeads.length}</span> negociações</span>
@@ -380,14 +382,19 @@ export default function DashboardAdmin() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
-              <div className="inline-flex items-center rounded-lg bg-card border border-border p-1 shadow-sm overflow-x-auto">
+            <div className="grid grid-cols-3 gap-2 w-full">
+              <HeroStat label="Receita mês" value={formatBRL(stats.monthRevenue)} tone="primary" />
+              <HeroStat label="Pipeline" value={formatBRL(stats.weightedPipeline)} tone="info" />
+              <HeroStat label="Alertas" value={String(stats.alerts.length)} tone={stats.alerts.length > 0 ? "danger" : "success"} />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap w-full 2xl:w-auto 2xl:justify-end">
+              <div className="inline-flex items-center rounded-xl bg-white/85 border border-slate-200 p-1 shadow-sm overflow-x-auto">
                 {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((p) => (
                   <button 
                     key={p} 
                     onClick={() => setRangeKey(p)}
                     className={cn(
-                      "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap", 
+                      "px-3 h-8 rounded-lg text-[10px] font-black tracking-wider transition-all whitespace-nowrap", 
                       rangeKey === p ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
                     )}
                   >
@@ -399,7 +406,7 @@ export default function DashboardAdmin() {
                     <button
                       onClick={() => { setRangeKey("PERSONALIZADO"); setCustomOpen(true); }}
                       className={cn(
-                        "px-2.5 sm:px-3 h-7 rounded-lg text-[10px] font-bold tracking-wider transition-all whitespace-nowrap inline-flex items-center gap-1",
+                        "px-3 h-8 rounded-lg text-[10px] font-black tracking-wider transition-all whitespace-nowrap inline-flex items-center gap-1",
                         rangeKey === "PERSONALIZADO" ? "bg-primary text-primary-foreground shadow-sm" : "text-slate-700 hover:text-slate-950"
                       )}
                     >
@@ -424,10 +431,10 @@ export default function DashboardAdmin() {
                   </PopoverContent>
                 </Popover>
               </div>
-              <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-semibold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
+              <Link to="/leads?new=1" className="hidden sm:flex h-10 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-[11.5px] font-bold text-slate-700 items-center gap-1.5 transition-all shadow-sm">
                 <Target className="size-3.5" /> Nova Negociação
               </Link>
-              <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-lg bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-bold text-primary-foreground flex items-center gap-1.5 shadow-sm ring-1 ring-primary/15 transition-all">
+              <Link to="/vendas?new=1" className="h-10 px-3 sm:px-4 rounded-xl bg-primary hover:bg-primary/90 text-[11px] sm:text-[11.5px] font-black text-primary-foreground flex items-center gap-1.5 shadow-[0_14px_28px_-20px_hsl(222_47%_11%/0.65)] ring-1 ring-primary/15 transition-all">
                 <CircleDollarSign className="size-3.5" /> <span className="hidden xs:inline sm:inline">Registrar Venda</span><span className="xs:hidden sm:hidden">Venda</span>
               </Link>
               <button className="size-10 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-800 hover:text-slate-950 transition-all relative shadow-sm">
@@ -443,7 +450,7 @@ export default function DashboardAdmin() {
 {/* Quick Terminal removido — ações rápidas já estão no header e na seção dedicada abaixo */}
 
         {/* ============ KPI HERO (4 PREMIUM) ============ */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <KpiPremium label="Receita Período" value={formatBRL(stats.rangeRevenue)} delta={`${stats.revenueDelta >= 0 ? "+" : ""}${stats.revenueDelta.toFixed(1)}%`} up={stats.revenueDelta >= 0} icon={CircleDollarSign} tone="primary" sparkData={revSpark} caption={rangeKey === "HOJE" ? "Total hoje" : `Últimos ${rangeKey}`} progress={Math.min(100, Math.round((stats.rangeRevenue / 150000) * 100))} />
           <KpiPremium label="Novos Clientes" value={stats.rangeNewClients.toString()} delta={`+${stats.rangeNewClients}`} up={stats.rangeNewClients > 0} icon={Users} tone="primary" sparkData={dealsSpark} caption={rangeKey === "HOJE" ? "Iniciados hoje" : `Últimos ${rangeKey}`} progress={78} />
           <KpiPremium label="Taxa de Conversão" value={`${stats.conversionRate}%`} delta={stats.conversionRate >= 25 ? "Ótima" : "Revisar"} up={stats.conversionRate >= 25} icon={Target} tone="success" sparkData={dealsSpark} caption={`Leads em clientes`} progress={stats.conversionRate} />
@@ -977,8 +984,8 @@ const tooltipStyle = {
 
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm", className)}>
-      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+    <div className={cn("group/card relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_24px_58px_-48px_hsl(222_47%_11%/0.45)] transition-all duration-300 hover:border-slate-300/90 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_30px_70px_-52px_hsl(222_47%_11%/0.58)]", className)}>
+      <div className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-indigo-200/80 to-transparent opacity-80" />
       {children}
     </div>
   );
@@ -986,10 +993,10 @@ function Card({ className, children }: { className?: string; children: React.Rea
 
 function CardHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100/90 gap-3">
       <div>
-        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-muted-foreground">{eyebrow}</p>
-        <h3 className="text-[13.5px] font-semibold text-foreground mt-0.5 tracking-tight">{title}</h3>
+        <p className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400">{eyebrow}</p>
+        <h3 className="text-[14px] font-black text-slate-950 mt-1 tracking-tight">{title}</h3>
       </div>
       {right}
     </div>
@@ -1003,13 +1010,14 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
   const t = toneColor[tone];
   return (
     <div className={cn(
-      "group relative p-5 rounded-lg border transition-all duration-300",
-      "bg-card hover:shadow-md",
+      "group relative p-5 rounded-2xl border transition-all duration-300",
+      "bg-white hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_28px_64px_-48px_hsl(222_47%_11%/0.58)]",
       t.border,
-      t.soft,
+      "shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_20px_50px_-46px_hsl(222_47%_11%/0.5)]",
       "overflow-hidden"
     )}>
-      <div className="absolute bottom-0 right-0 w-3/4 h-24 opacity-5 group-hover:opacity-15 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
+      <div className={cn("absolute inset-0 opacity-70", t.soft)} />
+      <div className="absolute bottom-0 right-0 w-3/4 h-24 opacity-10 group-hover:opacity-20 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparkData}>
             <Area type="monotone" dataKey="v" stroke={t.chart} fill={t.chart} strokeWidth={4} />
@@ -1017,8 +1025,8 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
         </ResponsiveContainer>
       </div>
       <div className="relative flex items-start justify-between mb-6">
-        <div className={cn("p-4 rounded-2xl shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3", t.bg, t.text)}>
-          <Icon className="size-6" />
+        <div className={cn("p-3.5 rounded-2xl shadow-[0_18px_30px_-22px_hsl(222_47%_11%/0.45)] ring-1 ring-white/70 transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2", t.bg, t.text)}>
+          <Icon className="size-5" />
         </div>
         <div className={cn(
           "flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md",
@@ -1031,19 +1039,32 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
         </div>
       </div>
       <div className="relative space-y-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-800">{label}</p>
-        <h3 className="text-3xl lg:text-4xl font-black text-slate-950 tracking-tighter leading-none tabular-nums">{value}</h3>
+        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">{label}</p>
+        <h3 className="font-mono text-[28px] lg:text-[34px] font-black text-slate-950 tracking-tight leading-none tabular-nums">{value}</h3>
         <p className="text-[11px] font-bold text-slate-600 tracking-tight">{caption}</p>
       </div>
-      <div className="relative mt-8 pt-5 border-t border-slate-100">
+      <div className="relative mt-7 pt-5 border-t border-white/75">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Índice de Crescimento</span>
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Índice de Crescimento</span>
           <span className="text-[11px] font-black text-slate-950">{Math.round(progress)}%</span>
         </div>
-        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
+        <div className="h-2 w-full bg-white/90 rounded-full overflow-hidden p-0.5 shadow-inner">
           <div className={cn("h-full rounded-full transition-all duration-1000 ease-out", t.grad)} style={{ width: `${Math.min(100, progress)}%` }} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function HeroStat({ label, value, tone }: { label: string; value: string; tone: Tone }) {
+  const t = toneColor[tone];
+  return (
+    <div className="min-w-0 rounded-2xl border border-white/70 bg-white/72 px-3 py-3 shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_16px_38px_-34px_hsl(222_47%_11%/0.42)] backdrop-blur">
+      <div className="flex items-center gap-2">
+        <span className={cn("size-2 rounded-full shrink-0", t.bg)} />
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      </div>
+      <p className="mt-1 truncate font-mono text-[15px] font-black tracking-tight text-slate-950 tabular-nums">{value}</p>
     </div>
   );
 }
@@ -1052,19 +1073,19 @@ function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: st
   const t = toneColor[tone];
   return (
     <Link to={href} className={cn(
-      "group relative flex items-center gap-3 p-3 rounded-lg border transition-all duration-200",
-      "bg-card shadow-sm hover:shadow-md",
+      "group relative flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-200",
+      "bg-white shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_16px_38px_-34px_hsl(222_47%_11%/0.45)] hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_24px_52px_-40px_hsl(222_47%_11%/0.55)]",
       t.border, "hover:bg-slate-50"
     )}>
       <div className={cn(
-        "size-10 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 group-hover:shadow-sm",
+        "size-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:shadow-sm",
         t.bg, t.text
       )}>
-        <Icon className={cn("size-6", pulse && "animate-pulse")} />
+        <Icon className={cn("size-5", pulse && "animate-pulse")} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 truncate">{label}</p>
-        <p className="text-xl font-black text-slate-950 tracking-tighter truncate tabular-nums">{value}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 truncate">{label}</p>
+        <p className="font-mono text-[18px] font-black text-slate-950 tracking-tight truncate tabular-nums">{value}</p>
       </div>
       <ChevronRight className="size-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
       {pulse && (

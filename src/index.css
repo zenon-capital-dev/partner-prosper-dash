@@ -927,7 +927,9 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
    ============================================================ */
 .admin-shell {
   background:
-    linear-gradient(180deg, hsl(220 24% 97%) 0%, hsl(218 28% 96%) 100%) !important;
+    radial-gradient(900px 520px at 12% -8%, hsl(231 72% 46% / 0.085), transparent 62%),
+    radial-gradient(760px 460px at 96% 8%, hsl(203 78% 42% / 0.065), transparent 58%),
+    linear-gradient(180deg, hsl(220 24% 98%) 0%, hsl(220 28% 96.5%) 48%, hsl(218 25% 95%) 100%) !important;
   color: hsl(var(--foreground));
   position: relative;
   isolate: isolate;
@@ -936,10 +938,11 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image:
-    linear-gradient(to right, hsl(220 13% 91% / 0.45) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(220 13% 91% / 0.42) 1px, transparent 1px),
-    linear-gradient(120deg, hsl(231 72% 46% / 0.045), transparent 38%, hsl(203 78% 42% / 0.035));
-  background-size: 44px 44px, 44px 44px, 100% 100%;
+    linear-gradient(to right, hsl(220 13% 88% / 0.46) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(220 13% 88% / 0.38) 1px, transparent 1px),
+    linear-gradient(120deg, hsl(231 72% 46% / 0.035), transparent 42%, hsl(203 78% 42% / 0.03));
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  mask-image: linear-gradient(180deg, black 0%, black 70%, transparent 100%);
 }
 .admin-shell > * { position: relative; z-index: 1; }
 .admin-shell .vx-card,
@@ -953,16 +956,16 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 .admin-shell .hero-v4,
 .admin-shell .page-hero,
 .admin-shell .cp-panel {
-  background: hsl(var(--card)) !important;
-  border: 1px solid hsl(var(--border) / 0.78) !important;
-  border-radius: 0.75rem !important;
-  box-shadow: 0 1px 2px hsl(222 38% 12% / 0.04), 0 12px 30px -24px hsl(222 38% 12% / 0.24) !important;
+  background: hsl(0 0% 100% / 0.96) !important;
+  border: 1px solid hsl(var(--border) / 0.82) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 1px 0 hsl(220 13% 88% / 0.75), 0 22px 56px -48px hsl(222 47% 11% / 0.52) !important;
 }
 .admin-shell .vx-card:hover,
 .admin-shell .surface-hover:hover,
 .admin-shell .stat-card:hover {
   border-color: hsl(220 13% 80%) !important;
-  box-shadow: 0 1px 2px hsl(222 38% 12% / 0.05), 0 18px 36px -28px hsl(222 38% 12% / 0.28) !important;
+  box-shadow: 0 1px 0 hsl(220 13% 88% / 0.9), 0 30px 70px -52px hsl(222 47% 11% / 0.6) !important;
 }
 .admin-shell .glass-header {
   background: hsl(0 0% 100% / 0.9) !important;
