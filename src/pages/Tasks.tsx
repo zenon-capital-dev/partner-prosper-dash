@@ -578,6 +578,7 @@ export default function Tasks() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
