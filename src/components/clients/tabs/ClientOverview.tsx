@@ -72,10 +72,10 @@ export function ClientOverview({ client, stats }: any) {
           <Globe className="size-4 text-indigo-500" /> Vínculos e Parcerias
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <DetailItem label="Parceiro/Indicador" value={client.partners?.full_name || "Nenhum"} />
+          <DetailItem label="Parceiro" value={client.partners?.full_name || "Nenhum"} />
+          <DetailItem label="Indicador" value={referrer?.full_name || (client.referrer_id ? "—" : "Nenhum")} />
           <DetailItem label="Colaborador Responsável" value={collaborator?.full_name || (client.collaborator_id ? "—" : "Não atribuído")} />
           <DetailItem label="Prestador Vinculado" value={provider?.name || (client.service_provider_id ? "—" : "Nenhum")} />
-          <DetailItem label="Prioridade" value={client.priority || "Média"} />
         </div>
       </div>
 
