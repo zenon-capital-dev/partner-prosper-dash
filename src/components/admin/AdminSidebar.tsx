@@ -5,7 +5,7 @@ import {
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, LogOut, Briefcase,
   CircleDollarSign, ClipboardList, History, UserCircle, Truck, Target,
   PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
-  Building2, Sparkles, Box, CalendarClock,
+  Building2, Sparkles, Box, CalendarClock, Search,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -93,34 +93,34 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white border-r border-slate-200/70 shadow-[1px_0_0_rgba(15,23,42,0.02)]",
-        collapsed ? "w-[72px]" : "w-[260px]",
+        "bg-white/96 backdrop-blur-xl border-r border-slate-200/75 shadow-[1px_0_0_hsl(220_13%_88%/0.7),18px_0_48px_-42px_hsl(222_47%_11%/0.42)]",
+        collapsed ? "w-[76px]" : "w-[286px]",
         className
       )}
     >
       {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[60px] flex items-center border-b border-slate-200/70",
-        collapsed ? "px-3 justify-center" : "px-3"
+        "relative shrink-0 h-[74px] flex items-center border-b border-slate-200/75 bg-gradient-to-b from-white to-slate-50/70",
+        collapsed ? "px-3 justify-center" : "px-4"
       )}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(
-              "flex items-center gap-2.5 rounded-lg transition-colors group",
-              collapsed ? "size-10 justify-center hover:bg-slate-100" : "w-full px-2 py-1.5 hover:bg-slate-50"
+              "flex items-center gap-3 rounded-xl transition-all group",
+              collapsed ? "size-11 justify-center hover:bg-slate-100" : "w-full px-2 py-2 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200"
             )}>
-              <div className="size-8 rounded-[9px] bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center shadow-[0_2px_8px_-2px_rgba(79,70,229,0.55)] shrink-0 ring-1 ring-indigo-700/30">
-                <Box className="size-[15px] text-white" strokeWidth={2.5} />
+              <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-slate-950 flex items-center justify-center shadow-[0_12px_24px_-14px_hsl(231_72%_46%/0.75)] shrink-0 ring-1 ring-indigo-400/30">
+                <Box className="size-[17px] text-white" strokeWidth={2.5} />
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[13px] font-bold text-slate-950 leading-tight tracking-tight truncate">VendxCRM</p>
-                  <p className="text-[9.5px] font-bold text-indigo-700 leading-tight mt-0.5 truncate uppercase tracking-[0.14em]">
+                  <p className="text-[15px] font-black text-slate-950 leading-tight tracking-tight truncate">VendxCRM</p>
+                  <p className="text-[9.5px] font-extrabold text-indigo-700 leading-tight mt-0.5 truncate uppercase tracking-[0.18em]">
                     {portalLabel}
                   </p>
                 </div>
               )}
-              {!collapsed && <ChevronDown className="size-3.5 text-slate-800 shrink-0 group-hover:text-slate-700 transition-colors" />}
+              {!collapsed && <ChevronDown className="size-3.5 text-slate-500 shrink-0 group-hover:text-slate-800 transition-colors" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-[220px]">
@@ -144,7 +144,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
         {!collapsed && (
           <button
             onClick={onToggle}
-            className="absolute -right-[11px] top-1/2 -translate-y-1/2 size-[22px] rounded-full bg-white border border-slate-200 shadow-[0_2px_6px_-2px_rgba(15,23,42,0.15)] flex items-center justify-center text-slate-800 hover:text-indigo-800 hover:border-indigo-300 hover:scale-110 transition-all z-10"
+            className="absolute -right-[12px] top-1/2 -translate-y-1/2 size-6 rounded-full bg-white border border-slate-200 shadow-[0_8px_18px_-12px_hsl(222_47%_11%/0.5)] flex items-center justify-center text-slate-600 hover:text-indigo-800 hover:border-indigo-300 hover:scale-110 transition-all z-10"
             title="Recolher"
           >
             <PanelLeftClose className="size-3" />
