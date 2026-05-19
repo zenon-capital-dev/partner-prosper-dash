@@ -23,6 +23,8 @@ import { ProviderAssignDialog } from "@/components/provider/ProviderAssignDialog
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 type ViewMode = "grid" | "list";
 
