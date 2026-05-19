@@ -405,7 +405,7 @@
       letter-spacing: 0;
     }
     .admin-shell .page-shell {
-      @apply py-4 space-y-4;
+      @apply py-4 px-4 space-y-4;
     }
     .admin-shell .vx-card {
       @apply rounded-lg;
@@ -413,21 +413,21 @@
     .admin-shell .vx-table-cell {
       @apply px-3 py-3;
     }
-    .admin-shell [class*="grid-cols-2"] {
+    /* Targeted grid fixes for mobile to prevent overflow */
+    .admin-shell .grid:not(.grid-flow-col) {
       grid-template-columns: minmax(0, 1fr) !important;
     }
-    .admin-shell [class*="md:grid-cols-"],
-    .admin-shell [class*="lg:grid-cols-"],
-    .admin-shell [class*="xl:grid-cols-"] {
+    .admin-shell .sm\:grid-cols-3,
+    .admin-shell .sm\:grid-cols-2 {
       grid-template-columns: minmax(0, 1fr) !important;
     }
-    .admin-shell [class*="md:grid-cols-["],
-    .admin-shell [class*="lg:grid-cols-["] {
-      grid-template-columns: minmax(0, 1fr) !important;
-    }
-    .admin-shell [class*="max-w-[1600px]"] {
-      padding-left: 0.75rem !important;
-      padding-right: 0.75rem !important;
+    /* Prevent container leakage */
+    .admin-shell .max-w-\[1500px\],
+    .admin-shell .max-w-\[1600px\] {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+      width: 100% !important;
+      overflow-x: hidden !important;
     }
   }
   /* O Admin shell agora respeita o tema global .dark */

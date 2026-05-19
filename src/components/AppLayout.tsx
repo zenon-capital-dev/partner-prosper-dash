@@ -81,11 +81,11 @@ function AppLayoutInner() {
     <SidebarProvider style={{ "--sidebar-width": "17rem" } as React.CSSProperties}>
       <div className="min-h-screen flex w-full bg-background selection:bg-primary/15 selection:text-primary relative">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-          <header className="glass-header h-14 flex items-center px-3 sm:px-5 lg:px-7 gap-2 sm:gap-5 no-print">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors -ml-1" />
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          <header className="glass-header h-14 flex items-center px-3 sm:px-6 gap-2 sm:gap-4 no-print shrink-0">
+            <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors -ml-1 shrink-0" />
 
-            <div className="hidden md:flex items-center gap-2.5 min-w-0 pl-4 border-l border-border">
+            <div className="hidden lg:flex items-center gap-2.5 min-w-0 pl-4 border-l border-border shrink-0">
               <div className="size-8 rounded-md bg-muted border border-border flex items-center justify-center text-[10.5px] font-bold text-muted-foreground shrink-0">
                 {initials(fullName)}
               </div>
@@ -100,19 +100,19 @@ function AppLayoutInner() {
               <EnvBadge />
             </div>
 
-            <div className="flex-1 min-w-0 max-w-xl mx-auto">
+            <div className="flex-1 min-w-0 max-w-xl mx-auto px-2">
               {isStaff && <GlobalSearch />}
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               {showQuickCreate && (
-                <>
+                <div className="hidden sm:flex items-center gap-2">
                   <QuickCreateButton />
-                  <div className="h-5 w-px bg-border mx-1.5 hidden sm:block" />
-                </>
+                  <div className="h-5 w-px bg-border mx-1" />
+                </div>
               )}
               <NotificationBell />
-              <div className="h-5 w-px bg-border mx-1 hidden sm:block" />
+              <div className="h-5 w-px bg-border mx-1 hidden xs:block" />
               <ThemeToggle />
             </div>
           </header>

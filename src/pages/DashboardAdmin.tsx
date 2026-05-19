@@ -166,37 +166,37 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground admin-shell">
-      <div className="max-w-[1500px] mx-auto px-5 lg:px-10 pt-10 pb-14 space-y-7">
+    <div className="min-h-screen bg-background text-foreground admin-shell overflow-x-hidden">
+      <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-10 pb-14 space-y-6 sm:space-y-8">
 
         {/* ============ HEADER ============ */}
-        <header className="flex flex-wrap items-end justify-between gap-5">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+          <div className="min-w-0 space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <span className="relative flex size-2">
                 <span className="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
-              <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-slate-700">Painel ativo</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-700">Painel ativo</span>
               <span className="text-slate-300">·</span>
-              <span className="text-[10.5px] text-slate-500 capitalize font-semibold">{todayLabel}</span>
+              <span className="text-[10px] text-slate-500 capitalize font-semibold truncate max-w-[150px] sm:max-w-none">{todayLabel}</span>
             </div>
-            <h1 className="mt-4 font-display text-[36px] lg:text-[44px] font-bold tracking-[-0.025em] text-slate-900 leading-[1.05]">
+            <h1 className="font-display text-[32px] sm:text-[36px] lg:text-[44px] font-bold tracking-[-0.025em] text-slate-900 leading-[1.1]">
               {greeting}, <span className="text-indigo-600">{firstName}</span>.
             </h1>
-            <p className="text-[14px] text-slate-600 mt-2 leading-relaxed max-w-xl">
+            <p className="text-[13.5px] sm:text-[14px] text-slate-600 leading-relaxed max-w-xl">
               Visão consolidada de receita, operação e pipeline. Tudo o que importa, em um único lugar.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="inline-flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 scrollbar-none">
+            <div className="inline-flex items-center bg-white border border-slate-200/80 rounded-xl p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] shrink-0">
               {(["HOJE", "7D", "30D", "MÊS"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setRangeKey(k)}
                   className={cn(
-                    "px-3.5 py-1.5 rounded-lg text-[11.5px] font-bold transition-all tracking-wide",
+                    "px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-[11.5px] font-bold transition-all tracking-wide shrink-0",
                     rangeKey === k
                       ? "bg-slate-900 text-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.3)]"
                       : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
@@ -208,10 +208,10 @@ export default function DashboardAdmin() {
             </div>
             <Link
               to="/vendas?new=1"
-              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-indigo-600 text-white font-semibold text-[13px] shadow-[0_2px_4px_rgba(79,70,229,0.25),0_8px_24px_-6px_rgba(79,70,229,0.4)] hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
+              className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-indigo-600 text-white font-semibold text-[13px] shadow-[0_2px_4px_rgba(79,70,229,0.25),0_8px_24px_-6px_rgba(79,70,229,0.4)] hover:bg-indigo-700 hover:-translate-y-0.5 transition-all shrink-0"
             >
               <Plus className="size-4 stroke-[2.5]" />
-              Nova venda
+              <span className="whitespace-nowrap">Nova venda</span>
             </Link>
           </div>
         </header>

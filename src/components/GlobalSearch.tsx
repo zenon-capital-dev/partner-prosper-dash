@@ -165,13 +165,14 @@ export function GlobalSearch({ open, onOpenChange, navItems = [], showTrigger = 
       {!isControlled && showTrigger && (
         <button
           onClick={() => setOpen(true)}
-          className="w-full h-9 pl-9 pr-2 bg-muted/50 hover:bg-muted/80 border border-border hover:border-foreground/20 rounded-md text-[13px] text-muted-foreground flex items-center justify-between transition-colors relative group"
+          className="w-full h-9 pl-9 pr-2 bg-muted/50 hover:bg-muted/80 border border-border hover:border-foreground/20 rounded-md text-[13px] text-muted-foreground flex items-center justify-between transition-colors relative group overflow-hidden"
         >
           <Search className="absolute left-3 size-3.5 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-          <span className="font-medium truncate text-muted-foreground/80">
-            Buscar clientes, empresas, demandas, documentos...
+          <span className="font-medium truncate text-muted-foreground/80 pr-2">
+            <span className="sm:hidden">Buscar...</span>
+            <span className="hidden sm:inline">Buscar clientes, demandas, documentos...</span>
           </span>
-          <kbd className="text-[10px] font-mono font-semibold bg-background border border-border rounded px-1.5 py-0.5 flex items-center gap-1 text-muted-foreground/70 shrink-0">
+          <kbd className="hidden md:flex text-[10px] font-mono font-semibold bg-background border border-border rounded px-1.5 py-0.5 items-center gap-1 text-muted-foreground/70 shrink-0">
             <Command className="size-2.5" /> K
           </kbd>
         </button>
