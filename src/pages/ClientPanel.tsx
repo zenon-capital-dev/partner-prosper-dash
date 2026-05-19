@@ -487,13 +487,13 @@ function MetricTile({ label, value, sub, icon: Icon, tone = "info" }: { label: s
     danger: "bg-rose-50 text-rose-700 border-rose-100",
   }[tone];
   return (
-    <div className="rounded-xl border border-slate-200/70 bg-white p-4 min-w-0">
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 truncate">{label}</p>
-        <span className={cn("size-8 rounded-lg border flex items-center justify-center shrink-0", styles)}><Icon className="size-4" /></span>
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 min-w-0 shadow-sm group hover:shadow-md transition-all duration-300">
+      <div className="flex items-center justify-between gap-2 mb-5">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500 truncate">{label}</p>
+        <span className={cn("size-9 rounded-xl border flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110", styles)}><Icon className="size-4.5" /></span>
       </div>
-      <p className="text-2xl font-bold tabular-nums text-slate-900 truncate leading-none">{value}</p>
-      {sub && <p className="text-[11px] text-slate-500 mt-2 truncate">{sub}</p>}
+      <p className="text-[28px] font-bold tabular-nums text-slate-900 truncate leading-none tracking-tight">{value}</p>
+      {sub && <p className="text-[11px] font-bold text-slate-500 mt-2.5 truncate">{sub}</p>}
     </div>
   );
 }
