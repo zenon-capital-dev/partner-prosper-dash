@@ -19,7 +19,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReferralDialog } from "@/components/ReferralDialog";
 
-const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos"] as const;
+const PARTNER_TABS = ["home", "clientes", "comissoes", "demandas", "contratos", "materiais", "suporte"] as const;
 
 export default function PartnerPanel() {
   const { user } = useAuth();
@@ -141,10 +141,12 @@ export default function PartnerPanel() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
            <TabsList className="bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl border border-slate-200 shadow-sm h-14 inline-flex flex-wrap overflow-x-auto whitespace-nowrap">
               <TabsTrigger value="home" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Dashboard</TabsTrigger>
-              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Meus Indicados ({clients.length})</TabsTrigger>
-              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Minhas Comissões ({commissions.length})</TabsTrigger>
-              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Status de Demandas ({demands.length})</TabsTrigger>
+              <TabsTrigger value="clientes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Indicados ({clients.length})</TabsTrigger>
+              <TabsTrigger value="comissoes" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Comissões ({commissions.length})</TabsTrigger>
+              <TabsTrigger value="demandas" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Demandas ({demands.length})</TabsTrigger>
               <TabsTrigger value="contratos" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Documentos ({contracts.length})</TabsTrigger>
+              <TabsTrigger value="materiais" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Materiais</TabsTrigger>
+              <TabsTrigger value="suporte" className="rounded-xl px-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white shadow-sm font-bold transition-all">Suporte</TabsTrigger>
            </TabsList>
 
            <TabsContent value="home" className="animate-fade-up space-y-8">
@@ -316,7 +318,25 @@ export default function PartnerPanel() {
                   ))}
                 </div>
               )}
-           </TabsContent>
+            </TabsContent>
+
+            <TabsContent value="materiais" className="animate-fade-up space-y-4">
+              <div className="vx-card bg-white rounded-[32px] p-16 text-center text-slate-600">
+                <h3 className="font-editorial text-2xl font-bold text-slate-900 mb-2">Central de Materiais</h3>
+                <p>Nesta área, você encontrará materiais de apoio, apresentações e templates para suas vendas.</p>
+                <div className="mt-8 text-sm text-slate-400 italic">Em desenvolvimento.</div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="suporte" className="animate-fade-up space-y-4">
+              <div className="vx-card bg-white rounded-[32px] p-16 text-center text-slate-600">
+                <h3 className="font-editorial text-2xl font-bold text-slate-900 mb-2">Suporte ao Parceiro</h3>
+                <p>Precisa de ajuda com uma indicação ou comissão? Fale diretamente com nossa equipe.</p>
+                <Button className="mt-8 rounded-xl bg-slate-900 text-white h-12 px-8 shadow-lg hover:bg-slate-800" onClick={() => window.open(`https://wa.me/?text=Olá, preciso de suporte no Portal do Parceiro.`, "_blank")}>
+                   Falar com equipe
+                </Button>
+              </div>
+            </TabsContent>
         </Tabs>
         <ReferralDialog open={referralOpen} onOpenChange={setReferralOpen} mode="partner" ownerId={partner.id} queryKey={panelQueryKey} />
       </div>
