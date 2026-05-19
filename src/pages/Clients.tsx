@@ -578,7 +578,7 @@ export default function Clients() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
-                  {filtered.map((c: any) => (
+                  {paginated.map((c: any) => (
                     <tr
                       key={c.id}
                       className="group hover:bg-muted/30 transition-colors cursor-pointer"
