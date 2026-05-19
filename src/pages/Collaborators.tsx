@@ -37,6 +37,9 @@ export default function Collaborators() {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<CollabRow | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["collaborators-list"],
