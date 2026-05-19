@@ -42,6 +42,9 @@ export default function Clients() {
   const [editing, setEditing] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<"grid" | "table">("grid");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
 
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
