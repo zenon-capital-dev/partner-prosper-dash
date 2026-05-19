@@ -193,7 +193,7 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, customRange, brasiliaToday]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
       <PageHero
         eyebrow="Dashboard"
         category="Visão Geral"
