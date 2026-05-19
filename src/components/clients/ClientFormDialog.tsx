@@ -114,6 +114,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       return;
     }
 
+    setSubmitting(true);
+
     // Se CEP preenchido mas endereço vazio, tenta buscar antes de salvar
     if (form.address_zip_code && !form.address_street) {
       const r = await lookupCEP(form.address_zip_code);
@@ -126,17 +128,30 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     }
 
     if (!client?.id && createAccess) {
-      if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
-      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
+      if (!form.email) { toast.error("Email obrigatório para criar acesso"); setSubmitting(false); return; }
+      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); setSubmitting(false); return; }
     }
 
-    setSubmitting(true);
-    // Validações de máscara
+    // Validações de máscara e duplicidade
     if (form.document && !isValidCPFOrCNPJ(form.document)) {
-      toast.error("CPF/CNPJ inválido"); return;
+      toast.error("CPF/CNPJ inválido"); setSubmitting(false); return;
     }
     if (form.phone && !isValidPhoneBR(form.phone)) {
-      toast.error("Telefone inválido"); return;
+      toast.error("Telefone inválido"); setSubmitting(false); return;
+    }
+
+    // Check for existing email/document to avoid generic DB errors
+    if (form.email || form.document) {
+      const cleanDoc = form.document ? onlyDigits(form.document) : null;
+      let query = supabase.from("clients").select("id, full_name").or(`email.eq.${form.email}${cleanDoc ? `,document.eq.${cleanDoc}` : ""}`);
+      if (client?.id) query = query.neq("id", client.id);
+      
+      const { data: existing } = await query.limit(1);
+      if (existing && existing.length > 0) {
+        toast.error(`Já existe um cliente cadastrado com este ${existing[0].full_name ? "email ou documento" : "email/documento"}`);
+        setSubmitting(false);
+        return;
+      }
     }
 
     const payload = {
@@ -156,10 +171,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       partner_id: form.partner_id || null,
       referrer_id: form.referrer_id || null,
       collaborator_id: form.collaborator_id || null,
+      responsible_id: form.collaborator_id || null, // Ensure both are set for consistency
       service_provider_id: form.service_provider_id || null,
       origin: form.origin || null,
-      contract_value: form.contract_value || null,
-      commission_value: form.commission_value || null,
+      contract_value: form.contract_value ? Number(form.contract_value) : null,
+      commission_value: form.commission_value ? Number(form.commission_value) : null,
       partner_commission_percent: form.partner_commission_percent ? Number(form.partner_commission_percent) : null,
       referrer_commission_percent: form.referrer_commission_percent ? Number(form.referrer_commission_percent) : null,
       collaborator_commission_percent: form.collaborator_commission_percent ? Number(form.collaborator_commission_percent) : null,
