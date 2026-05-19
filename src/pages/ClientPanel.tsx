@@ -867,6 +867,30 @@ function PremiumStat({ label, value, sub, tone }: { label: string; value: string
   );
 }
 
+function SideNavItem({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
+  return (
+    <TabsTrigger
+      value={value}
+      className={cn(
+        "group/nav w-full justify-start gap-3 h-10 px-3 rounded-xl text-[13px] font-semibold transition-all relative",
+        "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        "data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm"
+      )}
+    >
+      <Icon className="size-4 shrink-0 opacity-80 group-data-[state=active]/nav:opacity-100" />
+      <span className="flex-1 text-left truncate">{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className={cn(
+          "inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-md text-[10px] font-bold tabular-nums",
+          alert
+            ? "bg-rose-500 text-white"
+            : "bg-slate-200 text-slate-700 group-data-[state=active]/nav:bg-white/15 group-data-[state=active]/nav:text-white"
+        )}>{count}</span>
+      )}
+    </TabsTrigger>
+  );
+}
+
 function PillTab({ value, label, icon: Icon, count, alert }: { value: string; label: string; icon: any; count?: number; alert?: boolean }) {
   return (
     <TabsTrigger
