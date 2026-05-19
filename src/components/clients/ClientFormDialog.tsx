@@ -25,6 +25,7 @@ interface Props {
 
 export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Props) {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual", priority: "media" });
 
