@@ -158,7 +158,7 @@ export default function Collaborators() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
+              {paginated.map((c) => (
                 <tr key={c.id} className="border-t border-slate-100 hover:bg-slate-50/60 transition">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
