@@ -128,7 +128,7 @@ export default function Indicators() {
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi icon={Users2} label="Indicadores" value={String(totals.count)} hint={`${totals.active} ativos`} />
         <Kpi icon={Award} label="Comissões geradas" value={formatBRL(totals.revenue)} />
         <Kpi icon={Wallet} label="A pagar" value={formatBRL(totals.pending)} tone="warning" />
