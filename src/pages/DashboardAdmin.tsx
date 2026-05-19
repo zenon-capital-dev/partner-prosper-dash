@@ -454,9 +454,14 @@ export default function DashboardAdmin() {
           </Card>
 
           <Card>
-            <CardHeader title="Funil de leads" subtitle={`${stats.conversionRate.toFixed(1)}% taxa de conversão`} />
+            <CardHeader title="Funil de leads" subtitle={isGlobalLoading ? "..." : `${stats.conversionRate.toFixed(1)}% taxa de conversão`} />
             <div className="px-6 pb-4 space-y-3.5">
-              {stats.leadsByStage.map((stage, i) => {
+              {isGlobalLoading ? (
+                <div className="py-8 flex justify-center">
+                   <div className="size-5 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                </div>
+              ) : stats.leadsByStage.map((stage, i) => {
+
                 const max = Math.max(...stats.leadsByStage.map(s => s.value), 1);
                 const pct = (stage.value / max) * 100;
                 const opacity = 0.45 + (i * 0.18);
