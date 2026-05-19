@@ -283,23 +283,23 @@ export default function ClientDetail() {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-6">
-          <div className="flex items-start gap-3 sm:gap-5 min-w-0">
-            <div className="size-14 sm:size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xl sm:text-2xl lg:text-3xl font-bold text-primary shadow-sm shrink-0">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8">
+          <div className="flex items-start gap-4 sm:gap-6 min-w-0">
+            <div className="size-16 sm:size-18 lg:size-20 rounded-2xl bg-indigo-600/10 border border-indigo-600/20 flex items-center justify-center text-2xl sm:text-3xl font-bold text-indigo-700 shadow-sm shrink-0">
                {initials(client.full_name)}
             </div>
-            <div className="space-y-1 min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold tracking-tight text-foreground truncate">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight text-slate-900 leading-tight">
                 {client.full_name}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <Building2 className="size-3.5 shrink-0" />
-                  <span className="font-medium text-foreground/80 truncate">{client.company || "Pessoa Física"}</span>
+                  <Building2 className="size-4 shrink-0 text-slate-400" />
+                  <span className="font-medium text-slate-700 truncate">{client.company || "Pessoa Física"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <ShieldAlert className="size-3.5 shrink-0" />
-                  <span className="font-mono text-[11px] sm:text-xs">{formatDoc(client.document)}</span>
+                  <ShieldAlert className="size-4 shrink-0 text-slate-400" />
+                  <span className="font-mono text-xs text-slate-600">{formatDoc(client.document)}</span>
                 </div>
               </div>
             </div>
@@ -352,7 +352,7 @@ export default function ClientDetail() {
         </div>
 
         {/* Status Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 pt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 pt-2">
           <StatusCluster 
             label="Comercial" 
             value={client.status?.replace("_", " ") || "Indefinido"} 
@@ -368,11 +368,11 @@ export default function ClientDetail() {
             value={client.payment_status?.replace("_", " ") || "Pendente"} 
             tone={client.payment_status === 'pago' ? 'success' : client.payment_status === 'pendente' ? 'warning' : 'danger'}
           />
-          <div className="flex flex-col gap-1 px-2.5 sm:px-3 py-2 rounded-xl bg-muted/40 border border-border/40 min-w-0">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Engajamento</span>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70">Engajamento</span>
+            <div className="flex items-center gap-3">
               <span className={cn("text-sm font-bold shrink-0", 
-                client.health_score >= 80 ? "text-emerald-500" : client.health_score >= 50 ? "text-amber-500" : "text-rose-500"
+                client.health_score >= 80 ? "text-emerald-600" : client.health_score >= 50 ? "text-amber-600" : "text-rose-600"
               )}>
                 {client.health_score || 100}
               </span>
@@ -384,56 +384,56 @@ export default function ClientDetail() {
             value={client.churn_risk || "Baixo"} 
             tone={client.churn_risk === 'Alto' ? 'danger' : client.churn_risk === 'Médio' ? 'warning' : 'success'}
           />
-          <div className="flex flex-col gap-1 px-2.5 sm:px-3 py-2 rounded-xl bg-muted/40 border border-border/40 min-w-0">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Responsável</span>
-            <div className="flex items-center gap-1.5 min-w-0">
-              <UserCheck className="size-3.5 text-primary shrink-0" />
-              <span className="text-xs sm:text-sm font-medium truncate">{(client as any).responsible?.full_name || "Sem atribuição"}</span>
+          <div className="flex flex-col gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70">Responsável</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <UserCheck className="size-4 text-indigo-600 shrink-0" />
+              <span className="text-[13px] font-semibold text-slate-700 truncate">{(client as any).responsible?.full_name || "Sem atribuição"}</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <MiniCard 
           label="Produtos Ativos" 
           value={stats.activeProducts} 
-          icon={<ShoppingBag className="size-4" />}
+          icon={<ShoppingBag className="size-4.5 sm:size-5" />}
           tone="primary"
         />
         <MiniCard 
           label="Doc. Pendentes" 
           value={stats.pendingDocs} 
-          icon={<FileText className="size-4" />}
+          icon={<FileText className="size-4.5 sm:size-5" />}
           tone={stats.pendingDocs > 0 ? "warning" : "success"}
         />
         <MiniCard 
           label="Pag. Pendentes" 
           value={stats.pendingPayments} 
-          icon={<Wallet className="size-4" />}
+          icon={<Wallet className="size-4.5 sm:size-5" />}
           tone={stats.pendingPayments > 0 ? "warning" : "success"}
         />
         <MiniCard 
           label="Demandas Atrasadas" 
           value={stats.delayedDemands} 
-          icon={<Clock className="size-4" />}
+          icon={<Clock className="size-4.5 sm:size-5" />}
           tone={stats.delayedDemands > 0 ? "danger" : "success"}
         />
         <MiniCard 
           label="Última Atualização" 
           value={stats.lastUpdate} 
-          icon={<Activity className="size-4" />}
+          icon={<Activity className="size-4.5 sm:size-5" />}
           tone="info"
         />
-        <div className="col-span-2 sm:col-span-3 lg:col-span-1 rounded-2xl p-3 sm:p-4 bg-primary/5 border border-primary/20 flex flex-col justify-between min-h-[88px]">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Próxima Ação</span>
-            <Sparkles className="size-3.5 text-primary" />
+        <div className="col-span-2 sm:col-span-3 lg:col-span-1 rounded-2xl p-4 sm:p-5 bg-indigo-600 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_16px_-4px_rgba(79,70,229,0.3)] flex flex-col justify-between min-h-[100px] border border-indigo-700/50 group hover:-translate-y-1 transition-all duration-300">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/70">Próxima Ação</span>
+            <Sparkles className="size-4 text-white/90 animate-pulse" />
           </div>
-          <div className="space-y-0.5">
-            <p className="text-sm font-bold text-foreground truncate">{stats.nextAction.title}</p>
-            <p className="text-[11px] text-muted-foreground leading-tight line-clamp-2">{stats.nextAction.desc}</p>
+          <div className="space-y-1">
+            <p className="text-[13.5px] font-bold text-white truncate group-hover:underline underline-offset-4">{stats.nextAction.title}</p>
+            <p className="text-[11px] text-indigo-100/80 leading-tight line-clamp-2 font-medium">{stats.nextAction.desc}</p>
           </div>
         </div>
       </div>
@@ -643,16 +643,16 @@ export default function ClientDetail() {
 
 function StatusCluster({ label, value, tone }: { label: string; value?: string; tone: 'success' | 'warning' | 'danger' | 'info' }) {
   const colors = {
-    success: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    danger: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-    info: 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+    success: 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-[0_1px_2px_rgba(16,185,129,0.05)]',
+    warning: 'bg-amber-50 text-amber-700 border-amber-200 shadow-[0_1px_2px_rgba(245,158,11,0.05)]',
+    danger: 'bg-rose-50 text-rose-700 border-rose-200 shadow-[0_1px_2px_rgba(244,63,94,0.05)]',
+    info: 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-[0_1px_2px_rgba(79,70,229,0.05)]'
   };
 
   return (
-    <div className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-muted/40 border border-border/40">
-      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">{label}</span>
-      <Badge variant="outline" className={cn("w-fit h-5 px-1.5 text-[10px] font-bold uppercase tracking-widest", colors[tone])}>
+    <div className="flex flex-col gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm min-w-0">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70">{label}</span>
+      <Badge variant="outline" className={cn("w-fit h-[22px] px-2 text-[10px] font-black uppercase tracking-widest truncate", colors[tone])}>
         {value || "N/A"}
       </Badge>
     </div>
@@ -661,22 +661,22 @@ function StatusCluster({ label, value, tone }: { label: string; value?: string; 
 
 function MiniCard({ label, value, icon, tone }: { label: string; value: string | number; icon: React.ReactNode; tone: 'primary' | 'success' | 'warning' | 'danger' | 'info' }) {
   const colors = {
-    primary: 'text-primary bg-primary/10',
-    success: 'text-emerald-500 bg-emerald-500/10',
-    warning: 'text-amber-500 bg-amber-500/10',
-    danger: 'text-rose-500 bg-rose-500/10',
-    info: 'text-blue-500 bg-blue-500/10'
+    primary: 'text-indigo-600 bg-indigo-50 border-indigo-100',
+    success: 'text-emerald-600 bg-emerald-50 border-emerald-100',
+    warning: 'text-amber-600 bg-amber-50 border-amber-100',
+    danger: 'text-rose-600 bg-rose-50 border-rose-100',
+    info: 'text-slate-600 bg-slate-50 border-slate-100'
   };
 
   return (
-    <div className="rounded-2xl p-3 sm:p-4 bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow min-h-[88px] flex flex-col justify-between">
-      <div className="flex items-center justify-between mb-2 sm:mb-3 gap-2">
-        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 leading-tight">{label}</span>
-        <div className={cn("size-7 sm:size-8 rounded-xl flex items-center justify-center shrink-0", colors[tone])}>
+    <div className="rounded-2xl p-4 sm:p-5 bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 min-h-[100px] flex flex-col justify-between group">
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70 leading-tight group-hover:text-slate-600 transition-colors">{label}</span>
+        <div className={cn("size-8 sm:size-9 rounded-xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-110", colors[tone])}>
           {icon}
         </div>
       </div>
-      <p className="text-lg sm:text-2xl font-bold tracking-tight truncate">{value}</p>
+      <p className="text-xl sm:text-2xl font-display font-bold tracking-tight text-slate-900 tabular-nums truncate">{value}</p>
     </div>
   );
 }

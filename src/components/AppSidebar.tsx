@@ -369,23 +369,23 @@ export function AppSidebar() {
         className="border-r border-slate-200/70 bg-white transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
       >
         {/* ===== Brand ===== */}
-        <SidebarHeader className="!bg-white px-4 pt-5 pb-4 border-b border-slate-200/70">
+        <SidebarHeader className="!bg-white px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
           <button
             onClick={() => navigate("/")}
-            className={cn("flex items-center gap-3 group w-full", collapsed && "justify-center")}
+            className={cn("flex items-center gap-3.5 group w-full transition-all", collapsed && "justify-center")}
           >
-            <div className="relative shrink-0">
-              <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center shadow-[0_8px_20px_-8px_rgba(79,70,229,0.55)] ring-1 ring-indigo-700/20">
-                <AppLogo size={22} />
+            <div className="relative shrink-0 transition-transform group-hover:scale-105">
+              <div className="size-11 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg ring-1 ring-white/10">
+                <AppLogo size={24} />
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-white" />
+              <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-500 ring-2 ring-white shadow-sm" />
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-editorial text-[20px] font-bold tracking-tight text-slate-950">
+                <p className="font-display text-[22px] font-bold tracking-tight text-slate-900">
                   Prosper
                 </p>
-                <p className="text-[10px] font-extrabold tracking-[0.25em] uppercase text-indigo-700 mt-0.5">
+                <p className="text-[10px] font-black tracking-[0.25em] uppercase text-indigo-600 mt-0.5">
                   {portalLabel} Portal
                 </p>
               </div>
