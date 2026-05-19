@@ -14,11 +14,14 @@ import { UserCheck, Plus, Search, MoreHorizontal, Pencil, Trash2, Award, Wallet,
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
+import { useAuth } from "@/hooks/useAuth";
 
 const empty = { active: true, commission_percent: 5 };
 
 export default function Indicators() {
   const qc = useQueryClient();
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(empty);
@@ -92,9 +95,11 @@ export default function Indicators() {
         title="Indicadores"
         description="Pessoas que indicam clientes e recebem comissão por venda fechada."
         actions={
-          <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="gap-2">
-            <Plus className="size-4" /> Novo indicador
-          </Button>
+          canManage ? (
+            <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="gap-2">
+              <Plus className="size-4" /> Novo indicador
+            </Button>
+          ) : null
         }
       />
 
@@ -158,14 +163,16 @@ export default function Indicators() {
                     <Badge variant={r.active ? "default" : "secondary"} className="text-[10px]">{r.active ? "Ativo" : "Inativo"}</Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => { setEditing(r); setForm(r); setOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toggle(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {canManage ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setEditing(r); setForm(r); setOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toggle(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => remove(r.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
                   </td>
                 </tr>
               ))}

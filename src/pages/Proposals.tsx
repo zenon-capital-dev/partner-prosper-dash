@@ -24,6 +24,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { confirmAction } from "@/lib/confirm";
+import { useAuth } from "@/hooks/useAuth";
 
 type Status = "rascunho" | "enviada" | "visualizada" | "aprovada" | "recusada" | "vencida";
 
@@ -52,6 +53,8 @@ const emptyItem = (): Item => ({
 
 export default function Proposals() {
   const qc = useQueryClient();
+  const { isAdmin, isAdminSecondary } = useAuth();
+  const canManage = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [editing, setEditing] = useState<any | null>(null);
@@ -131,9 +134,11 @@ export default function Proposals() {
         description="Monte propostas profissionais, acompanhe o funil e converta em vendas."
         icon={<FileText className="h-5 w-5" />}
         actions={
-          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" /> Nova proposta
-          </Button>
+          canManage ? (
+            <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" /> Nova proposta
+            </Button>
+          ) : null
         }
         kpis={[
           { label: "Total", value: kpis.total, tone: "primary" },
