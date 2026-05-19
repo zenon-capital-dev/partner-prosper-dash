@@ -40,6 +40,9 @@ export default function Providers() {
   const [editing, setEditing] = useState<any>(null);
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const { data: providers = [] } = useQuery({
     queryKey: ["providers-rich"],
