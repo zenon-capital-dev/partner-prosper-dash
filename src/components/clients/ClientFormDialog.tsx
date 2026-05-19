@@ -30,10 +30,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [accessPwd, setAccessPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
 
-  // Pendências de documentos (apenas novo cadastro)
+  // Onboarding settings
   const [selectedTemplateDocs, setSelectedTemplateDocs] = useState<string[]>([]);
   const [customDocs, setCustomDocs] = useState<string[]>([]);
   const [newDocInput, setNewDocInput] = useState("");
+  const [mandatorySteps, setMandatorySteps] = useState<string[]>(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
+  const [manualApproval, setManualApproval] = useState(true);
 
   useEffect(() => {
     if (client) setForm(client);
