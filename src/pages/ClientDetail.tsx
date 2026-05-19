@@ -21,6 +21,7 @@ import { confirmAction } from "@/lib/confirm";
 import { ClientOverview } from "@/components/clients/tabs/ClientOverview";
 import { ClientProducts } from "@/components/clients/tabs/ClientProducts";
 import { ClientDocuments } from "@/components/clients/tabs/ClientDocuments";
+import { ClientOnboardingTab } from "@/components/clients/tabs/ClientOnboardingTab";
 import { ClientContracts } from "@/components/clients/tabs/ClientContracts";
 import { ClientFinancial } from "@/components/clients/tabs/ClientFinancial";
 import { ClientTasks } from "@/components/clients/tabs/ClientTasks";
