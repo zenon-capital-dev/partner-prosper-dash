@@ -26,6 +26,7 @@ import {
 import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
+import { cn } from "@/lib/utils";
 
 type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "pago" | "cancelada" | "estornada";
 
