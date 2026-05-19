@@ -1,5 +1,7 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard, Users, Package, Handshake, Wallet, FileSignature, FileText,
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, ChevronRight, LogOut, Search,
