@@ -302,9 +302,21 @@ export function AppSidebar() {
           </button>
 
           {!collapsed && (
+            <div className="mt-3 flex items-center justify-between">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 border border-indigo-100 px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-indigo-700">
+                <span className="size-1.5 rounded-full bg-indigo-600" />
+                {portalLabel}
+              </span>
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+                Somente leitura
+              </span>
+            </div>
+          )}
+
+          {!collapsed && (
             <button
               onClick={() => setCmdOpen(true)}
-              className="mt-4 w-full h-10 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] flex items-center gap-2.5 px-3 text-[12.5px] text-slate-500 transition-all group"
+              className="mt-3 w-full h-10 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white hover:border-indigo-300 hover:shadow-[0_0_0_3px_rgba(99,102,241,0.08)] flex items-center gap-2.5 px-3 text-[12.5px] text-slate-500 transition-all group"
             >
               <Search className="size-3.5 group-hover:text-indigo-700 transition-colors" />
               <span className="flex-1 text-left font-medium">Buscar...</span>
