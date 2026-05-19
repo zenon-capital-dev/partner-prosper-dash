@@ -125,6 +125,7 @@ const App = () => (
               <Route path="/cliente" element={<Navigate to="/portal-cliente" replace />} />
               <Route path="/cliente/:tab" element={<Navigate to="/portal-cliente" replace />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
+              <Route path="/colaborador/:tab" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/indicador/:tab" element={<ReferrerPanel />} />
               <Route path="/prestador" element={<ProviderPanel />} />
