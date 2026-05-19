@@ -95,9 +95,11 @@ export default function Indicators() {
         title="Indicadores"
         description="Pessoas que indicam clientes e recebem comissão por venda fechada."
         actions={
-          <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="gap-2">
-            <Plus className="size-4" /> Novo indicador
-          </Button>
+          canManage ? (
+            <Button onClick={() => { setEditing(null); setForm(empty); setOpen(true); }} className="gap-2">
+              <Plus className="size-4" /> Novo indicador
+            </Button>
+          ) : null
         }
       />
 
