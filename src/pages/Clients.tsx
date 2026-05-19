@@ -323,7 +323,8 @@ export default function Clients() {
         </div>
 
         {showFilters && (
-          <div className="rounded-xl border border-border/60 bg-card/40 p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 animate-fade-in">
+          <div className="rounded-xl border border-border/60 bg-card/40 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
+
             <FilterField label="Status">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
