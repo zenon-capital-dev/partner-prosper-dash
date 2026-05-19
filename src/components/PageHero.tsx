@@ -57,7 +57,7 @@ export function PageHero({
         <div className="flex items-start gap-5 min-w-0 flex-1">
           {icon && (
             <div className="relative shrink-0">
-              <div className="size-14 lg:size-[60px] rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-[0_10px_30px_-12px_rgba(79,70,229,0.5)] ring-1 ring-indigo-600/30">
+              <div className="size-14 lg:size-[60px] rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg ring-1 ring-white/10">
                 {icon}
               </div>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
