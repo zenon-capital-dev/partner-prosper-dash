@@ -29,6 +29,7 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Clientes", adminOnly: true, items: [
     { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },
+    { title: "Leads", url: "/leads", icon: Target, adminOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
     { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
   ]},
