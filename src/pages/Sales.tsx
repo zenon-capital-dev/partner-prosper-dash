@@ -170,7 +170,7 @@ export default function Sales() {
   const hasActiveFilters = !!search || status !== "todos" || partnerFilter !== "todos" || !!dateFrom || !!dateTo;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a0c] text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
       <PageHero
         eyebrow="Ledger"
         category="Sales Activity"

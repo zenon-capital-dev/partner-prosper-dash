@@ -48,9 +48,7 @@ export function PageHero({
     <section className="relative max-w-[1600px] mx-auto px-5 lg:px-8 pt-8 lg:pt-10 pb-2 space-y-7">
       {/* ambient — soft indigo wash, almost invisible */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-44 -left-32 size-[520px] rounded-full bg-indigo-200/25 dark:bg-indigo-950/20 blur-[140px]" />
-        <div className="absolute -top-32 right-0 size-[440px] rounded-full bg-sky-200/20 dark:bg-sky-900/10 blur-[140px]" />
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-300/40 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-300/40 dark:via-indigo-500/20 to-transparent" />
       </div>
 
       {!hideBreadcrumbs && <Breadcrumbs />}

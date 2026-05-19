@@ -93,7 +93,7 @@
     --gradient-success: linear-gradient(135deg, hsl(158 58% 32%) 0%, hsl(170 50% 36%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98.5%) 100%);
     --gradient-sidebar: linear-gradient(180deg, hsl(222 38% 7%) 0%, hsl(222 38% 5%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top right, hsl(230 60% 30% / 0.06), transparent 60%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(var(--primary) / 0.03), transparent 60%);
 
     /* Shadows — almost flat, just hairline depth */
     --shadow-sm: 0 1px 0 hsl(220 20% 88% / 0.6);
@@ -165,7 +165,7 @@
 
     --gradient-primary: linear-gradient(135deg, hsl(250 90% 70%) 0%, hsl(265 85% 70%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(224 40% 7%) 0%, hsl(224 45% 5%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top, hsl(250 90% 70% / 0.18), transparent 60%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(var(--primary) / 0.12), transparent 60%);
 
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.4), 0 2px 4px -1px rgb(0 0 0 / 0.3);
