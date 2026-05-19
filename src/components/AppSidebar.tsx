@@ -7,7 +7,7 @@ import {
   Banknote, BarChart3, Settings, UserCog, LifeBuoy, ChevronDown, ChevronRight, LogOut, Search,
   Briefcase, CircleDollarSign, Command, Zap, ClipboardList, History,
   Truck, TrendingUp, Home, Boxes, FileCheck2,
-  MessageSquare, FolderArchive, ListChecks, ShoppingBag,
+  MessageSquare, FolderArchive, ListChecks, ShoppingBag, Sparkles
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
