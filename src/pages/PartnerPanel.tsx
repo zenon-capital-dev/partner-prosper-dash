@@ -113,29 +113,31 @@ export default function PartnerPanel() {
   return (
     <div className="bg-premium min-h-screen">
       <div className="page-shell space-y-12 py-12">
-        <section className="relative overflow-hidden rounded-[32px] bg-slate-900 p-8 lg:p-12 text-white group shadow-2xl">
-           <div className="absolute bottom-0 right-0 size-96 bg-primary/20 blur-[100px] -mb-48 -mr-48 rounded-full" />
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative">
-              <div className="space-y-4">
-                 <div className="flex items-center gap-3">
-                   <div className="size-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]" />
-                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">Portal do Parceiro</span>
+        <section className="relative overflow-hidden rounded-[32px] bg-slate-900 p-8 lg:p-12 text-white group shadow-2xl border border-slate-800">
+           <div className="absolute top-0 right-0 size-96 bg-primary/20 blur-[100px] -mt-48 -mr-48 rounded-full" />
+           <div className="absolute bottom-0 left-0 size-64 bg-indigo-500/10 blur-[80px] -mb-32 -ml-32 rounded-full" />
+           
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8 relative z-10">
+              <div className="space-y-5">
+                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
+                   <div className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] animate-pulse" />
+                   <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/90">Rede de Parceiros Prosper</span>
                  </div>
-                 <h1 className="font-editorial text-4xl lg:text-6xl font-bold tracking-tight leading-tight">
-                   Gerencie suas <br/><span className="italic text-primary">indicações</span> e ganhos.
+                 <h1 className="font-editorial text-[40px] lg:text-[56px] font-bold tracking-tight leading-[1.05]">
+                   Seus ganhos e <br/><span className="italic text-primary font-medium">indicações.</span>
                  </h1>
-                 <div className="flex items-center gap-4 text-white/80 font-medium text-lg">
+                 <div className="flex items-center gap-4 text-white/80 font-bold text-lg">
                    <span>{partner.full_name}</span>
                    <span className="size-1 bg-white/30 rounded-full" />
-                   <span className="text-primary">{Number(partner.commission_percent).toFixed(1)}% comissão</span>
+                   <span className="text-primary">{Number(partner.commission_percent).toFixed(1)}% comissão ativa</span>
                  </div>
               </div>
                <div className="flex flex-col sm:flex-row gap-3">
-                 <Button onClick={() => setReferralOpen(true)} className="w-full sm:w-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 px-8 shadow-lg shadow-primary/20">
-                   <Share2 className="size-4 mr-2" /> Indicar Novo Cliente
+                 <Button onClick={() => setReferralOpen(true)} className="w-full sm:w-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-14 px-8 shadow-xl shadow-primary/20 text-base transition-all hover:scale-[1.02] active:scale-[0.98]">
+                   <Share2 className="size-5 mr-2" /> Indicar Novo Cliente
                  </Button>
                </div>
-           </div>
+            </div>
         </section>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
@@ -157,13 +159,13 @@ export default function PartnerPanel() {
                  <KpiCard label="Pagamento" value={totals.nextPayment ? formatDate(totals.nextPayment) : "—"} icon={Calendar} description="Próxima data prevista" />
               </div>
 
-              <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden">
+              <div className="vx-card p-8 bg-slate-900 text-white rounded-[32px] relative overflow-hidden shadow-2xl border border-slate-800">
                 <div className="absolute top-0 right-0 size-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full" />
                 <div className="relative z-10 space-y-4">
                   <div className="space-y-2">
-                    <h3 className="font-editorial text-2xl font-bold">Como funciona a sua comissão</h3>
-                    <p className="text-white/80 text-sm max-w-xl">
-                      Toda comissão fica como <strong>aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong>liberada</strong> para repasse.
+                    <h3 className="font-editorial text-[28px] font-bold text-white tracking-tight leading-tight">Como funciona a sua comissão</h3>
+                    <p className="text-white/70 text-sm max-w-xl font-medium">
+                      Toda comissão fica como <strong className="text-white">aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong className="text-emerald-400">liberada</strong> para repasse.
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-white/10">
