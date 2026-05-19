@@ -34,6 +34,7 @@ export function useOnboardingGuard() {
     if (!isClient) return true; // Non-clients are never blocked
     
     const isCompleted =
+      !access?.client ||
       !!access?.profile?.onboarding_completed ||
       ["completo", "concluido"].includes(access?.client?.onboarding_status || "") ||
       access?.client?.status === "ativo";
