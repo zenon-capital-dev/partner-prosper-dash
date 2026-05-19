@@ -9,8 +9,8 @@ import { AIAssistant } from "@/components/chat/AIAssistant";
 
 // Rotas que SOMENTE admin pleno pode acessar. Colaborador fica restrito a operação.
 const ADMIN_ONLY_PREFIXES = [
-  "/clientes", "/vendas", "/propostas", "/produtos", "/projetos", "/templates",
-  "/parceiros", "/prestadores", "/indicadores", "/colaboradores",
+  "/vendas", "/propostas", "/produtos", "/templates",
+  "/parceiros", "/indicadores", "/colaboradores",
   "/financeiro", "/comissoes", "/contratos", "/documentos", "/atuacoes",
   "/relatorios", "/auditoria", "/usuarios", "/automacoes", "/suporte", "/configuracoes",
 ];
