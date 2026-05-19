@@ -624,6 +624,7 @@ export default function Clients() {
           onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
         />
       </div>
+    </div>
   );
 }
 

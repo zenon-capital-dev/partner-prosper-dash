@@ -196,8 +196,7 @@ export default function Atuacoes() {
         ]}
       />
 
-
-      {/* Search + tabs */}
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-6 animate-in slide-in-from-bottom-4 duration-1000">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex-1">
           <TabsList className="bg-white border border-slate-200/70 rounded-lg p-1 h-auto w-full sm:w-auto overflow-x-auto flex-nowrap justify-start">
