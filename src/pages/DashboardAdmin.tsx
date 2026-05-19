@@ -1056,6 +1056,19 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
   );
 }
 
+function HeroStat({ label, value, tone }: { label: string; value: string; tone: Tone }) {
+  const t = toneColor[tone];
+  return (
+    <div className="min-w-0 rounded-2xl border border-white/70 bg-white/72 px-3 py-3 shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_16px_38px_-34px_hsl(222_47%_11%/0.42)] backdrop-blur">
+      <div className="flex items-center gap-2">
+        <span className={cn("size-2 rounded-full shrink-0", t.bg)} />
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
+      </div>
+      <p className="mt-1 truncate font-mono text-[15px] font-black tracking-tight text-slate-950 tabular-nums">{value}</p>
+    </div>
+  );
+}
+
 function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: string; value: string; tone: Tone; icon: any; href: string; pulse?: boolean }) {
   const t = toneColor[tone];
   return (
