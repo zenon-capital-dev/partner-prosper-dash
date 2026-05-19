@@ -148,9 +148,12 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
                   {doc.file_url && (
                     <Button variant="ghost" size="sm" className="rounded-lg h-9 px-3 text-indigo-600 hover:bg-indigo-50 font-bold text-[10px]" onClick={() => {
                       supabase.storage.from("documents").createSignedUrl(doc.file_url, 3600).then(({data, error}) => {
-                        if (error) return toast.error("Erro ao gerar link do documento: " + error.message);
-                        if (data) window.open(data.signedUrl, '_blank');
-                      }).catch(err => toast.error("Erro inesperado ao abrir documento"));
+                        if (error) {
+                          toast.error("Erro ao gerar link do documento: " + error.message);
+                        } else if (data) {
+                          window.open(data.signedUrl, '_blank');
+                        }
+                      });
                     }}>
                       <Download className="size-3.5 mr-1.5" /> BAIXAR
                     </Button>
@@ -197,14 +200,16 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
             <div className="p-12 border-2 border-dashed border-slate-100 rounded-[32px] text-center">
                <FileText className="size-10 text-slate-100 mx-auto mb-4" />
                <p className="text-sm font-bold text-slate-400">Nenhum documento na jornada</p>
-               <Button variant="ghost" size="sm" className="mt-4 text-indigo-600 hover:bg-indigo-50 font-bold text-xs" onClick={() => {
+               <Button variant="ghost" size="sm" className="mt-4 text-indigo-600 hover:bg-indigo-50 font-bold text-xs" onClick={async () => {
                  const name = window.prompt("Nome do documento:");
                  if (name) {
-                    supabase.from("onboarding_documents").insert({ client_id: profile?.id, name, status: 'pending' }).then(({error}) => {
-                      if (error) return toast.error("Erro ao adicionar: " + error.message);
-                      qc.invalidateQueries({ queryKey: ["onboarding-docs-admin"] });
-                      toast.success("Solicitação adicionada");
-                    }).catch(() => toast.error("Erro inesperado ao adicionar documento"));
+                   const { error } = await supabase.from("onboarding_documents").insert({ client_id: profile?.id, name, status: 'pending' });
+                   if (error) {
+                     toast.error("Erro ao adicionar: " + error.message);
+                   } else {
+                     qc.invalidateQueries({ queryKey: ["onboarding-docs-admin"] });
+                     toast.success("Solicitação adicionada");
+                   }
                  }
                }}>
                  + Adicionar Documento Obrigatório
