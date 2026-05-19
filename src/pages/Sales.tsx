@@ -170,7 +170,7 @@ export default function Sales() {
   const hasActiveFilters = !!search || status !== "todos" || partnerFilter !== "todos" || !!dateFrom || !!dateTo;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
       <PageHero
         eyebrow="Ledger"
         category="Sales Activity"
@@ -234,7 +234,7 @@ export default function Sales() {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "currentColor", opacity: 0.5 }} interval={4} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "currentColor", opacity: 0.7 }} interval={4} tickLine={false} axisLine={false} />
                 <Tooltip
                   formatter={(v: any) => formatBRL(Number(v))}
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 12 }}

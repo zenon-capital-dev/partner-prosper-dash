@@ -198,7 +198,7 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, customRange, brasiliaToday]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell overflow-x-hidden transition-colors duration-500">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell overflow-x-hidden transition-colors duration-500">
       <PageHero
         eyebrow="Dashboard"
         category="Visão Geral"
@@ -312,18 +312,18 @@ export default function DashboardAdmin() {
                       <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11, fontWeight: 700 }} 
+                    tick={{ fill: 'currentColor', opacity: 0.7, fontSize: 11, fontWeight: 700 }} 
                     dy={10}
                   />
                   <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }} 
+                    tick={{ fill: 'currentColor', opacity: 0.7, fontSize: 11 }} 
                     tickFormatter={(v) => `R$${v/1000}k`}
                   />
                   <Tooltip 

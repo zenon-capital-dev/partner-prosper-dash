@@ -93,7 +93,7 @@
     --gradient-success: linear-gradient(135deg, hsl(158 58% 32%) 0%, hsl(170 50% 36%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 98.5%) 100%);
     --gradient-sidebar: linear-gradient(180deg, hsl(222 38% 7%) 0%, hsl(222 38% 5%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top right, hsl(230 60% 30% / 0.06), transparent 60%);
+    --gradient-hero: radial-gradient(ellipse at top right, hsl(var(--primary) / 0.03), transparent 60%);
 
     /* Shadows — almost flat, just hairline depth */
     --shadow-sm: 0 1px 0 hsl(220 20% 88% / 0.6);
@@ -165,7 +165,7 @@
 
     --gradient-primary: linear-gradient(135deg, hsl(250 90% 70%) 0%, hsl(265 85% 70%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(224 40% 7%) 0%, hsl(224 45% 5%) 100%);
-    --gradient-hero: radial-gradient(ellipse at top, hsl(250 90% 70% / 0.18), transparent 60%);
+    --gradient-hero: radial-gradient(ellipse at top, hsl(var(--primary) / 0.12), transparent 60%);
 
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.4), 0 2px 4px -1px rgb(0 0 0 / 0.3);
@@ -301,7 +301,7 @@
     100% { background-position: 200% 0; }
   }
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.04), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent);
     background-size: 200% 100%;
     animation: shimmer 2s infinite linear;
   }
@@ -344,26 +344,26 @@
     color-scheme: light dark;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-weight: 475;
+    font-weight: 500;
     letter-spacing: -0.01em;
   }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    --background: 224 45% 5%;
-    --foreground: 220 14% 98%;
-    --card: 224 45% 8%;
-    --card-foreground: 220 14% 98%;
-    --popover: 224 45% 8%;
-    --popover-foreground: 220 14% 98%;
-    --primary: 250 90% 70%;
-    --primary-foreground: 224 45% 5%;
-    --secondary: 224 45% 10%;
-    --secondary-foreground: 220 14% 98%;
-    --muted: 224 45% 10%;
-    --muted-foreground: 220 10% 65%;
-    --border: 224 45% 12%;
-    --input: 224 45% 12%;
-    --ring: 250 90% 70%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
     color-scheme: dark;
   }
 
