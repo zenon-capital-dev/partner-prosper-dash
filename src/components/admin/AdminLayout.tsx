@@ -41,10 +41,21 @@ function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 🔒 Admin agora suporta modo dark novamente a pedido do usuário.
+  // 🔒 Painel admin é SEMPRE light premium (decisão fixa do produto).
+  // Forçamos modo claro enquanto o shell estiver montado e restauramos ao sair.
   useEffect(() => {
-    // Logic for forcing theme removed to allow global dark mode
+    const html = document.documentElement;
+    const hadDark = html.classList.contains("dark");
+    html.classList.remove("dark");
+    html.classList.add("light");
+    html.style.colorScheme = "light";
+    return () => {
+      html.classList.remove("light");
+      html.style.colorScheme = "";
+      if (hadDark) html.classList.add("dark");
+    };
   }, []);
+
   const { isAdmin, isAdminSecondary } = useAuth();
   const { pathname } = useLocation();
   const isFullAdmin = isAdmin || isAdminSecondary;
@@ -58,7 +69,7 @@ function AdminShell() {
   if (blocked) return <Navigate to="/admin" replace />;
 
   return (
-    <div className="min-h-screen flex w-full text-slate-900 dark:text-slate-100 admin-shell">
+    <div className="min-h-screen flex w-full text-slate-900 admin-shell bg-[radial-gradient(1200px_600px_at_-10%_-20%,rgba(99,102,241,0.06),transparent_60%),radial-gradient(900px_500px_at_110%_10%,rgba(14,165,233,0.05),transparent_55%),linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)]">
         <div className="hidden md:block shrink-0">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
@@ -76,7 +87,7 @@ function AdminShell() {
 
         <div className="flex-1 flex flex-col min-w-0 relative">
           <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-transparent">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden">
             <Outlet />
           </main>
         </div>
