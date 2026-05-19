@@ -15,6 +15,8 @@ import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
 
 const empty = { active: true, commission_percent: 5 };
 
