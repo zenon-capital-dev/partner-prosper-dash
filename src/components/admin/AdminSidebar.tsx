@@ -91,7 +91,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Admin";
   const displayEmail = user?.email || "";
-  const portalLabel = isFullAdmin ? "Admin OS" : "Workspace";
+  const portalLabel = isFullAdmin ? "Admin OS" : isColaborador ? "Colaborador" : isVendedor ? "Vendas" : "Workspace";
 
   // Verificamos se está em dark mode para ajustar cores específicas via style se necessário
   const isDark = document.documentElement.classList.contains("dark");
