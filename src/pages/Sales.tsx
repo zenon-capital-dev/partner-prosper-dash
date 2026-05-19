@@ -234,7 +234,7 @@ export default function Sales() {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "currentColor", opacity: 0.5 }} interval={4} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "currentColor", opacity: 0.7 }} interval={4} tickLine={false} axisLine={false} />
                 <Tooltip
                   formatter={(v: any) => formatBRL(Number(v))}
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 12 }}

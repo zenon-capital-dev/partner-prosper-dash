@@ -301,7 +301,7 @@
     100% { background-position: 200% 0; }
   }
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.04), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent);
     background-size: 200% 100%;
     animation: shimmer 2s infinite linear;
   }
@@ -344,25 +344,25 @@
     color-scheme: light dark;
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-weight: 475;
+    font-weight: 500;
     letter-spacing: -0.01em;
   }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    --background: 224 45% 5%;
+    --background: 224 45% 6%;
     --foreground: 220 14% 98%;
-    --card: 224 45% 8%;
+    --card: 224 45% 9%;
     --card-foreground: 220 14% 98%;
-    --popover: 224 45% 8%;
+    --popover: 224 45% 9%;
     --popover-foreground: 220 14% 98%;
     --primary: 250 90% 70%;
-    --primary-foreground: 224 45% 5%;
-    --secondary: 224 45% 10%;
+    --primary-foreground: 224 45% 6%;
+    --secondary: 224 45% 12%;
     --secondary-foreground: 220 14% 98%;
-    --muted: 224 45% 10%;
-    --muted-foreground: 220 10% 65%;
-    --border: 224 45% 12%;
-    --input: 224 45% 12%;
+    --muted: 224 45% 12%;
+    --muted-foreground: 220 10% 75%;
+    --border: 224 45% 15%;
+    --input: 224 45% 15%;
     --ring: 250 90% 70%;
     color-scheme: dark;
   }

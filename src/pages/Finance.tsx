@@ -223,9 +223,9 @@ export default function Finance() {
             <div className="h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.5, fontSize: 10}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.5, fontSize: 10}} tickFormatter={(v) => `R$${v}`} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.05} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.7, fontSize: 10}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.7, fontSize: 10}} tickFormatter={(v) => `R$${v}`} />
                   <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                   <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="#10b981" fillOpacity={0.1} />
                   <Bar dataKey="expenses" fill="#f43f5e" radius={[2, 2, 0, 0]} barSize={12} />
