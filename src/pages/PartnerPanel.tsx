@@ -119,7 +119,7 @@ export default function PartnerPanel() {
               <div className="space-y-4">
                  <div className="flex items-center gap-3">
                    <div className="size-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]" />
-                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">Portal do Parceiro</span>
+                   <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">Portal do Parceiro</span>
                  </div>
                  <h1 className="font-editorial text-4xl lg:text-6xl font-bold tracking-tight leading-tight">
                    Gerencie suas <br/><span className="italic text-primary">indicações</span> e ganhos.
@@ -162,13 +162,13 @@ export default function PartnerPanel() {
                 <div className="relative z-10 space-y-4">
                   <div className="space-y-2">
                     <h3 className="font-editorial text-2xl font-bold">Como funciona a sua comissão</h3>
-                    <p className="text-white/60 text-sm max-w-xl">
+                    <p className="text-white/80 text-sm max-w-xl">
                       Toda comissão fica como <strong>aguardando confirmação</strong> até que o cliente quite o pagamento. Assim que registrarmos a entrada, ela é automaticamente <strong>liberada</strong> para repasse.
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-white/10">
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Seu link de indicação</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/70 mb-1">Seu link de indicação</p>
                       <code className="text-xs text-white/80 font-mono break-all">{`${window.location.origin}/?ref=${partner.id.slice(0, 8).toUpperCase()}`}</code>
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -237,7 +237,7 @@ export default function PartnerPanel() {
               <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
                 <table className="w-full text-sm">
                    <thead>
-                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500 bg-slate-50/80 border-b border-slate-100">
+                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 bg-slate-50/80 border-b border-slate-100">
                          <th className="px-8 py-4 text-left">Produto / Serviço</th>
                          <th className="px-8 py-4 text-left">Cliente Final</th>
                          <th className="px-8 py-4 text-right">Valor Comissão</th>
@@ -268,7 +268,7 @@ export default function PartnerPanel() {
                 <div className="vx-card bg-white rounded-[32px] overflow-hidden border-slate-100">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500 bg-slate-50/80 border-b border-slate-100">
+                      <tr className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-600 bg-slate-50/80 border-b border-slate-100">
                         <th className="px-6 py-4 text-left">Cliente</th>
                         <th className="px-6 py-4 text-left">Produto / Demanda</th>
                         <th className="px-6 py-4 text-center">Etapa Atual</th>
@@ -368,9 +368,9 @@ function KpiCard({ label, value, icon: Icon, tone, description }: any) {
        <div className={cn("size-12 rounded-2xl flex items-center justify-center mb-4 border transition-transform group-hover:scale-110", tones[tone] || "text-slate-600 bg-slate-50 border-slate-100")}>
           <Icon className="size-6" />
        </div>
-       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{label}</p>
+       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-1">{label}</p>
        <p className="text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
-       <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">{description}</p>
+       <p className="text-xs text-slate-600 font-medium mt-2 leading-relaxed">{description}</p>
     </div>
   );
 }
