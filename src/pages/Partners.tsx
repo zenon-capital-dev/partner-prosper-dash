@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/use-debounce";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
 import {
   Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight, Handshake,
   Users2, Wallet, TrendingUp, CheckCircle2, Clock3, Award, Crown,
@@ -34,6 +35,7 @@ type ViewMode = "list" | "grid";
 export default function Partners() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(emptyForm);
@@ -52,6 +54,10 @@ export default function Partners() {
   const [submitting, setSubmitting] = useState(false);
 
   const qc = useQueryClient();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, sortBy]);
 
   const { data: partners } = useQuery({
     queryKey: ["partners-rich"],
@@ -95,8 +101,8 @@ export default function Partners() {
 
   const filtered = useMemo(() => {
     let list = enriched;
-    if (search) {
-      const q = search.toLowerCase();
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter((p: any) =>
         p.full_name?.toLowerCase().includes(q) ||
         p.email?.toLowerCase().includes(q) ||
