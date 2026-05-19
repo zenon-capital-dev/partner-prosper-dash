@@ -48,8 +48,9 @@ export default function Finance() {
   });
 
   const handleAddExpense = async () => {
-    if (!expenseForm.description || !expenseForm.amount) {
-      toast.error("Preencha a descrição e o valor");
+    const amountNum = Number(expenseForm.amount);
+    if (!expenseForm.description || isNaN(amountNum) || amountNum <= 0) {
+      toast.error("Preencha a descrição e um valor válido maior que zero");
       return;
     }
     setIsSubmitting(true);

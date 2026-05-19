@@ -200,11 +200,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     // Garante que o colaborador escolhido no cliente também passe a enxergar demandas
     // já existentes sem responsável definido.
     if (clientId && form.collaborator_id) {
-      await supabase
+      const { error: cpUpErr } = await supabase
         .from("client_products")
         .update({ responsible_employee_id: form.collaborator_id })
         .eq("client_id", clientId)
         .is("responsible_employee_id", null);
+      if (cpUpErr) console.error("Erro ao vincular colaborador a demandas existentes:", cpUpErr);
     }
 
     // Onboarding setup
@@ -214,7 +215,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         onboarding_completed: shouldReleaseAccess,
         onboarding_step: 1,
         manual_approval_required: manualApproval,
-      } as any).eq("id", clientId); // user_id is profile id usually in this system
+      }).eq("id", clientId);
+      if (profErr) console.error("Erro ao atualizar profile:", profErr);
       if (shouldReleaseAccess) {
         await supabase.from("clients").update({ onboarding_status: "concluido", onboarding_progress: 100 } as any).eq("id", clientId);
       }
@@ -227,7 +229,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           is_required: true,
           status: "pending",
         }));
-        await supabase.from("onboarding_documents").insert(rows);
+        const { error: docErr } = await supabase.from("onboarding_documents").insert(rows);
+        if (docErr) console.error("Erro ao inserir documentos de onboarding:", docErr);
       }
     }
 

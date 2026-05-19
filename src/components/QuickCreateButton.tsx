@@ -55,9 +55,9 @@ export function QuickCreateButton({ variant = "default" }: Props) {
           <Sparkles className="size-3" /> Criação rápida
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {ITEMS.map((item) => (
+        {ITEMS.map((item, idx) => (
           <DropdownMenuItem
-            key={item.url}
+            key={item.url + idx}
             onClick={() => navigate(item.url)}
             className="gap-2.5 px-2.5 py-2 rounded-md cursor-pointer text-[13px]"
           >

@@ -148,8 +148,14 @@ export default function Leads() {
   const handleDelete = async (id: string) => {
     if (!(await confirmAction("Excluir este lead permanentemente? Histórico e propostas vinculadas serão removidos."))) return;
     // Limpa dependências antes pra evitar FK error
-    await supabase.from("lead_history").delete().eq("lead_id", id);
-    await supabase.from("proposals").delete().eq("lead_id", id);
+    // Tentamos deletar dependências. Se falhar o lead, nada acontece de grave (cascade delete seria melhor no banco)
+    try {
+      await supabase.from("lead_history").delete().eq("lead_id", id);
+      await supabase.from("proposals").delete().eq("lead_id", id);
+    } catch (e) {
+      console.error("Erro ao limpar dependências do lead", e);
+    }
+    
     const { error } = await supabase.from("leads").delete().eq("id", id);
     if (error) toast.error(error.message);
     else {

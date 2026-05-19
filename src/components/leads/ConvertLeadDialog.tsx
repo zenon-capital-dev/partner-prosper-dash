@@ -95,7 +95,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
 
       // 3. Commission for partner
       if (form.create_commission && lead.partner_id && form.partner_commission) {
-        await supabase.from("commissions").insert({
+        const { error: commErr } = await supabase.from("commissions").insert({
           partner_id: lead.partner_id,
           client_id: client.id,
           product_id: form.product_id || null,
@@ -107,11 +107,12 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           rule_type: "fixed",
           rule_value: Number(form.partner_commission),
         } as any);
+        if (commErr) console.error("Erro ao criar comissão:", commErr);
       }
 
       // 4. Contract
       if (form.create_contract) {
-        await supabase.from("contracts").insert({
+        const { error: contractErr } = await supabase.from("contracts").insert({
           name: form.contract_name || `Contrato — ${lead.full_name}`,
           client_id: client.id,
           client_product_id: clientProductId,
@@ -122,11 +123,12 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           status: "criado",
           amount: form.contract_value ? Number(form.contract_value) : null,
         });
+        if (contractErr) console.error("Erro ao criar contrato:", contractErr);
       }
 
       // 5. First task
       if (form.create_task && form.first_task_title) {
-        await supabase.from("tasks").insert({
+        const { error: taskErr } = await supabase.from("tasks").insert({
           title: form.first_task_title,
           description: `Tarefa criada na conversão do lead ${lead.full_name}`,
           priority: "normal",
@@ -138,6 +140,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           assigned_to: lead.responsible_id ?? user?.id ?? null,
           created_by: user?.id ?? null,
         });
+        if (taskErr) console.error("Erro ao criar tarefa inicial:", taskErr);
       }
 
       // 6. Mark lead as converted

@@ -91,8 +91,8 @@ export function PageHero({
         </div>
 
         {actions && (
-          <div className="w-full sm:w-auto min-w-0 overflow-x-auto overscroll-x-contain pb-1 -mb-1 scrollbar-hide">
-            <div className="flex w-max max-w-none sm:w-auto sm:max-w-full items-center gap-2 shrink-0 whitespace-nowrap [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
+          <div className="w-full sm:w-auto min-w-0 pb-1 -mb-1 scrollbar-hide">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
               {actions}
             </div>
           </div>
