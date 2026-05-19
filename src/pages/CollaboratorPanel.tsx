@@ -258,13 +258,13 @@ export default function CollaboratorPanel() {
 
           {/* ============ DEMANDAS ============ */}
           <TabsContent value="demandas" className="mt-6 space-y-4">
-            <div className="flex gap-3 flex-wrap">
-              <div className="relative flex-1 min-w-[240px]">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                <Input placeholder="Buscar cliente ou produto..." value={demandSearch} onChange={(e) => setDemandSearch(e.target.value)} className="pl-9" />
+                <Input placeholder="Buscar cliente ou produto..." value={demandSearch} onChange={(e) => setDemandSearch(e.target.value)} className="pl-9 w-full" />
               </div>
               <Select value={demandStatus} onValueChange={setDemandStatus}>
-                <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[200px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os status</SelectItem>
                   <SelectItem value="aguardando_inicio">Aguardando início</SelectItem>
