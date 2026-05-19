@@ -384,8 +384,8 @@ export default function DashboardAdmin() {
             </div>
             <div className="grid grid-cols-3 gap-2 w-full">
               <HeroStat label="Receita mês" value={formatBRL(stats.monthRevenue)} tone="primary" />
-              <HeroStat label="Pipeline" value={formatBRL(stats.weightedPipeline)} tone="info" />
-              <HeroStat label="Alertas" value={String(stats.alerts.length)} tone={stats.alerts.length > 0 ? "danger" : "success"} />
+              <HeroStat label="Vencidos" value={formatBRL(stats.overdueAmount)} tone="danger" />
+              <HeroStat label="Prazos em SLA" value={stats.inProgress.toString()} tone="success" />
             </div>
             <div className="flex items-center gap-2 flex-wrap w-full 2xl:w-auto 2xl:justify-end">
               <div className="inline-flex items-center rounded-xl bg-white/85 border border-slate-200 p-1 shadow-sm overflow-x-auto">
