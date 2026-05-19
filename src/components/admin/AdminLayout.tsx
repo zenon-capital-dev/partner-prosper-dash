@@ -69,8 +69,8 @@ function AdminShell() {
   if (blocked) return <Navigate to="/admin" replace />;
 
   return (
-    <div className="min-h-screen flex w-full text-slate-900 admin-shell bg-[radial-gradient(1200px_600px_at_-10%_-20%,rgba(99,102,241,0.06),transparent_60%),radial-gradient(900px_500px_at_110%_10%,rgba(14,165,233,0.05),transparent_55%),linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)]">
-        <div className="hidden md:block shrink-0">
+    <div className="admin-shell min-h-screen flex w-full text-foreground">
+        <div className="hidden md:block shrink-0 relative z-50">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
 
@@ -87,7 +87,7 @@ function AdminShell() {
 
         <div className="flex-1 flex flex-col min-w-0 relative">
           <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden admin-content-scroll">
             <Outlet />
           </main>
         </div>
