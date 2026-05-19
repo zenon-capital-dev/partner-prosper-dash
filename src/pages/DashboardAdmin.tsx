@@ -26,11 +26,11 @@ import {
 type Tone = "primary" | "success" | "warning" | "danger" | "info";
 
 const toneColor: Record<Tone, { text: string; bg: string; border: string; chart: string; soft: string; grad: string; ring: string }> = {
-  primary: { text: "text-indigo-800", bg: "bg-indigo-100", border: "border-indigo-200", chart: "#6366f1", soft: "bg-indigo-50", grad: "from-indigo-500 to-indigo-600", ring: "ring-indigo-200/60" },
-  success: { text: "text-emerald-800", bg: "bg-emerald-100", border: "border-emerald-200", chart: "#10b981", soft: "bg-emerald-50", grad: "from-emerald-500 to-emerald-600", ring: "ring-emerald-200/60" },
-  warning: { text: "text-amber-800", bg: "bg-amber-100", border: "border-amber-200", chart: "#f59e0b", soft: "bg-amber-50", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60" },
-  danger: { text: "text-rose-800", bg: "bg-rose-100", border: "border-rose-200", chart: "#f43f5e", soft: "bg-rose-50", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60" },
-  info: { text: "text-sky-600", bg: "bg-sky-100", border: "border-sky-200", chart: "#0ea5e9", soft: "bg-sky-50", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60" },
+  primary: { text: "text-indigo-700", bg: "bg-indigo-600", border: "border-indigo-200", chart: "#4f46e5", soft: "bg-indigo-50", grad: "from-indigo-600 to-indigo-700", ring: "ring-indigo-200/60" },
+  success: { text: "text-emerald-700", bg: "bg-emerald-600", border: "border-emerald-200", chart: "#10b981", soft: "bg-emerald-50", grad: "from-emerald-500 to-emerald-600", ring: "ring-emerald-200/60" },
+  warning: { text: "text-amber-700", bg: "bg-amber-600", border: "border-amber-200", chart: "#f59e0b", soft: "bg-amber-50", grad: "from-amber-500 to-amber-600", ring: "ring-amber-200/60" },
+  danger: { text: "text-rose-700", bg: "bg-rose-600", border: "border-rose-200", chart: "#f43f5e", soft: "bg-rose-50", grad: "from-rose-500 to-rose-600", ring: "ring-rose-200/60" },
+  info: { text: "text-sky-700", bg: "bg-sky-600", border: "border-sky-200", chart: "#0ea5e9", soft: "bg-sky-50", grad: "from-sky-500 to-sky-600", ring: "ring-sky-200/60" },
 };
 
 const statusLabel: Record<string, { label: string; tone: Tone }> = {
@@ -343,8 +343,8 @@ export default function DashboardAdmin() {
   const dealsSpark = stats.revenue12m.slice(-7).map((d) => ({ v: d.deals }));
 
   return (
-    <div className="relative min-h-full bg-[#fafbfc]">
-      <div className="relative px-4 sm:px-6 lg:px-10 py-6 lg:py-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+    <div className="relative min-h-full bg-slate-50/50">
+      <div className="relative px-4 sm:px-6 lg:px-10 py-8 lg:py-12 space-y-10 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
 
         {/* ============ HEADER ============ */}
         <header className="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5">
@@ -355,8 +355,8 @@ export default function DashboardAdmin() {
               <span className="size-1 rounded-full bg-slate-300" />
               <span className="capitalize">{today} · {timeNow}</span>
             </div>
-            <h1 className="text-[26px] lg:text-[30px] font-bold text-slate-900 tracking-tight leading-tight">
-              {greeting}, <span className="text-indigo-600">{firstName}</span>
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              {greeting}, <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">{firstName}</span>
             </h1>
             <p className="text-[13px] text-slate-500 mt-1.5 font-medium">
               Resumo consolidado · {stats.activeClients} clientes ativos · {stats.activeLeads.length} negociações · {stats.delayed} atrasos
@@ -408,8 +408,8 @@ export default function DashboardAdmin() {
               </Popover>
             </div>
 
-            <Link to="/vendas?new=1" className="h-9 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-sm transition-all">
-              <Plus className="size-3.5" /> Registrar Venda
+            <Link to="/vendas?new=1" className="h-10 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-bold inline-flex items-center gap-2 shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all active:scale-95">
+              <Plus className="size-4" /> Registrar Venda
             </Link>
             <button className="size-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 transition-all relative shadow-sm">
               <Bell className="size-4" />
@@ -829,7 +829,7 @@ const tooltipStyle = {
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div className={cn(
-      "rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md",
+      "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md",
       className
     )}>
       {children}
@@ -855,7 +855,7 @@ function Kpi({ label, value, delta, caption, icon: Icon, tone, spark }: {
   const t = toneColor[tone];
   const up = delta >= 0;
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all">
+    <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
       <div className="absolute bottom-0 right-0 left-0 h-16 opacity-[0.06] pointer-events-none">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={spark}>
