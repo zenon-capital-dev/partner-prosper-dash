@@ -71,3 +71,19 @@ export async function lookupCEP(cep: string): Promise<ViaCepResult | null> {
     return null;
   }
 }
+
+export function isValidPixKey(value: string): boolean {
+  if (!value) return false;
+  // CPF
+  if (isValidCPF(value)) return true;
+  // CNPJ
+  if (isValidCNPJ(value)) return true;
+  // Email
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return true;
+  // Telefone (with or without mask)
+  if (isValidPhoneBR(value)) return true;
+  // Chave aleatória (UUID pattern)
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) return true;
+  
+  return false;
+}

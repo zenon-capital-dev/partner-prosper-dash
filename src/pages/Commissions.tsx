@@ -273,16 +273,19 @@ export default function Commissions() {
 
   const saveEdit = async () => {
     if (!editing) return;
+    const isPaid = editForm.status === "pago" || editForm.status === "paga";
+    const isApproved = editForm.status === "aprovada" || isPaid;
+    
     const payload: any = {
       amount: Number(editForm.amount),
       percent: Number(editForm.percent),
       commission_type: editForm.commission_type,
-      workflow_status: editForm.status,
+      workflow_status: isPaid ? "pago" : editForm.status,
       notes: editForm.notes || null,
       payment_method: editForm.payment_method || null,
-      approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
-      paid_at: editForm.status === "pago" || editForm.status === "paga" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : (editing.paid_at || null),
-      status: (editForm.status === "paga" || editForm.status === "pago") ? "pago" : editForm.status, // Normalize to "pago"
+      approval_date: isApproved ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : (editing.approval_date || new Date().toISOString())) : (editing.approval_date || null),
+      paid_at: isPaid ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : (editing.paid_at || new Date().toISOString())) : (editing.paid_at || null),
+      status: isPaid ? "pago" : editForm.status,
     };
     const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }
@@ -320,11 +323,12 @@ export default function Commissions() {
 
   const confirmPay = async () => {
     if (!payTarget?.ids?.length) return;
+    const now = new Date().toISOString();
     const payload: any = {
       workflow_status: "pago",
       status: "pago",
-
       paid_at: new Date(payForm.paid_at).toISOString(),
+      approval_date: now, // Automática ao pagar
       payment_method: payForm.payment_method,
       notes: payForm.notes || null,
     };
