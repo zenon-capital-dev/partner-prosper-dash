@@ -42,24 +42,17 @@ function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // 🔒 Painel admin é majoritariamente light por padrão, mas permitimos o dark mode se o usuário desejar.
+  // 🔒 Painel admin sempre LIGHT (regra fixa do projeto — feedback explícito do usuário).
   useEffect(() => {
-    // Verificamos se há preferência de tema salva ou do sistema
-    const savedTheme = localStorage.getItem("crm-theme");
     const html = document.documentElement;
-    
-    // Se não houver preferência salva e o sistema preferir dark, ou se a preferência for dark:
-    const shouldBeDark = savedTheme === "\"dark\"" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    
-    if (shouldBeDark) {
-      html.classList.add("dark");
-      html.classList.remove("light");
-      html.style.colorScheme = "dark";
-    } else {
-      html.classList.add("light");
-      html.classList.remove("dark");
-      html.style.colorScheme = "light";
-    }
+    html.classList.add("light");
+    html.classList.remove("dark");
+    html.style.colorScheme = "light";
+    // Limpa qualquer preferência de tema escuro que tenha vazado para o admin.
+    try { localStorage.setItem("crm-theme", '"light"'); } catch {}
+    return () => {
+      // Não restauramos dark aqui — painéis externos (cliente/prestador/etc) gerenciam o próprio tema via ThemeProvider.
+    };
   }, []);
 
   const { isAdmin, isAdminSecondary } = useAuth();
