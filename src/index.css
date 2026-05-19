@@ -353,6 +353,80 @@
     font-weight: 500;
     letter-spacing: -0.01em;
   }
+  .admin-shell,
+  .admin-shell * {
+    min-width: 0;
+  }
+  .admin-shell .page-shell {
+    @apply px-3 sm:px-6 lg:px-8;
+  }
+  .admin-shell .vx-card,
+  .admin-shell [class*="rounded-"] {
+    max-width: 100%;
+  }
+  .admin-shell table {
+    min-width: max-content;
+  }
+  .admin-shell .vx-table-wrap,
+  .admin-shell .table-wrap,
+  .admin-shell .overflow-x-auto,
+  .admin-shell [class*="overflow-x-auto"] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .admin-shell [role="tablist"] {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .admin-shell [role="tablist"]::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-shell [role="tab"] {
+    flex: 0 0 auto;
+  }
+  .admin-shell input,
+  .admin-shell textarea,
+  .admin-shell button,
+  .admin-shell [role="combobox"] {
+    max-width: 100%;
+  }
+  .admin-shell .grid {
+    min-width: 0;
+  }
+  @media (max-width: 640px) {
+    .admin-shell {
+      letter-spacing: 0;
+    }
+    .admin-shell .page-shell {
+      @apply py-4 space-y-4;
+    }
+    .admin-shell .vx-card {
+      @apply rounded-lg;
+    }
+    .admin-shell .vx-table-cell {
+      @apply px-3 py-3;
+    }
+    .admin-shell [class*="grid-cols-2"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .admin-shell [class*="md:grid-cols-"],
+    .admin-shell [class*="lg:grid-cols-"],
+    .admin-shell [class*="xl:grid-cols-"] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .admin-shell [class*="md:grid-cols-["],
+    .admin-shell [class*="lg:grid-cols-["] {
+      grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .admin-shell [class*="max-w-[1600px]"] {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+  }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
     --background: 240 10% 2%;
