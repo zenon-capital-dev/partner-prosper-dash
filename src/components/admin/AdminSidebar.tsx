@@ -27,11 +27,11 @@ const SECTIONS: NavSection[] = [
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
-  { label: "Clientes", adminOnly: true, items: [
+  { label: "CRM & Vendas", adminOnly: true, items: [
     { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },
     { title: "Leads", url: "/leads", icon: UserPlus, adminOnly: true },
-    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
     { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
+    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
   ]},
   { label: "Catálogo", adminOnly: true, items: [
     { title: "Produtos", url: "/produtos", icon: Package, adminOnly: true },
