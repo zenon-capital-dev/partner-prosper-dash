@@ -7,7 +7,6 @@ import {
   PanelLeftClose, PanelLeftOpen, Activity, Zap, MessageSquare, ChevronDown,
   Building2, Sparkles, Box, CalendarClock, Search, UserPlus,
 } from "lucide-react";
-} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import {
