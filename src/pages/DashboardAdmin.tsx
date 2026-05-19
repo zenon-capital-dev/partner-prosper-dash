@@ -829,7 +829,7 @@ const tooltipStyle = {
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
     <div className={cn(
-      "rounded-xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all hover:shadow-[0_4px_16px_-4px_rgba(15,23,42,0.08)]",
+      "rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md",
       className
     )}>
       {children}
@@ -855,7 +855,7 @@ function Kpi({ label, value, delta, caption, icon: Icon, tone, spark }: {
   const t = toneColor[tone];
   const up = delta >= 0;
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.12)] transition-all">
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-all">
       <div className="absolute bottom-0 right-0 left-0 h-16 opacity-[0.06] pointer-events-none">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={spark}>
