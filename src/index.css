@@ -361,8 +361,8 @@
     --secondary-foreground: 0 0% 100%;
     --muted: 240 10% 8%;
     --muted-foreground: 240 5% 75%;
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
+    --border: 240 10% 12%;
+    --input: 240 10% 12%;
     --ring: 0 0% 100%;
     color-scheme: dark;
   }
