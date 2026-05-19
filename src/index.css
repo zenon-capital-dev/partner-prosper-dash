@@ -1119,6 +1119,22 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
 @media (max-width: 640px) {
   .admin-shell .page-shell { padding-left: 0.75rem; padding-right: 0.75rem; }
 
+  .admin-shell,
+  .admin-shell .admin-content-scroll,
+  .admin-shell main {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .admin-shell header,
+  .admin-shell section,
+  .admin-shell article,
+  .admin-shell form,
+  .admin-shell [class*="max-w-"] {
+    max-width: 100%;
+  }
+
   /* Tighten card & panel padding on mobile */
   .admin-shell .cp-panel,
   .admin-shell .vx-card,
@@ -1147,8 +1163,36 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
   .admin-shell table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
   .admin-shell table thead, .admin-shell table tbody, .admin-shell table tr { display: table; width: 100%; table-layout: auto; }
 
+  .admin-shell [role="tablist"],
+  .admin-shell .overflow-x-auto,
+  .admin-shell .vx-table-wrap,
+  .admin-shell .table-wrap {
+    max-width: calc(100vw - 1.5rem);
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  .admin-shell [role="tab"],
+  .admin-shell [role="tablist"] button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .admin-shell .recharts-responsive-container,
+  .admin-shell .recharts-wrapper,
+  .admin-shell svg {
+    max-width: 100%;
+  }
+
   /* Dialogs/Sheets full-width with safe padding */
   .admin-shell [role="dialog"] { max-width: 100vw !important; }
+
+  [data-radix-popper-content-wrapper] {
+    max-width: calc(100vw - 1rem) !important;
+    z-index: 60 !important;
+  }
 
   /* Hide overly-decorative absolute icons on tight screens */
   .admin-shell .absolute.opacity-10 { display: none; }

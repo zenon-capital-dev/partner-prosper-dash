@@ -91,13 +91,17 @@ export function PageHero({
         </div>
 
         {actions && (
-          <div className="flex w-full sm:w-auto items-center gap-2 shrink-0 flex-wrap [&>*]:min-w-0 [&>button]:flex-1 [&>button]:sm:flex-none [&>a]:flex-1 [&>a]:sm:flex-none">{actions}</div>
+          <div className="w-full sm:w-auto min-w-0 overflow-x-auto overscroll-x-contain pb-1 -mb-1 scrollbar-hide">
+            <div className="flex w-max max-w-none sm:w-auto sm:max-w-full items-center gap-2 shrink-0 whitespace-nowrap [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
+              {actions}
+            </div>
+          </div>
         )}
       </header>
 
       {kpis && kpis.length > 0 && (
         <div
-          className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:[grid-template-columns:var(--hero-kpi-cols)]"
+          className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-2.5 sm:gap-3 lg:[grid-template-columns:var(--hero-kpi-cols)]"
           style={{ "--hero-kpi-cols": `repeat(${Math.min(kpis.length, 6)}, minmax(0, 1fr))` } as CSSProperties}
         >
           {kpis.map((k, i) => {
