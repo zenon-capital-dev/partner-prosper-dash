@@ -170,7 +170,7 @@ export default function Sales() {
   const hasActiveFilters = !!search || status !== "todos" || partnerFilter !== "todos" || !!dateFrom || !!dateTo;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
       <PageHero
         eyebrow="Ledger"
         category="Sales Activity"
@@ -179,14 +179,14 @@ export default function Sales() {
         icon={<ShoppingBag className="size-6" />}
         actions={
           <div className="flex items-center gap-3">
-            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
+            <div className="flex bg-white dark:bg-card p-1 rounded-2xl border border-slate-200 dark:border-border shadow-sm mr-2">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setRangeKey(k)}
                   className={cn(
                     "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                    rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                    rangeKey === k ? "bg-slate-900 dark:bg-primary text-white dark:text-primary-foreground shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                   )}
                 >
                   {k}
@@ -212,13 +212,13 @@ export default function Sales() {
 
       {/* ============ INSIGHTS ROW ============ */}
       <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
-        <div className="lg:col-span-7 vx-card p-5 relative overflow-hidden">
+        <div className="lg:col-span-7 vx-card p-5 relative overflow-hidden bg-white dark:bg-card">
           <div className="flex items-center justify-between mb-3">
             <div>
               <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600">
                 <BarChart3 className="size-3 text-indigo-500" /> Performance · 30 dias
               </div>
-              <h3 className="font-display text-base font-bold mt-1 text-slate-950">Fluxo de Receita Diário</h3>
+              <h3 className="font-display text-base font-bold mt-1 text-slate-950 dark:text-foreground">Fluxo de Receita Diário</h3>
             </div>
             <div className="text-right">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total no período</p>
@@ -234,7 +234,7 @@ export default function Sales() {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#94a3b8" }} interval={4} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "currentColor", opacity: 0.5 }} interval={4} tickLine={false} axisLine={false} />
                 <Tooltip
                   formatter={(v: any) => formatBRL(Number(v))}
                   contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 12 }}

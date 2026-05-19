@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PageHero } from "@/components/PageHero";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,16 +38,23 @@ export default function DashboardAdmin() {
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "PERSONALIZADO">("HOJE");
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [customOpen, setCustomOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const brasiliaToday = useMemo(() => {
     const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
-    const [y, m, d] = fmt.format(new Date()).split("-").map(Number);
+    const formatted = fmt.format(new Date());
+    const [y, m, d] = formatted.split("-").map(Number);
     return new Date(y, m - 1, d);
   }, []);
 
   const fullName = user?.user_metadata?.full_name || user?.email || "Admin";
   const firstName = String(fullName).split(/[ @]/)[0];
-  const hour = Number(new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()));
+  const hourStr = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date());
+  const hour = parseInt(hourStr, 10);
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 
   // ===== Queries =====
@@ -191,11 +198,11 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, customRange, brasiliaToday]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell overflow-x-hidden">
       <PageHero
         eyebrow="Dashboard"
         category="Visão Geral"
-        title={`${greeting}, ${firstName}`}
+        title={`${greeting}, ${firstName} ✨`}
         description="Aqui está o pulso do seu negócio hoje."
         icon={<Sparkles className="size-6" />}
         actions={
@@ -246,7 +253,7 @@ export default function DashboardAdmin() {
         <div className="vx-card p-6 bg-white dark:bg-card space-y-6">
            <div>
               <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Resumo Financeiro</h3>
-              <p className="text-slate-400 text-sm font-medium">Situação atual da tesouraria e conciliação</p>
+              <p className="text-slate-400 dark:text-muted-foreground text-sm font-medium">Situação atual da tesouraria e conciliação</p>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <FinanceCard
@@ -285,17 +292,18 @@ export default function DashboardAdmin() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Crescimento de Receita</h3>
-                <p className="text-slate-400 text-sm font-medium">Histórico consolidado dos últimos 6 meses</p>
+                <p className="text-slate-400 dark:text-muted-foreground text-sm font-medium">Histórico consolidado dos últimos 6 meses</p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <div className="size-3 rounded-full bg-indigo-600" />
-                  <span className="text-[11px] font-bold text-slate-500 uppercase">Receita Real</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-muted-foreground uppercase">Receita Real</span>
                 </div>
               </div>
             </div>
             
             <div className="h-[320px] w-full">
+              {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.chartData}>
                   <defs>
@@ -309,17 +317,17 @@ export default function DashboardAdmin() {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} 
+                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11, fontWeight: 700 }} 
                     dy={10}
                   />
                   <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 11 }} 
+                    tick={{ fill: 'currentColor', opacity: 0.5, fontSize: 11 }} 
                     tickFormatter={(v) => `R$${v/1000}k`}
                   />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }}
                   />
                   <Area 
                     type="monotone" 
@@ -332,6 +340,7 @@ export default function DashboardAdmin() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -343,6 +352,7 @@ export default function DashboardAdmin() {
             </div>
             
             <div className="h-48 w-full">
+              {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -359,6 +369,7 @@ export default function DashboardAdmin() {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
+              )}
             </div>
 
             <div className="w-full space-y-2 mt-4">
@@ -366,9 +377,9 @@ export default function DashboardAdmin() {
                 <div key={s.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="text-xs font-bold text-slate-600">{s.name}</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-muted-foreground">{s.name}</span>
                   </div>
-                  <span className="text-xs font-black text-slate-900">{s.value}</span>
+                  <span className="text-xs font-black text-slate-900 dark:text-foreground">{s.value}</span>
                 </div>
               ))}
             </div>

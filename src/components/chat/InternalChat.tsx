@@ -83,7 +83,7 @@ export function InternalChat() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
-          className="size-9 rounded-lg border border-border hover:bg-accent flex items-center justify-center transition-colors"
+          className="size-9 rounded-lg border border-border bg-white dark:bg-card hover:bg-accent flex items-center justify-center transition-colors"
           aria-label="Chat interno"
         >
           <MessageSquare className="size-4 text-muted-foreground" />

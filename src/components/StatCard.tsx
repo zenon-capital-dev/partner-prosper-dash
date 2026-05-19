@@ -28,7 +28,7 @@ export const StatCard = forwardRef<HTMLDivElement, Props>(function StatCard(
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-          <p className="font-display text-2xl font-bold mt-3 vx-mono truncate">{value}</p>
+          <p className="font-display text-2xl font-bold mt-3 vx-mono truncate text-foreground">{value}</p>
           {delta && (
             <div className={cn("flex items-center gap-1 mt-2 text-xs font-medium", delta.positive ? "text-success" : "text-destructive")}>
               <span>{delta.positive ? "↑" : "↓"} {delta.value}</span>

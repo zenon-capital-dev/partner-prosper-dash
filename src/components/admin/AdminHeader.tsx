@@ -17,14 +17,14 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       <button
         type="button"
         onClick={onMenuClick}
-        className="md:hidden size-10 shrink-0 rounded-lg border border-slate-200 bg-white text-slate-600 hover:text-slate-950 hover:bg-slate-50 transition-colors flex items-center justify-center shadow-sm"
+        className="md:hidden size-10 shrink-0 rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground hover:bg-slate-50 dark:hover:bg-accent transition-colors flex items-center justify-center shadow-sm"
         aria-label="Abrir menu"
       >
         <Menu className="size-4" />
       </button>
       <div className="hidden lg:flex items-center gap-3 min-w-0 flex-1">
         <Breadcrumbs />
-        <div className="h-5 w-px bg-slate-200" />
+        <div className="h-5 w-px bg-slate-200 dark:bg-border" />
         <EnvBadge />
         <div className="hidden xl:flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-emerald-200/70 bg-emerald-50 text-emerald-700 text-[10px] font-extrabold uppercase tracking-[0.14em] shadow-sm">
           <span className="relative flex size-1.5">
@@ -38,15 +38,15 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
       <div className="flex-1 min-w-0 max-w-[520px]">
         <button
           onClick={onSearchClick}
-          className="w-full h-10 pl-10 pr-3 bg-white/90 hover:bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-[0_0_0_4px_hsl(231_72%_46%/0.08),0_10px_24px_-18px_hsl(222_47%_11%/0.32)] rounded-lg text-[12.5px] flex items-center justify-between transition-all group relative shadow-sm"
+          className="w-full h-10 pl-10 pr-3 bg-white/90 dark:bg-card/90 hover:bg-white dark:hover:bg-card border border-slate-200 dark:border-border hover:border-indigo-300 dark:hover:border-primary hover:shadow-[0_0_0_4px_hsl(231_72%_46%/0.08),0_10px_24px_-18px_hsl(222_47%_11%/0.32)] rounded-lg text-[12.5px] flex items-center justify-between transition-all group relative shadow-sm"
         >
           <Search className="absolute left-3.5 size-3.5 text-slate-500 group-hover:text-indigo-800 transition-colors" />
-          <span className="font-bold text-slate-600 group-hover:text-slate-800 transition-colors truncate tracking-tight text-left">
+          <span className="font-bold text-slate-600 dark:text-muted-foreground group-hover:text-slate-800 dark:group-hover:text-foreground transition-colors truncate tracking-tight text-left">
             <span className="hidden sm:inline">Buscar clientes, demandas, contratos e documentos</span>
             <span className="sm:hidden">Buscar…</span>
           </span>
           <div className="hidden sm:flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-            <kbd className="text-[9.5px] font-mono font-bold bg-white border border-slate-200 rounded px-1.5 py-0.5 text-slate-800 flex items-center gap-1 shadow-sm">
+            <kbd className="text-[9.5px] font-mono font-bold bg-white dark:bg-muted border border-slate-200 dark:border-border rounded px-1.5 py-0.5 text-slate-800 dark:text-foreground flex items-center gap-1 shadow-sm">
               <Command className="size-2.5" /> K
             </kbd>
           </div>
@@ -60,10 +60,10 @@ export function AdminHeader({ onSearchClick, onMenuClick }: AdminHeaderProps) {
           Central Admin
         </div>
         <QuickCreateButton />
-        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-950">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card shadow-sm hover:border-slate-300 dark:hover:border-border/80 hover:bg-slate-50 dark:hover:bg-accent transition-colors text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground">
           <InternalChat />
         </div>
-        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm hover:border-slate-300 hover:bg-slate-50 transition-colors text-slate-600 hover:text-slate-950">
+        <div className="size-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-border bg-white dark:bg-card shadow-sm hover:border-slate-300 dark:hover:border-border/80 hover:bg-slate-50 dark:hover:bg-accent transition-colors text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground">
           <NotificationBell />
         </div>
       </div>
