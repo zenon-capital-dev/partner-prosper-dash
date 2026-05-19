@@ -20,7 +20,7 @@ import {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("30D");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -616,16 +616,19 @@ function FooterStat({ label, value, accent }: { label: string; value: string; ac
 }
 
 function SideKpi({ label, value, sub, icon: Icon, accent, compact }: { label: string; value: string; sub: string; icon: any; accent: "indigo" | "emerald" | "rose" | "slate"; compact?: boolean }) {
-  const accents: Record<string, { iconBg: string; iconColor: string; ring: string; dot: string }> = {
-    indigo: { iconBg: "bg-indigo-50", iconColor: "text-indigo-600", ring: "ring-indigo-100", dot: "bg-indigo-500" },
-    emerald: { iconBg: "bg-emerald-50", iconColor: "text-emerald-600", ring: "ring-emerald-100", dot: "bg-emerald-500" },
-    rose: { iconBg: "bg-rose-50", iconColor: "text-rose-600", ring: "ring-rose-100", dot: "bg-rose-500" },
-    slate: { iconBg: "bg-slate-100", iconColor: "text-slate-600", ring: "ring-slate-200", dot: "bg-slate-400" },
+  const accents: Record<string, { iconBg: string; iconColor: string; ring: string; dot: string; gradient: string }> = {
+    indigo: { iconBg: "bg-indigo-50", iconColor: "text-indigo-600", ring: "ring-indigo-100", dot: "bg-indigo-500", gradient: "from-indigo-50/50" },
+    emerald: { iconBg: "bg-emerald-50", iconColor: "text-emerald-600", ring: "ring-emerald-100", dot: "bg-emerald-500", gradient: "from-emerald-50/50" },
+    rose: { iconBg: "bg-rose-50", iconColor: "text-rose-600", ring: "ring-rose-100", dot: "bg-rose-500", gradient: "from-rose-50/50" },
+    slate: { iconBg: "bg-slate-100", iconColor: "text-slate-600", ring: "ring-slate-200", dot: "bg-slate-400", gradient: "from-slate-50/50" },
   };
   const a = accents[accent];
   return (
-    <div className="group relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.12)] hover:border-slate-300/80 transition-all flex flex-col">
-      <div className="flex items-center justify-between">
+    <div className="group relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-12px_rgba(15,23,42,0.12)] hover:border-slate-300/80 transition-all flex flex-col min-h-[160px] overflow-hidden">
+      {/* Decorative gradient background */}
+      <div className={cn("absolute inset-0 bg-gradient-to-br to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none", a.gradient)} />
+      
+      <div className="relative flex items-center justify-between z-10">
         <span className="inline-flex items-center gap-1.5">
           <span className={cn("size-1.5 rounded-full", a.dot)} />
           <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
@@ -635,17 +638,17 @@ function SideKpi({ label, value, sub, icon: Icon, accent, compact }: { label: st
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center py-4">
+      <div className="relative flex-1 flex flex-col justify-end py-2 z-10">
         <p className={cn(
-          "font-display font-bold tabular-nums leading-none tracking-[-0.025em] text-slate-900",
+          "font-display font-bold tabular-nums leading-none tracking-[-0.025em] text-slate-900 group-hover:translate-x-1 transition-transform",
           compact ? "text-[28px]" : "text-[34px]"
         )}>
           {value}
         </p>
-        <p className="text-[11.5px] text-slate-500 font-medium mt-2 truncate">{sub}</p>
+        <p className="text-[11.5px] text-slate-500 font-medium mt-1.5 truncate">{sub}</p>
       </div>
 
-      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+      <div className="relative pt-3 mt-auto border-t border-slate-100 flex items-center justify-between z-10">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atualizado agora</span>
         <span className={cn("inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-wider", a.iconColor)}>
           <span className={cn("size-1.5 rounded-full animate-pulse", a.dot)} />
