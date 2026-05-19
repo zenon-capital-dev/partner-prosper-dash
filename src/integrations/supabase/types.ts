@@ -4083,6 +4083,7 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: boolean
       }
+      complete_client_onboarding: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
           p_link?: string
