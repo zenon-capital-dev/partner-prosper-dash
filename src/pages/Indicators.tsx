@@ -149,8 +149,10 @@ export default function Indicators() {
             <p className="text-xs text-muted-foreground mt-1">Cadastre quem traz clientes e configure a % de comissão.</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[1000px]">
+              <thead className="bg-muted/40 text-[10px] uppercase tracking-wider text-muted-foreground">
+
               <tr>
                 <th className="px-4 py-3 text-left font-semibold">Indicador</th>
                 <th className="px-4 py-3 text-left font-semibold">Contato</th>
