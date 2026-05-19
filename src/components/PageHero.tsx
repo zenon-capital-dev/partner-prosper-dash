@@ -45,7 +45,7 @@ export function PageHero({
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
 
   return (
-    <section className="relative px-5 lg:px-8 pt-8 lg:pt-10 pb-2 space-y-7">
+    <section className="relative max-w-[1600px] mx-auto px-5 lg:px-8 pt-8 lg:pt-10 pb-2 space-y-7">
       {/* ambient — soft indigo wash, almost invisible */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
         <div className="absolute -top-44 -left-32 size-[520px] rounded-full bg-indigo-200/25 blur-[140px]" />
