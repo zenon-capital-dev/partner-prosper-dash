@@ -197,7 +197,7 @@ export default function Atuacoes() {
       />
 
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-6 animate-in slide-in-from-bottom-4 duration-1000">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        {/* Search + tabs */}
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex-1">
           <TabsList className="bg-white border border-slate-200/70 rounded-lg p-1 h-auto w-full sm:w-auto overflow-x-auto flex-nowrap justify-start">
             <TabsTrigger value="hoje" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
@@ -278,6 +278,8 @@ export default function Atuacoes() {
             locale={ptBR}
             className="p-3 pointer-events-auto"
           />
+        </DialogContent>
+      </Dialog>
         </DialogContent>
       </Dialog>
     </div>
