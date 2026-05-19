@@ -9,7 +9,7 @@ import {
   ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
   MessageSquare, UserRound, Users, Briefcase, 
   FileCheck, FileClock, History, Plus,
-  FileText, Activity, Timer
+  FileText, Activity, Timer, Wallet
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHero } from "@/components/PageHero";
@@ -304,7 +304,11 @@ export default function Demands() {
             </div>
 
             
-            <Button className="h-11 gap-2 rounded-xl" onClick={() => navigate("/clientes")}>
+            <Button variant="outline" className="h-11 gap-2 rounded-xl border-indigo-100 text-indigo-700 hover:bg-indigo-50" onClick={() => navigate("/comissoes")}>
+              <Wallet className="size-4" /> Comissões
+            </Button>
+            
+            <Button className="h-11 gap-2 rounded-xl shadow-indigo-200/50 shadow-lg" onClick={() => navigate("/clientes")}>
               <Plus className="size-4" /> Nova Demanda
             </Button>
           </div>

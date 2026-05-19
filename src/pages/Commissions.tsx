@@ -27,7 +27,7 @@ import { formatBRL, formatDate, formatPercent, initials } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 
-type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "cancelada" | "estornada";
+type StatusFilter = "all" | "aguardando_confirmacao" | "pendente" | "liberada" | "em_pagamento" | "paga" | "pago" | "cancelada" | "estornada";
 
 const statusBadge: Record<string, string> = {
   aguardando_confirmacao: "bg-blue-50 text-blue-600 border-blue-200",
@@ -35,6 +35,7 @@ const statusBadge: Record<string, string> = {
   liberada: "bg-indigo-50 text-indigo-600 border-indigo-200",
   em_pagamento: "bg-purple-50 text-purple-600 border-purple-200",
   paga: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  pago: "bg-emerald-100 text-emerald-800 border-emerald-300",
   cancelada: "bg-destructive/10 text-destructive border-destructive/20",
   estornada: "bg-slate-100 text-slate-600 border-slate-300",
 };
@@ -152,7 +153,7 @@ export default function Commissions() {
     filtered.forEach((c: any) => {
       const v = Number(c.amount || 0);
       acc.total += v;
-      if (c.workflow_status === "paga") acc.paid += v;
+      if (c.workflow_status === "paga" || c.workflow_status === "pago") acc.paid += v;
       else if (["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(c.workflow_status)) acc.pending += v;
     });
     return acc;
@@ -242,7 +243,8 @@ export default function Commissions() {
       notes: editForm.notes || null,
       payment_method: editForm.payment_method || null,
       approval_date: editForm.status === "aprovada" ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : new Date().toISOString()) : (editing.approval_date || null),
-      paid_at: editForm.status === "paga" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : (editing.paid_at || null),
+      paid_at: editForm.status === "pago" || editForm.status === "paga" ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : new Date().toISOString()) : (editing.paid_at || null),
+      status: editForm.status === "paga" ? "pago" : editForm.status, // Normalize status value
     };
     const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }
@@ -280,8 +282,9 @@ export default function Commissions() {
 
   const confirmPay = async () => {
     if (!payTarget?.ids?.length) return;
-    const payload = {
-      workflow_status: "paga" as const,
+    const payload: any = {
+      workflow_status: "paga",
+      status: "pago",
       paid_at: new Date(payForm.paid_at).toISOString(),
       payment_method: payForm.payment_method,
       notes: payForm.notes || null,

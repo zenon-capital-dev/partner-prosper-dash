@@ -22,20 +22,20 @@ const SECTIONS: NavSection[] = [
   { label: "Operação", items: [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Alertas", url: "/cockpit", icon: Activity },
-    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
+    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, adminOnly: true },
     { title: "Tarefas", url: "/tarefas", icon: Target },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
-  { label: "Clientes", adminOnly: true, items: [
+  { label: "CRM & Vendas", adminOnly: true, items: [
     { title: "Clientes", url: "/clientes", icon: Users, adminOnly: true },
     { title: "Leads", url: "/leads", icon: UserPlus, adminOnly: true },
-    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
     { title: "Propostas", url: "/propostas", icon: FileText, adminOnly: true },
+    { title: "Vendas", url: "/vendas", icon: CircleDollarSign, adminOnly: true },
   ]},
   { label: "Catálogo", adminOnly: true, items: [
-    { title: "Produtos", url: "/produtos", icon: Package, adminOnly: true },
-    { title: "Templates(Desenvolvimento)", url: "/templates", icon: MessageSquare, adminOnly: true },
+    { title: "Serviços", url: "/produtos", icon: Package, adminOnly: true },
+    { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", adminOnly: true, items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, adminOnly: true },
@@ -44,11 +44,11 @@ const SECTIONS: NavSection[] = [
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
   { label: "Financeiro", adminOnly: true, items: [
-    { title: "Financeiro", url: "/financeiro", icon: Banknote, adminOnly: true },
-    { title: "Central", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
+    { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3, adminOnly: true },
+    { title: "Faturamento", url: "/financeiro", icon: Banknote, adminOnly: true },
     { title: "Comissões", url: "/comissoes", icon: Wallet, adminOnly: true },
     { title: "Contratos", url: "/contratos", icon: FileSignature, adminOnly: true },
-    { title: "Documentos", url: "/documentos", icon: FileText, adminOnly: true },
+    { title: "Arquivos", url: "/documentos", icon: FileText, adminOnly: true },
   ]},
   { label: "Sistema", adminOnly: true, items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },

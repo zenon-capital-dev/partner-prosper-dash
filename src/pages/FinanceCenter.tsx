@@ -79,7 +79,7 @@ export default function FinanceCenter() {
 
   const kpis = useMemo(() => {
     const isOpen = (s: string) => ["em_aberto", "pendente", "parcial", "parcialmente_pago"].includes(s);
-    const isPaid = (s: string) => s === "pago";
+    const isPaid = (s: string) => s === "pago" || s === "paga";
     const isOverdue = (p: any) => isOpen(p.status) && p.due_date && p.due_date < todayIso;
     const totalReceived = payments.filter((p: any) => isPaid(p.status)).reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
     const totalReceivable = payments.filter((p: any) => isOpen(p.status)).reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
@@ -327,17 +327,24 @@ function PaymentsTable({
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({ commissions }: { commissions: any[] }) {
   const qc = useQueryClient();
-  const pending = commissions.filter((c: any) => c.workflow_status !== "paga" && c.status !== "paga");
-  const paid = commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga");
+  const pending = commissions.filter((c: any) => c.workflow_status !== "pago" && c.workflow_status !== "paga" && c.status !== "pago" && c.status !== "paga");
+  const paid = commissions.filter((c: any) => c.workflow_status === "pago" || c.workflow_status === "paga" || c.status === "pago" || c.status === "paga");
 
   const markPaid = async (id: string) => {
+    // Standardizing on 'pago' to match the database enum and common convention
     const { error } = await supabase.from("commissions").update({
-      status: "paga",
-      workflow_status: "paga",
+      status: "pago",
+      workflow_status: "pago",
       paid_at: new Date().toISOString(),
-    }).eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Comissão paga"); qc.invalidateQueries({ queryKey: ["fin-commissions"] }); }
+    } as any).eq("id", id);
+    
+    if (error) {
+      console.error("Error updating commission status:", error);
+      toast.error("Erro ao atualizar status: " + error.message);
+    } else { 
+      toast.success("Comissão marcada como paga"); 
+      qc.invalidateQueries({ queryKey: ["fin-commissions"] }); 
+    }
   };
 
   const Block = ({ rows, title, action }: { rows: any[]; title: string; action: boolean }) => (

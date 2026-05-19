@@ -11,7 +11,7 @@ import {
   Calendar, ShieldAlert, Paperclip, ArrowRight,
   PauseCircle, PlayCircle, AlertTriangle, FileCheck,
   Zap, FilePlus, Download, Info, ClipboardList, Plus,
-  Pencil, Copy, Trash2, XCircle
+  Pencil, Copy, Trash2, XCircle, UserCircle
 } from "lucide-react";
 import { EditDemandDialog } from "@/components/demands/EditDemandDialog";
 import { Button } from "@/components/ui/button";
@@ -316,13 +316,21 @@ export default function DemandDetail() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-           <DropdownMenu>
-             <DropdownMenuTrigger asChild>
-               <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
-                 Ações da Demanda <ArrowRight className="size-4" />
-               </Button>
-             </DropdownMenuTrigger>
+        <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-11 rounded-xl gap-2 border-indigo-100 text-indigo-700 hover:bg-indigo-50"
+              onClick={() => setDelegateOpen(true)}
+            >
+              <UserCircle className="size-4" /> Delegar Prestador
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
+                  Ações da Demanda <ArrowRight className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
              <DropdownMenuContent align="end" className="w-56 rounded-xl border-border bg-card shadow-xl">
                <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Operações</DropdownMenuLabel>
                <DropdownMenuSeparator />
