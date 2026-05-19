@@ -9,6 +9,7 @@ import {
   Calendar as CalendarIcon, Wallet, Layers, ArrowRight,
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
+import { PageHero } from "@/components/PageHero";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -191,34 +192,21 @@ export default function DashboardAdmin() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-
-        {/* TOP BAR / NAVIGATION */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                PAINEL ADMIN
-              </div>
-              <div className="h-px w-8 bg-slate-200" />
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
-                {format(brasiliaToday, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-              </span>
-            </div>
-            <h1 className="text-4xl font-black tracking-tight text-slate-900">
-              {greeting}, <span className="text-indigo-600">{firstName}</span>
-            </h1>
-            <p className="text-slate-500 font-medium mt-1">Aqui está o pulso do seu negócio hoje.</p>
-          </div>
-
+      <PageHero
+        eyebrow="Dashboard"
+        category="Visão Geral"
+        title={`${greeting}, ${firstName}`}
+        description="Aqui está o pulso do seu negócio hoje."
+        icon={<Sparkles className="size-6" />}
+        actions={
           <div className="flex items-center gap-3">
-            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setRangeKey(k)}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-[11px] font-black transition-all",
+                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
                     rangeKey === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
                   )}
                 >
@@ -234,43 +222,17 @@ export default function DashboardAdmin() {
               NOVA VENDA
             </Link>
           </div>
-        </header>
+        }
+        kpis={[
+          { label: "Receita", value: formatBRL(stats.rangeRevenue), tone: "primary", icon: <CircleDollarSign className="size-4" />, hint: "Vendas no período" },
+          { label: "Ativos", value: stats.activeClients.toString(), tone: "success", icon: <Users className="size-4" />, hint: `${stats.totalClients} total` },
+          { label: "Pipeline", value: formatBRL(stats.pipelineTotal), tone: "warning", icon: <Target className="size-4" />, hint: `${stats.leadsCount} leads` },
+          { label: "Atrasos", value: stats.delayedDemands.toString(), tone: "danger", icon: <Clock className="size-4" />, hint: "Fora do prazo" },
+        ]}
+      />
 
-        {/* === LINHA 1: KPIs PRINCIPAIS === */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <StatCard
-            label="RECEITA DO PERÍODO"
-            value={formatBRL(stats.rangeRevenue)}
-            trend={rangeKey}
-            icon={CircleDollarSign}
-            tone="primary"
-            subText="Vendas no período selecionado"
-          />
-          <StatCard
-            label="CLIENTES ATIVOS"
-            value={stats.activeClients.toString()}
-            trend={`${stats.totalClients} total`}
-            icon={Users}
-            tone="success"
-            subText="Contas com contratos vigentes"
-          />
-          <StatCard
-            label="OPORTUNIDADES ABERTAS"
-            value={formatBRL(stats.pipelineTotal)}
-            trend={`${stats.leadsCount} leads`}
-            icon={Target}
-            tone="warning"
-            subText="Valor estimado em negociação"
-          />
-          <StatCard
-            label="ENTREGAS ATRASADAS"
-            value={stats.delayedDemands.toString()}
-            trend="SLA"
-            icon={Clock}
-            tone="danger"
-            subText="Demandas fora do prazo"
-          />
-        </div>
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+
 
         {/* === LINHA 2: OPERACIONAL DETALHADO === */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
