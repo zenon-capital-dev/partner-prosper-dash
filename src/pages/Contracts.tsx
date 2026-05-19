@@ -132,17 +132,33 @@ export default function Contracts() {
   }), [allContracts, search, statusFilter]);
 
   return (
-    <div className="page-shell space-y-6 animate-fade-up">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Jurídico"
         category="Contratos & Termos"
         title="Contratos"
-        description="Centralize contratos com clientes, parceiros e prestadores. Acompanhe assinaturas, validades e histórico auditado."
+        description="Centralize contratos com clientes, parceiros e prestadores."
         icon={<FileSignature className="size-6" />}
         actions={
-          <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="bg-gradient-to-r from-indigo-500 via-indigo-500 to-indigo-600 text-white shadow-xl">
-            <Plus className="size-4 mr-1.5" /> Novo Contrato
-          </Button>
+          <div className="flex items-center gap-3">
+             <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm mr-2">
+              {(["all", "aguardando_assinatura", "assinado"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setStatusFilter(k)}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
+                    statusFilter === k ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  {k === 'all' ? 'Todos' : k === 'aguardando_assinatura' ? 'Assinatura' : 'Assinados'}
+                </button>
+              ))}
+            </div>
+            <Button onClick={() => { setSelectedContract(null); setIsDialogOpen(true); }} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+              <Plus className="size-4 mr-2 stroke-[3]" /> NOVO CONTRATO
+            </Button>
+          </div>
         }
         kpis={[
           { label: "Total", value: kpis.total, tone: "primary", icon: <FileSignature className="size-4" /> },
@@ -151,6 +167,8 @@ export default function Contracts() {
           { label: "Valor total", value: formatBRL(kpis.valorTotal), tone: "info", icon: <DollarSign className="size-4" /> },
         ]}
       />
+
+      <div className="px-5 lg:px-8 space-y-6 pb-10">
 
       <div className="px-5 lg:px-8 space-y-6">
 
@@ -374,6 +392,7 @@ export default function Contracts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
       </div>
     </div>
   );
