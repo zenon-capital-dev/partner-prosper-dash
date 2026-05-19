@@ -305,7 +305,7 @@ function CreateCollaboratorDialog({
     role: "colaborador" as "colaborador" | "admin_secondary" | "admin",
     has_system_access: true,
     internal_notes: "",
-    send_invite: true,
+    send_invite: false, // Default to false for direct password creation
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -420,41 +420,39 @@ function CreateCollaboratorDialog({
                 </Select>
               </div>
               <div className="space-y-1.5 col-span-2">
-                <Label>Senha personalizada (opcional)</Label>
-                <Input
-                  type="text"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Deixe vazio para gerar automaticamente ou enviar convite por e-mail"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Se preenchido, o colaborador acessa imediatamente com esta senha.
-                </p>
-              </div>
-              <div className="col-span-2 flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
-                <div>
-                  <Label>Enviar convite por e-mail</Label>
-                  <p className="text-[11px] text-slate-500">Ignorado se senha personalizada for definida.</p>
+                <Label>Senha do Painel</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="password"
+                    value={form.password} 
+                    onChange={(e) => setForm({ ...form, password: e.target.value })} 
+                    placeholder="Defina a senha de acesso"
+                  />
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const pass = Math.random().toString(36).slice(-8) + "A1!";
+                      setForm({ ...form, password: pass });
+                      toast.info("Senha gerada: " + pass);
+                    }}
+                  >
+                    Gerar
+                  </Button>
                 </div>
-                <Switch checked={form.send_invite} onCheckedChange={(v) => setForm({ ...form, send_invite: v })} />
+                <p className="text-[10px] text-slate-500">Mínimo 6 caracteres. Se não preencher, uma senha aleatória será gerada.</p>
               </div>
-              <div className="col-span-2 flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
-                <div>
-                  <Label>Acesso ao sistema</Label>
-                  <p className="text-[11px] text-slate-500">Permite login imediato no painel.</p>
-                </div>
-                <Switch checked={form.has_system_access} onCheckedChange={(v) => setForm({ ...form, has_system_access: v })} />
-              </div>
-              <div className="col-span-2 space-y-1.5">
+
+              <div className="space-y-1.5 col-span-2">
                 <Label>Observações internas</Label>
-                <Textarea rows={2} value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} />
+                <Textarea value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} placeholder="Notas sobre o colaborador..." />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button onClick={submit} disabled={loading}>
+              <Button onClick={submit} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
                 {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                Salvar colaborador
+                Criar Colaborador
               </Button>
             </DialogFooter>
           </>
