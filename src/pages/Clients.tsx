@@ -218,7 +218,8 @@ export default function Clients() {
   ].filter((v) => v !== "all").length + (dateRange?.from ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
+    <TooltipProvider delayDuration={200}>
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
       <PageHero
         eyebrow="CRM"
         category="Base de Clientes"
@@ -624,6 +625,7 @@ export default function Clients() {
           onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
         />
       </div>
+    </TooltipProvider>
   );
 }
 
