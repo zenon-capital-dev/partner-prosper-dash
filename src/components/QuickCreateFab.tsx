@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Users, Briefcase, Truck, ClipboardList, FileText, FileSignature, Banknote } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -18,6 +19,9 @@ const SHORTCUTS = [
 export function QuickCreateFab() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { isAdmin, isAdminSecondary } = useAuth();
+
+  if (!isAdmin && !isAdminSecondary) return null;
 
   return (
     <>
