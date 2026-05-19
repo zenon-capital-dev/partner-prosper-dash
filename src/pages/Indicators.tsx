@@ -166,7 +166,7 @@ export default function Indicators() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {enriched.map((r: any) => (
+              {paginated.map((r: any) => (
                 <tr key={r.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
