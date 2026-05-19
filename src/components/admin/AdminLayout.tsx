@@ -7,7 +7,10 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { AIAssistant } from "@/components/chat/AIAssistant";
 
-// Rotas que SOMENTE admin pleno pode acessar. Colaborador fica restrito a operação.
+// Rotas em que colaborador pode entrar (somente leitura via UI + RLS).
+const COLABORADOR_ALLOWED_PREFIXES = ["/clientes"];
+
+// Rotas que SOMENTE admin pleno pode acessar.
 const ADMIN_ONLY_PREFIXES = [
   "/vendas", "/propostas", "/produtos", "/templates",
   "/parceiros", "/indicadores", "/colaboradores",
