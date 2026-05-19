@@ -176,19 +176,25 @@ export default function UsersPage() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <Select value={u.roles[0] ?? "none"} onValueChange={(v) => setRole(u.id, v as Role)}>
-                      <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Sem papel</SelectItem>
-                        <SelectItem value="admin">Admin Principal</SelectItem>
-                        <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
-                        <SelectItem value="colaborador">Colaborador</SelectItem>
-                        <SelectItem value="parceiro">Parceiro</SelectItem>
-                        <SelectItem value="prestador">Prestador</SelectItem>
-                        <SelectItem value="cliente">Cliente</SelectItem>
-                        <SelectItem value="lead">Lead / Convidado</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {(() => {
+                      const PRIORITY = ["admin","admin_secondary","colaborador","vendedor","parceiro","prestador","indicador","cliente","lead"];
+                      const primary = PRIORITY.find((r) => u.roles?.includes(r)) ?? "none";
+                      return (
+                        <Select value={primary} onValueChange={(v) => setRole(u.id, v as Role)}>
+                          <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Sem papel</SelectItem>
+                            <SelectItem value="admin">Admin Principal</SelectItem>
+                            <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
+                            <SelectItem value="colaborador">Colaborador</SelectItem>
+                            <SelectItem value="parceiro">Parceiro</SelectItem>
+                            <SelectItem value="prestador">Prestador</SelectItem>
+                            <SelectItem value="cliente">Cliente</SelectItem>
+                            <SelectItem value="lead">Lead / Convidado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      );
+                    })()}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
