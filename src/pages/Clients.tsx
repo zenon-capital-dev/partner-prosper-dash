@@ -218,47 +218,33 @@ export default function Clients() {
   ].filter((v) => v !== "all").length + (dateRange?.from ? 1 : 0);
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="page-shell space-y-6 animate-fade-up">
-        <PageHeader
-          eyebrow="CRM"
-          title="Clientes"
-          description="Carteira completa, engajamento e risco de cancelamento."
-          actions={
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search}>
-                Limpar
-              </Button>
-              <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }}>
-                <Plus className="size-4 mr-2" /> Novo cliente
-              </Button>
-            </div>
-          }
-        />
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700">
+      <PageHero
+        eyebrow="CRM"
+        category="Base de Clientes"
+        title="Gestão de Clientes"
+        description="Carteira completa, engajamento e risco de cancelamento."
+        icon={<Users className="size-6" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search} className="h-12 px-5 rounded-xl font-bold uppercase text-[10px]">
+              Limpar
+            </Button>
+            <Button onClick={() => { setEditing(null); setOpen(true); }} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">
+              <Plus className="size-4 mr-2 stroke-[3]" />
+              NOVO CLIENTE
+            </Button>
+          </div>
+        }
+        kpis={[
+          { label: "Total", value: kpis.total.toString(), tone: "primary", icon: <Users className="size-4" />, hint: `${kpis.active} ativos` },
+          { label: "Em Risco", value: kpis.atRisk.toString(), tone: "danger", icon: <AlertTriangle className="size-4" /> },
+          { label: "Saúde", value: `${kpis.avgHealth}%`, tone: "success", icon: <Activity className="size-4" /> },
+          { label: "Receita", value: formatBRL(kpis.totalRevenue), tone: "warning", icon: <TrendingUp className="size-4" /> },
+        ]}
+      />
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-          <SummaryCard
-            label="Total de clientes" value={kpis.total.toString()}
-            sublabel={`${kpis.active} ativos · ${kpis.prospects} prospectos`}
-            icon={<Users className="size-4" />} tone="default"
-          />
-          <SummaryCard
-            label="Em risco" value={kpis.atRisk.toString()}
-            sublabel={kpis.total > 0 ? `${Math.round((kpis.atRisk / kpis.total) * 100)}% da base` : "—"}
-            icon={<AlertTriangle className="size-4" />} tone="danger"
-          />
-          <SummaryCard
-            label="Engajamento médio" value={`${kpis.avgHealth}`}
-            sublabel="Pontuação consolidada da carteira"
-            icon={<Activity className="size-4" />} tone={kpis.avgHealth >= 70 ? "success" : kpis.avgHealth >= 50 ? "warning" : "danger"}
-          />
-          <SummaryCard
-            label="Receita contratada" value={formatBRL(kpis.totalRevenue)}
-            sublabel={`Pendência ${formatBRL(kpis.totalPending)}`}
-            icon={<TrendingUp className="size-4" />} tone="primary"
-          />
-        </div>
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
 
         {/* Toolbar: search + filter toggle + view toggle */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
