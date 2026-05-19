@@ -825,7 +825,10 @@ export default function ClientPanel() {
               <TabsContent value="contratos" className="animate-fade-up">
                 <ClientContractsTab clientId={client.id} contracts={contracts as any} />
               </TabsContent>
+                </div>
+              </div>
             </Tabs>
+
           </>
         )}
       </div>
