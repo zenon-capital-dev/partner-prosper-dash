@@ -221,7 +221,6 @@ export default function Finance() {
       />
 
       <div className="px-5 lg:px-8 space-y-8 pb-10">
-        {/* ROW 1: MINI KPI GRID */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
            <Link to="/financeiro" className="bg-white rounded-[24px] p-6 border border-slate-200 shadow-sm hover:shadow-lg transition-all">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A RECEBER (7D)</p>
