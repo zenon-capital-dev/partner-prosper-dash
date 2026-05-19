@@ -90,6 +90,9 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
   const displayEmail = user?.email || "";
   const portalLabel = isFullAdmin ? "Admin OS" : "Workspace";
 
+  // Verificamos se está em dark mode para ajustar cores específicas via style se necessário
+  const isDark = document.documentElement.classList.contains("dark");
+
   return (
     <aside
       className={cn(
@@ -110,7 +113,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               "flex items-center gap-3 rounded-xl transition-all group",
               collapsed ? "size-11 justify-center hover:bg-slate-100" : "w-full px-2 py-2 hover:bg-white hover:shadow-sm hover:ring-1 hover:ring-slate-200"
             )}>
-              <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-slate-950 flex items-center justify-center shadow-[0_12px_24px_-14px_hsl(231_72%_46%/0.75)] shrink-0 ring-1 ring-indigo-400/30">
+              <div className="size-10 rounded-xl bg-gradient-to-br from-indigo-500 via-blue-600 to-slate-900 flex items-center justify-center shadow-lg shrink-0 ring-1 ring-white/10">
                 <Box className="size-[17px] text-white" strokeWidth={2.5} />
               </div>
               {!collapsed && (
@@ -243,7 +246,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               collapsed && "justify-center"
             )}>
               <div className="relative shrink-0">
-                <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-600 to-slate-950 flex items-center justify-center text-white text-[11px] font-black ring-2 ring-white shadow-sm">
+                <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-slate-900 flex items-center justify-center text-white text-[11px] font-black ring-1 ring-white/20 shadow-sm">
                   {initials(displayName)}
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-400 ring-2 ring-white" />
