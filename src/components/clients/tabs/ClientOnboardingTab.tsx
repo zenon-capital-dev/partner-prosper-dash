@@ -147,9 +147,10 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   {doc.file_url && (
                     <Button variant="ghost" size="sm" className="rounded-lg h-9 px-3 text-indigo-600 hover:bg-indigo-50 font-bold text-[10px]" onClick={() => {
-                      supabase.storage.from("documents").createSignedUrl(doc.file_url, 3600).then(({data}) => {
+                      supabase.storage.from("documents").createSignedUrl(doc.file_url, 3600).then(({data, error}) => {
+                        if (error) return toast.error("Erro ao gerar link do documento: " + error.message);
                         if (data) window.open(data.signedUrl, '_blank');
-                      });
+                      }).catch(err => toast.error("Erro inesperado ao abrir documento"));
                     }}>
                       <Download className="size-3.5 mr-1.5" /> BAIXAR
                     </Button>
@@ -180,8 +181,10 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
 
                   <Button variant="ghost" size="icon" className="size-9 rounded-lg text-slate-400 hover:text-rose-600" onClick={async () => {
                     if (window.confirm("Excluir documento?")) {
-                      await supabase.from("onboarding_documents").delete().eq("id", doc.id);
+                      const { error } = await supabase.from("onboarding_documents").delete().eq("id", doc.id);
+                      if (error) return toast.error("Erro ao excluir: " + error.message);
                       qc.invalidateQueries({ queryKey: ["onboarding-docs-admin"] });
+                      toast.success("Documento removido");
                     }
                   }}>
                     <Trash2 className="size-4" />
@@ -197,9 +200,11 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
                <Button variant="ghost" size="sm" className="mt-4 text-indigo-600 hover:bg-indigo-50 font-bold text-xs" onClick={() => {
                  const name = window.prompt("Nome do documento:");
                  if (name) {
-                   supabase.from("onboarding_documents").insert({ client_id: profile?.id, name, status: 'pending' }).then(() => {
-                     qc.invalidateQueries({ queryKey: ["onboarding-docs-admin"] });
-                   });
+                    supabase.from("onboarding_documents").insert({ client_id: profile?.id, name, status: 'pending' }).then(({error}) => {
+                      if (error) return toast.error("Erro ao adicionar: " + error.message);
+                      qc.invalidateQueries({ queryKey: ["onboarding-docs-admin"] });
+                      toast.success("Solicitação adicionada");
+                    }).catch(() => toast.error("Erro inesperado ao adicionar documento"));
                  }
                }}>
                  + Adicionar Documento Obrigatório
