@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { UserCircle, Search, Plus, Mail, Phone, Shield, Loader2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,10 +34,15 @@ const ROLE_LABEL: Record<string, string> = {
 export default function Collaborators() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<CollabRow | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["collaborators-list"],
@@ -70,7 +76,7 @@ export default function Collaborators() {
   });
 
   const filtered = rows.filter((r) => {
-    const q = search.trim().toLowerCase();
+    const q = debouncedSearch.trim().toLowerCase();
     if (!q) return true;
     return (
       (r.full_name ?? "").toLowerCase().includes(q) ||

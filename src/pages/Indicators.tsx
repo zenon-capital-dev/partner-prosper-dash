@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useDebounce } from "@/hooks/use-debounce";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +28,13 @@ export default function Indicators() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(empty);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["referrers-rich"],
@@ -53,7 +59,7 @@ export default function Indicators() {
       const pending = mySplits.filter((s: any) => s.status === "pendente").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
       const clients = clientsByReferrer.filter((c: any) => c.referrer_id === r.id).length;
       return { ...r, _total: total, _paid: paid, _pending: pending, _clients: clients };
-    }).filter((r: any) => !search || r.full_name?.toLowerCase().includes(search.toLowerCase()) || r.email?.toLowerCase().includes(search.toLowerCase()));
+    }).filter((r: any) => !debouncedSearch || r.full_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) || r.email?.toLowerCase().includes(debouncedSearch.toLowerCase()));
   }, [referrers, splits, clientsByReferrer, search]);
 
   const totalPages = Math.ceil(enriched.length / itemsPerPage);
