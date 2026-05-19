@@ -35,7 +35,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [customDocs, setCustomDocs] = useState<string[]>([]);
   const [newDocInput, setNewDocInput] = useState("");
   const [mandatorySteps, setMandatorySteps] = useState<string[]>(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
-  const [manualApproval, setManualApproval] = useState(true);
+  const [manualApproval, setManualApproval] = useState(false);
 
   useEffect(() => {
     if (client) setForm(client);
@@ -45,6 +45,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     setSelectedTemplateDocs([]);
     setCustomDocs([]);
     setNewDocInput("");
+    setManualApproval(false);
   }, [client, open]);
 
   const generatePassword = () => {
@@ -158,11 +159,15 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
     // Onboarding setup
     if (clientId) {
+      const shouldReleaseAccess = createAccess && !manualApproval;
       const { error: profErr } = await supabase.from("profiles").update({
-        onboarding_completed: false,
+        onboarding_completed: shouldReleaseAccess,
         onboarding_step: 1,
         manual_approval_required: manualApproval,
       } as any).eq("id", clientId); // user_id is profile id usually in this system
+      if (shouldReleaseAccess) {
+        await supabase.from("clients").update({ onboarding_status: "concluido", onboarding_progress: 100 } as any).eq("id", clientId);
+      }
 
       const allDocs = [...selectedTemplateDocs, ...customDocs];
       if (allDocs.length > 0) {
@@ -188,6 +193,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           send_invite: false,
           password: accessPwd,
           link_client_id: clientId,
+          onboarding_completed: !manualApproval,
+          manual_approval_required: manualApproval,
         },
       });
       if (invErr) {
