@@ -298,7 +298,15 @@ export default function Providers() {
               </tbody>
             </table>
           </div>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
         )}
+
       </div>
 
       <ProviderFormDialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) setEditing(null); }} provider={editing} onSuccess={refresh} />
