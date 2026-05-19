@@ -333,9 +333,15 @@ export default function Sales() {
 
           <div className="flex items-center gap-1.5 bg-background/60 border border-border rounded-xl px-2.5 h-10">
             <CalendarRange className="size-3.5 text-muted-foreground/60" />
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
+            <input type="date" value={dateFrom} onChange={(e) => {
+              setDateFrom(e.target.value);
+              if (dateTo && e.target.value > dateTo) setDateTo(e.target.value);
+            }} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
             <span className="text-muted-foreground/40">→</span>
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
+            <input type="date" value={dateTo} onChange={(e) => {
+              setDateTo(e.target.value);
+              if (dateFrom && e.target.value < dateFrom) setDateFrom(e.target.value);
+            }} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
           </div>
 
           {hasActiveFilters && (
