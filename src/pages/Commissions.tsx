@@ -633,8 +633,16 @@ export default function Commissions() {
               </tfoot>
             )}
           </table>
+          <PaginationControl
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+          />
         </div>
       </div>
+
     </TabsContent>
 
 
