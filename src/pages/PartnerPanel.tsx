@@ -366,7 +366,7 @@ function KpiCard({ label, value, icon: Icon, tone, description }: any) {
     warning: "text-amber-600 bg-amber-50 border-amber-100" 
   };
   return (
-    <div className="vx-card p-6 bg-white border border-slate-200 rounded-[24px] shadow-sm hover:shadow-md transition-all group">
+    <div className="vx-card p-6 bg-white border border-slate-200/80 rounded-[28px] shadow-sm hover:shadow-xl transition-all group hover:-translate-y-1 duration-300">
        <div className={cn("size-12 rounded-2xl flex items-center justify-center mb-4 border transition-transform group-hover:scale-110", tones[tone] || "text-slate-600 bg-slate-50 border-slate-100")}>
           <Icon className="size-6" />
        </div>
