@@ -167,6 +167,31 @@ const prestadorSections: NavSection[] = [
   },
 ];
 
+const collaboratorSections: NavSection[] = [
+  {
+    label: "Operação",
+    items: [
+      { title: "Dashboard", url: "/colaborador", icon: LayoutDashboard },
+      { title: "Minhas Demandas", url: "/colaborador/demandas", icon: ClipboardList },
+      { title: "Tarefas", url: "/colaborador/tarefas", icon: ListChecks },
+    ],
+  },
+  {
+    label: "Consulta",
+    items: [
+      { title: "Clientes", url: "/colaborador/clientes", icon: Users },
+      { title: "Documentos", url: "/colaborador/documentos", icon: FileText },
+      { title: "Lista geral", url: "/clientes", icon: Search, badge: "READ" },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { title: "Meu Perfil", url: "/colaborador/perfil", icon: UserCog },
+    ],
+  },
+];
+
 const partnerSections: NavSection[] = [
   {
     label: "Painel",
