@@ -1,85 +1,86 @@
-# Continuação — CRUD completo + máscaras + sincronização
 
-Pego de onde paramos. Foco em garantir que **criar, vincular, editar, salvar e apagar** funcione 100% em todas as entidades, com máscaras profissionais e propagação correta entre admin/colaborador/parceiro/prestador.
+## Objetivo
 
-## 1. Finalizar máscaras BR em todos os formulários
-
-Já criei `src/lib/masks.ts`, `src/lib/validators.ts` e `src/components/ui/masked-input.tsx`. Falta aplicar:
-
-- `ClientFormDialog` — CPF/CNPJ (auto-detect), telefone, CEP com **auto-fill ViaCEP** (preenche rua/bairro/cidade/UF). Salvar apenas dígitos no banco.
-- `LeadFormDialog` — telefone, WhatsApp.
-- `CompanyFormDialog` — CNPJ, telefone, CEP + ViaCEP.
-- `ProviderFormDialog` — CPF/CNPJ, telefone.
-- `Partners.tsx`, `Collaborators.tsx`, `Indicators.tsx` (formulários inline) — CPF/CNPJ, telefone.
-- `Perfil.tsx`, `ClientOnboarding.tsx` — telefone, documento, CEP.
-
-## 2. Auditoria de CRUD — fluxo end-to-end
-
-Vou rodar cada operação manualmente no banco e validar:
-
-**Criar:**
-- Cliente com colaborador + parceiro + prestador → checar que `clients.collaborator_id`, `partner_id`, `referrer_id`, `service_provider_id` ficam preenchidos.
-- Trigger `propagate_client_collaborator` propaga para `client_products.responsible_employee_id`.
-- Demanda nova herda `responsible_employee_id` via `fill_client_product_responsible`.
-- Task nova herda `assigned_to` via `fill_task_assigned_from_demand`.
-- Venda gera comissão via `handle_new_sale` + splits via `generate_commission_splits`.
-
-**Editar:**
-- Trocar colaborador de um cliente já existente → propaga para demandas órfãs/desse colaborador (trigger já faz, validar).
-- Editar lead e converter → garante que `responsible_id` vai pra `clients.collaborator_id` e `client_products.responsible_employee_id`.
-
-**Apagar / Arquivar:**
-- `Products.handleDelete` já trata FK (feito).
-- Replicar mesma lógica para: **Clientes** (verificar `sales`, `client_products`, `contracts`, `payments`, `documents` → desativar se vinculado, deletar se órfão), **Leads** (deletar limpo, sem FK pesada), **Parceiros/Prestadores/Colaboradores/Indicadores** (desativar via `active=false` se tem vínculo, deletar se órfão).
-- Adicionar confirmação clara com contagem de vínculos antes de qualquer destrutivo.
-
-**Visualização cruzada:**
-- Cliente criado por admin com colaborador X → aparece em `/colaborador` (Dashboard, Minhas Demandas, Clientes, Tarefas).
-- Cliente vinculado a parceiro Y → aparece em `/parceiro`.
-- Demanda delegada a prestador Z → aparece em `/prestador`.
-- Comissão gerada → aparece em `/colaborador/comissoes`, `/parceiro/comissoes`, `/indicador`.
-
-Cada gap encontrado vira correção imediata (migration de RLS, ajuste de query, ajuste de trigger).
-
-## 3. Padronizar handlers CRUD
-
-Criar helpers reutilizáveis:
-
-- `src/lib/safe-delete.ts` — `safeDelete({ table, id, fkChecks: [{ table, column }] })` que retorna `{ canDelete, blockedBy }` e oferece fallback de desativar.
-- `src/lib/format-display.ts` — `formatCPFCNPJ`, `formatPhone`, `formatCEP` para exibir formatado em listas/cards (dados salvos em dígitos puros).
-
-Aplicar nos botões Excluir de: `Clients.tsx`, `Leads.tsx`, `Partners.tsx`, `Providers.tsx`, `Collaborators.tsx`, `Indicators.tsx`, `Sales.tsx`, `Contracts.tsx`.
-
-## 4. Smoke test de RLS + fluxo
-
-Criar `src/test/rls/end-to-end-flow.test.ts` que usa `SUPABASE_SERVICE_ROLE_KEY` (skip se ausente):
-
-1. Cria 2 colaboradores (A, B)
-2. Como admin: cria cliente vinculado a A, cria demanda, cria task, cria venda
-3. Loga como A → vê cliente, demanda, task, comissão
-4. Loga como B → **não** vê nada
-5. Como admin: troca responsável para B
-6. Loga como B → agora vê; A não vê mais
-
-Adicionar script `npm run test:rls`.
-
-## 5. Polish visual do Leads e ClientFormDialog
-
-(O que já tinha sido prometido no plano anterior)
-
-- `/admin/leads`: header com busca proeminente, filtros como chips removíveis, segmented control Kanban/Tabela, cards do Kanban com avatar + badge de origem + valor mono + footer com idade.
-- `ClientFormDialog`: virar **wizard de 3 passos** (Dados → Endereço/Documentos → Vínculos+Acesso) com stepper, validação por passo, resumo no último.
-- `LeadFormDialog`: wizard 2 passos (Contato → Qualificação).
+Deixar a plataforma 100% funcional no mobile, com listas paginadas e roláveis sem travamento, scroll consistente após abrir/fechar modais, remoção do widget de AI, e testes E2E que provem que um cliente vinculado a indicador/colaborador/prestador aparece corretamente em todos os painéis envolvidos.
 
 ---
 
-## Ordem de execução
+## 1. Scroll e layout no mobile (admin + colaborador + prestador)
 
-1. Aplicar máscaras em todos os forms (item 1) + ViaCEP
-2. Criar `safe-delete.ts` e aplicar em Clientes, Parceiros, Prestadores, Colaboradores, Indicadores, Leads (item 3)
-3. Auditar fluxo CRUD via queries SQL e corrigir gaps (item 2)
-4. Wizard nos dialogs de Cliente e Lead + polish do Leads (item 5)
-5. Smoke test RLS (item 4)
-6. QA mobile 375px nas telas refeitas
+**Problema atual:** ao fechar Dialog/Sheet/Select do Radix, o `body` pode ficar com `pointer-events: none` ou `overflow: hidden`, travando o scroll. Em telas mobile, várias páginas usam `h-screen`/`overflow-hidden` no container, cortando conteúdo.
+
+**Correções:**
+- Criar `src/hooks/use-body-scroll-lock-cleanup.ts` que observa fechamento de overlays Radix e força limpeza de `body.style.pointerEvents` e `body.style.overflow` após 100 ms.
+- Aplicar globalmente em `src/App.tsx`.
+- Revisar containers das páginas admin (`Clients`, `Demands`, `Financial`, `Commissions`, `Providers`, `Indicators`, `Leads`, `Tasks`) trocando `h-screen overflow-hidden` por `min-h-screen` com áreas roláveis internas (`overflow-y-auto` apenas em listas/tabelas).
+- Tabelas grandes ganham wrapper `<div className="overflow-x-auto -mx-4 sm:mx-0">` + versão card no mobile (`md:hidden` cards / `hidden md:block` tabela) onde ainda não existir.
+- Modais (`Dialog`, `Sheet`) com conteúdo longo: garantir `max-h-[90vh] overflow-y-auto` no `DialogContent`/`SheetContent`.
+
+## 2. Paginação e filtros das listas
+
+Padronizar nas páginas Clientes, Demandas, Financeiro, Comissões, Parceiros, Indicadores:
+- Hook `usePagination` (novo, em `src/hooks/use-pagination.ts`) com page/pageSize/total.
+- Componente `PaginationBar` reutilizável (já existe `ui/pagination`, criar wrapper `src/components/common/PaginationBar.tsx`).
+- Default `pageSize = 20` desktop, `10` mobile (via `useIsMobile`).
+- Filtros (busca, status, responsável) ficam num `<Sheet>` no mobile e numa barra inline no desktop — componente `src/components/common/FiltersBar.tsx`.
+- Reset de página ao mudar filtro.
+
+## 3. Remover widget de AI
+
+- Localizar e remover componente de AI Assistant (provavelmente `src/components/ai/*` ou botão flutuante no `AdminLayout`). Remover import, rota e dependências órfãs.
+
+## 4. Fluxo de vínculos cliente → indicador/colaborador/prestador
+
+**Verificação de banco (já existem triggers):**
+- `trg_propagate_client_collaborator`: ao mudar `clients.collaborator_id`, propaga para `client_products.responsible_employee_id` e `tasks.assigned_to`.
+- Confirmar via SQL que existe trigger equivalente para `indicator_id` e que demandas com prestador (`provider_id` em `client_products`) ficam visíveis no painel do prestador.
+- Se faltar, criar trigger `trg_propagate_client_indicator` e ajustar RLS de `client_products` para incluir `EXISTS (clients WHERE indicator_id = auth.uid())`.
+
+**UI:**
+- No `ClientFormDialog` (passo Vínculos): exibir selects de Indicador, Colaborador responsável e Prestador padrão. Ao salvar, gravar nas colunas corretas e disparar refetch global (`queryClient.invalidateQueries(['clients','demands','tasks','commissions'])`).
+- Garantir que os painéis `/colaborador`, `/prestador` e `/indicador` consultam pelas colunas certas (auditar queries em `CollaboratorPanel`, `ProviderPanel`, `IndicatorPanel`).
+
+## 5. Testes E2E (Vitest + Testing Library, viewport mobile simulado)
+
+Criar `src/test/e2e/`:
+- `client-linking-flow.test.tsx`: cria cliente via `ClientFormDialog`, vincula a indicador X, colaborador Y, prestador Z. Faz login mock como cada um e verifica que o cliente aparece em:
+  - Admin → Clientes, Demandas, Comissões.
+  - Colaborador Y → Minhas Demandas, Clientes (read-only), Tarefas.
+  - Indicador X → Meus Indicados, Comissões.
+  - Prestador Z → Demandas atribuídas.
+- `mobile-scroll.test.tsx`: renderiza páginas-chave em viewport 375px, abre/fecha Dialog/Sheet/Select e verifica que `document.body.style.pointerEvents !== 'none'` e que o scroll do container continua funcional.
+- `pagination.test.tsx`: lista com 35 itens em mobile mostra 10 + paginação; ao filtrar, volta para página 1.
+
+Configurar `vitest.config.ts` com setup já existente, adicionar `happy-dom` ou continuar com `jsdom`.
+
+## 6. Validação final
+
+- Rodar `vitest run` e corrigir falhas.
+- Inspeção visual no preview mobile (375×812) das páginas listadas.
+- Conferir console sem erros e network sem 4xx/5xx em fluxos críticos.
+
+---
+
+## Arquivos previstos
+
+**Novos**
+- `src/hooks/use-body-scroll-lock-cleanup.ts`
+- `src/hooks/use-pagination.ts`
+- `src/components/common/PaginationBar.tsx`
+- `src/components/common/FiltersBar.tsx`
+- `src/test/e2e/client-linking-flow.test.tsx`
+- `src/test/e2e/mobile-scroll.test.tsx`
+- `src/test/e2e/pagination.test.tsx`
+
+**Editados**
+- `src/App.tsx` (cleanup global)
+- `src/pages/Clients.tsx`, `Demands.tsx`, `Financial.tsx`, `Commissions.tsx`, `Providers.tsx`, `Indicators.tsx`, `Leads.tsx`, `Tasks.tsx`
+- `src/components/clients/ClientFormDialog.tsx` (refetch + vínculos)
+- Painéis: `CollaboratorPanel.tsx`, `ProviderPanel.tsx`, `IndicatorPanel.tsx` (queries auditadas)
+- Layout admin (remover botão AI)
+
+**Migração SQL** (se faltarem triggers/RLS)
+- Trigger de propagação para `indicator_id`
+- Ajuste de RLS em `client_products` para indicador
 
 Posso seguir?
