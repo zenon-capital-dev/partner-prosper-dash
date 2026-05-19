@@ -11,9 +11,8 @@ serve(async (req) => {
   }
 
   try {
-    const { message, history } = await req.json()
+    const { message } = await req.json()
 
-    // Respostas simuladas úteis para o contexto do CRM Prosper
     let reply = "";
     const lowerMessage = message.toLowerCase();
 
