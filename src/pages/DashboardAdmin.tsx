@@ -327,7 +327,7 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-2">
             <CardHeader
               title="Performance comercial"
-              subtitle={`Receita diária · ${rangeKey === "HOJE" ? "hoje" : rangeKey === "7D" ? "últimos 14 dias" : "últimos 30 dias"}`}
+              subtitle={isGlobalLoading ? "Calculando performance..." : `Receita diária · ${rangeKey === "HOJE" ? "hoje" : rangeKey === "7D" ? "últimos 14 dias" : "últimos 30 dias"}`}
               right={
                 <Link to="/financeiro" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">
                   Central financeira <ArrowUpRight className="size-3.5" />
