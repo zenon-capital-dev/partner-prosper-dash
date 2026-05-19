@@ -91,7 +91,7 @@ function AppLayoutInner() {
             </div>
 
             <div className="flex-1 max-w-xl mx-auto">
-              <GlobalSearch />
+              {isStaff && <GlobalSearch />}
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
