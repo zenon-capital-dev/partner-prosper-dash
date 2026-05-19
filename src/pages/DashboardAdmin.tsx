@@ -207,7 +207,7 @@ export default function DashboardAdmin() {
         icon={<Sparkles className="size-6" />}
         actions={
           <div className="flex items-center gap-3">
-            <div className="flex bg-white dark:bg-[#1a1a1c] p-1 rounded-2xl border border-slate-200 dark:border-[#2a2a2c] shadow-sm mr-2">
+            <div className="flex bg-white dark:bg-[#0c0c0e] p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm mr-2">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS"] as const).map((k) => (
                 <button
                   key={k}
@@ -250,7 +250,7 @@ export default function DashboardAdmin() {
         </div>
 
         {/* === LINHA 2: RESUMO FINANCEIRO === */}
-        <div className="vx-card p-6 bg-white dark:bg-[#121214] dark:border-[#2a2a2c] space-y-6">
+        <div className="vx-card p-6 bg-white dark:bg-[#08080a] dark:border-white/5 space-y-6">
            <div>
               <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Resumo Financeiro</h3>
               <p className="text-slate-400 dark:text-muted-foreground text-sm font-medium">Situação atual da tesouraria e conciliação</p>
@@ -288,7 +288,7 @@ export default function DashboardAdmin() {
 
 
           {/* REVENUE CHART - LARGE */}
-          <div className="md:col-span-2 lg:col-span-3 bg-white dark:bg-[#121214] dark:border-[#2a2a2c] rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm overflow-hidden relative group">
+          <div className="md:col-span-2 lg:col-span-3 bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm overflow-hidden relative group">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Crescimento de Receita</h3>
@@ -345,7 +345,7 @@ export default function DashboardAdmin() {
           </div>
 
           {/* STATUS PIE - SMALL */}
-          <div className="bg-white dark:bg-[#121214] dark:border-[#2a2a2c] rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm flex flex-col items-center justify-between">
+          <div className="bg-white dark:bg-[#08080a] dark:border-white/5 rounded-[32px] p-8 border border-slate-200 dark:border-border shadow-sm flex flex-col items-center justify-between">
             <div className="w-full text-center">
               <h3 className="text-lg font-black text-slate-900 dark:text-foreground tracking-tight">Status de Demandas</h3>
               <p className="text-slate-400 text-[11px] font-bold uppercase mt-1">Divisão Operacional</p>
