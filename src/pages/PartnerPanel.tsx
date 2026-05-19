@@ -129,7 +129,7 @@ export default function PartnerPanel() {
                  <div className="flex items-center gap-4 text-white/80 font-bold text-lg">
                    <span>{partner.full_name}</span>
                    <span className="size-1 bg-white/30 rounded-full" />
-                   <span className="text-primary">{Number(partner.commission_percent).toFixed(1)}% comissão ativa</span>
+                   <span className="text-emerald-300">{Number(partner.commission_percent).toFixed(1)}% comissão ativa</span>
                  </div>
               </div>
                <div className="flex flex-col sm:flex-row gap-3">
