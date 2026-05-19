@@ -226,60 +226,70 @@ export default function DashboardAdmin() {
             {/* subtle gradient wash */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.08),transparent_55%)] pointer-events-none" />
             <div className="relative p-6 lg:p-7 flex flex-col h-full">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.45)]">
-                      <CircleDollarSign className="size-4 text-white stroke-[2.2]" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Receita no período</p>
-                      <p className="text-[11px] text-slate-400 font-medium">{stats.salesCount} venda(s)</p>
-                    </div>
-                  </div>
+              {isGlobalLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center space-y-4 py-12">
+                  <div className="size-10 rounded-full border-2 border-indigo-600/20 border-t-indigo-600 animate-spin" />
+                  <p className="text-[12px] text-slate-400 font-medium animate-pulse">Carregando dados financeiros...</p>
                 </div>
-                <DeltaBadge value={stats.revenueDelta} />
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <div className="size-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.45)]">
+                          <CircleDollarSign className="size-4 text-white stroke-[2.2]" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Receita no período</p>
+                          <p className="text-[11px] text-slate-400 font-medium">{stats.salesCount} venda(s)</p>
+                        </div>
+                      </div>
+                    </div>
+                    <DeltaBadge value={stats.revenueDelta} />
+                  </div>
 
-              <div className="flex items-baseline gap-2 mb-0.5">
-                <p className="font-display text-[36px] lg:text-[42px] font-bold tabular-nums leading-tight tracking-[-0.03em] text-slate-900">
-                  {formatBRL(stats.rangeRevenue)}
-                </p>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                vs. <span className="text-slate-700 font-semibold tabular-nums">{formatBRL(stats.prevRevenue)}</span> período anterior
-              </p>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <p className="font-display text-[36px] lg:text-[42px] font-bold tabular-nums leading-tight tracking-[-0.03em] text-slate-900">
+                      {formatBRL(stats.rangeRevenue)}
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    vs. <span className="text-slate-700 font-semibold tabular-nums">{formatBRL(stats.prevRevenue)}</span> período anterior
+                  </p>
 
-              {/* sparkline */}
-              <div className="mt-4 h-[100px] -mx-2">
-                {mounted && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={stats.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
-                          <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Tooltip
-                        contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '6px 8px', backgroundColor: '#fff', fontSize: '11px' }}
-                        formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
-                        cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '3 3' }}
-                      />
-                      <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
+                  {/* sparkline */}
+                  <div className="mt-4 h-[100px] -mx-2">
+                    {mounted && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={stats.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
+                              <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <Tooltip
+                            contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '6px 8px', backgroundColor: '#fff', fontSize: '11px' }}
+                            formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
+                            cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '3 3' }}
+                          />
+                          <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
 
-              {/* footer stats */}
-              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
-                <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
-                <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
-                <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
-              </div>
+                  {/* footer stats */}
+                  <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
+                    <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
+                    <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
+
 
           {/* Side KPIs grid */}
           <div className="lg:col-span-4 grid grid-cols-1 gap-4">
