@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { PageHero } from "@/components/PageHero";
 
 type DailyAction = {
   id: string;
