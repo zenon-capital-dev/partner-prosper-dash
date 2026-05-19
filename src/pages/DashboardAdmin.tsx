@@ -219,58 +219,58 @@ export default function DashboardAdmin() {
         {/* ============ HERO BAND — Featured Revenue + 3 KPIs ============ */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Featured Revenue Card with sparkline */}
-          <div className="lg:col-span-6 relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(79,70,229,0.18)]">
+          <div className="lg:col-span-8 relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(79,70,229,0.18)]">
             {/* subtle gradient wash */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.08),transparent_55%)] pointer-events-none" />
-            <div className="relative p-7 lg:p-8 flex flex-col h-full">
-              <div className="flex items-start justify-between mb-5">
+            <div className="relative p-6 lg:p-7 flex flex-col h-full">
+              <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <div className="size-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.45)]">
-                      <CircleDollarSign className="size-4.5 text-white stroke-[2.2]" />
+                    <div className="size-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.45)]">
+                      <CircleDollarSign className="size-4 text-white stroke-[2.2]" />
                     </div>
                     <div>
-                      <p className="text-[10.5px] font-bold uppercase tracking-[0.2em] text-slate-500">Receita no período</p>
-                      <p className="text-[11px] text-slate-400 font-medium">{stats.salesCount} venda(s) registrada(s)</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">Receita no período</p>
+                      <p className="text-[11px] text-slate-400 font-medium">{stats.salesCount} venda(s)</p>
                     </div>
                   </div>
                 </div>
                 <DeltaBadge value={stats.revenueDelta} />
               </div>
 
-              <div className="flex items-baseline gap-3 mb-1">
-                <p className="font-display text-[44px] lg:text-[52px] font-bold tabular-nums leading-none tracking-[-0.03em] text-slate-900">
+              <div className="flex items-baseline gap-2 mb-0.5">
+                <p className="font-display text-[36px] lg:text-[42px] font-bold tabular-nums leading-tight tracking-[-0.03em] text-slate-900">
                   {formatBRL(stats.rangeRevenue)}
                 </p>
               </div>
-              <p className="text-[12px] text-slate-500 font-medium">
-                vs. <span className="text-slate-700 font-semibold tabular-nums">{formatBRL(stats.prevRevenue)}</span> no período anterior
+              <p className="text-[11px] text-slate-500 font-medium">
+                vs. <span className="text-slate-700 font-semibold tabular-nums">{formatBRL(stats.prevRevenue)}</span> período anterior
               </p>
 
-              {/* mini sparkline */}
-              <div className="mt-6 h-[110px] -mx-2">
+              {/* sparkline */}
+              <div className="mt-4 h-[100px] -mx-2">
                 {mounted && (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={stats.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
+                          <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
                           <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <Tooltip
-                        contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '8px 10px', backgroundColor: '#fff', fontSize: '11.5px' }}
+                        contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '6px 8px', backgroundColor: '#fff', fontSize: '11px' }}
                         formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
                         cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '3 3' }}
                       />
-                      <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2.5} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
+                      <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
               </div>
 
               {/* footer stats */}
-              <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-slate-100">
+              <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
                 <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
                 <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
                 <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
@@ -278,8 +278,8 @@ export default function DashboardAdmin() {
             </div>
           </div>
 
-          {/* 3 stacked side KPIs */}
-          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Side KPIs grid */}
+          <div className="lg:col-span-4 grid grid-cols-1 gap-4">
             <SideKpi
               label="Clientes ativos"
               value={stats.activeClients.toString()}
@@ -295,22 +295,16 @@ export default function DashboardAdmin() {
               accent="indigo"
               compact
             />
-            <SideKpi
-              label="Demandas atrasadas"
-              value={stats.delayedDemands.toString()}
-              sub={`${stats.activeDemands} em andamento`}
-              icon={Clock}
-              accent={stats.delayedDemands > 0 ? "rose" : "slate"}
-            />
           </div>
         </section>
 
         {/* ============ OPERATIONAL ROW ============ */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <MiniStat label="Contratos abertos" value={stats.openContracts} hint={`${stats.waitingSignatureContracts} aguardando assinatura`} icon={FileSignature} to="/contratos" />
-          <MiniStat label="Documentos pendentes" value={stats.pendingDocs} hint="Solicitações em aberto" icon={FileText} to="/documentos" />
-          <MiniStat label="Tarefas em atraso" value={stats.overdueTasks} hint={`${stats.todayTasks} previstas para hoje`} icon={ClipboardList} to="/tarefas" negative={stats.overdueTasks > 0} />
-          <MiniStat label="Comissões a pagar" value={formatBRL(stats.commissionsToPay)} hint={`${stats.commissionsCount} lançamento(s)`} icon={Wallet} to="/comissoes" />
+        <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <MiniStat label="Demandas atrasadas" value={stats.delayedDemands} hint={`${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={stats.delayedDemands > 0} />
+          <MiniStat label="Contratos abertos" value={stats.openContracts} hint={`${stats.waitingSignatureContracts} aguardando`} icon={FileSignature} to="/contratos" />
+          <MiniStat label="Docs pendentes" value={stats.pendingDocs} hint="Solicitações" icon={FileText} to="/documentos" />
+          <MiniStat label="Tarefas atrasadas" value={stats.overdueTasks} hint={`${stats.todayTasks} hoje`} icon={ClipboardList} to="/tarefas" negative={stats.overdueTasks > 0} />
+          <MiniStat label="Comissões" value={formatBRL(stats.commissionsToPay)} hint={`${stats.commissionsCount} lançamentos`} icon={Wallet} to="/comissoes" />
         </section>
 
         {/* ============ CHART + STATUS PIE ============ */}
@@ -661,22 +655,22 @@ function SideKpi({ label, value, sub, icon: Icon, accent, compact }: { label: st
 
 function MiniStat({ label, value, hint, icon: Icon, to, negative }: { label: string; value: string | number; hint: string; icon: any; to: string; negative?: boolean }) {
   return (
-    <Link to={to} className="group block rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-300/80 hover:shadow-[0_4px_14px_-6px_rgba(15,23,42,0.1)] transition-all">
-      <div className="flex items-center justify-between mb-3">
+    <Link to={to} className="group block rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:border-slate-300/80 hover:shadow-[0_4px_14px_-6px_rgba(15,23,42,0.1)] transition-all">
+      <div className="flex items-center justify-between mb-2">
         <div className={cn(
-          "size-8 rounded-lg flex items-center justify-center ring-1",
+          "size-7 rounded-lg flex items-center justify-center ring-1",
           negative && Number(value) > 0 ? "bg-rose-50 text-rose-600 ring-rose-100" : "bg-slate-50 text-slate-600 ring-slate-100"
         )}>
-          <Icon className="size-4 stroke-[2.2]" />
+          <Icon className="size-3.5 stroke-[2.2]" />
         </div>
-        <ChevronRight className="size-4 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
+        <ChevronRight className="size-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
       </div>
-      <p className="text-[10.5px] font-bold text-slate-500 uppercase tracking-[0.16em] mb-1.5">{label}</p>
+      <p className="text-[9.5px] font-bold text-slate-500 uppercase tracking-[0.14em] mb-1 truncate">{label}</p>
       <p className={cn(
-        "font-display text-[24px] font-bold tracking-[-0.025em] tabular-nums leading-none",
+        "font-display text-[20px] font-bold tracking-[-0.02em] tabular-nums leading-none",
         negative && Number(value) > 0 ? "text-rose-600" : "text-slate-900"
       )}>{value}</p>
-      <p className="text-[11.5px] font-medium text-slate-500 mt-2 truncate">{hint}</p>
+      <p className="text-[11px] font-medium text-slate-500 mt-1.5 truncate opacity-80">{hint}</p>
     </Link>
   );
 }
