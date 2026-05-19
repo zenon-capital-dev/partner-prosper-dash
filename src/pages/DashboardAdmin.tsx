@@ -361,10 +361,15 @@ export default function DashboardAdmin() {
           </Card>
 
           <Card>
-            <CardHeader title="Status das demandas" subtitle="Distribuição operacional" />
+            <CardHeader title="Status das demandas" subtitle={isGlobalLoading ? "Carregando demandas..." : "Distribuição operacional"} />
             <div className="px-6 pb-6">
               <div className="h-[200px] w-full flex items-center justify-center relative">
-                {mounted && stats.demandsByStatus.length > 0 ? (
+                {isGlobalLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="size-6 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                  </div>
+                ) : mounted && stats.demandsByStatus.length > 0 ? (
+
                   <>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
