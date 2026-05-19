@@ -371,7 +371,7 @@
   .admin-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
   .admin-shell ::-webkit-scrollbar-track { background: transparent; }
   .admin-shell ::-webkit-scrollbar-thumb {
-    background: hsl(220 13% 88%);
+    background: hsl(220 13% 88% / 0.5);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;

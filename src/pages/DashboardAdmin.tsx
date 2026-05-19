@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import { PageHero } from "@/components/PageHero";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,6 +38,11 @@ export default function DashboardAdmin() {
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "PERSONALIZADO">("HOJE");
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [customOpen, setCustomOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const brasiliaToday = useMemo(() => {
     const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" });
@@ -248,7 +253,7 @@ export default function DashboardAdmin() {
         <div className="vx-card p-6 bg-white dark:bg-card space-y-6">
            <div>
               <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Resumo Financeiro</h3>
-              <p className="text-slate-400 text-sm font-medium">Situação atual da tesouraria e conciliação</p>
+              <p className="text-slate-400 dark:text-muted-foreground text-sm font-medium">Situação atual da tesouraria e conciliação</p>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <FinanceCard
@@ -287,7 +292,7 @@ export default function DashboardAdmin() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-foreground tracking-tight">Crescimento de Receita</h3>
-                <p className="text-slate-400 text-sm font-medium">Histórico consolidado dos últimos 6 meses</p>
+                <p className="text-slate-400 dark:text-muted-foreground text-sm font-medium">Histórico consolidado dos últimos 6 meses</p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
@@ -298,6 +303,7 @@ export default function DashboardAdmin() {
             </div>
             
             <div className="h-[320px] w-full">
+              {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.chartData}>
                   <defs>
@@ -345,6 +351,7 @@ export default function DashboardAdmin() {
             </div>
             
             <div className="h-48 w-full">
+              {mounted && (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
