@@ -9,7 +9,7 @@ import {
   ShieldAlert, LayoutGrid, List, Kanban as KanbanIcon,
   MessageSquare, UserRound, Users, Briefcase, 
   FileCheck, FileClock, History, Plus,
-  FileText, Activity, Timer
+  FileText, Activity, Timer, Wallet
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHero } from "@/components/PageHero";
