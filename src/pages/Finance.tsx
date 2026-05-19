@@ -194,7 +194,7 @@ export default function Finance() {
       />
 
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-8 pb-10 animate-in slide-in-from-bottom-4 duration-1000">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
            <Link to="/financeiro" className="bg-white dark:bg-card rounded-[24px] p-6 border border-slate-200 dark:border-border shadow-sm hover:shadow-lg transition-all">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">A RECEBER (7D)</p>
               <p className="text-2xl font-black text-slate-900 dark:text-foreground tracking-tight">R$ 0,00</p>
