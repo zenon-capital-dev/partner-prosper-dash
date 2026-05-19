@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Plus, Check, X, Clock, Trash2, Eye,
   Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2,
-  FileText, ShieldCheck, ArrowUpRight
+  FileText, ShieldCheck, ArrowUpRight, Download
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
