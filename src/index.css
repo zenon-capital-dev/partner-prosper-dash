@@ -270,7 +270,7 @@
     @apply text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/80;
   }
   .vx-kpi-value {
-    @apply font-display text-2xl lg:text-4xl font-bold tracking-tight text-foreground tabular-nums;
+    @apply font-display text-2xl lg:text-3xl font-bold tracking-tight text-foreground tabular-nums;
   }
 
   /* Premium button surface — flat, controlled, corporate */
@@ -368,16 +368,16 @@
   }
 
   /* Smooth scrollbar inside admin */
-  .admin-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
+  .admin-shell ::-webkit-scrollbar { width: 8px; height: 8px; }
   .admin-shell ::-webkit-scrollbar-track { background: transparent; }
   .admin-shell ::-webkit-scrollbar-thumb {
-    background: hsl(220 13% 88% / 0.5);
+    background: hsl(var(--foreground) / 0.1);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
   .admin-shell ::-webkit-scrollbar-thumb:hover {
-    background: hsl(220 13% 75%);
+    background: hsl(var(--foreground) / 0.2);
     background-clip: content-box;
   }
 
