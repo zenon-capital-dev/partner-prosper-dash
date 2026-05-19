@@ -349,21 +349,21 @@
   }
   /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    --background: 224 45% 6%;
-    --foreground: 220 14% 98%;
-    --card: 224 45% 9%;
-    --card-foreground: 220 14% 98%;
-    --popover: 224 45% 9%;
-    --popover-foreground: 220 14% 98%;
-    --primary: 250 90% 70%;
-    --primary-foreground: 224 45% 6%;
-    --secondary: 224 45% 12%;
-    --secondary-foreground: 220 14% 98%;
-    --muted: 224 45% 12%;
-    --muted-foreground: 220 10% 75%;
-    --border: 224 45% 15%;
-    --input: 224 45% 15%;
-    --ring: 250 90% 70%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 4.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 4.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
     color-scheme: dark;
   }
 
