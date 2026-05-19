@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { KeyRound, Eye, EyeOff, Sparkles, Copy, FileText, Plus, X, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MaskedInput } from "@/components/ui/masked-input";
@@ -25,6 +25,7 @@ interface Props {
 
 export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Props) {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual", priority: "media" });
 
@@ -234,6 +235,15 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     }
 
     setSubmitting(false);
+    // Invalida caches dos painéis impactados pelos vínculos (parceiro, indicador, colaborador, prestador)
+    [
+      "clients", "client", "client-collaborator", "client-provider", "client-referrer",
+      "collab-assigned-clients", "collab-demandas", "collab-tasks", "collab-clients",
+      "provider-self", "provider-client-products", "provider-documents",
+      "referrer-panel",
+      "partner-panel",
+      "demands", "demands-list", "tasks", "tasks-list", "commissions", "commissions-list",
+    ].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
     onCreated?.();
     onOpenChange(false);
   };
