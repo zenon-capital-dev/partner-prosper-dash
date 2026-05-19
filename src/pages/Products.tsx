@@ -513,11 +513,11 @@ export default function Products() {
             const cat = p.product_categories;
             const color = cat?.color ?? "#6366f1";
             return (
-              <div key={p.id} className="bg-card border border-border p-5 rounded-lg shadow-sm hover:shadow-md transition-all group relative overflow-hidden flex flex-col">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-muted/40 rounded-bl-[90px] -z-10 transition-colors" />
+              <div key={p.id} className="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_20px_50px_-44px_hsl(222_47%_11%/0.48)] hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_30px_68px_-50px_hsl(222_47%_11%/0.6)] transition-all group relative overflow-hidden flex flex-col">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-[90px] -z-10 transition-colors" />
                 
                 <div className="flex justify-between items-start mb-4">
-                  <div className="size-12 rounded-xl flex items-center justify-center shadow-sm" style={{ background: `${color}15`, color: color }}>
+                  <div className="size-12 rounded-2xl flex items-center justify-center shadow-sm ring-1 ring-slate-100" style={{ background: `${color}15`, color: color }}>
                     <Package className="size-6" />
                   </div>
                   <DropdownMenu>
@@ -549,18 +549,18 @@ export default function Products() {
                   <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-wider h-5 px-1.5" style={{ color: color, borderColor: `${color}40` }}>
                     {p.product_categories?.name || "Sem categoria"}
                   </Badge>
-                  <h3 className="text-lg font-bold text-foreground line-clamp-1">{p.name}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
+                  <h3 className="text-lg font-black text-slate-950 line-clamp-1 tracking-tight">{p.name}</h3>
+                  <p className="text-xs font-medium text-slate-500 line-clamp-2 h-8 leading-relaxed">{p.description || "Sem descrição disponível."}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preço Base</p>
-                    <p className="text-sm font-black text-foreground">{formatBRL(p.base_price)}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Preço Base</p>
+                    <p className="text-sm font-black text-slate-950 font-mono">{formatBRL(p.base_price)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comissão</p>
-                    <p className="text-sm font-black text-primary">{formatPercent(p.default_commission_percent)}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Comissão</p>
+                    <p className="text-sm font-black text-primary font-mono">{formatPercent(p.default_commission_percent)}</p>
                   </div>
                 </div>
 
@@ -582,10 +582,10 @@ export default function Products() {
           })}
         </div>
       ) : (
-        <div className="vx-card overflow-hidden">
+        <div className="vx-card overflow-hidden rounded-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40">
+              <thead className="bg-slate-50/80">
                 <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
                   <th className="px-5 py-3 text-left font-semibold">Produto</th>
                   <th className="px-5 py-3 text-left font-semibold">Categoria</th>
