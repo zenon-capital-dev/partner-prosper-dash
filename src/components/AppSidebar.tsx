@@ -132,6 +132,7 @@ const prestadorSections: NavSection[] = [
     label: "Operação",
     items: [
       { title: "Dashboard", url: "/prestador", icon: LayoutDashboard },
+      { title: "Atuação", url: "/prestador/atuacao", icon: Briefcase },
       { title: "Demandas", url: "/prestador/demandas", icon: ClipboardList },
       { title: "Por Cliente", url: "/prestador/por-cliente", icon: Users },
       { title: "Reportes", url: "/prestador/reportes", icon: FileCheck2 },
