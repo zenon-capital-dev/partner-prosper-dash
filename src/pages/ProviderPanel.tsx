@@ -27,12 +27,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const PROVIDER_PATH_TO_TAB: Record<string, string> = {
   atuacao: "atuacao",
   "por-cliente": "por-cliente", demandas: "clientes", documentos: "documentos",
-  reportes: "reportes", contratos: "contratos",
+  reportes: "reportes", contratos: "contratos", perfil: "perfil",
 };
 const PROVIDER_TAB_TO_PATH: Record<string, string> = {
   atuacao: "atuacao",
   "por-cliente": "por-cliente", clientes: "demandas", documentos: "documentos",
-  reportes: "reportes", contratos: "contratos",
+  reportes: "reportes", contratos: "contratos", perfil: "perfil",
 };
 
 export default function ProviderPanel() {
@@ -218,10 +218,10 @@ export default function ProviderPanel() {
 
   if (!provider) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-8 bg-premium">
+      <div className="min-h-[70vh] flex items-center justify-center p-8 ">
         <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white/40 backdrop-blur-xl border-white/20">
           <Inbox className="size-12 text-primary/30 mx-auto mb-6" />
-          <h2 className="font-editorial text-3xl font-bold tracking-tight mb-3">Acesso pendente</h2>
+          <h2 className=" text-3xl font-bold tracking-tight mb-3">Acesso pendente</h2>
           <p className="text-muted-foreground leading-relaxed">
             Sua conta ainda não foi vinculada a um cadastro de prestador. <br/>Entre em contato com o administrador para liberação.
           </p>
@@ -233,33 +233,34 @@ export default function ProviderPanel() {
   const selectedProduct = clientProducts.find((cp: any) => cp.id === selectedProductId);
 
   return (
-    <div className="bg-premium min-h-screen">
-      <div className="page-shell space-y-10 py-10">
-        
+    <div className="min-h-screen bg-slate-50/60">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-8 space-y-6">
+
         {/* Header & Stats Strip */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-colors group-hover:bg-primary/10" />
-          
-          <div className="relative space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="h-px w-8 bg-primary/40" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Service Provider Console</p>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-slate-200/70 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="size-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-lg font-bold tracking-tight shadow-md">
+              {provider.name.split(' ').map((p:string) => p[0]).slice(0,2).join('')}
             </div>
-            <h1 className="font-editorial text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
-              Olá, <span className="text-primary italic">{provider.name.split(' ')[0]}</span>.
-            </h1>
-            <p className="text-xs text-muted-foreground font-medium flex items-center gap-2">
-              <ShieldCheck className="size-3.5 text-primary/40" /> {provider.specialty || "Prestador Especialista"}
-            </p>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600">Painel do Prestador</p>
+              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
+                Olá, <span className="text-indigo-600">{provider.name.split(' ')[0]}</span>
+              </h1>
+              <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                <ShieldCheck className="size-3.5 text-emerald-500" /> {provider.specialty || "Prestador Especialista"} · {provider.email}
+              </p>
+            </div>
           </div>
 
-           <div className="flex flex-wrap gap-8 lg:gap-12 relative">
-             <StatItem label="Ativos" value={String(stats.active)} />
-             <StatItem label="Urgent" value={String(stats.urgent)} tone="warning" />
-             <StatItem label="Atrasados" value={String(stats.delayed)} tone="warning" />
-             <StatItem label="A Receber" value={formatBRL(stats.valuesToReceive)} tone="success" />
-           </div>
+          <div className="flex flex-wrap gap-6 lg:gap-10">
+            <StatItem label="Ativas" value={String(stats.active)} />
+            <StatItem label="Urgentes" value={String(stats.urgent)} tone="warning" />
+            <StatItem label="Atrasadas" value={String(stats.delayed)} tone="warning" />
+            <StatItem label="A Receber" value={formatBRL(stats.valuesToReceive)} tone="success" />
+          </div>
         </div>
+
 
         {selectedProductId ? (
           /* PRODUCT DETAIL VIEW */
@@ -274,12 +275,12 @@ export default function ProviderPanel() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
-                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-2xl">
                    <div className="flex items-center gap-3 mb-6">
                       <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                         <Briefcase className="size-5" />
                       </div>
-                      <h3 className="font-editorial text-xl font-bold">Escopo do Serviço</h3>
+                      <h3 className=" text-xl font-bold">Escopo do Serviço</h3>
                    </div>
                    <div className="space-y-4">
                       <p className="text-sm text-slate-600 leading-relaxed">
@@ -288,11 +289,11 @@ export default function ProviderPanel() {
                    </div>
                 </div>
 
-                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-2xl">
                    <div className="flex items-start justify-between mb-8">
                       <div className="space-y-1">
                         <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary">Atendimento em Curso</p>
-                        <h2 className="font-editorial text-3xl font-bold text-slate-900">
+                        <h2 className=" text-3xl font-bold text-slate-900">
                            {selectedProduct.clients?.full_name}
                         </h2>
                         <div className="flex items-center gap-3 pt-2">
@@ -322,12 +323,12 @@ export default function ProviderPanel() {
                 </div>
 
                 {/* Checklist / Steps */}
-                <div className="vx-card p-8 bg-white border-slate-100 rounded-[32px]">
+                <div className="vx-card p-8 bg-white border-slate-100 rounded-2xl">
                    <div className="flex items-center gap-3 mb-6">
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                         <ListChecks className="size-5" />
                       </div>
-                      <h3 className="font-editorial text-xl font-bold">Checklist Operacional</h3>
+                      <h3 className=" text-xl font-bold">Checklist Operacional</h3>
                    </div>
                    <ClientProductSteps clientProductId={selectedProduct.id} />
                 </div>
@@ -337,41 +338,31 @@ export default function ProviderPanel() {
 
               <div className="space-y-6">
                 {/* Actions */}
-                <div className="vx-card p-6 bg-slate-900 text-white rounded-[24px] shadow-xl space-y-4">
-                   <h3 className="font-editorial text-xl font-bold mb-4">Ações Rápidas</h3>
-                   <Button 
-                     className="w-full h-12 rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all font-bold"
+                <div className="vx-card p-6 bg-white border border-slate-200/70 rounded-xl shadow-sm space-y-3">
+                   <h3 className="text-sm font-bold text-slate-900 mb-2">Ações Rápidas</h3>
+                   <Button
+                     className="w-full h-11 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
                      onClick={() => setReportTarget({ id: selectedProduct.id, productName: selectedProduct.products?.name, clientName: selectedProduct.clients?.full_name })}
                    >
                      <ClipboardCheck className="size-4 mr-2" /> Reportar Status
                    </Button>
-                   <Button
-                     variant="outline"
-                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
-                     onClick={() => setDocRequestTarget({
-                       clientId: selectedProduct.clients?.id,
-                       cpId: selectedProduct.id,
-                       context: selectedProduct.products?.name,
-                     })}
-                   >
-                     <FileText className="size-4 mr-2" /> Solicitar Documento
-                   </Button>
-                   <Button
-                     variant="outline"
-                     className="w-full h-12 rounded-xl border-white/10 hover:bg-white/5 font-bold"
-                     onClick={() => setReportTarget({
-                       id: selectedProduct.id,
-                       productName: selectedProduct.products?.name,
-                       clientName: selectedProduct.clients?.full_name,
-                     })}
-                   >
-                     <CheckCircle2 className="size-4 mr-2" /> Enviar Conclusão
-                   </Button>
+                   {selectedProduct.clients?.phone && (
+                     <Button
+                       variant="outline"
+                       className="w-full h-11 rounded-lg border-slate-200 hover:border-indigo-300 hover:text-indigo-700 font-semibold"
+                       onClick={() => window.open(`https://wa.me/55${(selectedProduct.clients.phone || '').replace(/\D/g,'')}`, '_blank')}
+                     >
+                       <MessageSquare className="size-4 mr-2" /> Falar com Cliente
+                     </Button>
+                   )}
+                   <p className="text-[11px] text-slate-500 leading-relaxed pt-1">
+                     Use Reportes para atualizar o admin sobre andamento, pendências e próximos passos da demanda.
+                   </p>
                 </div>
 
                 {/* Documents for this product */}
-                <div className="vx-card p-6 bg-white border-slate-100 rounded-[24px] space-y-4">
-                   <h3 className="font-editorial text-lg font-bold border-b border-slate-50 pb-3">Documentos Vinculados</h3>
+                <div className="vx-card p-6 bg-white border-slate-100 rounded-xl space-y-4">
+                   <h3 className=" text-lg font-bold border-b border-slate-50 pb-3">Documentos Vinculados</h3>
                    <div className="space-y-3">
                       {documents.filter(d => d.client_product_id === selectedProductId).length === 0 ? (
                         <p className="text-xs text-muted-foreground italic p-4 text-center">Nenhum documento anexado.</p>
@@ -397,17 +388,19 @@ export default function ProviderPanel() {
           </div>
         ) : (
           /* MAIN LIST VIEW */
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8 animate-fade-up">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12 flex-wrap">
-                <TabsTrigger value="dashboard" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Home</TabsTrigger>
-                <TabsTrigger value="atuacao" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Atuação</TabsTrigger>
-                <TabsTrigger value="por-cliente" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Por Cliente ({groupedByClient.length})</TabsTrigger>
-                <TabsTrigger value="clientes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Demandas ({clientProducts.length})</TabsTrigger>
-                <TabsTrigger value="documentos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Documentos ({documents.length})</TabsTrigger>
-                <TabsTrigger value="reportes" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Reportes ({reports.length})</TabsTrigger>
-                <TabsTrigger value="contratos" className="rounded-xl px-5 data-[state=active]:bg-white shadow-none">Contratos ({contracts.length})</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-fade-up">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <TabsList className="bg-white p-1 rounded-lg border border-slate-200/70 h-10 flex-wrap shadow-sm">
+                <TabsTrigger value="dashboard" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Visão geral</TabsTrigger>
+                <TabsTrigger value="atuacao" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Atuação</TabsTrigger>
+                <TabsTrigger value="por-cliente" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Por Cliente · {groupedByClient.length}</TabsTrigger>
+                <TabsTrigger value="clientes" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Demandas · {clientProducts.length}</TabsTrigger>
+                <TabsTrigger value="documentos" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Documentos · {documents.length}</TabsTrigger>
+                <TabsTrigger value="reportes" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Reportes · {reports.length}</TabsTrigger>
+                <TabsTrigger value="contratos" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Contratos · {contracts.length}</TabsTrigger>
+                <TabsTrigger value="perfil" className="rounded-md px-4 text-xs font-semibold data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">Meu Perfil</TabsTrigger>
               </TabsList>
+
 
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -453,9 +446,9 @@ export default function ProviderPanel() {
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
-                  <div className="vx-card p-8 bg-white rounded-[32px] border border-slate-100 shadow-sm">
+                  <div className="vx-card p-8 bg-white rounded-2xl border border-slate-100 shadow-sm">
                     <div className="flex items-center justify-between mb-8">
-                       <h3 className="font-editorial text-2xl font-bold">Demandas com Prazo Próximo</h3>
+                       <h3 className=" text-2xl font-bold">Demandas com Prazo Próximo</h3>
                        <Button variant="ghost" className="text-primary text-xs font-bold uppercase tracking-widest" onClick={() => navigate("/prestador")}>Ver todas</Button>
                     </div>
                     {stats.nextDeadlines.length === 0 ? (
@@ -489,23 +482,31 @@ export default function ProviderPanel() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="vx-card p-6 bg-slate-900 text-white rounded-[32px] shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 size-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
-                    <h3 className="font-editorial text-xl font-bold mb-6 relative">Central do Prestador</h3>
-                    <div className="space-y-4 relative">
-                       <p className="text-sm text-white/60 leading-relaxed">
-                         Mantenha seus reportes em dia para garantir a liberação dos pagamentos. 
-                         Em caso de dúvidas sobre o escopo, entre em contato com o gestor operacional.
-                       </p>
-                       <div className="pt-4 space-y-3">
-                          <Button className="w-full bg-white text-slate-900 hover:bg-primary hover:text-white font-bold h-11 rounded-xl">
-                             Manual de Procedimentos
-                          </Button>
-                          <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 h-11 rounded-xl">
-                             Suporte Operacional
-                          </Button>
-                       </div>
-                    </div>
+                  <div className="vx-card p-6 bg-white rounded-2xl border border-slate-200/70 shadow-sm">
+                    <h3 className="text-sm font-bold text-slate-900 mb-1">Reportes recentes</h3>
+                    <p className="text-[11px] text-slate-500 mb-4">Últimas 5 atualizações enviadas ao admin.</p>
+                    {reports.length === 0 ? (
+                      <div className="text-center py-8">
+                        <ClipboardCheck className="size-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-xs text-slate-500">Nenhum reporte ainda. Mantenha o admin informado.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {reports.slice(0, 5).map((r: any) => {
+                          const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
+                          return (
+                            <button key={r.id} onClick={() => cp && setSelectedProductId(cp.id)} className="w-full text-left p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-semibold text-slate-900 truncate">{cp?.clients?.full_name || "—"}</p>
+                                <span className="text-[10px] text-slate-500 shrink-0">{formatDate(r.created_at)}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 truncate mt-0.5">{cp?.products?.name}</p>
+                              {r.notes && <p className="text-[11px] text-slate-600 line-clamp-2 mt-1">{r.notes}</p>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -523,10 +524,10 @@ export default function ProviderPanel() {
                 const active = products.filter(p => p.status !== "concluido" && p.status !== "cancelado").length;
                 const needsRpt = products.filter(p => needsReport(p.id, p.status)).length;
                 return (
-                  <div key={client?.id || "x"} className="vx-card bg-white border border-slate-100 rounded-[28px] overflow-hidden">
+                  <div key={client?.id || "x"} className="vx-card bg-white border border-slate-100 rounded-2xl overflow-hidden">
                     <div className="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-slate-50/50 to-transparent">
                       <div>
-                        <h3 className="font-editorial text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
+                        <h3 className=" text-2xl font-bold">{client?.full_name || "Cliente"}</h3>
                         <p className="text-xs text-muted-foreground">{client?.company || client?.email || "—"}</p>
                       </div>
                       <div className="flex items-center gap-6 text-xs">
@@ -605,7 +606,7 @@ export default function ProviderPanel() {
                     return (
                       <div
                         key={cp.id}
-                        className="vx-card p-6 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-[32px] group/card"
+                        className="vx-card p-6 bg-white border-slate-100 hover:border-primary/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group/card"
                       >
                         <div className="flex items-start justify-between mb-6">
                           <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover/card:bg-primary/10 group-hover/card:text-primary transition-colors">
@@ -618,7 +619,7 @@ export default function ProviderPanel() {
                         </div>
 
                         <div className="space-y-1 cursor-pointer" onClick={() => setSelectedProductId(cp.id)}>
-                          <h3 className="font-editorial text-xl font-bold text-slate-900 leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
+                          <h3 className=" text-xl font-bold text-slate-900 leading-tight group-hover/card:text-primary transition-colors">{cp.clients?.full_name}</h3>
                           <p className="text-xs text-muted-foreground font-medium">{cp.products?.name}</p>
                         </div>
 
@@ -652,7 +653,7 @@ export default function ProviderPanel() {
               {documents.length === 0 ? (
                 <EmptyState message="Nenhum documento disponível para seus atendimentos." />
               ) : (
-                <div className="vx-card overflow-hidden bg-white border-slate-100 rounded-[24px]">
+                <div className="vx-card overflow-hidden bg-white border-slate-100 rounded-xl">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
@@ -729,7 +730,7 @@ export default function ProviderPanel() {
                   {filteredReports.map((r: any) => {
                     const cp = clientProducts.find((c: any) => c.id === r.client_product_id);
                     return (
-                      <div key={r.id} className="vx-card p-6 bg-white border border-slate-100 rounded-[24px] hover:border-primary/20 transition-all">
+                      <div key={r.id} className="vx-card p-6 bg-white border border-slate-100 rounded-xl hover:border-primary/20 transition-all">
                         <div className="flex items-start gap-4">
                           <div className="size-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20">
                             <ClipboardCheck className="size-6" />
@@ -775,7 +776,7 @@ export default function ProviderPanel() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {contracts.map((c: any) => (
-                    <div key={c.id} className="vx-card p-6 bg-white border-slate-100 rounded-[32px] space-y-4">
+                    <div key={c.id} className="vx-card p-6 bg-white border-slate-100 rounded-2xl space-y-4">
                       <div className="flex items-start justify-between">
                         <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                           <FileText className="size-5" />
@@ -818,6 +819,10 @@ export default function ProviderPanel() {
                   ))}
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="perfil" className="animate-fade-up">
+              <ProfileTab provider={provider} userId={user?.id} />
             </TabsContent>
           </Tabs>
         )}
@@ -866,7 +871,7 @@ function DashboardCard({
   };
   
   return (
-    <div className="vx-card p-6 bg-white border border-slate-100 rounded-[32px] shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
+    <div className="vx-card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col justify-between group hover:border-primary/20 transition-all">
        <div className="flex items-center justify-between mb-4">
           <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone])}>
              <Icon className="size-5" />
@@ -875,7 +880,7 @@ function DashboardCard({
        </div>
        <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{label}</p>
-          <p className="text-2xl font-bold font-editorial text-slate-900 mt-1">{value}</p>
+          <p className="text-2xl font-bold  text-slate-900 mt-1">{value}</p>
           <p className="text-[10px] text-muted-foreground mt-1 font-medium">{description}</p>
        </div>
     </div>
@@ -891,7 +896,7 @@ function StatItem({ label, value, tone = "default" }: { label: string; value: st
   return (
     <div className="space-y-1">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
-      <p className={cn("text-3xl font-bold font-editorial tracking-tight leading-none", colors[tone])}>{value}</p>
+      <p className={cn("text-3xl font-bold  tracking-tight leading-none", colors[tone])}>{value}</p>
     </div>
   );
 }
@@ -929,9 +934,97 @@ function StatusBadge({ status }: { status: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="vx-card p-20 text-center bg-white border-slate-100 rounded-[32px] border-dashed border-2">
+    <div className="vx-card p-20 text-center bg-white border-slate-100 rounded-2xl border-dashed border-2">
       <Inbox className="size-12 text-slate-200 mx-auto mb-4" />
-      <p className="font-editorial text-lg text-muted-foreground">{message}</p>
+      <p className=" text-lg text-muted-foreground">{message}</p>
+    </div>
+  );
+}
+
+function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
+  const [form, setForm] = useState({
+    name: provider?.name ?? "",
+    email: provider?.email ?? "",
+    phone: provider?.phone ?? "",
+    specialty: provider?.specialty ?? "",
+    document_number: provider?.document_number ?? "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [pwd, setPwd] = useState({ new: "", confirm: "" });
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.from("service_providers").update({
+      name: form.name, phone: form.phone, specialty: form.specialty,
+      document_number: form.document_number,
+    }).eq("id", provider.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Perfil atualizado");
+  };
+
+  const changePwd = async () => {
+    if (!pwd.new || pwd.new.length < 8) return toast.error("Senha precisa ter ao menos 8 caracteres");
+    if (pwd.new !== pwd.confirm) return toast.error("Senhas não coincidem");
+    const { error } = await supabase.auth.updateUser({ password: pwd.new });
+    if (error) return toast.error(error.message);
+    setPwd({ new: "", confirm: "" });
+    toast.success("Senha atualizada");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/70 p-6 shadow-sm space-y-5">
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Dados profissionais</h3>
+          <p className="text-xs text-slate-500">Mantenha seus dados atualizados para o admin.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nome completo</label>
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">E-mail</label>
+            <Input value={form.email} disabled className="mt-1.5 h-10 bg-slate-50" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Telefone</label>
+            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" className="mt-1.5 h-10" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">CPF/CNPJ</label>
+            <Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Especialidade</label>
+            <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+        </div>
+        <div className="flex justify-end pt-2">
+          <Button onClick={save} disabled={saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            {saving ? "Salvando..." : "Salvar alterações"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-sm space-y-5">
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Alterar senha</h3>
+          <p className="text-xs text-slate-500">Mínimo 8 caracteres.</p>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Nova senha</label>
+            <Input type="password" value={pwd.new} onChange={(e) => setPwd({ ...pwd, new: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+          <div>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Confirmar nova senha</label>
+            <Input type="password" value={pwd.confirm} onChange={(e) => setPwd({ ...pwd, confirm: e.target.value })} className="mt-1.5 h-10" />
+          </div>
+        </div>
+        <Button onClick={changePwd} variant="outline" className="w-full">Atualizar senha</Button>
+      </div>
     </div>
   );
 }
