@@ -63,19 +63,19 @@ export function PageHero({
                 {icon}
               </div>
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-[2.5px] ring-white shadow-sm" />
+              <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-[2.5px] ring-white dark:ring-background shadow-sm" />
             </div>
           )}
           <div className="min-w-0">
             {(eyebrow || category) && (
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] font-bold">
-                <CalendarClock className="size-3 text-slate-800" />
-                <span className="text-slate-600">{eyebrow}</span>
+                <CalendarClock className="size-3 text-slate-800 dark:text-muted-foreground" />
+                <span className="text-slate-600 dark:text-muted-foreground">{eyebrow}</span>
                 {category && (
                   <>
                     <span className="size-1 rounded-full bg-slate-300" />
                     <Sparkles className="size-3 text-indigo-500" />
-                    <span className="text-indigo-700">{category}</span>
+                    <span className="text-indigo-700 dark:text-primary">{category}</span>
                   </>
                 )}
               </div>
