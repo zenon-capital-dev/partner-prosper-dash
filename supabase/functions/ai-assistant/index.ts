@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import "https://deno.land/x/reflection@0.1.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,22 +11,24 @@ serve(async (req) => {
   }
 
   try {
-    const { message, history, context } = await req.json()
+    const { message, history } = await req.json()
 
-    // Here we would typically integrate with an LLM provider (OpenAI, Anthropic, etc.)
-    // For now, we'll return a helpful simulated response based on the CRM context
-    
+    // Respostas simuladas úteis para o contexto do CRM Prosper
     let reply = "";
     const lowerMessage = message.toLowerCase();
 
     if (lowerMessage.includes("ajuda") || lowerMessage.includes("help")) {
-      reply = "Como assistente do CRM Prosper, posso te ajudar a navegar pelas seções de clientes, vendas e automações. O que você gostaria de fazer?";
+      reply = "Olá! Como assistente de IA da Prosper, posso te ajudar a navegar pelo CRM. Você pode me perguntar sobre como gerenciar clientes, ver propostas ou configurar automações.";
     } else if (lowerMessage.includes("cliente")) {
-      reply = "Você pode gerenciar seus clientes na seção 'Clientes'. Lá você verá a lista completa e o status de cada um.";
-    } else if (lowerMessage.includes("venda")) {
-      reply = "A seção de 'Vendas' mostra todas as transações fechadas e propostas em andamento.";
+      reply = "Para ver seus clientes, acesse o menu 'Clientes' na barra lateral. Lá você pode filtrar por status, ver o histórico de interações e editar informações cadastrais.";
+    } else if (lowerMessage.includes("venda") || lowerMessage.includes("comercial")) {
+      reply = "Na aba 'Comercial' você encontra Propostas, Vendas e Produtos. Se precisar de um relatório detalhado, vá em 'Inteligência' -> 'Relatórios'.";
+    } else if (lowerMessage.includes("automação") || lowerMessage.includes("automacoes")) {
+      reply = "As automações podem ser configuradas em 'Sistema' -> 'Automações'. Lá você define gatilhos para alertas de prazos, notificações de novos documentos e muito mais.";
+    } else if (lowerMessage.includes("oi") || lowerMessage.includes("olá") || lowerMessage.includes("ola")) {
+      reply = "Olá! Sou o assistente de IA do CRM Prosper. Em que posso ser útil hoje?";
     } else {
-      reply = `Entendi sua mensagem sobre "${message}". No momento estou sendo treinado para te dar respostas mais precisas sobre dados do CRM, mas já posso te ajudar com navegação básica.`;
+      reply = `Recebi sua mensagem: "${message}". No momento, estou aprendendo a consultar os dados reais do seu CRM para te dar respostas ainda mais precisas sobre faturamento, prazos e metas.`;
     }
 
     return new Response(
