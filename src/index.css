@@ -1186,12 +1186,30 @@ h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
     max-width: 100%;
   }
 
-  /* Dialogs/Sheets full-width with safe padding */
-  .admin-shell [role="dialog"] { max-width: 100vw !important; }
+  /* Dialogs/Sheets full-height with REAL scroll on mobile */
+  [role="dialog"] {
+    max-width: 100vw !important;
+  }
+  [data-radix-dialog-content],
+  [data-radix-sheet-content] {
+    max-height: 100svh !important;
+    max-height: 100dvh !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 
   [data-radix-popper-content-wrapper] {
     max-width: calc(100vw - 1rem) !important;
     z-index: 60 !important;
+  }
+  /* Select/Dropdown menus respect viewport height */
+  [data-radix-select-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content] {
+    max-height: calc(100svh - 5rem) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Hide overly-decorative absolute icons on tight screens */
