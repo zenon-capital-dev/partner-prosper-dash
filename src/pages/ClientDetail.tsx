@@ -46,6 +46,7 @@ import { PageHeader } from "@/components/PageHeader";
 
 const TABS = [
   { id: "visao-geral", label: "Visão Geral", icon: Info },
+  { id: "onboarding", label: "Onboarding", icon: Sparkles },
   { id: "empresas", label: "Empresas", icon: Building2 },
   { id: "produtos", label: "Produtos/Demandas", icon: ShoppingBag },
   { id: "documentos", label: "Documentos", icon: FileText },
