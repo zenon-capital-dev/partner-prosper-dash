@@ -233,33 +233,34 @@ export default function ProviderPanel() {
   const selectedProduct = clientProducts.find((cp: any) => cp.id === selectedProductId);
 
   return (
-    <div className=" min-h-screen">
-      <div className="page-shell space-y-10 py-10">
-        
+    <div className="min-h-screen bg-slate-50/60">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-8 space-y-6">
+
         {/* Header & Stats Strip */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-white p-8 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 size-64 bg-primary/5 blur-3xl -mr-32 -mt-32 rounded-full transition-colors group-hover:bg-primary/10" />
-          
-          <div className="relative space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="h-px w-8 bg-primary/40" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary">Service Provider Console</p>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-slate-200/70 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="size-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 text-white flex items-center justify-center text-lg font-bold tracking-tight shadow-md">
+              {provider.name.split(' ').map((p:string) => p[0]).slice(0,2).join('')}
             </div>
-            <h1 className=" text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
-              Olá, <span className="text-primary italic">{provider.name.split(' ')[0]}</span>.
-            </h1>
-            <p className="text-xs text-muted-foreground font-medium flex items-center gap-2">
-              <ShieldCheck className="size-3.5 text-primary/40" /> {provider.specialty || "Prestador Especialista"}
-            </p>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-600">Painel do Prestador</p>
+              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
+                Olá, <span className="text-indigo-600">{provider.name.split(' ')[0]}</span>
+              </h1>
+              <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                <ShieldCheck className="size-3.5 text-emerald-500" /> {provider.specialty || "Prestador Especialista"} · {provider.email}
+              </p>
+            </div>
           </div>
 
-           <div className="flex flex-wrap gap-8 lg:gap-12 relative">
-             <StatItem label="Ativos" value={String(stats.active)} />
-             <StatItem label="Urgent" value={String(stats.urgent)} tone="warning" />
-             <StatItem label="Atrasados" value={String(stats.delayed)} tone="warning" />
-             <StatItem label="A Receber" value={formatBRL(stats.valuesToReceive)} tone="success" />
-           </div>
+          <div className="flex flex-wrap gap-6 lg:gap-10">
+            <StatItem label="Ativas" value={String(stats.active)} />
+            <StatItem label="Urgentes" value={String(stats.urgent)} tone="warning" />
+            <StatItem label="Atrasadas" value={String(stats.delayed)} tone="warning" />
+            <StatItem label="A Receber" value={formatBRL(stats.valuesToReceive)} tone="success" />
+          </div>
         </div>
+
 
         {selectedProductId ? (
           /* PRODUCT DETAIL VIEW */
