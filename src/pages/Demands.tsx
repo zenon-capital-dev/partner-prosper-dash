@@ -268,7 +268,7 @@ export default function Demands() {
           <DailyAgenda />
         </TabsContent>
 
-        <TabsContent value="operacional" className="mt-0 space-y-4">
+        <TabsContent value="operacional" className="mt-0 space-y-4 px-5 lg:px-8">
       <div className="space-y-4">
         <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
           <div className="relative flex-1 w-full lg:max-w-md">
