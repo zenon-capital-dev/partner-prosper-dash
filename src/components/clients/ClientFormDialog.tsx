@@ -286,26 +286,26 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           <DialogTitle className="font-display text-xl">{client?.id ? "Editar cliente" : "Novo cliente"}</DialogTitle>
           <DialogDescription>Cadastre os dados do cliente. Você pode opcionalmente já criar o acesso ao painel.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-          <div className="col-span-2 space-y-2">
-            <Label>Nome completo *</Label>
-            <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4 py-4">
+          <div className="col-span-1 sm:col-span-2 space-y-2">
+            <Label className="text-[13px] font-semibold text-slate-700">Nome completo *</Label>
+            <Input className="h-10 rounded-lg border-slate-200" value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Email</Label>
-            <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <Label className="text-[13px] font-semibold text-slate-700">Email</Label>
+            <Input className="h-10 rounded-lg border-slate-200" type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>Telefone</Label>
-            <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
+            <Label className="text-[13px] font-semibold text-slate-700">Telefone</Label>
+            <MaskedInput className="h-10 rounded-lg border-slate-200" mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
           </div>
           <div className="space-y-2">
-            <Label>CPF/CNPJ</Label>
-            <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
+            <Label className="text-[13px] font-semibold text-slate-700">CPF/CNPJ</Label>
+            <MaskedInput className="h-10 rounded-lg border-slate-200" mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
           </div>
           <div className="space-y-2">
-            <Label>Empresa</Label>
-            <Input value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+            <Label className="text-[13px] font-semibold text-slate-700">Empresa</Label>
+            <Input className="h-10 rounded-lg border-slate-200" value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
           </div>
           <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="sm:col-span-3 space-y-2">
