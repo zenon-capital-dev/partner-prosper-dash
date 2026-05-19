@@ -10,17 +10,20 @@ function RoleClientRedirect() {
     queryKey: ["client-redirect-check", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await supabase
+      const [{ data, error }, { data: profile }] = await Promise.all([
+        supabase
         .from("clients")
-        .select("onboarding_status")
+        .select("onboarding_status, status")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .maybeSingle(),
+        supabase.from("profiles").select("onboarding_completed").eq("id", user.id).maybeSingle(),
+      ]);
       
       if (error) {
         console.error("[RoleClientRedirect] Error checking onboarding:", error);
         return null;
       }
-      return data;
+      return { client: data, profile };
     },
     enabled: !!user?.id,
     staleTime: 0, // Always check fresh for redirection
@@ -28,7 +31,10 @@ function RoleClientRedirect() {
 
   if (isLoading) return <LoadingScreen message="Redirecionando..." />;
 
-  if (client?.onboarding_status !== 'completo') {
+  const clientRow = client?.client;
+  const released = client?.profile?.onboarding_completed || ["completo", "concluido"].includes(clientRow?.onboarding_status) || clientRow?.status === "ativo";
+
+  if (clientRow && !released) {
     return <Navigate to="/cliente/onboarding" replace />;
   }
 
