@@ -80,15 +80,15 @@ export function PageHero({
                 )}
               </div>
             )}
-            <h1 className="text-[26px] lg:text-[32px] font-extrabold text-slate-950 tracking-[-0.025em] mt-2 leading-[1.05] font-display">
+            <h1 className="text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground tracking-[-0.025em] mt-2 leading-[1.05] font-display">
               {title}
             </h1>
             {description && (
-              <p className="text-[13.5px] text-slate-700 mt-2 max-w-2xl leading-relaxed font-medium">
+              <p className="text-[13.5px] text-slate-700 dark:text-muted-foreground mt-2 max-w-2xl leading-relaxed font-medium">
                 {description}
               </p>
             )}
-            <p className="text-[10.5px] text-slate-800 mt-2.5 capitalize tracking-wide font-bold">{today}</p>
+            <p className="text-[10.5px] text-slate-800 dark:text-muted-foreground mt-2.5 capitalize tracking-wide font-bold">{today}</p>
           </div>
         </div>
 
@@ -108,8 +108,8 @@ export function PageHero({
               <div
                 key={i}
                 className={cn(
-                  "group/kpi relative overflow-hidden rounded-xl border bg-white p-4 lg:p-[18px] transition-all duration-300",
-                  "border-slate-200/70 shadow-[0_1px_0_rgba(15,23,42,0.04)]",
+                  "group/kpi relative overflow-hidden rounded-xl border bg-white dark:bg-card p-4 lg:p-[18px] transition-all duration-300",
+                  "border-slate-200/70 dark:border-border shadow-[0_1px_0_rgba(15,23,42,0.04)]",
                   "hover:shadow-[0_8px_28px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-[1px] hover:border-slate-300/80"
                 )}
               >
@@ -123,7 +123,7 @@ export function PageHero({
                 <div className="flex items-center justify-between mb-3 relative">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={cn("size-1.5 rounded-full shrink-0", cfg.dot)} />
-                    <p className="text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-slate-600 truncate">
+                    <p className="text-[9.5px] font-extrabold uppercase tracking-[0.18em] text-slate-600 dark:text-muted-foreground truncate">
                       {k.label}
                     </p>
                   </div>
@@ -136,11 +136,11 @@ export function PageHero({
                     </div>
                   )}
                 </div>
-                <p className="font-display text-[24px] lg:text-[28px] font-extrabold tracking-[-0.025em] tabular-nums leading-none truncate text-slate-950 relative">
+                <p className="font-display text-[24px] lg:text-[28px] font-extrabold tracking-[-0.025em] tabular-nums leading-none truncate text-slate-950 dark:text-foreground relative">
                   {k.value}
                 </p>
                 {k.hint && (
-                  <p className="text-[11px] text-slate-600 mt-2 truncate relative font-bold">{k.hint}</p>
+                  <p className="text-[11px] text-slate-600 dark:text-muted-foreground mt-2 truncate relative font-bold">{k.hint}</p>
                 )}
               </div>
             );
