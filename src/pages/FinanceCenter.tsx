@@ -327,8 +327,8 @@ function PaymentsTable({
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({ commissions }: { commissions: any[] }) {
   const qc = useQueryClient();
-  const pending = commissions.filter((c: any) => c.workflow_status !== "paga" && c.status !== "paga");
-  const paid = commissions.filter((c: any) => c.workflow_status === "paga" || c.status === "paga");
+  const pending = commissions.filter((c: any) => c.workflow_status !== "pago" && c.workflow_status !== "paga" && c.status !== "pago" && c.status !== "paga");
+  const paid = commissions.filter((c: any) => c.workflow_status === "pago" || c.workflow_status === "paga" || c.status === "pago" || c.status === "paga");
 
   const markPaid = async (id: string) => {
     // Standardizing on 'pago' to match the database enum and common convention
