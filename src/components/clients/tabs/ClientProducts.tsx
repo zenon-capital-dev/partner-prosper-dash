@@ -134,7 +134,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                               </Button>
                            </DropdownMenuTrigger>
                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => window.location.assign(`/demandas/${cp.id}`)}><Edit3 className="size-4" /> Abrir Demanda</DropdownMenuItem>
+                              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate(`/demandas?id=${cp.id}`)}><Edit3 className="size-4" /> Abrir Demanda</DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="gap-2 text-rose-500 focus:text-rose-500 cursor-pointer"
                                 onClick={async () => { if (await confirmAction("Remover este produto?")) deleteProduct.mutate(cp.id); }}
