@@ -391,7 +391,8 @@ export default function DashboardAdmin() {
                 )}
               </div>
               <div className="space-y-2.5 mt-4">
-                {stats.demandsByStatus.length > 0 ? stats.demandsByStatus.map((s) => {
+                {!isGlobalLoading && stats.demandsByStatus.length > 0 ? stats.demandsByStatus.map((s) => {
+
                   const total = stats.demandsByStatus.reduce((a, x) => a + x.value, 0);
                   const pct = total > 0 ? (s.value / total) * 100 : 0;
                   return (
