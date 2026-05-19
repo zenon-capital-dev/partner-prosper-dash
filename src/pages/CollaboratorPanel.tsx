@@ -51,7 +51,7 @@ export default function CollaboratorPanel() {
       const { data, error } = await supabase
         .from("clients")
         .select("id, full_name, email, phone, status, created_at")
-        .eq("collaborator_id", user!.id)
+        .or(`collaborator_id.eq.${user!.id},responsible_id.eq.${user!.id}`)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -172,16 +172,16 @@ export default function CollaboratorPanel() {
   return (
     <div className="min-h-full bg-slate-50/60">
       <div className="border-b border-slate-200/70 bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+          <div className="flex items-start sm:items-center justify-between gap-3 sm:gap-4 flex-wrap">
+            <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-600">Painel do Colaborador</p>
-              <h1 className="text-[22px] font-semibold text-slate-900 mt-1">Minha operação</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Demandas e tarefas atribuídas a você.</p>
+              <h1 className="text-[20px] sm:text-[22px] font-semibold text-slate-900 mt-1">Minha operação</h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Demandas e tarefas atribuídas a você.</p>
             </div>
             <Button asChild variant="outline" size="sm">
               <Link to="/clientes" className="gap-2">
-                <Users className="size-4" /> Ver lista de clientes
+                <Users className="size-4" /> <span className="hidden sm:inline">Ver lista de clientes</span><span className="sm:hidden">Clientes</span>
                 <ExternalLink className="size-3.5" />
               </Link>
             </Button>
@@ -189,16 +189,18 @@ export default function CollaboratorPanel() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-white border border-slate-200/70 p-1 h-auto rounded-lg shadow-sm flex-wrap">
-            <TabsTrigger value="dashboard" className="gap-2"><LayoutDashboard className="size-4" /> Dashboard</TabsTrigger>
-            <TabsTrigger value="demandas" className="gap-2"><ClipboardList className="size-4" /> Minhas Demandas</TabsTrigger>
-            <TabsTrigger value="tarefas" className="gap-2"><ListChecks className="size-4" /> Tarefas</TabsTrigger>
-            <TabsTrigger value="clientes" className="gap-2"><Users className="size-4" /> Clientes</TabsTrigger>
-            <TabsTrigger value="documentos" className="gap-2"><FileText className="size-4" /> Documentos</TabsTrigger>
-            <TabsTrigger value="perfil" className="gap-2"><UserCog className="size-4" /> Perfil</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto scrollbar-none -mx-2 px-2">
+            <TabsList className="bg-white border border-slate-200/70 p-1 h-auto rounded-lg shadow-sm inline-flex w-max min-w-full">
+              <TabsTrigger value="dashboard" className="gap-2 whitespace-nowrap"><LayoutDashboard className="size-4" /> Dashboard</TabsTrigger>
+              <TabsTrigger value="demandas" className="gap-2 whitespace-nowrap"><ClipboardList className="size-4" /> Minhas Demandas</TabsTrigger>
+              <TabsTrigger value="tarefas" className="gap-2 whitespace-nowrap"><ListChecks className="size-4" /> Tarefas</TabsTrigger>
+              <TabsTrigger value="clientes" className="gap-2 whitespace-nowrap"><Users className="size-4" /> Clientes</TabsTrigger>
+              <TabsTrigger value="documentos" className="gap-2 whitespace-nowrap"><FileText className="size-4" /> Documentos</TabsTrigger>
+              <TabsTrigger value="perfil" className="gap-2 whitespace-nowrap"><UserCog className="size-4" /> Perfil</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ============ DASHBOARD ============ */}
           <TabsContent value="dashboard" className="mt-6 space-y-6">
@@ -256,13 +258,13 @@ export default function CollaboratorPanel() {
 
           {/* ============ DEMANDAS ============ */}
           <TabsContent value="demandas" className="mt-6 space-y-4">
-            <div className="flex gap-3 flex-wrap">
-              <div className="relative flex-1 min-w-[240px]">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+              <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                <Input placeholder="Buscar cliente ou produto..." value={demandSearch} onChange={(e) => setDemandSearch(e.target.value)} className="pl-9" />
+                <Input placeholder="Buscar cliente ou produto..." value={demandSearch} onChange={(e) => setDemandSearch(e.target.value)} className="pl-9 w-full" />
               </div>
               <Select value={demandStatus} onValueChange={setDemandStatus}>
-                <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[200px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os status</SelectItem>
                   <SelectItem value="aguardando_inicio">Aguardando início</SelectItem>

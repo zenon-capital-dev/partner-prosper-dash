@@ -101,8 +101,8 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{lead?.id ? "Editar Lead" : "Novo Lead / Convidado"}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-4 py-2">
-          <div className="col-span-2 space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+          <div className="sm:col-span-2 space-y-2">
             <Label>Nome completo *</Label>
             <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
           </div>
@@ -209,14 +209,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
             <Label>Data da próxima ação</Label>
             <Input type="date" value={form.next_action_date ?? ""} onChange={(e) => setForm({ ...form, next_action_date: e.target.value })} />
           </div>
-          <div className="col-span-2 space-y-2">
+          <div className="sm:col-span-2 space-y-2">
             <Label>Observações</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="bg-gradient-primary hover:opacity-90">{submitting ? "Salvando..." : "Salvar"}</Button>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">Cancelar</Button>
+          <Button onClick={submit} disabled={submitting} className="w-full sm:w-auto bg-gradient-primary hover:opacity-90">{submitting ? "Salvando..." : "Salvar"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

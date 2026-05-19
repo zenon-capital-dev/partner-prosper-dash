@@ -48,14 +48,14 @@ export function LeadsKanban({ leads, onEdit, onConvert }: Props) {
   };
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1">
+    <div className="flex gap-3 sm:gap-4 overflow-x-auto overscroll-x-contain pb-4 -mx-3 px-3 sm:-mx-1 sm:px-1 snap-x snap-mandatory scrollbar-none">
       {COLUMNS.map((col) => {
         const items = leads.filter((l) => l.status === col.key);
         const isOver = overCol === col.key;
         return (
           <div
             key={col.key}
-            className={`flex-shrink-0 w-[290px] rounded-2xl border bg-gradient-to-b ${col.accent} ${
+            className={`flex-shrink-0 w-[78vw] max-w-[290px] sm:w-[290px] snap-start rounded-2xl border bg-gradient-to-b ${col.accent} ${
               isOver ? "ring-2 ring-primary/60 scale-[1.01]" : ""
             } transition-all`}
             onDragOver={(e) => {

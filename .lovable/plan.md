@@ -1,64 +1,43 @@
-# Refazer o Painel do Colaborador
+Plano de correção completo:
 
-## O que está errado hoje
+1. Página de Leads no mobile
+- Reestruturar o topo da página para não “vazar” para fora da tela: filtros de data, alternância Kanban/Tabela, Importar CSV e Novo Lead precisam quebrar em linhas úteis ou virar trilhas roláveis sem cortar conteúdo.
+- No mobile, trocar o Kanban de colunas largas por uma experiência usável: cards empilhados por etapa/acordeão ou colunas com largura calculada e scroll evidente, sem deixar botões escondidos fora da tela.
+- Ajustar a barra de busca/filtros para ocupar 100% da largura em telas pequenas.
+- Corrigir tabela/lista para mobile com cards ou scroll horizontal controlado, sem texto esmagado.
+- Remover classes hardcoded que brigam com o tema premium claro do admin e padronizar com tokens semânticos.
 
-O colaborador hoje cai dentro do `/admin` (AdminLayout aceita `colaborador` no `RouteGuard`) e enxerga um painel praticamente idêntico ao admin. Não é isso que você quer.
+2. Modais e formulários do admin
+- Corrigir `DialogContent`, `DialogFooter`, `Select`, `Dropdown`, `Popover` e `Sheet` para terem altura máxima real, scroll interno funcional e rodapé acessível no mobile.
+- Ajustar formulários de criação/edição que ainda usam `grid-cols-2` fixo para `grid-cols-1 sm:grid-cols-2`.
+- Priorizar os modais mais críticos: Novo Lead, Converter Lead, Novo Cliente, Adicionar Produto/Demanda, Tarefas, Comissões, Usuários, Colaboradores, Indicadores, Financeiro, Documentos e Demand Detail.
+- Garantir que botões de salvar/cancelar nunca fiquem cortados atrás do fim da viewport.
 
-## O que vai virar
+3. Comunicação correta entre Admin, Parceiro, Indicador, Colaborador, Prestador e Cliente
+- Corrigir a conversão de Lead em Cliente: quando o lead tiver colaborador responsável, o cliente, a demanda criada e a primeira tarefa devem receber o mesmo vínculo automaticamente.
+- Corrigir criação/edição de Cliente: ao selecionar colaborador responsável, o vínculo deve alimentar cliente, demandas relacionadas e registros derivados quando aplicável.
+- Corrigir Adicionar Produto/Demanda: se o cliente já tem colaborador, a demanda deve herdar esse colaborador por padrão; se o admin escolher outro colaborador, esse colaborador vira o responsável da demanda.
+- Corrigir consultas do painel do colaborador para contar apenas registros vinculados ao usuário logado por `clients.collaborator_id`, `clients.responsible_id`, `client_products.responsible_employee_id`, `tasks.assigned_to` ou vínculos indiretos válidos via demanda/cliente.
 
-Colaborador = staff interno operacional. Painel próprio em `/colaborador`, parecido com o do prestador (focado em demandas que estão na mão dele), com algumas funções a mais. O `/admin` fica bloqueado pra ele, exceto a página de **Clientes em modo leitura**.
+4. Regras de banco para impedir o bug de voltar
+- Criar uma migration com triggers/funções seguras para preencher automaticamente `client_products.responsible_employee_id` a partir do colaborador do cliente quando uma demanda for criada sem responsável.
+- Ao atualizar o colaborador de um cliente, propagar para demandas sem responsável ou com o responsável anterior do cliente, sem sobrescrever demandas que foram atribuídas manualmente a outro colaborador.
+- Garantir políticas de acesso para colaborador sem abrir dados de outros colaboradores.
+- Revisar políticas de `clients`, `client_products`, `tasks`, `documents`, `contracts`, `payments`, `sales` e `commissions` para que cada perfil veja somente o que está vinculado a ele.
 
----
+5. Auditoria e validação
+- Rodar consultas de auditoria no banco para encontrar clientes/demandas/tarefas desalinhados e corrigir inconsistências existentes.
+- Validar no preview em mobile 390x844 e desktop: Leads, Clientes, Demandas, Tarefas e modais principais.
+- Validar o fluxo real: criar cliente com colaborador, adicionar demanda, converter lead com colaborador e confirmar que tudo aparece no painel do colaborador e nas telas relacionadas.
 
-## Painel novo `/colaborador`
-
-Estrutura espelhada no `/prestador` (tabs no topo, layout limpo):
-
-1. **Dashboard** — cards resumo: minhas demandas abertas, tarefas pendentes hoje, prazos vencendo, últimas mensagens
-2. **Minhas Demandas** — lista das `client_products` onde ele é o responsável (`assigned_to = auth.uid()`); abre detalhe com etapas, comentários, status
-3. **Minhas Tarefas** — `tasks` atribuídas a ele, com checklist + prazo
-4. **Clientes** — leitura dos clientes vinculados às demandas dele (nome, contato, status) — sem editar
-5. **Documentos** — docs das demandas que ele toca, com upload quando faz sentido
-6. **Perfil** — dados pessoais e troca de senha
-
-Sidebar lateral enxuta (não a do admin), mesma estética clara que o /admin usa.
-
-## Acesso ao /admin
-
-- Tentou ir em `/admin`, `/vendas`, `/financeiro`, etc → redireciona pro `/colaborador`
-- Exceção: `/clientes` (lista) e `/clientes/:id` (ficha) ficam acessíveis **só leitura** — botões de criar/editar/excluir somem, ações ficam desabilitadas
-
-## Backend / RLS
-
-Migração ajustando policies pra garantir que mesmo via API direta o colaborador só veja o dele:
-
-- `client_products`: SELECT permitido quando `assigned_to = auth.uid()` (mantém regra do admin separada)
-- `tasks`: SELECT/UPDATE quando `assigned_to = auth.uid()`
-- `clients`: SELECT permitido quando existe ao menos uma demanda dele atrelada àquele cliente
-- `documents`: SELECT atrelado às demandas dele
-- INSERT/UPDATE/DELETE de parceiros, leads, prestadores, vendas, comissões, contratos → bloqueado pra colaborador (já está, vou só revalidar)
-
-## Roteamento
-
-- `RoleHome`: `isColaborador` agora vai pra `/colaborador` (não mais `/admin`)
-- `AdminLayout`: remover `colaborador` do `RouteGuard.allow`; criar exceção só pras rotas `/clientes*` aceitando colaborador em modo readonly
-- `/clientes` (Clients.tsx + ClientDetail.tsx): detectar `isColaborador` e esconder/desabilitar tudo que escreve
-
-## Arquivos tocados
-
-```text
-novo:    src/pages/CollaboratorPanel.tsx      (painel real, hoje é só redirect)
-novo:    src/components/collaborator/CollaboratorSidebar.tsx
-editar:  src/components/RoleHome.tsx          (colaborador → /colaborador)
-editar:  src/components/admin/AdminLayout.tsx (allow só admin/admin_secondary/vendedor; exceção /clientes p/ colaborador readonly)
-editar:  src/pages/Clients.tsx                (modo readonly se isColaborador)
-editar:  src/pages/ClientDetail.tsx           (modo readonly se isColaborador)
-editar:  src/App.tsx                          (rotas /colaborador e /colaborador/:tab)
-migração: ajustar RLS de client_products / tasks / clients / documents pra colaborador
-```
-
----
-
-## Resumo executivo
-
-Colaborador deixa de morar no /admin. Ganha um portal próprio focado em demandas dele (igual ao do prestador, com tarefas e leitura de clientes a mais). A única coisa que ele continua vendo do /admin é a listagem de clientes, em leitura. Tudo travado também no banco via RLS.
+Arquivos que devem ser alterados:
+- `src/pages/Leads.tsx`
+- `src/components/leads/LeadsKanban.tsx`
+- `src/components/leads/LeadFormDialog.tsx`
+- `src/components/leads/ConvertLeadDialog.tsx`
+- `src/components/clients/ClientFormDialog.tsx`
+- `src/components/clients/AddProductDialog.tsx`
+- `src/pages/CollaboratorPanel.tsx`
+- `src/index.css`
+- componentes base de UI necessários: `dialog`, `select`, `dropdown-menu`, `popover`, `sheet`, `tabs`, `table`
+- nova migration de permissões/propagação de vínculos no backend
