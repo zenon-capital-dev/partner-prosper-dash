@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PageHeader } from "@/components/PageHeader";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,9 @@ import {
   ClipboardList, Search, Plus, Calendar as CalendarIcon, Clock, AlertCircle,
   MoreHorizontal, Pencil, Trash2, LayoutList, Columns3, CalendarDays, User,
   Building2, Briefcase, FileSignature, CreditCard, Users as UsersIcon, Package,
+  CheckCircle2,
 } from "lucide-react";
+import { PageHero } from "@/components/PageHero";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -350,18 +352,28 @@ export default function Tasks() {
   };
 
   return (
-    <div className="page-shell space-y-7 animate-fade-in">
-      <PageHeader
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      <PageHero
+        eyebrow="Operacional"
+        category="Task Management"
         title="Central de Tarefas"
+        icon={<ClipboardList className="size-6" />}
         description="Gerencie tarefas internas vinculadas a clientes, demandas, prestadores, parceiros, pagamentos e contratos."
         actions={
           <Button onClick={() => { resetForm(); setCreateOpen(true); }} className="gap-2 bg-gradient-primary">
             <Plus className="size-4" /> Nova Tarefa
           </Button>
         }
+        kpis={[
+          { label: "Total", value: stats.total, tone: "primary", icon: <ClipboardList className="size-4" /> },
+          { label: "Urgentes", value: stats.urgent, tone: "warning", icon: <AlertCircle className="size-4" /> },
+          { label: "Atrasadas", value: stats.overdue, tone: "danger", icon: <Clock className="size-4" /> },
+          { label: "Concluídas", value: stats.done, tone: "success", icon: <CheckCircle2 className="size-4" /> },
+        ]}
       />
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      
+      <div className="px-5 lg:px-8 space-y-7 pb-10">
+        <div className="hidden grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total", count: stats.total, tone: "text-primary bg-primary/5 border-primary/10" },
           { label: "Urgentes", count: stats.urgent, tone: "text-amber-600 bg-amber-50 border-amber-100" },
@@ -373,9 +385,9 @@ export default function Tasks() {
             <p className="text-3xl font-black mt-1">{s.count}</p>
           </div>
         ))}
-      </div>
+        </div>
 
-      <div className="vx-card p-4 space-y-4">
+        <div className="vx-card p-4 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
