@@ -979,8 +979,8 @@ const tooltipStyle = {
 
 function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm", className)}>
-      <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+    <div className={cn("group/card relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_24px_58px_-48px_hsl(222_47%_11%/0.45)] transition-all duration-300 hover:border-slate-300/90 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_30px_70px_-52px_hsl(222_47%_11%/0.58)]", className)}>
+      <div className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-indigo-200/80 to-transparent opacity-80" />
       {children}
     </div>
   );
@@ -988,10 +988,10 @@ function Card({ className, children }: { className?: string; children: React.Rea
 
 function CardHeader({ eyebrow, title, right }: { eyebrow: string; title: string; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100/90 gap-3">
       <div>
-        <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-muted-foreground">{eyebrow}</p>
-        <h3 className="text-[13.5px] font-semibold text-foreground mt-0.5 tracking-tight">{title}</h3>
+        <p className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400">{eyebrow}</p>
+        <h3 className="text-[14px] font-black text-slate-950 mt-1 tracking-tight">{title}</h3>
       </div>
       {right}
     </div>
@@ -1005,13 +1005,14 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
   const t = toneColor[tone];
   return (
     <div className={cn(
-      "group relative p-5 rounded-lg border transition-all duration-300",
-      "bg-card hover:shadow-md",
+      "group relative p-5 rounded-2xl border transition-all duration-300",
+      "bg-white hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_28px_64px_-48px_hsl(222_47%_11%/0.58)]",
       t.border,
-      t.soft,
+      "shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_20px_50px_-46px_hsl(222_47%_11%/0.5)]",
       "overflow-hidden"
     )}>
-      <div className="absolute bottom-0 right-0 w-3/4 h-24 opacity-5 group-hover:opacity-15 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
+      <div className={cn("absolute inset-0 opacity-70", t.soft)} />
+      <div className="absolute bottom-0 right-0 w-3/4 h-24 opacity-10 group-hover:opacity-20 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparkData}>
             <Area type="monotone" dataKey="v" stroke={t.chart} fill={t.chart} strokeWidth={4} />
@@ -1019,8 +1020,8 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
         </ResponsiveContainer>
       </div>
       <div className="relative flex items-start justify-between mb-6">
-        <div className={cn("p-4 rounded-2xl shadow-xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3", t.bg, t.text)}>
-          <Icon className="size-6" />
+        <div className={cn("p-3.5 rounded-2xl shadow-[0_18px_30px_-22px_hsl(222_47%_11%/0.45)] ring-1 ring-white/70 transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-2", t.bg, t.text)}>
+          <Icon className="size-5" />
         </div>
         <div className={cn(
           "flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full border shadow-sm backdrop-blur-md",
@@ -1033,16 +1034,16 @@ function KpiPremium({ label, value, delta, up, icon: Icon, tone, sparkData, capt
         </div>
       </div>
       <div className="relative space-y-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-800">{label}</p>
-        <h3 className="text-3xl lg:text-4xl font-black text-slate-950 tracking-tighter leading-none tabular-nums">{value}</h3>
+        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">{label}</p>
+        <h3 className="font-mono text-[28px] lg:text-[34px] font-black text-slate-950 tracking-tight leading-none tabular-nums">{value}</h3>
         <p className="text-[11px] font-bold text-slate-600 tracking-tight">{caption}</p>
       </div>
-      <div className="relative mt-8 pt-5 border-t border-slate-100">
+      <div className="relative mt-7 pt-5 border-t border-white/75">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Índice de Crescimento</span>
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Índice de Crescimento</span>
           <span className="text-[11px] font-black text-slate-950">{Math.round(progress)}%</span>
         </div>
-        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
+        <div className="h-2 w-full bg-white/90 rounded-full overflow-hidden p-0.5 shadow-inner">
           <div className={cn("h-full rounded-full transition-all duration-1000 ease-out", t.grad)} style={{ width: `${Math.min(100, progress)}%` }} />
         </div>
       </div>
@@ -1054,19 +1055,19 @@ function MetricPill({ label, value, tone, icon: Icon, href, pulse }: { label: st
   const t = toneColor[tone];
   return (
     <Link to={href} className={cn(
-      "group relative flex items-center gap-3 p-3 rounded-lg border transition-all duration-200",
-      "bg-card shadow-sm hover:shadow-md",
+      "group relative flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-200",
+      "bg-white shadow-[0_1px_0_hsl(220_13%_88%/0.75),0_16px_38px_-34px_hsl(222_47%_11%/0.45)] hover:-translate-y-0.5 hover:shadow-[0_1px_0_hsl(220_13%_88%/0.9),0_24px_52px_-40px_hsl(222_47%_11%/0.55)]",
       t.border, "hover:bg-slate-50"
     )}>
       <div className={cn(
-        "size-10 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 group-hover:shadow-sm",
+        "size-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:shadow-sm",
         t.bg, t.text
       )}>
-        <Icon className={cn("size-6", pulse && "animate-pulse")} />
+        <Icon className={cn("size-5", pulse && "animate-pulse")} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 truncate">{label}</p>
-        <p className="text-xl font-black text-slate-950 tracking-tighter truncate tabular-nums">{value}</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 truncate">{label}</p>
+        <p className="font-mono text-[18px] font-black text-slate-950 tracking-tight truncate tabular-nums">{value}</p>
       </div>
       <ChevronRight className="size-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
       {pulse && (
