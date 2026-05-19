@@ -158,21 +158,53 @@ const partnerSections: NavSection[] = [
     label: "Painel",
     items: [
       { title: "Visão Geral", url: "/parceiro", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Carteira",
+    items: [
       { title: "Indicados", url: "/parceiro/clientes", icon: Users },
-      { title: "Comissões", url: "/parceiro/comissoes", icon: Wallet },
       { title: "Demandas", url: "/parceiro/demandas", icon: ClipboardList },
       { title: "Contratos", url: "/parceiro/contratos", icon: FileSignature },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { title: "Comissões", url: "/parceiro/comissoes", icon: Wallet },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { title: "Meu Perfil", url: "/perfil", icon: UserCog },
     ],
   },
 ];
 
 const referrerSections: NavSection[] = [
   {
-    label: "Indicador",
+    label: "Painel",
     items: [
-      { title: "Painel", url: "/indicador", icon: LayoutDashboard },
-      { title: "Indicações", url: "/indicador/indicacoes", icon: Users },
+      { title: "Visão Geral", url: "/indicador", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Indicações",
+    items: [
+      { title: "Meus Indicados", url: "/indicador/indicacoes", icon: Users },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
       { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { title: "Meu Perfil", url: "/perfil", icon: UserCog },
     ],
   },
 ];
