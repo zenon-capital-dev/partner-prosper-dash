@@ -118,10 +118,10 @@ const App = () => (
               <Route path="/" element={<RoleHome />} />
               <Route path="/parceiro" element={<PartnerPanel />} />
               <Route path="/parceiro/:tab" element={<PartnerPanel />} />
-              <Route path="/cliente" element={<ClientPanel />} />
-              <Route path="/cliente/:tab" element={<ClientPanel />} />
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/cliente/suporte" element={<Support />} />
+              <Route path="/cliente" element={<ClientPanel />} />
+              <Route path="/cliente/:tab" element={<ClientPanel />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/indicador" element={<ReferrerPanel />} />
               <Route path="/indicador/:tab" element={<ReferrerPanel />} />
