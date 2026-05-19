@@ -109,7 +109,7 @@ function AppLayoutInner() {
               <ThemeToggle />
             </div>
           </header>
-          <main className="flex-1 overflow-y-auto overflow-x-hidden animate-fade-up scroll-smooth">
+          <main className={`flex-1 overflow-y-auto overflow-x-hidden animate-fade-up scroll-smooth ${pathname.startsWith("/admin") || pathname.startsWith("/clientes") || pathname.startsWith("/demandas") ? "admin-shell" : ""}`}>
             <Outlet />
           </main>
         </div>
