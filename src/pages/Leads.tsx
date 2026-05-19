@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useSearchParams } from "react-router-dom";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useState, useMemo } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { formatDate, formatPhone, initials } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
@@ -52,6 +52,7 @@ const PAGE_SIZE = 25;
 export default function Leads() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [open, setOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
@@ -71,6 +72,10 @@ export default function Leads() {
       setOpen(true);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, rangeKey]);
 
   const openFollowUp = (lead: any) => {
     setFollowUpLead(lead);
@@ -113,8 +118,8 @@ export default function Leads() {
     return leads.filter((l: any) => {
       const createdAt = new Date(l.created_at);
       if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
-      if (!search) return true;
-      const q = search.toLowerCase();
+      if (!debouncedSearch) return true;
+      const q = debouncedSearch.toLowerCase();
       return (
         l.full_name?.toLowerCase().includes(q) ||
         l.email?.toLowerCase().includes(q) ||

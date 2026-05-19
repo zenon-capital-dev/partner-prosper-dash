@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/use-debounce";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ export default function Providers() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [view, setView] = useState<ViewMode>("grid");
   const [statusFilter, setStatusFilter] = useState<"todos" | "ativos" | "inativos">("todos");
   const [specialtyFilter, setSpecialtyFilter] = useState<string>("todas");
@@ -41,6 +43,10 @@ export default function Providers() {
   const [assignTarget, setAssignTarget] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, specialtyFilter]);
 
   const { data: providers = [] } = useQuery({
     queryKey: ["providers-rich"],
@@ -81,8 +87,8 @@ export default function Providers() {
       if (statusFilter === "ativos" && !p.active) return false;
       if (statusFilter === "inativos" && p.active) return false;
       if (specialtyFilter !== "todas" && p.specialty !== specialtyFilter) return false;
-      if (search) {
-        const q = search.toLowerCase();
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
         if (!`${p.name ?? ""} ${p.email ?? ""} ${p.specialty ?? ""}`.toLowerCase().includes(q)) return false;
       }
       return true;

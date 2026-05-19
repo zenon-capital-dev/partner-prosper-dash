@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDebounce } from "@/hooks/use-debounce";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -86,6 +87,7 @@ export default function Demands() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   
@@ -98,6 +100,10 @@ export default function Demands() {
   const [deadlineFilter, setDeadlineFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, priorityFilter, productFilter, providerFilter, partnerFilter, deadlineFilter, rangeKey]);
 
 
   const { data: demands = [], isLoading } = useQuery({
@@ -186,7 +192,7 @@ export default function Demands() {
       }
       
       if (search) {
-        const q = search.toLowerCase();
+        const q = debouncedSearch.toLowerCase();
         const matches = 
           d.clients?.full_name?.toLowerCase().includes(q) ||
           d.clients?.company?.toLowerCase().includes(q) ||

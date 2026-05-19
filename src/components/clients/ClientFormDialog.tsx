@@ -113,6 +113,18 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       toast.error("Nome obrigatório");
       return;
     }
+
+    // Se CEP preenchido mas endereço vazio, tenta buscar antes de salvar
+    if (form.address_zip_code && !form.address_street) {
+      const r = await lookupCEP(form.address_zip_code);
+      if (r) {
+        form.address_street = r.logradouro;
+        form.address_neighborhood = r.bairro;
+        form.city = r.localidade;
+        form.state = r.uf;
+      }
+    }
+
     if (!client?.id && createAccess) {
       if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
       if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }

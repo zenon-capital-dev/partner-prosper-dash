@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,6 +39,7 @@ export default function Clients() {
   const { isAdmin, isAdminSecondary, isColaborador } = useAuth();
   const canWrite = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
@@ -57,6 +59,10 @@ export default function Clients() {
 
   const navigate = useNavigate();
   const qc = useQueryClient();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients-admin-list"],
@@ -144,8 +150,8 @@ export default function Clients() {
 
   const filtered = useMemo(() => {
     return enriched.filter((c: any) => {
-      if (search) {
-        const q = search.toLowerCase();
+      if (debouncedSearch) {
+        const q = debouncedSearch.toLowerCase();
         const matches =
           c.full_name?.toLowerCase().includes(q) ||
           c.company?.toLowerCase().includes(q) ||

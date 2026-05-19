@@ -129,7 +129,7 @@ export default function Finance() {
     const revenue = sales.filter((s: any) => s.status === "concluida" || s.status === "pago").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
     const commissionsTotal = splits.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const commissionsPaid = splits.filter((c: any) => c.status === "pago" || c.status === "paga").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const commissionsPaid = splits.filter((c: any) => c.status === "pago").reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const netCommission = revenue - commissionsTotal;
     const profit = netCommission - expensesTotal;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
