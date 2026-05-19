@@ -307,14 +307,16 @@ export function AppSidebar() {
 
   const isActive = (path: string) => path === "/" ? pathname === path : pathname === path || pathname.startsWith(path + "/");
 
-  const showAdmin = isAdmin || isAdminSecondary || isColaborador;
-  const showPartner = isParceiro && !showAdmin;
-  const showReferrer = isIndicador && !showAdmin && !showPartner;
-  const showPrestador = isPrestador && !showAdmin && !showPartner && !showReferrer;
-  const showClient = isCliente && !showAdmin && !showPartner && !showPrestador && !showReferrer;
+  const showAdmin = isAdmin || isAdminSecondary;
+  const showColaborador = isColaborador && !showAdmin;
+  const showPartner = isParceiro && !showAdmin && !showColaborador;
+  const showReferrer = isIndicador && !showAdmin && !showColaborador && !showPartner;
+  const showPrestador = isPrestador && !showAdmin && !showColaborador && !showPartner && !showReferrer;
+  const showClient = isCliente && !showAdmin && !showColaborador && !showPartner && !showPrestador && !showReferrer;
 
   const rawSections = showAdmin
     ? adminSections
+    : showColaborador ? collaboratorSections
     : showPartner ? partnerSections
     : showReferrer ? referrerSections
     : showPrestador ? prestadorSections
