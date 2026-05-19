@@ -279,7 +279,8 @@ export default function Atuacoes() {
             locale={ptBR}
             className="p-3 pointer-events-auto"
           />
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
