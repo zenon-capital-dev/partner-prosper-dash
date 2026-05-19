@@ -118,19 +118,25 @@ const clientSections: NavSection[] = [
 
 const prestadorSections: NavSection[] = [
   {
-    label: "​​",
+    label: "Operação",
     items: [
       { title: "Dashboard", url: "/prestador", icon: LayoutDashboard },
-      { title: "Por Cliente", url: "/prestador/por-cliente", icon: Users },
       { title: "Demandas", url: "/prestador/demandas", icon: ClipboardList },
+      { title: "Por Cliente", url: "/prestador/por-cliente", icon: Users },
       { title: "Reportes", url: "/prestador/reportes", icon: FileCheck2 },
     ],
   },
   {
-    label: "Documentos",
+    label: "Arquivos",
     items: [
       { title: "Documentos", url: "/prestador/documentos", icon: FileText },
       { title: "Contratos", url: "/prestador/contratos", icon: FileSignature },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { title: "Meu Perfil", url: "/prestador/perfil", icon: UserCog },
     ],
   },
 ];
