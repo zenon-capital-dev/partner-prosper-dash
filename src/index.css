@@ -222,9 +222,13 @@
   /* Mobile-friendly tables: any <table> inside admin shell scrolls horizontally inside its parent */
   .admin-shell table { @apply min-w-full; }
   .admin-shell .vx-table-wrap,
-  .admin-shell .table-wrap {
+  .admin-shell .table-wrap,
+  .table-scroll {
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    @apply border border-slate-200 rounded-xl shadow-sm bg-white;
   }
 
   /* Premium Card — flat, hairline border, no glow */

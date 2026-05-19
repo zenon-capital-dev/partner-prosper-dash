@@ -322,23 +322,23 @@ export default function Demands() {
 
         <TabsContent value="operacional" className="mt-0 space-y-4 px-5 lg:px-8">
       <div className="space-y-4">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border border-border shadow-sm">
+        <div className="flex flex-col lg:flex-row gap-4 lg:items-center justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="relative flex-1 w-full lg:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
             <Input 
               placeholder="Buscar por cliente, empresa ou serviço..." 
               value={search} 
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-11"
+              className="pl-10 h-11 rounded-xl bg-slate-50/50 border-slate-200 shadow-none focus:bg-white transition-all"
             />
           </div>
           
-          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-            <div className="flex items-center bg-muted/50 rounded-lg p-1 border border-border">
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div className="flex items-center bg-slate-100/50 rounded-xl p-1 border border-slate-200 shadow-inner">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className={cn("size-9 rounded-md", viewMode === 'kanban' && "bg-background shadow-sm")} 
+                className={cn("size-9 rounded-lg transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")} 
                 onClick={() => setViewMode('kanban')}
                 title="Kanban"
               >
@@ -347,7 +347,7 @@ export default function Demands() {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className={cn("size-9 rounded-md", viewMode === 'list' && "bg-background shadow-sm")} 
+                className={cn("size-9 rounded-lg transition-all", viewMode === 'list' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")} 
                 onClick={() => setViewMode('list')}
                 title="Lista"
               >
@@ -355,18 +355,17 @@ export default function Demands() {
               </Button>
             </div>
 
-            
-            <Button variant="outline" className="h-11 gap-2 rounded-xl border-indigo-100 text-indigo-700 hover:bg-indigo-50" onClick={() => navigate("/comissoes")}>
-              <Wallet className="size-4" /> Comissões
+            <Button variant="outline" className="h-11 px-5 rounded-xl border-slate-200 text-slate-700 font-bold hover:bg-slate-50 shadow-sm" onClick={() => navigate("/comissoes")}>
+              <Wallet className="size-4 mr-2 text-indigo-500" /> Comissões
             </Button>
             
-            <Button className="h-11 gap-2 rounded-xl shadow-indigo-200/50 shadow-lg" onClick={() => navigate("/clientes")}>
-              <Plus className="size-4" /> Nova Demanda
+            <Button className="h-11 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg" onClick={() => navigate("/clientes")}>
+              <Plus className="size-4 mr-2" /> Nova Demanda
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
