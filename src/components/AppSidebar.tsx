@@ -51,12 +51,12 @@ const adminSections: NavSection[] = [
     items: [{ title: "Clientes", url: "/clientes", icon: Users }],
   },
   {
-    label: "​​",
+    label: "Operação",
     items: [
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ListChecks },
       { title: "Projetos", url: "/projetos", icon: Briefcase },
-      { title: "Templates(Desenvolvimento)", url: "/templates", icon: MessageSquare },
+      { title: "Templates", url: "/templates", icon: MessageSquare, badge: "BETA" },
     ],
   },
   {
@@ -158,21 +158,53 @@ const partnerSections: NavSection[] = [
     label: "Painel",
     items: [
       { title: "Visão Geral", url: "/parceiro", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Carteira",
+    items: [
       { title: "Indicados", url: "/parceiro/clientes", icon: Users },
-      { title: "Comissões", url: "/parceiro/comissoes", icon: Wallet },
       { title: "Demandas", url: "/parceiro/demandas", icon: ClipboardList },
       { title: "Contratos", url: "/parceiro/contratos", icon: FileSignature },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { title: "Comissões", url: "/parceiro/comissoes", icon: Wallet },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { title: "Meu Perfil", url: "/perfil", icon: UserCog },
     ],
   },
 ];
 
 const referrerSections: NavSection[] = [
   {
-    label: "Indicador",
+    label: "Painel",
     items: [
-      { title: "Painel", url: "/indicador", icon: LayoutDashboard },
-      { title: "Indicações", url: "/indicador/indicacoes", icon: Users },
+      { title: "Visão Geral", url: "/indicador", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Indicações",
+    items: [
+      { title: "Meus Indicados", url: "/indicador/indicacoes", icon: Users },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
       { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { title: "Meu Perfil", url: "/perfil", icon: UserCog },
     ],
   },
 ];
@@ -308,7 +340,12 @@ export function AppSidebar() {
                 {portalLabel}
               </span>
               <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
-                Somente leitura
+                {showAdmin ? "Acesso total"
+                  : showPartner ? "Acesso parceiro"
+                  : showReferrer ? "Comissionado"
+                  : showPrestador ? "Operacional"
+                  : showClient ? "Portal cliente"
+                  : "Workspace"}
               </span>
             </div>
           )}
