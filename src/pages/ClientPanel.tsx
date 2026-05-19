@@ -170,10 +170,10 @@ export default function ClientPanel() {
     ...formalDeliveries.map((d: any) => ({ ...d, name: d.title, type: "delivery" })),
   ].sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const criticalActions = [
-    { label: "Documentos pendentes", value: pendingDocs, icon: FileText, tab: "checklist", tone: pendingDocs > 0 ? "warning" : "success" as const },
-    { label: "Contratos aguardando", value: pendingContracts, icon: FileSignature, tab: "contratos", tone: pendingContracts > 0 ? "warning" : "success" as const },
-    { label: "Pagamentos em aberto", value: pendingPayments, icon: Receipt, tab: "financeiro", tone: overduePayments > 0 ? "danger" : pendingPayments > 0 ? "warning" : "success" as const },
+  const criticalActions: Array<{ label: string; value: number; icon: any; tab: string; tone: "success" | "warning" | "danger" }> = [
+    { label: "Documentos pendentes", value: pendingDocs, icon: FileText, tab: "checklist", tone: pendingDocs > 0 ? "warning" : "success" },
+    { label: "Contratos aguardando", value: pendingContracts, icon: FileSignature, tab: "contratos", tone: pendingContracts > 0 ? "warning" : "success" },
+    { label: "Pagamentos em aberto", value: pendingPayments, icon: Receipt, tab: "financeiro", tone: overduePayments > 0 ? "danger" : pendingPayments > 0 ? "warning" : "success" },
   ];
 
   const firstName = client.full_name?.split(" ")[0] || "Cliente";
