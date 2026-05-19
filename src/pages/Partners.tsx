@@ -522,9 +522,10 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
           );
         })}
       </tbody>
-    </table>
+    </div>
   );
 }
+
 
 function GridView({ partners, topIds, onDetail }: any) {
   return (
