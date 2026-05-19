@@ -820,6 +820,10 @@ export default function ProviderPanel() {
                 </div>
               )}
             </TabsContent>
+
+            <TabsContent value="perfil" className="animate-fade-up">
+              <ProfileTab provider={provider} userId={user?.id} />
+            </TabsContent>
           </Tabs>
         )}
       </div>
