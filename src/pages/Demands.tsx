@@ -360,7 +360,7 @@ export default function Demands() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
