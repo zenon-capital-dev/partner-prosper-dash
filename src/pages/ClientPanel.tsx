@@ -143,7 +143,7 @@ export default function ClientPanel() {
   }
   
   if (!data) return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-premium">
+    <div className="min-h-screen flex items-center justify-center p-8 bg-slate-50">
       <div className="vx-card p-12 max-w-lg text-center shadow-2xl bg-white border border-white/20 rounded-[40px]">
         <div className="size-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6">
           <Inbox className="size-8" />
@@ -207,7 +207,7 @@ export default function ClientPanel() {
   const selectedProduct = allProducts.find((p: any) => p.id === selectedProductId);
 
   return (
-    <div className="bg-premium min-h-screen">
+    <div className="bg-slate-50 min-h-screen">
       {/* ─── Sticky Top Bar ─── */}
       <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
         <div className="page-shell flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6">
@@ -215,7 +215,7 @@ export default function ClientPanel() {
             <ProsperLogo size={28} />
             <div className="min-w-0">
               <p className="font-display font-bold text-[12px] sm:text-[13px] tracking-[0.22em] uppercase leading-none text-slate-900">Prosper</p>
-              <p className="hidden sm:block text-[8.5px] text-muted-foreground tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
+              <p className="hidden sm:block text-[8.5px] text-slate-500 tracking-[0.28em] uppercase mt-1 font-semibold">Portal do Cliente</p>
             </div>
           </div>
 
@@ -241,14 +241,14 @@ export default function ClientPanel() {
                     {initials(client.full_name)}
                   </span>
                   <span className="hidden sm:inline text-xs font-semibold text-foreground max-w-[140px] truncate">{client.full_name?.split(" ")[0]}</span>
-                  <ChevronRight className="size-3.5 text-muted-foreground rotate-90" />
+                  <ChevronRight className="size-3.5 text-slate-500 rotate-90" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col gap-1">
                     <p className="text-sm font-bold leading-none truncate">{client.full_name}</p>
-                    <p className="text-[11px] text-muted-foreground leading-none truncate">{client.email}</p>
+                    <p className="text-[11px] text-slate-500 leading-none truncate">{client.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -278,7 +278,7 @@ export default function ClientPanel() {
              <Button 
                variant="ghost" 
                onClick={() => setSelectedProductId(null)} 
-               className="group text-muted-foreground hover:text-primary transition-colors h-10 px-0"
+               className="group text-slate-500 hover:text-primary transition-colors h-10 px-0"
              >
                <ChevronLeft className="size-4 mr-2 group-hover:-translate-x-1 transition-transform" /> Voltar para o Painel
              </Button>
@@ -317,7 +317,7 @@ export default function ClientPanel() {
                     <h3 className="font-editorial text-2xl font-bold mb-8">Documentos da Demanda</h3>
                     <div className="space-y-4">
                        {docs.filter((d: any) => d.client_product_id === selectedProductId).length === 0 ? (
-                         <p className="text-sm text-muted-foreground italic">Nenhum documento específico solicitado para esta demanda.</p>
+                         <p className="text-sm text-slate-500 italic">Nenhum documento específico solicitado para esta demanda.</p>
                        ) : (
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            {docs.filter((d: any) => d.client_product_id === selectedProductId).map((d: any) => (
@@ -331,13 +331,13 @@ export default function ClientPanel() {
                                    </div>
                                    <div className="min-w-0">
                                       <p className="text-sm font-bold truncate">{d.name}</p>
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1">
+                                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">
                                          {d.file_path ? "Enviado" : "Pendente"}
                                       </p>
                                    </div>
                                 </div>
                                 {d.file_path ? (
-                                   <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-primary" onClick={() => downloadDoc(d.file_path, d.name)}>
+                                   <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:text-primary" onClick={() => downloadDoc(d.file_path, d.name)}>
                                       <Download className="size-4" />
                                    </Button>
                                 ) : (
@@ -359,7 +359,7 @@ export default function ClientPanel() {
                     <h3 className="font-editorial text-xl font-bold">Mensagens & Atualizações</h3>
                     <div className="space-y-6 relative">
                        {reports.filter((r: any) => r.client_product_id === selectedProductId).length === 0 ? (
-                         <p className="text-xs text-white/40 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
+                         <p className="text-xs text-white/70 italic leading-relaxed">Nenhuma atualização registrada para esta demanda ainda. Nossa equipe reportará novidades em breve.</p>
                        ) : (
                          reports.filter((r: any) => r.client_product_id === selectedProductId).slice(0, 5).map((r: any) => (
                            <div key={r.id} className="flex gap-4 group">
@@ -367,7 +367,7 @@ export default function ClientPanel() {
                              <div className="space-y-1">
                                <p className="text-xs font-medium text-white/90 leading-relaxed">{r.notes}</p>
                                <div className="flex items-center gap-2 pt-1">
-                                  <p className="text-[9px] font-bold text-white/30 uppercase">{formatDate(r.created_at)}</p>
+                                  <p className="text-[9px] font-bold text-white/70 uppercase">{formatDate(r.created_at)}</p>
                                   <span className="text-[9px] font-bold text-primary italic lowercase">por {r.service_providers?.name?.split(' ')[0] || "Equipe"}</span>
                                </div>
                              </div>
@@ -386,7 +386,7 @@ export default function ClientPanel() {
                           </div>
                           <div>
                              <p className="text-xs font-bold text-slate-900">Demanda Criada</p>
-                             <p className="text-[10px] text-muted-foreground mt-0.5">{formatDate(selectedProduct.created_at)}</p>
+                             <p className="text-[10px] text-slate-500 mt-0.5">{formatDate(selectedProduct.created_at)}</p>
                           </div>
                        </div>
                     </div>
@@ -420,13 +420,13 @@ export default function ClientPanel() {
 
                   <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.05]">
                     Olá, <span className="text-primary italic">{client.full_name?.split(" ")[0] || ""}</span>.
-                    <span className="block text-white/60 text-base sm:text-lg lg:text-xl font-normal italic mt-2 tracking-tight">
+                    <span className="block text-white/80 text-base sm:text-lg lg:text-xl font-normal italic mt-2 tracking-tight">
                       Tudo o que importa, num só lugar.
                     </span>
                   </h1>
 
                   <div className="space-y-2 max-w-md pt-1">
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/50">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-white/75">
                       <span>Progresso do onboarding</span>
                       <span className="text-white tabular-nums">{Math.round(client.onboarding_progress || 0)}%</span>
                     </div>
@@ -467,7 +467,7 @@ export default function ClientPanel() {
             </section>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 sm:space-y-10">
-              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-premium/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60">
+              <div className="-mx-4 sm:mx-0 overflow-x-auto scrollbar-hide sticky top-14 sm:top-16 z-30 bg-slate-50/90 backdrop-blur-xl py-2 sm:py-3 border-b border-slate-200/60">
                 <TabsList className="bg-transparent h-auto p-0 flex-nowrap gap-2 justify-start w-max sm:w-full px-4 sm:px-0 rounded-none">
                   <PillTab value="home" label="Início" icon={LayoutDashboard} />
                   <PillTab value="servicos" label="Meus serviços" icon={Package} count={activeProducts.length} />
@@ -487,7 +487,7 @@ export default function ClientPanel() {
                       <h3 className="font-editorial text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Próximas Etapas</h3>
                       <div className="space-y-4">
                         {activeProducts.length === 0 ? (
-                          <p className="text-sm text-muted-foreground italic">Nenhuma etapa pendente no momento.</p>
+                          <p className="text-sm text-slate-500 italic">Nenhuma etapa pendente no momento.</p>
                         ) : (
                           activeProducts.slice(0, 3).map((p: any) => (
                             <div key={p.id} className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 border border-slate-100">
@@ -497,7 +497,7 @@ export default function ClientPanel() {
                                   </div>
                                   <div>
                                      <p className="font-bold text-slate-900">{p.products?.name}</p>
-                                     <p className="text-xs text-muted-foreground">Etapa: {p.status?.replace(/_/g, ' ')}</p>
+                                     <p className="text-xs text-slate-500">Etapa: {p.status?.replace(/_/g, ' ')}</p>
                                   </div>
                                </div>
                                <Button variant="ghost" size="sm" className="text-primary font-bold" onClick={() => setSelectedProductId(p.id)}>Ver Detalhes</Button>
@@ -513,7 +513,7 @@ export default function ClientPanel() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {deliveries.length === 0 ? (
                           <div className="col-span-full py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                            <p className="text-sm text-muted-foreground italic">Suas entregas aparecerão aqui assim que forem concluídas.</p>
+                            <p className="text-sm text-slate-500 italic">Suas entregas aparecerão aqui assim que forem concluídas.</p>
                           </div>
                         ) : (
                           deliveries.slice(0, 4).map((d: any) => (
@@ -522,7 +522,7 @@ export default function ClientPanel() {
                                    {d.type === 'document' ? <CheckCircle2 className="size-4 text-emerald-500 shrink-0" /> : <Package className="size-4 text-indigo-500 shrink-0" />}
                                    <div className="min-w-0">
                                       <p className="text-xs font-bold truncate">{d.name}</p>
-                                      {d.client_products?.products?.name && <p className="text-[9px] text-muted-foreground truncate">{d.client_products.products.name}</p>}
+                                      {d.client_products?.products?.name && <p className="text-[9px] text-slate-500 truncate">{d.client_products.products.name}</p>}
                                    </div>
                                 </div>
                                <Button variant="ghost" size="icon" className="size-8 text-emerald-600" onClick={() => downloadDoc(d.file_path || d.file_url, d.name)}>
@@ -551,7 +551,7 @@ export default function ClientPanel() {
                     <div className="vx-card p-5 sm:p-8 bg-white border-slate-100 rounded-2xl sm:rounded-[32px] shadow-sm">
                        <h3 className="font-editorial text-lg sm:text-xl font-bold mb-4 sm:mb-6">Suporte & Sucesso</h3>
                        <div className="space-y-6">
-                          <p className="text-sm text-muted-foreground leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
+                          <p className="text-sm text-slate-500 leading-relaxed">Nosso time de especialistas está à disposição para acelerar sua jornada.</p>
                           <div className="space-y-3">
                              <Button className="w-full rounded-xl bg-slate-900 hover:bg-primary hover:text-white font-bold h-12" onClick={() => window.open(wa(), '_blank')}>
                                 <MessageSquare className="size-4 mr-2" /> Iniciar Chat
@@ -587,28 +587,28 @@ export default function ClientPanel() {
                         <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
                           {p.products?.name}
                         </h3>
-                        <p className="text-[14px] text-muted-foreground mt-3 line-clamp-2 leading-relaxed">
+                        <p className="text-[14px] text-slate-500 mt-3 line-clamp-2 leading-relaxed">
                           {p.products?.description}
                         </p>
                         
                         <div className="mt-auto pt-8 space-y-5">
                            <div className="grid grid-cols-2 gap-x-4 gap-y-6">
                               <div>
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Última Atualização</p>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Última Atualização</p>
                                  <p className="text-xs font-bold text-slate-700">{latestReport ? formatDate(latestReport.created_at) : formatDate(p.created_at)}</p>
                               </div>
                               <div className="text-right">
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Prazo Estimado</p>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Prazo Estimado</p>
                                  <p className="text-xs font-bold text-slate-700">{p.deadline ? formatDate(p.deadline) : "Em definição"}</p>
                               </div>
                               <div>
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Pendências</p>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Pendências</p>
                                  <p className={cn("text-xs font-bold", productPendingDocs > 0 ? "text-amber-500" : "text-emerald-500")}>
                                     {productPendingDocs > 0 ? `${productPendingDocs} documentos` : "Tudo em dia"}
                                  </p>
                               </div>
                               <div className="text-right">
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Início</p>
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">Início</p>
                                  <p className="text-xs font-bold text-slate-700">{formatDate(p.created_at)}</p>
                               </div>
                            </div>
@@ -641,11 +641,11 @@ export default function ClientPanel() {
                           {p.recurring && <Badge variant="secondary" className="text-[10px] font-bold rounded-full">Recorrente</Badge>}
                         </div>
                         <h3 className="font-editorial text-xl sm:text-2xl font-bold text-slate-900 leading-tight">{p.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 flex-1">{p.description}</p>
+                        <p className="text-sm text-slate-500 mt-2 line-clamp-3 flex-1">{p.description}</p>
                         <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
                            <div>
-                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{p.recurring ? "A partir de" : "Investimento"}</p>
-                             <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/mês</span>}</p>
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{p.recurring ? "A partir de" : "Investimento"}</p>
+                             <p className="text-lg sm:text-xl font-bold text-slate-900 tabular-nums">{formatBRL(p.base_price)}{p.recurring && <span className="text-[10px] text-slate-500 font-normal">/mês</span>}</p>
                            </div>
                            <Button className="rounded-xl h-10 px-4 bg-slate-900 hover:bg-primary hover:text-white transition-all text-xs font-bold" onClick={() => window.open(wa(`Tenho interesse em ${p.name}`), '_blank')}>
                              Tenho interesse <ArrowRight className="size-3.5 ml-1.5" />
@@ -655,8 +655,8 @@ export default function ClientPanel() {
                     ))}
                     {catalog.filter((c: any) => !granularProducts.some((p: any) => p.product_id === c.id)).length === 0 && (
                       <div className="col-span-full vx-card p-10 sm:p-16 text-center bg-white rounded-2xl border-slate-100">
-                        <Sparkles className="size-10 mx-auto text-muted-foreground/30 mb-3" />
-                        <p className="text-sm text-muted-foreground italic">Você já tem acesso a todas as soluções disponíveis.</p>
+                        <Sparkles className="size-10 mx-auto text-slate-500/30 mb-3" />
+                        <p className="text-sm text-slate-500 italic">Você já tem acesso a todas as soluções disponíveis.</p>
                       </div>
                     )}
                  </div>
@@ -679,7 +679,7 @@ export default function ClientPanel() {
                                </div>
                                <div className="min-w-0">
                                   <p className="font-bold text-slate-900 truncate">{d.name}</p>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 opacity-60">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1 opacity-60">
                                     {d.file_path ? `Enviado em ${formatDate(d.created_at)}` : "Pendente de envio"}
                                   </p>
                                </div>
@@ -703,7 +703,7 @@ export default function ClientPanel() {
                             )}
                          </div>
                        ))}
-                       {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-muted-foreground">Sua biblioteca de documentos está vazia.</p>}
+                       {docs.length === 0 && <p className="p-16 text-center font-editorial italic text-slate-500">Sua biblioteca de documentos está vazia.</p>}
                     </div>
                  </div>
               </TabsContent>
@@ -724,8 +724,8 @@ export default function ClientPanel() {
                        </div>
                        {payments.length === 0 ? (
                          <div className="p-12 text-center">
-                           <Receipt className="size-10 mx-auto text-muted-foreground/30 mb-3" />
-                           <p className="text-sm text-muted-foreground italic">Nenhum pagamento registrado ainda.</p>
+                           <Receipt className="size-10 mx-auto text-slate-500/30 mb-3" />
+                           <p className="text-sm text-slate-500 italic">Nenhum pagamento registrado ainda.</p>
                          </div>
                        ) : (
                          <>
@@ -734,10 +734,10 @@ export default function ClientPanel() {
                              {payments.map((p: any) => (
                                <div key={p.id} className="p-4 flex items-center justify-between gap-3">
                                  <div className="min-w-0">
-                                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{formatDate(p.due_date)}</p>
+                                   <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{formatDate(p.due_date)}</p>
                                    <p className="text-base font-bold tabular-nums text-slate-900 mt-0.5">{formatBRL(p.amount)}</p>
                                    {p.installment_number && p.installments_count && (
-                                     <p className="text-[10px] text-muted-foreground mt-0.5">Parcela {p.installment_number}/{p.installments_count}</p>
+                                     <p className="text-[10px] text-slate-500 mt-0.5">Parcela {p.installment_number}/{p.installments_count}</p>
                                    )}
                                  </div>
                                  <span className={cn(
@@ -751,7 +751,7 @@ export default function ClientPanel() {
                            <div className="hidden sm:block overflow-x-auto">
                               <table className="w-full text-sm">
                                  <thead>
-                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground bg-slate-50/50">
+                                    <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 bg-slate-50/50">
                                        <th className="px-8 py-5 text-left">Vencimento</th>
                                        <th className="px-8 py-5 text-left">Parcela</th>
                                        <th className="px-8 py-5 text-left">Status</th>
@@ -762,7 +762,7 @@ export default function ClientPanel() {
                                     {payments.map((p: any) => (
                                       <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                                          <td className="px-8 py-6 font-bold text-slate-700">{formatDate(p.due_date)}</td>
-                                         <td className="px-8 py-6 text-muted-foreground text-xs">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td>
+                                         <td className="px-8 py-6 text-slate-500 text-xs">{p.installment_number && p.installments_count ? `${p.installment_number}/${p.installments_count}` : "—"}</td>
                                          <td className="px-8 py-6">
                                             <span className={cn(
                                               "vx-pill uppercase tracking-widest text-[9px] px-3 py-1",
@@ -783,7 +783,7 @@ export default function ClientPanel() {
                        <Receipt className="size-10 sm:size-12 text-primary relative" />
                        <div className="space-y-3 relative">
                           <h3 className="font-editorial text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">Faturamento & cobrança</h3>
-                          <p className="text-sm text-white/50 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
+                          <p className="text-sm text-white/75 leading-relaxed">Precisa ajustar ciclos, métodos ou dados fiscais? Nossa equipe financeira está disponível.</p>
                        </div>
                        <Button className="w-full rounded-xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all h-12 font-bold shadow-xl" onClick={() => window.open(wa(), '_blank')}>
                          <MessageSquare className="size-4 mr-2" /> Solicitar ajuste
@@ -807,13 +807,13 @@ function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string;
   const accent = tone === "warning" ? "text-amber-300" : tone === "success" ? "text-emerald-300" : "text-white";
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-3 sm:p-4 hover:bg-white/[0.07] transition-colors min-w-0">
-      <div className="flex items-center justify-between mb-1.5 text-white/50">
+      <div className="flex items-center justify-between mb-1.5 text-white/75">
         <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.18em] truncate">{label}</span>
         {icon && <span className="shrink-0 opacity-70">{icon}</span>}
       </div>
       <div className="flex items-baseline gap-1.5">
         <span className={cn("font-display text-xl sm:text-2xl font-bold tabular-nums leading-none", accent)}>{value}</span>
-        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/40 truncate">{sub}</span>}
+        {sub && <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/70 truncate">{sub}</span>}
       </div>
     </div>
   );
@@ -822,13 +822,13 @@ function HeroKpi({ label, value, sub, icon, tone = "default" }: { label: string;
 function PremiumStat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "success" | "warning" | "default" }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">{label}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</p>
       <div className="flex items-baseline gap-2">
          <span className={cn(
            "font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tighter",
            tone === "success" ? "text-emerald-500" : tone === "warning" ? "text-amber-500" : "text-slate-900"
          )}>{value}</span>
-         {sub && <span className="text-[11px] text-muted-foreground uppercase font-bold tracking-widest opacity-40">{sub}</span>}
+         {sub && <span className="text-[11px] text-slate-500 uppercase font-bold tracking-widest opacity-70">{sub}</span>}
       </div>
     </div>
   );
@@ -868,11 +868,11 @@ function FinanceStat({ label, value, sub, tone = "default", icon }: { label: str
   return (
     <div className="vx-card p-4 sm:p-5 bg-white rounded-2xl border-slate-100 shadow-sm">
       <div className="flex items-center justify-between mb-2 sm:mb-3">
-        <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+        <span className="text-[9.5px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">{label}</span>
         <span className={cn("size-7 rounded-lg border flex items-center justify-center shrink-0", tint)}>{icon}</span>
       </div>
       <p className="font-editorial text-lg sm:text-xl lg:text-2xl font-bold tracking-tight text-slate-900 tabular-nums leading-none">{value}</p>
-      {sub && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1.5 truncate">{sub}</p>}
+      {sub && <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1.5 truncate">{sub}</p>}
     </div>
   );
 }
@@ -901,7 +901,7 @@ function ActionItem({ icon: Icon, label, count, onClick }: { icon: any; label: s
     <div 
       className={cn(
         "flex items-center justify-between p-4 rounded-2xl transition-all cursor-pointer",
-        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-40 grayscale pointer-events-none"
+        count > 0 ? "bg-white/10 border border-white/10 hover:bg-white/15" : "opacity-60 pointer-events-none"
       )}
       onClick={onClick}
     >
