@@ -131,7 +131,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           description: `Tarefa criada na conversão do lead ${lead.full_name}`,
           priority: "normal",
           status: "a_fazer",
-          status_new: "a_fazer" as any,
+          status_new: "a_fazer",
           due_date: form.first_task_due ? new Date(form.first_task_due).toISOString() : null,
           client_id: client.id,
           client_product_id: clientProductId,

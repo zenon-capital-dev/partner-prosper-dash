@@ -54,7 +54,10 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
   const { data: collaborators } = useQuery({
     queryKey: ["collaborators-select-leads"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email").order("full_name");
+      const { data: roles } = await supabase.from("user_roles").select("user_id").in("role", ["vendedor", "admin", "colaborador"]);
+      const ids = (roles ?? []).map((r) => r.user_id);
+      if (!ids.length) return [];
+      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
       return data ?? [];
     },
   });
@@ -66,7 +69,25 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
     }
     if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
     if (form.whatsapp && !isValidPhoneBR(form.whatsapp)) { toast.error("WhatsApp inválido"); return; }
+    
     setSubmitting(true);
+
+    // Check for duplicate email/phone in leads
+    if (form.email || form.phone) {
+      const cleanPhone = form.phone ? onlyDigits(form.phone) : null;
+      let query = supabase.from("leads").select("id, full_name").eq("status", "Novo");
+      if (form.email) query = query.or(`email.eq.${form.email}${cleanPhone ? `,phone.eq.${cleanPhone}` : ""}`);
+      else if (cleanPhone) query = query.eq("phone", cleanPhone);
+      
+      if (lead?.id) query = query.neq("id", lead.id);
+
+      const { data: existing } = await query.limit(1);
+      if (existing && existing.length > 0) {
+        toast.warning(`Já existe um lead novo com este email ou telefone (${existing[0].full_name})`);
+        // We allow it but warn, or we could block. Let's just warn for leads.
+      }
+    }
+
     const payload = {
       full_name: form.full_name,
       company: form.company || null,
@@ -80,7 +101,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
       partner_id: form.partner_id || null,
       responsible_id: form.responsible_id || null,
       referral_id: form.referral_id || null,
-      estimated_value: form.estimated_value ? Number(form.estimated_value) : null,
+      estimated_value: form.estimated_value && form.estimated_value !== "" ? Number(form.estimated_value) : null,
       close_probability: form.close_probability != null && form.close_probability !== "" ? Number(form.close_probability) : null,
       next_action: form.next_action || null,
       next_action_date: form.next_action_date || null,
@@ -102,7 +123,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{lead?.id ? "Editar Lead" : "Novo Lead / Convidado"}</DialogTitle>
         </DialogHeader>
