@@ -112,10 +112,24 @@ const clientSections: NavSection[] = [
     ],
   },
   {
+    label: "Serviços",
+    items: [
+      { title: "Meus Serviços", url: "/portal-cliente?tab=servicos", icon: Package },
+      { title: "Soluções", url: "/portal-cliente?tab=descobrir", icon: ShoppingBag },
+    ],
+  },
+  {
     label: "Arquivos",
     items: [
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
       { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
+      { title: "Biblioteca", url: "/portal-cliente?tab=docs", icon: FolderArchive },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { title: "Pagamentos", url: "/portal-cliente?tab=financeiro", icon: Banknote },
     ],
   },
   {
@@ -175,8 +189,16 @@ const partnerSections: NavSection[] = [
     ],
   },
   {
+    label: "Recursos",
+    items: [
+      { title: "Materiais", url: "/parceiro/materiais", icon: FolderArchive },
+      { title: "Suporte", url: "/parceiro/suporte", icon: LifeBuoy },
+    ],
+  },
+  {
     label: "Conta",
     items: [
+      { title: "Dados Bancários", url: "/parceiro/perfil", icon: Wallet },
       { title: "Meu Perfil", url: "/perfil", icon: UserCog },
     ],
   },
@@ -193,12 +215,21 @@ const referrerSections: NavSection[] = [
     label: "Indicações",
     items: [
       { title: "Meus Indicados", url: "/indicador/indicacoes", icon: Users },
+      { title: "Nova Indicação", url: "/indicador/nova", icon: Sparkles },
     ],
   },
   {
     label: "Financeiro",
     items: [
       { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
+      { title: "Comissões", url: "/indicador/comissoes", icon: CircleDollarSign },
+    ],
+  },
+  {
+    label: "Recursos",
+    items: [
+      { title: "Materiais", url: "/indicador/materiais", icon: FolderArchive },
+      { title: "Suporte", url: "/indicador/suporte", icon: LifeBuoy },
     ],
   },
   {
