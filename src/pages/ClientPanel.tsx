@@ -427,7 +427,7 @@ export default function ClientPanel() {
             </Tabs>
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
