@@ -285,9 +285,6 @@ export default function Atuacoes() {
         </DialogContent>
       </Dialog>
     </div>
-  </div>
-);
-    </div>
   );
 }
 
