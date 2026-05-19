@@ -340,6 +340,7 @@ export default function DashboardAdmin() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -368,6 +369,7 @@ export default function DashboardAdmin() {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
+              )}
             </div>
 
             <div className="w-full space-y-2 mt-4">
@@ -375,9 +377,9 @@ export default function DashboardAdmin() {
                 <div key={s.name} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="text-xs font-bold text-slate-600">{s.name}</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-muted-foreground">{s.name}</span>
                   </div>
-                  <span className="text-xs font-black text-slate-900">{s.value}</span>
+                  <span className="text-xs font-black text-slate-900 dark:text-foreground">{s.value}</span>
                 </div>
               ))}
             </div>
