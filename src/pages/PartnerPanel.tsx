@@ -340,35 +340,35 @@ export default function PartnerPanel() {
                 <div className="p-8 grid md:grid-cols-2 gap-8">
                    <div className="space-y-6">
                       <div className="space-y-1">
-                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nome do Titular</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Nome do Titular</p>
                          <p className="font-bold text-slate-900 text-lg">{partner.full_name}</p>
                       </div>
                       <div className="space-y-1">
-                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">E-mail</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">E-mail</p>
                          <p className="font-bold text-slate-900">{partner.email}</p>
                       </div>
                       <div className="space-y-1">
-                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Documento</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Documento</p>
                          <p className="font-bold text-slate-900">{partner.document || "—"}</p>
                       </div>
                    </div>
                    <div className="space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
                       <div className="space-y-1">
-                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Chave PIX</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chave PIX</p>
                          <p className="font-bold text-slate-900 text-lg">{partner.pix_key || "—"}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Banco</p>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Banco</p>
                            <p className="font-bold text-slate-900 text-sm">{partner.bank_name || "—"}</p>
                         </div>
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Agência</p>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Agência</p>
                            <p className="font-bold text-slate-900 text-sm">{partner.bank_agency || "—"}</p>
                         </div>
                       </div>
                       <div className="space-y-1">
-                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Conta</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Conta</p>
                          <p className="font-bold text-slate-900 text-sm">{partner.bank_account || "—"}</p>
                       </div>
                    </div>
