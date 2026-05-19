@@ -418,7 +418,8 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-2">
             <CardHeader
               title="Vendas recentes"
-              subtitle="Últimas transações registradas no período"
+              subtitle={isGlobalLoading ? "Carregando histórico..." : "Últimas transações registradas no período"}
+
               right={<Link to="/vendas" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">Ver todas <ArrowUpRight className="size-3.5" /></Link>}
             />
             <div className="divide-y divide-slate-100 border-t border-slate-100">
