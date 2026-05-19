@@ -94,14 +94,14 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
     <aside
       className={cn(
         "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "bg-white/96 backdrop-blur-xl border-r border-slate-200/75 shadow-[1px_0_0_hsl(220_13%_88%/0.7),18px_0_48px_-42px_hsl(222_47%_11%/0.42)]",
+        "bg-white/96 dark:bg-card/96 backdrop-blur-xl border-r border-slate-200/75 dark:border-border/75 shadow-[1px_0_0_hsl(220_13%_88%/0.7),18px_0_48px_-42px_hsl(222_47%_11%/0.42)]",
         collapsed ? "w-[76px]" : "w-[286px]",
         className
       )}
     >
       {/* BRAND */}
       <div className={cn(
-        "relative shrink-0 h-[74px] flex items-center border-b border-slate-200/75 bg-gradient-to-b from-white to-slate-50/70",
+        "relative shrink-0 h-[74px] flex items-center border-b border-slate-200/75 dark:border-border/75 bg-gradient-to-b from-white dark:from-card to-slate-50/70 dark:to-muted/30",
         collapsed ? "px-3 justify-center" : "px-4"
       )}>
         <DropdownMenu>
@@ -115,7 +115,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-[15px] font-black text-slate-950 leading-tight tracking-tight truncate">VendxCRM</p>
+                  <p className="text-[15px] font-black text-slate-950 dark:text-foreground leading-tight tracking-tight truncate">VendxCRM</p>
                   <p className="text-[9.5px] font-extrabold text-indigo-700 leading-tight mt-0.5 truncate uppercase tracking-[0.18em]">
                     {portalLabel}
                   </p>
@@ -205,8 +205,8 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
                       "group relative flex items-center rounded-xl text-[13px] font-bold transition-all duration-150",
                       collapsed ? "justify-center mx-auto size-11" : "px-3 h-10 gap-3",
                       active
-                        ? "bg-indigo-50 text-indigo-800 shadow-[inset_0_0_0_1px_hsl(231_72%_46%/0.08),0_8px_18px_-18px_hsl(231_72%_46%/0.55)]"
-                        : "text-slate-600 hover:text-slate-950 hover:bg-slate-100/75"
+                        ? "bg-indigo-50 dark:bg-primary/10 text-indigo-800 dark:text-primary shadow-[inset_0_0_0_1px_hsl(231_72%_46%/0.08),0_8px_18px_-18px_hsl(231_72%_46%/0.55)]"
+                        : "text-slate-600 dark:text-muted-foreground hover:text-slate-950 dark:hover:text-foreground hover:bg-slate-100/75 dark:hover:bg-muted/50"
                     )}
                   >
                     {active && !collapsed && (
@@ -235,7 +235,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
       </nav>
 
       {/* USER */}
-      <div className="shrink-0 border-t border-slate-200/75 p-3 bg-gradient-to-b from-slate-50/60 to-white">
+      <div className="shrink-0 border-t border-slate-200/75 dark:border-border/75 p-3 bg-gradient-to-b from-slate-50/60 dark:from-muted/20 to-white dark:to-card">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className={cn(

@@ -347,10 +347,24 @@
     font-weight: 475;
     letter-spacing: -0.01em;
   }
-  /* Admin shell SEMPRE em tema claro premium SaaS B2B (feedback explícito do usuário).
-     Mesmo quando .dark é aplicado globalmente, /admin/* permanece claro. */
+  /* O Admin shell agora respeita o tema global .dark */
   .dark .admin-shell {
-    color-scheme: light;
+    --background: 224 45% 4%;
+    --foreground: 220 14% 96%;
+    --card: 224 40% 7%;
+    --card-foreground: 220 14% 96%;
+    --popover: 224 40% 8%;
+    --popover-foreground: 220 14% 96%;
+    --primary: 250 90% 70%;
+    --primary-foreground: 224 45% 4%;
+    --secondary: 224 30% 12%;
+    --secondary-foreground: 220 14% 96%;
+    --muted: 224 28% 11%;
+    --muted-foreground: 220 12% 64%;
+    --border: 224 30% 14%;
+    --input: 224 30% 14%;
+    --ring: 250 90% 70%;
+    color-scheme: dark;
   }
 
   /* Smooth scrollbar inside admin */
