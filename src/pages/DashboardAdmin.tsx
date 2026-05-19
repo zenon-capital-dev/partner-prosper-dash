@@ -198,11 +198,11 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, customRange, brasiliaToday]);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-background text-slate-900 dark:text-foreground font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell overflow-x-hidden">
       <PageHero
         eyebrow="Dashboard"
         category="Visão Geral"
-        title={`${greeting}, ${firstName}`}
+        title={`${greeting}, ${firstName} ✨`}
         description="Aqui está o pulso do seu negócio hoje."
         icon={<Sparkles className="size-6" />}
         actions={
