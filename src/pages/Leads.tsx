@@ -162,14 +162,14 @@ export default function Leads() {
         description="Gerencie potenciais clientes e indicações em um só lugar."
         icon={<Target className="size-6" />}
         actions={
-          <div className="flex items-center gap-2">
-            <div className="flex bg-white dark:bg-card p-1 rounded-xl border border-slate-200 dark:border-border shadow-sm">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 max-w-full pb-1">
+            <div className="flex bg-white dark:bg-card p-1 rounded-xl border border-slate-200 dark:border-border shadow-sm shrink-0">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setRangeKey(k)}
                   className={cn(
-                    "px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] font-black transition-all uppercase",
+                    "px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] font-black transition-all uppercase whitespace-nowrap",
                     rangeKey === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
                   )}
                 >
@@ -177,11 +177,11 @@ export default function Leads() {
                 </button>
               ))}
             </div>
-            <div className="inline-flex rounded-lg border border-border/70 bg-card p-0.5">
+            <div className="inline-flex rounded-lg border border-border/70 bg-card p-0.5 shrink-0">
               <button
                 onClick={() => setView("kanban")}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors",
+                  "inline-flex items-center gap-1.5 px-2.5 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors whitespace-nowrap",
                   view === "kanban" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}
               >
@@ -190,20 +190,20 @@ export default function Leads() {
               <button
                 onClick={() => setView("table")}
                 className={cn(
-                  "inline-flex items-center gap-1.5 px-2.5 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors",
+                  "inline-flex items-center gap-1.5 px-2.5 h-8 text-[10.5px] font-bold uppercase tracking-wider rounded-md transition-colors whitespace-nowrap",
                   view === "table" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <List className="size-3.5" /> Tabela
               </button>
             </div>
-            <Button variant="outline" size="sm" className="h-9 text-xs font-bold uppercase tracking-wider" onClick={() => setCsvOpen(true)}>
+            <Button variant="outline" size="sm" className="h-9 text-xs font-bold uppercase tracking-wider shrink-0" onClick={() => setCsvOpen(true)}>
               <Upload className="size-3.5 mr-2" />
               <span className="hidden sm:inline">Importar CSV</span>
               <span className="sm:hidden">CSV</span>
             </Button>
             {(isAdmin || isAdminSecondary) && (
-              <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary">
+              <Button onClick={handleNew} className="h-9 text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/20 bg-gradient-primary shrink-0">
                 <Plus className="size-3.5 mr-2" />
                 <span className="hidden sm:inline">Novo Lead</span>
                 <span className="sm:hidden">Novo</span>
