@@ -174,9 +174,30 @@ export default function Partners() {
     }
 
     setSubmitting(true);
+    // Payload explícito (apenas colunas reais da tabela partners) para não tropeçar em campos UI
+    const payload: Record<string, any> = {
+      full_name: form.full_name,
+      email: form.email || null,
+      phone: form.phone || null,
+      whatsapp: form.whatsapp || null,
+      document: form.document || null,
+      pix_key: form.pix_key || null,
+      bank_name: form.bank_name || null,
+      bank_agency: form.bank_agency || null,
+      bank_account: form.bank_account || null,
+      partner_category: form.partner_category || "indicador",
+      partner_type: form.partner_type ?? null,
+      commission_percent: form.commission_percent != null && form.commission_percent !== ""
+        ? Number(form.commission_percent) : 10,
+      default_commission_value: form.default_commission_value != null && form.default_commission_value !== ""
+        ? Number(form.default_commission_value) : null,
+      notes: form.notes || null,
+      active: form.active ?? true,
+      has_system_access: form.has_system_access ?? false,
+    };
     const { data: partner, error } = editing
-      ? await supabase.from("partners").update(form).eq("id", editing.id).select().single()
-      : await supabase.from("partners").insert(form).select().single();
+      ? await supabase.from("partners").update(payload).eq("id", editing.id).select().single()
+      : await supabase.from("partners").insert(payload).select().single();
 
     if (error) { 
       setSubmitting(false);
