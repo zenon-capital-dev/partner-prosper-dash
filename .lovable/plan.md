@@ -1,41 +1,53 @@
-# Corrigir aba Demandas (/demandas)
+# Consertar aba Atuações (/atuacoes)
 
-A página atual (`src/pages/Demands.tsx`) tem 4 bugs reais:
+A página `src/pages/Atuacoes.tsx` tem bugs reais de layout e fluxos incompletos. Hoje a tabela `daily_actions` está vazia (0 linhas) — então parte do "nada funciona" é porque não há dado, mas além disso a UI tem problemas estruturais.
 
-1. **Botão "Nova Demanda" não cria nada** — apenas faz `navigate("/clientes")`, jogando o usuário para a lista de clientes.
-2. **Filtro padrão "HOJE" esconde tudo** — filtra por `created_at = hoje`, então quase nenhuma demanda aparece. Pior: o filtro de período se aplica à data de criação da demanda, não à atividade.
-3. **Kanban quebrado** — as 8 colunas usam status (`aguardando_inicio`, `aguardando_documentos`, `em_analise`, `em_execucao`, `pendente_cliente`, `pendente_prestador`, `aguardando_aprovacao_final`, `concluido`) que **não existem** nos dados (no banco hoje as demandas têm `em_andamento`, `pausado`, `concluido`, `cancelado`). Resultado: nenhum card aparece nas colunas e mover uma demanda grava um status inválido.
-4. **Mistura `deadline` x `sla_due_date`** — a lista mostra `deadline`, o filtro de prazo lê `sla_due_date`, então o filtro nunca casa.
+## Bugs identificados
 
-## O que vou ajustar (somente UI / queries — sem migração)
+1. **Layout quebrado** — o wrapper `max-w-[1600px] mx-auto px-5 lg:px-8` (linha 199) fecha na linha 228, mas a **lista de atuações** e os **dialogs** ficam FORA dele. Resultado: a lista vai até a borda da tela, sem padding, encostada no topo.
+2. **`<Tabs>` sem `<TabsContent>`** — os tabs trocam o estado mas a lista é renderizada num bloco solto fora do `Tabs`. Funciona "por acaso" via `tab` state, mas o foco/aria/animação dos tabs não funciona.
+3. **Search mal posicionado** — fica numa linha separada abaixo dos tabs, ao invés de ao lado.
+4. **Counters só nas duas primeiras tabs** — "Próximas" e "Histórico" não mostram contagem.
+5. **Comparação de data com timezone** — `isToday(parseISO("2025-05-20"))` pode dar resultado errado dependendo do fuso. Usar comparação por string `yyyy-MM-dd` resolve.
+6. **Histórico sem filtros** — não tem filtro por resultado nem período, vira lista infinita.
+7. **Não dá para excluir** uma atuação (só cancelar) nem **reabrir** uma cancelada.
+8. **Reagendar** dispara mutação no primeiro clique do calendário, sem confirmação nem feedback.
+9. **Diálogo "Nova atuação"** — busca de cliente só por nome (não pega empresa); limita silenciosamente em 50 sem aviso; sem opção de criar atuação sem produto fica enxuto, mas falta validação visual de cliente obrigatório.
+10. **Cancelar** não pede confirmação.
 
-### 1. Dialog "Nova Demanda" real
-- Reaproveitar `AddProductDialog` (que já cria `client_products` + `sales` + steps).
-- Antes do dialog abrir, mostrar uma etapa de **seleção de cliente** com busca (`SearchableCombobox` ou Select com lista de clientes).
-- Depois de escolher o cliente, abre o `AddProductDialog` com `clientId`.
-- Ao concluir, invalidar `["admin-demands"]`.
+## O que vou ajustar (somente UI/queries, sem migração)
 
-### 2. Período padrão e semântica
-- Trocar default para **"30 DIAS"** (faz mais sentido para central operacional).
-- O filtro de período passa a usar `updated_at` (atividade), e não `created_at`. Mantém "TUDO" como hoje.
+### Estrutura
+- Envolver toolbar + tabs + search + lista + dialogs **dentro de um único** `max-w-[1600px] mx-auto px-5 lg:px-8 space-y-4`.
+- Mover `<TabsContent value="hoje|atrasadas|proximas|historico">` para conter a lista corretamente.
+- Tabs e search **na mesma linha** (`flex items-center justify-between gap-3`).
 
-### 3. Status reais + Kanban funcional
-- Trocar as colunas do Kanban para os status que existem de fato:
-  `aguardando_inicio`, `em_andamento`, `pausado`, `concluido`, `cancelado`.
-- Adicionar **agrupamento tolerante**: qualquer status fora dessa lista cai numa coluna "Outros" para o usuário enxergar e poder mover.
-- O select de filtro de status passa a refletir esses valores reais.
-- O drag-and-drop continua gravando o `status` em `client_products`.
+### Tabs / contadores
+- Adicionar badge de contagem também em "Próximas" e "Histórico".
 
-### 4. Filtro de prazo coerente
-- Padronizar em `sla_due_date OR deadline` (usa o que estiver preenchido) tanto no display da lista/kanban quanto no filtro "Atrasado / Hoje / Semana".
+### Comparação de datas
+- Trocar `isToday/isPast(parseISO(...))` por comparação direta `a.scheduled_date === todayStr` / `< todayStr` usando `format(new Date(), "yyyy-MM-dd")`. Elimina qualquer timezone shift.
 
-### 5. Pequenas correções de UX
-- Após criar uma demanda, manter o usuário na aba "Demandas operacionais" e dar foco na nova linha (toast com link "Abrir").
-- Mostrar mensagem clara quando o filtro do período esconde dados ("Nenhuma demanda nos últimos 30 dias — ver TUDO").
+### Histórico
+- Adicionar **filtro de resultado** (todos/contatado/sem_resposta/fechado/reagendar) e **período** (7d/30d/tudo) no topo da tab.
+
+### Ações da linha
+- Adicionar item "Excluir" (com `AlertDialog` de confirmação) que dispara `DELETE` em `daily_actions`.
+- Para cancelar: trocar `window.confirm` implícito por `AlertDialog`.
+- Para **executadas/canceladas**: adicionar botão "Reabrir" que volta status para `pendente` e zera `result/execution_notes/executed_at`.
+
+### Reagendar
+- Trocar dialog para incluir botão "Confirmar nova data" — só dispara mutação após confirmação. Calendar fica preview.
+
+### Criar atuação
+- Busca de cliente em `or(full_name.ilike.%q%, company.ilike.%q%)`.
+- Mensagem clara quando a lista atinge 50 resultados ("Refine a busca para ver mais").
+- Bloquear botão "Agendar" enquanto não há cliente, com mensagem de hint.
+
+### Estado vazio
+- Já existe; manter mas no estado "hoje" sem nenhuma atuação mostrar CTA mais claro.
 
 ## Arquivos afetados
-- `src/pages/Demands.tsx` (principal)
-- `src/components/clients/AddProductDialog.tsx` (sem mudança de lógica — só será reutilizado; se precisar aceitar um `onCreated` callback, adiciono prop opcional)
-- Novo: `src/components/demands/NewDemandDialog.tsx` (wrapper de seleção de cliente + AddProductDialog)
+- `src/pages/Atuacoes.tsx` (refator de layout + filtros + novas ações)
 
-Nenhuma alteração de banco/RLS é necessária — as policies de `client_products` já permitem admin criar/editar/excluir.
+Nenhuma alteração de banco ou RLS é necessária — `daily_actions` já tem policies `Admins manage daily actions` (ALL) e `Internal team views daily actions` (SELECT), o que permite todas as operações que vou expor.
