@@ -51,7 +51,7 @@ export default function CollaboratorPanel() {
       const { data, error } = await supabase
         .from("clients")
         .select("id, full_name, email, phone, status, created_at")
-        .or(`collaborator_id.eq.${user!.id},responsible_id.eq.${user!.id}`)
+        .eq("collaborator_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
