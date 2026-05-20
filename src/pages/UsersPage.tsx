@@ -685,7 +685,7 @@ function SetPasswordDialog({ user, onClose, onSubmit }: { user: UserRow | null; 
           <div className="space-y-2">
             <Label>Nova senha</Label>
             <div className="flex gap-2">
-              <Input type="text" value={pwd} onChange={(e) => setPwd(e.target.value)} placeholder="Mín. 6 caracteres" className="font-mono" />
+              <Input type="text" value={pwd} onChange={(e) => setPwd(e.target.value)} placeholder="Mín. 8 caracteres, com letra e número" className="font-mono" />
               <Button type="button" variant="outline" size="sm" onClick={() => { const p = generatePassword(); setPwd(p); setConfirm(p); }} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
             </div>
           </div>
