@@ -113,7 +113,8 @@ Deno.serve(async (req) => {
     // ---------- SET PASSWORD ----------
     if (action === "set_password") {
       if (!body.user_id || !body.password) return json({ error: "user_id e password obrigatórios" }, 400);
-      if (String(body.password).length < 6) return json({ error: "Senha precisa ter ao menos 6 caracteres" }, 400);
+      const pwErr = validateServerPassword(String(body.password));
+      if (pwErr) return json({ error: pwErr }, 400);
       const { error } = await admin.auth.admin.updateUserById(body.user_id, {
         password: body.password,
         email_confirm: true,
