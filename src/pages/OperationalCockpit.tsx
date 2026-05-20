@@ -329,6 +329,9 @@ export default function OperationalCockpit() {
 
   // --- Actions ---
 
+  const [detailItem, setDetailItem] = useState<CockpitItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<CockpitItem | null>(null);
+
   const notifyMutation = useMutation({
     mutationFn: async ({ userId, title, message }: { userId: string, title: string, message: string }) => {
       const { error } = await supabase.from("notifications").insert({
@@ -347,13 +350,64 @@ export default function OperationalCockpit() {
     }
   });
 
+  const tableByType: Record<string, string | null> = {
+    demand: 'client_products',
+    document: 'documents',
+    payment: 'payments',
+    commission: 'commissions',
+    contract: 'contracts',
+    task: 'tasks',
+    request: 'document_requests',
+    client: null,   // não excluir cliente daqui
+    report: null,   // alerta derivado
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: async (item: CockpitItem) => {
+      const table = tableByType[item.type];
+      if (!table) throw new Error('Este tipo de alerta não pode ser excluído daqui.');
+      const { error } = await supabase.from(table as any).delete().eq('id', item.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Item excluído.");
+      queryClient.invalidateQueries();
+      setDeleteItem(null);
+      setDetailItem(null);
+    },
+    onError: (e: any) => toast.error("Erro ao excluir: " + e.message),
+  });
+
+  const openItem = (item: CockpitItem) => {
+    switch (item.type) {
+      case 'demand':
+      case 'report':
+        navigate(`/demandas/${item.id}`); break;
+      case 'client':
+        navigate(`/clientes/${item.id}`); break;
+      case 'document':
+      case 'request':
+        navigate(`/documentos`); break;
+      case 'payment':
+        navigate(`/financeiro`); break;
+      case 'commission':
+        navigate(`/comissoes`); break;
+      case 'contract':
+        navigate(`/contratos`); break;
+      case 'task':
+        navigate(`/tarefas`); break;
+    }
+  };
+
   const handleAction = (action: string, item: CockpitItem) => {
     switch (action) {
-      case 'open-demand':
-        if (item.type === 'demand' || item.type === 'report') navigate(`/demandas/${item.id}`);
-        else if (item.metadata.client_product_id) navigate(`/demandas/${item.metadata.client_product_id}`);
-        break;
-      case 'notify-client':
+      case 'open':
+        openItem(item); break;
+      case 'view-details':
+        setDetailItem(item); break;
+      case 'delete':
+        setDeleteItem(item); break;
+      case 'notify-client': {
         const clientUserId = item.metadata.client?.user_id || item.metadata.user_id;
         if (clientUserId) {
           notifyMutation.mutate({
@@ -365,7 +419,8 @@ export default function OperationalCockpit() {
           toast.error("Usuário do cliente não encontrado.");
         }
         break;
-      case 'notify-provider':
+      }
+      case 'notify-provider': {
         const providerUserId = item.metadata.provider?.user_id || item.metadata.service_provider_id;
         if (providerUserId) {
           notifyMutation.mutate({
@@ -377,18 +432,11 @@ export default function OperationalCockpit() {
           toast.error("Usuário do prestador não encontrado.");
         }
         break;
-      case 'request-doc':
-        navigate(`/documentos`);
-        break;
+      }
       case 'create-task':
-        navigate(`/tarefas`);
-        break;
+        navigate(`/tarefas`); break;
       case 'view-history':
-        navigate(`/auditoria`);
-        break;
-      case 'register-payment':
-        navigate(`/financeiro`);
-        break;
+        navigate(`/auditoria`); break;
       default:
         toast.info(`Ação "${action}" em desenvolvimento.`);
     }
