@@ -764,7 +764,8 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
   };
 
   const handleSavePwd = async () => {
-    if (newPwd.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
+    const check = validatePassword(newPwd);
+    if (!check.ok) return toast.error("Senha inválida: " + check.errors.join(", "));
     setSavingPwd(true);
     try {
       await onSetPassword(newPwd);
