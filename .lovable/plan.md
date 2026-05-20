@@ -1,48 +1,43 @@
-# Onda 2 — UX e Consistência
+# Onda 3 — Refactor & Tech Debt + Fix Header Leads
 
-Objetivo: eliminar inconsistências visuais/comportamentais entre páginas e melhorar a experiência de uso, sem mexer em regras de negócio. Tudo frontend, exceto o `calc-commission` (edge function).
+## Fix imediato — Header de Leads bugado
 
-## Lote 1 — Inputs e máscaras
-- Criar `src/lib/masks.ts` com helpers: `maskPhoneBR`, `maskCPF`, `maskCNPJ`, `maskCpfCnpj`, `maskCEP`, `maskPIX` (auto-detecta CPF/CNPJ/email/telefone/chave aleatória).
-- Aplicar em todos os formulários: Cliente (cpf_cnpj, phone, cep), Lead (phone, cpf_cnpj), Parceiro (cpf_cnpj, pix_key, phone), Colaborador (cpf, phone).
-- Integração CEP: novo hook `useCepLookup` (ViaCEP) que preenche endereço/cidade/uf ao perder foco no campo CEP.
+**Problema** (screenshot anexado): no viewport ~1327px o `PageHero` quebra em duas colunas (`xl:flex-row` em 1280px), os botões de ação (Hoje/7d/30d/Mês/Tudo + Kanban/Tabela + Importar CSV + Novo Lead) ocupam ~70% da largura e o título "Leads / Convidados" fica espremido em uma coluna de ~140px, quebrando letra por letra.
 
-## Lote 2 — Validação e datas
-- Schema Zod compartilhado em `src/lib/schemas.ts` (campos comuns: email, phone, cpf_cnpj, cep, datas).
-- Validar `data_final >= data_inicial` em todos os filtros de período (Leads, Financeiro, Comissões, Dashboard, Relatórios) — mensagem inline e bloqueio do submit.
-- Componente `DateRangeField` reutilizável usando shadcn Calendar com `pointer-events-auto`.
+**Correção em `src/components/PageHero.tsx`:**
+- Subir o breakpoint de `xl:flex-row` (1280) para `2xl:flex-row` (1536) — abaixo disso, ações vão para baixo do título naturalmente.
+- Adicionar `min-w-[480px]` na coluna de ações quando em row, garantindo que se ela não couber junto, quebra.
+- Remover `break-words` do `<h1>` (deixa só `text-balance`) — não precisa mais quebrar letra por letra porque o container vai ter largura adequada.
 
-## Lote 3 — Convenções de UI
-- Padronizar `Select` x `Switch` x `RadioGroup`:
-  - Switch só para boolean on/off
-  - Select para >3 opções
-  - RadioGroup para 2–3 opções visíveis
-  Auditar e ajustar 4 formulários divergentes (Parceiro, Produto, Comissão, Cliente).
-- Badges de status: um único componente `StatusBadge` com mapa `status → variant/label` por domínio (lead, comissão, financeiro, demanda).
-- Empty states: componente `EmptyState` (ícone + título + descrição + CTA) aplicado em todas as listas vazias.
+Sem alterar nenhuma página consumidora.
 
-## Lote 4 — Mobile e navegação
-- Headers mobile: padronizar `PageHero` em telas <768px (título truncado, ações em `Sheet`/dropdown).
-- Z-index: revisar `Dialog`/`Select`/`Popover`/`DropdownMenu` — definir camadas em `src/lib/z-index.ts` e aplicar (`z-modal=50`, `z-popover=60`, `z-tooltip=70`).
-- Sidebar sync: ao navegar via NavLink, grupo do item ativo abre automaticamente; estado de collapsed persistido em localStorage.
-- Toast duplicado: criar wrapper `notify()` em `src/lib/notify.ts` que faz dedupe por id; substituir chamadas diretas de `toast.success`/`toast.error` em mutations.
+## Onda 3 — Refactor
 
-## Lote 5 — Performance e listas
-- Debounce de busca (300ms) em todas as listas (Clientes, Leads, Parceiros, Demandas, Tarefas, Comissões) via hook `useDebouncedValue`.
-- Reset de página ao mudar filtro/busca em todas as tabelas paginadas.
-- Skeleton loading uniforme (`<TableSkeleton rows={n} />`) substituindo spinners ad-hoc.
+### Lote 1 — Catálogos centralizados
+- **`src/lib/roles.ts`**: enum `Role`, helpers `isAdmin(user)`, `isPartner(user)`, `isCollaborator(user)`, `canWriteClient(user)`. Migrar `src/hooks/useAuth.tsx` e os 10 consumidores listados acima para usar esses helpers — elimina checagens espalhadas com strings mágicas (`role === "admin"`).
+- **`src/lib/schemas.ts`**: schemas Zod compartilhados (`clientSchema`, `leadSchema`, `partnerSchema`, `saleSchema`) reutilizando `validators.ts`. Senha mínima passa para **8 caracteres** com regra: 1 letra + 1 número.
+- **`src/lib/glossary.ts`**: dicionário central `{ status_lead, status_demanda, status_comissao, tipo_regra, ... } → label PT-BR`. Substitui maps locais espalhados em ~6 páginas.
+- **`src/lib/enums.ts`**: re-exporta enums do banco (`commission_status`, `sale_status`, `lead_status`) como const arrays tipadas — única fonte de verdade no front.
 
-## Lote 6 — Comissão server-side
-- Nova edge function `calc-commission`: recebe `{ sale_id }`, lê regra ativa (`commission_rules`), calcula valor e cria/atualiza linhas em `commissions` (indicador + parceiro).
-- Frontend chama a function ao criar/editar venda; remove cálculo client-side de `SaleForm` e `CommissionForm`.
-- `verify_jwt = true` + checagem `has_role(uid,'admin') OR uid = sale.created_by`.
+### Lote 2 — Segurança & senha
+- Atualizar `src/pages/Auth.tsx` e `src/pages/Signup.tsx`: senha mínima 8 caracteres + 1 letra + 1 número, feedback visual de força.
+- Adicionar `src/lib/password.ts` com helper `validatePassword()` reutilizável.
+
+### Lote 3 — Manutenção do banco
+- Migration: extension `pg_cron` + job diário que arquiva `audit_logs` com mais de 180 dias para `audit_logs_archive` (mesma estrutura, sem RLS de write, só leitura admin).
+- Migration: índices que faltam — `commissions(status, partner_id)`, `leads(status, owner_id)`, `tasks(assigned_to, status)`.
+
+### Lote 4 — Limpeza
+- Remover código morto identificado: imports não usados, componentes órfãos (varredura com `knip` ou manual rápida nos arquivos da pasta `src/components`).
+- Padronizar nomenclatura `referrer` vs `indicator` — escolher `referrer` (já é o nome no banco) e fazer rename nos pontos onde "indicator" aparece no frontend.
 
 ## Detalhes técnicos
-- Arquivos novos: `src/lib/{masks,schemas,notify,z-index}.ts`, `src/hooks/{useCepLookup,useDebouncedValue}.ts`, `src/components/{StatusBadge,EmptyState,DateRangeField,TableSkeleton}.tsx`, `supabase/functions/calc-commission/index.ts`.
-- Arquivos editados (estimativa): ~25 formulários/listas + `PageHero`, `AppSidebar`.
-- Nenhuma migration nesta onda (regras de negócio já foram cobertas na Onda 1).
+- Arquivos novos: `src/lib/{roles,schemas,glossary,enums,password}.ts`
+- Arquivos editados: `useAuth.tsx`, `Auth.tsx`, `Signup.tsx`, `PageHero.tsx`, ~10 componentes para migrar para `roles.ts` e `glossary.ts`.
+- 2 migrations (cron + índices). Nenhuma migration mexe em dados existentes.
 
-## Ordem de execução sugerida
-1. Lote 1 + 2 (base reutilizável) → 2. Lote 3 (consistência visual) → 3. Lote 4 (mobile/nav) → 4. Lote 5 (perf) → 5. Lote 6 (edge function).
+## Ordem
+1. **Fix Leads header** (1 arquivo, imediato)
+2. Lote 1 (catálogos) → 3. Lote 2 (senha) → 4. Lote 3 (migrations) → 5. Lote 4 (limpeza)
 
-Posso executar tudo de uma vez, ou prefere quebrar em 2 entregas (Lotes 1–3 primeiro, depois 4–6)?
+Posso começar?

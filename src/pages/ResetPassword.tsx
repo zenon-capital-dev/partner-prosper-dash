@@ -13,7 +13,9 @@ export default function ResetPassword() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) { toast.error("Mínimo 6 caracteres"); return; }
+    const { validatePassword } = await import("@/lib/password");
+    const check = validatePassword(password);
+    if (!check.ok) { toast.error(check.errors.join(" · ")); return; }
     setSubmitting(true);
     const { error } = await supabase.auth.updateUser({ password });
     setSubmitting(false);
@@ -31,7 +33,7 @@ export default function ResetPassword() {
         </div>
         <div className="space-y-2">
           <Label>Nova senha</Label>
-          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" required />
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 8 caracteres · 1 letra · 1 número" required />
         </div>
         <Button type="submit" disabled={submitting} className="w-full bg-gradient-primary hover:opacity-90">
           {submitting ? "Salvando..." : "Salvar nova senha"}
