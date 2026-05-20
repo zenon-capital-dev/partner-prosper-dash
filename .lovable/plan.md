@@ -1,56 +1,114 @@
-## Diagnóstico
+## Reformulação do cadastro de Serviço (Produto)
 
-Três problemas independentes:
+Vou reconstruir o dialog "Novo Serviço" e transformar a ficha do produto em um **hub completo** — depois de criado, o serviço abre uma página própria onde dá pra setar tudo (prestadores habilitados, colaboradores, cliente, contrato vinculado, etc.) sem precisar abrir outras telas.
 
-**1. Inconsistência de tamanho mínimo de senha**
-- `src/lib/password.ts` e o login (`Auth.tsx` linha 17): exigem **8 caracteres**
-- `src/components/provider/ProviderFormDialog.tsx` linha 185-186: label diz **"mín. 6 caracteres"**
-- `supabase/functions/invite-user/index.ts` linha 109: valida **mínimo 6**
+---
 
-Resultado: admin cadastra prestador com senha de 6 dígitos, salva ok, mas quando o prestador tenta logar o formulário bloqueia com "mínimo 8".
+### 1. Remover Categoria de tudo
 
-**2. "Informações não salvas na ficha do prestador"**
-Já está resolvido pelo fix anterior — a query embutida quebrava e ninguém abria detalhes corretos. Verifiquei no banco: o último prestador criado ("teste prestador af") tem nome, email, telefone, CNPJ e especialidade todos salvos. Quando você abrir a ficha agora a info aparece. Vou só confirmar visualmente após os outros ajustes, sem mexer em código.
+- Apagar aba/seleção de Categoria do dialog
+- Apagar botão "Categorias" e o modal de gestão na página `/produtos`
+- Apagar filtro de categoria nos chips
+- Apagar coluna "Categoria" das tabelas/cards
+- Apagar tabela `product_categories` + coluna `category_id` em `products` (migration)
 
-**3. Link "Esqueci a senha" no login**
-Existe em `src/pages/Auth.tsx` linha 244 + handler com `resetPasswordForEmail` (linha 52). Você já pediu pra remover — só admin pode resetar senha de outro usuário via tela de Usuários.
+### 2. Dialog "Novo Serviço" enxuto (3 abas só)
 
-## Correções
+**Aba 1 — Identificação** (criação rápida)
+- Nome do serviço *
+- Descrição curta (visível pra cliente e prestador)
+- Switches: Ativo · Recorrente · Permite parceiros
+- Botão "Criar Serviço" salva o mínimo e abre a ficha completa
 
-### `src/lib/password.ts`
-Nada muda — já está em 8 com letra+número. Continua como fonte única de verdade.
+**Aba 2 — Operação**
+- Documentos exigidos (chips com Enter)
+- Etapas do processo (checklist)
+- SLA: dias + tipo (úteis/corridos)
+- Status inicial da demanda
 
-### `src/components/provider/ProviderFormDialog.tsx`
-- Trocar label "Senha provisória (mín. 6 caracteres)" → "Senha provisória (mín. 8 caracteres, 1 letra e 1 número)"
-- Trocar placeholder
-- Adicionar validação com `validatePassword(form.access_password)` antes de chamar `invite-user`. Se falhar, `toast.error` listando os erros e aborta.
+**Aba 3 — Financeiro**
+- Valor padrão (R$)
+- Tipo de cobrança: único / mensal / anual / **parcelado**
+- Se parcelado: nº de parcelas padrão · valor de entrada · dia de vencimento
+- Comissão parceiro (%) · Comissão colaborador (%) · Pagamento ao prestador (R$)
 
-### `supabase/functions/invite-user/index.ts`
-- Linha 109 (`set_password`): `< 6` → `< 8` + mensagem "Senha precisa ter ao menos 8 caracteres, 1 letra e 1 número" e checar regex letra+número
-- Mesma validação no fluxo INVITE (linhas 190-203) quando `body.password` vem do cliente
-- Centraliza em uma helper `validateServerPassword(pw)` no topo do arquivo pra não duplicar regra
+**Remover:**
+- Aba Comunicação inteira (mensagens viram template global em outro lugar)
+- Aba Automação inteira (campos customizados e tarefas automáticas — pouco uso)
+- Cards "Sugestões rápidas" no topo
+- Campo "Tipo de prestador recomendado" (texto livre que ninguém preenche)
 
-### `src/pages/Auth.tsx`
-- Remover o botão "Esqueci a senha" (linha ~244) e todo o estado/handler de reset (`resetPasswordForEmail`, possivelmente um modal/dialog associado)
-- Manter o arquivo `src/pages/ResetPassword.tsx` e a rota `/reset-password` em `App.tsx` — admin ainda pode disparar set_password via painel de Usuários, e essa rota serve de fallback caso um link antigo seja aberto, mas sem ponto de entrada no login
+### 3. Ficha do Serviço — nova rota `/produtos/:id`
 
-### Outros lugares que pedem senha (varrer e alinhar a 8+letra+número)
-- `src/pages/UsersPage.tsx` (drawer "criar usuário" e ação "redefinir senha")
-- Qualquer outro form com `access_password` (Partners, Indicators, Collaborators, etc.) se existir
+Depois de criar, clicar num serviço abre uma página dedicada (não mais só o dialog de edição). Layout com header + 5 abas:
 
-Vou usar `validatePassword` do `src/lib/password.ts` em todos os pontos do client pra ficar uma regra só.
+**Header**
+- Ícone + Nome + status (Ativo/Inativo)
+- KPIs em linha: Vendas totais · Receita gerada · Demandas ativas · Prestadores habilitados · Ticket médio
+- Ações: Editar · Duplicar · Desativar/Ativar · Excluir
 
-## Arquivos a editar
+**Aba "Visão Geral"**
+- Resumo dos dados (descrição, valor, SLA, tipo cobrança)
+- Gráfico de vendas dos últimos 90 dias
+- Últimas 5 demandas geradas
 
-- `src/components/provider/ProviderFormDialog.tsx`
-- `supabase/functions/invite-user/index.ts`
-- `src/pages/Auth.tsx`
-- `src/pages/UsersPage.tsx` (se tiver criação/reset de senha)
-- Quaisquer outros forms com `access_password` (verifico antes de editar)
+**Aba "Prestadores"** ← uma das peças que falta
+- Lista de prestadores habilitados a atender esse serviço (tabela `partner_products` reaproveitada → renomeada conceitualmente)
+- Botão "Vincular prestador" → busca de prestadores ativos
+- Por linha: nome, especialidade, % comissão custom, valor custom, ativo, ações (remover)
+- Tabela técnica nova: `service_provider_products` (provider_id + product_id + commission_percent + custom_value + active)
 
-## Validação
+**Aba "Colaboradores"** ← outra peça que falta
+- Lista de colaboradores internos habilitados a executar
+- Botão "Vincular colaborador"
+- Tabela nova: `collaborator_products` (collaborator_id + product_id + active)
 
-1. Tentar criar prestador com senha de 6 caracteres → form bloqueia com mensagem "mínimo 8 caracteres, 1 letra e 1 número"
-2. Criar prestador com senha válida (ex.: `Teste1234`) → login do prestador funciona sem erro
-3. Tela de login não tem mais "Esqueci a senha"
-4. Abrir ficha do "teste prestador af" → todos os campos (email, telefone, CNPJ, especialidade) visíveis
+**Aba "Clientes"**
+- Lista de clientes que já compraram esse serviço (read-only, vem de `sales`/`client_products`)
+- Clique vai pra ficha do cliente
+
+**Aba "Contrato vinculado"**
+- Upload/seleção de modelo de contrato padrão pra esse serviço
+- Quando o serviço for vendido, esse modelo já vem pré-selecionado na geração do contrato
+- Tabela nova: `contract_templates` (id, name, file_path, content, active) — coluna `default_contract_template_id` em `products`
+
+**Aba "Operação"**
+- Edita documentos exigidos, etapas (checklist), SLA — espelha o que está no dialog mas in-place
+
+### 4. Lista `/produtos`
+
+- Tirar coluna Categoria e filtros relacionados
+- Trocar clique do nome: em vez de abrir dialog de edição, **navegar pra `/produtos/:id`**
+- Manter "Novo Serviço" → dialog rápido (só aba Identificação) → ao salvar redireciona pra ficha
+
+### 5. Backend (migrations necessárias)
+
+```sql
+-- 1. Remover dependência de categoria
+ALTER TABLE products DROP COLUMN category_id;
+DROP TABLE product_categories CASCADE;
+
+-- 2. Novas tabelas de vínculo
+CREATE TABLE service_provider_products (...);  -- prestador ↔ produto
+CREATE TABLE collaborator_products (...);       -- colaborador ↔ produto
+CREATE TABLE contract_templates (...);          -- modelos de contrato
+
+-- 3. Novas colunas em products
+ALTER TABLE products
+  ADD COLUMN default_contract_template_id uuid,
+  ADD COLUMN installments_count int,
+  ADD COLUMN installments_entry numeric,
+  ADD COLUMN installments_due_day int;
+
+-- 4. RLS: só admin/admin_secondary gerencia; prestador/colaborador SELECT do que está vinculado a ele
+```
+
+### 6. O que sai do escopo agora
+
+- Mensagens automáticas de boas-vindas (WhatsApp/e-mail) — vira projeto separado
+- Imagem/capa do serviço — vira projeto separado
+- Campos personalizados e tarefas automáticas — descontinuados
+
+---
+
+**Resumo:** dialog enxuto pra criar rápido, ficha completa em `/produtos/:id` com 5 abas pra fazer **tudo** sobre o serviço sem sair da tela (incluindo amarrar prestador, colaborador, cliente e contrato). Categoria some por completo.
