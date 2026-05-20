@@ -53,8 +53,8 @@ export function PageHero({
 
       {!hideBreadcrumbs && <Breadcrumbs />}
 
-      <header className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-start justify-between gap-4 sm:gap-6">
-        <div className="flex items-start gap-3 sm:gap-5 min-w-0 flex-1">
+      <header className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 xl:gap-6">
+        <div className="flex items-start gap-3 sm:gap-5 min-w-0 xl:flex-1">
           {icon && (
             <div className="relative shrink-0">
               <div className="size-11 sm:size-14 lg:size-[60px] rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg ring-1 ring-white/10">
@@ -64,10 +64,10 @@ export function PageHero({
               <div className="absolute -bottom-1 -right-1 size-3.5 rounded-full bg-emerald-400 ring-[2.5px] ring-white dark:ring-background shadow-sm" />
             </div>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             {(eyebrow || category) && (
-              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] font-bold">
-                <CalendarClock className="size-3 text-slate-800 dark:text-muted-foreground" />
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.24em] font-bold flex-wrap">
+                <CalendarClock className="size-3 text-slate-800 dark:text-muted-foreground shrink-0" />
                 <span className="text-slate-600 dark:text-muted-foreground">{eyebrow}</span>
                 {category && (
                   <>
@@ -78,7 +78,7 @@ export function PageHero({
                 )}
               </div>
             )}
-            <h1 className="text-[24px] sm:text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground mt-2 leading-[1.08] font-display">
+            <h1 className="text-[22px] sm:text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground mt-2 leading-[1.08] font-display break-words">
               {title}
             </h1>
             {description && (
@@ -91,8 +91,8 @@ export function PageHero({
         </div>
 
         {actions && (
-          <div className="w-full sm:w-auto min-w-0 pb-1 -mb-1 scrollbar-hide">
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
+          <div className="w-full xl:w-auto min-w-0 xl:shrink-0">
+            <div className="flex flex-wrap items-center gap-2 [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
               {actions}
             </div>
           </div>
