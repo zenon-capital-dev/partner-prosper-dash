@@ -240,7 +240,7 @@ export default function Tasks() {
       priority: form.priority,
       status_new: form.status_new,
       status: form.status_new,
-      due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
+      due_date: form.due_date ? new Date(`${form.due_date}T12:00:00`).toISOString() : null,
       assigned_to: form.assigned_to || null,
       client_id: null,
       client_product_id: null,
