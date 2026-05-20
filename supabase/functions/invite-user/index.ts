@@ -186,6 +186,10 @@ Deno.serve(async (req) => {
 
     // ---------- INVITE (default) ----------
     if (!body.email || !body.role) return json({ error: "email e role obrigatórios" }, 400);
+    if (body.password) {
+      const pwErr = validateServerPassword(String(body.password));
+      if (pwErr) return json({ error: pwErr }, 400);
+    }
 
     let userId: string | null = null;
     let tempPassword: string | null = null;
