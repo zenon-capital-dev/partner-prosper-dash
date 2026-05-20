@@ -98,8 +98,10 @@ export default function Demands() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [newDemandOpen, setNewDemandOpen] = useState(false);
+
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
