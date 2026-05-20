@@ -48,6 +48,10 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
     if (!form.name?.trim()) { toast.error("Nome é obrigatório"); return; }
     if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) { toast.error("CPF/CNPJ inválido"); return; }
     if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
+    if (createAccess && form.access_password) {
+      const check = validatePassword(form.access_password);
+      if (!check.ok) { toast.error("Senha inválida: " + check.errors.join(", ")); return; }
+    }
     setSubmitting(true);
 
     const payload = {
