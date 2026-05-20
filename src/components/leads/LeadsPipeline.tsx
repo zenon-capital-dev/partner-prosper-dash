@@ -261,19 +261,19 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
       {/* Funil agrupado */}
       <div className="space-y-2.5">
         {STATUSES.map((status) => {
-          const list = grouped[status];
+          const list = grouped.map[status];
           const isOpen = openGroups.has(status);
           const tone = STATUS_TONE[status];
           return (
-            <div key={status} className="vx-card overflow-hidden">
+            <div key={status} className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
               <button
                 onClick={() => toggleGroup(status)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50/60 transition-colors"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <ChevronDown
                     className={cn(
-                      "size-4 text-muted-foreground transition-transform shrink-0",
+                      "size-4 text-slate-400 transition-transform shrink-0",
                       !isOpen && "-rotate-90",
                     )}
                   />
@@ -285,7 +285,7 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
                   >
                     {status}
                   </span>
-                  <span className="text-[11px] font-bold text-muted-foreground font-mono">
+                  <span className="text-[11px] font-bold text-slate-500 font-mono">
                     {list.length}
                   </span>
                 </div>
@@ -297,11 +297,11 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
               </button>
               {isOpen &&
                 (list.length === 0 ? (
-                  <div className="px-4 py-6 text-center text-xs text-muted-foreground border-t border-border/50">
+                  <div className="px-4 py-6 text-center text-xs text-slate-500 border-t border-slate-100">
                     Nenhum lead nesta etapa.
                   </div>
                 ) : (
-                  <ul className="divide-y divide-border/50 border-t border-border/50">
+                  <ul className="divide-y divide-slate-100 border-t border-slate-100">
                     {list.map((lead) => (
                       <LeadRow
                         key={lead.id}
@@ -316,6 +316,30 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
             </div>
           );
         })}
+
+        {grouped.others.length > 0 && (
+          <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+            <button
+              onClick={() => toggleGroup("__others__")}
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50/60 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <ChevronDown className={cn("size-4 text-slate-400 transition-transform", !openGroups.has("__others__") && "-rotate-90")} />
+                <span className="text-[10.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border bg-slate-50 text-slate-600 border-slate-200">
+                  Outros status
+                </span>
+                <span className="text-[11px] font-bold text-slate-500 font-mono">{grouped.others.length}</span>
+              </div>
+            </button>
+            {openGroups.has("__others__") && (
+              <ul className="divide-y divide-slate-100 border-t border-slate-100">
+                {grouped.others.map((lead) => (
+                  <LeadRow key={lead.id} lead={lead} onEdit={onEdit} onConvert={onConvert} onStatusChange={(s) => moveLead(lead.id, s)} />
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
