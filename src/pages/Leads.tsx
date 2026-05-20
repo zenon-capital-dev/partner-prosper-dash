@@ -30,6 +30,8 @@ import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { EmptyState } from "@/components/EmptyState";
+import { TableSkeleton } from "@/components/TableSkeleton";
 
 
 const statusColors: Record<string, string> = {
@@ -277,11 +279,21 @@ export default function Leads() {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-sm text-muted-foreground">Carregando leads...</td>
+                    <td colSpan={6} className="px-2 py-4">
+                      <TableSkeleton rows={6} cols={6} />
+                    </td>
                   </tr>
                 ) : filteredLeads.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-sm text-muted-foreground">Nenhum lead encontrado.</td>
+                    <td colSpan={6} className="px-6 py-10">
+                      <EmptyState
+                        icon={Target}
+                        title="Nenhum lead encontrado"
+                        description="Ajuste os filtros ou cadastre um novo lead para começar."
+                        actionLabel="Novo lead"
+                        onAction={() => setOpen(true)}
+                      />
+                    </td>
                   </tr>
                 ) : (
                   pagedLeads.map((lead: any) => (
