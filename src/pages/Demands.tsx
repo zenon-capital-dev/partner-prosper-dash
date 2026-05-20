@@ -181,19 +181,20 @@ export default function Demands() {
     }
 
     return demands.filter((d: any) => {
-      const createdAt = new Date(d.created_at);
-      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
+      const activityAt = new Date(d.updated_at || d.created_at);
+      if (rangeKey !== "TUDO" && (activityAt < start || activityAt > end)) return false;
       if (statusFilter !== "all" && d.status !== statusFilter) return false;
       if (priorityFilter !== "all" && d.priority !== priorityFilter) return false;
       if (productFilter !== "all" && d.product_id !== productFilter) return false;
       if (providerFilter !== "all" && d.service_provider_id !== providerFilter) return false;
       if (partnerFilter !== "all" && d.clients?.partners?.id !== partnerFilter) return false;
-      
+
       if (deadlineFilter !== "all") {
         const today = new Date();
-        const deadline = d.sla_due_date ? new Date(d.sla_due_date) : null;
+        const dueRaw = d.sla_due_date || d.deadline;
+        const deadline = dueRaw ? new Date(dueRaw) : null;
         if (!deadline) return false;
-        
+
         if (deadlineFilter === "atrasado") return deadline < today && d.status !== 'concluido';
         if (deadlineFilter === "hoje") return deadline.toDateString() === today.toDateString();
         if (deadlineFilter === "semana") {
