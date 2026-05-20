@@ -77,7 +77,7 @@ export default function Providers() {
         .from("service_providers")
         .select(`
           *,
-          client_products(id, status, value, clients(id, full_name)),
+          client_products!client_products_service_provider_id_fkey(id, status, value, clients(id, full_name)),
           contracts(id, status)
         `)
         .order("created_at", { ascending: false });
