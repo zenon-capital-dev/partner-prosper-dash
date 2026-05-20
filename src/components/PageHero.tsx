@@ -53,8 +53,8 @@ export function PageHero({
 
       {!hideBreadcrumbs && <Breadcrumbs />}
 
-      <header className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 xl:gap-6">
-        <div className="flex items-start gap-3 sm:gap-5 min-w-0 xl:flex-1">
+      <header className="flex flex-col 2xl:flex-row 2xl:items-start 2xl:justify-between gap-4 2xl:gap-6">
+        <div className="flex items-start gap-3 sm:gap-5 min-w-0 2xl:flex-1">
           {icon && (
             <div className="relative shrink-0">
               <div className="size-11 sm:size-14 lg:size-[60px] rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-lg ring-1 ring-white/10">
@@ -78,7 +78,7 @@ export function PageHero({
                 )}
               </div>
             )}
-            <h1 className="text-[22px] sm:text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground mt-2 leading-[1.08] font-display break-words">
+            <h1 className="text-[22px] sm:text-[26px] lg:text-[32px] font-extrabold text-slate-950 dark:text-foreground mt-2 leading-[1.08] font-display text-balance">
               {title}
             </h1>
             {description && (
@@ -91,7 +91,7 @@ export function PageHero({
         </div>
 
         {actions && (
-          <div className="w-full xl:w-auto min-w-0 xl:shrink-0">
+          <div className="w-full 2xl:w-auto min-w-0 2xl:shrink-0">
             <div className="flex flex-wrap items-center gap-2 [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
               {actions}
             </div>
