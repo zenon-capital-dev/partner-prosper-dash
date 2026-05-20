@@ -38,6 +38,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DailyAgenda } from "@/components/demands/DailyAgenda";
 import { CalendarDays } from "lucide-react";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { NewDemandDialog } from "@/components/demands/NewDemandDialog";
+
+const STATUS_META: Record<string, { label: string; tone: string }> = {
+  aguardando_inicio: { label: "Aguardando início", tone: "bg-slate-100 text-slate-700" },
+  em_andamento: { label: "Em andamento", tone: "bg-blue-50 text-blue-700" },
+  pausado: { label: "Pausado", tone: "bg-amber-50 text-amber-700" },
+  concluido: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700" },
+  cancelado: { label: "Cancelado", tone: "bg-rose-50 text-rose-700" },
+};
+const KNOWN_STATUSES = Object.keys(STATUS_META);
 
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
@@ -88,8 +98,10 @@ export default function Demands() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [newDemandOpen, setNewDemandOpen] = useState(false);
+
   
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -169,19 +181,20 @@ export default function Demands() {
     }
 
     return demands.filter((d: any) => {
-      const createdAt = new Date(d.created_at);
-      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
+      const activityAt = new Date(d.updated_at || d.created_at);
+      if (rangeKey !== "TUDO" && (activityAt < start || activityAt > end)) return false;
       if (statusFilter !== "all" && d.status !== statusFilter) return false;
       if (priorityFilter !== "all" && d.priority !== priorityFilter) return false;
       if (productFilter !== "all" && d.product_id !== productFilter) return false;
       if (providerFilter !== "all" && d.service_provider_id !== providerFilter) return false;
       if (partnerFilter !== "all" && d.clients?.partners?.id !== partnerFilter) return false;
-      
+
       if (deadlineFilter !== "all") {
         const today = new Date();
-        const deadline = d.sla_due_date ? new Date(d.sla_due_date) : null;
+        const dueRaw = d.sla_due_date || d.deadline;
+        const deadline = dueRaw ? new Date(dueRaw) : null;
         if (!deadline) return false;
-        
+
         if (deadlineFilter === "atrasado") return deadline < today && d.status !== 'concluido';
         if (deadlineFilter === "hoje") return deadline.toDateString() === today.toDateString();
         if (deadlineFilter === "semana") {
@@ -221,16 +234,18 @@ export default function Demands() {
     };
   }, [demands]);
 
-  const KANBAN_COLUMNS = [
+  // Colunas reais (status livre em text). Qualquer status fora da lista cai em "outros".
+  const baseColumns = [
     { id: "aguardando_inicio", label: "Aguardando início" },
-    { id: "aguardando_documentos", label: "Aguardando documentos" },
-    { id: "em_analise", label: "Em análise" },
-    { id: "em_execucao", label: "Em execução" },
-    { id: "pendente_cliente", label: "Pendente com cliente" },
-    { id: "pendente_prestador", label: "Pendente com prestador" },
-    { id: "aguardando_aprovacao_final", label: "Aguardando aprovação" },
+    { id: "em_andamento", label: "Em andamento" },
+    { id: "pausado", label: "Pausado" },
     { id: "concluido", label: "Concluído" },
+    { id: "cancelado", label: "Cancelado" },
   ];
+  const hasOutros = demands.some((d: any) => d.status && !KNOWN_STATUSES.includes(d.status));
+  const KANBAN_COLUMNS = hasOutros ? [...baseColumns, { id: "__outros__", label: "Outros" }] : baseColumns;
+  const isInColumn = (d: any, colId: string) =>
+    colId === "__outros__" ? d.status && !KNOWN_STATUSES.includes(d.status) : d.status === colId;
 
   const [completeDialog, setCompleteDialog] = useState<{ id: string; date: string } | null>(null);
 
@@ -259,6 +274,7 @@ export default function Demands() {
     if (!result.destination) return;
     const { draggableId, destination } = result;
     const newStatus = destination.droppableId;
+    if (newStatus === "__outros__") return; // não permite mover para "outros"
     const demand = demands.find((d: any) => d.id === draggableId);
     if (!demand || demand.status === newStatus) return;
     if (newStatus === 'concluido') {
@@ -359,7 +375,7 @@ export default function Demands() {
               <Wallet className="size-4 mr-2 text-indigo-500" /> Comissões
             </Button>
             
-            <Button className="h-11 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg" onClick={() => navigate("/clientes")}>
+            <Button className="h-11 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg" onClick={() => setNewDemandOpen(true)}>
               <Plus className="size-4 mr-2" /> Nova Demanda
             </Button>
           </div>
@@ -370,7 +386,7 @@ export default function Demands() {
             <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Status</SelectItem>
-              {KANBAN_COLUMNS.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+              {KANBAN_COLUMNS.filter(c => c.id !== "__outros__").map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
             </SelectContent>
           </Select>
 
@@ -456,13 +472,13 @@ export default function Demands() {
                           {column.label}
                         </h3>
                         <Badge variant="secondary" className="h-5 text-[10px] px-1.5 font-bold tabular-nums">
-                          {filtered.filter((d: any) => d.status === column.id).length}
+                          {filtered.filter((d: any) => isInColumn(d, column.id)).length}
                         </Badge>
                       </div>
                       
                       <div className="p-3 flex flex-col gap-3 flex-1 min-h-[600px]">
                         {filtered
-                          .filter((d: any) => d.status === column.id)
+                          .filter((d: any) => isInColumn(d, column.id))
                           .map((demand: any, index: number) => {
                             const priority = PRIORITY_META[demand.priority as Priority] || PRIORITY_META.normal;
                             const pendingDocs = demand.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
@@ -818,6 +834,8 @@ export default function Demands() {
       </Dialog>
         </TabsContent>
       </Tabs>
+
+      <NewDemandDialog open={newDemandOpen} onOpenChange={setNewDemandOpen} />
     </div>
   );
 }
