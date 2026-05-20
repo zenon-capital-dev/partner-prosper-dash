@@ -119,18 +119,20 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("documents")
         .select(`
-          id, status, name, created_at,
+          id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["enviado", "reprovado", "em_analise"]);
+        .in("status", ["solicitado", "enviado", "em_analise", "reprovado"]);
       
       if (error) throw error;
       
-      return (data as any[]).map(d => ({
+      return (data as any[])
+        .filter(d => d.client_id) // skip orphans
+        .map(d => ({
         id: d.id,
         type: 'document',
         title: d.name || "Documento",
-        subtitle: `${d.client?.full_name || 'Cliente desconhecido'} - ${d.status === 'enviado' ? 'Aguardando Análise' : 'Reprovado / Reenvio'}`,
+        subtitle: `${d.client?.full_name || 'Cliente desconhecido'} - ${d.status === 'enviado' ? 'Aguardando Análise' : d.status === 'reprovado' ? 'Reprovado / Reenvio' : d.status === 'em_analise' ? 'Em Análise' : 'Solicitado'}`,
         status: d.status,
         date: d.created_at,
         severity: d.status === 'reprovado' ? 'high' : 'medium',
