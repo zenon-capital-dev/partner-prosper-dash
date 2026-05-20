@@ -386,7 +386,7 @@ export default function Demands() {
             <SelectTrigger className="h-10 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos Status</SelectItem>
-              {KANBAN_COLUMNS.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+              {KANBAN_COLUMNS.filter(c => c.id !== "__outros__").map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
             </SelectContent>
           </Select>
 
