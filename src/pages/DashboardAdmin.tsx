@@ -5,7 +5,17 @@ import {
   FileText, ChevronRight, UserPlus,
   Receipt, Wallet, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, Activity, Zap, Sparkles,
+  CalendarCheck, AlertCircle,
 } from "lucide-react";
+
+// Format Date as YYYY-MM-DD using LOCAL components — avoids timezone shift
+// from toISOString() (which converts to UTC and breaks day labels in BRT).
+const toLocalISO = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 import { formatBRL } from "@/lib/format";
 import { useMemo, useState, useEffect, ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -49,7 +59,6 @@ export default function DashboardAdmin() {
     queryFn: async () => {
       let query = supabase.from("sales").select("*").order("sale_date", { ascending: false });
       
-      const toISO = (d: Date) => d.toISOString().slice(0, 10);
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
       
@@ -61,7 +70,7 @@ export default function DashboardAdmin() {
       const periodDays = Math.max(1, Math.round((rangeEnd.getTime() - rangeStart.getTime()) / 86400000) + 1);
       fetchStart.setDate(fetchStart.getDate() - periodDays);
       
-      const { data, error } = await query.gte("sale_date", toISO(fetchStart)).lte("sale_date", toISO(rangeEnd));
+      const { data, error } = await query.gte("sale_date", toLocalISO(fetchStart)).lte("sale_date", toLocalISO(rangeEnd));
       if (error) throw error;
       return data ?? [];
     }
@@ -84,7 +93,7 @@ export default function DashboardAdmin() {
   });
   const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({ 
     queryKey: ["dash-doc-requests"], 
-    queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [] 
+    queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at, request_title, client_id, deadline")).data ?? [] 
   });
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ 
     queryKey: ["dash-payments"], 
@@ -100,7 +109,7 @@ export default function DashboardAdmin() {
 
   const stats = useMemo(() => {
     const now = new Date();
-    const toISO = (d: Date) => d.toISOString().slice(0, 10);
+    const toISO = toLocalISO;
     let rangeStart = new Date(brasiliaToday);
     const rangeEnd = new Date(brasiliaToday);
     if (rangeKey === "7D") rangeStart.setDate(brasiliaToday.getDate() - 6);
@@ -108,6 +117,7 @@ export default function DashboardAdmin() {
     else if (rangeKey === "MÊS") rangeStart = new Date(brasiliaToday.getFullYear(), brasiliaToday.getMonth(), 1);
     const startISO = toISO(rangeStart);
     const endISO = toISO(rangeEnd);
+    const todayISO = toISO(brasiliaToday);
 
     const filteredSales = sales.filter((s: any) => s.sale_date && s.sale_date >= startISO && s.sale_date <= endISO);
     const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
@@ -124,12 +134,13 @@ export default function DashboardAdmin() {
     const activeClients = clients.filter((c: any) => c.status === "ativo").length;
     const newClientsRange = clients.filter((c: any) => c.created_at && c.created_at.slice(0,10) >= startISO).length;
 
+    const isDoneDemand = (s: string) => ["concluido", "concluida", "cancelado", "cancelada"].includes(s);
     const delayedDemands = clientProducts.filter((p: any) =>
       p.status === "atrasado" ||
-      (p.deadline && new Date(p.deadline) < now && !["concluido", "cancelado"].includes(p.status))
+      (p.deadline && toISO(new Date(p.deadline)) < todayISO && !isDoneDemand(p.status))
     ).length;
     const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio"].includes(p.status)).length;
-    const completedDemands = clientProducts.filter((p: any) => p.status === "concluido").length;
+    const completedDemands = clientProducts.filter((p: any) => p.status === "concluido" || p.status === "concluida").length;
 
     const pipelineTotal = leads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
     const wonLeads = leads.filter((l: any) => l.status === "ganho" || l.status === "convertido").length;
@@ -139,9 +150,10 @@ export default function DashboardAdmin() {
     const openContracts = contracts.filter((c: any) => ["criado", "enviado", "aguardando_assinatura"].includes(c.status)).length;
     const waitingSignatureContracts = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
     const pendingDocs = docRequests.filter((d: any) => ["solicitado", "pendente_correcao", "pendente", "enviado", "em_analise"].includes(d.status)).length;
-    const overdueTasks = tasks.filter((t: any) => t.status !== "concluida" && t.status !== "completed" && t.due_date && new Date(t.due_date) < now).length;
-    const todayTasks = tasks.filter((t: any) => t.due_date && new Date(t.due_date).toDateString() === now.toDateString()).length;
-    const openTasks = tasks.filter((t: any) => t.status !== "concluida" && t.status !== "completed").length;
+    const isTaskOpen = (t: any) => t.status !== "concluida" && t.status !== "completed" && t.status !== "done";
+    const overdueTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) < todayISO).length;
+    const todayTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) === todayISO).length;
+    const openTasks = tasks.filter(isTaskOpen).length;
 
     const commissionsToPay = commissions
       .filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status))
@@ -149,7 +161,6 @@ export default function DashboardAdmin() {
     const commissionsCount = commissions.filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status)).length;
 
     const in7d = new Date(brasiliaToday); in7d.setDate(brasiliaToday.getDate() + 7);
-    const todayISO = toISO(brasiliaToday);
     const in7ISO = toISO(in7d);
     const receivable7d = payments
       .filter((p: any) => ["pendente", "em_aberto", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date >= todayISO && p.due_date <= in7ISO)
@@ -161,13 +172,49 @@ export default function DashboardAdmin() {
     const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
     const receivedTotal = payments.filter((p: any) => p.status === "pago").reduce((a, p: any) => a + Number(p.amount_paid || 0), 0);
 
-    const len = rangeKey === "HOJE" ? 14 : rangeKey === "7D" ? 14 : 30;
+    // Chart length matches the selected range exactly (HOJE = últimos 7 dias para contexto).
+    const len =
+      rangeKey === "HOJE" ? 7 :
+      rangeKey === "7D" ? 7 :
+      rangeKey === "30D" ? 30 :
+      /* MÊS */ (brasiliaToday.getDate());
     const chartData = Array.from({ length: len }).map((_, i) => {
       const d = new Date(brasiliaToday); d.setDate(brasiliaToday.getDate() - (len - 1 - i));
       const iso = toISO(d);
       const value = sales.filter((s: any) => s.sale_date === iso).reduce((a, s: any) => a + Number(s.amount || 0), 0);
-      return { name: format(d, "dd/MM"), value };
+      return { name: format(d, "dd/MM"), value, isToday: iso === todayISO };
     });
+
+    // ============ PENDÊNCIAS DE HOJE ============
+    const todayTasksList = tasks
+      .filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) === todayISO)
+      .slice(0, 5)
+      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? format(new Date(t.due_date), "HH:mm") : null }));
+
+    const todayDemandsList = clientProducts
+      .filter((p: any) => !isDoneDemand(p.status) && p.deadline && toISO(new Date(p.deadline)) === todayISO)
+      .slice(0, 5)
+      .map((p: any) => {
+        const client = clients.find((c: any) => c.id === p.client_id);
+        return { id: p.id, title: client?.full_name || "Cliente", subtitle: p.status };
+      });
+
+    const todayDocsList = docRequests
+      .filter((d: any) => ["enviado", "em_analise"].includes(d.status))
+      .slice(0, 5)
+      .map((d: any) => {
+        const client = clients.find((c: any) => c.id === d.client_id);
+        return { id: d.id, title: d.request_title || "Documento", subtitle: client?.full_name || "Cliente" };
+      });
+
+    const todayContractsList = contracts
+      .filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status))
+      .slice(0, 5)
+      .map((c: any) => ({ id: c.id, title: c.name || "Contrato", subtitle: "Aguardando assinatura" }));
+
+    const todayPendingCount =
+      todayTasksList.length + todayDemandsList.length + todayDocsList.length + todayContractsList.length;
+
 
     const demandsByStatus = [
       { name: "Em andamento", value: clientProducts.filter((p: any) => p.status === "em_andamento").length, color: "#4f46e5" },
@@ -210,6 +257,7 @@ export default function DashboardAdmin() {
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
+      todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount,
     };
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday]);
 
@@ -357,6 +405,17 @@ export default function DashboardAdmin() {
           </div>
         </section>
 
+        {/* ============ HOJE — PENDÊNCIAS DO DIA ============ */}
+        <TodayBoard
+          loading={isGlobalLoading}
+          dateLabel={todayLabel}
+          totalCount={stats.todayPendingCount}
+          tasks={stats.todayTasksList}
+          demands={stats.todayDemandsList}
+          docs={stats.todayDocsList}
+          contracts={stats.todayContractsList}
+        />
+
         {/* ============ OPERATIONAL ROW ============ */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <MiniStat label="Demandas atrasadas" value={isGlobalLoading ? "-" : stats.delayedDemands} hint={isGlobalLoading ? "..." : `${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={!isGlobalLoading && stats.delayedDemands > 0} />
@@ -372,7 +431,7 @@ export default function DashboardAdmin() {
           <Card className="lg:col-span-2">
             <CardHeader
               title="Performance comercial"
-              subtitle={isGlobalLoading ? "Calculando performance..." : `Receita diária · ${rangeKey === "HOJE" ? "hoje" : rangeKey === "7D" ? "últimos 14 dias" : "últimos 30 dias"}`}
+              subtitle={isGlobalLoading ? "Calculando performance..." : `Receita diária · ${rangeKey === "HOJE" ? "últimos 7 dias" : rangeKey === "7D" ? "últimos 7 dias" : rangeKey === "30D" ? "últimos 30 dias" : "mês atual"}`}
               right={
                 <Link to="/financeiro" className="text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1">
                   Central financeira <ArrowUpRight className="size-3.5" />
@@ -781,5 +840,124 @@ function EmptyRow({ message }: { message: string }) {
     <div className="py-12 text-center">
       <p className="text-[12px] text-slate-400 font-medium">{message}</p>
     </div>
+  );
+}
+
+function TodayBoard({
+  loading, dateLabel, totalCount, tasks, demands, docs, contracts,
+}: {
+  loading: boolean;
+  dateLabel: string;
+  totalCount: number;
+  tasks: { id: string; title: string; time: string | null }[];
+  demands: { id: string; title: string; subtitle: string }[];
+  docs: { id: string; title: string; subtitle: string }[];
+  contracts: { id: string; title: string; subtitle: string }[];
+}) {
+  const cols: {
+    key: string;
+    label: string;
+    count: number;
+    to: string;
+    icon: any;
+    accent: string;
+    items: { id: string; title: string; sub?: string | null }[];
+  }[] = [
+    {
+      key: "tasks", label: "Tarefas de hoje", count: tasks.length, to: "/tarefas",
+      icon: ClipboardList, accent: "indigo",
+      items: tasks.map(t => ({ id: t.id, title: t.title, sub: t.time })),
+    },
+    {
+      key: "demands", label: "Demandas com prazo hoje", count: demands.length, to: "/demandas",
+      icon: Clock, accent: "amber",
+      items: demands.map(d => ({ id: d.id, title: d.title, sub: d.subtitle })),
+    },
+    {
+      key: "docs", label: "Documentos para revisar", count: docs.length, to: "/documentos",
+      icon: FileText, accent: "sky",
+      items: docs.map(d => ({ id: d.id, title: d.title, sub: d.subtitle })),
+    },
+    {
+      key: "contracts", label: "Contratos aguardando", count: contracts.length, to: "/contratos",
+      icon: FileSignature, accent: "violet",
+      items: contracts.map(c => ({ id: c.id, title: c.title, sub: c.subtitle })),
+    },
+  ];
+
+  const accentMap: Record<string, { bg: string; text: string; ring: string; chip: string }> = {
+    indigo: { bg: "bg-indigo-50", text: "text-indigo-600", ring: "ring-indigo-100", chip: "bg-indigo-100 text-indigo-700" },
+    amber:  { bg: "bg-amber-50",  text: "text-amber-600",  ring: "ring-amber-100",  chip: "bg-amber-100 text-amber-700" },
+    sky:    { bg: "bg-sky-50",    text: "text-sky-600",    ring: "ring-sky-100",    chip: "bg-sky-100 text-sky-700" },
+    violet: { bg: "bg-violet-50", text: "text-violet-600", ring: "ring-violet-100", chip: "bg-violet-100 text-violet-700" },
+  };
+
+  return (
+    <section className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_16px_-8px_rgba(15,23,42,0.06)] overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="size-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.4)]">
+            <CalendarCheck className="size-4 stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-display text-[15px] font-bold tracking-[-0.01em] text-slate-900">Pendências de hoje</h3>
+            <p className="text-[12px] text-slate-500 font-medium capitalize truncate">{dateLabel}</p>
+          </div>
+        </div>
+        <div className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold tabular-nums text-[12px] ring-1",
+          totalCount > 0 ? "bg-rose-50 text-rose-700 ring-rose-200/60" : "bg-emerald-50 text-emerald-700 ring-emerald-200/60"
+        )}>
+          {totalCount > 0 ? <AlertCircle className="size-3.5" /> : <CheckCircle2 className="size-3.5" />}
+          {loading ? "..." : `${totalCount} ${totalCount === 1 ? "pendência" : "pendências"}`}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+        {cols.map((c) => {
+          const a = accentMap[c.accent];
+          return (
+            <div key={c.key} className="p-5 min-h-[200px] flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={cn("size-7 rounded-lg ring-1 flex items-center justify-center shrink-0", a.bg, a.text, a.ring)}>
+                    <c.icon className="size-3.5 stroke-[2.2]" />
+                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.13em] text-slate-600 truncate">{c.label}</span>
+                </div>
+                <span className={cn("inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-md text-[11px] font-bold tabular-nums", a.chip)}>
+                  {loading ? "·" : c.count}
+                </span>
+              </div>
+
+              <div className="flex-1 space-y-1.5">
+                {loading ? (
+                  <div className="py-4 flex justify-center">
+                    <div className="size-4 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                  </div>
+                ) : c.items.length > 0 ? c.items.map((it) => (
+                  <Link
+                    to={c.to}
+                    key={it.id}
+                    className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                  >
+                    <span className="text-[12.5px] font-semibold text-slate-700 truncate group-hover:text-slate-900">{it.title}</span>
+                    {it.sub ? (
+                      <span className="text-[10.5px] font-semibold text-slate-400 tabular-nums shrink-0">{it.sub}</span>
+                    ) : null}
+                  </Link>
+                )) : (
+                  <p className="text-[12px] text-slate-400 font-medium py-3">Nada pendente.</p>
+                )}
+              </div>
+
+              <Link to={c.to} className="mt-3 inline-flex items-center gap-1 text-[11.5px] font-bold text-indigo-600 hover:text-indigo-700">
+                Abrir <ArrowUpRight className="size-3" />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

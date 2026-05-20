@@ -1,51 +1,68 @@
-## Diagnóstico atual
+## Problemas identificados no Dashboard Admin
 
-Auditei o código dos 8 formulários (Lead, Cliente, Venda, Serviço, Parceiro, Prestador, Indicador, Colaborador) contra o schema do banco e as policies RLS.
+### 1. Gráfico mostra dias errados (bug principal)
+- `brasiliaToday` é criado como data local, mas `toISO(d)` usa `d.toISOString().slice(0,10)` — isso converte para UTC e **desloca a data em ±3h**, fazendo o eixo X marcar o dia errado (especialmente à noite/madrugada em Brasília).
+- O comprimento do gráfico é fixo (HOJE = 14, 7D = 14, 30D/MÊS = 30), ignorando o filtro:
+  - "HOJE" mostra 14 dias (deveria mostrar hoje, idealmente por hora ou um único ponto).
+  - "MÊS" sempre 30 dias, mesmo no dia 5.
+- As barras do gráfico mostram `valor = somatório das vendas com sale_date === iso`, mas como o `iso` está deslocado, vendas de hoje aparecem em "ontem".
 
-**Resultado da auditoria estática:**
-- Schema: todas as colunas que os forms enviam EXISTEM nas respectivas tabelas.
-- RLS: usuário admin (seu caso) tem policies `ALL` em todas as tabelas relevantes.
-- Triggers: os triggers de venda → comissão/pagamento/client_product já estão em produção e validados.
+### 2. Falta painel "Hoje" / pendências do dia
+- Não existe um quadro que liste o que precisa ser feito **hoje**: tarefas com vencimento hoje, demandas com deadline hoje, documentos solicitados, contratos aguardando assinatura, comissões a liberar.
 
-Ou seja, estruturalmente nada está obviamente quebrado. Sem um erro concreto (mensagem, campo específico, passo que falha), corrigir "tudo" às cegas pode introduzir regressões. Por isso a próxima rodada precisa ser baseada em **teste real** em vez de re-escrita preventiva.
+### 3. Conferência de outras informações
+- Cards operacionais (demandas atrasadas, contratos abertos, docs, tarefas, comissões) já existem e batem com o banco — vou só revalidar os filtros de status após corrigir o problema de data.
 
-## O que vou fazer
+---
 
-### 1. Smoke-test automatizado de cada form
-Para cada uma das 8 tabelas, vou rodar um INSERT real com o mesmo payload que o frontend envia (cliente com parceiro+indicador+colaborador+prestador, venda com 3 splits, etc.), simulando o admin logado. Qualquer FK quebrada, default ausente, trigger com erro ou coluna faltando aparece aqui.
+## Plano de correção
 
-### 2. Verificação dos dropdowns de vínculo
-Para cada form que tem vínculo (cliente→parceiro/indicador/colaborador/prestador, lead→parceiro/produto/indicador, venda→cliente/produto/3 splits), abrir a página real no preview e confirmar que:
-- O dropdown LISTA as opções cadastradas
-- Ao salvar, o valor escolhido CHEGA na coluna correta
-- Ao reabrir a ficha, o vínculo APARECE selecionado
+### A. Corrigir o gráfico (eixo X e período)
+1. Trocar `toISO` por uma função que formata data **local** (`YYYY-MM-DD` via `getFullYear/getMonth/getDate`), não `toISOString`. Isso elimina o deslocamento de fuso.
+2. Tornar o comprimento do gráfico dinâmico:
+   - HOJE → 1 ponto (hoje) ou últimos 7 dias rotulados para contexto — vou usar **últimos 7 dias** destacando hoje, mais útil que 1 ponto solto.
+   - 7D → 7 dias.
+   - 30D → 30 dias.
+   - MÊS → do dia 1 até hoje.
+3. Atualizar o subtítulo "Performance comercial" para refletir o range real.
+4. Garantir que `sale_date` (que vem como `YYYY-MM-DD` do Postgres) é comparado com a string local — sem `new Date()` intermediário.
 
-### 3. Correção das falhas encontradas
-Para cada falha real (não suposta), uma correção mínima:
-- Coluna faltando → migration `ADD COLUMN IF NOT EXISTS`
-- Form enviando campo errado → ajuste no payload
-- Dropdown vazio → corrigir a query da listagem
-- Vínculo não persiste → corrigir o nome da coluna no insert
+### B. Adicionar card "Hoje" (pendências do dia)
+Novo card no topo, antes da seção operacional, com 4 listas curtas (até 5 itens cada) + contagem:
 
-### 4. Hardening do form de Parceiro (único ponto frágil encontrado na auditoria estática)
-`src/pages/Partners.tsx` faz `supabase.from("partners").insert(form)` — joga o objeto inteiro do estado. Se algum dia adicionarmos um campo só-UI, vira erro. Vou trocar por payload explícito com apenas as colunas reais da tabela (`full_name, email, phone, whatsapp, document, pix_key, bank_name, bank_agency, bank_account, partner_category, commission_percent, notes, active, has_system_access`).
+```text
+┌───────────────────────────────────────────────┐
+│  HOJE · quarta, 20 de maio                    │
+│  [3] Tarefas    [2] Demandas    [1] Doc    [0]│
+│                                                │
+│  Tarefas vencendo hoje                         │
+│   • Ligar João — 14:00         → /tarefas      │
+│   • Revisar contrato Acme      → /tarefas      │
+│                                                │
+│  Demandas com prazo hoje                       │
+│   • Cliente X · Produto Y      → /demandas/.. │
+│                                                │
+│  Docs aguardando análise                       │
+│   • Cliente Z — RG             → /documentos   │
+└───────────────────────────────────────────────┘
+```
 
-## O que NÃO vou fazer agora
+Queries (usando dados já carregados):
+- **Tarefas hoje**: `tasks` onde `due_date` (date local) === hoje e `status` ∉ {concluida, completed}.
+- **Demandas hoje**: `client_products` onde `deadline` === hoje e `status` ∈ {em_andamento, aguardando_inicio}.
+- **Documentos pendentes**: `document_requests` com status `enviado` ou `em_analise` (precisam da minha ação).
+- **Contratos aguardando**: `contracts` com status `aguardando_assinatura` ou `enviado` (apenas contagem).
 
-- Reescrever forms que já estão alinhados ao schema (não há ganho real)
-- Adicionar novas funcionalidades que você não pediu
-- Alterar RLS (já está correta para admin)
-- Mexer em triggers de venda/comissão (estão funcionando)
+Cada item linka para a página correspondente. Se a lista estiver vazia, mostrar "Nenhuma pendência — você está em dia 🎉".
 
-## Entrega
+### C. Validar dados restantes
+- Confirmar que filtros de demand status usam `concluida`/`cancelada` (e não `concluido`) — vou alinhar com o enum real do banco enquanto edito.
+- Não vou mexer em RLS, schema, ou outras páginas — só `src/pages/DashboardAdmin.tsx`.
 
-Depois de implementar:
-1. Lista do que estava efetivamente quebrado e foi corrigido
-2. Lista do que foi testado e está OK
-3. Se algo continuar com sintoma específico do seu lado, você me passa o erro/passo e eu corrijo cirurgicamente
+---
 
-## Detalhes técnicos
+## Arquivos afetados
+- `src/pages/DashboardAdmin.tsx` (único arquivo editado)
 
-- Smoke-test via `supabase--read_query` + `supabase--insert` simulando admin
-- Correções via `supabase--migration` (banco) e edits TS pontuais (frontend)
-- Sem mudança de tema/visual — só funcionalidade
+## Fora de escopo
+- Outras páginas, schema, RLS, triggers, dashboard de prestador/colaborador/cliente.
