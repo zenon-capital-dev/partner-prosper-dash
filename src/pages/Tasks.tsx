@@ -452,19 +452,6 @@ export default function Tasks() {
       />
       
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-7 pb-10">
-        <div className="hidden grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total", count: stats.total, tone: "text-primary bg-primary/5 border-primary/10" },
-          { label: "Urgentes", count: stats.urgent, tone: "text-amber-600 bg-amber-50 border-amber-100" },
-          { label: "Atrasadas", count: stats.overdue, tone: "text-destructive bg-destructive/5 border-destructive/10" },
-          { label: "Concluídas", count: stats.done, tone: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-        ].map((s, i) => (
-          <div key={i} className={cn("vx-card p-4 flex flex-col items-center justify-center text-center border", s.tone)}>
-            <p className="text-[10px] uppercase font-bold opacity-80">{s.label}</p>
-            <p className="text-3xl font-black mt-1">{s.count}</p>
-          </div>
-        ))}
-        </div>
 
         <div className="vx-card p-4 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
