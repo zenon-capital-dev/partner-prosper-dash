@@ -5,7 +5,17 @@ import {
   FileText, ChevronRight, UserPlus,
   Receipt, Wallet, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, Activity, Zap, Sparkles,
+  CalendarCheck, AlertCircle,
 } from "lucide-react";
+
+// Format Date as YYYY-MM-DD using LOCAL components — avoids timezone shift
+// from toISOString() (which converts to UTC and breaks day labels in BRT).
+const toLocalISO = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 import { formatBRL } from "@/lib/format";
 import { useMemo, useState, useEffect, ReactNode } from "react";
 import { cn } from "@/lib/utils";
