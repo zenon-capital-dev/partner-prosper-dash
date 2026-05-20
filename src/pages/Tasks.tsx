@@ -165,21 +165,6 @@ export default function Tasks() {
     queryFn: async () => (await supabase.from("contracts").select("id, name").limit(300)).data ?? [],
   });
 
-  const filtered = useMemo(() => {
-    const today = startOfToday();
-    let start = today;
-    let end = endOfDay(today);
-
-    if (rangeKey === "7 DIAS") {
-      start = subDays(today, 6);
-    } else if (rangeKey === "30 DIAS") {
-      start = subDays(today, 29);
-    } else if (rangeKey === "MÊS") {
-      start = startOfMonth(today);
-    } else if (rangeKey === "TUDO") {
-      start = new Date(0);
-      end = new Date(8640000000000000);
-    }
 
   const filtered = useMemo(() => {
     const today = startOfToday();
