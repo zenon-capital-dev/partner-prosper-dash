@@ -605,7 +605,7 @@ export default function Collaborators() {
                   updateProfile.mutate({
                     id: editing.id,
                     full_name: name,
-                    phone: editing.phone,
+                    phone: editing.phone ? onlyDigits(editing.phone) : null,
                     active: editing.active,
                     has_system_access: editing.has_system_access,
                     internal_notes: editing.internal_notes,
