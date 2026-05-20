@@ -519,11 +519,11 @@ export default function Indicators() {
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
-              <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
             </div>
             <div className="space-y-2">
               <Label>CPF/CNPJ</Label>
-              <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} />
+              <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
             </div>
             <div className="space-y-2">
               <Label>Chave PIX</Label>
