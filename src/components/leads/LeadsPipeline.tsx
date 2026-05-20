@@ -137,14 +137,29 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
   const grouped = useMemo(() => {
     const map: Record<string, any[]> = {};
     STATUSES.forEach((s) => (map[s] = []));
+    const others: any[] = [];
     leads.forEach((l) => {
       if (map[l.status]) map[l.status].push(l);
+      else others.push(l);
     });
-    return map;
+    // ordena cada bucket por urgência: follow-up vencido/hoje > quente > recente
+    const sortBucket = (arr: any[]) =>
+      arr.sort((a, b) => {
+        const ap = buildPriority(a)?.score ?? 0;
+        const bp = buildPriority(b)?.score ?? 0;
+        if (bp !== ap) return bp - ap;
+        const ad = a.next_action_date ? new Date(a.next_action_date).getTime() : Infinity;
+        const bd = b.next_action_date ? new Date(b.next_action_date).getTime() : Infinity;
+        if (ad !== bd) return ad - bd;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+    Object.keys(map).forEach((k) => sortBucket(map[k]));
+    sortBucket(others);
+    return { map, others };
   }, [leads]);
 
   const funnelStats = useMemo(() => {
-    const counts = STATUSES.map((s) => ({ status: s, count: grouped[s].length }));
+    const counts = STATUSES.map((s) => ({ status: s, count: grouped.map[s].length }));
     const main = ["Novo", "Primeiro contato", "Proposta enviada", "Negociação", "Fechado"];
     return main.map((s, i) => {
       const cur = counts.find((c) => c.status === s)?.count || 0;
