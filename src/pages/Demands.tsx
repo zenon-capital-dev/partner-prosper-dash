@@ -38,6 +38,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DailyAgenda } from "@/components/demands/DailyAgenda";
 import { CalendarDays } from "lucide-react";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { NewDemandDialog } from "@/components/demands/NewDemandDialog";
+
+const STATUS_META: Record<string, { label: string; tone: string }> = {
+  aguardando_inicio: { label: "Aguardando início", tone: "bg-slate-100 text-slate-700" },
+  em_andamento: { label: "Em andamento", tone: "bg-blue-50 text-blue-700" },
+  pausado: { label: "Pausado", tone: "bg-amber-50 text-amber-700" },
+  concluido: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700" },
+  cancelado: { label: "Cancelado", tone: "bg-rose-50 text-rose-700" },
+};
+const KNOWN_STATUSES = Object.keys(STATUS_META);
 
 
 type Priority = "baixa" | "normal" | "alta" | "urgente";
