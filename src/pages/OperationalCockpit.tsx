@@ -6,7 +6,7 @@ import {
   Zap, MoreHorizontal, ExternalLink,
   PlusCircle, CheckSquare, UserCheck, DollarSign,
   RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle,
-  Search, History as HistoryIcon, ArrowRight, UserPlus
+  Search, History as HistoryIcon, ArrowRight, UserPlus, Eye, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { format, isToday, isBefore, subDays, startOfDay } from "date-fns";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { format, isToday, isBefore, subDays, startOfDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
