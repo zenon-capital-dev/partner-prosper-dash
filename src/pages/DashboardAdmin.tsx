@@ -93,7 +93,7 @@ export default function DashboardAdmin() {
   });
   const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({ 
     queryKey: ["dash-doc-requests"], 
-    queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at")).data ?? [] 
+    queryFn: async () => (await supabase.from("document_requests").select("id, status, created_at, request_title, client_id, deadline")).data ?? [] 
   });
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ 
     queryKey: ["dash-payments"], 
