@@ -2779,7 +2779,9 @@ export type Database = {
           cancellation_reason: string | null
           client_id: string
           client_product_id: string | null
+          collaborator_id: string | null
           created_at: string | null
+          description: string | null
           due_date: string
           id: string
           installment_number: number | null
@@ -2787,10 +2789,12 @@ export type Database = {
           is_recurring: boolean | null
           notes: string | null
           paid_at: string | null
+          partner_id: string | null
           payment_method: string | null
           product_id: string | null
           receipt_url: string | null
           recurrence_period: string | null
+          referrer_id: string | null
           refund_amount: number | null
           refunded_at: string | null
           sale_id: string
@@ -2803,7 +2807,9 @@ export type Database = {
           cancellation_reason?: string | null
           client_id: string
           client_product_id?: string | null
+          collaborator_id?: string | null
           created_at?: string | null
+          description?: string | null
           due_date: string
           id?: string
           installment_number?: number | null
@@ -2811,10 +2817,12 @@ export type Database = {
           is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
+          partner_id?: string | null
           payment_method?: string | null
           product_id?: string | null
           receipt_url?: string | null
           recurrence_period?: string | null
+          referrer_id?: string | null
           refund_amount?: number | null
           refunded_at?: string | null
           sale_id: string
@@ -2827,7 +2835,9 @@ export type Database = {
           cancellation_reason?: string | null
           client_id?: string
           client_product_id?: string | null
+          collaborator_id?: string | null
           created_at?: string | null
+          description?: string | null
           due_date?: string
           id?: string
           installment_number?: number | null
@@ -2835,10 +2845,12 @@ export type Database = {
           is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
+          partner_id?: string | null
           payment_method?: string | null
           product_id?: string | null
           receipt_url?: string | null
           recurrence_period?: string | null
+          referrer_id?: string | null
           refund_amount?: number | null
           refunded_at?: string | null
           sale_id?: string
@@ -2868,6 +2880,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -2880,6 +2899,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "payments_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "payments_sale_id_fkey"
@@ -4149,6 +4175,33 @@ export type Database = {
       }
     }
     Views: {
+      v_commissions_unified: {
+        Row: {
+          amount: number | null
+          beneficiary_id: string | null
+          beneficiary_name: string | null
+          beneficiary_type: string | null
+          client_name: string | null
+          created_at: string | null
+          id: string | null
+          paid_at: string | null
+          percent: number | null
+          product_name: string | null
+          sale_amount: number | null
+          sale_date: string | null
+          sale_id: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_splits_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       view_client_financial_summary: {
         Row: {
           active_products: number | null

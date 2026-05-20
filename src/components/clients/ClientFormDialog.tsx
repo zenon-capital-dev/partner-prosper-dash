@@ -140,19 +140,29 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       toast.error("Telefone inválido"); setSubmitting(false); return;
     }
 
-    // Check for existing email/document to avoid generic DB errors
+    // Check for existing email/document — queries separadas para evitar injection em .or()
     if (form.email || form.document) {
       const cleanDoc = form.document ? onlyDigits(form.document) : null;
-      let query = supabase.from("clients").select("id, full_name").or(`email.eq.${form.email}${cleanDoc ? `,document.eq.${cleanDoc}` : ""}`);
-      if (client?.id) query = query.neq("id", client.id);
-      
-      const { data: existing } = await query.limit(1);
-      if (existing && existing.length > 0) {
-        toast.error(`Já existe um cliente cadastrado com este ${existing[0].full_name ? "email ou documento" : "email/documento"}`);
+      const checks: Array<{ data: any[] | null }> = [];
+      if (form.email) {
+        let q = supabase.from("clients").select("id, full_name").eq("email", form.email).limit(1);
+        if (client?.id) q = q.neq("id", client.id);
+        checks.push(await q);
+      }
+      if (cleanDoc) {
+        let q = supabase.from("clients").select("id, full_name").eq("document", cleanDoc).limit(1);
+        if (client?.id) q = q.neq("id", client.id);
+        checks.push(await q);
+      }
+      const dup = checks.find((r) => (r.data?.length ?? 0) > 0);
+
+      if (dup) {
+        toast.error("Já existe um cliente cadastrado com este email ou documento");
         setSubmitting(false);
         return;
       }
     }
+
 
     const payload = {
       full_name: form.full_name,

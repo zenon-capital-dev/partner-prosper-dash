@@ -21,6 +21,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AllBeneficiariesTable } from "@/components/commissions/AllBeneficiariesTable";
+
 import {
   Wallet, Clock, CheckCircle2, XCircle, Plus, Search, Filter, MoreHorizontal,
   Pencil, Trash2, Check, Download, FileSpreadsheet, Sparkles, CalendarRange,
@@ -471,8 +473,10 @@ export default function Commissions() {
       <Tabs defaultValue="list" className="space-y-6">
         <TabsList className="bg-white/50 backdrop-blur-sm border border-slate-200/60 p-1 h-12 rounded-2xl w-fit">
           <TabsTrigger value="list" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Histórico de Comissões</TabsTrigger>
+          <TabsTrigger value="all" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Todos beneficiários</TabsTrigger>
           <TabsTrigger value="rules" className="h-10 px-6 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm">Regras de Comissionamento</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="list" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
           {/* Toolbar */}
@@ -655,8 +659,12 @@ export default function Commissions() {
 
     </TabsContent>
 
+    <TabsContent value="all" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <AllBeneficiariesTable />
+    </TabsContent>
 
     <TabsContent value="rules" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+
       <div className="vx-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
