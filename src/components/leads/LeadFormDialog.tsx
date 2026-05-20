@@ -63,59 +63,74 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
   });
 
   const submit = async () => {
-    if (!form.full_name) {
-      toast.error("Nome obrigatório");
-      return;
-    }
+    const fullName = (form.full_name ?? "").trim();
+    if (!fullName) { toast.error("Nome obrigatório"); return; }
+    if (fullName.length > 150) { toast.error("Nome muito longo"); return; }
     if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
     if (form.whatsapp && !isValidPhoneBR(form.whatsapp)) { toast.error("WhatsApp inválido"); return; }
-    
+
+    const email = (form.email ?? "").trim().toLowerCase() || null;
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error("Email inválido"); return; }
+
+    let prob: number | null = null;
+    if (form.close_probability != null && form.close_probability !== "") {
+      const n = Number(form.close_probability);
+      if (Number.isNaN(n) || n < 0 || n > 100) { toast.error("Probabilidade deve ser entre 0 e 100"); return; }
+      prob = Math.round(n);
+    }
+
+    let estVal: number | null = null;
+    if (form.estimated_value != null && form.estimated_value !== "") {
+      const n = Number(form.estimated_value);
+      if (Number.isNaN(n) || n < 0) { toast.error("Valor estimado inválido"); return; }
+      estVal = n;
+    }
+
     setSubmitting(true);
 
-    // Check for duplicate email/phone in leads
-    if (form.email || form.phone) {
-      const cleanPhone = form.phone ? onlyDigits(form.phone) : null;
-      let query = supabase.from("leads").select("id, full_name").eq("status", "Novo");
-      if (form.email) query = query.or(`email.eq.${form.email}${cleanPhone ? `,phone.eq.${cleanPhone}` : ""}`);
-      else if (cleanPhone) query = query.eq("phone", cleanPhone);
-      
+    // Duplicidade em leads ABERTOS (não Fechado/Perdido), por email OU telefone
+    const cleanPhone = form.phone ? onlyDigits(form.phone) : null;
+    const cleanWhats = form.whatsapp ? onlyDigits(form.whatsapp) : null;
+    if (email || cleanPhone || cleanWhats) {
+      const orParts: string[] = [];
+      if (email) orParts.push(`email.eq.${email}`);
+      if (cleanPhone) orParts.push(`phone.eq.${cleanPhone}`);
+      if (cleanWhats) orParts.push(`whatsapp.eq.${cleanWhats}`);
+      let query = supabase.from("leads").select("id, full_name, status")
+        .not("status", "in", "(Fechado,Perdido)")
+        .or(orParts.join(","));
       if (lead?.id) query = query.neq("id", lead.id);
-
       const { data: existing } = await query.limit(1);
       if (existing && existing.length > 0) {
-        toast.warning(`Já existe um lead novo com este email ou telefone (${existing[0].full_name})`);
-        // We allow it but warn, or we could block. Let's just warn for leads.
+        toast.warning(`Já existe lead aberto com mesmos dados: ${existing[0].full_name}`);
       }
     }
 
     const payload = {
-      full_name: form.full_name,
-      company: form.company || null,
-      email: form.email || null,
-      phone: form.phone ? onlyDigits(form.phone) : null,
-      whatsapp: form.whatsapp ? onlyDigits(form.whatsapp) : null,
-      status: form.status,
+      full_name: fullName,
+      company: form.company?.trim() || null,
+      email,
+      phone: cleanPhone,
+      whatsapp: cleanWhats,
+      status: form.status || "Novo",
       source: form.source || "Manual",
-      notes: form.notes || null,
+      notes: form.notes?.trim() || null,
       product_id: form.product_id || null,
       partner_id: form.partner_id || null,
       responsible_id: form.responsible_id || null,
       referral_id: form.referral_id || null,
-      estimated_value: form.estimated_value && form.estimated_value !== "" ? Number(form.estimated_value) : null,
-      close_probability: form.close_probability != null && form.close_probability !== "" ? Number(form.close_probability) : null,
-      next_action: form.next_action || null,
+      estimated_value: estVal,
+      close_probability: prob,
+      next_action: form.next_action?.trim() || null,
       next_action_date: form.next_action_date || null,
     };
-    
+
     const { error } = lead?.id
       ? await supabase.from("leads").update(payload).eq("id", lead.id)
       : await supabase.from("leads").insert(payload);
-    
+
     setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    if (error) { toast.error(error.message); return; }
     toast.success(lead?.id ? "Lead atualizado" : "Lead cadastrado");
     onCreated?.();
     onOpenChange(false);
@@ -242,7 +257,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="w-full sm:w-auto bg-gradient-primary hover:opacity-90">{submitting ? "Salvando..." : "Salvar"}</Button>
+          <Button onClick={submit} disabled={submitting} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white">{submitting ? "Salvando..." : "Salvar"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

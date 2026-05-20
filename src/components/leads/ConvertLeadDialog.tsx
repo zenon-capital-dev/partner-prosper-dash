@@ -34,6 +34,9 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
 
   useEffect(() => {
     if (!lead) return;
+    const dueDate = new Date(Date.now() + 3 * 86400000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const localDue = `${dueDate.getFullYear()}-${pad(dueDate.getMonth() + 1)}-${pad(dueDate.getDate())}`;
     setForm({
       product_id: lead.product_id || "",
       contract_value: lead.estimated_value ?? "",
@@ -41,7 +44,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
       contract_name: `Contrato — ${lead.full_name}`,
       contract_type: "padrao",
       first_task_title: `Iniciar onboarding de ${lead.full_name}`,
-      first_task_due: new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0],
+      first_task_due: localDue,
       create_product: true,
       create_contract: true,
       create_commission: !!lead.partner_id,
@@ -55,7 +58,14 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
     if (!form.create_product && !form.create_contract && !form.create_task) {
       return toast.error("Selecione ao menos uma operação.");
     }
+    if (form.create_product && !form.product_id) {
+      return toast.error("Selecione o produto contratado.");
+    }
+    if (form.create_commission && form.partner_commission && Number(form.partner_commission) < 0) {
+      return toast.error("Comissão inválida.");
+    }
     setSubmitting(true);
+    const errors: string[] = [];
     try {
       // 1. Client
       const { data: client, error: cErr } = await supabase.from("clients").insert({
@@ -107,7 +117,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           rule_type: "fixed",
           rule_value: Number(form.partner_commission),
         } as any);
-        if (commErr) console.error("Erro ao criar comissão:", commErr);
+        if (commErr) { console.error("Erro ao criar comissão:", commErr); errors.push("comissão"); }
       }
 
       // 4. Contract
@@ -123,24 +133,29 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           status: "criado",
           amount: form.contract_value ? Number(form.contract_value) : null,
         });
-        if (contractErr) console.error("Erro ao criar contrato:", contractErr);
+        if (contractErr) { console.error("Erro ao criar contrato:", contractErr); errors.push("contrato"); }
       }
 
-      // 5. First task
+      // 5. First task — usa data local (sem deslocamento de fuso)
       if (form.create_task && form.first_task_title) {
+        let dueIso: string | null = null;
+        if (form.first_task_due) {
+          const [y, m, d] = form.first_task_due.split("-").map(Number);
+          dueIso = new Date(y, m - 1, d, 12, 0, 0).toISOString();
+        }
         const { error: taskErr } = await supabase.from("tasks").insert({
           title: form.first_task_title,
           description: `Tarefa criada na conversão do lead ${lead.full_name}`,
-          priority: "normal",
-          status: "a_fazer",
+          priority: "media",
+          status: "pendente",
           status_new: "a_fazer",
-          due_date: form.first_task_due ? new Date(form.first_task_due).toISOString() : null,
+          due_date: dueIso,
           client_id: client.id,
           client_product_id: clientProductId,
           assigned_to: lead.responsible_id ?? user?.id ?? null,
           created_by: user?.id ?? null,
         });
-        if (taskErr) console.error("Erro ao criar tarefa inicial:", taskErr);
+        if (taskErr) { console.error("Erro ao criar tarefa inicial:", taskErr); errors.push("tarefa inicial"); }
       }
 
       // 6. Mark lead as converted
@@ -150,7 +165,11 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
         conversion_date: new Date().toISOString(),
       }).eq("id", lead.id);
 
-      toast.success("Lead convertido com sucesso!");
+      if (errors.length === 0) {
+        toast.success("Lead convertido com sucesso!");
+      } else {
+        toast.warning(`Cliente criado, mas falhou: ${errors.join(", ")}`);
+      }
       onConverted?.();
       onOpenChange(false);
       navigate(`/clientes/${client.id}`);
@@ -254,7 +273,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="bg-gradient-primary hover:opacity-90">
+          <Button onClick={submit} disabled={submitting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             {submitting ? "Convertendo..." : "Converter lead"}
           </Button>
         </DialogFooter>

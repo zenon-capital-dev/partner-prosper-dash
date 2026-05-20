@@ -137,14 +137,29 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
   const grouped = useMemo(() => {
     const map: Record<string, any[]> = {};
     STATUSES.forEach((s) => (map[s] = []));
+    const others: any[] = [];
     leads.forEach((l) => {
       if (map[l.status]) map[l.status].push(l);
+      else others.push(l);
     });
-    return map;
+    // ordena cada bucket por urgência: follow-up vencido/hoje > quente > recente
+    const sortBucket = (arr: any[]) =>
+      arr.sort((a, b) => {
+        const ap = buildPriority(a)?.score ?? 0;
+        const bp = buildPriority(b)?.score ?? 0;
+        if (bp !== ap) return bp - ap;
+        const ad = a.next_action_date ? new Date(a.next_action_date).getTime() : Infinity;
+        const bd = b.next_action_date ? new Date(b.next_action_date).getTime() : Infinity;
+        if (ad !== bd) return ad - bd;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+    Object.keys(map).forEach((k) => sortBucket(map[k]));
+    sortBucket(others);
+    return { map, others };
   }, [leads]);
 
   const funnelStats = useMemo(() => {
-    const counts = STATUSES.map((s) => ({ status: s, count: grouped[s].length }));
+    const counts = STATUSES.map((s) => ({ status: s, count: grouped.map[s].length }));
     const main = ["Novo", "Primeiro contato", "Proposta enviada", "Negociação", "Fechado"];
     return main.map((s, i) => {
       const cur = counts.find((c) => c.status === s)?.count || 0;
@@ -169,21 +184,21 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
   return (
     <div className="space-y-4">
       {/* Funil compacto */}
-      <div className="vx-card p-3 sm:p-4">
+      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-500">
             Funil de conversão
           </h3>
-          <span className="text-[10px] font-bold text-muted-foreground">
-            {leads.length} leads totais
+          <span className="text-[10px] font-bold text-slate-500">
+            {leads.length} leads no recorte atual
           </span>
         </div>
         <div className="flex items-end gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
           {funnelStats.map((s, i) => (
             <div key={s.status} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <div className="flex flex-col items-center min-w-[64px] sm:min-w-[88px]">
-                <div className="text-lg sm:text-2xl font-black font-mono text-foreground">{s.count}</div>
-                <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-center leading-tight">
+                <div className="text-lg sm:text-2xl font-black font-mono text-slate-900">{s.count}</div>
+                <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center leading-tight">
                   {s.status}
                 </div>
                 <div className="mt-1.5 h-1 w-full rounded-full bg-indigo-100 overflow-hidden">
@@ -196,7 +211,7 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
                 </div>
               </div>
               {i < funnelStats.length - 1 && (
-                <div className="flex flex-col items-center justify-center text-[9px] sm:text-[10px] font-bold text-muted-foreground/70">
+                <div className="flex flex-col items-center justify-center text-[9px] sm:text-[10px] font-bold text-slate-400">
                   <ArrowRight className="size-3 sm:size-3.5" />
                   {s.rate != null && <span>{s.rate}%</span>}
                 </div>
@@ -207,11 +222,11 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
       </div>
 
       {/* Pra agir hoje */}
-      <div className="vx-card overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-gradient-to-r from-rose-50/60 via-orange-50/40 to-transparent">
+      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-rose-50/50 via-orange-50/30 to-transparent">
           <div className="flex items-center gap-2">
             <Flame className="size-4 text-rose-600" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
               Pra agir hoje
             </h3>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700">
@@ -222,13 +237,13 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
         {todayQueue.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <CheckCircle2 className="size-8 text-emerald-500 mx-auto mb-2" />
-            <p className="text-sm font-bold text-foreground">Nada pendente. Bom trabalho!</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Cadastre follow-ups nos leads pra eles aparecerem aqui.
+            <p className="text-sm font-bold text-slate-900">Nada pendente. Bom trabalho!</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Agende follow-ups nos leads pra eles aparecerem aqui.
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-border/50">
+          <ul className="divide-y divide-slate-100">
             {todayQueue.map(({ lead, pri }) => (
               <LeadRow
                 key={lead.id}
@@ -243,22 +258,23 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
         )}
       </div>
 
+
       {/* Funil agrupado */}
       <div className="space-y-2.5">
         {STATUSES.map((status) => {
-          const list = grouped[status];
+          const list = grouped.map[status];
           const isOpen = openGroups.has(status);
           const tone = STATUS_TONE[status];
           return (
-            <div key={status} className="vx-card overflow-hidden">
+            <div key={status} className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
               <button
                 onClick={() => toggleGroup(status)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50/60 transition-colors"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <ChevronDown
                     className={cn(
-                      "size-4 text-muted-foreground transition-transform shrink-0",
+                      "size-4 text-slate-400 transition-transform shrink-0",
                       !isOpen && "-rotate-90",
                     )}
                   />
@@ -270,7 +286,7 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
                   >
                     {status}
                   </span>
-                  <span className="text-[11px] font-bold text-muted-foreground font-mono">
+                  <span className="text-[11px] font-bold text-slate-500 font-mono">
                     {list.length}
                   </span>
                 </div>
@@ -282,11 +298,11 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
               </button>
               {isOpen &&
                 (list.length === 0 ? (
-                  <div className="px-4 py-6 text-center text-xs text-muted-foreground border-t border-border/50">
+                  <div className="px-4 py-6 text-center text-xs text-slate-500 border-t border-slate-100">
                     Nenhum lead nesta etapa.
                   </div>
                 ) : (
-                  <ul className="divide-y divide-border/50 border-t border-border/50">
+                  <ul className="divide-y divide-slate-100 border-t border-slate-100">
                     {list.map((lead) => (
                       <LeadRow
                         key={lead.id}
@@ -301,6 +317,30 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
             </div>
           );
         })}
+
+        {grouped.others.length > 0 && (
+          <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+            <button
+              onClick={() => toggleGroup("__others__")}
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50/60 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <ChevronDown className={cn("size-4 text-slate-400 transition-transform", !openGroups.has("__others__") && "-rotate-90")} />
+                <span className="text-[10.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border bg-slate-50 text-slate-600 border-slate-200">
+                  Outros status
+                </span>
+                <span className="text-[11px] font-bold text-slate-500 font-mono">{grouped.others.length}</span>
+              </div>
+            </button>
+            {openGroups.has("__others__") && (
+              <ul className="divide-y divide-slate-100 border-t border-slate-100">
+                {grouped.others.map((lead) => (
+                  <LeadRow key={lead.id} lead={lead} onEdit={onEdit} onConvert={onConvert} onStatusChange={(s) => moveLead(lead.id, s)} />
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
