@@ -477,9 +477,18 @@ export default function Tasks() {
 
         <Tabs value={view} onValueChange={(v) => setView(v as any)}>
           <TabsList>
-            <TabsTrigger value="lista" className="gap-2"><LayoutList className="size-4" /> Lista</TabsTrigger>
-            <TabsTrigger value="kanban" className="gap-2"><Columns3 className="size-4" /> Kanban</TabsTrigger>
-            <TabsTrigger value="calendario" className="gap-2"><CalendarDays className="size-4" /> Calendário</TabsTrigger>
+            <TabsTrigger value="lista" className="gap-2">
+              <LayoutList className="size-4" /> Lista
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{filtered.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="kanban" className="gap-2">
+              <Columns3 className="size-4" /> Kanban
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{filtered.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="calendario" className="gap-2">
+              <CalendarDays className="size-4" /> Calendário
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{filtered.filter((t: any) => t.due_date).length}</Badge>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="lista" className="space-y-3 mt-4">
@@ -488,10 +497,30 @@ export default function Tasks() {
             ) : filtered.length === 0 ? (
               <div className="p-12 text-center vx-card border-dashed">
                 <ClipboardList className="size-10 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground">Nenhuma tarefa encontrada.</p>
+                {tasks.length === 0 ? (
+                  <>
+                    <p className="text-muted-foreground mb-4">Nenhuma tarefa criada ainda.</p>
+                    <Button onClick={() => { resetForm(); setCreateOpen(true); }} className="gap-2 bg-gradient-primary">
+                      <Plus className="size-4" /> Criar primeira tarefa
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground mb-4">Nenhuma tarefa nos filtros atuais.</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearch(""); setStatusFilter("all"); setPriorityFilter("all"); setRangeKey("TUDO");
+                      }}
+                    >
+                      Limpar filtros
+                    </Button>
+                  </>
+                )}
               </div>
             ) : filtered.map((t: any) => <TaskRow key={t.id} task={t} />)}
           </TabsContent>
+
 
           <TabsContent value="kanban" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
