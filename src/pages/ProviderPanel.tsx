@@ -996,7 +996,7 @@ function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">CPF/CNPJ</label>
-            <Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} className="mt-1.5 h-10" />
+            <MaskedInput mask="cpfcnpj" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="000.000.000-00" className="mt-1.5 h-10" />
           </div>
           <div className="md:col-span-2">
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Especialidade</label>
