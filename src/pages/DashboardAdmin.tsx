@@ -361,22 +361,32 @@ export default function DashboardAdmin() {
                   </p>
 
                   {/* sparkline */}
-                  <div className="mt-4 h-[100px] -mx-2">
+                  <div className="mt-4 h-[120px] -mx-2">
                     {mounted && (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={stats.chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                        <AreaChart data={stats.chartData} margin={{ top: 5, right: 8, left: 8, bottom: 4 }}>
                           <defs>
                             <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="0%" stopColor="#6366f1" stopOpacity={0.25} />
                               <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
                             </linearGradient>
                           </defs>
+                          <XAxis
+                            dataKey="fullDate"
+                            tick={{ fontSize: 10, fill: "#94a3b8" }}
+                            tickLine={false}
+                            axisLine={false}
+                            interval="preserveStartEnd"
+                            minTickGap={24}
+                            tickFormatter={(v: string) => v?.slice(0, 5) ?? ""}
+                          />
                           <Tooltip
                             contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '6px 8px', backgroundColor: '#fff', fontSize: '11px' }}
+                            labelFormatter={(_: any, payload: any) => payload?.[0]?.payload?.fullDate ?? ""}
                             formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
                             cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '3 3' }}
                           />
-                          <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
+                          <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={2} fill="url(#heroGrad)" dot={{ r: 2.5, strokeWidth: 0, fill: "#4f46e5" }} activeDot={{ r: 4, strokeWidth: 0, fill: "#4f46e5" }} />
                         </AreaChart>
                       </ResponsiveContainer>
                     )}
