@@ -23,7 +23,7 @@ export function useDashboardStats() {
         supabase.from("payments").select("amount, amount_paid, status"),
         supabase.from("commissions").select("amount, status"),
         supabase.from("tasks").select("id, status, due_date"),
-        supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(5),
       ]);
 
       const [
@@ -109,7 +109,7 @@ export function useDashboardStats() {
         recentActivities: recentActivities.map((a: any) => ({
           id: a.id,
           title: a.action,
-          desc: `${a.profiles?.full_name || "Sistema"} realizou uma ação em ${a.entity_type}`,
+          desc: `Ação em ${a.entity_type}`,
           time: new Date(a.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
           date: new Date(a.created_at).toLocaleDateString("pt-BR"),
         })),
