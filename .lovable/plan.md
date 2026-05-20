@@ -1,65 +1,50 @@
-Vou revisar a aba **Leads** com foco em estabilidade, consistência visual do admin claro premium e fluxo real de vendas.
+Vou refatorar a aba Propostas para ficar no mesmo padrão das abas já revisadas: confiável, clara, responsiva e sem ações quebradas.
 
-## O que será corrigido
+Escopo proposto:
 
-1. **Filtros e busca confiáveis**
-   - Corrigir dependência do `useMemo` para usar `debouncedSearch` corretamente.
-   - Normalizar busca por telefone/WhatsApp, permitindo encontrar com ou sem máscara.
-   - Melhorar busca por nome, empresa, email, origem, produto, parceiro e responsável.
-   - Resetar paginação ao trocar busca, período e visualização.
+1. Corrigir listagem, filtros e busca
+- Normalizar busca por número da proposta, cliente, lead, empresa, e-mail e documento.
+- Adicionar filtros úteis: status, validade e vínculo/destinatário.
+- Adicionar chips de filtros ativos com opção de limpar tudo.
+- Adicionar ordenação na tabela por número, destinatário, total, validade, status e criação.
+- Corrigir estados de carregamento e vazio com skeleton/empty state adequado.
+- Manter visual claro premium do admin: cards brancos, bordas slate suaves, sombra leve, sem dark/cyan/violet.
 
-2. **Status e KPIs sem inconsistência**
-   - Unificar status aceitos na página e no pipeline.
-   - Corrigir KPIs que contam apenas alguns status e podem ficar errados.
-   - Tornar KPIs clicáveis para filtrar rapidamente por etapa relevante.
-   - Adicionar chip de filtro ativo com opção de limpar.
+2. Corrigir regras de status e validade
+- Evitar atualização automática agressiva que roda em loop ou altera propostas sem contexto visual.
+- Marcar vencidas com lógica segura de data local, sem deslocamento de fuso.
+- Exibir vencimento, dias restantes e propostas vencidas de forma clara.
+- Proteger transições incoerentes, como converter proposta sem item válido ou sem cliente.
 
-3. **Pipeline funcionando melhor**
-   - Exibir leads com status desconhecido em uma etapa segura em vez de sumirem.
-   - Ordenar leads por urgência: follow-up vencido/hoje, lead quente, próximo follow-up, mais recente.
-   - Melhorar estado vazio e estado de carregamento do pipeline.
-   - Remover classes e tons desalinhados com o tema claro premium do admin.
+3. Melhorar criação e edição de propostas
+- Corrigir seleção de destinatário para cliente, lead e manual; hoje lead existe no estado mas não aparece na UI.
+- Ao selecionar cliente/lead, preencher dados do destinatário quando necessário.
+- Validar e normalizar e-mail, documento, datas e valores numéricos.
+- Impedir quantidade inválida, preço negativo, desconto negativo ou desconto maior que o subtotal do item.
+- Melhorar layout do formulário para mobile e desktop, sem campos espremidos.
+- Garantir que salvar edição não deixe proposta sem itens caso a reinserção falhe.
 
-4. **Tabela mais profissional**
-   - Adicionar ordenação por lead, status, origem/produto e data.
-   - Corrigir layout visual para `bg-white`, bordas `slate-200/70`, sombra leve e sem dark/gradiente pesado.
-   - Melhorar empty states: diferenciar “sem leads cadastrados” de “nenhum resultado com filtros”.
-   - Manter paginação coerente com filtros e ordenação.
+4. Melhorar itens, totais e cálculo financeiro
+- Recalcular subtotal, descontos e total de modo consistente.
+- Mostrar total por item com limite mínimo zero.
+- Evitar NaN quando campos numéricos ficam vazios.
+- Exibir resumo financeiro fixo e legível no formulário.
 
-5. **Formulário de lead robusto**
-   - Normalizar email e telefones antes de salvar.
-   - Validar probabilidade entre 0 e 100.
-   - Evitar duplicidade considerando email/telefone em qualquer status aberto, não só `Novo`.
-   - Ajustar visual do diálogo para o padrão claro premium.
+5. Corrigir ações críticas
+- Esconder editar/excluir/mudar status/converter para usuários sem permissão de gestão.
+- Adicionar confirmação mais clara para exclusão.
+- Validar conversão em venda antes de gravar qualquer dado.
+- Converter usando data local e valores corretos.
+- Invalidar também queries de vendas e produtos contratados após conversão.
+- Mostrar mensagens de erro mais humanas quando a base bloquear uma ação.
 
-6. **Follow-up sem bug de fuso e com dados corretos**
-   - Salvar `next_action` e `next_action_date` também no lead, para aparecer imediatamente na fila “Pra agir hoje”.
-   - Criar a tarefa com `status_new: "a_fazer"`, prioridade compatível e data sem deslocamento inesperado.
-   - Invalidar queries de leads e tarefas após agendar.
+6. Melhorar visualização/impressão
+- Polir o modal de visualização no padrão premium claro.
+- Corrigir responsividade da tabela de itens dentro do preview.
+- Exibir dados do destinatário, validade, status, itens e totais sem quebras visuais.
+- Manter botão de impressão funcional e com área imprimível limpa.
 
-7. **Conversão em cliente mais segura**
-   - Validar produto quando “Criar produto contratado” estiver ativo.
-   - Usar datas locais em campos `date` para evitar deslocamento.
-   - Tratar erros parciais com mensagens mais claras.
-   - Atualizar visual do modal para o padrão claro premium.
-
-8. **Importação CSV menos frágil**
-   - Melhorar parser para lidar com aspas e vírgulas dentro de campos.
-   - Normalizar telefone/WhatsApp e email.
-   - Mostrar quantas linhas válidas/inválidas serão importadas.
-   - Evitar importação de linhas sem nome.
-
-## Arquivos previstos
-
-- `src/pages/Leads.tsx`
-- `src/components/leads/LeadsPipeline.tsx`
-- `src/components/leads/LeadFormDialog.tsx`
-- `src/components/leads/LeadFollowUpDialog.tsx`
-- `src/components/leads/ConvertLeadDialog.tsx`
-- `src/components/leads/LeadsCsvImport.tsx`
-
-## Fora do escopo
-
-- Alterar estrutura do banco.
-- Criar nova tela de detalhe de lead.
-- Mudar regras comerciais de comissão/contrato além de validações para evitar erro.
+7. Verificação final
+- Revisar possíveis erros TypeScript no arquivo alterado.
+- Conferir sinais do preview/dev-server após a mudança.
+- Não alterar estrutura do banco neste primeiro passe, porque a tabela já existe e os dados reais estão íntegros.
