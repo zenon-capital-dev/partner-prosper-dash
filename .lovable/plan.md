@@ -1,87 +1,65 @@
-## Aba Usuários — Reformulação completa
+## Objetivo
 
-Refatorar `src/pages/UsersPage.tsx` + edge function `invite-user` para resolver bugs, aplicar o tema light premium do admin e mudar o fluxo de reset de senha (admin define a senha, não envia email).
+Resolver de uma vez por todas (1) os bugs que aparecem ao abrir as abas do painel admin — cores escuras vazando, ações sem responder e drawers/modais travando — e (2) aplicar máscara CPF/CNPJ, CEP e telefone em **todos** os formulários, não só nos de cliente.
 
-### Bugs e problemas atuais
-- UI ainda usa `vx-card`, `bg-muted/40`, `font-display`, `bg-primary-muted` (fora do padrão indigo/slate do admin).
-- Lista mostra só 6 colunas — falta documento, endereço, papéis múltiplos, vínculo (cliente/parceiro/prestador), último acesso, data de criação legível.
-- Não dá pra **editar** detalhes do usuário (nome, telefone, documento, endereço, notas, status). Só dá pra trocar papel e ativar/desativar.
-- Select de papel não inclui `vendedor`/`indicador` (mas a PRIORITY array tenta usar).
-- "Resetar senha" hoje **envia email** — o usuário quer **definir senha manualmente** ali mesmo.
-- `setRole` apaga TODOS os papéis (mesmo se o usuário tem múltiplos) — só deveria substituir o papel principal.
-- Após convidar, o form é resetado pra `{ active: true }` perdendo `send_invite/has_system_access`.
-- Sem confirmação em ações destrutivas (desativar, bloquear login, reset senha).
-- Sem paginação, sem loading skeleton, sem empty state, busca não normaliza acentos.
-- Sem filtros (por papel, status, com/sem acesso).
-- Sem botão de copiar email, sem visualização de "último login" (vem de `auth.users.last_sign_in_at`).
-- Edge function `invite-user` não tem ação separada de "set password" — vou adicionar.
+---
 
-### Plano
+## Parte 1 — Bugs de UI nas abas
 
-**1. Edge function `invite-user` — adicionar modo `action`**
-- Aceitar `action: "invite" | "set_password" | "update_profile" | "delete"` (default `"invite"` mantém retrocompatibilidade).
-- `set_password`: admin envia `user_id` + `password` → chama `auth.admin.updateUserById` com senha + `email_confirm: true`. Retorna sucesso.
-- `update_profile`: admin envia `user_id` + campos → upsert em `profiles` (todos os campos editáveis).
-- `delete`: admin envia `user_id` → `auth.admin.deleteUser` (cascade limpa profile/roles).
-- Retornar também `last_sign_in_at` no listUsers para enriquecer a query do front.
+### 1.1. Cores escuras / tema errado vazando
+Auditar todos os componentes admin (Parceiros, Indicadores, Clientes, Ficha do Cliente, Prestadores) e remover qualquer resquício de classes escuras herdadas do tema antigo. Padronizar 100% para o tema claro premium definido na memória do projeto:
+- Fundo de página: `bg-slate-50/60`
+- Cards: `bg-white border-slate-200/70 rounded-lg shadow-sm`
+- Botões e badges com cores indigo/slate (sem violet/cyan/obsidian)
+- Substituir qualquer `bg-zinc-900`, `bg-slate-900`, `bg-black`, `text-white` perdido em headers/abas internas
 
-**2. Nova edge function `list-users-detailed` (ou estender `invite-user` com `action: "list"`)**
-- Service role faz `auth.admin.listUsers()` + join com `profiles` + `user_roles` + vínculos (`clients/partners/referrers/service_providers` por `user_id`).
-- Retorna last_sign_in_at, email_confirmed_at, todos os campos do profile, papéis, e vínculos.
-- Só admin pode chamar.
+Arquivos prováveis de varredura:
+- `src/pages/Partners.tsx`, `PartnerDetail.tsx`, `PartnerDetailDrawer.tsx`
+- `src/pages/Indicators.tsx`
+- `src/pages/Providers.tsx`, `ProviderDetail.tsx`
+- `src/pages/Clients.tsx`, `ClientDetail.tsx` e `src/components/clients/tabs/*`
 
-**3. `src/pages/UsersPage.tsx` — UI premium + funcionalidades**
+### 1.2. Botões/ações que não funcionam
+Para cada página listada, verificar:
+- Handlers de editar/excluir/salvar conectados aos botões corretos
+- `confirmAction` envolvendo deletes
+- Invalidação de queries do React Query após mutação (chaves corretas)
+- Permissões `canManage = isAdmin || isAdminSecondary` aplicadas sem bloquear admin principal
 
-Header & tema:
-- `PageHero` com KPIs clicáveis: Total, Ativos, Com acesso, Admins, Sem papel (cada um vira filtro).
-- Fundo `bg-slate-50/60`, card `bg-white border-slate-200/70 rounded-lg shadow-sm`, Inter + JetBrains Mono em datas/ids. Zero `vx-card`/`font-display`/`bg-muted/*`.
+### 1.3. Modais e drawers travando
+- Confirmar que o overlay claro (`bg-slate-900/40 backdrop-blur-sm`) está aplicado em `dialog.tsx`, `sheet.tsx`, `alert-dialog.tsx` (já feito)
+- Garantir que `useBodyScrollCleanup` é chamado quando dialogs fecham, evitando scroll preso e cliques mortos
+- Conferir `z-index` (usar `src/lib/z-index.ts`) para sheets sobre dialogs em abas que abrem detalhes dentro de detalhes (ex.: editar empresa dentro da ficha do cliente)
+- Remover `pointer-events: none` residual em `body` após fechar modal (causa principal de "nada clica depois")
 
-Toolbar:
-- Busca com `norm()` (sem acento, case-insensitive) sobre nome/email/telefone/documento.
-- Filtros: papel (multi), status (ativo/inativo), acesso (com/sem), último login (nunca / >30d / <7d).
-- Chips de filtros ativos removíveis.
-- Botão "+ Novo usuário".
+---
 
-Tabela:
-- Colunas: Usuário (avatar+nome+email), Telefone, Documento, Papéis (todos os badges), Vínculo (cliente X / parceiro Y / prestador Z com link), Último acesso, Status (ativo + acesso), Ações.
-- `SortableTh` em nome, email, último acesso, criado em.
-- `PaginationControl` (20/página), skeleton no loading, empty state.
+## Parte 2 — Máscaras BR em todos os campos
 
-Linha → click abre **Drawer "Detalhes do usuário"** com TODOS os campos:
-- Aba "Dados pessoais": nome, email, telefone, documento, avatar_url — editáveis.
-- Aba "Endereço": street/number/complement/neighborhood/city/state/zip — editáveis.
-- Aba "Acesso & papéis": papel principal (select), papéis adicionais (multi), `active`, `has_system_access`, `manual_approval_required`, `onboarding_completed/step`, `internal_notes`.
-- Aba "Segurança": **Definir nova senha** (input + confirmar + botão "Salvar senha" via `set_password`), Copiar senha gerada, Botão "Gerar senha forte".
-- Aba "Vínculos & metadados": last_sign_in_at, email_confirmed_at, created_at, vínculos com cliente/parceiro/prestador (read-only com link).
-- Footer do drawer: "Salvar alterações" (chama `update_profile`), "Excluir usuário" (com `confirmAction`).
+Aplicar `<MaskedInput mask="cpfcnpj|cep|phone" />` (já existe em `src/components/ui/masked-input.tsx`) em todos os formulários onde hoje ainda há `<Input>` cru. Salvar sempre só os dígitos (`onlyDigits`) e exibir formatado via `format-display.ts`.
 
-Ações inline na tabela (DropdownMenu):
-- Ver detalhes (abre drawer).
-- Ativar/Desativar (com `confirmAction`).
-- Liberar/Bloquear login (com `confirmAction`).
-- **Definir senha agora** → mini-dialog: input nova senha + confirmar + botão. Chama `set_password`. Mostra toast "Senha alterada — informe ao usuário: XXXX" com botão copiar. **Não envia email.**
-- Copiar email.
-- Excluir usuário (com `confirmAction` dupla — digitar email para confirmar).
+Arquivos identificados na varredura que precisam migrar:
 
-Diálogo "Novo usuário":
-- Mesmos campos atuais + Documento + Endereço opcional.
-- Toggle "Definir senha agora" (default ON) vs "Enviar email de convite".
-- Se "definir senha agora": campo senha + botão "gerar". Resultado mostra senha em destaque com copiar.
+| Arquivo | Campos |
+|---|---|
+| `src/pages/UsersPage.tsx` | telefone, documento, CEP (form novo usuário + drawer endereço) |
+| `src/pages/Partners.tsx` | documento, telefone |
+| `src/pages/Indicators.tsx` | documento, telefone |
+| `src/pages/Proposals.tsx` | recipientDocument (CPF/CNPJ) |
+| `src/pages/Collaborators.tsx` | revisar telefone/documento |
+| `src/components/leads/LeadFormDialog.tsx` | revisar documento (telefone já tem máscara) |
+| `src/components/clients/CompanyContactsManager.tsx` | telefone do contato |
+| `src/components/provider/ProviderAtuacao.tsx` | revisar se há campos de doc |
 
-Permissões:
-- `canManage = isAdmin || isAdminSecondary`. `admin_secondary` pode editar mas não excluir admins nem promover a admin.
+Padronizar também:
+- Exibição em tabelas (`formatDoc`, `formatPhone`, `formatCEP`)
+- Validação com `isValidCPFOrCNPJ` / `isValidPhoneBR` antes do submit
+- Hook `useCepLookup` no campo CEP para preencher endereço automaticamente em todos os formulários com endereço (Usuários, Parceiros, Indicadores)
 
-**4. Limpezas**
-- Remover `setRole` ingênuo — usar mutation via `update_profile` action ou direto em `user_roles` mas preservando múltiplos papéis (substituir só o primário marcado).
-- Padronizar `roleLabel`/`roleClass` adicionando `vendedor`/`indicador`/`admin_secondary` que faltam.
-- `useDebounce` em busca, query invalidation em `["users-detailed"]` e `["dashboard"]` após cada mutação.
+---
 
-### Arquivos afetados
-- `src/pages/UsersPage.tsx` (reescrita)
-- `supabase/functions/invite-user/index.ts` (adicionar actions `set_password`, `update_profile`, `delete`, `list`)
-- Possível novo arquivo: `src/components/users/UserDetailsDrawer.tsx` (drawer extraído pra manter o page legível)
-
-### Fora de escopo
-- Mexer em RLS de `profiles` (já permite admin total access).
-- Tabela `user_roles` schema (já suporta múltiplos papéis).
-- Outros painéis (colaborador, prestador).
+## Entrega final
+- Varredura completa nas abas reclamadas (Parceiros, Indicadores, Clientes/Ficha, Prestadores e demais do menu admin)
+- Tema 100% claro premium sem vazamento de cores escuras
+- Modais/drawers abrindo, fechando e liberando a UI corretamente
+- Máscaras CPF/CNPJ, CEP e telefone aplicadas em todos os formulários listados, com validação e busca de CEP onde fizer sentido
