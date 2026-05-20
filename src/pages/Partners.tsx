@@ -500,10 +500,10 @@ export default function Partners() {
                   <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
                 </PartnerField>
                 <PartnerField label="Telefone">
-                  <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+                  <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
                 </PartnerField>
                 <PartnerField label="WhatsApp">
-                  <Input value={form.whatsapp ?? ""} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
+                  <MaskedInput mask="phone" value={form.whatsapp ?? ""} onChange={(v) => setForm({ ...form, whatsapp: v })} placeholder="(11) 99999-9999" />
                 </PartnerField>
                 <PartnerField label="% Comissão padrão">
                   <Input type="number" step="0.01" min={0} max={100} value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
