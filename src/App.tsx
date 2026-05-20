@@ -15,6 +15,7 @@ import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import Partners from "./pages/Partners";
 import Products from "./pages/Products";
+import ProductDetail from "./pages/ProductDetail";
 import Sales from "./pages/Sales";
 import Commissions from "./pages/Commissions";
 import Documents from "./pages/Documents";
@@ -95,6 +96,7 @@ const App = () => (
               <Route path="/parceiros" element={<Partners />} />
               <Route path="/parceiros/:id" element={<PartnerDetail />} />
               <Route path="/produtos" element={<Products />} />
+              <Route path="/produtos/:id" element={<ProductDetail />} />
               <Route path="/indicadores" element={<Indicators />} />
               <Route path="/projetos" element={<Navigate to="/demandas" replace />} />
               <Route path="/leads" element={<Leads />} />
