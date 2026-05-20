@@ -223,18 +223,9 @@ export default function AuthPage() {
 
               {/* Password */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="login-password" className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/50">
-                    Senha
-                  </Label>
-                  <button
-                    type="button"
-                    onClick={handleForgot}
-                    className="text-[11px] font-semibold text-white/50 hover:text-white transition-colors underline-offset-2 hover:underline"
-                  >
-                    Esqueci a senha
-                  </button>
-                </div>
+                <Label htmlFor="login-password" className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/50">
+                  Senha
+                </Label>
                 <div className="relative group">
                   <Lock className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-white transition-colors z-10" strokeWidth={1.8} />
                   <Input
