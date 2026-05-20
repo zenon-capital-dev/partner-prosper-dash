@@ -244,54 +244,86 @@ export default function Atuacoes() {
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-6 animate-in slide-in-from-bottom-4 duration-1000">
-        {/* Search + tabs */}
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="flex-1">
-          <TabsList className="bg-white border border-slate-200/70 rounded-lg p-1 h-auto w-full sm:w-auto overflow-x-auto flex-nowrap justify-start">
-            <TabsTrigger value="hoje" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
-              <Flame className="size-3.5" /> Hoje
-              {filtered.hoje.length > 0 && <span className="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5 py-0.5 tabular-nums">{filtered.hoje.length}</span>}
-            </TabsTrigger>
-            <TabsTrigger value="atrasadas" className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
-              <AlertTriangle className="size-3.5" /> Atrasadas
-              {filtered.atrasadas.length > 0 && <span className="ml-1 text-[10px] bg-rose-600 text-white rounded-full px-1.5 py-0.5 tabular-nums">{filtered.atrasadas.length}</span>}
-            </TabsTrigger>
-            <TabsTrigger value="proximas" className="text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
-              <CalendarDays className="size-3.5" /> Próximas
-            </TabsTrigger>
-            <TabsTrigger value="historico" className="text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
-              <HistoryIcon className="size-3.5" /> Histórico
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="relative sm:w-[260px]">
-          <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar cliente ou nota..."
-            className="pl-8 h-9 text-[13px] bg-white border-slate-200/70"
-          />
-        </div>
-      </div>
-
-      {/* List */}
-      <div className="space-y-2">
-        {isLoading ? (
-          <div className="text-center py-12 text-sm text-slate-400">Carregando...</div>
-        ) : list.length === 0 ? (
-          <EmptyState tab={tab} onCreate={() => setOpenCreate(true)} />
-        ) : (
-          list.map((a) => (
-            <ActionRow
-              key={a.id}
-              action={a}
-              onExecute={() => setExecuting(a)}
-              onReschedule={() => setReschedule(a)}
-              onCancel={() => cancelMut.mutate(a.id)}
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-5 sm:py-8 space-y-4 animate-in slide-in-from-bottom-4 duration-1000">
+        {/* Tabs + search na mesma linha */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+            <TabsList className="bg-white border border-slate-200/70 rounded-lg p-1 h-auto w-full sm:w-auto overflow-x-auto flex-nowrap justify-start">
+              <TabsTrigger value="hoje" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
+                <Flame className="size-3.5" /> Hoje
+                {filtered.hoje.length > 0 && <span className="ml-1 text-[10px] bg-indigo-600 text-white rounded-full px-1.5 py-0.5 tabular-nums">{filtered.hoje.length}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="atrasadas" className="data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
+                <AlertTriangle className="size-3.5" /> Atrasadas
+                {filtered.atrasadas.length > 0 && <span className="ml-1 text-[10px] bg-rose-600 text-white rounded-full px-1.5 py-0.5 tabular-nums">{filtered.atrasadas.length}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="proximas" className="data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
+                <CalendarDays className="size-3.5" /> Próximas
+                {filtered.proximas.length > 0 && <span className="ml-1 text-[10px] bg-slate-700 text-white rounded-full px-1.5 py-0.5 tabular-nums">{filtered.proximas.length}</span>}
+              </TabsTrigger>
+              <TabsTrigger value="historico" className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900 text-[12.5px] font-semibold gap-1.5 px-3 py-1.5">
+                <HistoryIcon className="size-3.5" /> Histórico
+                {filtered.historico.length > 0 && <span className="ml-1 text-[10px] bg-slate-500 text-white rounded-full px-1.5 py-0.5 tabular-nums">{filtered.historico.length}</span>}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="relative sm:w-[280px]">
+            <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar cliente, empresa ou nota..."
+              className="pl-8 h-9 text-[13px] bg-white border-slate-200/70"
             />
-          ))
+          </div>
+        </div>
+
+        {/* Filtros do histórico */}
+        {tab === "historico" && (
+          <div className="flex flex-wrap items-center gap-2 bg-white border border-slate-200/70 rounded-lg px-3 py-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mr-1">Filtros:</span>
+            <Select value={historyResult} onValueChange={setHistoryResult}>
+              <SelectTrigger className="h-8 w-[170px] text-[12.5px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos resultados</SelectItem>
+                <SelectItem value="contatado">Contatado</SelectItem>
+                <SelectItem value="sem_resposta">Sem resposta</SelectItem>
+                <SelectItem value="fechado">Fechado</SelectItem>
+                <SelectItem value="reagendar">Reagendar</SelectItem>
+                <SelectItem value="cancelada">Canceladas</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={historyRange} onValueChange={(v) => setHistoryRange(v as any)}>
+              <SelectTrigger className="h-8 w-[140px] text-[12.5px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="all">Tudo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         )}
+
+        {/* Lista */}
+        <div className="space-y-2">
+          {isLoading ? (
+            <div className="text-center py-12 text-sm text-slate-400">Carregando...</div>
+          ) : list.length === 0 ? (
+            <EmptyState tab={tab} onCreate={() => setOpenCreate(true)} />
+          ) : (
+            list.map((a) => (
+              <ActionRow
+                key={a.id}
+                action={a}
+                onExecute={() => setExecuting(a)}
+                onReschedule={() => { setRescheduleDate(parseISO(a.scheduled_date)); setReschedule(a); }}
+                onCancel={() => setCancelling(a)}
+                onDelete={() => setDeleting(a)}
+                onReopen={() => reopenMut.mutate(a.id)}
+              />
+            ))
+          )}
+        </div>
       </div>
 
       <CreateActionDialog open={openCreate} onOpenChange={setOpenCreate} userId={user?.id} />
@@ -314,18 +346,79 @@ export default function Atuacoes() {
 
       {/* Reschedule dialog */}
       <Dialog open={!!reschedule} onOpenChange={(o) => !o && setReschedule(null)}>
-        <DialogContent className="max-w-[360px]">
+        <DialogContent className="max-w-[380px]">
           <DialogHeader>
             <DialogTitle>Reagendar atuação</DialogTitle>
-            <DialogDescription>{reschedule?.client?.full_name}</DialogDescription>
+            <DialogDescription>
+              {reschedule?.client?.full_name}
+              {rescheduleDate && (
+                <span className="block mt-1 text-indigo-700 font-semibold">
+                  Nova data: {format(rescheduleDate, "dd 'de' MMMM yyyy", { locale: ptBR })}
+                </span>
+              )}
+            </DialogDescription>
           </DialogHeader>
           <Calendar
             mode="single"
-            selected={reschedule ? parseISO(reschedule.scheduled_date) : undefined}
-            onSelect={(d) => d && reschedule && rescheduleMut.mutate({ id: reschedule.id, date: d })}
+            selected={rescheduleDate}
+            onSelect={(d) => d && setRescheduleDate(d)}
             locale={ptBR}
             className="p-3 pointer-events-auto"
           />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReschedule(null)}>Cancelar</Button>
+            <Button
+              disabled={!rescheduleDate || rescheduleMut.isPending}
+              onClick={() => reschedule && rescheduleDate && rescheduleMut.mutate({ id: reschedule.id, date: rescheduleDate })}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              {rescheduleMut.isPending ? "Salvando..." : "Confirmar nova data"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel confirm */}
+      <Dialog open={!!cancelling} onOpenChange={(o) => !o && setCancelling(null)}>
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Cancelar atuação?</DialogTitle>
+            <DialogDescription>
+              {cancelling?.client?.full_name} — {cancelling && format(parseISO(cancelling.scheduled_date), "dd/MM/yyyy")}. Ela fica registrada no histórico como cancelada.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelling(null)}>Voltar</Button>
+            <Button
+              onClick={() => cancelling && cancelMut.mutate(cancelling.id)}
+              disabled={cancelMut.isPending}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {cancelMut.isPending ? "Cancelando..." : "Cancelar atuação"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm */}
+      <Dialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Excluir atuação?</DialogTitle>
+            <DialogDescription>
+              Esta ação remove a atuação de {deleting?.client?.full_name} permanentemente. Não é possível desfazer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleting(null)}>Voltar</Button>
+            <Button
+              onClick={() => deleting && deleteMut.mutate(deleting.id)}
+              disabled={deleteMut.isPending}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {deleteMut.isPending ? "Excluindo..." : "Excluir definitivamente"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
