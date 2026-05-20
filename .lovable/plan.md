@@ -1,63 +1,51 @@
-# Sincronizar Vendas → Produtos do Cliente
+## Diagnóstico atual
 
-## Causa raiz
-`sales` (vendas registradas) e `client_products` (pipeline de entrega/demandas) são tabelas separadas e nunca se conversam.
-- `SaleFormDialog` → só insere em `sales`
-- `IntelligentSummary`, tab "Produtos/Demandas", dashboard → leem de `client_products`
-Resultado: registrar uma venda NÃO faz o cliente "ter" o produto em lugar nenhum da UI.
+Auditei o código dos 8 formulários (Lead, Cliente, Venda, Serviço, Parceiro, Prestador, Indicador, Colaborador) contra o schema do banco e as policies RLS.
 
-## Solução: trigger no banco + backfill
+**Resultado da auditoria estática:**
+- Schema: todas as colunas que os forms enviam EXISTEM nas respectivas tabelas.
+- RLS: usuário admin (seu caso) tem policies `ALL` em todas as tabelas relevantes.
+- Triggers: os triggers de venda → comissão/pagamento/client_product já estão em produção e validados.
 
-Criar 1 trigger Postgres que, ao inserir uma `sales` (status `concluida` ou `pendente`), gera automaticamente uma linha em `client_products` vinculada (`client_id`, `product_id`, `status='em_andamento'`, `sale_id` referência). Isso garante:
-- Frontend não muda (continua lendo `client_products`)
-- Resumo Inteligente, tab Produtos, dashboard e todos os contadores passam a refletir vendas
-- Histórico futuro de vendas → cria pipeline automaticamente
+Ou seja, estruturalmente nada está obviamente quebrado. Sem um erro concreto (mensagem, campo específico, passo que falha), corrigir "tudo" às cegas pode introduzir regressões. Por isso a próxima rodada precisa ser baseada em **teste real** em vez de re-escrita preventiva.
 
-### Comportamento do trigger
-- `INSERT` em `sales` com `status IN ('pendente','concluida')` → cria `client_products` (se ainda não existir um vinculado àquela `sale_id`)
-- `UPDATE sales SET status='cancelada'` → marca `client_product` correspondente como `status='cancelado'`
-- Se já houver `client_product` para essa `sale_id` (caso de update), não duplica
+## O que vou fazer
 
-### Backfill
-Para as vendas já existentes (2 no banco) sem `client_product`, criar as linhas correspondentes em uma única instrução `INSERT ... SELECT`.
+### 1. Smoke-test automatizado de cada form
+Para cada uma das 8 tabelas, vou rodar um INSERT real com o mesmo payload que o frontend envia (cliente com parceiro+indicador+colaborador+prestador, venda com 3 splits, etc.), simulando o admin logado. Qualquer FK quebrada, default ausente, trigger com erro ou coluna faltando aparece aqui.
 
-## Mudanças
+### 2. Verificação dos dropdowns de vínculo
+Para cada form que tem vínculo (cliente→parceiro/indicador/colaborador/prestador, lead→parceiro/produto/indicador, venda→cliente/produto/3 splits), abrir a página real no preview e confirmar que:
+- O dropdown LISTA as opções cadastradas
+- Ao salvar, o valor escolhido CHEGA na coluna correta
+- Ao reabrir a ficha, o vínculo APARECE selecionado
 
-### 1 Migration (única)
-```sql
--- Adiciona coluna sale_id em client_products (opcional, para rastrear origem)
-ALTER TABLE public.client_products
-  ADD COLUMN IF NOT EXISTS sale_id uuid REFERENCES public.sales(id) ON DELETE SET NULL;
-CREATE UNIQUE INDEX IF NOT EXISTS client_products_sale_id_uniq
-  ON public.client_products(sale_id) WHERE sale_id IS NOT NULL;
+### 3. Correção das falhas encontradas
+Para cada falha real (não suposta), uma correção mínima:
+- Coluna faltando → migration `ADD COLUMN IF NOT EXISTS`
+- Form enviando campo errado → ajuste no payload
+- Dropdown vazio → corrigir a query da listagem
+- Vínculo não persiste → corrigir o nome da coluna no insert
 
--- Função: cria client_product a partir de uma sale
-CREATE OR REPLACE FUNCTION public.sync_sale_to_client_product() ...
+### 4. Hardening do form de Parceiro (único ponto frágil encontrado na auditoria estática)
+`src/pages/Partners.tsx` faz `supabase.from("partners").insert(form)` — joga o objeto inteiro do estado. Se algum dia adicionarmos um campo só-UI, vira erro. Vou trocar por payload explícito com apenas as colunas reais da tabela (`full_name, email, phone, whatsapp, document, pix_key, bank_name, bank_agency, bank_account, partner_category, commission_percent, notes, active, has_system_access`).
 
--- Triggers AFTER INSERT e AFTER UPDATE em sales
+## O que NÃO vou fazer agora
 
--- Backfill das vendas existentes
-INSERT INTO client_products (client_id, product_id, status, sale_id, ...)
-SELECT s.client_id, s.product_id,
-       CASE WHEN s.status='cancelada' THEN 'cancelado' ELSE 'em_andamento' END,
-       s.id, ...
-FROM sales s
-LEFT JOIN client_products cp ON cp.sale_id = s.id
-WHERE cp.id IS NULL AND s.product_id IS NOT NULL;
-```
+- Reescrever forms que já estão alinhados ao schema (não há ganho real)
+- Adicionar novas funcionalidades que você não pediu
+- Alterar RLS (já está correta para admin)
+- Mexer em triggers de venda/comissão (estão funcionando)
 
-### Nenhuma mudança em frontend
-O `IntelligentSummary.tsx` continua igual. Conta `client_products` ativos como hoje.
+## Entrega
 
-## Validação
-1. Aplicar migration
-2. Conferir no banco: `SELECT COUNT(*) FROM client_products` deve subir para refletir vendas existentes
-3. Abrir ficha do "Cliente E2E" no preview → resumo deve mostrar produtos ativos > 0
-4. Criar uma nova venda pelo modal → recarregar a ficha → contador atualiza
+Depois de implementar:
+1. Lista do que estava efetivamente quebrado e foi corrigido
+2. Lista do que foi testado e está OK
+3. Se algo continuar com sintoma específico do seu lado, você me passa o erro/passo e eu corrijo cirurgicamente
 
-## Risco
-Baixo. Trigger é idempotente (não duplica). Backfill é seguro (LEFT JOIN garante que não recria). RLS de `client_products` já existe e cobre os novos registros.
+## Detalhes técnicos
 
-## Fora de escopo
-- Refatorar UI para mostrar vendas e demandas separadamente (decisão de produto)
-- Migrar demandas órfãs (`client_products` sem `sale_id`) — ficam como estão
+- Smoke-test via `supabase--read_query` + `supabase--insert` simulando admin
+- Correções via `supabase--migration` (banco) e edits TS pontuais (frontend)
+- Sem mudança de tema/visual — só funcionalidade
