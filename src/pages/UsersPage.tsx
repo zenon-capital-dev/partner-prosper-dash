@@ -630,7 +630,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
             <div className="col-span-2 space-y-2">
               <Label>Senha (deixe vazio para gerar automaticamente)</Label>
               <div className="flex gap-2">
-                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mín. 6 caracteres ou clique em gerar" />
+                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mín. 8 caracteres, com letra e número, ou gere" />
                 <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, password: generatePassword() })} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
               </div>
             </div>
