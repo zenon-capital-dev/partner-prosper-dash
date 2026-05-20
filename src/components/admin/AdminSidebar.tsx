@@ -99,7 +99,7 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
   return (
     <aside
       className={cn(
-        "h-svh sticky top-0 shrink-0 flex flex-col z-50 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "h-svh sticky top-0 shrink-0 flex flex-col z-30 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
         "bg-white/96 dark:bg-background/96 backdrop-blur-xl border-r border-slate-200/75 dark:border-border/50",
         collapsed ? "w-[76px]" : "w-[286px]",
         className
