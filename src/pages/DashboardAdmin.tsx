@@ -28,6 +28,17 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 
+const parseLocalDate = (value?: string | null) => {
+  if (!value) return null;
+  const [datePart, timePart] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  const [hour = 0, minute = 0] = (timePart?.slice(0, 5).split(":").map(Number) ?? []);
+  return new Date(year, month - 1, day, hour, minute);
+};
+
+const dateOnly = (value?: string | null) => value?.slice(0, 10) ?? "";
+
 export default function DashboardAdmin() {
   const { user } = useAuth();
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
@@ -108,7 +119,6 @@ export default function DashboardAdmin() {
 
 
   const stats = useMemo(() => {
-    const now = new Date();
     const toISO = toLocalISO;
     let rangeStart = new Date(brasiliaToday);
     const rangeEnd = new Date(brasiliaToday);
@@ -137,7 +147,7 @@ export default function DashboardAdmin() {
     const isDoneDemand = (s: string) => ["concluido", "concluida", "cancelado", "cancelada"].includes(s);
     const delayedDemands = clientProducts.filter((p: any) =>
       p.status === "atrasado" ||
-      (p.deadline && toISO(new Date(p.deadline)) < todayISO && !isDoneDemand(p.status))
+      (p.deadline && dateOnly(p.deadline) < todayISO && !isDoneDemand(p.status))
     ).length;
     const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio"].includes(p.status)).length;
     const completedDemands = clientProducts.filter((p: any) => p.status === "concluido" || p.status === "concluida").length;
@@ -151,8 +161,8 @@ export default function DashboardAdmin() {
     const waitingSignatureContracts = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
     const pendingDocs = docRequests.filter((d: any) => ["solicitado", "pendente_correcao", "pendente", "enviado", "em_analise"].includes(d.status)).length;
     const isTaskOpen = (t: any) => t.status !== "concluida" && t.status !== "completed" && t.status !== "done";
-    const overdueTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) < todayISO).length;
-    const todayTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) === todayISO).length;
+    const overdueTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) < todayISO).length;
+    const todayTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO).length;
     const openTasks = tasks.filter(isTaskOpen).length;
 
     const commissionsToPay = commissions
@@ -182,17 +192,17 @@ export default function DashboardAdmin() {
       const d = new Date(brasiliaToday); d.setDate(brasiliaToday.getDate() - (len - 1 - i));
       const iso = toISO(d);
       const value = sales.filter((s: any) => s.sale_date === iso).reduce((a, s: any) => a + Number(s.amount || 0), 0);
-      return { name: format(d, "dd/MM"), value, isToday: iso === todayISO };
+      return { name: String(d.getDate()).padStart(2, "0"), fullDate: format(d, "dd/MM/yyyy"), value, isToday: iso === todayISO };
     });
 
     // ============ PENDÊNCIAS DE HOJE ============
     const todayTasksList = tasks
-      .filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) === todayISO)
+      .filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO)
       .slice(0, 5)
-      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? format(new Date(t.due_date), "HH:mm") : null }));
+      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? format(parseLocalDate(t.due_date) ?? new Date(t.due_date), "HH:mm") : null }));
 
     const todayDemandsList = clientProducts
-      .filter((p: any) => !isDoneDemand(p.status) && p.deadline && toISO(new Date(p.deadline)) === todayISO)
+      .filter((p: any) => !isDoneDemand(p.status) && p.deadline && dateOnly(p.deadline) === todayISO)
       .slice(0, 5)
       .map((p: any) => {
         const client = clients.find((c: any) => c.id === p.client_id);
@@ -454,6 +464,7 @@ export default function DashboardAdmin() {
                     <Tooltip
                       contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '12px 14px', backgroundColor: '#fff', fontSize: '12px' }}
                       labelStyle={{ color: '#64748b', fontWeight: 600, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}
+                      labelFormatter={(_, payload) => payload?.[0]?.payload?.fullDate ?? ""}
                       formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
                       cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '4 3' }}
                     />
