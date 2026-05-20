@@ -12,6 +12,7 @@ import { Briefcase, User, Mail, Phone, IdCard, Star, Lock, Building2, Wallet } f
 import { MaskedInput } from "@/components/ui/masked-input";
 import { onlyDigits } from "@/lib/masks";
 import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
+import { validatePassword } from "@/lib/password";
 
 interface Props {
   open: boolean;
@@ -47,6 +48,10 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
     if (!form.name?.trim()) { toast.error("Nome é obrigatório"); return; }
     if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) { toast.error("CPF/CNPJ inválido"); return; }
     if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
+    if (createAccess && form.access_password) {
+      const check = validatePassword(form.access_password);
+      if (!check.ok) { toast.error("Senha inválida: " + check.errors.join(", ")); return; }
+    }
     setSubmitting(true);
 
     const payload = {
@@ -182,8 +187,8 @@ export function ProviderFormDialog({ open, onOpenChange, provider, onSuccess }: 
                   <Switch checked={createAccess} onCheckedChange={setCreateAccess} disabled={!form.email} />
                 </div>
                 {createAccess && (
-                  <Field label="Senha provisória (mín. 6 caracteres)">
-                    <Input type="text" value={form.access_password ?? ""} onChange={(e) => setForm({ ...form, access_password: e.target.value })} placeholder="Mínimo 6 caracteres" />
+                  <Field label="Senha provisória (mín. 8 caracteres, 1 letra e 1 número)">
+                    <Input type="text" value={form.access_password ?? ""} onChange={(e) => setForm({ ...form, access_password: e.target.value })} placeholder="Mínimo 8 caracteres, com letra e número" />
                   </Field>
                 )}
               </div>

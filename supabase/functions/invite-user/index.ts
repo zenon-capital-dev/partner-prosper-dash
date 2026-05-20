@@ -6,6 +6,13 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function validateServerPassword(pw: string): string | null {
+  if (!pw || pw.length < 8) return "Senha precisa ter ao menos 8 caracteres";
+  if (!/[A-Za-z]/.test(pw)) return "Senha precisa conter ao menos 1 letra";
+  if (!/\d/.test(pw)) return "Senha precisa conter ao menos 1 número";
+  return null;
+}
+
 type Role = "admin" | "admin_secondary" | "colaborador" | "vendedor" | "parceiro" | "prestador" | "indicador" | "cliente" | "lead";
 
 interface Body {
@@ -106,7 +113,8 @@ Deno.serve(async (req) => {
     // ---------- SET PASSWORD ----------
     if (action === "set_password") {
       if (!body.user_id || !body.password) return json({ error: "user_id e password obrigatórios" }, 400);
-      if (String(body.password).length < 6) return json({ error: "Senha precisa ter ao menos 6 caracteres" }, 400);
+      const pwErr = validateServerPassword(String(body.password));
+      if (pwErr) return json({ error: pwErr }, 400);
       const { error } = await admin.auth.admin.updateUserById(body.user_id, {
         password: body.password,
         email_confirm: true,
@@ -178,6 +186,10 @@ Deno.serve(async (req) => {
 
     // ---------- INVITE (default) ----------
     if (!body.email || !body.role) return json({ error: "email e role obrigatórios" }, 400);
+    if (body.password) {
+      const pwErr = validateServerPassword(String(body.password));
+      if (pwErr) return json({ error: pwErr }, 400);
+    }
 
     let userId: string | null = null;
     let tempPassword: string | null = null;

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { onlyDigits } from "@/lib/masks";
 import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
+import { validatePassword } from "@/lib/password";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -561,7 +562,10 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
     if (form.phone && !isValidPhoneBR(form.phone)) return toast.error("Telefone inválido");
     if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) return toast.error("CPF/CNPJ inválido");
     if (form.role === "admin" && !canPromoteAdmin) return toast.error("Apenas o admin principal pode criar outro admin");
-    if (form.mode === "password" && form.password && form.password.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
+    if (form.mode === "password" && form.password) {
+      const check = validatePassword(form.password);
+      if (!check.ok) return toast.error("Senha inválida: " + check.errors.join(", "));
+    }
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("invite-user", {
@@ -626,7 +630,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
             <div className="col-span-2 space-y-2">
               <Label>Senha (deixe vazio para gerar automaticamente)</Label>
               <div className="flex gap-2">
-                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mín. 6 caracteres ou clique em gerar" />
+                <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mín. 8 caracteres, com letra e número, ou gere" />
                 <Button type="button" variant="outline" size="sm" onClick={() => setForm({ ...form, password: generatePassword() })} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
               </div>
             </div>
@@ -657,7 +661,8 @@ function SetPasswordDialog({ user, onClose, onSubmit }: { user: UserRow | null; 
   useEffect(() => { setPwd(""); setConfirm(""); }, [user]);
 
   const submit = async () => {
-    if (!pwd || pwd.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
+    const check = validatePassword(pwd);
+    if (!check.ok) return toast.error("Senha inválida: " + check.errors.join(", "));
     if (pwd !== confirm) return toast.error("As senhas não coincidem");
     setSubmitting(true);
     try {
@@ -680,7 +685,7 @@ function SetPasswordDialog({ user, onClose, onSubmit }: { user: UserRow | null; 
           <div className="space-y-2">
             <Label>Nova senha</Label>
             <div className="flex gap-2">
-              <Input type="text" value={pwd} onChange={(e) => setPwd(e.target.value)} placeholder="Mín. 6 caracteres" className="font-mono" />
+              <Input type="text" value={pwd} onChange={(e) => setPwd(e.target.value)} placeholder="Mín. 8 caracteres, com letra e número" className="font-mono" />
               <Button type="button" variant="outline" size="sm" onClick={() => { const p = generatePassword(); setPwd(p); setConfirm(p); }} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
             </div>
           </div>
@@ -759,7 +764,8 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
   };
 
   const handleSavePwd = async () => {
-    if (newPwd.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
+    const check = validatePassword(newPwd);
+    if (!check.ok) return toast.error("Senha inválida: " + check.errors.join(", "));
     setSavingPwd(true);
     try {
       await onSetPassword(newPwd);
@@ -875,11 +881,11 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
               <div className="flex items-center gap-2"><Key className="size-4 text-indigo-700" /><h4 className="font-semibold text-sm text-indigo-900">Definir nova senha</h4></div>
               <p className="text-xs text-indigo-800/80">Você define manualmente. Nenhum email é enviado — informe ao usuário.</p>
               <div className="flex gap-2">
-                <Input type="text" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="Mín. 6 caracteres" className="font-mono bg-white" />
+                <Input type="text" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="Mín. 8 caracteres, com letra e número" className="font-mono bg-white" />
                 <Button type="button" variant="outline" size="sm" onClick={() => setNewPwd(generatePassword())} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSavePwd} disabled={savingPwd || newPwd.length < 6} size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={handleSavePwd} disabled={savingPwd || !validatePassword(newPwd).ok} size="sm" className="bg-indigo-600 hover:bg-indigo-700">
                   {savingPwd ? "Salvando..." : "Salvar senha"}
                 </Button>
               </div>
