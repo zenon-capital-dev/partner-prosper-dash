@@ -92,7 +92,7 @@ export function ReferralDialog({ open, onOpenChange, mode, ownerId, queryKey }: 
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="WhatsApp ou telefone" />
+              <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="WhatsApp ou telefone" />
             </div>
           </div>
           <div className="space-y-2">
