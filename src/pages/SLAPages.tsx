@@ -1,18 +1,22 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
-import { Zap, Clock, AlertTriangle, PauseCircle, CheckCircle2, User, Calendar, ChevronRight, Search, ListFilter, TrendingDown, Timer } from "lucide-react";
+import {
+  Zap, Clock, AlertTriangle, PauseCircle, CheckCircle2, User, Calendar,
+  ChevronRight, Search, ListFilter, TrendingDown, Timer, CalendarOff, ArrowUpRight, X,
+} from "lucide-react";
 import { calculateSLA } from "@/lib/sla";
 import { AutoStatusBadge } from "@/components/StatusBadge";
-import { formatDate } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-type Bucket = "todos" | "atrasado" | "vence_hoje" | "atencao" | "no_prazo" | "pausado";
+type Bucket = "todos" | "atrasado" | "vence_hoje" | "atencao" | "no_prazo" | "pausado" | "sem_prazo";
 
 const BUCKETS: { key: Bucket; label: string; icon: any; tone: string }[] = [
   { key: "todos", label: "Todas", icon: ListFilter, tone: "text-slate-600" },
@@ -21,12 +25,17 @@ const BUCKETS: { key: Bucket; label: string; icon: any; tone: string }[] = [
   { key: "atencao", label: "Em Atenção", icon: Zap, tone: "text-yellow-600" },
   { key: "no_prazo", label: "No Prazo", icon: CheckCircle2, tone: "text-emerald-600" },
   { key: "pausado", label: "Pausadas", icon: PauseCircle, tone: "text-slate-500" },
+  { key: "sem_prazo", label: "Sem Prazo", icon: CalendarOff, tone: "text-slate-500" },
 ];
+
+const isNoDueDate = (d: any) =>
+  d.sla?.daysRemaining == null && d.sla?.status !== "pausado" && d.sla?.status !== "concluido";
 
 export default function SLAPages() {
   const navigate = useNavigate();
   const [bucket, setBucket] = useState<Bucket>("todos");
   const [search, setSearch] = useState("");
+  const [providerFilter, setProviderFilter] = useState<string | null>(null);
 
   const { data: demands = [], isLoading } = useQuery({
     queryKey: ["admin-sla-demands"],
@@ -63,30 +72,47 @@ export default function SLAPages() {
     atencao: demands.filter((d) => d.sla?.status === "atencao").length,
     no_prazo: demands.filter((d) => d.sla?.status === "no_prazo").length,
     pausado: demands.filter((d) => d.status === "pausado").length,
+    sem_prazo: demands.filter(isNoDueDate).length,
   }), [demands]);
 
   const onTimeRate = stats.total > 0 ? Math.round(((stats.no_prazo + stats.atencao) / stats.total) * 100) : 0;
   const avgDaysOver = useMemo(() => {
     const late = demands.filter((d) => d.sla?.status === "atrasado" && d.sla?.daysRemaining != null);
     if (!late.length) return 0;
-    return Math.abs(Math.round(late.reduce((s, d) => s + (d.sla?.daysRemaining ?? 0), 0) / late.length));
+    const avg = Math.abs(Math.round(late.reduce((s, d) => s + (d.sla?.daysRemaining ?? 0), 0) / late.length));
+    return Math.max(1, avg);
   }, [demands]);
 
   const filtered = useMemo(() => {
     let list = demands;
     if (bucket === "pausado") list = list.filter((d) => d.status === "pausado");
+    else if (bucket === "sem_prazo") list = list.filter(isNoDueDate);
     else if (bucket !== "todos") list = list.filter((d) => d.sla?.status === bucket);
+
+    if (providerFilter) {
+      list = list.filter((d: any) => d.service_providers?.name === providerFilter);
+    }
 
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter((d: any) =>
         d.clients?.full_name?.toLowerCase().includes(q) ||
+        d.clients?.company?.toLowerCase().includes(q) ||
         d.products?.name?.toLowerCase().includes(q) ||
         d.service_providers?.name?.toLowerCase().includes(q)
       );
     }
-    return list;
-  }, [demands, bucket, search]);
+
+    // Ordenação por urgência: atrasados primeiro, sem prazo no fim
+    return [...list].sort((a: any, b: any) => {
+      const da = a.sla?.daysRemaining;
+      const db = b.sla?.daysRemaining;
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return da - db;
+    });
+  }, [demands, bucket, search, providerFilter]);
 
   const providersWithDelays = useMemo(() => {
     const map: Record<string, number> = {};
@@ -98,6 +124,12 @@ export default function SLAPages() {
     return Object.entries(map).sort(([, a], [, b]) => (b as number) - (a as number)).slice(0, 5);
   }, [demands]);
 
+  const clearFilters = () => {
+    setBucket("todos");
+    setProviderFilter(null);
+    setSearch("");
+  };
+
   return (
     <div className="page-shell space-y-8 animate-fade-up">
       <PageHero
@@ -107,10 +139,33 @@ export default function SLAPages() {
         description="Visualize, filtre e priorize todas as demandas pelo status do SLA."
         icon={<Zap className="size-6 text-primary fill-primary/20" />}
         kpis={[
-          { label: "On-Time Rate", value: `${onTimeRate}%`, tone: onTimeRate >= 80 ? "success" : onTimeRate >= 60 ? "warning" : "danger", icon: <TrendingDown className="size-4" /> },
-          { label: "Atrasadas", value: stats.atrasado, tone: "danger", icon: <AlertTriangle className="size-4" /> },
-          { label: "Vence Hoje", value: stats.vence_hoje, tone: "warning", icon: <Clock className="size-4" /> },
-          { label: "Atraso Médio", value: `${avgDaysOver}d`, tone: "default" as any, icon: <Timer className="size-4" /> },
+          {
+            label: "On-Time Rate",
+            value: `${onTimeRate}%`,
+            tone: onTimeRate >= 80 ? "success" : onTimeRate >= 60 ? "warning" : "danger",
+            icon: <TrendingDown className="size-4" />,
+            onClick: () => setBucket("no_prazo"),
+          },
+          {
+            label: "Atrasadas",
+            value: stats.atrasado,
+            tone: "danger",
+            icon: <AlertTriangle className="size-4" />,
+            onClick: () => setBucket("atrasado"),
+          },
+          {
+            label: "Vence Hoje",
+            value: stats.vence_hoje,
+            tone: "warning",
+            icon: <Clock className="size-4" />,
+            onClick: () => setBucket("vence_hoje"),
+          },
+          {
+            label: "Atraso Médio",
+            value: `${avgDaysOver}d`,
+            tone: "default" as any,
+            icon: <Timer className="size-4" />,
+          },
         ]}
       />
 
@@ -145,10 +200,34 @@ export default function SLAPages() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por cliente, produto ou prestador..."
+            placeholder="Buscar por cliente, empresa, produto ou prestador..."
             className="pl-10 h-11 bg-muted/20 border-border/50"
           />
         </div>
+        {(providerFilter || bucket !== "todos" || search) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground">Filtros ativos:</span>
+            {bucket !== "todos" && (
+              <Badge variant="outline" className="gap-1">
+                {BUCKETS.find(b => b.key === bucket)?.label}
+                <button onClick={() => setBucket("todos")}><X className="size-3" /></button>
+              </Badge>
+            )}
+            {providerFilter && (
+              <Badge variant="outline" className="gap-1">
+                Prestador: {providerFilter}
+                <button onClick={() => setProviderFilter(null)}><X className="size-3" /></button>
+              </Badge>
+            )}
+            {search && (
+              <Badge variant="outline" className="gap-1">
+                "{search}"
+                <button onClick={() => setSearch("")}><X className="size-3" /></button>
+              </Badge>
+            )}
+            <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={clearFilters}>Limpar tudo</Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -167,7 +246,23 @@ export default function SLAPages() {
           ) : filtered.length === 0 ? (
             <div className="vx-card p-12 text-center border-dashed border-2">
               <CheckCircle2 className="size-10 text-emerald-500/40 mx-auto mb-3" />
-              <p className="text-sm font-medium text-muted-foreground">Nenhuma demanda nesse filtro.</p>
+              {demands.length === 0 ? (
+                <>
+                  <p className="text-sm font-medium text-muted-foreground mb-4">
+                    Nenhuma demanda ativa no momento.
+                  </p>
+                  <Button onClick={() => navigate("/demandas")} variant="outline">
+                    Ir para Demandas
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-muted-foreground mb-4">
+                    Nenhuma demanda neste filtro.
+                  </p>
+                  <Button onClick={clearFilters} variant="outline">Ver todas</Button>
+                </>
+              )}
             </div>
           ) : (
             <div className="grid gap-3">
@@ -175,6 +270,7 @@ export default function SLAPages() {
                 const isLate = d.sla?.status === "atrasado";
                 const isToday = d.sla?.status === "vence_hoje";
                 const isPaused = d.status === "pausado";
+                const noDue = isNoDueDate(d);
                 return (
                   <div
                     key={d.id}
@@ -186,6 +282,7 @@ export default function SLAPages() {
                       d.sla?.status === "atencao" && "border-l-yellow-500",
                       d.sla?.status === "no_prazo" && "border-l-emerald-500",
                       isPaused && "border-l-slate-400 opacity-80",
+                      noDue && "border-l-slate-300",
                     )}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -194,11 +291,19 @@ export default function SLAPages() {
                           <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/5 px-1.5 py-0.5 rounded">
                             {d.products?.name}
                           </span>
-                          <AutoStatusBadge status={d.sla?.status} className="h-5" />
+                          {!noDue && <AutoStatusBadge status={d.sla?.status} className="h-5" />}
                           {isPaused && <Badge variant="outline" className="h-5 text-[9px]">Pausada</Badge>}
+                          {noDue && (
+                            <Badge variant="outline" className="h-5 text-[9px] gap-1">
+                              <CalendarOff className="size-3" /> Sem prazo definido
+                            </Badge>
+                          )}
                         </div>
                         <h4 className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
                           {d.clients?.full_name}
+                          {d.clients?.company && (
+                            <span className="text-muted-foreground font-medium"> · {d.clients.company}</span>
+                          )}
                         </h4>
                         <div className="flex items-center gap-4 mt-2 flex-wrap">
                           <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
@@ -207,27 +312,40 @@ export default function SLAPages() {
                           </span>
                           <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
                             <Calendar className="size-3" />
-                            {d.sla?.dueDate ? formatDate(d.sla.dueDate.toISOString()) : "Sem prazo"}
+                            {d.sla?.dueDate ? format(d.sla.dueDate, "dd/MM/yyyy") : "Sem prazo"}
                           </span>
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <div
-                          className={cn(
-                            "text-2xl font-display font-black tracking-tight tabular-nums",
-                            isLate ? "text-rose-500" : isToday ? "text-amber-500" : d.sla?.status === "atencao" ? "text-yellow-600" : "text-emerald-600"
-                          )}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <div
+                            className={cn(
+                              "text-2xl font-display font-black tracking-tight tabular-nums",
+                              isLate ? "text-rose-500" :
+                                isToday ? "text-amber-500" :
+                                d.sla?.status === "atencao" ? "text-yellow-600" :
+                                noDue ? "text-slate-400" : "text-emerald-600"
+                            )}
+                          >
+                            {d.sla?.daysRemaining != null
+                              ? d.sla.daysRemaining < 0
+                                ? d.sla.daysRemaining
+                                : `+${d.sla.daysRemaining}`
+                              : "—"}
+                          </div>
+                          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                            dias
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="opacity-0 group-hover:opacity-100 md:opacity-0 sm:opacity-100 transition-opacity gap-1"
+                          onClick={(e) => { e.stopPropagation(); navigate(`/demandas/${d.id}`); }}
                         >
-                          {d.sla?.daysRemaining != null
-                            ? d.sla.daysRemaining < 0
-                              ? d.sla.daysRemaining
-                              : `+${d.sla.daysRemaining}`
-                            : "—"}
-                        </div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
-                          dias
-                        </div>
+                          Abrir <ArrowUpRight className="size-3" />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -248,21 +366,33 @@ export default function SLAPages() {
               Prestadores com Mais Atrasos
             </h3>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               {providersWithDelays.length > 0 ? (
-                providersWithDelays.map(([name, count]) => (
-                  <div key={name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-bold text-slate-700">
-                        {name.charAt(0)}
+                providersWithDelays.map(([name, count]) => {
+                  const active = providerFilter === name;
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => setProviderFilter(active ? null : (name as string))}
+                      className={cn(
+                        "w-full flex items-center justify-between px-2 py-2 rounded-lg border transition-all text-left",
+                        active
+                          ? "bg-rose-50 border-rose-200"
+                          : "bg-transparent border-transparent hover:bg-slate-50 hover:border-slate-200"
+                      )}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-bold text-slate-700 shrink-0">
+                          {(name as string).charAt(0)}
+                        </div>
+                        <span className="text-sm font-medium text-slate-700 truncate">{name}</span>
                       </div>
-                      <span className="text-sm font-medium text-slate-700">{name}</span>
-                    </div>
-                    <Badge className="bg-rose-50 text-rose-600 border border-rose-200 font-black tabular-nums">
-                      {count as number}
-                    </Badge>
-                  </div>
-                ))
+                      <Badge className="bg-rose-50 text-rose-600 border border-rose-200 font-black tabular-nums shrink-0">
+                        {count as number}
+                      </Badge>
+                    </button>
+                  );
+                })
               ) : (
                 <p className="text-xs text-muted-foreground italic">Nenhum atraso por prestador.</p>
               )}
@@ -275,10 +405,10 @@ export default function SLAPages() {
             </h3>
             <ul className="space-y-3">
               {[
-                "O contador inicia quando a demanda muda de 'aguardando início'.",
+                "O contador inicia na data de início da demanda (ou na criação, se vazia).",
                 "Demandas pausadas congelam a contagem do SLA.",
-                "Status 'Atenção' aparece quando faltam menos de 30% do prazo.",
-                "Filtre pelas abas acima para focar no que importa agora.",
+                "Status 'Em atenção' aparece quando faltam 2 dias ou menos para o prazo.",
+                "Produtos podem usar dias úteis ou corridos — configurável em cada produto.",
               ].map((text, i) => (
                 <li key={i} className="flex gap-2 text-[11px] font-medium text-muted-foreground">
                   <ChevronRight className="size-3 text-primary shrink-0 mt-0.5" />
