@@ -750,7 +750,15 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
           variant="ghost" 
           size="sm" 
           className="rounded-xl h-9 gap-2 text-xs font-bold" 
-          onClick={() => onAction('open-demand')}
+          onClick={() => onAction('view-details')}
+        >
+          <Eye className="size-3.5" /> Detalhes
+        </Button>
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="rounded-xl h-9 gap-2 text-xs font-bold" 
+          onClick={() => onAction('open')}
         >
           <ExternalLink className="size-3.5" /> Abrir
         </Button>
@@ -765,52 +773,34 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
             <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-40 px-3 py-2">
               Ações Rápidas
             </DropdownMenuLabel>
-            
+
+            <DropdownMenuItem onClick={() => onAction('open')} className="gap-2.5 cursor-pointer">
+              <ExternalLink className="size-4 text-primary" /> Abrir
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction('view-details')} className="gap-2.5 cursor-pointer">
+              <Eye className="size-4" /> Ver Detalhes
+            </DropdownMenuItem>
+
             {(item.type === 'demand' || item.type === 'report') && (
               <>
-                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
-                  <Zap className="size-4 text-primary" /> Abrir Demanda
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onAction('notify-provider')} className="gap-2.5 cursor-pointer">
                   <UserCheck className="size-4 text-blue-500" /> Notificar Prestador
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
                   <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
-                  <RefreshCcw className="size-4 text-amber-500" /> Alterar Status
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
-                  <UserPlus className="size-4 text-indigo-500" /> Delegar Prestador
-                </DropdownMenuItem>
               </>
             )}
 
             {item.type === 'client' && (
-              <>
-                <DropdownMenuItem onClick={() => navigate(`/clientes/${item.id}`)} className="gap-2.5 cursor-pointer">
-                  <Users className="size-4 text-primary" /> Ver Cliente
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
-                  <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
+                <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
+              </DropdownMenuItem>
             )}
 
             {item.type === 'document' && (
-              <>
-                <DropdownMenuItem onClick={() => onAction('request-doc')} className="gap-2.5 cursor-pointer">
-                  <Paperclip className="size-4 text-amber-500" /> Solicitar Documento
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
-                  <Send className="size-4 text-blue-500" /> Notificar Reenvio
-                </DropdownMenuItem>
-              </>
-            )}
-
-            {item.type === 'payment' && (
-              <DropdownMenuItem onClick={() => onAction('register-payment')} className="gap-2.5 cursor-pointer">
-                <DollarSign className="size-4 text-emerald-500" /> Registrar Pagamento
+              <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
+                <Send className="size-4 text-blue-500" /> Notificar Reenvio
               </DropdownMenuItem>
             )}
 
@@ -823,6 +813,15 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
             <DropdownMenuItem onClick={() => onAction('view-history')} className="gap-2.5 cursor-pointer">
               <HistoryIcon className="size-4" /> Ver Histórico
             </DropdownMenuItem>
+
+            {item.type !== 'client' && item.type !== 'report' && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onAction('delete')} className="gap-2.5 cursor-pointer text-rose-600 focus:text-rose-600">
+                  <Trash2 className="size-4" /> Excluir
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
