@@ -91,11 +91,16 @@ const emptyForm: FormState = {
   entity_id: "",
 };
 
+const toLocalDateKey = (d: Date | string) => {
+  const dt = typeof d === "string" ? new Date(d) : d;
+  return format(dt, "yyyy-MM-dd");
+};
+
 export default function Tasks() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [view, setView] = useState<"lista" | "kanban" | "calendario">("lista");
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("TUDO");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -103,6 +108,7 @@ export default function Tasks() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks-central"],
@@ -111,6 +117,7 @@ export default function Tasks() {
         .from("tasks")
         .select(`
           *,
+          assigned_user:profiles!tasks_assigned_to_fkey(id, full_name),
           client:clients(id, full_name),
           client_product:client_products(id, custom_product_name, products(name)),
           provider:service_providers(id, name),
@@ -120,7 +127,7 @@ export default function Tasks() {
         `)
         .order("due_date", { ascending: true, nullsFirst: false });
       if (error) {
-        // fallback if profiles join fails
+        // fallback se join falhar (FK ausente etc.)
         const r = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
         return r.data ?? [];
       }
@@ -158,6 +165,7 @@ export default function Tasks() {
     queryFn: async () => (await supabase.from("contracts").select("id, name").limit(300)).data ?? [],
   });
 
+
   const filtered = useMemo(() => {
     const today = startOfToday();
     let start = today;
@@ -175,8 +183,11 @@ export default function Tasks() {
     }
 
     return tasks.filter((t: any) => {
-      const createdAt = new Date(t.created_at);
-      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
+      // Período aplica em due_date; tarefas sem prazo são sempre visíveis (exceto buscas pontuais por status/prioridade)
+      if (rangeKey !== "TUDO" && t.due_date) {
+        const due = new Date(t.due_date);
+        if (due < start || due > end) return false;
+      }
       if (statusFilter !== "all" && t.status_new !== statusFilter) return false;
       if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       if (search) {
@@ -229,7 +240,7 @@ export default function Tasks() {
       priority: form.priority,
       status_new: form.status_new,
       status: form.status_new,
-      due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
+      due_date: form.due_date ? new Date(`${form.due_date}T12:00:00`).toISOString() : null,
       assigned_to: form.assigned_to || null,
       client_id: null,
       client_product_id: null,
@@ -253,19 +264,24 @@ export default function Tasks() {
 
   const save = async () => {
     if (!form.title.trim()) return toast.error("Título é obrigatório");
-    const payload = buildPayload();
-    if (editing) {
-      const { error } = await supabase.from("tasks").update(payload).eq("id", editing.id);
-      if (error) return toast.error(error.message);
-      toast.success("Tarefa atualizada");
-    } else {
-      const { error } = await supabase.from("tasks").insert({ ...payload, created_by: user?.id ?? null });
-      if (error) return toast.error(error.message);
-      toast.success("Tarefa criada");
+    setSaving(true);
+    try {
+      const payload = buildPayload();
+      if (editing) {
+        const { error } = await supabase.from("tasks").update(payload).eq("id", editing.id);
+        if (error) return toast.error(error.message);
+        toast.success("Tarefa atualizada");
+      } else {
+        const { error } = await supabase.from("tasks").insert({ ...payload, created_by: user?.id ?? null });
+        if (error) return toast.error(error.message);
+        toast.success("Tarefa criada");
+      }
+      setCreateOpen(false);
+      resetForm();
+      qc.invalidateQueries({ queryKey: ["tasks-central"] });
+    } finally {
+      setSaving(false);
     }
-    setCreateOpen(false);
-    resetForm();
-    qc.invalidateQueries({ queryKey: ["tasks-central"] });
   };
 
   const updateStatus = async (id: string, status_new: string) => {
@@ -301,6 +317,7 @@ export default function Tasks() {
     const sm = statusMeta(task.status_new);
     const pm = priorityMeta(task.priority);
     const overdue = isOverdue(task);
+    const isClosed = task.status_new === "concluida" || task.status_new === "cancelada";
     return (
       <div className={cn(
         "vx-card p-4 border hover:border-primary/30 transition-all flex items-center gap-4",
@@ -314,13 +331,33 @@ export default function Tasks() {
             <h4 className="text-sm font-bold truncate">{task.title}</h4>
             <Badge variant="outline" className={cn("text-[9px] h-4 px-1 uppercase", pm.color)}>{pm.label}</Badge>
             {overdue && <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase bg-destructive/10 text-destructive border-destructive/20">Atrasada</Badge>}
+            {!task.due_date && <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase">Sem prazo</Badge>}
           </div>
           <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground font-medium flex-wrap">
             <span className="flex items-center gap-1"><CalendarIcon className="size-3" /> {task.due_date ? formatDate(task.due_date) : "Sem prazo"}</span>
-            {task.assigned_user && <span className="flex items-center gap-1"><Clock className="size-3" /> {task.assigned_user.full_name}</span>}
+            {task.assigned_user?.full_name && <span className="flex items-center gap-1"><User className="size-3" /> {task.assigned_user.full_name}</span>}
             {renderEntity(task) && <span className="flex items-center gap-1">{renderEntity(task)}</span>}
           </div>
         </div>
+        {!isClosed ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+            onClick={() => updateStatus(task.id, "concluida")}
+          >
+            <CheckCircle2 className="size-3.5" /> Concluir
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1"
+            onClick={() => updateStatus(task.id, "a_fazer")}
+          >
+            Reabrir
+          </Button>
+        )}
         <Select value={task.status_new} onValueChange={(v) => updateStatus(task.id, v)}>
           <SelectTrigger className={cn("w-[170px] h-8 text-xs border", sm.color)}>
             <SelectValue />
@@ -346,15 +383,21 @@ export default function Tasks() {
     const map: Record<string, any[]> = {};
     filtered.forEach((t: any) => {
       if (!t.due_date) return;
-      const k = String(t.due_date).split("T")[0];
+      const k = toLocalDateKey(t.due_date);
       (map[k] ||= []).push(t);
     });
     return map;
   }, [filtered]);
 
-  const dayKey = (d?: Date) => d ? d.toISOString().split("T")[0] : "";
+  const dayKey = (d?: Date) => d ? toLocalDateKey(d) : "";
   const tasksOnDay = calendarDate ? (tasksByDate[dayKey(calendarDate)] ?? []) : [];
-  const datesWithTasks = useMemo(() => Object.keys(tasksByDate).map(k => new Date(k)), [tasksByDate]);
+  const datesWithTasks = useMemo(
+    () => Object.keys(tasksByDate).map(k => {
+      const [y, m, d] = k.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }),
+    [tasksByDate]
+  );
 
   const entityOptions = () => {
     switch (form.entity_type) {
@@ -409,19 +452,6 @@ export default function Tasks() {
       />
       
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-7 pb-10">
-        <div className="hidden grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total", count: stats.total, tone: "text-primary bg-primary/5 border-primary/10" },
-          { label: "Urgentes", count: stats.urgent, tone: "text-amber-600 bg-amber-50 border-amber-100" },
-          { label: "Atrasadas", count: stats.overdue, tone: "text-destructive bg-destructive/5 border-destructive/10" },
-          { label: "Concluídas", count: stats.done, tone: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-        ].map((s, i) => (
-          <div key={i} className={cn("vx-card p-4 flex flex-col items-center justify-center text-center border", s.tone)}>
-            <p className="text-[10px] uppercase font-bold opacity-80">{s.label}</p>
-            <p className="text-3xl font-black mt-1">{s.count}</p>
-          </div>
-        ))}
-        </div>
 
         <div className="vx-card p-4 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -447,9 +477,18 @@ export default function Tasks() {
 
         <Tabs value={view} onValueChange={(v) => setView(v as any)}>
           <TabsList>
-            <TabsTrigger value="lista" className="gap-2"><LayoutList className="size-4" /> Lista</TabsTrigger>
-            <TabsTrigger value="kanban" className="gap-2"><Columns3 className="size-4" /> Kanban</TabsTrigger>
-            <TabsTrigger value="calendario" className="gap-2"><CalendarDays className="size-4" /> Calendário</TabsTrigger>
+            <TabsTrigger value="lista" className="gap-2">
+              <LayoutList className="size-4" /> Lista
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{filtered.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="kanban" className="gap-2">
+              <Columns3 className="size-4" /> Kanban
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{filtered.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="calendario" className="gap-2">
+              <CalendarDays className="size-4" /> Calendário
+              <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{filtered.filter((t: any) => t.due_date).length}</Badge>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="lista" className="space-y-3 mt-4">
@@ -458,10 +497,30 @@ export default function Tasks() {
             ) : filtered.length === 0 ? (
               <div className="p-12 text-center vx-card border-dashed">
                 <ClipboardList className="size-10 mx-auto text-muted-foreground/30 mb-3" />
-                <p className="text-muted-foreground">Nenhuma tarefa encontrada.</p>
+                {tasks.length === 0 ? (
+                  <>
+                    <p className="text-muted-foreground mb-4">Nenhuma tarefa criada ainda.</p>
+                    <Button onClick={() => { resetForm(); setCreateOpen(true); }} className="gap-2 bg-gradient-primary">
+                      <Plus className="size-4" /> Criar primeira tarefa
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground mb-4">Nenhuma tarefa nos filtros atuais.</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearch(""); setStatusFilter("all"); setPriorityFilter("all"); setRangeKey("TUDO");
+                      }}
+                    >
+                      Limpar filtros
+                    </Button>
+                  </>
+                )}
               </div>
             ) : filtered.map((t: any) => <TaskRow key={t.id} task={t} />)}
           </TabsContent>
+
 
           <TabsContent value="kanban" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -608,8 +667,8 @@ export default function Tasks() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setCreateOpen(false); resetForm(); }}>Cancelar</Button>
-            <Button onClick={save} className="bg-gradient-primary">
-              {editing ? "Salvar Alterações" : "Criar Tarefa"}
+            <Button onClick={save} disabled={saving} className="bg-gradient-primary">
+              {saving ? "Salvando..." : (editing ? "Salvar Alterações" : "Criar Tarefa")}
             </Button>
           </DialogFooter>
         </DialogContent>
