@@ -200,7 +200,7 @@ export default function Sales() {
     qc.invalidateQueries({ queryKey: ["dashboard"] });
   };
 
-  const updateStatus = async (s: any, next: StatusKey) => {
+  const updateStatus = async (s: any, next: Exclude<StatusKey, "todos">) => {
     if (!canManage) return;
     if (s.status === next) { toast.info("Status já está aplicado"); return; }
     if (s.status === "concluida" && next === "cancelada") {
