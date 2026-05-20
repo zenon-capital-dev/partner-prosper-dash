@@ -196,8 +196,8 @@ export default function Partners() {
       has_system_access: form.has_system_access ?? false,
     };
     const { data: partner, error } = editing
-      ? await supabase.from("partners").update(payload).eq("id", editing.id).select().single()
-      : await supabase.from("partners").insert(payload).select().single();
+      ? await supabase.from("partners").update(payload as any).eq("id", editing.id).select().single()
+      : await supabase.from("partners").insert(payload as any).select().single();
 
     if (error) { 
       setSubmitting(false);
