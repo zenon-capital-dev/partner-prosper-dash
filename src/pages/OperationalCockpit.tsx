@@ -6,7 +6,7 @@ import {
   Zap, MoreHorizontal, ExternalLink,
   PlusCircle, CheckSquare, UserCheck, DollarSign,
   RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle,
-  Search, History as HistoryIcon, ArrowRight, UserPlus
+  Search, History as HistoryIcon, ArrowRight, UserPlus, Eye, Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { format, isToday, isBefore, subDays, startOfDay } from "date-fns";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { format, isToday, isBefore, subDays, startOfDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -114,18 +119,20 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("documents")
         .select(`
-          id, status, name, created_at,
+          id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["enviado", "reprovado", "em_analise"]);
+        .in("status", ["solicitado", "enviado", "em_analise", "reprovado"]);
       
       if (error) throw error;
       
-      return (data as any[]).map(d => ({
+      return (data as any[])
+        .filter(d => d.client_id) // skip orphans
+        .map(d => ({
         id: d.id,
         type: 'document',
         title: d.name || "Documento",
-        subtitle: `${d.client?.full_name || 'Cliente desconhecido'} - ${d.status === 'enviado' ? 'Aguardando Análise' : 'Reprovado / Reenvio'}`,
+        subtitle: `${d.client?.full_name || 'Cliente desconhecido'} - ${d.status === 'enviado' ? 'Aguardando Análise' : d.status === 'reprovado' ? 'Reprovado / Reenvio' : d.status === 'em_analise' ? 'Em Análise' : 'Solicitado'}`,
         status: d.status,
         date: d.created_at,
         severity: d.status === 'reprovado' ? 'high' : 'medium',
@@ -169,19 +176,19 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("commissions")
         .select(`
-          id, status, amount, created_at,
-          partner:partners(id, full_name)
+          id, status, workflow_status, amount, created_at,
+          partner:partners(id, full_name, user_id)
         `)
-        .eq("status", "pendente");
+        .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"]);
       
       if (error) throw error;
       
       return data.map(c => ({
         id: c.id,
         type: 'commission',
-        title: `Comissão R$ ${c.amount.toLocaleString('pt-BR')}`,
-        subtitle: (c.partner as any)?.full_name,
-        status: c.status,
+        title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR')}`,
+        subtitle: (c.partner as any)?.full_name || 'Parceiro desconhecido',
+        status: (c as any).workflow_status || c.status,
         date: c.created_at,
         severity: 'medium',
         metadata: c
@@ -196,75 +203,88 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("contracts")
         .select(`
-          id, status, name, created_at,
+          id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["criado", "aguardando_assinatura", "enviado"]);
+        .in("status", ["rascunho", "criado", "enviado", "aguardando_assinatura", "pendente_correcao"]);
       
       if (error) throw error;
       
-      return (data as any[]).map(c => ({
-        id: c.id,
-        type: 'contract',
-        title: c.name || "Contrato",
-        subtitle: c.client?.full_name || 'Cliente desconhecido',
-        status: c.status,
-        date: c.created_at,
-        severity: 'high',
-        metadata: c
-      })) as CockpitItem[];
+      return (data as any[])
+        .filter(c => c.client_id)
+        .map(c => ({
+          id: c.id,
+          type: 'contract',
+          title: c.name || "Contrato",
+          subtitle: c.client?.full_name || 'Cliente desconhecido',
+          status: c.status,
+          date: c.created_at,
+          severity: c.status === 'pendente_correcao' ? 'critical' : 'high',
+          metadata: c
+        })) as CockpitItem[];
     }
   });
 
-  // 7. Tarefas urgentes
+  // 7. Tarefas urgentes (vencidas ou alta/urgente vencendo em 3 dias)
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ["cockpit-tasks"],
     queryFn: async () => {
+      const now = new Date();
+      const in3days = addDays(now, 3).toISOString();
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
         .neq("status", "concluido")
-        .or(`priority.eq.high,due_date.lte.${new Date().toISOString()}`);
+        .not("due_date", "is", null)
+        .lte("due_date", in3days);
       
       if (error) throw error;
       
-      return data.map(t => ({
-        id: t.id,
-        type: 'task',
-        title: t.title,
-        subtitle: t.description || "Sem descrição",
-        status: t.status,
-        date: t.due_date,
-        severity: t.priority === 'high' ? 'critical' : 'high',
-        metadata: t
-      })) as CockpitItem[];
+      return data
+        .filter(t => {
+          const overdue = isBefore(new Date(t.due_date), startOfDay(now));
+          const highPriority = t.priority === 'alta' || t.priority === 'urgente';
+          return overdue || highPriority;
+        })
+        .map(t => ({
+          id: t.id,
+          type: 'task',
+          title: t.title,
+          subtitle: t.description || "Sem descrição",
+          status: t.status,
+          date: t.due_date,
+          severity: (isBefore(new Date(t.due_date), startOfDay(now)) ? 'critical' : (t.priority === 'urgente' ? 'critical' : 'high')) as any,
+          metadata: t
+        })) as CockpitItem[];
     }
   });
 
-  // 8. Solicitações abertas
+  // 8. Solicitações de documento abertas
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
     queryKey: ["cockpit-requests"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("document_requests")
         .select(`
-          id, status, request_title, requested_at,
+          id, status, request_title, requested_at, client_id,
           client:clients(id, full_name)
         `)
-        .eq("status", "pendente");
+        .in("status", ["pendente", "enviado", "em_analise"]);
       
       if (error) throw error;
       
-      return (data as any[]).map(r => ({
-        id: r.id,
-        type: 'request',
-        title: r.request_title || "Solicitação de Documento",
-        subtitle: r.client?.full_name || 'Cliente desconhecido',
-        status: r.status,
-        date: r.requested_at,
-        severity: 'medium',
-        metadata: r
-      })) as CockpitItem[];
+      return (data as any[])
+        .filter(r => r.client_id)
+        .map(r => ({
+          id: r.id,
+          type: 'request',
+          title: r.request_title || "Solicitação de Documento",
+          subtitle: r.client?.full_name || 'Cliente desconhecido',
+          status: r.status,
+          date: r.requested_at,
+          severity: 'medium',
+          metadata: r
+        })) as CockpitItem[];
     }
   });
 
@@ -309,6 +329,9 @@ export default function OperationalCockpit() {
 
   // --- Actions ---
 
+  const [detailItem, setDetailItem] = useState<CockpitItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<CockpitItem | null>(null);
+
   const notifyMutation = useMutation({
     mutationFn: async ({ userId, title, message }: { userId: string, title: string, message: string }) => {
       const { error } = await supabase.from("notifications").insert({
@@ -327,13 +350,64 @@ export default function OperationalCockpit() {
     }
   });
 
+  const tableByType: Record<string, string | null> = {
+    demand: 'client_products',
+    document: 'documents',
+    payment: 'payments',
+    commission: 'commissions',
+    contract: 'contracts',
+    task: 'tasks',
+    request: 'document_requests',
+    client: null,   // não excluir cliente daqui
+    report: null,   // alerta derivado
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: async (item: CockpitItem) => {
+      const table = tableByType[item.type];
+      if (!table) throw new Error('Este tipo de alerta não pode ser excluído daqui.');
+      const { error } = await supabase.from(table as any).delete().eq('id', item.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Item excluído.");
+      queryClient.invalidateQueries();
+      setDeleteItem(null);
+      setDetailItem(null);
+    },
+    onError: (e: any) => toast.error("Erro ao excluir: " + e.message),
+  });
+
+  const openItem = (item: CockpitItem) => {
+    switch (item.type) {
+      case 'demand':
+      case 'report':
+        navigate(`/demandas/${item.id}`); break;
+      case 'client':
+        navigate(`/clientes/${item.id}`); break;
+      case 'document':
+      case 'request':
+        navigate(`/documentos`); break;
+      case 'payment':
+        navigate(`/financeiro`); break;
+      case 'commission':
+        navigate(`/comissoes`); break;
+      case 'contract':
+        navigate(`/contratos`); break;
+      case 'task':
+        navigate(`/tarefas`); break;
+    }
+  };
+
   const handleAction = (action: string, item: CockpitItem) => {
     switch (action) {
-      case 'open-demand':
-        if (item.type === 'demand' || item.type === 'report') navigate(`/demandas/${item.id}`);
-        else if (item.metadata.client_product_id) navigate(`/demandas/${item.metadata.client_product_id}`);
-        break;
-      case 'notify-client':
+      case 'open':
+        openItem(item); break;
+      case 'view-details':
+        setDetailItem(item); break;
+      case 'delete':
+        setDeleteItem(item); break;
+      case 'notify-client': {
         const clientUserId = item.metadata.client?.user_id || item.metadata.user_id;
         if (clientUserId) {
           notifyMutation.mutate({
@@ -345,7 +419,8 @@ export default function OperationalCockpit() {
           toast.error("Usuário do cliente não encontrado.");
         }
         break;
-      case 'notify-provider':
+      }
+      case 'notify-provider': {
         const providerUserId = item.metadata.provider?.user_id || item.metadata.service_provider_id;
         if (providerUserId) {
           notifyMutation.mutate({
@@ -357,18 +432,11 @@ export default function OperationalCockpit() {
           toast.error("Usuário do prestador não encontrado.");
         }
         break;
-      case 'request-doc':
-        navigate(`/documentos`);
-        break;
+      }
       case 'create-task':
-        navigate(`/tarefas`);
-        break;
+        navigate(`/tarefas`); break;
       case 'view-history':
-        navigate(`/auditoria`);
-        break;
-      case 'register-payment':
-        navigate(`/financeiro`);
-        break;
+        navigate(`/auditoria`); break;
       default:
         toast.info(`Ação "${action}" em desenvolvimento.`);
     }
@@ -486,12 +554,17 @@ export default function OperationalCockpit() {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-          <TabsList className="bg-slate-100 rounded-xl p-1">
+          <TabsList className="bg-slate-100 rounded-xl p-1 flex-wrap h-auto">
             <TabsTrigger value="all" className="rounded-lg text-xs">Todos</TabsTrigger>
             <TabsTrigger value="demand" className="rounded-lg text-xs">Demandas</TabsTrigger>
             <TabsTrigger value="document" className="rounded-lg text-xs">Documentos</TabsTrigger>
+            <TabsTrigger value="request" className="rounded-lg text-xs">Solicitações</TabsTrigger>
             <TabsTrigger value="payment" className="rounded-lg text-xs">Financeiro</TabsTrigger>
+            <TabsTrigger value="commission" className="rounded-lg text-xs">Comissões</TabsTrigger>
+            <TabsTrigger value="contract" className="rounded-lg text-xs">Contratos</TabsTrigger>
             <TabsTrigger value="task" className="rounded-lg text-xs">Tarefas</TabsTrigger>
+            <TabsTrigger value="client" className="rounded-lg text-xs">Clientes</TabsTrigger>
+            <TabsTrigger value="report" className="rounded-lg text-xs">Reportes</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -521,6 +594,75 @@ export default function OperationalCockpit() {
           </div>
         )}
       </div>
+
+      {/* DETAILS SHEET */}
+      <Sheet open={!!detailItem} onOpenChange={(o) => !o && setDetailItem(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {detailItem && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{detailItem.title}</SheetTitle>
+                <SheetDescription>{detailItem.subtitle}</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-3 text-sm">
+                <DetailRow label="Tipo" value={detailItem.type} />
+                {detailItem.status && <DetailRow label="Status" value={String(detailItem.status)} />}
+                <DetailRow label="Severidade" value={detailItem.severity} />
+                {detailItem.date && (
+                  <DetailRow label="Data" value={format(new Date(detailItem.date), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
+                )}
+                <div className="pt-4 border-t">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Dados completos</p>
+                  <pre className="text-[11px] bg-slate-50 p-3 rounded-lg overflow-auto max-h-72 border border-slate-200">
+{JSON.stringify(detailItem.metadata, null, 2)}
+                  </pre>
+                </div>
+              </div>
+              <SheetFooter className="mt-6 flex-row gap-2 sm:flex-row">
+                <Button className="flex-1" onClick={() => { openItem(detailItem); setDetailItem(null); }}>
+                  <ExternalLink className="size-4 mr-2" /> Abrir página
+                </Button>
+                {tableByType[detailItem.type] && (
+                  <Button variant="destructive" onClick={() => setDeleteItem(detailItem)}>
+                    <Trash2 className="size-4 mr-2" /> Excluir
+                  </Button>
+                )}
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* DELETE CONFIRM */}
+      <AlertDialog open={!!deleteItem} onOpenChange={(o) => !o && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir este item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteItem?.title} — {deleteItem?.subtitle}. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-rose-600 hover:bg-rose-700"
+              onClick={() => deleteItem && deleteMutation.mutate(deleteItem)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4 py-2 border-b border-slate-100">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold text-slate-900 text-right break-all">{value}</span>
     </div>
   );
 }
@@ -608,7 +750,15 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
           variant="ghost" 
           size="sm" 
           className="rounded-xl h-9 gap-2 text-xs font-bold" 
-          onClick={() => onAction('open-demand')}
+          onClick={() => onAction('view-details')}
+        >
+          <Eye className="size-3.5" /> Detalhes
+        </Button>
+        <Button 
+          variant="default" 
+          size="sm" 
+          className="rounded-xl h-9 gap-2 text-xs font-bold" 
+          onClick={() => onAction('open')}
         >
           <ExternalLink className="size-3.5" /> Abrir
         </Button>
@@ -623,52 +773,34 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
             <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-40 px-3 py-2">
               Ações Rápidas
             </DropdownMenuLabel>
-            
+
+            <DropdownMenuItem onClick={() => onAction('open')} className="gap-2.5 cursor-pointer">
+              <ExternalLink className="size-4 text-primary" /> Abrir
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction('view-details')} className="gap-2.5 cursor-pointer">
+              <Eye className="size-4" /> Ver Detalhes
+            </DropdownMenuItem>
+
             {(item.type === 'demand' || item.type === 'report') && (
               <>
-                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
-                  <Zap className="size-4 text-primary" /> Abrir Demanda
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onAction('notify-provider')} className="gap-2.5 cursor-pointer">
                   <UserCheck className="size-4 text-blue-500" /> Notificar Prestador
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
                   <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
-                  <RefreshCcw className="size-4 text-amber-500" /> Alterar Status
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('open-demand')} className="gap-2.5 cursor-pointer">
-                  <UserPlus className="size-4 text-indigo-500" /> Delegar Prestador
-                </DropdownMenuItem>
               </>
             )}
 
             {item.type === 'client' && (
-              <>
-                <DropdownMenuItem onClick={() => navigate(`/clientes/${item.id}`)} className="gap-2.5 cursor-pointer">
-                  <Users className="size-4 text-primary" /> Ver Cliente
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
-                  <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
+                <MessageCircle className="size-4 text-emerald-500" /> Notificar Cliente
+              </DropdownMenuItem>
             )}
 
             {item.type === 'document' && (
-              <>
-                <DropdownMenuItem onClick={() => onAction('request-doc')} className="gap-2.5 cursor-pointer">
-                  <Paperclip className="size-4 text-amber-500" /> Solicitar Documento
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
-                  <Send className="size-4 text-blue-500" /> Notificar Reenvio
-                </DropdownMenuItem>
-              </>
-            )}
-
-            {item.type === 'payment' && (
-              <DropdownMenuItem onClick={() => onAction('register-payment')} className="gap-2.5 cursor-pointer">
-                <DollarSign className="size-4 text-emerald-500" /> Registrar Pagamento
+              <DropdownMenuItem onClick={() => onAction('notify-client')} className="gap-2.5 cursor-pointer">
+                <Send className="size-4 text-blue-500" /> Notificar Reenvio
               </DropdownMenuItem>
             )}
 
@@ -681,6 +813,15 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
             <DropdownMenuItem onClick={() => onAction('view-history')} className="gap-2.5 cursor-pointer">
               <HistoryIcon className="size-4" /> Ver Histórico
             </DropdownMenuItem>
+
+            {item.type !== 'client' && item.type !== 'report' && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onAction('delete')} className="gap-2.5 cursor-pointer text-rose-600 focus:text-rose-600">
+                  <Trash2 className="size-4" /> Excluir
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
