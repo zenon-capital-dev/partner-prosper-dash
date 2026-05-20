@@ -257,6 +257,7 @@ export default function DashboardAdmin() {
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
+      todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount,
     };
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday]);
 
