@@ -66,12 +66,16 @@ export default function Atuacoes() {
   const [openCreate, setOpenCreate] = useState(false);
   const [executing, setExecuting] = useState<DailyAction | null>(null);
   const [reschedule, setReschedule] = useState<DailyAction | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
+  const [deleting, setDeleting] = useState<DailyAction | null>(null);
+  const [cancelling, setCancelling] = useState<DailyAction | null>(null);
+  const [historyResult, setHistoryResult] = useState<string>("all");
+  const [historyRange, setHistoryRange] = useState<"7" | "30" | "all">("30");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("new") === "true") {
       setOpenCreate(true);
-      // Limpa a URL para não abrir de novo no refresh
       window.history.replaceState({}, "", "/atuacoes");
     }
   }, []);
@@ -93,31 +97,45 @@ export default function Atuacoes() {
   });
 
   const filtered = useMemo(() => {
-    const today = startOfDay(new Date());
+    const todayStr = format(new Date(), "yyyy-MM-dd");
     const term = search.trim().toLowerCase();
     const match = (a: DailyAction) =>
       !term ||
       a.client?.full_name?.toLowerCase().includes(term) ||
       a.client?.company?.toLowerCase().includes(term) ||
-      a.notes?.toLowerCase().includes(term);
+      a.notes?.toLowerCase().includes(term) ||
+      a.execution_notes?.toLowerCase().includes(term);
 
     const pending = actions.filter((a) => a.status === "pendente");
-    const hoje = pending.filter((a) => isToday(parseISO(a.scheduled_date))).filter(match);
-    const atrasadas = pending
-      .filter((a) => isPast(parseISO(a.scheduled_date)) && !isToday(parseISO(a.scheduled_date)))
-      .filter(match);
-    const proximas = pending.filter((a) => isFuture(parseISO(a.scheduled_date))).filter(match);
-    const historico = actions
+    const hoje = pending.filter((a) => a.scheduled_date === todayStr).filter(match);
+    const atrasadas = pending.filter((a) => a.scheduled_date < todayStr).filter(match);
+    const proximas = pending.filter((a) => a.scheduled_date > todayStr).filter(match);
+
+    let historico = actions
       .filter((a) => a.status !== "pendente")
       .filter(match)
       .sort((a, b) => (b.executed_at ?? b.created_at).localeCompare(a.executed_at ?? a.created_at));
 
+    if (historyResult !== "all") {
+      historico = historico.filter((a) =>
+        historyResult === "cancelada" ? a.status === "cancelada" : a.result === historyResult,
+      );
+    }
+    if (historyRange !== "all") {
+      const days = parseInt(historyRange, 10);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      const cutoffStr = format(cutoff, "yyyy-MM-dd");
+      historico = historico.filter((a) => (a.executed_at ?? a.created_at).slice(0, 10) >= cutoffStr);
+    }
+
     const executadasHoje = actions.filter(
-      (a) => a.status === "executada" && a.executed_at && isToday(parseISO(a.executed_at))
+      (a) => a.status === "executada" && a.executed_at && a.executed_at.slice(0, 10) === todayStr,
     ).length;
 
-    return { hoje, atrasadas, proximas, historico, executadasHoje, today };
-  }, [actions, search]);
+    return { hoje, atrasadas, proximas, historico, executadasHoje, todayStr };
+  }, [actions, search, historyResult, historyRange]);
+
 
   const executeMut = useMutation({
     mutationFn: async ({ id, result, execution_notes }: { id: string; result: string; execution_notes: string }) => {
