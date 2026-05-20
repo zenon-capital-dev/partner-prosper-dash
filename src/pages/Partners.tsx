@@ -220,7 +220,7 @@ export default function Partners() {
       bank_agency: form.bank_agency || null,
       bank_account: form.bank_account || null,
       partner_category: form.partner_category || "indicador",
-      partner_type: form.partner_type ?? null,
+      partner_type: form.partner_type || (form.partner_category === "indicador" ? "indicador" : "parceiro"),
       commission_percent: pct,
       default_commission_value: form.default_commission_value != null && form.default_commission_value !== ""
         ? Number(form.default_commission_value) : null,
