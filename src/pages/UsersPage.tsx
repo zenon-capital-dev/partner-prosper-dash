@@ -561,7 +561,10 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
     if (form.phone && !isValidPhoneBR(form.phone)) return toast.error("Telefone inválido");
     if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) return toast.error("CPF/CNPJ inválido");
     if (form.role === "admin" && !canPromoteAdmin) return toast.error("Apenas o admin principal pode criar outro admin");
-    if (form.mode === "password" && form.password && form.password.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
+    if (form.mode === "password" && form.password) {
+      const check = validatePassword(form.password);
+      if (!check.ok) return toast.error("Senha inválida: " + check.errors.join(", "));
+    }
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("invite-user", {
