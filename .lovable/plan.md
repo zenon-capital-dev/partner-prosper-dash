@@ -1,44 +1,44 @@
-Plano para deixar a aba Indicadores consistente, estável e sem os bugs atuais:
+Plano para deixar a aba Colaboradores no mesmo padrão premium das demais (Parceiros, Prestadores, Indicadores), sem mexer em RLS, schema ou edge functions.
 
-1. Reestruturar a página visualmente
-- Trocar o layout antigo por `PageHero`, cards claros premium e tabela com `bg-white`, `border-slate-200/70`, `rounded-lg`, `shadow-sm`.
-- Remover aparência escura/legada (`vx-card`, `muted` genérico em excesso) e alinhar com Parceiros/Prestadores.
-- Criar modo lista e grid para facilitar leitura em desktop e mobile.
+1. Cabeçalho e visual
+- Trocar o header artesanal por `PageHero` (ícone, eyebrow, KPIs clicáveis).
+- Aplicar tema claro premium: `bg-white border-slate-200/70 rounded-lg shadow-sm`, tipografia Inter + JetBrains Mono nos números.
+- Botão primário `bg-indigo-600`, ações secundárias outline.
 
-2. Corrigir busca, filtros e paginação
-- Implementar busca normalizada sem acentos por nome, email, documento, telefone e PIX.
-- Adicionar filtros: status ativo/inativo, acesso ao painel com/sem `user_id`, e situação financeira com pendências.
-- Resetar paginação ao alterar busca, filtros ou ordenação.
-- Mostrar chips de filtros ativos com opção de limpar individualmente.
+2. Busca, filtros e paginação
+- Busca normalizada (sem acento) por nome, e-mail, telefone e observações.
+- Filtros: função (admin / admin_secondary / colaborador / todos), status (ativo / inativo / todos) e acesso ao sistema (com / sem / todos).
+- Chips de filtros ativos com X e botão "Limpar tudo".
+- Reset de paginação ao alterar busca, filtros ou ordenação.
 
-3. Corrigir métricas e enriquecimento de dados
-- Calcular comissões geradas, pagas, pendentes e clientes indicados a partir de `commission_splits` e `clients.referrer_id`.
-- Evitar contagens erradas usando `Set` quando necessário.
-- Ajustar KPIs para serem úteis e clicáveis: total, ativos, clientes indicados, comissões geradas, a pagar.
+3. KPIs reais
+- Total, ativos, com acesso ao sistema e admins. Clicáveis para aplicar filtro correspondente.
 
-4. Melhorar tabela, ordenação e grid
-- Adicionar `SortableTh` para ordenar por nome, clientes, comissões, pendente, percentual, status e recência.
-- Tabela com colunas mais claras: indicador, contato, documento/PIX, comissão padrão, clientes, pago, a pagar, acesso e status.
-- Cards no grid com avatar, contato, métricas principais e ações equivalentes à tabela.
+4. Tabela com ordenação e segurança
+- `SortableTh` para nome, função, status, acesso e criação.
+- Ações restritas a `isAdmin || isAdminSecondary` (`canManage`). Colaborador comum só vê a lista.
+- Bloquear auto-rebaixamento/auto-exclusão do próprio usuário e impedir remover/rebaixar o último admin (validação no front; banco continua sendo a fonte de verdade).
+- Confirmação ao desativar / remover acesso ao sistema de um admin.
+- Invalidar queries relacionadas (`collaborators-list`, `dashboard`) após mutações.
 
-5. Corrigir ações e segurança de UI
-- Manter criação/edição/exclusão/ativação somente para `admin` e `admin_secondary`.
-- Ao desativar indicador com clientes ou comissões pendentes, pedir confirmação explícita.
-- Ao excluir, manter proteção contra vínculos existentes e sugerir desativar quando houver bloqueio.
-- Invalidar todas as queries relacionadas após mutações: indicadores, splits, clientes e dashboard.
+5. Modo grid alternativo (opcional)
+- Cards com avatar, função, status, contato e ações rápidas — mesmo layout dos prestadores/indicadores.
 
-6. Fortalecer formulário
-- Validar nome obrigatório, email válido, percentual entre 0 e 100, e CPF/CNPJ com tamanho plausível quando informado.
-- Normalizar payload para evitar strings vazias no banco.
-- Mensagens de erro mais claras e consistentes.
+6. Diálogos
+- Mesmo dialog branco premium, inputs consistentes.
+- Validar e-mail, nome obrigatório e função.
+- Continuar usando a edge function `invite-user` para criação; apenas reorganizar visual e mensagens.
+- Botão "Copiar senha" mantém comportamento atual.
 
-7. Exportação e estados da tela
-- Adicionar exportação CSV respeitando filtros atuais, apenas para quem pode gerenciar.
-- Criar loading skeletons para lista/grid.
-- Melhorar empty state diferenciando “sem cadastro” de “nenhum resultado para os filtros”.
+7. Estados
+- Skeletons claros para lista (e grid se ativado).
+- Empty state diferenciando "sem cadastro" de "sem resultado para os filtros".
+
+8. Exportação CSV
+- Exportar lista filtrada (nome, e-mail, telefone, função, status, acesso, criado em) para admins.
 
 Arquivos previstos:
-- `src/pages/Indicators.tsx`
+- `src/pages/Collaborators.tsx`
 
 Fora do escopo:
-- Sem alteração em banco, RLS, `types.ts`, painel do indicador (`/indicador`) ou outras abas.
+- Sem alterações em banco, RLS, edge functions, `types.ts`, painel do colaborador (`/colaborador`) ou outras abas.
