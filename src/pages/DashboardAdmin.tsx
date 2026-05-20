@@ -109,7 +109,7 @@ export default function DashboardAdmin() {
 
   const stats = useMemo(() => {
     const now = new Date();
-    const toISO = (d: Date) => d.toISOString().slice(0, 10);
+    const toISO = toLocalISO;
     let rangeStart = new Date(brasiliaToday);
     const rangeEnd = new Date(brasiliaToday);
     if (rangeKey === "7D") rangeStart.setDate(brasiliaToday.getDate() - 6);
@@ -117,6 +117,7 @@ export default function DashboardAdmin() {
     else if (rangeKey === "MÊS") rangeStart = new Date(brasiliaToday.getFullYear(), brasiliaToday.getMonth(), 1);
     const startISO = toISO(rangeStart);
     const endISO = toISO(rangeEnd);
+    const todayISO = toISO(brasiliaToday);
 
     const filteredSales = sales.filter((s: any) => s.sale_date && s.sale_date >= startISO && s.sale_date <= endISO);
     const rangeRevenue = filteredSales.reduce((a, s: any) => a + Number(s.amount || 0), 0);
@@ -133,12 +134,13 @@ export default function DashboardAdmin() {
     const activeClients = clients.filter((c: any) => c.status === "ativo").length;
     const newClientsRange = clients.filter((c: any) => c.created_at && c.created_at.slice(0,10) >= startISO).length;
 
+    const isDoneDemand = (s: string) => ["concluido", "concluida", "cancelado", "cancelada"].includes(s);
     const delayedDemands = clientProducts.filter((p: any) =>
       p.status === "atrasado" ||
-      (p.deadline && new Date(p.deadline) < now && !["concluido", "cancelado"].includes(p.status))
+      (p.deadline && toISO(new Date(p.deadline)) < todayISO && !isDoneDemand(p.status))
     ).length;
     const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio"].includes(p.status)).length;
-    const completedDemands = clientProducts.filter((p: any) => p.status === "concluido").length;
+    const completedDemands = clientProducts.filter((p: any) => p.status === "concluido" || p.status === "concluida").length;
 
     const pipelineTotal = leads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
     const wonLeads = leads.filter((l: any) => l.status === "ganho" || l.status === "convertido").length;
@@ -148,9 +150,10 @@ export default function DashboardAdmin() {
     const openContracts = contracts.filter((c: any) => ["criado", "enviado", "aguardando_assinatura"].includes(c.status)).length;
     const waitingSignatureContracts = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
     const pendingDocs = docRequests.filter((d: any) => ["solicitado", "pendente_correcao", "pendente", "enviado", "em_analise"].includes(d.status)).length;
-    const overdueTasks = tasks.filter((t: any) => t.status !== "concluida" && t.status !== "completed" && t.due_date && new Date(t.due_date) < now).length;
-    const todayTasks = tasks.filter((t: any) => t.due_date && new Date(t.due_date).toDateString() === now.toDateString()).length;
-    const openTasks = tasks.filter((t: any) => t.status !== "concluida" && t.status !== "completed").length;
+    const isTaskOpen = (t: any) => t.status !== "concluida" && t.status !== "completed" && t.status !== "done";
+    const overdueTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) < todayISO).length;
+    const todayTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) === todayISO).length;
+    const openTasks = tasks.filter(isTaskOpen).length;
 
     const commissionsToPay = commissions
       .filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status))
@@ -158,7 +161,6 @@ export default function DashboardAdmin() {
     const commissionsCount = commissions.filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status)).length;
 
     const in7d = new Date(brasiliaToday); in7d.setDate(brasiliaToday.getDate() + 7);
-    const todayISO = toISO(brasiliaToday);
     const in7ISO = toISO(in7d);
     const receivable7d = payments
       .filter((p: any) => ["pendente", "em_aberto", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date >= todayISO && p.due_date <= in7ISO)
@@ -170,13 +172,49 @@ export default function DashboardAdmin() {
     const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
     const receivedTotal = payments.filter((p: any) => p.status === "pago").reduce((a, p: any) => a + Number(p.amount_paid || 0), 0);
 
-    const len = rangeKey === "HOJE" ? 14 : rangeKey === "7D" ? 14 : 30;
+    // Chart length matches the selected range exactly (HOJE = últimos 7 dias para contexto).
+    const len =
+      rangeKey === "HOJE" ? 7 :
+      rangeKey === "7D" ? 7 :
+      rangeKey === "30D" ? 30 :
+      /* MÊS */ (brasiliaToday.getDate());
     const chartData = Array.from({ length: len }).map((_, i) => {
       const d = new Date(brasiliaToday); d.setDate(brasiliaToday.getDate() - (len - 1 - i));
       const iso = toISO(d);
       const value = sales.filter((s: any) => s.sale_date === iso).reduce((a, s: any) => a + Number(s.amount || 0), 0);
-      return { name: format(d, "dd/MM"), value };
+      return { name: format(d, "dd/MM"), value, isToday: iso === todayISO };
     });
+
+    // ============ PENDÊNCIAS DE HOJE ============
+    const todayTasksList = tasks
+      .filter((t: any) => isTaskOpen(t) && t.due_date && toISO(new Date(t.due_date)) === todayISO)
+      .slice(0, 5)
+      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? format(new Date(t.due_date), "HH:mm") : null }));
+
+    const todayDemandsList = clientProducts
+      .filter((p: any) => !isDoneDemand(p.status) && p.deadline && toISO(new Date(p.deadline)) === todayISO)
+      .slice(0, 5)
+      .map((p: any) => {
+        const client = clients.find((c: any) => c.id === p.client_id);
+        return { id: p.id, title: client?.full_name || "Cliente", subtitle: p.status };
+      });
+
+    const todayDocsList = docRequests
+      .filter((d: any) => ["enviado", "em_analise"].includes(d.status))
+      .slice(0, 5)
+      .map((d: any) => {
+        const client = clients.find((c: any) => c.id === d.client_id);
+        return { id: d.id, title: d.request_title || "Documento", subtitle: client?.full_name || "Cliente" };
+      });
+
+    const todayContractsList = contracts
+      .filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status))
+      .slice(0, 5)
+      .map((c: any) => ({ id: c.id, title: c.name || "Contrato", subtitle: "Aguardando assinatura" }));
+
+    const todayPendingCount =
+      todayTasksList.length + todayDemandsList.length + todayDocsList.length + todayContractsList.length;
+
 
     const demandsByStatus = [
       { name: "Em andamento", value: clientProducts.filter((p: any) => p.status === "em_andamento").length, color: "#4f46e5" },
