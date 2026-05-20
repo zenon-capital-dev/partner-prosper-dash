@@ -745,8 +745,16 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
   if (!user) return null;
 
   const handleSave = async () => {
+    if (form.phone && !isValidPhoneBR(form.phone)) return toast.error("Telefone inválido");
+    if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) return toast.error("CPF/CNPJ inválido");
+    const profile = {
+      ...form,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      document_number: form.document_number ? onlyDigits(form.document_number) : null,
+      address_zip_code: form.address_zip_code ? onlyDigits(form.address_zip_code) : null,
+    };
     setSaving(true);
-    try { await onSave({ profile: form, roles }); }
+    try { await onSave({ profile, roles }); }
     finally { setSaving(false); }
   };
 
