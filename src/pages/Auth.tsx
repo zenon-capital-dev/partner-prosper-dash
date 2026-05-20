@@ -46,15 +46,6 @@ export default function AuthPage() {
     navigate("/", { replace: true });
   };
 
-  const handleForgot = async () => {
-    const email = (document.getElementById("login-email") as HTMLInputElement)?.value;
-    if (!email) return toast.error("Digite seu email para recuperar");
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) toast.error(error.message);
-    else toast.success("Instruções enviadas para seu e-mail");
-  };
 
   return (
     <div className="min-h-[100dvh] w-full relative bg-[#06070C] text-white overflow-hidden flex flex-col lg:grid lg:grid-cols-[1.1fr_1fr]">
