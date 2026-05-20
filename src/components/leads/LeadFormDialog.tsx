@@ -257,7 +257,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="w-full sm:w-auto bg-gradient-primary hover:opacity-90">{submitting ? "Salvando..." : "Salvar"}</Button>
+          <Button onClick={submit} disabled={submitting} className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white">{submitting ? "Salvando..." : "Salvar"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
