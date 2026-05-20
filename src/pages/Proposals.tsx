@@ -774,7 +774,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
                 <Input placeholder="Nome *" value={recipientName} onChange={e => setRecipientName(e.target.value)} />
                 <Input placeholder="Empresa" value={recipientCompany} onChange={e => setRecipientCompany(e.target.value)} />
                 <Input type="email" placeholder="E-mail" value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)} />
-                <Input placeholder="CPF/CNPJ" value={recipientDocument} onChange={e => setRecipientDocument(e.target.value)} />
+                <MaskedInput mask="cpfcnpj" placeholder="CPF/CNPJ" value={recipientDocument} onChange={(v) => setRecipientDocument(v)} />
               </div>
             )}
           </div>
