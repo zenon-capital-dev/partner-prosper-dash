@@ -1,56 +1,47 @@
 ## Objetivo
 
-Deixar a aba **Tarefas** (`/tarefas` → `src/pages/Tasks.tsx`) funcionando "perfeito": filtros que mostram resultados reais, responsável aparecendo, calendário sem bug de fuso, ações claras (concluir/excluir/editar) e estados vazios úteis.
+Deixar a aba **Prazos** (`/sla` → `src/pages/SLAPages.tsx`) realmente útil: filtros consistentes, ordenação por urgência, texto certo, fuso correto e ações claras nos cards.
 
-Tabela `tasks` está **vazia hoje (0 linhas)** — então boa parte da sensação de "nada funciona" vem do filtro padrão **HOJE** aplicado em `created_at`, que esconde qualquer tarefa criada em outro dia. Vou corrigir isso junto com os bugs reais.
+Banco hoje: **3 demandas em andamento**, todas com prazo a 30+ dias → todas caem em "No Prazo". As abas "Atrasadas / Vencem hoje / Em atenção" ficam vazias, e o usuário sente "tudo bugado". Vou consertar os bugs reais e melhorar a leitura para que esse cenário fique evidente em vez de parecer quebrado.
 
-## Bugs identificados
+## Bugs e problemas identificados
 
-1. **Filtro de período aplicado em `created_at`** — esconde tarefas com prazo no período se foram criadas antes. Deveria filtrar por `due_date` (prazo), e "TUDO" como padrão até existir volume.
-2. **Padrão "HOJE"** com banco vazio = lista sempre vazia, sem CTA claro.
-3. **Responsável nunca aparece** — `TaskRow` lê `task.assigned_user.full_name`, mas o `select` da query não faz join com `profiles`. Resultado: nome do responsável invisível em lista/kanban/calendário.
-4. **Bug de fuso no calendário** — `dayKey` usa `toISOString()` (UTC), então uma tarefa com prazo 20/05 23:00 BRT aparece em 21/05 no calendário. `tasksByDate` tem o mesmo problema ao quebrar `due_date.split("T")[0]` quando o ISO já está em UTC.
-5. **Salvar prazo via `new Date(yyyy-mm-dd).toISOString()`** — interpreta como meia-noite UTC e grava no dia anterior em BRT.
-6. **Sem contador nas abas Lista/Kanban/Calendário** e bloco de KPI duplicado escondido com `className="hidden ..."` (código morto).
-7. **Sem ação rápida "Concluir"** na linha — usuário precisa abrir o select de status só para marcar como feito.
-8. **Sem confirmação visual ao excluir** consistente (usa `confirmAction` custom; ok, manter, mas garantir toast).
-9. **Diálogo de criar/editar** sem feedback de loading, sem reset ao trocar `entity_type`, e select de "Item vinculado" lista até 500 sem busca — ok manter, mas adicionar aviso quando lista grande.
-10. **Kanban e Lista não dizem que filtros estão ativos** quando o resultado é zero — empty state genérico engana o usuário.
+1. **Texto desatualizado no card "Como o SLA é calculado"** — diz que "Atenção" aparece com menos de 30% do prazo, mas o código (`src/lib/sla.ts`) usa `<= 2 dias`. Confunde o usuário.
+2. **Sem ordenação por urgência** — a query ordena por `sla_due_date asc`, mas dentro do bucket não há critério visível; demandas "atrasadas há 10 dias" ficam misturadas com "atrasadas há 1 dia".
+3. **`isToday(due)` e exibição do prazo** com `toISOString()` introduzem off-by-one em fuso BRT (mesmo bug que corrigi em Tarefas/Atuações). Hoje BRT 23h ISO já é amanhã.
+4. **Bucket "Pausado"** depende de `status === "pausado"`, mas o KPI "Pausado" no array `stats` também — ok. Faltam concluídas reaparecerem como filtro opcional (hoje a query exclui `concluido` cego).
+5. **Sem ação rápida no card** — clique no card inteiro navega para o detalhe (ok), mas não há botão claro "Abrir demanda" — usuários com mouse hesitante não percebem.
+6. **KPIs do PageHero não são clicáveis** — para trocar de bucket o usuário precisa rolar até as abas.
+7. **Ranking de prestadores** não é clicável; deveria filtrar a lista por aquele prestador.
+8. **Sem filtro por prestador** explícito.
+9. **Empty state genérico** — não distingue "banco vazio" de "sem resultado neste bucket".
+10. **Demandas sem `sla_due_date`** somem do ranking e da contagem (calculateSLA retorna null/"—") sem aviso.
+11. **`avgDaysOver`** usa `daysRemaining` (já negativo) e aplica `Math.abs` — ok, mas se houver apenas 1 atrasado, o número diz "0d" quando deveria mostrar "1d" no mínimo arredondado.
 
-## Mudanças
+## Mudanças (somente `src/pages/SLAPages.tsx`)
 
-Tudo em `src/pages/Tasks.tsx` (sem migração, sem mexer em RLS):
-
-1. **Query**: adicionar join `assigned_user:profiles!tasks_assigned_to_fkey(id, full_name)` no select principal (com fallback já existente preservado).
-2. **Filtro de período**: passar a usar `due_date` em vez de `created_at`. Tarefas **sem prazo** entram em "TUDO" e também em "HOJE" (para ficarem visíveis em vez de sumirem). Mudar **padrão para "TUDO"** já que é uma central de tarefas e o time precisa ver tudo por padrão.
-3. **Helpers de data sem TZ**:
-   - `toLocalDateKey(d: Date | string)` → `yyyy-MM-dd` usando `format(d, "yyyy-MM-dd")` (date-fns local).
-   - `tasksByDate` e `dayKey` usam o helper.
-   - Ao salvar `due_date`, gravar como `${form.due_date}T12:00:00` (meio-dia local) para evitar virada de dia em qualquer fuso.
-4. **TaskRow**:
-   - Mostrar responsável de fato (`task.assigned_user?.full_name`).
-   - Botão rápido ✓ "Concluir" quando `status_new !== "concluida"`, ou ↺ "Reabrir" quando concluída/cancelada.
-   - Badge de "Sem prazo" quando `due_date` é nulo.
-5. **Tabs**: adicionar contador em cada `TabsTrigger` (Lista = total filtrado, Kanban = idem, Calendário = total com prazo).
-6. **KPIs**: remover bloco oculto duplicado (linhas 412–424).
-7. **Estados vazios**:
-   - Se `tasks.length === 0` → CTA "Criar primeira tarefa".
-   - Se filtrado vazio mas existem tarefas → "Nenhuma tarefa nos filtros atuais" + botão "Limpar filtros".
-8. **Diálogo**:
-   - Botão "Salvar/Criar" com estado `saving` (disable + texto "Salvando...").
-   - Ao trocar `entity_type` para "none", limpar `entity_id` (já faz).
-   - Aviso "Mostrando os primeiros 500. Refine pela aba do cliente para ver outros." abaixo do select quando a lista de vinculados tiver 500 itens.
-9. **Kanban**: ao clicar no card, abrir editor (já faz); manter, mas reduzir colunas em telas médias e mostrar contador de "0" em cinza.
+1. **Ordenar `filtered`** por urgência: `daysRemaining` ascendente (atrasados primeiro), `null` no fim.
+2. **Fuso seguro** ao formatar `dueDate` — usar `format(dueDate, "dd/MM/yyyy")` direto (date-fns local) em vez de `formatDate(dueDate.toISOString())`.
+3. **KPIs clicáveis** no PageHero — passar `onClick` que troca o `bucket` (Atrasadas → `atrasado`, Vence Hoje → `vence_hoje`, On-Time → `no_prazo`).
+4. **Card do prestador no ranking** vira botão: clicar filtra a lista pelo nome do prestador (via novo state `providerFilter`); chip removível "Filtrando: PrestadorX ×" acima da lista.
+5. **Adicionar filtro de "Sem prazo"** como bucket extra (`sem_prazo`) — pega `sla?.daysRemaining == null && sla?.status !== 'pausado'`. Conta no KPI lateral também.
+6. **Botão "Abrir" no card** (visível no hover em desktop, sempre visível no mobile) — usa o mesmo `navigate`. O card inteiro continua clicável.
+7. **Atualizar o texto** do card "Como o SLA é calculado" para refletir o código: "Status 'Em atenção' aparece quando faltam 2 dias ou menos para o prazo".
+8. **Empty state diferenciado**:
+   - `demands.length === 0` → "Sem demandas ativas no momento" + link para `/demandas`.
+   - filtrado vazio com demands existentes → "Nenhuma demanda neste filtro" + botão "Ver todas".
+9. **Indicador de "Sem prazo"** em cards: badge `Sem prazo definido` quando `sla?.daysRemaining == null`.
+10. **`avgDaysOver` `Math.max(1, ...)`** quando há atrasado para nunca mostrar `0d` enganoso.
 
 ## Detalhes técnicos
 
-- Sem alteração no schema, RLS ou edge functions.
-- `due_date` continua `timestamptz`; o ajuste é só na serialização ao enviar (`${date}T12:00:00.000`).
-- Join novo depende do FK `tasks.assigned_to → profiles.id`. Se o nome do constraint divergir, o `select` cai no fallback existente, então a tela continua funcionando.
-- Sem dependência nova de pacote.
+- Sem migração, sem mudança em `src/lib/sla.ts`, sem mudança em RLS.
+- Reaproveita `useNavigate`, `Input`, `Badge`, `Skeleton` já importados.
+- Novo state local: `providerFilter: string | null`.
+- Sem nova dependência.
 
 ## Fora de escopo
 
-- Drag-and-drop no Kanban (pode entrar em uma próxima rodada).
-- Notificações/automação ao concluir.
-- Filtro por responsável (posso incluir se você quiser, basta avisar).
+- Mudar o cálculo de SLA (`src/lib/sla.ts`) — comportamento atual mantido.
+- Página de auditoria/histórico de atrasos.
+- Notificações automáticas para prestadores atrasados.

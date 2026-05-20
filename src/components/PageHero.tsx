@@ -9,6 +9,7 @@ interface KpiItem {
   tone?: "primary" | "success" | "warning" | "info" | "danger" | "violet" | "default";
   icon?: ReactNode;
   hint?: string;
+  onClick?: () => void;
 }
 
 interface Props {
@@ -106,13 +107,17 @@ export function PageHero({
         >
           {kpis.map((k, i) => {
             const cfg = toneCfg[k.tone || "default"];
+            const Tag: any = k.onClick ? "button" : "div";
             return (
-              <div
+              <Tag
                 key={i}
+                onClick={k.onClick}
+                type={k.onClick ? "button" : undefined}
                 className={cn(
-                  "group/kpi relative min-w-0 overflow-hidden rounded-xl border bg-white dark:bg-card p-3 sm:p-4 lg:p-[18px] transition-all duration-300",
+                  "group/kpi relative min-w-0 overflow-hidden rounded-xl border bg-white dark:bg-card p-3 sm:p-4 lg:p-[18px] transition-all duration-300 text-left",
                   "border-slate-200/70 dark:border-border shadow-[0_1px_0_rgba(15,23,42,0.04)]",
-                  "hover:shadow-[0_8px_28px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-[1px] hover:border-slate-300/80"
+                  "hover:shadow-[0_8px_28px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-[1px] hover:border-slate-300/80",
+                  k.onClick && "cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 )}
               >
                 {/* soft top accent — coloured by tone */}
@@ -144,7 +149,7 @@ export function PageHero({
                 {k.hint && (
                   <p className="text-[11px] text-slate-600 dark:text-muted-foreground mt-2 truncate relative font-bold">{k.hint}</p>
                 )}
-              </div>
+              </Tag>
             );
           })}
         </div>
