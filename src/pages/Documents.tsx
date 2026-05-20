@@ -147,23 +147,128 @@ export default function Documents() {
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["docs-all"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select(`
-          *,
-          clients(id, full_name),
-          products(id, name),
-          client_products(
-            id,
-            product_id,
-            custom_product_name,
-            products:product_id(id, name),
-            service_providers:service_provider_id(id, name)
-          )
-        `)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      const [docsRes, reqRes, delivRes] = await Promise.all([
+        supabase
+          .from("documents")
+          .select(`
+            *,
+            clients(id, full_name),
+            products(id, name),
+            client_products(
+              id,
+              product_id,
+              custom_product_name,
+              products:product_id(id, name),
+              service_providers:service_provider_id(id, name)
+            )
+          `)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("document_requests")
+          .select(`
+            *,
+            clients(id, full_name),
+            products(id, name),
+            client_products(
+              id,
+              product_id,
+              custom_product_name,
+              products:product_id(id, name),
+              service_providers:service_provider_id(id, name)
+            )
+          `)
+          .order("requested_at", { ascending: false }),
+        supabase
+          .from("demand_deliveries")
+          .select(`
+            *,
+            client_products(
+              id,
+              client_id,
+              product_id,
+              custom_product_name,
+              clients:client_id(id, full_name),
+              products:product_id(id, name),
+              service_providers:service_provider_id(id, name)
+            )
+          `)
+          .order("created_at", { ascending: false }),
+      ]);
+      if (docsRes.error) throw docsRes.error;
+
+      const base = (docsRes.data ?? []).map((d: any) => ({ ...d, __source: "documents" as const }));
+
+      const fromRequests = (reqRes.data ?? []).map((r: any) => {
+        const status = r.status === "submitted" || r.status === "enviado"
+          ? "enviado"
+          : r.status === "approved" || r.status === "aprovado"
+          ? "aprovado"
+          : r.status === "rejected" || r.status === "rejeitado" || r.status === "reprovado"
+          ? "reprovado"
+          : r.status === "in_review" || r.status === "em_analise"
+          ? "em_analise"
+          : "solicitado";
+        return {
+          __source: "document_requests" as const,
+          id: r.id,
+          client_id: r.client_id,
+          name: r.request_title || "Documento solicitado",
+          description: r.description || r.observations || null,
+          status,
+          file_path: r.file_url || null,
+          due_date: r.deadline || null,
+          uploaded_at: r.submission_date || null,
+          requested_at: r.requested_at || null,
+          reviewed_at: r.approval_date || null,
+          created_at: r.requested_at || r.updated_at || null,
+          is_required: true,
+          is_public: true,
+          rejection_reason: r.rejection_reason || null,
+          internal_notes: r.observations || null,
+          product_id: r.product_id || null,
+          client_product_id: r.client_product_id || null,
+          clients: r.clients || null,
+          products: r.products || null,
+          client_products: r.client_products || null,
+        };
+      });
+
+      const fromDeliveries = (delivRes.data ?? []).map((d: any) => {
+        const cp = d.client_products || {};
+        return {
+          __source: "demand_deliveries" as const,
+          id: d.id,
+          client_id: cp.client_id || null,
+          name: d.title || "Entregável",
+          description: d.description || null,
+          status: d.status === "approved" ? "aprovado" : d.status === "rejected" ? "reprovado" : d.file_url ? "enviado" : "solicitado",
+          file_path: d.file_url || null,
+          due_date: null,
+          uploaded_at: d.file_url ? d.created_at : null,
+          requested_at: d.created_at,
+          reviewed_at: null,
+          created_at: d.created_at,
+          is_required: false,
+          is_public: true,
+          rejection_reason: null,
+          internal_notes: null,
+          product_id: cp.product_id || null,
+          client_product_id: cp.id || null,
+          clients: cp.clients || null,
+          products: cp.products || null,
+          client_products: {
+            id: cp.id,
+            product_id: cp.product_id,
+            custom_product_name: cp.custom_product_name,
+            products: cp.products,
+            service_providers: cp.service_providers,
+          },
+        };
+      });
+
+      const merged = [...base, ...fromRequests, ...fromDeliveries];
+      merged.sort((a: any, b: any) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
+      return merged;
     },
   });
 
@@ -197,16 +302,32 @@ export default function Documents() {
   const updateStatus = async (doc: any, status: DocumentStatus, extra: Partial<any> = {}) => {
     if (!canManage) return toast.error("Você não tem permissão para alterar documentos.");
     if (doc.status === status && Object.keys(extra).length === 0) return;
-    const updateData: any = { status, reviewed_at: new Date().toISOString(), ...extra };
-    if (status === "aprovado") {
-      const { data: { user } } = await supabase.auth.getUser();
-      updateData.approved_by = user?.id ?? null;
-      updateData.rejection_reason = null;
+    const source = doc.__source ?? "documents";
+
+    if (source === "documents") {
+      const updateData: any = { status, reviewed_at: new Date().toISOString(), ...extra };
+      if (status === "aprovado") {
+        const { data: { user } } = await supabase.auth.getUser();
+        updateData.approved_by = user?.id ?? null;
+        updateData.rejection_reason = null;
+      }
+      const { error } = await supabase.from("documents").update(updateData).eq("id", doc.id);
+      if (error) return toast.error(error.message);
+    } else if (source === "document_requests") {
+      const map: Record<string, string> = { solicitado: "pending", enviado: "submitted", em_analise: "in_review", aprovado: "approved", reprovado: "rejected", rejeitado: "rejected", pendente_correcao: "pending" };
+      const payload: any = { status: map[status] ?? status, updated_at: new Date().toISOString() };
+      if (status === "aprovado") { payload.approval_date = new Date().toISOString(); payload.rejection_reason = null; }
+      if (extra.rejection_reason) payload.rejection_reason = extra.rejection_reason;
+      const { error } = await supabase.from("document_requests").update(payload).eq("id", doc.id);
+      if (error) return toast.error(error.message);
+    } else if (source === "demand_deliveries") {
+      const map: Record<string, string> = { aprovado: "approved", reprovado: "rejected", enviado: "delivered", em_analise: "in_review", solicitado: "pending", pendente_correcao: "pending" };
+      const { error } = await supabase.from("demand_deliveries").update({ status: map[status] ?? status, updated_at: new Date().toISOString() }).eq("id", doc.id);
+      if (error) return toast.error(error.message);
     }
-    const { error } = await supabase.from("documents").update(updateData).eq("id", doc.id);
-    if (error) return toast.error(error.message);
+
     toast.success(`Documento atualizado para ${statusConfig[status].label}`);
-    logAudit("DOCUMENT_UPDATE" as any, "documents", doc.id, { status, ...extra });
+    logAudit("DOCUMENT_UPDATE" as any, source, doc.id, { status, ...extra });
     invalidate();
   };
 
@@ -217,17 +338,19 @@ export default function Documents() {
 
   const viewFile = async (doc: any) => {
     if (!doc.file_path) return toast.error("Arquivo ainda não enviado.");
+    if (/^https?:\/\//.test(doc.file_path)) return window.open(doc.file_path, "_blank", "noopener,noreferrer");
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
     if (error) return toast.error(error.message);
-    logAudit("DOCUMENT_VIEW", "documents", doc.id, { name: doc.name });
+    logAudit("DOCUMENT_VIEW", doc.__source ?? "documents", doc.id, { name: doc.name });
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const downloadFile = async (doc: any) => {
     if (!doc.file_path) return toast.error("Arquivo ainda não enviado.");
+    if (/^https?:\/\//.test(doc.file_path)) return window.open(doc.file_path, "_blank", "noopener,noreferrer");
     const { data, error } = await supabase.storage.from("documents").download(doc.file_path);
     if (error) return toast.error(error.message);
-    logAudit("DOCUMENT_DOWNLOAD", "documents", doc.id, { name: doc.name });
+    logAudit("DOCUMENT_DOWNLOAD", doc.__source ?? "documents", doc.id, { name: doc.name });
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
     a.href = url;
@@ -238,6 +361,7 @@ export default function Documents() {
 
   const toggleVisibility = async (doc: any) => {
     if (!canManage) return toast.error("Você não tem permissão para alterar a visibilidade.");
+    if (doc.__source !== "documents") return toast.error("Visibilidade só é configurável em documentos cadastrados.");
     const next = !doc.is_public;
     const ok = await confirmAction({ title: "Alterar visibilidade", description: `Tornar "${doc.name}" ${next ? "visível ao cliente" : "interno"}?`, confirmText: "Alterar" });
     if (!ok) return;
@@ -251,19 +375,22 @@ export default function Documents() {
     if (!canManage) return toast.error("Você não tem permissão para excluir documentos.");
     const ok = await confirmAction({
       title: "Excluir documento",
-      description: `Excluir definitivamente "${doc.name}" e seus arquivos versionados? Esta ação não pode ser desfeita.`,
+      description: `Excluir definitivamente "${doc.name}"? Esta ação não pode ser desfeita.`,
       confirmText: "Excluir",
       destructive: true,
     });
     if (!ok) return;
+    const source = doc.__source ?? "documents";
     const paths: string[] = [];
-    if (doc.file_path) paths.push(doc.file_path);
-    const { data: versions } = await supabase.from("document_versions").select("file_path").eq("document_id", doc.id);
-    (versions ?? []).forEach((v: any) => { if (v.file_path) paths.push(v.file_path); });
+    if (doc.file_path && !/^https?:\/\//.test(doc.file_path)) paths.push(doc.file_path);
+    if (source === "documents") {
+      const { data: versions } = await supabase.from("document_versions").select("file_path").eq("document_id", doc.id);
+      (versions ?? []).forEach((v: any) => { if (v.file_path) paths.push(v.file_path); });
+    }
     if (paths.length > 0) await supabase.storage.from("documents").remove(paths);
-    const { error } = await supabase.from("documents").delete().eq("id", doc.id);
+    const { error } = await supabase.from(source).delete().eq("id", doc.id);
     if (error) return toast.error(error.message);
-    logAudit("DOCUMENT_DELETE" as any, "documents", doc.id, { name: doc.name });
+    logAudit("DOCUMENT_DELETE" as any, source, doc.id, { name: doc.name });
     toast.success("Documento excluído");
     invalidate();
   };
@@ -306,13 +433,17 @@ export default function Documents() {
     if (actionMode === "reject") await updateStatus(actionDoc, "reprovado", { rejection_reason: actionReason.trim() });
     if (actionMode === "request_resend") await updateStatus(actionDoc, "pendente_correcao", { rejection_reason: actionReason.trim() });
     if (actionMode === "comment") {
-      const prev = actionDoc.internal_notes ?? "";
-      const stamp = new Date().toLocaleString("pt-BR");
-      const merged = `${prev ? `${prev}\n\n` : ""}[${stamp}] ${actionReason.trim()}`;
-      const { error } = await supabase.from("documents").update({ internal_notes: merged }).eq("id", actionDoc.id);
-      if (error) return toast.error(error.message);
-      toast.success("Comentário adicionado");
-      invalidate();
+      if (actionDoc.__source && actionDoc.__source !== "documents") {
+        toast.error("Comentários internos disponíveis apenas em documentos cadastrados.");
+      } else {
+        const prev = actionDoc.internal_notes ?? "";
+        const stamp = new Date().toLocaleString("pt-BR");
+        const merged = `${prev ? `${prev}\n\n` : ""}[${stamp}] ${actionReason.trim()}`;
+        const { error } = await supabase.from("documents").update({ internal_notes: merged }).eq("id", actionDoc.id);
+        if (error) return toast.error(error.message);
+        toast.success("Comentário adicionado");
+        invalidate();
+      }
     }
     setActionMode(null);
     setActionDoc(null);
@@ -584,7 +715,7 @@ export default function Documents() {
                         <tr key={d.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="px-4 py-4 min-w-[180px]"><div className="flex items-center gap-2"><div className="size-8 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-bold border border-indigo-100">{d.clients?.full_name?.substring(0, 2).toUpperCase() || "??"}</div><span className="text-xs font-medium text-slate-800 truncate max-w-[150px]">{d.clients?.full_name || "—"}</span></div></td>
                           <td className="px-4 py-4 min-w-[160px] text-xs text-slate-500">{getProductName(d)}{d.client_products?.service_providers?.name && <span className="block text-[10px] text-slate-400 mt-0.5">{d.client_products.service_providers.name}</span>}</td>
-                          <td className="px-4 py-4 min-w-[230px]"><span className="text-xs font-semibold text-slate-900 truncate max-w-[220px] block">{d.name}</span><div className="flex gap-1 mt-1">{d.is_required && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-rose-200 text-rose-700 bg-rose-50">Obrigatório</Badge>}{d.description && <span className="text-[10px] text-slate-500 truncate max-w-[180px]">{d.description}</span>}</div></td>
+                          <td className="px-4 py-4 min-w-[230px]"><span className="text-xs font-semibold text-slate-900 truncate max-w-[220px] block">{d.name}</span><div className="flex flex-wrap gap-1 mt-1 items-center">{d.is_required && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-rose-200 text-rose-700 bg-rose-50">Obrigatório</Badge>}{d.__source === "document_requests" && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-sky-200 text-sky-700 bg-sky-50">Solicitação</Badge>}{d.__source === "demand_deliveries" && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-violet-200 text-violet-700 bg-violet-50">Entregável</Badge>}{d.description && <span className="text-[10px] text-slate-500 truncate max-w-[180px]">{d.description}</span>}</div></td>
                           <td className="px-4 py-4"><div className="flex items-center gap-2 text-xs text-slate-500"><FileText className={cn("size-4", d.file_path ? "text-indigo-600" : "text-slate-300")} /><span className="font-mono text-[10px]">{getFileExt(d)}</span></div></td>
                           <td className="px-4 py-4"><Badge variant="outline" className={cn("gap-1 text-[10px] font-bold uppercase py-0.5 whitespace-nowrap", config.color)}><StatusIcon className="size-2.5" />{config.label}</Badge>{eff === "atrasado" && d.due_date && <span className="block text-[9px] text-rose-700 font-medium mt-1">Venceu em {formatDate(d.due_date)}</span>}</td>
                           <td className="px-4 py-4 min-w-[150px]"><span className="text-[11px] text-slate-500">{d.uploaded_at ? formatDate(d.uploaded_at) : "Não enviado"}</span><span className="block text-[10px] text-slate-400 truncate max-w-[140px]">{uploader?.full_name || uploader?.email || "—"}</span></td>
@@ -593,8 +724,8 @@ export default function Documents() {
                           <td className="px-4 py-4"><div className="flex items-center justify-end gap-1">
                             {d.file_path && <><TooltipProvider><Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="size-8 text-slate-500 hover:text-indigo-700" onClick={() => viewFile(d)}><Eye className="size-4" /></Button></TooltipTrigger><TooltipContent>Visualizar</TooltipContent></Tooltip></TooltipProvider><TooltipProvider><Tooltip><TooltipTrigger asChild><Button size="icon" variant="ghost" className="size-8 text-slate-500 hover:text-indigo-700" onClick={() => downloadFile(d)}><Download className="size-4" /></Button></TooltipTrigger><TooltipContent>Baixar</TooltipContent></Tooltip></TooltipProvider></>}
                             <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="size-8"><MoreVertical className="size-4 text-slate-500" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-60">
-                              {canManage && <><DropdownMenuLabel className="text-xs">Análise</DropdownMenuLabel><DropdownMenuItem onClick={() => approveDoc(d)} className="text-emerald-700"><Check className="size-4 mr-2" /> Aprovar</DropdownMenuItem><DropdownMenuItem onClick={() => updateStatus(d, "em_analise")}><Eye className="size-4 mr-2" /> Marcar em análise</DropdownMenuItem><DropdownMenuItem onClick={() => openActionDialog("request_resend", d)} className="text-orange-700"><RefreshCw className="size-4 mr-2" /> Solicitar reenvio</DropdownMenuItem><DropdownMenuItem onClick={() => openActionDialog("reject", d)} className="text-rose-700"><X className="size-4 mr-2" /> Rejeitar</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuLabel className="text-xs">Outras ações</DropdownMenuLabel><DropdownMenuItem onClick={() => openActionDialog("comment", d)}><MessageSquare className="size-4 mr-2" /> Adicionar comentário</DropdownMenuItem><DropdownMenuItem onClick={() => toggleVisibility(d)}>{d.is_public ? <Lock className="size-4 mr-2" /> : <Unlock className="size-4 mr-2" />}Tornar {d.is_public ? "interno" : "público"}</DropdownMenuItem><DropdownMenuItem onClick={() => { setSelectedDoc(d); setIsDialogOpen(true); }}><FilePlus className="size-4 mr-2" /> Editar / reenviar</DropdownMenuItem><DropdownMenuSeparator /></>}
-                              <DropdownMenuItem onClick={() => openHistory(d)}><History className="size-4 mr-2" /> Ver histórico e versões</DropdownMenuItem>{canManage && <><DropdownMenuSeparator /><DropdownMenuItem onClick={() => deleteDoc(d)} className="text-rose-700"><X className="size-4 mr-2" /> Excluir documento</DropdownMenuItem></>}
+                              {canManage && <><DropdownMenuLabel className="text-xs">Análise</DropdownMenuLabel><DropdownMenuItem onClick={() => approveDoc(d)} className="text-emerald-700"><Check className="size-4 mr-2" /> Aprovar</DropdownMenuItem><DropdownMenuItem onClick={() => updateStatus(d, "em_analise")}><Eye className="size-4 mr-2" /> Marcar em análise</DropdownMenuItem><DropdownMenuItem onClick={() => openActionDialog("request_resend", d)} className="text-orange-700"><RefreshCw className="size-4 mr-2" /> Solicitar reenvio</DropdownMenuItem><DropdownMenuItem onClick={() => openActionDialog("reject", d)} className="text-rose-700"><X className="size-4 mr-2" /> Rejeitar</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuLabel className="text-xs">Outras ações</DropdownMenuLabel>{(d.__source ?? "documents") === "documents" && <><DropdownMenuItem onClick={() => openActionDialog("comment", d)}><MessageSquare className="size-4 mr-2" /> Adicionar comentário</DropdownMenuItem><DropdownMenuItem onClick={() => toggleVisibility(d)}>{d.is_public ? <Lock className="size-4 mr-2" /> : <Unlock className="size-4 mr-2" />}Tornar {d.is_public ? "interno" : "público"}</DropdownMenuItem><DropdownMenuItem onClick={() => { setSelectedDoc(d); setIsDialogOpen(true); }}><FilePlus className="size-4 mr-2" /> Editar / reenviar</DropdownMenuItem></>}<DropdownMenuSeparator /></>}
+                              {(d.__source ?? "documents") === "documents" && <DropdownMenuItem onClick={() => openHistory(d)}><History className="size-4 mr-2" /> Ver histórico e versões</DropdownMenuItem>}{canManage && <><DropdownMenuSeparator /><DropdownMenuItem onClick={() => deleteDoc(d)} className="text-rose-700"><X className="size-4 mr-2" /> Excluir documento</DropdownMenuItem></>}
                             </DropdownMenuContent></DropdownMenu>
                           </div></td>
                         </tr>
