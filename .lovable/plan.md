@@ -1,47 +1,57 @@
 ## Objetivo
 
-Deixar a aba **Prazos** (`/sla` → `src/pages/SLAPages.tsx`) realmente útil: filtros consistentes, ordenação por urgência, texto certo, fuso correto e ações claras nos cards.
+Deixar a aba **Clientes** (`/clientes` → `src/pages/Clients.tsx`) consistente com o tema claro do admin e sem os bugs que dão sensação de "nada funciona".
 
-Banco hoje: **3 demandas em andamento**, todas com prazo a 30+ dias → todas caem em "No Prazo". As abas "Atrasadas / Vencem hoje / Em atenção" ficam vazias, e o usuário sente "tudo bugado". Vou consertar os bugs reais e melhorar a leitura para que esse cenário fique evidente em vez de parecer quebrado.
+Banco hoje: **3 clientes**, todos `ativo` → KPI "Em risco" = 0, todos os filtros restritivos esvaziam a lista. Boa parte da queixa vem disso somado a problemas reais de UX. Vou consertar os bugs e melhorar a leitura.
 
 ## Bugs e problemas identificados
 
-1. **Texto desatualizado no card "Como o SLA é calculado"** — diz que "Atenção" aparece com menos de 30% do prazo, mas o código (`src/lib/sla.ts`) usa `<= 2 dias`. Confunde o usuário.
-2. **Sem ordenação por urgência** — a query ordena por `sla_due_date asc`, mas dentro do bucket não há critério visível; demandas "atrasadas há 10 dias" ficam misturadas com "atrasadas há 1 dia".
-3. **`isToday(due)` e exibição do prazo** com `toISOString()` introduzem off-by-one em fuso BRT (mesmo bug que corrigi em Tarefas/Atuações). Hoje BRT 23h ISO já é amanhã.
-4. **Bucket "Pausado"** depende de `status === "pausado"`, mas o KPI "Pausado" no array `stats` também — ok. Faltam concluídas reaparecerem como filtro opcional (hoje a query exclui `concluido` cego).
-5. **Sem ação rápida no card** — clique no card inteiro navega para o detalhe (ok), mas não há botão claro "Abrir demanda" — usuários com mouse hesitante não percebem.
-6. **KPIs do PageHero não são clicáveis** — para trocar de bucket o usuário precisa rolar até as abas.
-7. **Ranking de prestadores** não é clicável; deveria filtrar a lista por aquele prestador.
-8. **Sem filtro por prestador** explícito.
-9. **Empty state genérico** — não distingue "banco vazio" de "sem resultado neste bucket".
-10. **Demandas sem `sla_due_date`** somem do ranking e da contagem (calculateSLA retorna null/"—") sem aviso.
-11. **`avgDaysOver`** usa `daysRemaining` (já negativo) e aplica `Math.abs` — ok, mas se houver apenas 1 atrasado, o número diz "0d" quando deveria mostrar "1d" no mínimo arredondado.
+1. **Tema fora do padrão admin claro** — cards usam `bg-card/40 border-border/60 text-foreground`, que vão escuros e quase invisíveis. A memória core do projeto exige cards `bg-white border-slate-200/70 rounded-lg shadow-sm` no admin. Cards e tabela precisam ser portados para o tema claro premium.
+2. **Skeleton errado em modo Cards** — durante o `isLoading` em `view="grid"` aparece `TableSkeleton` (linhas de tabela) em vez de skeletons de cards.
+3. **`dateRange.to` não inclui o dia inteiro** — `createdAt > dateRange.to` filtra fora cadastros do próprio dia `to`. Deveria usar `endOfDay(dateRange.to)`.
+4. **`filtered` lista `search` nas deps em vez de `debouncedSearch`** (linha 185) → recomputa duas vezes a cada tecla.
+5. **`currentPage` não reseta ao alternar view** — pode ficar em página > totalPages quando troca de Cards (12/pg) para Tabela e o total filtrado mudar entre renders.
+6. **Botão "NOVO CLIENTE"** com `py-6` desproporcional comparado ao resto (h-12 nos outros). Quebra a barra do hero.
+7. **Sem chips visuais de filtros ativos** — o usuário precisa abrir o painel de filtros para descobrir o que está aplicado.
+8. **Tabela sem ordenação** — não dá para clicar nos cabeçalhos para ordenar por nome, receita, cadastro etc.
+9. **Tooltip/badge "Em risco"** sempre 0 em base pequena sem explicação de como o cálculo é feito.
+10. **`SummaryCard` (linha 709)** é dead code — nada importa nem usa.
+11. **`overdue`** usa `new Date(due_date) < new Date()` — quando `due_date` é uma data sem hora, sofre fuso e marca como vencido o dia de hoje. Substituir por comparação por dia local.
+12. **Pesquisa por documento** filtra com `c.document?.includes(q)` — não considera CNPJ/CPF formatado vs cru. Buscar "12345678" não acha "12.345.678". Normalizar removendo pontuação.
+13. **Foco no input de busca perdido** ao recarregar `enriched` (não é bug grave; sem ação).
+14. **Sem indicador de "página 1 de N" quando não há resultado** — `PaginationControl` pode mostrar 0 de 0 ou esconder; verificar e garantir não-renderização quando vazio (provavelmente já trata; não mudar a menos que necessário).
 
-## Mudanças (somente `src/pages/SLAPages.tsx`)
+## Mudanças (somente `src/pages/Clients.tsx`)
 
-1. **Ordenar `filtered`** por urgência: `daysRemaining` ascendente (atrasados primeiro), `null` no fim.
-2. **Fuso seguro** ao formatar `dueDate` — usar `format(dueDate, "dd/MM/yyyy")` direto (date-fns local) em vez de `formatDate(dueDate.toISOString())`.
-3. **KPIs clicáveis** no PageHero — passar `onClick` que troca o `bucket` (Atrasadas → `atrasado`, Vence Hoje → `vence_hoje`, On-Time → `no_prazo`).
-4. **Card do prestador no ranking** vira botão: clicar filtra a lista pelo nome do prestador (via novo state `providerFilter`); chip removível "Filtrando: PrestadorX ×" acima da lista.
-5. **Adicionar filtro de "Sem prazo"** como bucket extra (`sem_prazo`) — pega `sla?.daysRemaining == null && sla?.status !== 'pausado'`. Conta no KPI lateral também.
-6. **Botão "Abrir" no card** (visível no hover em desktop, sempre visível no mobile) — usa o mesmo `navigate`. O card inteiro continua clicável.
-7. **Atualizar o texto** do card "Como o SLA é calculado" para refletir o código: "Status 'Em atenção' aparece quando faltam 2 dias ou menos para o prazo".
-8. **Empty state diferenciado**:
-   - `demands.length === 0` → "Sem demandas ativas no momento" + link para `/demandas`.
-   - filtrado vazio com demands existentes → "Nenhuma demanda neste filtro" + botão "Ver todas".
-9. **Indicador de "Sem prazo"** em cards: badge `Sem prazo definido` quando `sla?.daysRemaining == null`.
-10. **`avgDaysOver` `Math.max(1, ...)`** quando há atrasado para nunca mostrar `0d` enganoso.
+1. **Tema claro premium**:
+   - Cards de cliente: `bg-white border-slate-200/70 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300`.
+   - Container de tabela: `bg-white border-slate-200/70`.
+   - Cabeçalho da tabela: `bg-slate-50/70 text-slate-500`.
+   - Texto principal: `text-slate-900`; muted: `text-slate-500`.
+   - Manter o accent indigo no avatar e badges; remover `bg-card/40`, `border-border/60` desta página.
+2. **Skeleton coerente com a view** — em `view="grid"`, renderizar 12 placeholders de card (`Skeleton` h-56). Em `view="table"`, manter `TableSkeleton`.
+3. **`endOfDay` no `dateRange.to`** antes da comparação.
+4. **Trocar dep `search` → `debouncedSearch`** no `useMemo` `filtered`.
+5. **Resetar `currentPage` ao trocar view**.
+6. **Botão "NOVO CLIENTE"** → `h-11 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider` (mesma altura do botão "Limpar").
+7. **Chips de filtros ativos** abaixo da toolbar quando houver pelo menos 1, cada um com botão `×` para remover; chip extra para `search`. Botão "Limpar tudo".
+8. **Ordenação na tabela** — adicionar `sortKey: "name" | "revenue" | "created" | "health"` e `sortDir: "asc" | "desc"`; cabeçalhos viram botões com seta `↑/↓`. Sem ordenação aplicada no modo Cards.
+9. **Tooltip "Em risco"** explica o cálculo: "Saúde < 50 (pagamentos vencidos, inatividade ou baixo pagamento relativo)".
+10. **Remover `SummaryCard` dead code**.
+11. **`overdue`** passa a usar `startOfDay(parseISO(due_date)) < startOfToday()`.
+12. **Normalizar busca por documento** — remover não-dígitos da query e do `c.document` antes do `includes`. Manter busca por nome/email/telefone/empresa como está.
 
 ## Detalhes técnicos
 
-- Sem migração, sem mudança em `src/lib/sla.ts`, sem mudança em RLS.
-- Reaproveita `useNavigate`, `Input`, `Badge`, `Skeleton` já importados.
-- Novo state local: `providerFilter: string | null`.
-- Sem nova dependência.
+- Sem migração, sem mudança em RLS, sem mudança em `ClientDetail.tsx`.
+- Sem nova dependência (uso de `date-fns` já presente).
+- `confirmAction` e fluxo de delete/archive não mudam — apenas o visual.
+- `useDebounce(search, 400)` mantido.
+- Mantém respeito a `canWrite = isAdmin || isAdminSecondary` (memória core: colaborador é read-only nesta tela).
 
 ## Fora de escopo
 
-- Mudar o cálculo de SLA (`src/lib/sla.ts`) — comportamento atual mantido.
-- Página de auditoria/histórico de atrasos.
-- Notificações automáticas para prestadores atrasados.
+- Seleção em massa / arquivar vários ao mesmo tempo.
+- Persistir filtros na URL.
+- Mudança no cálculo de health/risco (lógica de negócio mantida).
+- Tela `ClientDetail` (já vista em outras rodadas).

@@ -6,11 +6,10 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Plus, Search, Trash2, Users, UserCheck, UserPlus,
-  MoreHorizontal, ArrowUpRight, Filter, Calendar, Building2,
-  MapPin, CreditCard, User, Mail, Phone, ShoppingBag,
+  Plus, Search, Trash2, Users, MoreHorizontal, Filter, Calendar, Building2,
+  CreditCard, User, Mail, Phone,
   ChevronDown, ChevronUp, Activity, AlertTriangle, TrendingUp,
-  Eye, FileText, MessageSquare, Pencil, Archive, ArchiveRestore,
+  Eye, FileText, Pencil, Archive, ArchiveRestore, X, ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
 import { formatBRL, initials, formatDoc } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
@@ -18,13 +17,13 @@ import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-  DropdownMenuSeparator, DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, endOfDay, startOfDay, startOfToday, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DateRange } from "react-day-picker";
@@ -35,10 +34,15 @@ import { confirmAction } from "@/lib/confirm";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { EmptyState } from "@/components/EmptyState";
 import { TableSkeleton } from "@/components/TableSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
+type SortKey = "name" | "revenue" | "created" | "health";
+type SortDir = "asc" | "desc";
+
+const onlyDigits = (s: string | null | undefined) => (s || "").replace(/\D+/g, "");
 
 export default function Clients() {
-  const { isAdmin, isAdminSecondary, isColaborador } = useAuth();
+  const { isAdmin, isAdminSecondary } = useAuth();
   const canWrite = isAdmin || isAdminSecondary;
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
@@ -49,7 +53,6 @@ export default function Clients() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [productFilter, setProductFilter] = useState<string>("all");
   const [partnerFilter, setPartnerFilter] = useState<string>("all");
@@ -59,12 +62,15 @@ export default function Clients() {
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
+  const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
   const navigate = useNavigate();
   const qc = useQueryClient();
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
+  }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange, view]);
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients-admin-list"],
@@ -113,17 +119,20 @@ export default function Clients() {
   }, [clients]);
 
   const enriched = useMemo(() => {
+    const today = startOfToday();
     return clients.map((c: any) => {
       const totalContracted = c.client_products?.reduce((acc: number, p: any) => acc + Number(p.value || 0), 0) || 0;
       const totalPaid = c.payments?.filter((p: any) => p.status === "pago")
         .reduce((acc: number, p: any) => acc + Number(p.amount_paid || p.amount || 0), 0) || 0;
       const totalPending = Math.max(0, totalContracted - totalPaid);
       const productNames = c.client_products?.map((p: any) => p.products?.name).filter(Boolean) || [];
-      const overdue = c.payments?.filter((p: any) =>
-        p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date()
-      ).length || 0;
+      const overdue = c.payments?.filter((p: any) => {
+        if (p.status === "pago" || !p.due_date) return false;
+        try {
+          return startOfDay(parseISO(String(p.due_date))) < today;
+        } catch { return false; }
+      }).length || 0;
 
-      // Health score: 100 base, penalize overdue & inactivity
       let health = 100;
       if (c.status === "inativo") health -= 50;
       if (c.status === "prospecto") health -= 20;
@@ -151,16 +160,20 @@ export default function Clients() {
   }, [clients]);
 
   const filtered = useMemo(() => {
+    const qRaw = debouncedSearch.trim().toLowerCase();
+    const qDigits = onlyDigits(debouncedSearch);
+    const toEnd = dateRange?.to ? endOfDay(dateRange.to) : undefined;
+    const fromStart = dateRange?.from ? startOfDay(dateRange.from) : undefined;
+
     return enriched.filter((c: any) => {
-      if (debouncedSearch) {
-        const q = debouncedSearch.toLowerCase();
-        const matches =
-          c.full_name?.toLowerCase().includes(q) ||
-          c.company?.toLowerCase().includes(q) ||
-          c.email?.toLowerCase().includes(q) ||
-          c.document?.includes(q) ||
-          c.phone?.includes(q);
-        if (!matches) return false;
+      if (qRaw) {
+        const matchText =
+          c.full_name?.toLowerCase().includes(qRaw) ||
+          c.company?.toLowerCase().includes(qRaw) ||
+          c.email?.toLowerCase().includes(qRaw) ||
+          c.phone?.toLowerCase().includes(qRaw);
+        const matchDoc = qDigits.length > 0 && onlyDigits(c.document).includes(qDigits);
+        if (!matchText && !matchDoc) return false;
       }
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (productFilter !== "all") {
@@ -175,31 +188,49 @@ export default function Clients() {
         if (paymentFilter === "pendente" && c._totalPending === 0) return false;
       }
       if (riskFilter !== "all" && c._risk !== riskFilter) return false;
-      if (dateRange?.from) {
+      if (fromStart) {
         const createdAt = new Date(c.created_at);
-        if (createdAt < dateRange.from) return false;
-        if (dateRange.to && createdAt > dateRange.to) return false;
+        if (createdAt < fromStart) return false;
+        if (toEnd && createdAt > toEnd) return false;
       }
       return true;
     });
-  }, [enriched, search, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
+  }, [enriched, debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const sorted = useMemo(() => {
+    if (view !== "table") return filtered;
+    const dir = sortDir === "asc" ? 1 : -1;
+    const arr = [...filtered];
+    arr.sort((a: any, b: any) => {
+      let av: any, bv: any;
+      switch (sortKey) {
+        case "name": av = (a.full_name || "").toLowerCase(); bv = (b.full_name || "").toLowerCase(); break;
+        case "revenue": av = a._totalContracted; bv = b._totalContracted; break;
+        case "health": av = a._health; bv = b._health; break;
+        case "created":
+        default: av = new Date(a.created_at).getTime(); bv = new Date(b.created_at).getTime(); break;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir, view]);
+
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(start, start + itemsPerPage);
-  }, [filtered, currentPage]);
-
+    return sorted.slice(start, start + itemsPerPage);
+  }, [sorted, currentPage]);
 
   const kpis = useMemo(() => {
     const total = enriched.length;
     const active = enriched.filter((c: any) => c.status === "ativo").length;
-    const prospects = enriched.filter((c: any) => c.status === "prospecto").length;
     const atRisk = enriched.filter((c: any) => c._risk === "high").length;
     const totalRevenue = enriched.reduce((s: number, c: any) => s + c._totalContracted, 0);
     const totalPending = enriched.reduce((s: number, c: any) => s + c._totalPending, 0);
     const avgHealth = total > 0 ? Math.round(enriched.reduce((s: number, c: any) => s + c._health, 0) / total) : 0;
-    return { total, active, prospects, atRisk, totalRevenue, totalPending, avgHealth };
+    return { total, active, atRisk, totalRevenue, totalPending, avgHealth };
   }, [enriched]);
 
   const handleDelete = async (id: string) => {
@@ -260,9 +291,18 @@ export default function Clients() {
     cityFilter, paymentFilter, riskFilter,
   ].filter((v) => v !== "all").length + (dateRange?.from ? 1 : 0);
 
+  const productById = useMemo(() => Object.fromEntries(products.map((p: any) => [p.id, p.name])), [products]);
+  const partnerById = useMemo(() => Object.fromEntries(partners.map((p: any) => [p.id, p.full_name])), [partners]);
+  const providerById = useMemo(() => Object.fromEntries(providers.map((p: any) => [p.id, p.name])), [providers]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir(key === "name" ? "asc" : "desc"); }
+  };
+
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#060608] text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700 admin-shell">
+      <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700 admin-shell">
       <PageHero
         eyebrow="CRM"
         category="Base de Clientes"
@@ -271,20 +311,20 @@ export default function Clients() {
         icon={<Users className="size-6" />}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search} className="h-12 px-5 rounded-xl font-bold uppercase text-[10px] dark:border-white/10 dark:text-white dark:hover:bg-white/5">
+            <Button variant="outline" size="sm" onClick={resetFilters} disabled={activeFiltersCount === 0 && !search} className="h-11 px-4 rounded-xl font-bold uppercase text-[10px] border-slate-200 text-slate-700 hover:bg-slate-50">
               Limpar
             </Button>
-            {(isAdmin || isAdminSecondary) && (
-              <Button onClick={() => { setEditing(null); setOpen(true); }} className="px-6 py-6 rounded-2xl bg-indigo-600 text-white font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">
+            {canWrite && (
+              <Button onClick={() => { setEditing(null); setOpen(true); }} className="h-11 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all active:scale-95">
                 <Plus className="size-4 mr-2 stroke-[3]" />
-                NOVO CLIENTE
+                Novo cliente
               </Button>
             )}
           </div>
         }
         kpis={[
           { label: "Total", value: kpis.total.toString(), tone: "primary", icon: <Users className="size-4" />, hint: `${kpis.active} ativos` },
-          { label: "Em Risco", value: kpis.atRisk.toString(), tone: "danger", icon: <AlertTriangle className="size-4" /> },
+          { label: "Em Risco", value: kpis.atRisk.toString(), tone: "danger", icon: <AlertTriangle className="size-4" />, hint: "Saúde < 50" },
           { label: "Saúde", value: `${kpis.avgHealth}%`, tone: "success", icon: <Activity className="size-4" /> },
           { label: "Receita", value: formatBRL(kpis.totalRevenue), tone: "warning", icon: <TrendingUp className="size-4" /> },
         ]}
@@ -297,7 +337,7 @@ export default function Clients() {
           <div className="relative flex-1 min-w-0">
             <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
-              placeholder="Buscar nome, empresa, CNPJ..."
+              placeholder="Buscar nome, empresa, CNPJ, e-mail..."
               value={search} onChange={(e) => setSearch(e.target.value)}
               className="pl-10 h-11 rounded-xl bg-white border-slate-200 shadow-sm focus:ring-indigo-500/10 focus:border-indigo-500"
             />
@@ -331,8 +371,7 @@ export default function Clients() {
         </div>
 
         {showFilters && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 lg:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shadow-md animate-in slide-in-from-top-2 duration-300">
-
+          <div className="rounded-2xl border border-slate-200/70 bg-white p-5 lg:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shadow-sm animate-in slide-in-from-top-2 duration-300">
             <FilterField label="Status">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
@@ -421,47 +460,95 @@ export default function Clients() {
           </div>
         )}
 
+        {/* Active filter chips */}
+        {(activeFiltersCount > 0 || search) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {search && (
+              <FilterChip label={`Busca: "${search}"`} onClear={() => setSearch("")} />
+            )}
+            {statusFilter !== "all" && (
+              <FilterChip label={`Status: ${statusFilter}`} onClear={() => setStatusFilter("all")} />
+            )}
+            {riskFilter !== "all" && (
+              <FilterChip label={`Risco: ${riskFilter}`} onClear={() => setRiskFilter("all")} />
+            )}
+            {productFilter !== "all" && (
+              <FilterChip label={`Produto: ${productById[productFilter] || productFilter}`} onClear={() => setProductFilter("all")} />
+            )}
+            {partnerFilter !== "all" && (
+              <FilterChip label={`Parceiro: ${partnerById[partnerFilter] || partnerFilter}`} onClear={() => setPartnerFilter("all")} />
+            )}
+            {providerFilter !== "all" && (
+              <FilterChip label={`Prestador: ${providerById[providerFilter] || providerFilter}`} onClear={() => setProviderFilter("all")} />
+            )}
+            {cityFilter !== "all" && (
+              <FilterChip label={`Cidade: ${cityFilter}`} onClear={() => setCityFilter("all")} />
+            )}
+            {paymentFilter !== "all" && (
+              <FilterChip label={`Pagamento: ${paymentFilter}`} onClear={() => setPaymentFilter("all")} />
+            )}
+            {dateRange?.from && (
+              <FilterChip
+                label={`Cadastro: ${format(dateRange.from, "dd/MM", { locale: ptBR })}${dateRange.to ? ` – ${format(dateRange.to, "dd/MM", { locale: ptBR })}` : ""}`}
+                onClear={() => setDateRange(undefined)}
+              />
+            )}
+            <button
+              onClick={resetFilters}
+              className="text-[11px] font-bold uppercase tracking-wider text-slate-500 hover:text-indigo-600 transition-colors px-2 py-1"
+            >
+              Limpar tudo
+            </button>
+          </div>
+        )}
+
         {/* Lista — grid ou tabela */}
         {isLoading ? (
-          <TableSkeleton rows={6} cols={5} />
-        ) : filtered.length === 0 ? (
+          view === "grid" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-56 rounded-2xl bg-white border border-slate-200/70" />
+              ))}
+            </div>
+          ) : (
+            <TableSkeleton rows={6} cols={5} />
+          )
+        ) : sorted.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="Nenhum cliente encontrado"
-            description="Ajuste os filtros ou cadastre um novo cliente."
-            actionLabel="Limpar filtros"
-            onAction={resetFilters}
+            title={clients.length === 0 ? "Nenhum cliente cadastrado" : "Nenhum cliente encontrado"}
+            description={clients.length === 0 ? "Comece cadastrando seu primeiro cliente." : "Ajuste os filtros ou limpe a busca."}
+            actionLabel={clients.length === 0 && canWrite ? "Novo cliente" : "Limpar filtros"}
+            onAction={clients.length === 0 && canWrite ? () => { setEditing(null); setOpen(true); } : resetFilters}
           />
         ) : view === "grid" ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {paginated.map((c: any) => (
-
                 <div
                   key={c.id}
                   onClick={() => navigate(`/clientes/${c.id}`)}
-                  className="group relative rounded-2xl border border-border/60 bg-card/40 p-4 sm:p-5 hover:border-primary/40 hover:shadow-lg active:scale-[0.99] transition-all cursor-pointer overflow-hidden"
+                  className="group relative rounded-2xl border border-slate-200/70 bg-white p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md active:scale-[0.99] transition-all cursor-pointer overflow-hidden shadow-sm"
                 >
-                  {/* Indicador de engajamento */}
                   <div
                     className={cn(
                       "absolute top-0 left-0 right-0 h-1",
-                      c._risk === "high" && "bg-destructive",
-                      c._risk === "med" && "bg-warning",
-                      c._risk === "low" && "bg-success"
+                      c._risk === "high" && "bg-red-500",
+                      c._risk === "med" && "bg-amber-500",
+                      c._risk === "low" && "bg-emerald-500"
                     )}
                   />
 
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="size-12 rounded-xl bg-gradient-to-br from-primary/20 to-indigo-600/20 border border-primary/20 text-primary flex items-center justify-center text-sm font-black shrink-0">
+                      <div className="size-12 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-black shrink-0">
                         {initials(c.full_name)}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                        <p className="font-bold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">
                           {c.full_name}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                        <p className="text-xs text-slate-500 truncate flex items-center gap-1">
                           <Building2 className="size-3" />
                           {c.company || "Pessoa física"}
                         </p>
@@ -470,7 +557,7 @@ export default function Clients() {
                     <div onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors sm:opacity-0 sm:group-hover:opacity-100">
+                          <button className="h-8 w-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors sm:opacity-0 sm:group-hover:opacity-100">
                             <MoreHorizontal className="size-4" />
                           </button>
                         </DropdownMenuTrigger>
@@ -494,7 +581,7 @@ export default function Clients() {
                             <DropdownMenuItem onClick={() => handleArchive(c)}>
                               {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive">
+                            <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-red-600 focus:text-red-700">
                               <Trash2 className="size-3.5 mr-2" /> Excluir
                             </DropdownMenuItem>
                           </>}
@@ -510,45 +597,45 @@ export default function Clients() {
 
                   <div className="space-y-2.5 text-xs mb-4">
                     {c.email && (
-                      <div className="flex items-center gap-2 text-muted-foreground truncate">
+                      <div className="flex items-center gap-2 text-slate-500 truncate">
                         <Mail className="size-3 shrink-0" /> {c.email}
                       </div>
                     )}
                     {c.phone && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex items-center gap-2 text-slate-500">
                         <Phone className="size-3" /> {c.phone}
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex items-center gap-2 text-slate-500">
                       <User className="size-3" /> {c.partners?.full_name || "Direto"}
                     </div>
                   </div>
 
                   {c._productNames.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4 pt-3 border-t border-border/40">
+                    <div className="flex flex-wrap gap-1 mb-4 pt-3 border-t border-slate-100">
                       {c._productNames.slice(0, 3).map((p: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 rounded-md bg-primary/5 text-primary border border-primary/20 text-[10px] font-bold whitespace-nowrap">
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold whitespace-nowrap">
                           {p}
                         </span>
                       ))}
                       {c._productNames.length > 3 && (
-                        <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-bold">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold">
                           +{c._productNames.length - 3}
                         </span>
                       )}
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/40">
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                     <div>
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Receita</p>
-                      <p className="font-display font-bold text-sm tabular-nums text-foreground">{formatBRL(c._totalContracted)}</p>
+                      <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Receita</p>
+                      <p className="font-mono font-bold text-sm tabular-nums text-slate-900">{formatBRL(c._totalContracted)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">Engajamento</p>
+                      <p className="text-[9px] uppercase tracking-widest text-slate-400 font-bold">Saúde</p>
                       <p className={cn(
-                        "font-display font-bold text-sm tabular-nums",
-                        c._health >= 75 ? "text-success" : c._health >= 50 ? "text-warning" : "text-destructive"
+                        "font-mono font-bold text-sm tabular-nums",
+                        c._health >= 75 ? "text-emerald-600" : c._health >= 50 ? "text-amber-600" : "text-red-600"
                       )}>{c._health}</p>
                     </div>
                   </div>
@@ -559,55 +646,55 @@ export default function Clients() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              totalItems={filtered.length}
+              totalItems={sorted.length}
               itemsPerPage={itemsPerPage}
             />
           </>
 
         ) : (
-          <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
+          <div className="rounded-xl border border-slate-200/70 bg-white overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[1400px]">
-                <thead className="sticky top-0 bg-muted/40 backdrop-blur-sm">
-                  <tr className="border-b border-border/60">
-                    <Th>Cliente</Th>
+              <table className="w-full text-sm min-w-[1280px]">
+                <thead className="sticky top-0 bg-slate-50/70 backdrop-blur-sm">
+                  <tr className="border-b border-slate-200/70">
+                    <SortableTh label="Cliente" k="name" sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} />
                     <Th>Documento / Contato</Th>
                     <Th>Status</Th>
-                    <Th>Engajamento</Th>
+                    <SortableTh label="Saúde" k="health" sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} />
                     <Th>Risco</Th>
                     <Th>Produtos</Th>
                     <Th>Responsável</Th>
-                    <Th align="right">Receita</Th>
-                    <Th align="right">Cadastro</Th>
+                    <SortableTh label="Receita" k="revenue" sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} align="right" />
+                    <SortableTh label="Cadastro" k="created" sortKey={sortKey} sortDir={sortDir} onToggle={toggleSort} align="right" />
                     <Th align="right">Ações</Th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/40">
+                <tbody className="divide-y divide-slate-100">
                   {paginated.map((c: any) => (
                     <tr
                       key={c.id}
-                      className="group hover:bg-muted/30 transition-colors cursor-pointer"
+                      className="group hover:bg-slate-50/70 transition-colors cursor-pointer"
                       onClick={() => navigate(`/clientes/${c.id}`)}
                     >
                       <td className="px-4 py-3.5 max-w-[280px]">
                         <div className="flex items-center gap-3">
-                          <div className="size-9 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center text-[11px] font-bold shrink-0">
+                          <div className="size-9 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-[11px] font-bold shrink-0">
                             {initials(c.full_name)}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                            <p className="font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">
                               {c.full_name}
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <Building2 className="size-3 text-muted-foreground/60" />
-                              <p className="text-xs text-muted-foreground truncate">{c.company || "Pessoa física"}</p>
+                              <Building2 className="size-3 text-slate-400" />
+                              <p className="text-xs text-slate-500 truncate">{c.company || "Pessoa física"}</p>
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
-                        <p className="text-xs font-mono text-muted-foreground">{formatDoc(c.document) || "—"}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <p className="text-xs font-mono text-slate-500">{formatDoc(c.document) || "—"}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
                           <span className="flex items-center gap-1"><Phone className="size-3" /> {c.phone || "—"}</span>
                           {c.email && <Mail className="size-3" />}
                         </div>
@@ -620,27 +707,27 @@ export default function Clients() {
                           {c._productNames.length > 0 ? (
                             <>
                               {c._productNames.slice(0, 2).map((p: string, i: number) => (
-                                <span key={i} className="px-2 py-0.5 rounded-md bg-muted/60 border border-border/40 text-[11px] text-foreground/80 whitespace-nowrap">{p}</span>
+                                <span key={i} className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] text-slate-700 whitespace-nowrap">{p}</span>
                               ))}
-                              {c._productNames.length > 2 && <span className="px-2 py-0.5 rounded-md bg-muted/60 text-[11px] text-muted-foreground">+{c._productNames.length - 2}</span>}
+                              {c._productNames.length > 2 && <span className="px-2 py-0.5 rounded-md bg-slate-100 text-[11px] text-slate-500">+{c._productNames.length - 2}</span>}
                             </>
-                          ) : <span className="text-xs text-muted-foreground/60">—</span>}
+                          ) : <span className="text-xs text-slate-400">—</span>}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5"><span className="text-xs text-foreground/80">{c.partners?.full_name || "Direto"}</span></td>
+                      <td className="px-4 py-3.5"><span className="text-xs text-slate-700">{c.partners?.full_name || "Direto"}</span></td>
                       <td className="px-4 py-3.5 text-right">
-                        <p className="font-mono font-semibold text-foreground">{formatBRL(c._totalContracted)}</p>
-                        <p className={cn("text-[11px] font-mono mt-0.5", c._totalPending > 0 ? "text-warning" : "text-success")}>
+                        <p className="font-mono font-semibold text-slate-900">{formatBRL(c._totalContracted)}</p>
+                        <p className={cn("text-[11px] font-mono mt-0.5", c._totalPending > 0 ? "text-amber-600" : "text-emerald-600")}>
                           {c._totalPending > 0 ? `${formatBRL(c._totalPending)} pend.` : "Quitado"}
                         </p>
                       </td>
                       <td className="px-4 py-3.5 text-right">
-                        <p className="text-xs text-foreground/80">{format(new Date(c.created_at), "dd/MM/yyyy")}</p>
+                        <p className="text-xs text-slate-700">{format(new Date(c.created_at), "dd/MM/yyyy")}</p>
                       </td>
                       <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="h-8 w-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                            <button className="h-8 w-8 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors">
                               <MoreHorizontal className="size-4" />
                             </button>
                           </DropdownMenuTrigger>
@@ -653,7 +740,7 @@ export default function Clients() {
                               <DropdownMenuItem onClick={() => handleArchive(c)}>
                                 {c.status === "inativo" ? (<><ArchiveRestore className="size-3.5 mr-2" /> Reativar</>) : (<><Archive className="size-3.5 mr-2" /> Arquivar</>)}
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDelete(c.id)} className="text-red-600 focus:text-red-700"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
                             </>}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -667,7 +754,7 @@ export default function Clients() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              totalItems={filtered.length}
+              totalItems={sorted.length}
               itemsPerPage={itemsPerPage}
             />
           </div>
@@ -689,7 +776,7 @@ export default function Clients() {
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground",
+      "px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
@@ -697,55 +784,60 @@ function Th({ children, align = "left" }: { children: React.ReactNode; align?: "
   );
 }
 
+function SortableTh({
+  label, k, sortKey, sortDir, onToggle, align = "left",
+}: {
+  label: string; k: SortKey; sortKey: SortKey; sortDir: SortDir;
+  onToggle: (k: SortKey) => void; align?: "left" | "right";
+}) {
+  const active = sortKey === k;
+  return (
+    <th className={cn("px-4 py-3", align === "right" ? "text-right" : "text-left")}>
+      <button
+        onClick={() => onToggle(k)}
+        className={cn(
+          "inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider transition-colors",
+          active ? "text-indigo-700" : "text-slate-500 hover:text-slate-900"
+        )}
+      >
+        {label}
+        {active ? (sortDir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />) : <ArrowUpDown className="size-3 opacity-40" />}
+      </button>
+    </th>
+  );
+}
+
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{label}</label>
       {children}
     </div>
   );
 }
 
-function SummaryCard({
-  label, value, sublabel, icon, tone = "default",
-}: {
-  label: string; value: string; sublabel?: string;
-  icon?: React.ReactNode;
-  tone?: "default" | "primary" | "success" | "warning" | "danger";
-}) {
-  const toneCls = {
-    default: "text-foreground",
-    primary: "text-primary",
-    success: "text-success",
-    warning: "text-warning",
-    danger: "text-destructive",
-  }[tone];
-  const iconBg = {
-    default: "bg-muted text-muted-foreground",
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/10 text-success",
-    warning: "bg-warning/10 text-warning",
-    danger: "bg-destructive/10 text-destructive",
-  }[tone];
+function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card/40 p-3 sm:p-4 hover:border-border transition-colors">
-      <div className="flex items-start justify-between mb-2 sm:mb-3 gap-2">
-        <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-muted-foreground leading-tight">{label}</span>
-        <div className={cn("size-6 sm:size-7 rounded-md flex items-center justify-center shrink-0", iconBg)}>{icon}</div>
-      </div>
-      <p className={cn("text-lg sm:text-2xl font-bold tracking-tight font-mono truncate", toneCls)}>{value}</p>
-      {sublabel && <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1 line-clamp-2">{sublabel}</p>}
-    </div>
+    <span className="inline-flex items-center gap-1.5 pl-3 pr-1 py-1 rounded-full bg-white border border-slate-200 shadow-sm text-[11px] font-semibold text-slate-700">
+      {label}
+      <button
+        onClick={onClear}
+        className="size-5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors"
+        aria-label="Remover filtro"
+      >
+        <X className="size-3" />
+      </button>
+    </span>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    ativo: { label: "Ativo", cls: "bg-success/10 text-success border-success/20" },
-    prospecto: { label: "Prospecto", cls: "bg-warning/10 text-warning border-warning/20" },
-    inativo: { label: "Inativo", cls: "bg-muted text-muted-foreground border-border" },
+    ativo: { label: "Ativo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    prospecto: { label: "Prospecto", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    inativo: { label: "Inativo", cls: "bg-slate-100 text-slate-600 border-slate-200" },
   };
-  const m = map[status] || { label: status || "—", cls: "bg-muted text-muted-foreground border-border" };
+  const m = map[status] || { label: status || "—", cls: "bg-slate-100 text-slate-600 border-slate-200" };
   return (
     <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold", m.cls)}>
       <span className="size-1.5 rounded-full bg-current mr-1.5 opacity-80" />
@@ -756,9 +848,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function RiskBadge({ risk, overdue }: { risk: "low" | "med" | "high"; overdue: number }) {
   const map = {
-    low: { label: "Baixo", cls: "bg-success/10 text-success border-success/20" },
-    med: { label: "Médio", cls: "bg-warning/10 text-warning border-warning/20" },
-    high: { label: "Alto", cls: "bg-destructive/10 text-destructive border-destructive/20" },
+    low: { label: "Baixo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    med: { label: "Médio", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    high: { label: "Alto", cls: "bg-red-50 text-red-700 border-red-200" },
   };
   const m = map[risk];
   return (
@@ -769,7 +861,7 @@ function RiskBadge({ risk, overdue }: { risk: "low" | "med" | "high"; overdue: n
         </span>
       </TooltipTrigger>
       <TooltipContent>
-        Risco de cancelamento {m.label.toLowerCase()}
+        Risco {m.label.toLowerCase()} — calculado pela saúde (pagamentos vencidos, status e relação pago/contratado)
         {overdue > 0 && ` · ${overdue} pagamento(s) vencido(s)`}
       </TooltipContent>
     </Tooltip>
@@ -777,13 +869,13 @@ function RiskBadge({ risk, overdue }: { risk: "low" | "med" | "high"; overdue: n
 }
 
 function HealthBar({ value }: { value: number }) {
-  const tone = value >= 75 ? "bg-success" : value >= 50 ? "bg-warning" : "bg-destructive";
+  const tone = value >= 75 ? "bg-emerald-500" : value >= 50 ? "bg-amber-500" : "bg-red-500";
   return (
     <div className="flex items-center gap-2 min-w-[110px]">
-      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+      <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div className={cn("h-full rounded-full transition-all", tone)} style={{ width: `${value}%` }} />
       </div>
-      <span className="text-[11px] font-mono font-semibold text-foreground/80 w-8 text-right">{value}</span>
+      <span className="text-[11px] font-mono font-semibold text-slate-700 w-8 text-right">{value}</span>
     </div>
   );
 }
