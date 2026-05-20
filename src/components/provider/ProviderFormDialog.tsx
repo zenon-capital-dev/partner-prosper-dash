@@ -12,6 +12,7 @@ import { Briefcase, User, Mail, Phone, IdCard, Star, Lock, Building2, Wallet } f
 import { MaskedInput } from "@/components/ui/masked-input";
 import { onlyDigits } from "@/lib/masks";
 import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
+import { validatePassword } from "@/lib/password";
 
 interface Props {
   open: boolean;
