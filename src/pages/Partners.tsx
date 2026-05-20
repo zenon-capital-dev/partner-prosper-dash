@@ -479,7 +479,7 @@ export default function Partners() {
                   <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: João da Silva ou Acme Indicações" />
                 </PartnerField>
                 <PartnerField label="CPF / CNPJ">
-                  <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} placeholder="000.000.000-00" />
+                  <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
                 </PartnerField>
                 <PartnerField label="Categoria">
                   <Select value={form.partner_category ?? "indicador"} onValueChange={(v) => setForm({ ...form, partner_category: v })}>
