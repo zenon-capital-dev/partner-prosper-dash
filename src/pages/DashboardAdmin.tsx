@@ -59,7 +59,6 @@ export default function DashboardAdmin() {
     queryFn: async () => {
       let query = supabase.from("sales").select("*").order("sale_date", { ascending: false });
       
-      const toISO = (d: Date) => d.toISOString().slice(0, 10);
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
       
@@ -71,7 +70,7 @@ export default function DashboardAdmin() {
       const periodDays = Math.max(1, Math.round((rangeEnd.getTime() - rangeStart.getTime()) / 86400000) + 1);
       fetchStart.setDate(fetchStart.getDate() - periodDays);
       
-      const { data, error } = await query.gte("sale_date", toISO(fetchStart)).lte("sale_date", toISO(rangeEnd));
+      const { data, error } = await query.gte("sale_date", toLocalISO(fetchStart)).lte("sale_date", toLocalISO(rangeEnd));
       if (error) throw error;
       return data ?? [];
     }
