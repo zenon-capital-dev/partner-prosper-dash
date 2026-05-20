@@ -1,53 +1,56 @@
-# Consertar aba Atuações (/atuacoes)
+## Objetivo
 
-A página `src/pages/Atuacoes.tsx` tem bugs reais de layout e fluxos incompletos. Hoje a tabela `daily_actions` está vazia (0 linhas) — então parte do "nada funciona" é porque não há dado, mas além disso a UI tem problemas estruturais.
+Deixar a aba **Tarefas** (`/tarefas` → `src/pages/Tasks.tsx`) funcionando "perfeito": filtros que mostram resultados reais, responsável aparecendo, calendário sem bug de fuso, ações claras (concluir/excluir/editar) e estados vazios úteis.
+
+Tabela `tasks` está **vazia hoje (0 linhas)** — então boa parte da sensação de "nada funciona" vem do filtro padrão **HOJE** aplicado em `created_at`, que esconde qualquer tarefa criada em outro dia. Vou corrigir isso junto com os bugs reais.
 
 ## Bugs identificados
 
-1. **Layout quebrado** — o wrapper `max-w-[1600px] mx-auto px-5 lg:px-8` (linha 199) fecha na linha 228, mas a **lista de atuações** e os **dialogs** ficam FORA dele. Resultado: a lista vai até a borda da tela, sem padding, encostada no topo.
-2. **`<Tabs>` sem `<TabsContent>`** — os tabs trocam o estado mas a lista é renderizada num bloco solto fora do `Tabs`. Funciona "por acaso" via `tab` state, mas o foco/aria/animação dos tabs não funciona.
-3. **Search mal posicionado** — fica numa linha separada abaixo dos tabs, ao invés de ao lado.
-4. **Counters só nas duas primeiras tabs** — "Próximas" e "Histórico" não mostram contagem.
-5. **Comparação de data com timezone** — `isToday(parseISO("2025-05-20"))` pode dar resultado errado dependendo do fuso. Usar comparação por string `yyyy-MM-dd` resolve.
-6. **Histórico sem filtros** — não tem filtro por resultado nem período, vira lista infinita.
-7. **Não dá para excluir** uma atuação (só cancelar) nem **reabrir** uma cancelada.
-8. **Reagendar** dispara mutação no primeiro clique do calendário, sem confirmação nem feedback.
-9. **Diálogo "Nova atuação"** — busca de cliente só por nome (não pega empresa); limita silenciosamente em 50 sem aviso; sem opção de criar atuação sem produto fica enxuto, mas falta validação visual de cliente obrigatório.
-10. **Cancelar** não pede confirmação.
+1. **Filtro de período aplicado em `created_at`** — esconde tarefas com prazo no período se foram criadas antes. Deveria filtrar por `due_date` (prazo), e "TUDO" como padrão até existir volume.
+2. **Padrão "HOJE"** com banco vazio = lista sempre vazia, sem CTA claro.
+3. **Responsável nunca aparece** — `TaskRow` lê `task.assigned_user.full_name`, mas o `select` da query não faz join com `profiles`. Resultado: nome do responsável invisível em lista/kanban/calendário.
+4. **Bug de fuso no calendário** — `dayKey` usa `toISOString()` (UTC), então uma tarefa com prazo 20/05 23:00 BRT aparece em 21/05 no calendário. `tasksByDate` tem o mesmo problema ao quebrar `due_date.split("T")[0]` quando o ISO já está em UTC.
+5. **Salvar prazo via `new Date(yyyy-mm-dd).toISOString()`** — interpreta como meia-noite UTC e grava no dia anterior em BRT.
+6. **Sem contador nas abas Lista/Kanban/Calendário** e bloco de KPI duplicado escondido com `className="hidden ..."` (código morto).
+7. **Sem ação rápida "Concluir"** na linha — usuário precisa abrir o select de status só para marcar como feito.
+8. **Sem confirmação visual ao excluir** consistente (usa `confirmAction` custom; ok, manter, mas garantir toast).
+9. **Diálogo de criar/editar** sem feedback de loading, sem reset ao trocar `entity_type`, e select de "Item vinculado" lista até 500 sem busca — ok manter, mas adicionar aviso quando lista grande.
+10. **Kanban e Lista não dizem que filtros estão ativos** quando o resultado é zero — empty state genérico engana o usuário.
 
-## O que vou ajustar (somente UI/queries, sem migração)
+## Mudanças
 
-### Estrutura
-- Envolver toolbar + tabs + search + lista + dialogs **dentro de um único** `max-w-[1600px] mx-auto px-5 lg:px-8 space-y-4`.
-- Mover `<TabsContent value="hoje|atrasadas|proximas|historico">` para conter a lista corretamente.
-- Tabs e search **na mesma linha** (`flex items-center justify-between gap-3`).
+Tudo em `src/pages/Tasks.tsx` (sem migração, sem mexer em RLS):
 
-### Tabs / contadores
-- Adicionar badge de contagem também em "Próximas" e "Histórico".
+1. **Query**: adicionar join `assigned_user:profiles!tasks_assigned_to_fkey(id, full_name)` no select principal (com fallback já existente preservado).
+2. **Filtro de período**: passar a usar `due_date` em vez de `created_at`. Tarefas **sem prazo** entram em "TUDO" e também em "HOJE" (para ficarem visíveis em vez de sumirem). Mudar **padrão para "TUDO"** já que é uma central de tarefas e o time precisa ver tudo por padrão.
+3. **Helpers de data sem TZ**:
+   - `toLocalDateKey(d: Date | string)` → `yyyy-MM-dd` usando `format(d, "yyyy-MM-dd")` (date-fns local).
+   - `tasksByDate` e `dayKey` usam o helper.
+   - Ao salvar `due_date`, gravar como `${form.due_date}T12:00:00` (meio-dia local) para evitar virada de dia em qualquer fuso.
+4. **TaskRow**:
+   - Mostrar responsável de fato (`task.assigned_user?.full_name`).
+   - Botão rápido ✓ "Concluir" quando `status_new !== "concluida"`, ou ↺ "Reabrir" quando concluída/cancelada.
+   - Badge de "Sem prazo" quando `due_date` é nulo.
+5. **Tabs**: adicionar contador em cada `TabsTrigger` (Lista = total filtrado, Kanban = idem, Calendário = total com prazo).
+6. **KPIs**: remover bloco oculto duplicado (linhas 412–424).
+7. **Estados vazios**:
+   - Se `tasks.length === 0` → CTA "Criar primeira tarefa".
+   - Se filtrado vazio mas existem tarefas → "Nenhuma tarefa nos filtros atuais" + botão "Limpar filtros".
+8. **Diálogo**:
+   - Botão "Salvar/Criar" com estado `saving` (disable + texto "Salvando...").
+   - Ao trocar `entity_type` para "none", limpar `entity_id` (já faz).
+   - Aviso "Mostrando os primeiros 500. Refine pela aba do cliente para ver outros." abaixo do select quando a lista de vinculados tiver 500 itens.
+9. **Kanban**: ao clicar no card, abrir editor (já faz); manter, mas reduzir colunas em telas médias e mostrar contador de "0" em cinza.
 
-### Comparação de datas
-- Trocar `isToday/isPast(parseISO(...))` por comparação direta `a.scheduled_date === todayStr` / `< todayStr` usando `format(new Date(), "yyyy-MM-dd")`. Elimina qualquer timezone shift.
+## Detalhes técnicos
 
-### Histórico
-- Adicionar **filtro de resultado** (todos/contatado/sem_resposta/fechado/reagendar) e **período** (7d/30d/tudo) no topo da tab.
+- Sem alteração no schema, RLS ou edge functions.
+- `due_date` continua `timestamptz`; o ajuste é só na serialização ao enviar (`${date}T12:00:00.000`).
+- Join novo depende do FK `tasks.assigned_to → profiles.id`. Se o nome do constraint divergir, o `select` cai no fallback existente, então a tela continua funcionando.
+- Sem dependência nova de pacote.
 
-### Ações da linha
-- Adicionar item "Excluir" (com `AlertDialog` de confirmação) que dispara `DELETE` em `daily_actions`.
-- Para cancelar: trocar `window.confirm` implícito por `AlertDialog`.
-- Para **executadas/canceladas**: adicionar botão "Reabrir" que volta status para `pendente` e zera `result/execution_notes/executed_at`.
+## Fora de escopo
 
-### Reagendar
-- Trocar dialog para incluir botão "Confirmar nova data" — só dispara mutação após confirmação. Calendar fica preview.
-
-### Criar atuação
-- Busca de cliente em `or(full_name.ilike.%q%, company.ilike.%q%)`.
-- Mensagem clara quando a lista atinge 50 resultados ("Refine a busca para ver mais").
-- Bloquear botão "Agendar" enquanto não há cliente, com mensagem de hint.
-
-### Estado vazio
-- Já existe; manter mas no estado "hoje" sem nenhuma atuação mostrar CTA mais claro.
-
-## Arquivos afetados
-- `src/pages/Atuacoes.tsx` (refator de layout + filtros + novas ações)
-
-Nenhuma alteração de banco ou RLS é necessária — `daily_actions` já tem policies `Admins manage daily actions` (ALL) e `Internal team views daily actions` (SELECT), o que permite todas as operações que vou expor.
+- Drag-and-drop no Kanban (pode entrar em uma próxima rodada).
+- Notificações/automação ao concluir.
+- Filtro por responsável (posso incluir se você quiser, basta avisar).
