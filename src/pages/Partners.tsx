@@ -212,9 +212,9 @@ export default function Partners() {
     const payload: Record<string, any> = {
       full_name: form.full_name.trim(),
       email: form.email || null,
-      phone: form.phone || null,
-      whatsapp: form.whatsapp || null,
-      document: form.document || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      whatsapp: form.whatsapp ? onlyDigits(form.whatsapp) : null,
+      document: form.document ? onlyDigits(form.document) : null,
       pix_key: form.pix_key || null,
       bank_name: form.bank_name || null,
       bank_agency: form.bank_agency || null,
