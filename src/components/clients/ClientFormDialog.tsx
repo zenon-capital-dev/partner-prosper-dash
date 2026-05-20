@@ -143,19 +143,19 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     // Check for existing email/document — queries separadas para evitar injection em .or()
     if (form.email || form.document) {
       const cleanDoc = form.document ? onlyDigits(form.document) : null;
-      const checks: Promise<any>[] = [];
+      const checks: Array<{ data: any[] | null }> = [];
       if (form.email) {
         let q = supabase.from("clients").select("id, full_name").eq("email", form.email).limit(1);
         if (client?.id) q = q.neq("id", client.id);
-        checks.push(q);
+        checks.push(await q);
       }
       if (cleanDoc) {
         let q = supabase.from("clients").select("id, full_name").eq("document", cleanDoc).limit(1);
         if (client?.id) q = q.neq("id", client.id);
-        checks.push(q);
+        checks.push(await q);
       }
-      const results = await Promise.all(checks);
-      const dup = results.find((r) => (r.data?.length ?? 0) > 0);
+      const dup = checks.find((r) => (r.data?.length ?? 0) > 0);
+
       if (dup) {
         toast.error("Já existe um cliente cadastrado com este email ou documento");
         setSubmitting(false);
