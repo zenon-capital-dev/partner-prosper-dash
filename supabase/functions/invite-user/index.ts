@@ -6,6 +6,13 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function validateServerPassword(pw: string): string | null {
+  if (!pw || pw.length < 8) return "Senha precisa ter ao menos 8 caracteres";
+  if (!/[A-Za-z]/.test(pw)) return "Senha precisa conter ao menos 1 letra";
+  if (!/\d/.test(pw)) return "Senha precisa conter ao menos 1 número";
+  return null;
+}
+
 type Role = "admin" | "admin_secondary" | "colaborador" | "vendedor" | "parceiro" | "prestador" | "indicador" | "cliente" | "lead";
 
 interface Body {
