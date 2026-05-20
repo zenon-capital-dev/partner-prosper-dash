@@ -183,7 +183,37 @@ export default function Atuacoes() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["daily_actions"] });
       toast.success("Cancelada");
+      setCancelling(null);
     },
+    onError: (e: any) => toast.error(e.message ?? "Erro"),
+  });
+
+  const reopenMut = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("daily_actions")
+        .update({ status: "pendente", result: null, execution_notes: null, executed_at: null, executed_by: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["daily_actions"] });
+      toast.success("Atuação reaberta");
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro"),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("daily_actions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["daily_actions"] });
+      toast.success("Atuação excluída");
+      setDeleting(null);
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro"),
   });
 
   const list =
