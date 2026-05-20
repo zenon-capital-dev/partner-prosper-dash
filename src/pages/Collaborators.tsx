@@ -802,7 +802,7 @@ function CreateCollaboratorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label>Telefone</Label>
-                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" />
               </div>
               <div className="space-y-1.5">
                 <Label>Função</Label>
