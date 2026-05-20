@@ -91,11 +91,16 @@ const emptyForm: FormState = {
   entity_id: "",
 };
 
+const toLocalDateKey = (d: Date | string) => {
+  const dt = typeof d === "string" ? new Date(d) : d;
+  return format(dt, "yyyy-MM-dd");
+};
+
 export default function Tasks() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [view, setView] = useState<"lista" | "kanban" | "calendario">("lista");
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("TUDO");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -103,6 +108,7 @@ export default function Tasks() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks-central"],
@@ -111,6 +117,7 @@ export default function Tasks() {
         .from("tasks")
         .select(`
           *,
+          assigned_user:profiles!tasks_assigned_to_fkey(id, full_name),
           client:clients(id, full_name),
           client_product:client_products(id, custom_product_name, products(name)),
           provider:service_providers(id, name),
@@ -120,7 +127,7 @@ export default function Tasks() {
         `)
         .order("due_date", { ascending: true, nullsFirst: false });
       if (error) {
-        // fallback if profiles join fails
+        // fallback se join falhar (FK ausente etc.)
         const r = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
         return r.data ?? [];
       }
