@@ -181,9 +181,28 @@ export default function Tasks() {
       end = new Date(8640000000000000);
     }
 
+  const filtered = useMemo(() => {
+    const today = startOfToday();
+    let start = today;
+    let end = endOfDay(today);
+
+    if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "30 DIAS") {
+      start = subDays(today, 29);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      start = new Date(0);
+      end = new Date(8640000000000000);
+    }
+
     return tasks.filter((t: any) => {
-      const createdAt = new Date(t.created_at);
-      if (rangeKey !== "TUDO" && (createdAt < start || createdAt > end)) return false;
+      // Período aplica em due_date; tarefas sem prazo são sempre visíveis (exceto buscas pontuais por status/prioridade)
+      if (rangeKey !== "TUDO" && t.due_date) {
+        const due = new Date(t.due_date);
+        if (due < start || due > end) return false;
+      }
       if (statusFilter !== "all" && t.status_new !== statusFilter) return false;
       if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       if (search) {
