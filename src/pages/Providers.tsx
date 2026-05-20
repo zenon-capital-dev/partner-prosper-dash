@@ -213,7 +213,10 @@ export default function Providers() {
     qc.invalidateQueries({ queryKey: ["providers-rich"] });
   };
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["providers-rich"] });
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["providers-rich"] });
+    qc.invalidateQueries({ queryKey: ["service-providers-active"] });
+  };
 
   const clearFilters = () => {
     setSearch(""); setStatusFilter("todos"); setSpecialtyFilter("todas"); setAccessFilter("todos");
