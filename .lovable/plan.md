@@ -1,51 +1,56 @@
-Vou refatorar a aba Vendas no mesmo padrão das anteriores: visual claro premium do admin, busca/filtros confiáveis, KPIs coerentes e ações seguras.
+Vou refatorar a aba Serviços (rota `/produtos`, arquivo `src/pages/Products.tsx`) no mesmo padrão das anteriores.
 
 Escopo:
 
-1. Tema visual claro premium
-- Trocar o shell dark/obsidian (`dark:bg-[#060608]`, classes `vx-card`, `text-foreground`, dark overrides) por fundo `bg-slate-50/60`, cards `bg-white border-slate-200/70 rounded-lg shadow-sm`.
-- Remover gradientes pesados e classes `dark:` no admin.
-- Tipografia Inter no texto, JetBrains Mono em números/valores.
-- Pills de status com paletas claras (emerald/sky/amber/rose/slate) — sem dark.
+1. Tema claro premium
+- Remover classes `vx-card`, gradientes pesados, ring branco, sombras gigantes e tons aleatórios. Padronizar para `bg-white border-slate-200/70 rounded-lg shadow-sm`.
+- Cabeçalho enxuto seguindo o resto do admin (sem o `radial-gradient` cheio).
+- Tipografia Inter no texto, JetBrains Mono em números/preços.
+- Pills/status em paletas claras (emerald/sky/amber/rose/slate).
+- Esconder ações de gestão (criar/editar/excluir/desativar/categorias) para quem não é admin (`canManage = isAdmin || isAdminSecondary`).
 
-2. Filtros e busca
-- Normalizar busca por cliente, empresa, produto, parceiro, documento (sem acento, sem pontuação).
-- Sincronizar range de período "HOJE/7/30/MÊS/TUDO" com inputs de data: quando o usuário escolhe data manual, sair do preset; range manual deve sobrescrever preset corretamente.
-- Filtros: status, parceiro (com opção "Sem parceiro"), intervalo de datas.
+2. Busca e filtros confiáveis
+- Normalizar busca (sem acento, lowercase) cobrindo nome, descrição e nome da categoria.
+- Filtros: status (Todos/Ativos/Inativos), categoria, tipo (recorrente/único), permite parceiro.
 - Chips de filtros ativos com X individual e "Limpar tudo".
-- Resetar paginação ao mudar filtros (se aplicável).
+- Ordenação na visualização de tabela por Nome, Categoria, Preço, % Comissão, Parceiros, Vendas, Receita, Status (cabeçalhos clicáveis com indicador).
 
-3. Ordenação na tabela
-- Cabeçalhos clicáveis para Data, Cliente, Produto, Parceiro, Valor, Comissão e Status.
-- Indicador visual de ordenação ascendente/descendente.
+3. Cartão "Top Produtos por Receita"
+- Corrigir o link para a categoria, somar receita usando o mesmo `usageStats`.
+- Quando não há vendas, mostrar estado vazio amigável.
+- Mostrar também ticket médio do produto (receita/vendas).
 
-4. KPIs e gráficos
-- KPIs baseados em `filtered` (já é assim) — preservar mas no padrão claro.
-- Gráfico de 30 dias: respeitar o range escolhido; ou deixar fixo "últimos 30 dias" mas etiquetado como tal e usando data local sem deslocamento de fuso.
-- Distribuição por status e Top Parceiros mantendo cores claras.
+4. KPIs corretos
+- Ticket médio: receita total / total de vendas (não / total de produtos).
+- Mostrar contagem de inativos e produtos sem categoria.
+- "Melhor oferta" só aparece se existir; caso contrário "—".
 
-5. Ações na linha (mais seguras)
-- Esconder ações de gestão para quem não é admin (`canManage`).
-- Validar transições de status: bloquear "Concluir" se já concluída; bloquear "Cancelar" em venda concluída sem confirmação extra.
-- Confirmar mudanças destrutivas com `confirmAction`.
-- Invalidar também queries relacionadas (commissions, payments) quando status muda.
-- Tratar erros do Supabase mostrando toast `error.message`.
+5. Grid de cards mais limpo
+- Remover o bloco fake de avatares `[...Array(3)]` que sempre mostra "P/+" mesmo sem parceiros — substituir por contagem real `u.partners parceiros`.
+- Mostrar badge de recorrente, badge "permite parceiro", SLA padrão.
+- Trocar gradientes/recortes decorativos por layout limpo.
 
-6. Exportação CSV
-- Incluir colunas Parceiro, Comissão %, Comissão R$, Empresa.
-- Escapar valores corretamente (já faz) e manter BOM UTF-8.
-- Nome do arquivo com data: `vendas-YYYY-MM-DD.csv`.
+6. Tabela mais útil
+- Adicionar coluna "Tipo" (recorrente/único) e SLA.
+- Estado vazio com contexto (filtros ativos vs. catálogo vazio).
+- Linhas com hover slate-50, sem `vx-mono` (usar `font-mono`).
 
-7. Estados de carregamento e vazio
-- Skeleton rows enquanto carrega.
-- Empty state com ícone + mensagem contextual (com filtros vs sem dados).
+7. Diálogo de categorias
+- Validar duplicidade de nome/slug.
+- Confirmar exclusão mostrando quantos produtos serão impactados.
+- Editar nome/cor da categoria (não só criar/excluir).
 
-8. Responsividade
-- Tabela com `overflow-x-auto` e larguras mínimas, sem quebrar layout.
-- Toolbar de filtros que empilha em telas pequenas.
+8. Segurança de ações
+- `handleDelete` já protege contra vínculos — manter, mas usar `confirmAction` com mensagem clara.
+- `toggleActive` com confirmação ao desativar produto com vínculos.
+- Invalidar queries relacionadas (`products-list`, `product-usage`, `categories`).
 
-9. Validação final
-- Conferir tipos TS, console e dev-server após mudança.
-- Não mexer no banco — dados consistentes já validados.
+9. Estados de carregamento e vazio
+- Skeleton cards/rows enquanto carrega.
+- Empty state contextual com CTA "Novo serviço".
 
-Fora do escopo: refatorar `SaleFormDialog` (que é outro componente) e mudar regras de comissão/triggers do banco.
+10. Validação final
+- Conferir tipos TS, build, console e dev-server após mudança.
+- Sem alterações de schema; reaproveitar `ProductFormDialog` e `ProductChecklistDialog` existentes.
+
+Fora do escopo: refatorar `ProductFormDialog`/`ProductChecklistDialog` e mudar schema/triggers do banco.
