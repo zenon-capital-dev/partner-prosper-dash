@@ -184,21 +184,21 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
   return (
     <div className="space-y-4">
       {/* Funil compacto */}
-      <div className="vx-card p-3 sm:p-4">
+      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-[11px] font-black uppercase tracking-wider text-slate-500">
             Funil de conversão
           </h3>
-          <span className="text-[10px] font-bold text-muted-foreground">
-            {leads.length} leads totais
+          <span className="text-[10px] font-bold text-slate-500">
+            {leads.length} leads no recorte atual
           </span>
         </div>
         <div className="flex items-end gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
           {funnelStats.map((s, i) => (
             <div key={s.status} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <div className="flex flex-col items-center min-w-[64px] sm:min-w-[88px]">
-                <div className="text-lg sm:text-2xl font-black font-mono text-foreground">{s.count}</div>
-                <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-center leading-tight">
+                <div className="text-lg sm:text-2xl font-black font-mono text-slate-900">{s.count}</div>
+                <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-500 text-center leading-tight">
                   {s.status}
                 </div>
                 <div className="mt-1.5 h-1 w-full rounded-full bg-indigo-100 overflow-hidden">
@@ -211,7 +211,7 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
                 </div>
               </div>
               {i < funnelStats.length - 1 && (
-                <div className="flex flex-col items-center justify-center text-[9px] sm:text-[10px] font-bold text-muted-foreground/70">
+                <div className="flex flex-col items-center justify-center text-[9px] sm:text-[10px] font-bold text-slate-400">
                   <ArrowRight className="size-3 sm:size-3.5" />
                   {s.rate != null && <span>{s.rate}%</span>}
                 </div>
@@ -222,11 +222,11 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
       </div>
 
       {/* Pra agir hoje */}
-      <div className="vx-card overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border/60 bg-gradient-to-r from-rose-50/60 via-orange-50/40 to-transparent">
+      <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-rose-50/50 via-orange-50/30 to-transparent">
           <div className="flex items-center gap-2">
             <Flame className="size-4 text-rose-600" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
               Pra agir hoje
             </h3>
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700">
@@ -237,13 +237,13 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
         {todayQueue.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <CheckCircle2 className="size-8 text-emerald-500 mx-auto mb-2" />
-            <p className="text-sm font-bold text-foreground">Nada pendente. Bom trabalho!</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Cadastre follow-ups nos leads pra eles aparecerem aqui.
+            <p className="text-sm font-bold text-slate-900">Nada pendente. Bom trabalho!</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Agende follow-ups nos leads pra eles aparecerem aqui.
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-border/50">
+          <ul className="divide-y divide-slate-100">
             {todayQueue.map(({ lead, pri }) => (
               <LeadRow
                 key={lead.id}
@@ -257,6 +257,7 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
           </ul>
         )}
       </div>
+
 
       {/* Funil agrupado */}
       <div className="space-y-2.5">
