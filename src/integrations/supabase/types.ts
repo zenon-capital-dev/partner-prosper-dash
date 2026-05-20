@@ -604,6 +604,7 @@ export type Database = {
           required_documents: Json | null
           responsible_employee_id: string | null
           responsible_provider_id: string | null
+          sale_id: string | null
           service_provider_id: string | null
           sla_due_date: string | null
           sla_start_date: string | null
@@ -640,6 +641,7 @@ export type Database = {
           required_documents?: Json | null
           responsible_employee_id?: string | null
           responsible_provider_id?: string | null
+          sale_id?: string | null
           service_provider_id?: string | null
           sla_due_date?: string | null
           sla_start_date?: string | null
@@ -676,6 +678,7 @@ export type Database = {
           required_documents?: Json | null
           responsible_employee_id?: string | null
           responsible_provider_id?: string | null
+          sale_id?: string | null
           service_provider_id?: string | null
           sla_due_date?: string | null
           sla_start_date?: string | null
@@ -733,6 +736,13 @@ export type Database = {
             columns: ["responsible_provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_products_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
             referencedColumns: ["id"]
           },
           {
