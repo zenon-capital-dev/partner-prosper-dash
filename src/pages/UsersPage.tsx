@@ -597,8 +597,8 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
         <div className="grid grid-cols-2 gap-4 py-2">
           <div className="col-span-2 space-y-2"><Label>Nome completo</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: João Silva" /></div>
           <div className="space-y-2"><Label>Email *</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" /></div>
-          <div className="space-y-2"><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" /></div>
-          <div className="space-y-2"><Label>Documento</Label><Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} placeholder="CPF/CNPJ" /></div>
+          <div className="space-y-2"><Label>Telefone</Label><MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" /></div>
+          <div className="space-y-2"><Label>Documento</Label><MaskedInput mask="cpfcnpj" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="CPF/CNPJ" /></div>
           <div className="space-y-2">
             <Label>Papel</Label>
             <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
