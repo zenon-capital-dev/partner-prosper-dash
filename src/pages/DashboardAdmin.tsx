@@ -405,6 +405,17 @@ export default function DashboardAdmin() {
           </div>
         </section>
 
+        {/* ============ HOJE — PENDÊNCIAS DO DIA ============ */}
+        <TodayBoard
+          loading={isGlobalLoading}
+          dateLabel={todayLabel}
+          totalCount={stats.todayPendingCount}
+          tasks={stats.todayTasksList}
+          demands={stats.todayDemandsList}
+          docs={stats.todayDocsList}
+          contracts={stats.todayContractsList}
+        />
+
         {/* ============ OPERATIONAL ROW ============ */}
         <section className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             <MiniStat label="Demandas atrasadas" value={isGlobalLoading ? "-" : stats.delayedDemands} hint={isGlobalLoading ? "..." : `${stats.activeDemands} ativas`} icon={Clock} to="/demandas" negative={!isGlobalLoading && stats.delayedDemands > 0} />
