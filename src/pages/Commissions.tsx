@@ -657,8 +657,12 @@ export default function Commissions() {
 
     </TabsContent>
 
+    <TabsContent value="all" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <AllBeneficiariesTable />
+    </TabsContent>
 
     <TabsContent value="rules" className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+
       <div className="vx-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
