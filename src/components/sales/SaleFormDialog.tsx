@@ -112,8 +112,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
   };
 
   const submit = async () => {
-    if (!form.client_id || !form.product_id || !form.amount) {
-      toast.error("Cliente, produto e valor são obrigatórios");
+    if (!form.client_id || !form.product_id) {
+      toast.error("Cliente e produto são obrigatórios");
+      return;
+    }
+    const amountNum = Number(form.amount);
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      toast.error("Informe um valor maior que zero");
+      return;
+    }
+    const totalPctCheck =
+      Number(form.commission_percent || 0) +
+      Number(form.referrer_percent || 0) +
+      Number(form.collaborator_percent || 0);
+    if (totalPctCheck > 100) {
+      toast.error("Soma das comissões não pode passar de 100%");
       return;
     }
     setSubmitting(true);
