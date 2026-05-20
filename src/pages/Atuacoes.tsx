@@ -461,10 +461,18 @@ function KpiCard({
 
 /* ---------------- Row ---------------- */
 function ActionRow({
-  action, onExecute, onReschedule, onCancel,
-}: { action: DailyAction; onExecute: () => void; onReschedule: () => void; onCancel: () => void }) {
+  action, onExecute, onReschedule, onCancel, onDelete, onReopen,
+}: {
+  action: DailyAction;
+  onExecute: () => void;
+  onReschedule: () => void;
+  onCancel: () => void;
+  onDelete: () => void;
+  onReopen: () => void;
+}) {
   const date = parseISO(action.scheduled_date);
-  const isOverdue = action.status === "pendente" && isPast(date) && !isToday(date);
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const isOverdue = action.status === "pendente" && action.scheduled_date < todayStr;
   const isExecuted = action.status === "executada";
   const isCancelled = action.status === "cancelada";
   const productName = action.product?.product?.name ?? action.product?.custom_product_name ?? null;
