@@ -264,19 +264,24 @@ export default function Tasks() {
 
   const save = async () => {
     if (!form.title.trim()) return toast.error("Título é obrigatório");
-    const payload = buildPayload();
-    if (editing) {
-      const { error } = await supabase.from("tasks").update(payload).eq("id", editing.id);
-      if (error) return toast.error(error.message);
-      toast.success("Tarefa atualizada");
-    } else {
-      const { error } = await supabase.from("tasks").insert({ ...payload, created_by: user?.id ?? null });
-      if (error) return toast.error(error.message);
-      toast.success("Tarefa criada");
+    setSaving(true);
+    try {
+      const payload = buildPayload();
+      if (editing) {
+        const { error } = await supabase.from("tasks").update(payload).eq("id", editing.id);
+        if (error) return toast.error(error.message);
+        toast.success("Tarefa atualizada");
+      } else {
+        const { error } = await supabase.from("tasks").insert({ ...payload, created_by: user?.id ?? null });
+        if (error) return toast.error(error.message);
+        toast.success("Tarefa criada");
+      }
+      setCreateOpen(false);
+      resetForm();
+      qc.invalidateQueries({ queryKey: ["tasks-central"] });
+    } finally {
+      setSaving(false);
     }
-    setCreateOpen(false);
-    resetForm();
-    qc.invalidateQueries({ queryKey: ["tasks-central"] });
   };
 
   const updateStatus = async (id: string, status_new: string) => {
