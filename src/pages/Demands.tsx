@@ -274,6 +274,7 @@ export default function Demands() {
     if (!result.destination) return;
     const { draggableId, destination } = result;
     const newStatus = destination.droppableId;
+    if (newStatus === "__outros__") return; // não permite mover para "outros"
     const demand = demands.find((d: any) => d.id === draggableId);
     if (!demand || demand.status === newStatus) return;
     if (newStatus === 'concluido') {
