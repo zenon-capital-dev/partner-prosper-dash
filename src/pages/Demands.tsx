@@ -234,16 +234,18 @@ export default function Demands() {
     };
   }, [demands]);
 
-  const KANBAN_COLUMNS = [
+  // Colunas reais (status livre em text). Qualquer status fora da lista cai em "outros".
+  const baseColumns = [
     { id: "aguardando_inicio", label: "Aguardando início" },
-    { id: "aguardando_documentos", label: "Aguardando documentos" },
-    { id: "em_analise", label: "Em análise" },
-    { id: "em_execucao", label: "Em execução" },
-    { id: "pendente_cliente", label: "Pendente com cliente" },
-    { id: "pendente_prestador", label: "Pendente com prestador" },
-    { id: "aguardando_aprovacao_final", label: "Aguardando aprovação" },
+    { id: "em_andamento", label: "Em andamento" },
+    { id: "pausado", label: "Pausado" },
     { id: "concluido", label: "Concluído" },
+    { id: "cancelado", label: "Cancelado" },
   ];
+  const hasOutros = demands.some((d: any) => d.status && !KNOWN_STATUSES.includes(d.status));
+  const KANBAN_COLUMNS = hasOutros ? [...baseColumns, { id: "__outros__", label: "Outros" }] : baseColumns;
+  const isInColumn = (d: any, colId: string) =>
+    colId === "__outros__" ? d.status && !KNOWN_STATUSES.includes(d.status) : d.status === colId;
 
   const [completeDialog, setCompleteDialog] = useState<{ id: string; date: string } | null>(null);
 
