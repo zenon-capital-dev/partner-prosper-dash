@@ -992,7 +992,7 @@ function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Telefone</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" className="mt-1.5 h-10" />
+            <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" className="mt-1.5 h-10" />
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">CPF/CNPJ</label>
