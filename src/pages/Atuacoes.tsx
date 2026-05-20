@@ -747,6 +747,9 @@ function CreateActionDialog({
                 </button>
               ))}
             </div>
+            {clients.length >= 50 && (
+              <p className="text-[10.5px] text-slate-400 mt-1">Mostrando 50 resultados — refine a busca para ver mais.</p>
+            )}
           </div>
 
           {clientId && products.length > 0 && (
