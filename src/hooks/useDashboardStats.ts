@@ -23,7 +23,7 @@ export function useDashboardStats() {
         supabase.from("payments").select("amount, amount_paid, status"),
         supabase.from("commissions").select("amount, status"),
         supabase.from("tasks").select("id, status, due_date"),
-        supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(5),
       ]);
 
       const [
