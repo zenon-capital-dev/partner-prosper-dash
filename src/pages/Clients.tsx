@@ -421,18 +421,15 @@ export default function Clients() {
 
         {/* Lista — grid ou tabela */}
         {isLoading ? (
-          <div className="rounded-xl border border-border/60 bg-card/40 py-20 flex flex-col items-center justify-center text-muted-foreground">
-            <div className="size-10 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-3" />
-            <p className="text-sm">Carregando clientes...</p>
-          </div>
+          <TableSkeleton rows={6} cols={5} />
         ) : filtered.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-border/60 bg-card/40 py-16 text-center">
-            <Users className="size-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Nenhum cliente encontrado.</p>
-            <button onClick={resetFilters} className="text-primary text-xs font-semibold mt-2 hover:underline">
-              Limpar filtros
-            </button>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="Nenhum cliente encontrado"
+            description="Ajuste os filtros ou cadastre um novo cliente."
+            actionLabel="Limpar filtros"
+            onAction={resetFilters}
+          />
         ) : view === "grid" ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
