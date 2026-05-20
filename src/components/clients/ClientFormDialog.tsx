@@ -208,15 +208,23 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       if (cpUpErr) console.error("Erro ao vincular colaborador a demandas existentes:", cpUpErr);
     }
 
-    // Onboarding setup
+    // Onboarding setup — profile só existe se o cliente tem user_id (acesso ao painel)
     if (clientId) {
       const shouldReleaseAccess = createAccess && !manualApproval;
-      const { error: profErr } = await supabase.from("profiles").update({
-        onboarding_completed: shouldReleaseAccess,
-        onboarding_step: 1,
-        manual_approval_required: manualApproval,
-      }).eq("id", clientId);
-      if (profErr) console.error("Erro ao atualizar profile:", profErr);
+      const { data: clientRow } = await supabase
+        .from("clients")
+        .select("user_id")
+        .eq("id", clientId)
+        .maybeSingle();
+      const userId = clientRow?.user_id;
+      if (userId) {
+        const { error: profErr } = await supabase.from("profiles").update({
+          onboarding_completed: shouldReleaseAccess,
+          onboarding_step: 1,
+          manual_approval_required: manualApproval,
+        }).eq("id", userId);
+        if (profErr) console.error("Erro ao atualizar profile:", profErr);
+      }
       if (shouldReleaseAccess) {
         await supabase.from("clients").update({ onboarding_status: "concluido", onboarding_progress: 100 } as any).eq("id", clientId);
       }

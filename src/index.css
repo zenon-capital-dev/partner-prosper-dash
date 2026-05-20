@@ -1018,6 +1018,10 @@
   .empty-state p { @apply text-sm max-w-sm; }
 }
 
+/* Reserva o gutter da barra de rolagem para evitar "piscar" quando modais (Radix Dialog)
+   travam o scroll do body e mudam a largura da viewport. */
+html { scrollbar-gutter: stable; }
+
 /* Slightly thinner default fonts for dense UI */
 body { letter-spacing: -0.005em; }
 h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
