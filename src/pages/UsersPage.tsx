@@ -885,7 +885,7 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
                 <Button type="button" variant="outline" size="sm" onClick={() => setNewPwd(generatePassword())} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
               </div>
               <div className="flex justify-end">
-                <Button onClick={handleSavePwd} disabled={savingPwd || newPwd.length < 6} size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+                <Button onClick={handleSavePwd} disabled={savingPwd || !validatePassword(newPwd).ok} size="sm" className="bg-indigo-600 hover:bg-indigo-700">
                   {savingPwd ? "Salvando..." : "Salvar senha"}
                 </Button>
               </div>
