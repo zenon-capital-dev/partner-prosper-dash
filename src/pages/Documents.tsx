@@ -147,23 +147,128 @@ export default function Documents() {
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["docs-all"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select(`
-          *,
-          clients(id, full_name),
-          products(id, name),
-          client_products(
-            id,
-            product_id,
-            custom_product_name,
-            products:product_id(id, name),
-            service_providers:service_provider_id(id, name)
-          )
-        `)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      const [docsRes, reqRes, delivRes] = await Promise.all([
+        supabase
+          .from("documents")
+          .select(`
+            *,
+            clients(id, full_name),
+            products(id, name),
+            client_products(
+              id,
+              product_id,
+              custom_product_name,
+              products:product_id(id, name),
+              service_providers:service_provider_id(id, name)
+            )
+          `)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("document_requests")
+          .select(`
+            *,
+            clients(id, full_name),
+            products(id, name),
+            client_products(
+              id,
+              product_id,
+              custom_product_name,
+              products:product_id(id, name),
+              service_providers:service_provider_id(id, name)
+            )
+          `)
+          .order("requested_at", { ascending: false }),
+        supabase
+          .from("demand_deliveries")
+          .select(`
+            *,
+            client_products(
+              id,
+              client_id,
+              product_id,
+              custom_product_name,
+              clients:client_id(id, full_name),
+              products:product_id(id, name),
+              service_providers:service_provider_id(id, name)
+            )
+          `)
+          .order("created_at", { ascending: false }),
+      ]);
+      if (docsRes.error) throw docsRes.error;
+
+      const base = (docsRes.data ?? []).map((d: any) => ({ ...d, __source: "documents" as const }));
+
+      const fromRequests = (reqRes.data ?? []).map((r: any) => {
+        const status = r.status === "submitted" || r.status === "enviado"
+          ? "enviado"
+          : r.status === "approved" || r.status === "aprovado"
+          ? "aprovado"
+          : r.status === "rejected" || r.status === "rejeitado" || r.status === "reprovado"
+          ? "reprovado"
+          : r.status === "in_review" || r.status === "em_analise"
+          ? "em_analise"
+          : "solicitado";
+        return {
+          __source: "document_requests" as const,
+          id: r.id,
+          client_id: r.client_id,
+          name: r.request_title || "Documento solicitado",
+          description: r.description || r.observations || null,
+          status,
+          file_path: r.file_url || null,
+          due_date: r.deadline || null,
+          uploaded_at: r.submission_date || null,
+          requested_at: r.requested_at || null,
+          reviewed_at: r.approval_date || null,
+          created_at: r.requested_at || r.updated_at || null,
+          is_required: true,
+          is_public: true,
+          rejection_reason: r.rejection_reason || null,
+          internal_notes: r.observations || null,
+          product_id: r.product_id || null,
+          client_product_id: r.client_product_id || null,
+          clients: r.clients || null,
+          products: r.products || null,
+          client_products: r.client_products || null,
+        };
+      });
+
+      const fromDeliveries = (delivRes.data ?? []).map((d: any) => {
+        const cp = d.client_products || {};
+        return {
+          __source: "demand_deliveries" as const,
+          id: d.id,
+          client_id: cp.client_id || null,
+          name: d.title || "Entregável",
+          description: d.description || null,
+          status: d.status === "approved" ? "aprovado" : d.status === "rejected" ? "reprovado" : d.file_url ? "enviado" : "solicitado",
+          file_path: d.file_url || null,
+          due_date: null,
+          uploaded_at: d.file_url ? d.created_at : null,
+          requested_at: d.created_at,
+          reviewed_at: null,
+          created_at: d.created_at,
+          is_required: false,
+          is_public: true,
+          rejection_reason: null,
+          internal_notes: null,
+          product_id: cp.product_id || null,
+          client_product_id: cp.id || null,
+          clients: cp.clients || null,
+          products: cp.products || null,
+          client_products: {
+            id: cp.id,
+            product_id: cp.product_id,
+            custom_product_name: cp.custom_product_name,
+            products: cp.products,
+            service_providers: cp.service_providers,
+          },
+        };
+      });
+
+      const merged = [...base, ...fromRequests, ...fromDeliveries];
+      merged.sort((a: any, b: any) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
+      return merged;
     },
   });
 
