@@ -1,36 +1,40 @@
-## Sessão 3 — Visibilidade de comissões + RLS + UX/cleanup
+# Sessão 4 — Fechar tudo a 100%
 
-Cobre Ondas 2, 5 e 6 do plano de 50 bugs.
+Objetivo: zerar a lista de pendências (UX, segurança residual, cleanup, verificação automatizada) e entregar a plataforma sem débitos conhecidos.
 
-### Bloco A — Visibilidade (alto impacto)
+## Bloco A — Verificação automatizada (primeiro)
+Antes de mexer em código, rodar diagnóstico para confirmar o estado real:
+1. `supabase--linter` — checar warnings de RLS/policies após as migrations recentes
+2. `security--run_security_scan` — scan completo
+3. `supabase--analytics_query` em `postgres_logs` (últimas 24h, severity error) para pegar erros silenciosos
+4. Console logs do preview + network errors
 
-1. **Commissions.tsx (admin)** — trocar a query base de `commissions` para `commission_splits` (com join em `sales→clients/products`) para mostrar parceiro + indicador + colaborador em uma única lista. Coluna nova "Beneficiário (tipo)". Mantém filtros e ações em massa.
-2. **Payments** — preencher `partner_id`/`referrer_id` derivados no INSERT do trigger `handle_new_sale` (assim financeiro pode filtrar por beneficiário sem joins extras). Adicionar colunas se não existirem.
-3. **Demandas retroativas** — `propagate_client_collaborator/provider` agora também propaga em UPDATE de `NULL→valor` (hoje só pega `OLD=valor`).
-4. **Tasks INSERT** — adicionar policy para colaborador criar subtarefa em demanda atribuída.
-5. **Documentos via sale_id** — confirmar policy para colaborador/prestador ver documentos vinculados só por `sale_id` (sem `client_product_id`).
+Tudo que aparecer aqui entra na lista antes de fechar a sessão.
 
-### Bloco B — Segurança/UX
+## Bloco B — UX / Polimento
+5. **Skeletons consistentes** — substituir `animate-pulse` solto por `<Skeleton>` nos KPIs de Dashboard, Commissions, Payments, Sales, Clients
+6. **Datepicker shadcn** no `SaleFormDialog` (substituir `<Input type="date">` por Popover+Calendar com `pointer-events-auto`)
+7. **CEP** no `ClientFormDialog` — máscara `00000-000` + lookup ViaCEP auto-preenchendo endereço
+8. **Flicker de modal** — `onOpenAutoFocus={e => e.preventDefault()}` nos dialogs com `ResponsiveContainer`, `React.memo` nos charts internos
 
-6. **`ClientFormDialog.or()`** — escapar vírgulas no input com `.replace(/,/g,'\\,')` ou usar `.ilike` separados.
-7. **SaleFormDialog** — validar `amount > 0`; Select vazio (placeholder); datepicker controlado.
-8. **CEP** — máscara + lookup ViaCEP no `ClientFormDialog` (se não existir).
-9. **Flicker modal extra** — adicionar `<DialogContent>` com `onOpenAutoFocus` + envolver charts em `React.memo` para evitar recompute durante lock do body.
-10. **KPI skeletons** — substituir `animate-pulse` cru por `<Skeleton>` consistente.
+## Bloco C — Padronização & cleanup
+9. **Labels "referrer" → "Indicador"** — varrer telas internas (Sales, Payments, Reports) e padronizar
+10. **Deprecar `client_products.responsible_id`** — comentário SQL + remover referências remanescentes no frontend (usar só `responsible_employee_id`)
+11. **Log único** — decisão: manter `activity_logs` como fonte e congelar inserts diretos em `audit_logs` (trigger continua). Atualizar componentes de histórico para ler só `activity_logs`
+12. **Documentos via `sale_id` direto** — auditar policy de `documents` e garantir que colaborador/prestador veem documentos vinculados a vendas sem demanda
 
-### Bloco C — Cleanup
+## Bloco D — Validação final
+13. Re-rodar `supabase--linter` e `security--run_security_scan`
+14. Atualizar `security--update_memory` com posturas confirmadas
+15. Smoke test manual no preview: criar venda → ver split → marcar pago → ver no painel do parceiro/colaborador
 
-11. Deprecar coluna `client_products.responsible_id` (manter, marcar como NÃO USAR em comentário; remover usos restantes).
-12. Padronizar nomenclatura `referrer` em UI (hoje aparece "indicador" e "referrer").
-13. Decidir log único: manter `activity_logs` (já usado) e congelar `audit_logs` para inserts diretos (trigger continua).
-14. Remover edge function `calc-commission` se não referenciada.
+## Notas técnicas
+- 1 migration (Bloco C item 10 + 12 se precisar ajustar policy)
+- ~8–10 arquivos frontend (B + C)
+- Sem mudanças de schema disruptivas; tudo backward-compatible
+- Risco baixo — mudanças isoladas e cobertas pelo scan final
 
-### Técnico
-
-- **1 migração** (Bloco A: trocar Commissions a fonte, adicionar colunas em payments, ajustar propagate, policy de tasks).
-- **Edits frontend** (Blocos B/C): ~6 arquivos.
-- Rodar `supabase--linter` ao fim.
-
-### Risco
-
-- Trocar a fonte de Commissions.tsx pode quebrar ações em massa (status workflow só existe em `commissions`). Mitigação: manter aba "Splits" nova e aba "Parceiros (legado)" com a tabela antiga, ou abstrair pra view unificada. Vou implementar como **view unificada** `v_commissions_unified` para minimizar churn.
+## Fora de escopo (deixar para depois se aparecer)
+- Refator grande de componentes (Commissions.tsx tem 1000+ linhas mas funciona)
+- Migração de termo "parceiro" no banco (só na UI)
+- Testes automatizados (projeto não tem suite hoje)
