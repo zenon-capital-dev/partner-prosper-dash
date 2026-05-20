@@ -12,7 +12,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { formatDate, formatPhone, initials } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
-import { LeadsKanban } from "@/components/leads/LeadsKanban";
+import { LeadsPipeline } from "@/components/leads/LeadsPipeline";
 import { LeadsCsvImport } from "@/components/leads/LeadsCsvImport";
 import { LeadFollowUpDialog } from "@/components/leads/LeadFollowUpDialog";
 import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
@@ -203,7 +203,7 @@ export default function Leads() {
                   view === "kanban" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <LayoutGrid className="size-3.5" /> Kanban
+                <LayoutGrid className="size-3.5" /> Pipeline
               </button>
               <button
                 onClick={() => setView("table")}
@@ -260,7 +260,7 @@ export default function Leads() {
           isLoading ? (
             <div className="vx-card p-12 text-center text-sm text-muted-foreground">Carregando leads...</div>
           ) : (
-            <LeadsKanban leads={filteredLeads} onEdit={handleEdit} onConvert={convertToClient} />
+            <LeadsPipeline leads={filteredLeads} onEdit={handleEdit} onConvert={convertToClient} />
           )
         ) : (
         <div className="vx-card overflow-hidden">
