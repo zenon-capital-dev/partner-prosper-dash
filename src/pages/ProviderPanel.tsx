@@ -957,8 +957,8 @@ function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
   const save = async () => {
     setSaving(true);
     const { error } = await supabase.from("service_providers").update({
-      name: form.name, phone: form.phone, specialty: form.specialty,
-      document_number: form.document_number,
+      name: form.name, phone: form.phone ? onlyDigits(form.phone) : null, specialty: form.specialty,
+      document_number: form.document_number ? onlyDigits(form.document_number) : null,
     }).eq("id", provider.id);
     setSaving(false);
     if (error) return toast.error(error.message);
