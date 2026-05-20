@@ -668,7 +668,10 @@ function CreateActionDialog({
     queryKey: ["clients-search", clientSearch],
     queryFn: async () => {
       let q = supabase.from("clients").select("id, full_name, company").order("full_name").limit(50);
-      if (clientSearch.trim()) q = q.ilike("full_name", `%${clientSearch}%`);
+      if (clientSearch.trim()) {
+        const term = clientSearch.trim();
+        q = q.or(`full_name.ilike.%${term}%,company.ilike.%${term}%`);
+      }
       const { data } = await q;
       return data ?? [];
     },
