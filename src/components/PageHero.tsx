@@ -9,6 +9,7 @@ interface KpiItem {
   tone?: "primary" | "success" | "warning" | "info" | "danger" | "violet" | "default";
   icon?: ReactNode;
   hint?: string;
+  onClick?: () => void;
 }
 
 interface Props {
