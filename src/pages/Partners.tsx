@@ -7,6 +7,8 @@ import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
 import {
   Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
   Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,
@@ -187,7 +189,9 @@ export default function Partners() {
   const submit = async () => {
     if (!form.full_name?.trim()) { toast.error("Nome obrigatório"); return; }
     if (form.email && !isEmail(form.email)) { toast.error("Email inválido"); return; }
-    if (form.document && onlyDigits(form.document).length < 11) { toast.error("Documento deve ter pelo menos 11 dígitos"); return; }
+    if (form.document && !isValidCPFOrCNPJ(form.document)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
+    if (form.whatsapp && !isValidPhoneBR(form.whatsapp)) { toast.error("WhatsApp inválido"); return; }
     const pct = Number(form.commission_percent ?? 0);
     if (Number.isNaN(pct) || pct < 0 || pct > 100) { toast.error("Comissão deve estar entre 0 e 100"); return; }
 
@@ -208,9 +212,9 @@ export default function Partners() {
     const payload: Record<string, any> = {
       full_name: form.full_name.trim(),
       email: form.email || null,
-      phone: form.phone || null,
-      whatsapp: form.whatsapp || null,
-      document: form.document || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      whatsapp: form.whatsapp ? onlyDigits(form.whatsapp) : null,
+      document: form.document ? onlyDigits(form.document) : null,
       pix_key: form.pix_key || null,
       bank_name: form.bank_name || null,
       bank_agency: form.bank_agency || null,
@@ -475,7 +479,7 @@ export default function Partners() {
                   <Input value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: João da Silva ou Acme Indicações" />
                 </PartnerField>
                 <PartnerField label="CPF / CNPJ">
-                  <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} placeholder="000.000.000-00" />
+                  <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
                 </PartnerField>
                 <PartnerField label="Categoria">
                   <Select value={form.partner_category ?? "indicador"} onValueChange={(v) => setForm({ ...form, partner_category: v })}>
@@ -496,10 +500,10 @@ export default function Partners() {
                   <Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" />
                 </PartnerField>
                 <PartnerField label="Telefone">
-                  <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+                  <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
                 </PartnerField>
                 <PartnerField label="WhatsApp">
-                  <Input value={form.whatsapp ?? ""} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
+                  <MaskedInput mask="phone" value={form.whatsapp ?? ""} onChange={(v) => setForm({ ...form, whatsapp: v })} placeholder="(11) 99999-9999" />
                 </PartnerField>
                 <PartnerField label="% Comissão padrão">
                   <Input type="number" step="0.01" min={0} max={100} value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />

@@ -22,6 +22,8 @@ import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps
 import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
 import { ProviderAtuacao } from "@/components/provider/ProviderAtuacao";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits } from "@/lib/masks";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PROVIDER_PATH_TO_TAB: Record<string, string> = {
@@ -955,8 +957,8 @@ function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
   const save = async () => {
     setSaving(true);
     const { error } = await supabase.from("service_providers").update({
-      name: form.name, phone: form.phone, specialty: form.specialty,
-      document_number: form.document_number,
+      name: form.name, phone: form.phone ? onlyDigits(form.phone) : null, specialty: form.specialty,
+      document_number: form.document_number ? onlyDigits(form.document_number) : null,
     }).eq("id", provider.id);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -990,11 +992,11 @@ function ProfileTab({ provider, userId }: { provider: any; userId?: string }) {
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Telefone</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" className="mt-1.5 h-10" />
+            <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" className="mt-1.5 h-10" />
           </div>
           <div>
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">CPF/CNPJ</label>
-            <Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} className="mt-1.5 h-10" />
+            <MaskedInput mask="cpfcnpj" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="000.000.000-00" className="mt-1.5 h-10" />
           </div>
           <div className="md:col-span-2">
             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Especialidade</label>

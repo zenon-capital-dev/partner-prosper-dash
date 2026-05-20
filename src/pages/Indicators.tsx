@@ -7,6 +7,8 @@ import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -176,16 +178,16 @@ export default function Indicators() {
     if (!name) { toast.error("Nome obrigatório"); return; }
     const email = String(form.email ?? "").trim();
     if (email && !isEmail(email)) { toast.error("Email inválido"); return; }
-    const doc = onlyDigits(form.document);
-    if (doc && (doc.length < 11 || doc.length > 14)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.document && !isValidCPFOrCNPJ(form.document)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
     const pct = Number(form.commission_percent);
     if (Number.isNaN(pct) || pct < 0 || pct > 100) { toast.error("Comissão deve estar entre 0 e 100"); return; }
 
     const payload = {
       full_name: name,
       email: email || null,
-      phone: String(form.phone ?? "").trim() || null,
-      document: String(form.document ?? "").trim() || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      document: form.document ? onlyDigits(form.document) : null,
       pix_key: String(form.pix_key ?? "").trim() || null,
       commission_percent: pct,
       active: form.active ?? true,
@@ -517,11 +519,11 @@ export default function Indicators() {
             </div>
             <div className="space-y-2">
               <Label>Telefone</Label>
-              <Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <MaskedInput mask="phone" value={form.phone ?? ""} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(11) 99999-9999" />
             </div>
             <div className="space-y-2">
               <Label>CPF/CNPJ</Label>
-              <Input value={form.document ?? ""} onChange={(e) => setForm({ ...form, document: e.target.value })} />
+              <MaskedInput mask="cpfcnpj" value={form.document ?? ""} onChange={(v) => setForm({ ...form, document: v })} placeholder="000.000.000-00" />
             </div>
             <div className="space-y-2">
               <Label>Chave PIX</Label>

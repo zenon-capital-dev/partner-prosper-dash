@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits } from "@/lib/masks";
+import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -555,6 +558,8 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
 
   const submit = async () => {
     if (!form.email) return toast.error("Email obrigatório");
+    if (form.phone && !isValidPhoneBR(form.phone)) return toast.error("Telefone inválido");
+    if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) return toast.error("CPF/CNPJ inválido");
     if (form.role === "admin" && !canPromoteAdmin) return toast.error("Apenas o admin principal pode criar outro admin");
     if (form.mode === "password" && form.password && form.password.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
     setSubmitting(true);
@@ -564,7 +569,8 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
           action: "invite",
           email: form.email,
           full_name: form.full_name,
-          phone: form.phone,
+          phone: form.phone ? onlyDigits(form.phone) : null,
+          document_number: form.document_number ? onlyDigits(form.document_number) : null,
           role: form.role,
           send_invite: form.mode === "invite",
           password: form.mode === "password" ? (form.password || undefined) : undefined,
@@ -594,8 +600,8 @@ function CreateUserDialog({ open, onOpenChange, onCreated, canPromoteAdmin }: {
         <div className="grid grid-cols-2 gap-4 py-2">
           <div className="col-span-2 space-y-2"><Label>Nome completo</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: João Silva" /></div>
           <div className="space-y-2"><Label>Email *</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" /></div>
-          <div className="space-y-2"><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" /></div>
-          <div className="space-y-2"><Label>Documento</Label><Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} placeholder="CPF/CNPJ" /></div>
+          <div className="space-y-2"><Label>Telefone</Label><MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" /></div>
+          <div className="space-y-2"><Label>Documento</Label><MaskedInput mask="cpfcnpj" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="CPF/CNPJ" /></div>
           <div className="space-y-2">
             <Label>Papel</Label>
             <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Role })}>
@@ -739,8 +745,16 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
   if (!user) return null;
 
   const handleSave = async () => {
+    if (form.phone && !isValidPhoneBR(form.phone)) return toast.error("Telefone inválido");
+    if (form.document_number && !isValidCPFOrCNPJ(form.document_number)) return toast.error("CPF/CNPJ inválido");
+    const profile = {
+      ...form,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      document_number: form.document_number ? onlyDigits(form.document_number) : null,
+      address_zip_code: form.address_zip_code ? onlyDigits(form.address_zip_code) : null,
+    };
     setSaving(true);
-    try { await onSave({ profile: form, roles }); }
+    try { await onSave({ profile, roles }); }
     finally { setSaving(false); }
   };
 
@@ -785,8 +799,8 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2 space-y-1"><Label>Nome completo</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
               <div className="space-y-1"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="font-mono" /></div>
-              <div className="space-y-1"><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-              <div className="space-y-1"><Label>Documento</Label><Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} /></div>
+              <div className="space-y-1"><Label>Telefone</Label><MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" /></div>
+              <div className="space-y-1"><Label>Documento</Label><MaskedInput mask="cpfcnpj" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="CPF/CNPJ" /></div>
               <div className="space-y-1"><Label>Avatar URL</Label><Input value={form.avatar_url} onChange={(e) => setForm({ ...form, avatar_url: e.target.value })} /></div>
               <div className="col-span-2 space-y-1"><Label>Observações internas</Label><Textarea rows={3} value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} /></div>
             </div>
@@ -800,7 +814,19 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
               <div className="space-y-1"><Label>Bairro</Label><Input value={form.address_neighborhood} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} /></div>
               <div className="space-y-1"><Label>Cidade</Label><Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} /></div>
               <div className="space-y-1"><Label>UF</Label><Input value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value })} /></div>
-              <div className="space-y-1"><Label>CEP</Label><Input value={form.address_zip_code} onChange={(e) => setForm({ ...form, address_zip_code: e.target.value })} className="font-mono" /></div>
+              <div className="space-y-1"><Label>CEP</Label><MaskedInput mask="cep" value={form.address_zip_code} onChange={(v) => setForm({ ...form, address_zip_code: v })} onBlur={async () => {
+                const r = await lookupCEP(form.address_zip_code ?? "");
+                if (r) {
+                  setForm((p: any) => ({
+                    ...p,
+                    address_street: p.address_street || r.logradouro,
+                    address_neighborhood: p.address_neighborhood || r.bairro,
+                    address_city: p.address_city || r.localidade,
+                    address_state: p.address_state || r.uf,
+                  }));
+                  toast.success("Endereço preenchido pelo CEP");
+                }
+              }} placeholder="00000-000" /></div>
             </div>
           </TabsContent>
 

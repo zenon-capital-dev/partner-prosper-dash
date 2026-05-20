@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -773,7 +774,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
                 <Input placeholder="Nome *" value={recipientName} onChange={e => setRecipientName(e.target.value)} />
                 <Input placeholder="Empresa" value={recipientCompany} onChange={e => setRecipientCompany(e.target.value)} />
                 <Input type="email" placeholder="E-mail" value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)} />
-                <Input placeholder="CPF/CNPJ" value={recipientDocument} onChange={e => setRecipientDocument(e.target.value)} />
+                <MaskedInput mask="cpfcnpj" placeholder="CPF/CNPJ" value={recipientDocument} onChange={(v) => setRecipientDocument(v)} />
               </div>
             )}
           </div>

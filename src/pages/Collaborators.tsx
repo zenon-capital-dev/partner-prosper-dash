@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -531,7 +532,7 @@ export default function Collaborators() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Telefone</Label>
-                  <Input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
+                  <MaskedInput mask="phone" value={editing.phone ?? ""} onChange={(v) => setEditing({ ...editing, phone: v })} placeholder="(00) 00000-0000" />
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -604,7 +605,7 @@ export default function Collaborators() {
                   updateProfile.mutate({
                     id: editing.id,
                     full_name: name,
-                    phone: editing.phone,
+                    phone: editing.phone ? onlyDigits(editing.phone) : null,
                     active: editing.active,
                     has_system_access: editing.has_system_access,
                     internal_notes: editing.internal_notes,
@@ -739,7 +740,7 @@ function CreateCollaboratorDialog({
         body: {
           email,
           full_name: name,
-          phone: form.phone || undefined,
+          phone: form.phone ? onlyDigits(form.phone) : undefined,
           role: form.role,
           has_system_access: form.has_system_access,
           internal_notes: form.internal_notes || undefined,
@@ -801,7 +802,7 @@ function CreateCollaboratorDialog({
               </div>
               <div className="space-y-1.5">
                 <Label>Telefone</Label>
-                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(00) 00000-0000" />
+                <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" />
               </div>
               <div className="space-y-1.5">
                 <Label>Função</Label>
