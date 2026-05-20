@@ -532,7 +532,7 @@ export default function Collaborators() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Telefone</Label>
-                  <Input value={editing.phone ?? ""} onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
+                  <MaskedInput mask="phone" value={editing.phone ?? ""} onChange={(v) => setEditing({ ...editing, phone: v })} placeholder="(00) 00000-0000" />
                 </div>
               </div>
               <div className="space-y-1.5">
