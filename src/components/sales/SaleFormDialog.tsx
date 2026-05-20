@@ -136,43 +136,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
 
       if (error) throw error;
 
-      // Manually generate commissions if they are not handled by a trigger
-      const commissionsToInsert = [];
-
-      if (form.partner_id && Number(form.commission_percent) > 0) {
-        commissionsToInsert.push({
-          partner_id: form.partner_id,
-          client_id: form.client_id,
-          product_id: form.product_id,
-          sale_id: sale.id,
-          amount: (Number(form.amount) * Number(form.commission_percent)) / 100,
-          sale_value: Number(form.amount),
-          status: "pendente",
-          commission_type: "percentual",
-          rule_type: "percentage",
-          rule_value: Number(form.commission_percent),
-        });
-      }
-
-      if (form.referrer_id && Number(form.referrer_percent) > 0) {
-        commissionsToInsert.push({
-          referrer_id: form.referrer_id,
-          client_id: form.client_id,
-          product_id: form.product_id,
-          sale_id: sale.id,
-          amount: (Number(form.amount) * Number(form.referrer_percent)) / 100,
-          sale_value: Number(form.amount),
-          status: "pendente",
-          commission_type: "indicacao",
-          rule_type: "percentage",
-          rule_value: Number(form.referrer_percent),
-        });
-      }
-
-      if (commissionsToInsert.length > 0) {
-        const { error: commErr } = await supabase.from("commissions").insert(commissionsToInsert as any);
-        if (commErr) toast.warning("Venda registrada, mas houve um erro ao gerar comissões: " + commErr.message);
-      }
+      // Comissões são geradas automaticamente pelo trigger handle_new_sale
+      // (parceiro, indicador e colaborador). Não inserir manualmente para evitar duplicação.
 
       toast.success("Venda registrada e comissões geradas");
       onCreated?.();
