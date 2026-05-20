@@ -788,8 +788,8 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2 space-y-1"><Label>Nome completo</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
               <div className="space-y-1"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="font-mono" /></div>
-              <div className="space-y-1"><Label>Telefone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-              <div className="space-y-1"><Label>Documento</Label><Input value={form.document_number} onChange={(e) => setForm({ ...form, document_number: e.target.value })} /></div>
+              <div className="space-y-1"><Label>Telefone</Label><MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" /></div>
+              <div className="space-y-1"><Label>Documento</Label><MaskedInput mask="cpfcnpj" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="CPF/CNPJ" /></div>
               <div className="space-y-1"><Label>Avatar URL</Label><Input value={form.avatar_url} onChange={(e) => setForm({ ...form, avatar_url: e.target.value })} /></div>
               <div className="col-span-2 space-y-1"><Label>Observações internas</Label><Textarea rows={3} value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} /></div>
             </div>
