@@ -478,7 +478,7 @@ export default function Demands() {
                       
                       <div className="p-3 flex flex-col gap-3 flex-1 min-h-[600px]">
                         {filtered
-                          .filter((d: any) => d.status === column.id)
+                          .filter((d: any) => isInColumn(d, column.id))
                           .map((demand: any, index: number) => {
                             const priority = PRIORITY_META[demand.priority as Priority] || PRIORITY_META.normal;
                             const pendingDocs = demand.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
