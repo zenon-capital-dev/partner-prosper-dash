@@ -109,7 +109,7 @@ export function useDashboardStats() {
         recentActivities: recentActivities.map((a: any) => ({
           id: a.id,
           title: a.action,
-          desc: `${a.profiles?.full_name || "Sistema"} realizou uma ação em ${a.entity_type}`,
+          desc: `Ação em ${a.entity_type}`,
           time: new Date(a.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
           date: new Date(a.created_at).toLocaleDateString("pt-BR"),
         })),
