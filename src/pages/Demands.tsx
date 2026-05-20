@@ -472,7 +472,7 @@ export default function Demands() {
                           {column.label}
                         </h3>
                         <Badge variant="secondary" className="h-5 text-[10px] px-1.5 font-bold tabular-nums">
-                          {filtered.filter((d: any) => d.status === column.id).length}
+                          {filtered.filter((d: any) => isInColumn(d, column.id)).length}
                         </Badge>
                       </div>
                       
