@@ -661,7 +661,8 @@ function SetPasswordDialog({ user, onClose, onSubmit }: { user: UserRow | null; 
   useEffect(() => { setPwd(""); setConfirm(""); }, [user]);
 
   const submit = async () => {
-    if (!pwd || pwd.length < 6) return toast.error("Senha precisa ter ao menos 6 caracteres");
+    const check = validatePassword(pwd);
+    if (!check.ok) return toast.error("Senha inválida: " + check.errors.join(", "));
     if (pwd !== confirm) return toast.error("As senhas não coincidem");
     setSubmitting(true);
     try {
