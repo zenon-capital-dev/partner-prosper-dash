@@ -803,7 +803,19 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
               <div className="space-y-1"><Label>Bairro</Label><Input value={form.address_neighborhood} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} /></div>
               <div className="space-y-1"><Label>Cidade</Label><Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} /></div>
               <div className="space-y-1"><Label>UF</Label><Input value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value })} /></div>
-              <div className="space-y-1"><Label>CEP</Label><Input value={form.address_zip_code} onChange={(e) => setForm({ ...form, address_zip_code: e.target.value })} className="font-mono" /></div>
+              <div className="space-y-1"><Label>CEP</Label><MaskedInput mask="cep" value={form.address_zip_code} onChange={(v) => setForm({ ...form, address_zip_code: v })} onBlur={async () => {
+                const r = await lookupCEP(form.address_zip_code ?? "");
+                if (r) {
+                  setForm((p: any) => ({
+                    ...p,
+                    address_street: p.address_street || r.logradouro,
+                    address_neighborhood: p.address_neighborhood || r.bairro,
+                    address_city: p.address_city || r.localidade,
+                    address_state: p.address_state || r.uf,
+                  }));
+                  toast.success("Endereço preenchido pelo CEP");
+                }
+              }} placeholder="00000-000" /></div>
             </div>
           </TabsContent>
 
