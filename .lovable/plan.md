@@ -1,61 +1,44 @@
-## Refatoração da aba Prestadores (`/prestadores`)
+Plano para deixar a aba Indicadores consistente, estável e sem os bugs atuais:
 
-Mesma linha das abas Vendas, Serviços e Parceiros: limpar UI, normalizar filtros, corrigir cálculos, ordenar colunas, proteger ações e melhorar feedback. Escopo apenas frontend em `src/pages/Providers.tsx` — sem alterar schema, RLS ou edge functions.
+1. Reestruturar a página visualmente
+- Trocar o layout antigo por `PageHero`, cards claros premium e tabela com `bg-white`, `border-slate-200/70`, `rounded-lg`, `shadow-sm`.
+- Remover aparência escura/legada (`vx-card`, `muted` genérico em excesso) e alinhar com Parceiros/Prestadores.
+- Criar modo lista e grid para facilitar leitura em desktop e mobile.
 
-### 1. Tema claro premium
-- Remover gradientes/cards escuros (`from-indigo-500 via-indigo-500 to-indigo-600`, `bg-gradient-to-br from-indigo-500/20`, ring colorido no avatar, barra colorida no hover do card).
-- Padronizar: fundo `bg-slate-50/60`, cards `bg-white border-slate-200/70 rounded-lg shadow-sm`, hover `hover:bg-slate-50`.
-- Tipografia Inter + JetBrains Mono para números (`tabular-nums`).
-- Avatar com `bg-indigo-50 text-indigo-700 border-slate-200/70` neutro (sem gradiente).
-- Botão "Novo Prestador" sólido `bg-indigo-600 hover:bg-indigo-700` (sem gradiente).
+2. Corrigir busca, filtros e paginação
+- Implementar busca normalizada sem acentos por nome, email, documento, telefone e PIX.
+- Adicionar filtros: status ativo/inativo, acesso ao painel com/sem `user_id`, e situação financeira com pendências.
+- Resetar paginação ao alterar busca, filtros ou ordenação.
+- Mostrar chips de filtros ativos com opção de limpar individualmente.
 
-### 2. Busca e filtros
-- Helper `norm(s)` (NFD + lower) já usado nas outras abas.
-- Busca cobre: nome, email, especialidade, documento (apenas dígitos), telefone (apenas dígitos), cidade/UF.
-- Filtros existentes (status, especialidade) + novo filtro "Acesso ao painel" (com/sem login) baseado em `has_system_access` ou equivalente do schema.
-- Chips de filtros ativos com X e botão "Limpar tudo".
-- Reset de página ao mudar qualquer filtro.
+3. Corrigir métricas e enriquecimento de dados
+- Calcular comissões geradas, pagas, pendentes e clientes indicados a partir de `commission_splits` e `clients.referrer_id`.
+- Evitar contagens erradas usando `Set` quando necessário.
+- Ajustar KPIs para serem úteis e clicáveis: total, ativos, clientes indicados, comissões geradas, a pagar.
 
-### 3. KPIs corrigidos
-- "Total da Rede", "Ativos", "Demandas em curso", "Clientes atendidos" (manter) + corrigir "Demandas em curso" para considerar apenas status realmente em andamento (excluir cancelado/arquivado, não só "concluído").
-- Adicionar "Ticket médio" = `Σ revenue / total prestadores com receita` formatado em BRL.
-- KPI clicável filtra status (Ativos/Inativos) como nas outras abas.
+4. Melhorar tabela, ordenação e grid
+- Adicionar `SortableTh` para ordenar por nome, clientes, comissões, pendente, percentual, status e recência.
+- Tabela com colunas mais claras: indicador, contato, documento/PIX, comissão padrão, clientes, pago, a pagar, acesso e status.
+- Cards no grid com avatar, contato, métricas principais e ações equivalentes à tabela.
 
-### 4. Tabela (lista) com ordenação
-- Componente `SortableTh` (asc/desc/none) nas colunas: Prestador, Especialidade, Demandas (ativas), Clientes, Receita, Avaliação, Status.
-- Adicionar coluna "Receita" (`_revenue` já calculado, faltando exibir).
-- Hover `hover:bg-slate-50`, divisor `divide-slate-200/70`, header `bg-slate-50 text-slate-500`.
-- Indicador de acesso ao painel (ícone discreto quando `has_system_access`).
+5. Corrigir ações e segurança de UI
+- Manter criação/edição/exclusão/ativação somente para `admin` e `admin_secondary`.
+- Ao desativar indicador com clientes ou comissões pendentes, pedir confirmação explícita.
+- Ao excluir, manter proteção contra vínculos existentes e sugerir desativar quando houver bloqueio.
+- Invalidar todas as queries relacionadas após mutações: indicadores, splits, clientes e dashboard.
 
-### 5. Grid (cards)
-- Reescrita do `ProviderCard` para o padrão claro: header com avatar + nome + especialidade, métricas em grid 3 col (Demandas / Clientes / Receita), badge Ativo/Inativo, rating discreto.
-- Ações iguais à tabela (Delegar + dropdown ver/editar/ativar/excluir).
-- Esconder ações de gestão se `!canManage` (`isAdmin || isAdminSecondary`).
+6. Fortalecer formulário
+- Validar nome obrigatório, email válido, percentual entre 0 e 100, e CPF/CNPJ com tamanho plausível quando informado.
+- Normalizar payload para evitar strings vazias no banco.
+- Mensagens de erro mais claras e consistentes.
 
-### 6. Ações e segurança
-- `canManage = isAdmin || isAdminSecondary` controla: botão "Novo", "Editar", "Ativar/Desativar", "Excluir", "Delegar".
-- `removeProvider`: já bloqueia com vínculos; manter, mas mostrar contagem por tipo (demandas X / contratos Y) e oferecer botão "Desativar" no toast.
-- `toggleActive`: confirmar antes de desativar prestador com demandas ativas (`_activeCount > 0`).
-- Invalidar `["providers-rich"]`, `["dashboard"]` e `["demands"]` após mutações.
+7. Exportação e estados da tela
+- Adicionar exportação CSV respeitando filtros atuais, apenas para quem pode gerenciar.
+- Criar loading skeletons para lista/grid.
+- Melhorar empty state diferenciando “sem cadastro” de “nenhum resultado para os filtros”.
 
-### 7. Exportação CSV
-- Botão "Exportar" (admin) gera CSV com: nome, email, telefone, documento, especialidade, cidade/UF, demandas ativas, concluídas, clientes, receita, avaliação, status, acesso ao painel, criado_em.
-- Respeita filtros atuais (exporta `filtered`, não a página).
+Arquivos previstos:
+- `src/pages/Indicators.tsx`
 
-### 8. Estados de loading/empty
-- Skeletons para grid (cards) e lista (linhas).
-- Empty state contextual: diferencia "nenhum cadastrado" de "nenhum bate com os filtros" (com botão "Limpar filtros").
-
-### 9. Validação
-- Tipos OK (sem alterar `types.ts`).
-- Build limpo, sem warnings novos.
-- Conferir `dev-server.log` e console do preview após implementar.
-- Sem mudanças em `ProviderFormDialog`, `ProviderAssignDialog`, `ProviderDetail`, schema ou RLS.
-
-### Fora do escopo
-- Refatoração de `ProviderDetail.tsx`, `ProviderPanel.tsx`, `ProviderPerformance.tsx`, `ProviderReports.tsx`.
-- Mudanças em diálogos de formulário/atribuição.
-- Mudanças no banco de dados.
-
-### Arquivos a editar
-- `src/pages/Providers.tsx` (refatoração completa, ~400 linhas)
+Fora do escopo:
+- Sem alteração em banco, RLS, `types.ts`, painel do indicador (`/indicador`) ou outras abas.
