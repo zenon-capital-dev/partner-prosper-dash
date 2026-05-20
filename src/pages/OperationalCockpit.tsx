@@ -176,19 +176,19 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("commissions")
         .select(`
-          id, status, amount, created_at,
-          partner:partners(id, full_name)
+          id, status, workflow_status, amount, created_at,
+          partner:partners(id, full_name, user_id)
         `)
-        .eq("status", "pendente");
+        .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"]);
       
       if (error) throw error;
       
       return data.map(c => ({
         id: c.id,
         type: 'commission',
-        title: `Comissão R$ ${c.amount.toLocaleString('pt-BR')}`,
-        subtitle: (c.partner as any)?.full_name,
-        status: c.status,
+        title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR')}`,
+        subtitle: (c.partner as any)?.full_name || 'Parceiro desconhecido',
+        status: (c as any).workflow_status || c.status,
         date: c.created_at,
         severity: 'medium',
         metadata: c
@@ -203,75 +203,88 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("contracts")
         .select(`
-          id, status, name, created_at,
+          id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["criado", "aguardando_assinatura", "enviado"]);
+        .in("status", ["rascunho", "criado", "enviado", "aguardando_assinatura", "pendente_correcao"]);
       
       if (error) throw error;
       
-      return (data as any[]).map(c => ({
-        id: c.id,
-        type: 'contract',
-        title: c.name || "Contrato",
-        subtitle: c.client?.full_name || 'Cliente desconhecido',
-        status: c.status,
-        date: c.created_at,
-        severity: 'high',
-        metadata: c
-      })) as CockpitItem[];
+      return (data as any[])
+        .filter(c => c.client_id)
+        .map(c => ({
+          id: c.id,
+          type: 'contract',
+          title: c.name || "Contrato",
+          subtitle: c.client?.full_name || 'Cliente desconhecido',
+          status: c.status,
+          date: c.created_at,
+          severity: c.status === 'pendente_correcao' ? 'critical' : 'high',
+          metadata: c
+        })) as CockpitItem[];
     }
   });
 
-  // 7. Tarefas urgentes
+  // 7. Tarefas urgentes (vencidas ou alta/urgente vencendo em 3 dias)
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ["cockpit-tasks"],
     queryFn: async () => {
+      const now = new Date();
+      const in3days = addDays(now, 3).toISOString();
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
         .neq("status", "concluido")
-        .or(`priority.eq.high,due_date.lte.${new Date().toISOString()}`);
+        .not("due_date", "is", null)
+        .lte("due_date", in3days);
       
       if (error) throw error;
       
-      return data.map(t => ({
-        id: t.id,
-        type: 'task',
-        title: t.title,
-        subtitle: t.description || "Sem descrição",
-        status: t.status,
-        date: t.due_date,
-        severity: t.priority === 'high' ? 'critical' : 'high',
-        metadata: t
-      })) as CockpitItem[];
+      return data
+        .filter(t => {
+          const overdue = isBefore(new Date(t.due_date), startOfDay(now));
+          const highPriority = t.priority === 'alta' || t.priority === 'urgente';
+          return overdue || highPriority;
+        })
+        .map(t => ({
+          id: t.id,
+          type: 'task',
+          title: t.title,
+          subtitle: t.description || "Sem descrição",
+          status: t.status,
+          date: t.due_date,
+          severity: (isBefore(new Date(t.due_date), startOfDay(now)) ? 'critical' : (t.priority === 'urgente' ? 'critical' : 'high')) as any,
+          metadata: t
+        })) as CockpitItem[];
     }
   });
 
-  // 8. Solicitações abertas
+  // 8. Solicitações de documento abertas
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
     queryKey: ["cockpit-requests"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("document_requests")
         .select(`
-          id, status, request_title, requested_at,
+          id, status, request_title, requested_at, client_id,
           client:clients(id, full_name)
         `)
-        .eq("status", "pendente");
+        .in("status", ["pendente", "enviado", "em_analise"]);
       
       if (error) throw error;
       
-      return (data as any[]).map(r => ({
-        id: r.id,
-        type: 'request',
-        title: r.request_title || "Solicitação de Documento",
-        subtitle: r.client?.full_name || 'Cliente desconhecido',
-        status: r.status,
-        date: r.requested_at,
-        severity: 'medium',
-        metadata: r
-      })) as CockpitItem[];
+      return (data as any[])
+        .filter(r => r.client_id)
+        .map(r => ({
+          id: r.id,
+          type: 'request',
+          title: r.request_title || "Solicitação de Documento",
+          subtitle: r.client?.full_name || 'Cliente desconhecido',
+          status: r.status,
+          date: r.requested_at,
+          severity: 'medium',
+          metadata: r
+        })) as CockpitItem[];
     }
   });
 
