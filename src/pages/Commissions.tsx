@@ -21,6 +21,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AllBeneficiariesTable } from "@/components/commissions/AllBeneficiariesTable";
+
 import {
   Wallet, Clock, CheckCircle2, XCircle, Plus, Search, Filter, MoreHorizontal,
   Pencil, Trash2, Check, Download, FileSpreadsheet, Sparkles, CalendarRange,
