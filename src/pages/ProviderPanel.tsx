@@ -22,6 +22,8 @@ import { ClientProductSteps } from "@/components/clients/tabs/ClientProductSteps
 import { ProductInteractionPanel } from "@/components/provider/ProductInteractionPanel";
 import { ProviderAtuacao } from "@/components/provider/ProviderAtuacao";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
+import { onlyDigits } from "@/lib/masks";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PROVIDER_PATH_TO_TAB: Record<string, string> = {
