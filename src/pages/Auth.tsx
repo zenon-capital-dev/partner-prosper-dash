@@ -14,7 +14,7 @@ import { ProsperLogo } from "@/components/VendxLogo";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha mínima de 6 caracteres"),
+  password: z.string().min(8, "Senha mínima de 8 caracteres"),
 });
 
 export default function AuthPage() {
