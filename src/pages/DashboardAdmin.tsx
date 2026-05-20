@@ -464,6 +464,7 @@ export default function DashboardAdmin() {
                     <Tooltip
                       contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 12px 32px -12px rgba(15,23,42,0.18)', padding: '12px 14px', backgroundColor: '#fff', fontSize: '12px' }}
                       labelStyle={{ color: '#64748b', fontWeight: 600, fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}
+                      labelFormatter={(_, payload) => payload?.[0]?.payload?.fullDate ?? ""}
                       formatter={(v: any) => [formatBRL(Number(v)), "Receita"]}
                       cursor={{ stroke: '#4f46e5', strokeWidth: 1, strokeDasharray: '4 3' }}
                     />
