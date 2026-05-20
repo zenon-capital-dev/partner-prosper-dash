@@ -554,12 +554,17 @@ export default function OperationalCockpit() {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-          <TabsList className="bg-slate-100 rounded-xl p-1">
+          <TabsList className="bg-slate-100 rounded-xl p-1 flex-wrap h-auto">
             <TabsTrigger value="all" className="rounded-lg text-xs">Todos</TabsTrigger>
             <TabsTrigger value="demand" className="rounded-lg text-xs">Demandas</TabsTrigger>
             <TabsTrigger value="document" className="rounded-lg text-xs">Documentos</TabsTrigger>
+            <TabsTrigger value="request" className="rounded-lg text-xs">Solicitações</TabsTrigger>
             <TabsTrigger value="payment" className="rounded-lg text-xs">Financeiro</TabsTrigger>
+            <TabsTrigger value="commission" className="rounded-lg text-xs">Comissões</TabsTrigger>
+            <TabsTrigger value="contract" className="rounded-lg text-xs">Contratos</TabsTrigger>
             <TabsTrigger value="task" className="rounded-lg text-xs">Tarefas</TabsTrigger>
+            <TabsTrigger value="client" className="rounded-lg text-xs">Clientes</TabsTrigger>
+            <TabsTrigger value="report" className="rounded-lg text-xs">Reportes</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -589,6 +594,75 @@ export default function OperationalCockpit() {
           </div>
         )}
       </div>
+
+      {/* DETAILS SHEET */}
+      <Sheet open={!!detailItem} onOpenChange={(o) => !o && setDetailItem(null)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          {detailItem && (
+            <>
+              <SheetHeader>
+                <SheetTitle>{detailItem.title}</SheetTitle>
+                <SheetDescription>{detailItem.subtitle}</SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-3 text-sm">
+                <DetailRow label="Tipo" value={detailItem.type} />
+                {detailItem.status && <DetailRow label="Status" value={String(detailItem.status)} />}
+                <DetailRow label="Severidade" value={detailItem.severity} />
+                {detailItem.date && (
+                  <DetailRow label="Data" value={format(new Date(detailItem.date), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
+                )}
+                <div className="pt-4 border-t">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Dados completos</p>
+                  <pre className="text-[11px] bg-slate-50 p-3 rounded-lg overflow-auto max-h-72 border border-slate-200">
+{JSON.stringify(detailItem.metadata, null, 2)}
+                  </pre>
+                </div>
+              </div>
+              <SheetFooter className="mt-6 flex-row gap-2 sm:flex-row">
+                <Button className="flex-1" onClick={() => { openItem(detailItem); setDetailItem(null); }}>
+                  <ExternalLink className="size-4 mr-2" /> Abrir página
+                </Button>
+                {tableByType[detailItem.type] && (
+                  <Button variant="destructive" onClick={() => setDeleteItem(detailItem)}>
+                    <Trash2 className="size-4 mr-2" /> Excluir
+                  </Button>
+                )}
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* DELETE CONFIRM */}
+      <AlertDialog open={!!deleteItem} onOpenChange={(o) => !o && setDeleteItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir este item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteItem?.title} — {deleteItem?.subtitle}. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-rose-600 hover:bg-rose-700"
+              onClick={() => deleteItem && deleteMutation.mutate(deleteItem)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-4 py-2 border-b border-slate-100">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold text-slate-900 text-right break-all">{value}</span>
     </div>
   );
 }
