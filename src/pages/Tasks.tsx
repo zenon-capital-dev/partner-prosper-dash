@@ -317,6 +317,7 @@ export default function Tasks() {
     const sm = statusMeta(task.status_new);
     const pm = priorityMeta(task.priority);
     const overdue = isOverdue(task);
+    const isClosed = task.status_new === "concluida" || task.status_new === "cancelada";
     return (
       <div className={cn(
         "vx-card p-4 border hover:border-primary/30 transition-all flex items-center gap-4",
@@ -330,13 +331,33 @@ export default function Tasks() {
             <h4 className="text-sm font-bold truncate">{task.title}</h4>
             <Badge variant="outline" className={cn("text-[9px] h-4 px-1 uppercase", pm.color)}>{pm.label}</Badge>
             {overdue && <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase bg-destructive/10 text-destructive border-destructive/20">Atrasada</Badge>}
+            {!task.due_date && <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase">Sem prazo</Badge>}
           </div>
           <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground font-medium flex-wrap">
             <span className="flex items-center gap-1"><CalendarIcon className="size-3" /> {task.due_date ? formatDate(task.due_date) : "Sem prazo"}</span>
-            {task.assigned_user && <span className="flex items-center gap-1"><Clock className="size-3" /> {task.assigned_user.full_name}</span>}
+            {task.assigned_user?.full_name && <span className="flex items-center gap-1"><User className="size-3" /> {task.assigned_user.full_name}</span>}
             {renderEntity(task) && <span className="flex items-center gap-1">{renderEntity(task)}</span>}
           </div>
         </div>
+        {!isClosed ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+            onClick={() => updateStatus(task.id, "concluida")}
+          >
+            <CheckCircle2 className="size-3.5" /> Concluir
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1"
+            onClick={() => updateStatus(task.id, "a_fazer")}
+          >
+            Reabrir
+          </Button>
+        )}
         <Select value={task.status_new} onValueChange={(v) => updateStatus(task.id, v)}>
           <SelectTrigger className={cn("w-[170px] h-8 text-xs border", sm.color)}>
             <SelectValue />
@@ -362,15 +383,21 @@ export default function Tasks() {
     const map: Record<string, any[]> = {};
     filtered.forEach((t: any) => {
       if (!t.due_date) return;
-      const k = String(t.due_date).split("T")[0];
+      const k = toLocalDateKey(t.due_date);
       (map[k] ||= []).push(t);
     });
     return map;
   }, [filtered]);
 
-  const dayKey = (d?: Date) => d ? d.toISOString().split("T")[0] : "";
+  const dayKey = (d?: Date) => d ? toLocalDateKey(d) : "";
   const tasksOnDay = calendarDate ? (tasksByDate[dayKey(calendarDate)] ?? []) : [];
-  const datesWithTasks = useMemo(() => Object.keys(tasksByDate).map(k => new Date(k)), [tasksByDate]);
+  const datesWithTasks = useMemo(
+    () => Object.keys(tasksByDate).map(k => {
+      const [y, m, d] = k.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }),
+    [tasksByDate]
+  );
 
   const entityOptions = () => {
     switch (form.entity_type) {
