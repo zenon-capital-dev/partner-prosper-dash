@@ -273,7 +273,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="bg-gradient-primary hover:opacity-90">
+          <Button onClick={submit} disabled={submitting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             {submitting ? "Convertendo..." : "Converter lead"}
           </Button>
         </DialogFooter>
