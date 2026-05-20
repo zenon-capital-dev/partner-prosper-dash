@@ -1092,6 +1092,51 @@ export type Database = {
           },
         ]
       }
+      collaborator_products: {
+        Row: {
+          active: boolean
+          collaborator_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          collaborator_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          collaborator_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborator_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collaborator_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
       commission_rules: {
         Row: {
           created_at: string
@@ -1518,6 +1563,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contract_templates: {
+        Row: {
+          active: boolean
+          content: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          file_path: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       contracts: {
         Row: {
@@ -2926,33 +3007,6 @@ export type Database = {
           },
         ]
       }
-      product_categories: {
-        Row: {
-          color: string | null
-          created_at: string
-          icon: string | null
-          id: string
-          name: string
-          slug: string
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string
-          icon?: string | null
-          id?: string
-          name: string
-          slug: string
-        }
-        Update: {
-          color?: string | null
-          created_at?: string
-          icon?: string | null
-          id?: string
-          name?: string
-          slug?: string
-        }
-        Relationships: []
-      }
       product_required_documents: {
         Row: {
           created_at: string | null
@@ -3057,11 +3111,11 @@ export type Database = {
           avg_delivery_time: number | null
           base_price: number | null
           billing_type: string | null
-          category_id: string | null
           client_welcome_message: string | null
           created_at: string
           custom_fields_template: Json | null
           default_commission_percent: number | null
+          default_contract_template_id: string | null
           default_employee_commission: number | null
           default_provider_value: number | null
           default_sla_days: number | null
@@ -3070,6 +3124,9 @@ export type Database = {
           doc_max_size_mb: number | null
           id: string
           initial_status: string | null
+          installments_count: number | null
+          installments_due_day: number | null
+          installments_entry: number | null
           name: string
           provider_welcome_message: string | null
           recommended_contract_model_id: string | null
@@ -3087,11 +3144,11 @@ export type Database = {
           avg_delivery_time?: number | null
           base_price?: number | null
           billing_type?: string | null
-          category_id?: string | null
           client_welcome_message?: string | null
           created_at?: string
           custom_fields_template?: Json | null
           default_commission_percent?: number | null
+          default_contract_template_id?: string | null
           default_employee_commission?: number | null
           default_provider_value?: number | null
           default_sla_days?: number | null
@@ -3100,6 +3157,9 @@ export type Database = {
           doc_max_size_mb?: number | null
           id?: string
           initial_status?: string | null
+          installments_count?: number | null
+          installments_due_day?: number | null
+          installments_entry?: number | null
           name: string
           provider_welcome_message?: string | null
           recommended_contract_model_id?: string | null
@@ -3117,11 +3177,11 @@ export type Database = {
           avg_delivery_time?: number | null
           base_price?: number | null
           billing_type?: string | null
-          category_id?: string | null
           client_welcome_message?: string | null
           created_at?: string
           custom_fields_template?: Json | null
           default_commission_percent?: number | null
+          default_contract_template_id?: string | null
           default_employee_commission?: number | null
           default_provider_value?: number | null
           default_sla_days?: number | null
@@ -3130,6 +3190,9 @@ export type Database = {
           doc_max_size_mb?: number | null
           id?: string
           initial_status?: string | null
+          installments_count?: number | null
+          installments_due_day?: number | null
+          installments_entry?: number | null
           name?: string
           provider_welcome_message?: string | null
           recommended_contract_model_id?: string | null
@@ -3142,10 +3205,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
+            foreignKeyName: "products_default_contract_template_fk"
+            columns: ["default_contract_template_id"]
             isOneToOne: false
-            referencedRelation: "product_categories"
+            referencedRelation: "contract_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -3855,6 +3918,61 @@ export type Database = {
           {
             foreignKeyName: "service_assignments_provider_id_fkey"
             columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_provider_products: {
+        Row: {
+          active: boolean
+          created_at: string
+          custom_value: number | null
+          id: string
+          notes: string | null
+          product_id: string
+          service_provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          custom_value?: number | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          service_provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          custom_value?: number | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          service_provider_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_provider_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "service_provider_products_service_provider_id_fkey"
+            columns: ["service_provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
             referencedColumns: ["id"]
