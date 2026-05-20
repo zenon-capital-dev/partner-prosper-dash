@@ -667,8 +667,8 @@ export default function Tasks() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setCreateOpen(false); resetForm(); }}>Cancelar</Button>
-            <Button onClick={save} className="bg-gradient-primary">
-              {editing ? "Salvar Alterações" : "Criar Tarefa"}
+            <Button onClick={save} disabled={saving} className="bg-gradient-primary">
+              {saving ? "Salvando..." : (editing ? "Salvar Alterações" : "Criar Tarefa")}
             </Button>
           </DialogFooter>
         </DialogContent>
