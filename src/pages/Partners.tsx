@@ -189,7 +189,9 @@ export default function Partners() {
   const submit = async () => {
     if (!form.full_name?.trim()) { toast.error("Nome obrigatório"); return; }
     if (form.email && !isEmail(form.email)) { toast.error("Email inválido"); return; }
-    if (form.document && onlyDigits(form.document).length < 11) { toast.error("Documento deve ter pelo menos 11 dígitos"); return; }
+    if (form.document && !isValidCPFOrCNPJ(form.document)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
+    if (form.whatsapp && !isValidPhoneBR(form.whatsapp)) { toast.error("WhatsApp inválido"); return; }
     const pct = Number(form.commission_percent ?? 0);
     if (Number.isNaN(pct) || pct < 0 || pct > 100) { toast.error("Comissão deve estar entre 0 e 100"); return; }
 
