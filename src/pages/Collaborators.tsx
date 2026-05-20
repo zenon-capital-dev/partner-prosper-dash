@@ -740,7 +740,7 @@ function CreateCollaboratorDialog({
         body: {
           email,
           full_name: name,
-          phone: form.phone || undefined,
+          phone: form.phone ? onlyDigits(form.phone) : undefined,
           role: form.role,
           has_system_access: form.has_system_access,
           internal_notes: form.internal_notes || undefined,
