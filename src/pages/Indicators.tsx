@@ -178,16 +178,16 @@ export default function Indicators() {
     if (!name) { toast.error("Nome obrigatório"); return; }
     const email = String(form.email ?? "").trim();
     if (email && !isEmail(email)) { toast.error("Email inválido"); return; }
-    const doc = onlyDigits(form.document);
-    if (doc && (doc.length < 11 || doc.length > 14)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.document && !isValidCPFOrCNPJ(form.document)) { toast.error("CPF/CNPJ inválido"); return; }
+    if (form.phone && !isValidPhoneBR(form.phone)) { toast.error("Telefone inválido"); return; }
     const pct = Number(form.commission_percent);
     if (Number.isNaN(pct) || pct < 0 || pct > 100) { toast.error("Comissão deve estar entre 0 e 100"); return; }
 
     const payload = {
       full_name: name,
       email: email || null,
-      phone: String(form.phone ?? "").trim() || null,
-      document: String(form.document ?? "").trim() || null,
+      phone: form.phone ? onlyDigits(form.phone) : null,
+      document: form.document ? onlyDigits(form.document) : null,
       pix_key: String(form.pix_key ?? "").trim() || null,
       commission_percent: pct,
       active: form.active ?? true,
