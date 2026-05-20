@@ -374,7 +374,7 @@ export default function Finance() {
       title: "Excluir despesa?",
       description: `Esta ação não pode ser desfeita. Despesa: ${e.description} (${formatBRL(e.amount)})`,
       confirmText: "Excluir",
-      variant: "destructive",
+      destructive: true,
     });
     if (!ok) return;
     const { error } = await supabase.from("expenses").delete().eq("id", e.id);
