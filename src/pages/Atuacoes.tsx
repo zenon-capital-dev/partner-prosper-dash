@@ -563,19 +563,28 @@ function ActionRow({
           )}
         </div>
 
-        {action.status === "pendente" && (
-          <div className="flex items-center gap-1 shrink-0">
-            <Button size="sm" onClick={onExecute} className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-[12px]">
-              <CheckCircle2 className="size-3.5 mr-1" /> Executar
-            </Button>
-            <Button size="sm" variant="ghost" onClick={onReschedule} className="h-8 px-2 text-slate-500 hover:text-slate-900" title="Reagendar">
+        <div className="flex items-center gap-1 shrink-0">
+          {action.status === "pendente" ? (
+            <>
+              <Button size="sm" onClick={onExecute} className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-[12px]">
+                <CheckCircle2 className="size-3.5 mr-1" /> Executar
+              </Button>
+              <Button size="sm" variant="ghost" onClick={onReschedule} className="h-8 px-2 text-slate-500 hover:text-slate-900" title="Reagendar">
+                <RotateCcw className="size-3.5" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={onCancel} className="h-8 px-2 text-slate-400 hover:text-rose-600" title="Cancelar">
+                <X className="size-3.5" />
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" variant="ghost" onClick={onReopen} className="h-8 px-2 text-slate-500 hover:text-indigo-700" title="Reabrir">
               <RotateCcw className="size-3.5" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={onCancel} className="h-8 px-2 text-slate-400 hover:text-rose-600" title="Cancelar">
-              <X className="size-3.5" />
-            </Button>
-          </div>
-        )}
+          )}
+          <Button size="sm" variant="ghost" onClick={onDelete} className="h-8 px-2 text-slate-300 hover:text-rose-600" title="Excluir">
+            <X className="size-3.5" />
+          </Button>
+        </div>
       </div>
     </div>
   );
