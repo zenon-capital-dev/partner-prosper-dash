@@ -34,6 +34,9 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
 
   useEffect(() => {
     if (!lead) return;
+    const dueDate = new Date(Date.now() + 3 * 86400000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const localDue = `${dueDate.getFullYear()}-${pad(dueDate.getMonth() + 1)}-${pad(dueDate.getDate())}`;
     setForm({
       product_id: lead.product_id || "",
       contract_value: lead.estimated_value ?? "",
@@ -41,7 +44,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
       contract_name: `Contrato — ${lead.full_name}`,
       contract_type: "padrao",
       first_task_title: `Iniciar onboarding de ${lead.full_name}`,
-      first_task_due: new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0],
+      first_task_due: localDue,
       create_product: true,
       create_contract: true,
       create_commission: !!lead.partner_id,
@@ -55,7 +58,14 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
     if (!form.create_product && !form.create_contract && !form.create_task) {
       return toast.error("Selecione ao menos uma operação.");
     }
+    if (form.create_product && !form.product_id) {
+      return toast.error("Selecione o produto contratado.");
+    }
+    if (form.create_commission && form.partner_commission && Number(form.partner_commission) < 0) {
+      return toast.error("Comissão inválida.");
+    }
     setSubmitting(true);
+    const errors: string[] = [];
     try {
       // 1. Client
       const { data: client, error: cErr } = await supabase.from("clients").insert({
