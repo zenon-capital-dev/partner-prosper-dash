@@ -842,3 +842,122 @@ function EmptyRow({ message }: { message: string }) {
     </div>
   );
 }
+
+function TodayBoard({
+  loading, dateLabel, totalCount, tasks, demands, docs, contracts,
+}: {
+  loading: boolean;
+  dateLabel: string;
+  totalCount: number;
+  tasks: { id: string; title: string; time: string | null }[];
+  demands: { id: string; title: string; subtitle: string }[];
+  docs: { id: string; title: string; subtitle: string }[];
+  contracts: { id: string; title: string; subtitle: string }[];
+}) {
+  const cols: {
+    key: string;
+    label: string;
+    count: number;
+    to: string;
+    icon: any;
+    accent: string;
+    items: { id: string; title: string; sub?: string | null }[];
+  }[] = [
+    {
+      key: "tasks", label: "Tarefas de hoje", count: tasks.length, to: "/tarefas",
+      icon: ClipboardList, accent: "indigo",
+      items: tasks.map(t => ({ id: t.id, title: t.title, sub: t.time })),
+    },
+    {
+      key: "demands", label: "Demandas com prazo hoje", count: demands.length, to: "/demandas",
+      icon: Clock, accent: "amber",
+      items: demands.map(d => ({ id: d.id, title: d.title, sub: d.subtitle })),
+    },
+    {
+      key: "docs", label: "Documentos para revisar", count: docs.length, to: "/documentos",
+      icon: FileText, accent: "sky",
+      items: docs.map(d => ({ id: d.id, title: d.title, sub: d.subtitle })),
+    },
+    {
+      key: "contracts", label: "Contratos aguardando", count: contracts.length, to: "/contratos",
+      icon: FileSignature, accent: "violet",
+      items: contracts.map(c => ({ id: c.id, title: c.title, sub: c.subtitle })),
+    },
+  ];
+
+  const accentMap: Record<string, { bg: string; text: string; ring: string; chip: string }> = {
+    indigo: { bg: "bg-indigo-50", text: "text-indigo-600", ring: "ring-indigo-100", chip: "bg-indigo-100 text-indigo-700" },
+    amber:  { bg: "bg-amber-50",  text: "text-amber-600",  ring: "ring-amber-100",  chip: "bg-amber-100 text-amber-700" },
+    sky:    { bg: "bg-sky-50",    text: "text-sky-600",    ring: "ring-sky-100",    chip: "bg-sky-100 text-sky-700" },
+    violet: { bg: "bg-violet-50", text: "text-violet-600", ring: "ring-violet-100", chip: "bg-violet-100 text-violet-700" },
+  };
+
+  return (
+    <section className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_16px_-8px_rgba(15,23,42,0.06)] overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="size-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(79,70,229,0.4)]">
+            <CalendarCheck className="size-4 stroke-[2.2]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-display text-[15px] font-bold tracking-[-0.01em] text-slate-900">Pendências de hoje</h3>
+            <p className="text-[12px] text-slate-500 font-medium capitalize truncate">{dateLabel}</p>
+          </div>
+        </div>
+        <div className={cn(
+          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-bold tabular-nums text-[12px] ring-1",
+          totalCount > 0 ? "bg-rose-50 text-rose-700 ring-rose-200/60" : "bg-emerald-50 text-emerald-700 ring-emerald-200/60"
+        )}>
+          {totalCount > 0 ? <AlertCircle className="size-3.5" /> : <CheckCircle2 className="size-3.5" />}
+          {loading ? "..." : `${totalCount} ${totalCount === 1 ? "pendência" : "pendências"}`}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+        {cols.map((c) => {
+          const a = accentMap[c.accent];
+          return (
+            <div key={c.key} className="p-5 min-h-[200px] flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={cn("size-7 rounded-lg ring-1 flex items-center justify-center shrink-0", a.bg, a.text, a.ring)}>
+                    <c.icon className="size-3.5 stroke-[2.2]" />
+                  </div>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.13em] text-slate-600 truncate">{c.label}</span>
+                </div>
+                <span className={cn("inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-md text-[11px] font-bold tabular-nums", a.chip)}>
+                  {loading ? "·" : c.count}
+                </span>
+              </div>
+
+              <div className="flex-1 space-y-1.5">
+                {loading ? (
+                  <div className="py-4 flex justify-center">
+                    <div className="size-4 border-2 border-indigo-600/20 border-t-indigo-600 animate-spin rounded-full" />
+                  </div>
+                ) : c.items.length > 0 ? c.items.map((it) => (
+                  <Link
+                    to={c.to}
+                    key={it.id}
+                    className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                  >
+                    <span className="text-[12.5px] font-semibold text-slate-700 truncate group-hover:text-slate-900">{it.title}</span>
+                    {it.sub ? (
+                      <span className="text-[10.5px] font-semibold text-slate-400 tabular-nums shrink-0">{it.sub}</span>
+                    ) : null}
+                  </Link>
+                )) : (
+                  <p className="text-[12px] text-slate-400 font-medium py-3">Nada pendente.</p>
+                )}
+              </div>
+
+              <Link to={c.to} className="mt-3 inline-flex items-center gap-1 text-[11.5px] font-bold text-indigo-600 hover:text-indigo-700">
+                Abrir <ArrowUpRight className="size-3" />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
