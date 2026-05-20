@@ -23,7 +23,6 @@ import {
   MoreVertical,
   RefreshCw,
   Search,
-  ShieldCheck,
   Unlock,
   X,
 } from "lucide-react";
