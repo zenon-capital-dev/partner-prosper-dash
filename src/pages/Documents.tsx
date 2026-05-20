@@ -433,13 +433,17 @@ export default function Documents() {
     if (actionMode === "reject") await updateStatus(actionDoc, "reprovado", { rejection_reason: actionReason.trim() });
     if (actionMode === "request_resend") await updateStatus(actionDoc, "pendente_correcao", { rejection_reason: actionReason.trim() });
     if (actionMode === "comment") {
-      const prev = actionDoc.internal_notes ?? "";
-      const stamp = new Date().toLocaleString("pt-BR");
-      const merged = `${prev ? `${prev}\n\n` : ""}[${stamp}] ${actionReason.trim()}`;
-      const { error } = await supabase.from("documents").update({ internal_notes: merged }).eq("id", actionDoc.id);
-      if (error) return toast.error(error.message);
-      toast.success("Comentário adicionado");
-      invalidate();
+      if (actionDoc.__source && actionDoc.__source !== "documents") {
+        toast.error("Comentários internos disponíveis apenas em documentos cadastrados.");
+      } else {
+        const prev = actionDoc.internal_notes ?? "";
+        const stamp = new Date().toLocaleString("pt-BR");
+        const merged = `${prev ? `${prev}\n\n` : ""}[${stamp}] ${actionReason.trim()}`;
+        const { error } = await supabase.from("documents").update({ internal_notes: merged }).eq("id", actionDoc.id);
+        if (error) return toast.error(error.message);
+        toast.success("Comentário adicionado");
+        invalidate();
+      }
     }
     setActionMode(null);
     setActionDoc(null);
