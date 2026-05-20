@@ -834,6 +834,8 @@ export default function Demands() {
       </Dialog>
         </TabsContent>
       </Tabs>
+
+      <NewDemandDialog open={newDemandOpen} onOpenChange={setNewDemandOpen} />
     </div>
   );
 }
