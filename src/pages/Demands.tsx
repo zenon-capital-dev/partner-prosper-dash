@@ -375,7 +375,7 @@ export default function Demands() {
               <Wallet className="size-4 mr-2 text-indigo-500" /> Comissões
             </Button>
             
-            <Button className="h-11 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg" onClick={() => navigate("/clientes")}>
+            <Button className="h-11 px-5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-lg" onClick={() => setNewDemandOpen(true)}>
               <Plus className="size-4 mr-2" /> Nova Demanda
             </Button>
           </div>
