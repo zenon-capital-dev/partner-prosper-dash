@@ -8,32 +8,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Search, Trash2, MoreHorizontal, Pencil, Package, ArrowUpRight, Handshake,
-  Users2, Wallet, TrendingUp, CheckCircle2, Clock3, Award, Crown,
-  LayoutGrid, List, Download, X, Power, PowerOff, Mail, Phone, Copy,
-  KeyRound, Eye, EyeOff, Sparkles,
+  Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
+  Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,
+  Copy, KeyRound, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowUp, ArrowDown,
+  Inbox, ShieldCheck, Filter,
 } from "lucide-react";
-import { formatBRL, formatPercent, initials, formatPhone, formatDate } from "@/lib/format";
+import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
-  DropdownMenuTrigger, DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { PartnerDetailDrawer } from "@/components/PartnerDetailDrawer";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { confirmAction } from "@/lib/confirm";
 
-
-const emptyForm = { active: true, commission_percent: 10 };
-type SortKey = "recent" | "name" | "commissions" | "clients";
+const emptyForm = { active: true, commission_percent: 10, partner_category: "indicador" };
+type SortKey = "recent" | "name" | "commissions" | "pending" | "clients";
+type SortDir = "asc" | "desc";
 type ViewMode = "list" | "grid";
+
+const norm = (s: any) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const onlyDigits = (s: any) => String(s ?? "").replace(/\D+/g, "");
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+const CATEGORY_META: Record<string, { label: string; cls: string }> = {
+  indicador: { label: "Indicador", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  afiliado: { label: "Afiliado", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  estrategico: { label: "Estratégico", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+};
 
 export default function Partners() {
   const { isAdmin, isAdminSecondary } = useAuth();
+  const canManage = isAdmin || isAdminSecondary;
+
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
   const [open, setOpen] = useState(false);
@@ -42,12 +50,13 @@ export default function Partners() {
   const [drawerId, setDrawerId] = useState<string | null>(null);
   const [view, setView] = useState<ViewMode>("list");
   const [statusFilter, setStatusFilter] = useState<"todos" | "ativos" | "inativos">("todos");
+  const [categoryFilter, setCategoryFilter] = useState<"todos" | "indicador" | "afiliado" | "estrategico">("todos");
+  const [accessFilter, setAccessFilter] = useState<"todos" | "sim" | "nao">("todos");
   const [sortBy, setSortBy] = useState<SortKey>("commissions");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-
-  // Acesso ao painel
   const [createAccess, setCreateAccess] = useState(false);
   const [accessPwd, setAccessPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -57,9 +66,9 @@ export default function Partners() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, statusFilter, sortBy]);
+  }, [debouncedSearch, statusFilter, categoryFilter, accessFilter, sortBy, sortDir]);
 
-  const { data: partners } = useQuery({
+  const { data: partners, isLoading } = useQuery({
     queryKey: ["partners-rich"],
     queryFn: async () => {
       const { data } = await supabase
@@ -75,7 +84,6 @@ export default function Partners() {
       const comms = p.commissions ?? [];
       const total = comms.reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
       const pending = comms.filter((c: any) => c.status === "pendente").reduce((s: number, c: any) => s + Number(c.amount || 0), 0);
-      
       const now = new Date();
       const months: { key: string; total: number }[] = [];
       for (let i = 5; i >= 0; i--) {
@@ -88,44 +96,57 @@ export default function Partners() {
         const m = months.find((mm) => mm.key === key);
         if (m) m.total += Number(c.amount || 0);
       });
+      const clientsCount = new Set((p.clients ?? []).map((c: any) => c.id)).size;
       return {
         ...p,
         _total: total,
         _pending: pending,
         _spark: months.map((m) => m.total),
-        _clientsCount: p.clients?.length ?? 0,
+        _clientsCount: clientsCount,
         _productsCount: p.partner_products?.length ?? 0,
       };
     });
   }, [partners]);
 
   const filtered = useMemo(() => {
-    let list = enriched;
-    if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      list = list.filter((p: any) =>
-        p.full_name?.toLowerCase().includes(q) ||
-        p.email?.toLowerCase().includes(q) ||
-        p.phone?.includes(q),
-      );
-    }
-    if (statusFilter === "ativos") list = list.filter((p: any) => p.active);
-    else if (statusFilter === "inativos") list = list.filter((p: any) => !p.active);
+    const q = norm(debouncedSearch);
+    const qDigits = onlyDigits(debouncedSearch);
+    let list = enriched.filter((p: any) => {
+      if (statusFilter === "ativos" && !p.active) return false;
+      if (statusFilter === "inativos" && p.active) return false;
+      if (categoryFilter !== "todos" && (p.partner_category ?? "indicador") !== categoryFilter) return false;
+      if (accessFilter === "sim" && !p.has_system_access) return false;
+      if (accessFilter === "nao" && p.has_system_access) return false;
+      if (q) {
+        const hay = norm(`${p.full_name ?? ""} ${p.email ?? ""} ${p.pix_key ?? ""}`);
+        const docHay = onlyDigits(`${p.document ?? ""}${p.phone ?? ""}${p.whatsapp ?? ""}`);
+        if (!hay.includes(q) && !(qDigits && docHay.includes(qDigits))) return false;
+      }
+      return true;
+    });
 
-    const sorted = [...list];
-    if (sortBy === "name") sorted.sort((a, b) => a.full_name.localeCompare(b.full_name));
-    else if (sortBy === "commissions") sorted.sort((a, b) => b._total - a._total);
-    else if (sortBy === "clients") sorted.sort((a, b) => b._clientsCount - a._clientsCount);
-    else sorted.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
-    return sorted;
-  }, [enriched, search, statusFilter, sortBy]);
+    const dir = sortDir === "asc" ? 1 : -1;
+    list = [...list].sort((a, b) => {
+      let va: any, vb: any;
+      switch (sortBy) {
+        case "name": va = norm(a.full_name); vb = norm(b.full_name); break;
+        case "commissions": va = a._total; vb = b._total; break;
+        case "pending": va = a._pending; vb = b._pending; break;
+        case "clients": va = a._clientsCount; vb = b._clientsCount; break;
+        case "recent": va = +new Date(a.created_at); vb = +new Date(b.created_at); break;
+      }
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+    return list;
+  }, [enriched, debouncedSearch, statusFilter, categoryFilter, accessFilter, sortBy, sortDir]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
   }, [filtered, currentPage]);
-
 
   const topIds = useMemo(() => {
     const ranking = [...enriched].sort((a, b) => b._total - a._total).slice(0, 3);
@@ -141,6 +162,11 @@ export default function Partners() {
     return { total, active, totalComms, totalPending, totalClients };
   }, [enriched]);
 
+  const toggleSort = (k: SortKey) => {
+    if (sortBy === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortBy(k); setSortDir(k === "name" ? "asc" : "desc"); }
+  };
+
   const generatePassword = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
     let p = "";
@@ -150,33 +176,37 @@ export default function Partners() {
     setShowPwd(true);
   };
 
-  const openNew = () => { 
-    setEditing(null); 
-    setForm(emptyForm); 
-    setCreateAccess(false);
-    setAccessPwd("");
-    setOpen(true); 
+  const openNew = () => {
+    setEditing(null); setForm(emptyForm); setCreateAccess(false); setAccessPwd(""); setOpen(true);
   };
-  
+
   const openEdit = (p: any) => {
-    setEditing(p);
-    setForm({ ...p });
-    setCreateAccess(false);
-    setAccessPwd("");
-    setOpen(true);
+    setEditing(p); setForm({ ...p }); setCreateAccess(false); setAccessPwd(""); setOpen(true);
   };
 
   const submit = async () => {
-    if (!form.full_name) { toast.error("Nome obrigatório"); return; }
+    if (!form.full_name?.trim()) { toast.error("Nome obrigatório"); return; }
+    if (form.email && !isEmail(form.email)) { toast.error("Email inválido"); return; }
+    if (form.document && onlyDigits(form.document).length < 11) { toast.error("Documento deve ter pelo menos 11 dígitos"); return; }
+    const pct = Number(form.commission_percent ?? 0);
+    if (Number.isNaN(pct) || pct < 0 || pct > 100) { toast.error("Comissão deve estar entre 0 e 100"); return; }
+
     if (!editing && createAccess) {
       if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
-      if (!accessPwd || accessPwd.length < 6) { toast.error("Senha deve ter no mínimo 6 caracteres"); return; }
+      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
+    }
+
+    // Duplicidade
+    const dupEmail = form.email && enriched.find((p: any) => p.id !== editing?.id && norm(p.email) === norm(form.email));
+    const dupDoc = form.document && enriched.find((p: any) => p.id !== editing?.id && onlyDigits(p.document) === onlyDigits(form.document));
+    if (dupEmail || dupDoc) {
+      const who = dupEmail?.full_name || dupDoc?.full_name;
+      if (!(await confirmAction(`Já existe um parceiro com mesmo ${dupEmail ? "email" : "documento"} (${who}). Continuar mesmo assim?`))) return;
     }
 
     setSubmitting(true);
-    // Payload explícito (apenas colunas reais da tabela partners) para não tropeçar em campos UI
     const payload: Record<string, any> = {
-      full_name: form.full_name,
+      full_name: form.full_name.trim(),
       email: form.email || null,
       phone: form.phone || null,
       whatsapp: form.whatsapp || null,
@@ -187,8 +217,7 @@ export default function Partners() {
       bank_account: form.bank_account || null,
       partner_category: form.partner_category || "indicador",
       partner_type: form.partner_type ?? null,
-      commission_percent: form.commission_percent != null && form.commission_percent !== ""
-        ? Number(form.commission_percent) : 10,
+      commission_percent: pct,
       default_commission_value: form.default_commission_value != null && form.default_commission_value !== ""
         ? Number(form.default_commission_value) : null,
       notes: form.notes || null,
@@ -199,13 +228,8 @@ export default function Partners() {
       ? await supabase.from("partners").update(payload as any).eq("id", editing.id).select().single()
       : await supabase.from("partners").insert(payload as any).select().single();
 
-    if (error) { 
-      setSubmitting(false);
-      toast.error(error.message); 
-      return; 
-    }
+    if (error) { setSubmitting(false); toast.error(error.message); return; }
 
-    // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
     if (!editing && createAccess && partner) {
       const { error: invErr } = await supabase.functions.invoke("invite-user", {
         body: {
@@ -218,14 +242,12 @@ export default function Partners() {
           link_partner_id: partner.id,
         },
       });
-
       if (invErr) {
         setSubmitting(false);
         toast.warning("Parceiro criado, mas o acesso falhou: " + invErr.message);
         qc.invalidateQueries({ queryKey: ["partners-rich"] });
         return;
       }
-
       try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
       toast.success(`Acesso criado para ${form.email}`, {
         description: `Senha: ${accessPwd} (copiada para a área de transferência)`,
@@ -236,13 +258,17 @@ export default function Partners() {
     }
 
     setSubmitting(false);
-    setOpen(false); 
+    setOpen(false);
     setEditing(null);
     qc.invalidateQueries({ queryKey: ["partners-rich"] });
+    qc.invalidateQueries({ queryKey: ["commissions"] });
   };
 
-
   const toggleActive = async (p: any) => {
+    if (!canManage) return;
+    if (p.active && p._pending > 0) {
+      if (!(await confirmAction(`${p.full_name} tem ${formatBRL(p._pending)} em comissões pendentes. Desativar mesmo assim?`))) return;
+    }
     const { error } = await supabase.from("partners").update({ active: !p.active }).eq("id", p.id);
     if (error) toast.error(error.message);
     else {
@@ -251,8 +277,41 @@ export default function Partners() {
     }
   };
 
+  const exportCSV = () => {
+    const headers = ["Nome", "Email", "Telefone", "Documento", "Categoria", "% Comissão", "Indicações", "Total Ganho", "Pendente", "Status", "Criado em"];
+    const rows = filtered.map((p: any) => [
+      p.full_name ?? "",
+      p.email ?? "",
+      p.phone ?? "",
+      p.document ?? "",
+      CATEGORY_META[p.partner_category ?? "indicador"]?.label ?? p.partner_category ?? "",
+      Number(p.commission_percent ?? 0).toFixed(2),
+      p._clientsCount,
+      p._total.toFixed(2),
+      p._pending.toFixed(2),
+      p.active ? "ativo" : "inativo",
+      p.created_at?.slice(0, 10) ?? "",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `parceiros-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearFilters = () => { setSearch(""); setStatusFilter("todos"); setCategoryFilter("todos"); setAccessFilter("todos"); };
+  const activeChips: { label: string; clear: () => void }[] = [];
+  if (search) activeChips.push({ label: `Busca: ${search}`, clear: () => setSearch("") });
+  if (statusFilter !== "todos") activeChips.push({ label: `Status: ${statusFilter}`, clear: () => setStatusFilter("todos") });
+  if (categoryFilter !== "todos") activeChips.push({ label: `Categoria: ${CATEGORY_META[categoryFilter]?.label}`, clear: () => setCategoryFilter("todos") });
+  if (accessFilter !== "todos") activeChips.push({ label: `Acesso: ${accessFilter === "sim" ? "Com acesso" : "Sem acesso"}`, clear: () => setAccessFilter("todos") });
+  const hasActiveFilters = activeChips.length > 0;
+
+  const avgPerActive = kpis.active > 0 ? kpis.totalComms / kpis.active : 0;
+
   return (
-    <div className="page-shell space-y-10 animate-fade-up">
+    <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans admin-shell">
       <PageHero
         eyebrow="Ecosystem"
         category="Partner Network"
@@ -260,84 +319,151 @@ export default function Partners() {
         description="Gerencie sua rede de indicações e parceiros estratégicos com visibilidade total de ganhos e performance."
         icon={<Handshake className="size-6" />}
         actions={
-          (isAdmin || isAdminSecondary) && (
-            <Button size="sm" onClick={openNew} className="action-button btn-primary shadow-xl">
-              <Plus className="size-4" strokeWidth={3} /> Novo Parceiro
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2 border-slate-200/70 bg-white hover:bg-slate-50">
+              <Download className="size-4" /> Exportar
             </Button>
-          )
+            {canManage && (
+              <Button size="sm" onClick={openNew} className="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                <Plus className="size-4" /> Novo Parceiro
+              </Button>
+            )}
+          </div>
         }
         kpis={[
-          { label: "Total Rede", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" /> },
-          { label: "Indicações", value: kpis.totalClients, tone: "info", icon: <TrendingUp className="size-4" /> },
-          { label: "Total Comissões", value: formatBRL(kpis.totalComms), tone: "success", icon: <Wallet className="size-4" /> },
+          { label: "Total Rede", value: String(kpis.total), tone: "primary", icon: <Users2 className="size-4" /> },
+          { label: "Ativos", value: String(kpis.active), tone: "success", icon: <Power className="size-4" /> },
+          { label: "Indicações", value: String(kpis.totalClients), tone: "info", icon: <TrendingUp className="size-4" /> },
+          { label: "Total Comissões", value: formatBRL(kpis.totalComms), tone: "primary", icon: <Wallet className="size-4" /> },
           { label: "A Pagar", value: formatBRL(kpis.totalPending), tone: "warning", icon: <Clock3 className="size-4" /> },
+          { label: "Médio / Ativo", value: formatBRL(avgPerActive), tone: "info", icon: <Award className="size-4" /> },
         ]}
       />
 
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input
-            placeholder="Buscar por nome ou email..."
-            value={search} onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-11 bg-white border-slate-200 rounded-xl focus:border-indigo-400 transition-all"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="h-11 w-[140px] bg-white border-slate-200 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-700"><SelectValue /></SelectTrigger>
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 space-y-4 pb-10">
+        {/* Toolbar */}
+        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Buscar por nome, email, documento, telefone, PIX..."
+              value={search} onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-10 bg-white border-slate-200 rounded-md text-sm"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+            <SelectTrigger className="h-10 w-[130px] bg-white border-slate-200 text-xs font-medium"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="todos">Todos Status</SelectItem>
+              <SelectItem value="todos">Todos status</SelectItem>
               <SelectItem value="ativos">Ativos</SelectItem>
               <SelectItem value="inativos">Inativos</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1">
-            <button onClick={() => setView("list")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "list" ? "bg-indigo-50 text-indigo-700" : "text-slate-400 hover:text-slate-700")}>
+          <Select value={categoryFilter} onValueChange={(v: any) => setCategoryFilter(v)}>
+            <SelectTrigger className="h-10 w-[150px] bg-white border-slate-200 text-xs font-medium"><Filter className="size-3.5 mr-1" /><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas categorias</SelectItem>
+              <SelectItem value="indicador">Indicador</SelectItem>
+              <SelectItem value="afiliado">Afiliado</SelectItem>
+              <SelectItem value="estrategico">Estratégico</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={accessFilter} onValueChange={(v: any) => setAccessFilter(v)}>
+            <SelectTrigger className="h-10 w-[150px] bg-white border-slate-200 text-xs font-medium"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Acesso (todos)</SelectItem>
+              <SelectItem value="sim">Com acesso</SelectItem>
+              <SelectItem value="nao">Sem acesso</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={`${sortBy}:${sortDir}`} onValueChange={(v) => { const [k, d] = v.split(":"); setSortBy(k as SortKey); setSortDir(d as SortDir); }}>
+            <SelectTrigger className="h-10 w-[180px] bg-white border-slate-200 text-xs font-medium"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="commissions:desc">Maior comissão</SelectItem>
+              <SelectItem value="pending:desc">Mais pendente</SelectItem>
+              <SelectItem value="clients:desc">Mais indicações</SelectItem>
+              <SelectItem value="name:asc">Nome A–Z</SelectItem>
+              <SelectItem value="recent:desc">Mais recentes</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex items-center bg-slate-100/80 rounded-md p-1">
+            <button onClick={() => setView("list")} className={cn("size-8 rounded flex items-center justify-center transition-all", view === "list" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-900")}>
               <List className="size-4" />
             </button>
-            <button onClick={() => setView("grid")} className={cn("size-9 rounded-lg flex items-center justify-center transition-all", view === "grid" ? "bg-indigo-50 text-indigo-700" : "text-slate-400 hover:text-slate-700")}>
+            <button onClick={() => setView("grid")} className={cn("size-8 rounded flex items-center justify-center transition-all", view === "grid" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-900")}>
               <LayoutGrid className="size-4" />
             </button>
           </div>
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 text-slate-500 hover:text-slate-900">
+              <X className="size-3.5 mr-1" /> Limpar
+            </Button>
+          )}
         </div>
+
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {activeChips.map((c, i) => (
+              <button key={i} onClick={c.clear} className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100 hover:bg-indigo-100">
+                {c.label}<X className="size-3" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-12 bg-slate-50 rounded animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-16 text-center">
+            <Inbox className="size-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-lg font-semibold text-slate-700">Nenhum parceiro encontrado</p>
+            <p className="text-sm text-slate-500 mt-1">
+              {hasActiveFilters ? "Ajuste os filtros para ver mais resultados." : "Cadastre seu primeiro parceiro para começar."}
+            </p>
+            {canManage && !hasActiveFilters && (
+              <Button onClick={openNew} className="mt-4 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"><Plus className="size-4" /> Novo parceiro</Button>
+            )}
+            {hasActiveFilters && (
+              <Button variant="link" onClick={clearFilters} className="mt-2 text-indigo-600">Limpar filtros</Button>
+            )}
+          </div>
+        ) : view === "list" ? (
+          <div className="bg-white border border-slate-200/70 rounded-lg overflow-hidden shadow-sm">
+            <ListView
+              partners={paginated}
+              topIds={topIds}
+              onDetail={setDrawerId}
+              onEdit={openEdit}
+              onToggle={toggleActive}
+              canManage={canManage}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              onSort={toggleSort}
+            />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} canManage={canManage} />
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
+          </div>
+        )}
       </div>
 
-      {view === "list" ? (
-        <div className="bg-white border border-slate-200/70 rounded-lg overflow-hidden shadow-sm">
-          <ListView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
-          <PaginationControl
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={filtered.length}
-            itemsPerPage={itemsPerPage}
-          />
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} />
-          <PaginationControl
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            totalItems={filtered.length}
-            itemsPerPage={itemsPerPage}
-          />
-        </div>
-      )}
-
-
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto bg-card border-border">
+        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+              <div className="size-10 rounded-md bg-indigo-50 text-indigo-700 flex items-center justify-center">
                 <Handshake className="size-5" />
               </div>
               <div>
-                <DialogTitle className="font-display text-xl">{editing ? "Editar Parceiro" : "Novo Parceiro"}</DialogTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">Cadastre indicadores e parceiros estratégicos com dados completos para repasses.</p>
+                <DialogTitle className="text-xl">{editing ? "Editar Parceiro" : "Novo Parceiro"}</DialogTitle>
+                <p className="text-xs text-slate-500 mt-0.5">Cadastre indicadores e parceiros estratégicos com dados completos para repasses.</p>
               </div>
             </div>
           </DialogHeader>
@@ -376,7 +502,7 @@ export default function Partners() {
                   <Input value={form.whatsapp ?? ""} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="(11) 99999-9999" />
                 </PartnerField>
                 <PartnerField label="% Comissão padrão">
-                  <Input type="number" step="0.01" value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
+                  <Input type="number" step="0.01" min={0} max={100} value={form.commission_percent ?? 10} onChange={(e) => setForm({ ...form, commission_percent: e.target.value })} />
                 </PartnerField>
               </div>
             </PartnerSection>
@@ -404,25 +530,31 @@ export default function Partners() {
                   value={form.notes ?? ""}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={3}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                   placeholder="Histórico, observações, condições especiais..."
                 />
               </PartnerField>
-              <div className="flex items-center justify-between rounded-xl border border-border bg-muted/20 px-4 py-3 mt-3">
+              <div className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50/60 px-4 py-3 mt-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider">Parceria ativa</p>
-                  <p className="text-[11px] text-muted-foreground">{form.active ? "Recebe novas indicações e comissões" : "Pausado / inativo"}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Parceria ativa</p>
+                  <p className="text-[11px] text-slate-500">{form.active ? "Recebe novas indicações e comissões" : "Pausado / inativo"}</p>
                 </div>
                 <Switch checked={!!form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
               </div>
+              {editing && form.has_system_access && (
+                <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 mt-2 text-emerald-800 text-xs">
+                  <ShieldCheck className="size-4" />
+                  Este parceiro tem acesso ao painel.
+                </div>
+              )}
             </PartnerSection>
 
             {!editing && (
               <PartnerSection title="Acesso ao Painel" icon={<KeyRound className="size-3.5" />}>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between rounded-xl border border-border bg-indigo-50/30 px-4 py-3">
+                  <div className="flex items-center justify-between rounded-md border border-slate-200 bg-indigo-50/40 px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700">
+                      <div className="size-8 rounded-md bg-indigo-100 flex items-center justify-center text-indigo-700">
                         <KeyRound className="size-4" />
                       </div>
                       <div>
@@ -434,19 +566,19 @@ export default function Partners() {
                   </div>
 
                   {createAccess && (
-                    <div className="grid grid-cols-1 gap-4 p-4 rounded-xl border border-indigo-100 bg-white animate-fade-in">
+                    <div className="grid grid-cols-1 gap-4 p-4 rounded-md border border-indigo-100 bg-white">
                       <div className="space-y-2">
                         <Label className="text-xs font-bold uppercase tracking-wider text-slate-700">Senha de acesso *</Label>
                         <div className="flex gap-2">
                           <div className="relative flex-1">
-                            <Input 
-                              type={showPwd ? "text" : "password"} 
-                              value={accessPwd} 
+                            <Input
+                              type={showPwd ? "text" : "password"}
+                              value={accessPwd}
                               onChange={(e) => setAccessPwd(e.target.value)}
                               placeholder="Mínimo 8 caracteres"
                               className="pr-10"
                             />
-                            <button 
+                            <button
                               type="button"
                               onClick={() => setShowPwd(!showPwd)}
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -454,18 +586,19 @@ export default function Partners() {
                               {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                             </button>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            onClick={generatePassword}
-                            title="Gerar senha forte"
-                            className="shrink-0"
-                          >
+                          <Button variant="outline" size="icon" onClick={generatePassword} title="Gerar senha forte" className="shrink-0">
                             <Sparkles className="size-4 text-indigo-600" />
                           </Button>
+                          {accessPwd && (
+                            <Button variant="outline" size="icon" title="Copiar senha" className="shrink-0" onClick={async () => {
+                              try { await navigator.clipboard.writeText(accessPwd); toast.success("Senha copiada"); } catch {}
+                            }}>
+                              <Copy className="size-4 text-slate-600" />
+                            </Button>
+                          )}
                         </div>
                         <p className="text-[10px] text-slate-500 flex items-center gap-1">
-                          <Copy className="size-3" /> A senha será copiada ao salvar
+                          <Copy className="size-3" /> A senha também será copiada ao salvar
                         </p>
                       </div>
                     </div>
@@ -475,13 +608,12 @@ export default function Partners() {
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>Cancelar</Button>
-            <Button onClick={submit} disabled={submitting} className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-lg">
+            <Button onClick={submit} disabled={submitting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
               {submitting ? "Salvando..." : editing ? "Salvar alterações" : "Cadastrar parceiro"}
             </Button>
           </div>
-
         </DialogContent>
       </Dialog>
 
@@ -490,101 +622,133 @@ export default function Partners() {
   );
 }
 
-function ListView({ partners, topIds, onDetail, onEdit, onToggle }: any) {
+function ListView({ partners, topIds, onDetail, onEdit, onToggle, canManage, sortBy, sortDir, onSort }: any) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[13px] min-w-[800px]">
-
-      <thead>
-        <tr className="border-b border-slate-200 bg-slate-50/60">
-          <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">Parceiro</th>
-          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Performance</th>
-          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Ganhos</th>
-          <th className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-slate-500">Trend</th>
-          <th className="px-6 py-4 text-right text-[10px] font-bold uppercase tracking-widest text-slate-500">Ações</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-100">
-        {partners.map((p: any) => {
-          const rank = topIds.get(p.id);
-          return (
-            <tr key={p.id} className="hover:bg-slate-50/60 transition-colors group">
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <div className="size-11 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">
-                      {initials(p.full_name)}
+      <table className="w-full text-[13px] min-w-[960px]">
+        <thead>
+          <tr className="border-b border-slate-200/70 bg-slate-50/60">
+            <SortableTh label="Parceiro" k="name" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+            <Th>Categoria</Th>
+            <SortableTh label="Indicações" k="clients" sortBy={sortBy} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableTh label="Total Ganho" k="commissions" sortBy={sortBy} sortDir={sortDir} onSort={onSort} align="right" />
+            <SortableTh label="Pendente" k="pending" sortBy={sortBy} sortDir={sortDir} onSort={onSort} align="right" />
+            <Th align="center">Trend (6m)</Th>
+            <Th align="right">Ações</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {partners.map((p: any) => {
+            const rank = topIds.get(p.id);
+            const cat = CATEGORY_META[p.partner_category ?? "indicador"];
+            return (
+              <tr key={p.id} className="hover:bg-slate-50/60 transition-colors group">
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className={cn("size-10 rounded-md flex items-center justify-center text-sm font-bold", p.active ? "bg-indigo-50 border border-indigo-100 text-indigo-700" : "bg-slate-100 border border-slate-200 text-slate-500")}>
+                        {initials(p.full_name)}
+                      </div>
+                      {rank && <RankBadge rank={rank} />}
                     </div>
-                    {rank && <RankBadge rank={rank} />}
+                    <div className="min-w-0">
+                      <button onClick={() => onDetail(p.id)} className="font-semibold text-slate-900 hover:text-indigo-700 transition-colors text-[14px] text-left truncate flex items-center gap-1.5">
+                        {p.full_name}
+                        {p.has_system_access && <ShieldCheck className="size-3.5 text-emerald-600" />}
+                        {!p.active && <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">Inativo</span>}
+                      </button>
+                      <p className="text-[11px] text-slate-500 font-mono truncate">{p.email || formatPhone(p.phone) || "—"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors text-[14px]">{p.full_name}</p>
-                    <p className="text-[11px] text-slate-500 font-mono">{p.email || formatPhone(p.phone)}</p>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className={cn("inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border", cat.cls)}>{cat.label}</span>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{formatPercent(p.commission_percent)} base</p>
+                </td>
+                <td className="px-5 py-3.5 text-right font-mono font-semibold text-slate-700">{p._clientsCount}</td>
+                <td className="px-5 py-3.5 text-right font-mono font-bold text-indigo-700">{formatBRL(p._total)}</td>
+                <td className="px-5 py-3.5 text-right font-mono font-semibold">
+                  {p._pending > 0 ? <span className="text-amber-700">{formatBRL(p._pending)}</span> : <span className="text-slate-400">—</span>}
+                </td>
+                <td className="px-5 py-3.5"><Sparkline data={p._spark} /></td>
+                <td className="px-5 py-3.5 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button onClick={() => onDetail(p.id)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Ver detalhe">
+                      <ArrowUpRight className="size-3.5" />
+                    </button>
+                    {canManage && (
+                      <>
+                        <button onClick={() => onEdit(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Editar">
+                          <Pencil className="size-3.5" />
+                        </button>
+                        <button onClick={() => onToggle(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-amber-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
+                          {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
+                        </button>
+                      </>
+                    )}
                   </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 text-right">
-                <p className="font-mono font-semibold text-slate-700">{p._clientsCount} Indicações</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{formatPercent(p.commission_percent)} Base</p>
-              </td>
-              <td className="px-6 py-4 text-right">
-                <p className="font-mono font-bold text-indigo-700 text-base">{formatBRL(p._total)}</p>
-                {p._pending > 0 && <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Pendente: {formatBRL(p._pending)}</p>}
-              </td>
-              <td className="px-6 py-4"><Sparkline data={p._spark} /></td>
-              <td className="px-6 py-4 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => onDetail(p.id)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
-                    <ArrowUpRight className="size-4" />
-                  </button>
-                  <button onClick={() => onEdit(p)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
-                    <Pencil className="size-3.5" />
-                  </button>
-                  <button onClick={() => onToggle(p)} className="size-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
-                    {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-
-
-function GridView({ partners, topIds, onDetail }: any) {
+function GridView({ partners, topIds, onDetail, onEdit, onToggle, canManage }: any) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {partners.map((p: any) => {
         const rank = topIds.get(p.id);
+        const cat = CATEGORY_META[p.partner_category ?? "indicador"];
         return (
-          <div key={p.id} className="bg-white border border-slate-200/70 rounded-lg p-6 hover:border-indigo-200 hover:shadow-md transition-all group shadow-sm">
-            <div className="flex items-start justify-between mb-6">
+          <div key={p.id} className="bg-white border border-slate-200/70 rounded-lg p-5 hover:border-indigo-200 hover:shadow-md transition-all shadow-sm flex flex-col">
+            <div className="flex items-start justify-between mb-4">
               <div className="relative">
-                <div className="size-14 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold">
+                <div className={cn("size-12 rounded-md flex items-center justify-center text-base font-bold", p.active ? "bg-indigo-50 border border-indigo-100 text-indigo-700" : "bg-slate-100 border border-slate-200 text-slate-500")}>
                   {initials(p.full_name)}
                 </div>
                 {rank && <RankBadge rank={rank} />}
               </div>
-              <button onClick={() => onDetail(p.id)} className="size-10 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors">
-                <ArrowUpRight className="size-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                {canManage && (
+                  <>
+                    <button onClick={() => onEdit(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-indigo-700 flex items-center justify-center" title="Editar">
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button onClick={() => onToggle(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-amber-700 flex items-center justify-center" title={p.active ? "Desativar" : "Ativar"}>
+                      {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
+                    </button>
+                  </>
+                )}
+                <button onClick={() => onDetail(p.id)} className="size-8 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Ver detalhe">
+                  <ArrowUpRight className="size-4" />
+                </button>
+              </div>
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-1">{p.full_name}</h3>
-            <p className="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-5">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
 
-            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-slate-100">
+            <div className="flex flex-wrap items-center gap-1 mb-1">
+              <span className={cn("inline-flex px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider border", cat.cls)}>{cat.label}</span>
+              {p.has_system_access && <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider border bg-emerald-50 text-emerald-700 border-emerald-200"><ShieldCheck className="size-3" /> Acesso</span>}
+              {!p.active && <span className="inline-flex px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider border bg-slate-100 text-slate-600 border-slate-200">Inativo</span>}
+            </div>
+            <h3 className="text-base font-bold text-slate-900 truncate">{p.full_name}</h3>
+            <p className="text-[11px] uppercase tracking-widest text-slate-400 font-semibold truncate">{p.email || formatPhone(p.phone) || "Sem contato"}</p>
+
+            <div className="grid grid-cols-3 gap-3 pt-4 mt-4 border-t border-slate-100">
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Indicações</p>
-                <p className="text-lg font-bold font-mono text-slate-900">{p._clientsCount}</p>
+                <p className="text-[9.5px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Indicações</p>
+                <p className="text-[15px] font-bold font-mono text-slate-900">{p._clientsCount}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Comissão Total</p>
-                <p className="text-lg font-bold font-mono text-indigo-700">{formatBRL(p._total)}</p>
+                <p className="text-[9.5px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Ganho</p>
+                <p className="text-[15px] font-bold font-mono text-indigo-700">{formatBRL(p._total)}</p>
+              </div>
+              <div>
+                <p className="text-[9.5px] uppercase tracking-widest text-slate-400 font-bold mb-0.5">Pendente</p>
+                <p className={cn("text-[15px] font-bold font-mono", p._pending > 0 ? "text-amber-700" : "text-slate-400")}>{p._pending > 0 ? formatBRL(p._pending) : "—"}</p>
               </div>
             </div>
           </div>
@@ -599,9 +763,8 @@ function Sparkline({ data }: { data: number[] }) {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
-  const W = 80;
-  const H = 20;
-  const points = data.map((v, i) => `${i * (W/(data.length-1))},${H - ((v - min) / range) * H}`).join(" ");
+  const W = 80, H = 20;
+  const points = data.map((v, i) => `${i * (W / (data.length - 1))},${H - ((v - min) / range) * H}`).join(" ");
   return (
     <svg width={W} height={H} className="mx-auto">
       <polyline points={points} fill="none" stroke="currentColor" className="text-indigo-600" strokeWidth="2" strokeLinejoin="round" />
@@ -613,17 +776,45 @@ function RankBadge({ rank }: { rank: number }) {
   const Icon = rank === 1 ? Crown : Award;
   const colors = rank === 1 ? "bg-amber-400 text-amber-950" : rank === 2 ? "bg-slate-300 text-slate-800" : "bg-amber-700 text-amber-50";
   return (
-    <div className={cn("absolute -top-1.5 -right-1.5 size-6 rounded-full flex items-center justify-center shadow-md ring-2 ring-white", colors)}>
-      <Icon className="size-3" />
+    <div className={cn("absolute -top-1.5 -right-1.5 size-5 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white", colors)}>
+      <Icon className="size-2.5" />
     </div>
+  );
+}
+
+function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" | "center" }) {
+  return (
+    <th className={cn("px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500",
+      align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left")}>
+      {children}
+    </th>
+  );
+}
+
+function SortableTh({ label, k, sortBy, sortDir, onSort, align = "left" }: any) {
+  const active = sortBy === k;
+  return (
+    <th className={cn("px-5 py-3", align === "right" ? "text-right" : "text-left")}>
+      <button
+        onClick={() => onSort(k)}
+        className={cn(
+          "inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors",
+          active ? "text-indigo-700" : "text-slate-500 hover:text-slate-900",
+          align === "right" && "flex-row-reverse"
+        )}
+      >
+        {label}
+        {active && (sortDir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}
+      </button>
+    </th>
   );
 }
 
 function PartnerSection({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-        <span className="size-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center">{icon}</span>
+      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+        <span className="size-6 rounded-md bg-indigo-50 text-indigo-700 flex items-center justify-center">{icon}</span>
         {title}
       </div>
       {children}
@@ -634,7 +825,7 @@ function PartnerSection({ title, icon, children }: { title: string; icon: React.
 function PartnerField({ label, children, wide }: { label: string; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className={`space-y-1.5 ${wide ? "col-span-2" : ""}`}>
-      <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</Label>
+      <Label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</Label>
       {children}
     </div>
   );
