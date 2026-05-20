@@ -881,7 +881,7 @@ function UserDetailDrawer({ user, currentUserId, canDeleteAdmins, onClose, onSav
               <div className="flex items-center gap-2"><Key className="size-4 text-indigo-700" /><h4 className="font-semibold text-sm text-indigo-900">Definir nova senha</h4></div>
               <p className="text-xs text-indigo-800/80">Você define manualmente. Nenhum email é enviado — informe ao usuário.</p>
               <div className="flex gap-2">
-                <Input type="text" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="Mín. 6 caracteres" className="font-mono bg-white" />
+                <Input type="text" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="Mín. 8 caracteres, com letra e número" className="font-mono bg-white" />
                 <Button type="button" variant="outline" size="sm" onClick={() => setNewPwd(generatePassword())} className="gap-1"><Wand2 className="size-3.5" /> Gerar</Button>
               </div>
               <div className="flex justify-end">
