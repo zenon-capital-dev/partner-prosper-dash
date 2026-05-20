@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
-import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { useSearchParams } from "react-router-dom";
+import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
@@ -9,13 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
-  Clock3, Trash2, Eye, ShoppingBag, X, SlidersHorizontal, CircleDollarSign,
-  CalendarRange, Sparkles, Filter, ArrowUpRight, TrendingUp, Award, BarChart3,
-  Users, Trophy,
+  Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
+  CalendarRange, Sparkles, ArrowUp, ArrowDown, TrendingUp, BarChart3,
+  Users, Trophy, Inbox,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -27,25 +25,34 @@ import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
+type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status";
+type SortDir = "asc" | "desc";
+
+const norm = (s: any) =>
+  String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+const onlyDigits = (s: any) => String(s ?? "").replace(/\D+/g, "");
 
 export default function Sales() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("HOJE");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("sale_date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    if (searchParams.get("new") === "1") {
-      setOpen(true);
-    }
+    if (searchParams.get("new") === "1") setOpen(true);
   }, [searchParams]);
 
   const { data: sales = [], isLoading } = useQuery({
@@ -61,12 +68,17 @@ export default function Sales() {
     queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name")).data ?? [],
   });
 
+  const usingManualRange = !!dateFrom || !!dateTo;
+
   const filtered = useMemo(() => {
     const today = startOfToday();
-    let start = today;
-    let end = endOfDay(today);
+    let start: Date = today;
+    let end: Date = endOfDay(today);
 
-    if (rangeKey === "7 DIAS") {
+    if (usingManualRange) {
+      start = dateFrom ? new Date(`${dateFrom}T00:00:00`) : new Date(0);
+      end = dateTo ? new Date(`${dateTo}T23:59:59`) : new Date(8640000000000000);
+    } else if (rangeKey === "7 DIAS") {
       start = subDays(today, 6);
     } else if (rangeKey === "30 DIAS") {
       start = subDays(today, 29);
@@ -77,22 +89,57 @@ export default function Sales() {
       end = new Date(8640000000000000);
     }
 
+    const q = norm(search);
+    const qDigits = onlyDigits(search);
+
     return sales.filter((s: any) => {
       const saleDate = new Date(s.sale_date);
-      if (rangeKey !== "TUDO" && (saleDate < start || saleDate > end)) return false;
+      if (saleDate < start || saleDate > end) return false;
       if (status !== "todos" && s.status !== status) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
-      if (dateFrom && s.sale_date < dateFrom) return false;
-      if (dateTo && s.sale_date > dateTo) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        const hay = `${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`.toLowerCase();
-        if (!hay.includes(q)) return false;
+      if (q) {
+        const hay = norm(
+          `${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.clients?.email ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`
+        );
+        const docHay = onlyDigits(s.clients?.document ?? "");
+        const matches = hay.includes(q) || (qDigits && docHay.includes(qDigits));
+        if (!matches) return false;
       }
       return true;
     });
-  }, [sales, status, partnerFilter, dateFrom, dateTo, search, rangeKey]);
+  }, [sales, status, partnerFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    const dir = sortDir === "asc" ? 1 : -1;
+    arr.sort((a: any, b: any) => {
+      const v = (x: any) => {
+        switch (sortKey) {
+          case "sale_date": return new Date(x.sale_date).getTime();
+          case "client": return norm(x.clients?.full_name);
+          case "product": return norm(x.products?.name);
+          case "partner": return norm(x.partners?.full_name);
+          case "amount": return Number(x.amount || 0);
+          case "commission": return (Number(x.amount || 0) * Number(x.commission_percent || 0)) / 100;
+          case "status": return String(x.status || "");
+        }
+      };
+      const va = v(a), vb = v(b);
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir(key === "sale_date" || key === "amount" || key === "commission" ? "desc" : "asc"); }
+  };
 
   const kpis = useMemo(() => {
     const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length };
@@ -107,14 +154,12 @@ export default function Sales() {
     return acc;
   }, [filtered]);
 
-  // 📈 Série de receita por dia (últimos 30 dias)
   const series30d = useMemo(() => {
     const days: { label: string; v: number; key: string }[] = [];
     const today = new Date();
     for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const key = d.toISOString().slice(0, 10);
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       days.push({ key, label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), v: 0 });
     }
     const idx = Object.fromEntries(days.map((d, i) => [d.key, i]));
@@ -126,7 +171,6 @@ export default function Sales() {
     return days;
   }, [filtered]);
 
-  // 🏆 Top 5 parceiros por volume fechado
   const topPartners = useMemo(() => {
     const m = new Map<string, { name: string; total: number; deals: number }>();
     filtered.forEach((s: any) => {
@@ -139,7 +183,6 @@ export default function Sales() {
     return Array.from(m.values()).sort((a, b) => b.total - a.total).slice(0, 5);
   }, [filtered]);
 
-  // 📊 Distribuição por status (%)
   const statusBreakdown = useMemo(() => {
     const total = kpis.total || 1;
     return [
@@ -150,30 +193,76 @@ export default function Sales() {
     ];
   }, [kpis]);
 
+  const invalidateRelated = () => {
+    qc.invalidateQueries({ queryKey: ["sales-rich"] });
+    qc.invalidateQueries({ queryKey: ["commissions"] });
+    qc.invalidateQueries({ queryKey: ["payments"] });
+    qc.invalidateQueries({ queryKey: ["dashboard"] });
+  };
+
+  const updateStatus = async (s: any, next: StatusKey) => {
+    if (!canManage) return;
+    if (s.status === next) { toast.info("Status já está aplicado"); return; }
+    if (s.status === "concluida" && next === "cancelada") {
+      if (!(await confirmAction("Cancelar uma venda já concluída pode afetar comissões. Continuar?"))) return;
+    }
+    if (next === "cancelada" && !(await confirmAction("Marcar venda como cancelada?"))) return;
+    const { error } = await supabase.from("sales").update({ status: next }).eq("id", s.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Status atualizado");
+    invalidateRelated();
+  };
+
   const removeOne = async (s: any) => {
-    if (!(await confirmAction(`Excluir venda de ${formatBRL(s.amount)}?`))) return;
+    if (!canManage) return;
+    if (!(await confirmAction(`Excluir venda de ${formatBRL(s.amount)}? Esta ação não pode ser desfeita.`))) return;
     const { error } = await supabase.from("sales").delete().eq("id", s.id);
     if (error) toast.error(error.message);
-    else { toast.success("Venda excluída"); qc.invalidateQueries({ queryKey: ["sales-rich"] }); }
+    else { toast.success("Venda excluída"); invalidateRelated(); }
   };
 
   const exportCSV = () => {
-    const headers = ["Data", "Cliente", "Produto", "Valor", "Status"];
-    const rows = filtered.map((s: any) => [
-      s.sale_date, s.clients?.full_name ?? "", s.products?.name ?? "", Number(s.amount).toFixed(2), s.status,
-    ]);
+    const headers = ["Data", "Cliente", "Empresa", "Produto", "Parceiro", "Valor", "Comissão %", "Comissão R$", "Status"];
+    const rows = sorted.map((s: any) => {
+      const pct = Number(s.commission_percent || 0);
+      const com = (Number(s.amount || 0) * pct) / 100;
+      return [
+        s.sale_date,
+        s.clients?.full_name ?? "",
+        s.clients?.company ?? "",
+        s.products?.name ?? "",
+        s.partners?.full_name ?? "",
+        Number(s.amount || 0).toFixed(2),
+        pct.toFixed(2),
+        com.toFixed(2),
+        s.status,
+      ];
+    });
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "vendas.csv"; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    const today = new Date().toISOString().slice(0, 10);
+    a.download = `vendas-${today}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
   const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setDateFrom(""); setDateTo(""); };
-  const hasActiveFilters = !!search || status !== "todos" || partnerFilter !== "todos" || !!dateFrom || !!dateTo;
+  const activeChips: { label: string; clear: () => void }[] = [];
+  if (search) activeChips.push({ label: `Busca: ${search}`, clear: () => setSearch("") });
+  if (status !== "todos") activeChips.push({ label: `Status: ${status}`, clear: () => setStatus("todos") });
+  if (partnerFilter !== "todos") {
+    const name = partnerFilter === "sem" ? "Sem parceiro" : (partnersList.find((p: any) => p.id === partnerFilter)?.full_name ?? "Parceiro");
+    activeChips.push({ label: `Parceiro: ${name}`, clear: () => setPartnerFilter("todos") });
+  }
+  if (dateFrom) activeChips.push({ label: `De: ${dateFrom}`, clear: () => setDateFrom("") });
+  if (dateTo) activeChips.push({ label: `Até: ${dateTo}`, clear: () => setDateTo("") });
+  const hasActiveFilters = activeChips.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#060608] text-slate-900 dark:text-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 admin-shell">
+    <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans admin-shell">
       <PageHero
         eyebrow="Ledger"
         category="Sales Activity"
@@ -181,27 +270,29 @@ export default function Sales() {
         description="Log operacional de transações sincronizado em tempo real."
         icon={<ShoppingBag className="size-6" />}
         actions={
-          <div className="flex items-center gap-3">
-            <div className="flex bg-white dark:bg-card p-1 rounded-2xl border border-slate-200 dark:border-border shadow-sm mr-2">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex bg-white p-1 rounded-lg border border-slate-200/70 shadow-sm">
               {(["HOJE", "7 DIAS", "30 DIAS", "MÊS", "TUDO"] as const).map((k) => (
                 <button
                   key={k}
-                  onClick={() => setRangeKey(k)}
+                  onClick={() => { setRangeKey(k); setDateFrom(""); setDateTo(""); }}
                   className={cn(
-                    "px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase",
-                    rangeKey === k ? "bg-slate-900 dark:bg-white text-white dark:text-black shadow-lg" : "text-slate-400 dark:text-muted-foreground hover:text-slate-600 dark:hover:text-foreground"
+                    "px-3 py-1.5 rounded-md text-[10px] font-bold transition-all uppercase tracking-wider",
+                    !usingManualRange && rangeKey === k
+                      ? "bg-indigo-600 text-white shadow-sm"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
                   )}
                 >
                   {k}
                 </button>
               ))}
             </div>
-            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2">
+            <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2 border-slate-200/70 bg-white hover:bg-slate-50">
               <Download className="size-4" /> Exportar
             </Button>
             {canManage && (
-              <Button size="sm" onClick={() => setOpen(true)} className="action-button btn-primary shadow-xl">
-                <Plus className="size-4" strokeWidth={3} /> Nova Venda
+              <Button size="sm" onClick={() => setOpen(true)} className="h-10 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                <Plus className="size-4" /> Nova Venda
               </Button>
             )}
           </div>
@@ -215,19 +306,19 @@ export default function Sales() {
         ]}
       />
 
-      {/* ============ INSIGHTS ROW ============ */}
-      <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8">
-        <div className="lg:col-span-7 vx-card p-5 relative overflow-hidden bg-white dark:bg-card">
+      {/* INSIGHTS */}
+      <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8 mt-4">
+        <div className="lg:col-span-7 bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500">
                 <BarChart3 className="size-3 text-indigo-500" /> Performance · 30 dias
               </div>
-              <h3 className="font-display text-base font-bold mt-1 text-slate-950 dark:text-foreground">Fluxo de Receita Diário</h3>
+              <h3 className="text-base font-bold mt-1 text-slate-900">Fluxo de Receita Diário</h3>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total no período</p>
-              <p className="font-display text-lg font-bold tabular-nums text-indigo-800">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total no período</p>
+              <p className="text-lg font-bold font-mono text-indigo-700">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
             </div>
           </div>
           <div className="h-[160px] -mx-2">
@@ -239,11 +330,11 @@ export default function Sales() {
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "currentColor", opacity: 0.7 }} interval={4} tickLine={false} axisLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#64748b" }} interval={4} tickLine={false} axisLine={false} />
                 <Tooltip
                   formatter={(v: any) => formatBRL(Number(v))}
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, fontSize: 12 }}
-                  labelStyle={{ fontSize: 10, fontWeight: 600 }}
+                  contentStyle={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ fontSize: 10, fontWeight: 600, color: "#0f172a" }}
                 />
                 <Area type="monotone" dataKey="v" stroke="#6366f1" strokeWidth={2} fill="url(#salesGrad)" />
               </AreaChart>
@@ -252,8 +343,8 @@ export default function Sales() {
         </div>
 
         <div className="lg:col-span-5 space-y-4">
-          <div className="vx-card p-5">
-            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600 mb-3">
+          <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
+            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500 mb-3">
               <Sparkles className="size-3 text-indigo-500" /> Distribuição por Status
             </div>
             <div className="space-y-2.5">
@@ -261,7 +352,7 @@ export default function Sales() {
                 <div key={row.key}>
                   <div className="flex items-center justify-between text-[11px] mb-1">
                     <span className="font-semibold text-slate-700">{row.label}</span>
-                    <span className="tabular-nums font-bold text-slate-950">{formatBRL(row.value)} <span className="text-muted-foreground font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
+                    <span className="font-mono font-bold text-slate-900">{formatBRL(row.value)} <span className="text-slate-400 font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
                   </div>
                   <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
                     <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
@@ -271,33 +362,33 @@ export default function Sales() {
             </div>
           </div>
 
-          <div className="vx-card p-5">
+          <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-600">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500">
                 <Trophy className="size-3 text-amber-500" /> Top Parceiros
               </div>
-              <Users className="size-3.5 text-muted-foreground/40" />
+              <Users className="size-3.5 text-slate-300" />
             </div>
             {topPartners.length === 0 ? (
-              <p className="text-[12px] text-muted-foreground text-center py-3">Sem vendas via parceiros ainda.</p>
+              <p className="text-[12px] text-slate-400 text-center py-3">Sem vendas via parceiros no período.</p>
             ) : (
               <div className="space-y-2">
                 {topPartners.map((p, i) => (
                   <div key={p.name} className="flex items-center gap-3">
                     <div className={cn(
-                      "size-7 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0",
-                      i === 0 && "bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md",
-                      i === 1 && "bg-gradient-to-br from-slate-300 to-slate-500 text-white",
-                      i === 2 && "bg-gradient-to-br from-amber-700 to-amber-900 text-white",
-                      i > 2 && "bg-slate-100 text-slate-800",
+                      "size-7 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0",
+                      i === 0 && "bg-amber-100 text-amber-700",
+                      i === 1 && "bg-slate-100 text-slate-700",
+                      i === 2 && "bg-orange-100 text-orange-700",
+                      i > 2 && "bg-slate-50 text-slate-600",
                     )}>
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[12.5px] font-semibold text-slate-800 truncate">{p.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{p.deals} {p.deals === 1 ? "venda" : "vendas"}</p>
+                      <p className="text-[10px] text-slate-500">{p.deals} {p.deals === 1 ? "venda" : "vendas"}</p>
                     </div>
-                    <p className="text-[12px] font-bold tabular-nums text-indigo-800">{formatBRL(p.total)}</p>
+                    <p className="text-[12px] font-bold font-mono text-indigo-700">{formatBRL(p.total)}</p>
                   </div>
                 ))}
               </div>
@@ -307,19 +398,19 @@ export default function Sales() {
       </section>
 
       {/* Filter Bar */}
-      <div className="toolbar">
-        <div className="relative flex-1">
-          <Search className="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" />
-          <Input
-            placeholder="Buscar transações..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-background/60 border-border h-10 pl-10 pr-4 text-sm rounded-xl"
-          />
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4">
+        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Buscar por cliente, empresa, produto, parceiro, documento..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white border-slate-200 h-10 pl-10 pr-4 text-sm rounded-md"
+            />
+          </div>
           <Select value={status} onValueChange={(v) => setStatus(v as StatusKey)}>
-            <SelectTrigger className="h-10 w-[140px] rounded-xl bg-background/60 text-xs font-medium">
+            <SelectTrigger className="h-10 w-[150px] rounded-md bg-white border-slate-200 text-xs font-medium">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -331,149 +422,251 @@ export default function Sales() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1.5 bg-background/60 border border-border rounded-xl px-2.5 h-10">
-            <CalendarRange className="size-3.5 text-muted-foreground/60" />
+          <Select value={partnerFilter} onValueChange={setPartnerFilter}>
+            <SelectTrigger className="h-10 w-[170px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue placeholder="Parceiro" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos parceiros</SelectItem>
+              <SelectItem value="sem">Sem parceiro (Direto)</SelectItem>
+              {partnersList.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-md px-2.5 h-10">
+            <CalendarRange className="size-3.5 text-slate-400" />
             <input type="date" value={dateFrom} onChange={(e) => {
               setDateFrom(e.target.value);
-              if (dateTo && e.target.value > dateTo) setDateTo(e.target.value);
-            }} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
-            <span className="text-muted-foreground/40">→</span>
+              if (dateTo && e.target.value && e.target.value > dateTo) setDateTo(e.target.value);
+            }} className="bg-transparent text-xs text-slate-700 outline-none w-[120px]" />
+            <span className="text-slate-300">→</span>
             <input type="date" value={dateTo} onChange={(e) => {
               setDateTo(e.target.value);
-              if (dateFrom && e.target.value < dateFrom) setDateFrom(e.target.value);
-            }} className="bg-transparent text-xs text-foreground outline-none w-[110px]" />
+              if (dateFrom && e.target.value && e.target.value < dateFrom) setDateFrom(e.target.value);
+            }} className="bg-transparent text-xs text-slate-700 outline-none w-[120px]" />
           </div>
 
           {hasActiveFilters && (
-            <Button variant="ghost" size="icon" onClick={clearFilters} className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground">
-              <X className="size-4" />
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-10 text-slate-500 hover:text-slate-900">
+              <X className="size-3.5 mr-1" /> Limpar
             </Button>
           )}
         </div>
+
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            {activeChips.map((c, i) => (
+              <button
+                key={i}
+                onClick={c.clear}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100 hover:bg-indigo-100"
+              >
+                {c.label}
+                <X className="size-3" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Table Content */}
-      <div className="vx-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <Th>Status</Th>
-                <Th>Cliente</Th>
-                <Th>Produto</Th>
-                <Th>Parceiro</Th>
-                <Th>Data</Th>
-                <Th align="right">Valor</Th>
-                <Th align="right">Comissão</Th>
-                <Th align="right">Ações</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/40">
-              {isLoading ? (
-                <tr><td colSpan={8} className="py-24 text-center text-muted-foreground/50 animate-pulse">Sincronizando transações...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="py-24 text-center text-muted-foreground/50">Nenhuma transação encontrada.</td></tr>
-              ) : filtered.map((s: any) => {
-                const commissionPct = Number(s.commission_percent || 0);
-                const commissionVal = (Number(s.amount || 0) * commissionPct) / 100;
-                return (
-                <tr key={s.id} className="hover:bg-muted/30 transition-colors group">
-                  <Td><StatusPill status={s.status} /></Td>
-                  <Td>
-                    <div className="min-w-0">
-                      <p className="font-bold text-slate-950 truncate cursor-pointer hover:text-indigo-800 transition-colors" onClick={() => navigate(`/clientes/${s.clients?.id}`)}>
-                        {s.clients?.full_name ?? "—"}
-                      </p>
-                      <p className="text-[11px] font-bold text-slate-500 truncate uppercase tracking-wider mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
-                    </div>
-                  </Td>
-                  <Td>
-                    <div className="flex items-center gap-2">
-                      {s.products?.product_categories && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border" style={{ borderColor: `${s.products.product_categories.color}40`, color: s.products.product_categories.color, backgroundColor: `${s.products.product_categories.color}10` }}>
-                          {s.products.product_categories.name.toUpperCase()}
-                        </span>
-                      )}
-                      <span className="text-foreground/80">{s.products?.name ?? "—"}</span>
-                    </div>
-                  </Td>
-                  <Td>
-                    {s.partners?.full_name ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-800 text-[11px] font-semibold">
-                        <span className="size-1.5 rounded-full bg-indigo-500" />
-                        {s.partners.full_name}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground/60 italic">Direto</span>
-                    )}
-                  </Td>
-                  <Td className="text-muted-foreground text-xs">{formatDate(s.sale_date)}</Td>
-                  <Td align="right"><span className="font-semibold text-foreground tabular-nums">{formatBRL(s.amount)}</span></Td>
-                  <Td align="right">
-                    {commissionVal > 0 ? (
-                      <div>
-                        <p className="font-semibold text-emerald-800 tabular-nums text-[12px]">{formatBRL(commissionVal)}</p>
-                        <p className="text-[10px] text-muted-foreground tabular-nums">{commissionPct}%</p>
-                      </div>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground/60">—</span>
-                    )}
-                  </Td>
-                  <Td align="right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground/40 hover:text-foreground">
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients?.id}`)}><Eye className="size-3.5 mr-2" /> Ver Cliente</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={async () => { await supabase.from("sales").update({ status: "concluida" }).eq("id", s.id); qc.invalidateQueries({ queryKey: ["sales-rich"] }); toast.success("Marcada como concluída"); }}>
-                          <CheckCircle2 className="size-3.5 mr-2" /> Marcar concluída
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={async () => { await supabase.from("sales").update({ status: "em_andamento" }).eq("id", s.id); qc.invalidateQueries({ queryKey: ["sales-rich"] }); toast.success("Em andamento"); }}>
-                          <PlayCircle className="size-3.5 mr-2" /> Em andamento
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={async () => { await supabase.from("sales").update({ status: "cancelada" }).eq("id", s.id); qc.invalidateQueries({ queryKey: ["sales-rich"] }); toast.success("Cancelada"); }}>
-                          <XCircle className="size-3.5 mr-2" /> Cancelar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => removeOne(s)} className="text-destructive focus:text-destructive"><Trash2 className="size-3.5 mr-2" /> Excluir</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </Td>
+      {/* Table */}
+      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 mb-10">
+        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px] min-w-[960px]">
+              <thead>
+                <tr className="border-b border-slate-200/70 bg-slate-50/60">
+                  <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Parceiro" k="partner" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
+                  <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
+                  <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
+                  <Th align="right">Ações</Th>
                 </tr>
-              );
-              })}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      {Array.from({ length: 8 }).map((__, j) => (
+                        <td key={j} className="px-5 py-4"><div className="h-3 bg-slate-100 rounded w-3/4" /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : sorted.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-16 text-center">
+                      <div className="flex flex-col items-center gap-2 text-slate-400">
+                        <Inbox className="size-8" />
+                        <p className="text-sm font-medium">
+                          {hasActiveFilters ? "Nenhuma venda encontrada com esses filtros." : "Nenhuma venda registrada ainda."}
+                        </p>
+                        {hasActiveFilters && (
+                          <Button variant="link" size="sm" onClick={clearFilters} className="text-indigo-600">Limpar filtros</Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : sorted.map((s: any) => {
+                  const commissionPct = Number(s.commission_percent || 0);
+                  const commissionVal = (Number(s.amount || 0) * commissionPct) / 100;
+                  return (
+                    <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
+                      <Td><StatusPill status={s.status} /></Td>
+                      <Td>
+                        <div className="min-w-0">
+                          <button
+                            className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left"
+                            onClick={() => s.clients?.id && navigate(`/clientes/${s.clients.id}`)}
+                          >
+                            {s.clients?.full_name ?? "—"}
+                          </button>
+                          <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          {s.products?.product_categories && (
+                            <span
+                              className="text-[9px] font-bold px-1.5 py-0.5 rounded border"
+                              style={{
+                                borderColor: `${s.products.product_categories.color}40`,
+                                color: s.products.product_categories.color,
+                                backgroundColor: `${s.products.product_categories.color}10`,
+                              }}
+                            >
+                              {s.products.product_categories.name.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="text-slate-700">{s.products?.name ?? "—"}</span>
+                        </div>
+                      </Td>
+                      <Td>
+                        {s.partners?.full_name ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
+                            <span className="size-1.5 rounded-full bg-indigo-500" />
+                            {s.partners.full_name}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 italic">Direto</span>
+                        )}
+                      </Td>
+                      <Td className="text-slate-600 text-xs font-mono">{formatDate(s.sale_date)}</Td>
+                      <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>
+                      <Td align="right">
+                        {commissionVal > 0 ? (
+                          <div>
+                            <p className="font-semibold text-emerald-700 font-mono text-[12px]">{formatBRL(commissionVal)}</p>
+                            <p className="text-[10px] text-slate-500 font-mono">{commissionPct}%</p>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">—</span>
+                        )}
+                      </Td>
+                      <Td align="right">
+                        {canManage ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="size-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {s.clients?.id && (
+                                <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients.id}`)}>
+                                  <Eye className="size-3.5 mr-2" /> Ver Cliente
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
+                                <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar concluída
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled={s.status === "em_andamento"} onClick={() => updateStatus(s, "em_andamento")}>
+                                <PlayCircle className="size-3.5 mr-2 text-sky-600" /> Em andamento
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled={s.status === "pendente"} onClick={() => updateStatus(s, "pendente")}>
+                                <Clock3 className="size-3.5 mr-2 text-amber-600" /> Pendente
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled={s.status === "cancelada"} onClick={() => updateStatus(s, "cancelada")}>
+                                <XCircle className="size-3.5 mr-2 text-rose-600" /> Cancelar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => removeOne(s)} className="text-rose-600 focus:text-rose-700">
+                                <Trash2 className="size-3.5 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          s.clients?.id && (
+                            <Button variant="ghost" size="icon" className="size-8 text-slate-400 hover:text-slate-900" onClick={() => navigate(`/clientes/${s.clients.id}`)}>
+                              <Eye className="size-4" />
+                            </Button>
+                          )
+                        )}
+                      </Td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <SaleFormDialog open={open} onOpenChange={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["sales-rich"] })} />
+      <SaleFormDialog open={open} onOpenChange={setOpen} onCreated={invalidateRelated} />
     </div>
   );
 }
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    concluida: { label: "concluída", cls: "vx-pill-success" },
-    em_andamento: { label: "em andamento", cls: "vx-pill-info" },
-    pendente: { label: "pendente", cls: "vx-pill-warning" },
-    cancelada: { label: "cancelada", cls: "vx-pill-danger" },
+    concluida: { label: "concluída", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    em_andamento: { label: "em andamento", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+    pendente: { label: "pendente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+    cancelada: { label: "cancelada", cls: "bg-rose-50 text-rose-700 border-rose-200" },
   };
-  const m = map[status] ?? { label: status, cls: "vx-pill" };
-  return <span className={cn("vx-pill", m.cls)}>{m.label}</span>;
+  const m = map[status] ?? { label: status, cls: "bg-slate-50 text-slate-600 border-slate-200" };
+  return (
+    <span className={cn("inline-flex items-center px-2 py-0.5 rounded-md border text-[10.5px] font-bold uppercase tracking-wider", m.cls)}>
+      {m.label}
+    </span>
+  );
 }
 
 function Th({ children, align = "left" }: { children: React.ReactNode; align?: "left" | "right" }) {
   return (
     <th className={cn(
-      "px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/60",
+      "px-5 py-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500",
       align === "right" ? "text-right" : "text-left"
     )}>
       {children}
+    </th>
+  );
+}
+
+function SortableTh({
+  label, k, sortKey, sortDir, onClick, align = "left",
+}: {
+  label: string; k: SortKey; sortKey: SortKey; sortDir: SortDir; onClick: (k: SortKey) => void; align?: "left" | "right";
+}) {
+  const active = sortKey === k;
+  return (
+    <th className={cn("px-5 py-3", align === "right" ? "text-right" : "text-left")}>
+      <button
+        onClick={() => onClick(k)}
+        className={cn(
+          "inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors",
+          active ? "text-indigo-700" : "text-slate-500 hover:text-slate-900",
+          align === "right" && "flex-row-reverse"
+        )}
+      >
+        {label}
+        {active && (sortDir === "asc" ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />)}
+      </button>
     </th>
   );
 }
