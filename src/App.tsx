@@ -108,7 +108,7 @@ const App = () => (
               <Route path="/prestadores/performance" element={<ProviderPerformance />} />
               <Route path="/prestadores/:id" element={<ProviderDetail />} />
               <Route path="/perfil" element={<AdminProfile />} />
-              <Route path="/tarefas" element={<Tasks />} />
+              <Route path="/tarefas" element={<Navigate to="/agenda" replace />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/propostas" element={<Proposals />} />
               <Route path="/comissoes" element={<Commissions />} />
