@@ -752,8 +752,8 @@ function ClientDrawer({ clientId, onClose, userId }: { clientId: string | null; 
               <Card className="border-slate-200/70 shadow-sm">
                 <CardContent className="p-4 grid grid-cols-2 gap-3 text-sm">
                   <Info label="Telefone" value={client.phone} />
-                  <Info label="Empresa" value={company?.legal_name || company?.trade_name || "—"} />
-                  <Info label="CNPJ" value={company?.cnpj} />
+                  <Info label="Empresa" value={(company as any)?.name || (company as any)?.trade_name || "—"} />
+                  <Info label="CNPJ" value={(company as any)?.document} />
                   <Info label="Cidade" value={[client.address_city, client.address_state].filter(Boolean).join(" / ") || "—"} />
                 </CardContent>
               </Card>
