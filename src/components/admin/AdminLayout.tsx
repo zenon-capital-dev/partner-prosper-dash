@@ -110,6 +110,8 @@ function AdminShell() {
             <Outlet />
           </main>
         </div>
+
+        <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} showTrigger={false} />
       </div>
   );
 }
