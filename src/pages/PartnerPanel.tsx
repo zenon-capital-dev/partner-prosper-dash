@@ -230,7 +230,7 @@ export default function PartnerPanel() {
                 <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</dt><dd className="text-slate-900">{partner?.full_name || "—"}</dd></div>
                 <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</dt><dd className="text-slate-900">{partner?.email || user?.email}</dd></div>
                 <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</dt><dd className="text-slate-900">{partner?.phone || "—"}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{partner?.document_number || "—"}</dd></div>
+                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{partner?.document || "—"}</dd></div>
               </dl>
               <Button variant="outline" className="mt-5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
             </SectionCard>
