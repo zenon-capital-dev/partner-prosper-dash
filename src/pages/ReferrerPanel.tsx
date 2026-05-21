@@ -40,12 +40,15 @@ export default function ReferrerPanel() {
   });
 
   const totals = useMemo(() => {
-    if (!data) return { total: 0, paid: 0, pending: 0 };
+    if (!data) return { total: 0, paid: 0, pending: 0, conversion: 0 };
     const splits = data.splits;
     const total = splits.reduce((s, x: any) => s + Number(x.amount), 0);
     const paid = splits.filter((x: any) => x.status === "pago").reduce((s, x: any) => s + Number(x.amount), 0);
     const pending = splits.filter((x: any) => x.status === "pendente").reduce((s, x: any) => s + Number(x.amount), 0);
-    return { total, paid, pending };
+    const totalClients = data.clients.length;
+    const activeClients = data.clients.filter((c: any) => c.status === "ativo").length;
+    const conversion = totalClients > 0 ? Math.round((activeClients / totalClients) * 100) : 0;
+    return { total, paid, pending, conversion };
   }, [data]);
 
   if (isLoading) return (
