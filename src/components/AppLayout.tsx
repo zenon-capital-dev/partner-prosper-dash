@@ -50,7 +50,7 @@ function AppLayoutInner() {
   const isStaff = isAdmin || isAdminSecondary || isVendedor;
   const allowedPrefixes = (() => {
     if (isStaff) return ["/admin"];
-    if (isColaborador) return ["/colaborador", "/clientes", "/perfil"];
+    if (isColaborador) return ["/colaborador", "/perfil"];
     if (isParceiro) return ["/parceiro"];
     if (isPrestador) return ["/prestador"];
     if (isIndicador) return ["/indicador"];

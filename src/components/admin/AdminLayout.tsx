@@ -62,19 +62,18 @@ function AdminShell() {
   const { pathname } = useLocation();
   const isFullAdmin = isAdmin || isAdminSecondary;
 
-  // Colaborador só pode entrar em /clientes (read-only). Demais rotas redirecionam pro painel dele.
-  const colaboradorOutOfScope = isColaborador && !isFullAdmin
-    && !COLABORADOR_ALLOWED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  // Colaborador NÃO tem acesso ao painel admin. Redireciona para o painel dele.
+  if (isColaborador && !isFullAdmin) return <Navigate to="/colaborador" replace />;
 
   // Vendedores são staff interno mas com escopo restrito (RLS já bloqueia dados sensíveis).
-  const blocked = !isFullAdmin && !isColaborador && ADMIN_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const blocked = !isFullAdmin && ADMIN_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   const handleSearchClick = () => {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   };
 
-  if (colaboradorOutOfScope) return <Navigate to="/colaborador" replace />;
   if (blocked) return <Navigate to="/admin" replace />;
+
 
   return (
     <div className="admin-shell min-h-screen flex w-full text-foreground">
@@ -105,7 +104,7 @@ function AdminShell() {
 
 export default function AdminLayout() {
   return (
-    <RouteGuard allow={["admin", "admin_secondary", "colaborador", "vendedor"]}>
+    <RouteGuard allow={["admin", "admin_secondary", "vendedor"]}>
       <AdminShell />
     </RouteGuard>
   );
