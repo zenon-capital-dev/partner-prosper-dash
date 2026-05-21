@@ -162,13 +162,23 @@ export default function CollaboratorPanel() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto scrollbar-none -mx-2 px-2">
-            <TabsList className="bg-white border border-slate-200/70 p-1 h-auto rounded-lg shadow-sm inline-flex w-max min-w-full">
-              <TabsTrigger value="dashboard" className="gap-2 whitespace-nowrap"><LayoutDashboard className="size-4" /> Dashboard</TabsTrigger>
-              <TabsTrigger value="demandas" className="gap-2 whitespace-nowrap"><ClipboardList className="size-4" /> Minhas Demandas</TabsTrigger>
-              <TabsTrigger value="tarefas" className="gap-2 whitespace-nowrap"><ListChecks className="size-4" /> Tarefas</TabsTrigger>
-              <TabsTrigger value="clientes" className="gap-2 whitespace-nowrap"><Users className="size-4" /> Clientes</TabsTrigger>
-              <TabsTrigger value="documentos" className="gap-2 whitespace-nowrap"><FileText className="size-4" /> Documentos</TabsTrigger>
-              <TabsTrigger value="perfil" className="gap-2 whitespace-nowrap"><UserCog className="size-4" /> Perfil</TabsTrigger>
+            <TabsList className="bg-white border border-slate-200/70 p-1 h-auto rounded-lg shadow-sm inline-flex w-max min-w-full gap-1">
+              {[
+                { v: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+                { v: "demandas", icon: ClipboardList, label: "Minhas Demandas" },
+                { v: "tarefas", icon: ListChecks, label: "Tarefas" },
+                { v: "clientes", icon: Users, label: "Clientes" },
+                { v: "documentos", icon: FileText, label: "Documentos" },
+                { v: "perfil", icon: UserCog, label: "Perfil" },
+              ].map((t) => (
+                <TabsTrigger
+                  key={t.v}
+                  value={t.v}
+                  className="gap-2 whitespace-nowrap text-slate-600 hover:text-slate-900 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 data-[state=active]:shadow-none data-[state=active]:font-semibold rounded-md px-3 py-1.5"
+                >
+                  <t.icon className="size-4" /> {t.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
           </div>
 
