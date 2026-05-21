@@ -1276,13 +1276,13 @@ export type Database = {
           partner_id: string
           payment_date: string | null
           payment_method: string | null
-          percent: number
+          percent: number | null
           product_id: string | null
           reason: string | null
           receipt_url: string | null
           rule_type: string | null
           rule_value: number | null
-          sale_id: string
+          sale_id: string | null
           sale_value: number | null
           status: string
           updated_at: string
@@ -1308,13 +1308,13 @@ export type Database = {
           partner_id: string
           payment_date?: string | null
           payment_method?: string | null
-          percent: number
+          percent?: number | null
           product_id?: string | null
           reason?: string | null
           receipt_url?: string | null
           rule_type?: string | null
           rule_value?: number | null
-          sale_id: string
+          sale_id?: string | null
           sale_value?: number | null
           status?: string
           updated_at?: string
@@ -1340,13 +1340,13 @@ export type Database = {
           partner_id?: string
           payment_date?: string | null
           payment_method?: string | null
-          percent?: number
+          percent?: number | null
           product_id?: string | null
           reason?: string | null
           receipt_url?: string | null
           rule_type?: string | null
           rule_value?: number | null
-          sale_id?: string
+          sale_id?: string | null
           sale_value?: number | null
           status?: string
           updated_at?: string
