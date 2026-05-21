@@ -147,8 +147,8 @@ export default function ClientPanel() {
   const allDocumentItems = [
     ...allDocs.map((d: any) => ({ ...d, source: "documents" })),
     ...requests.map((r: any) => ({
-      ...r, source: "document_requests", name: r.request_title, file_path: r.file_url,
-      due_date: r.deadline, uploaded_at: r.submission_date, reviewed_at: r.approval_date, created_at: r.requested_at,
+      ...r, source: "document_requests", name: r.title, file_path: r.file_url,
+      due_date: r.due_date, uploaded_at: r.file_url ? r.updated_at : null, reviewed_at: r.reviewed_at, created_at: r.created_at,
     })),
   ];
 
