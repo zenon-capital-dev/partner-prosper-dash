@@ -247,10 +247,11 @@ export default function Clients() {
 
     if (!res.canDelete) {
       const summary = summarizeBlocks(res.blockedBy);
-      if (!(await confirmAction(`Este cliente tem vínculos (${summary}) e não pode ser excluído sem perder histórico. Deseja ARQUIVAR em vez de excluir?`))) return;
-      const { error } = await supabase.from("clients").update({ status: "inativo" }).eq("id", id);
+      const confirmMsg = `⚠️ EXCLUSÃO DEFINITIVA\n\nEste cliente possui: ${summary}.\n\nAo confirmar, TUDO será apagado permanentemente (vendas, demandas, contratos, pagamentos, documentos, comissões, propostas, tarefas e contatos). Esta ação é IRREVERSÍVEL.\n\nDeseja prosseguir e apagar tudo?`;
+      if (!(await confirmAction(confirmMsg))) return;
+      const { error } = await supabase.rpc("admin_delete_client_cascade" as any, { _client_id: id });
       if (error) toast.error(error.message);
-      else { toast.success("Cliente arquivado (histórico preservado)"); qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); }
+      else { toast.success("Cliente e todos os vínculos excluídos"); qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); }
       return;
     }
 
@@ -262,6 +263,7 @@ export default function Clients() {
       qc.invalidateQueries({ queryKey: ["clients-admin-list"] });
     }
   };
+
 
   const handleArchive = async (c: any) => {
     const next = c.status === "inativo" ? "ativo" : "inativo";

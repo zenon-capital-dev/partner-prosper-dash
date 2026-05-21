@@ -66,24 +66,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const handleSession = async (sess: Session | null, event?: string) => {
       if (!mounted) return;
-      
+
       const newUserId = sess?.user?.id ?? null;
       if (import.meta.env.DEV) console.log("[auth] session:", event || "initial");
 
       const userChanged = newUserId !== currentUserId;
       currentUserId = newUserId;
-      
+
       setSession(sess);
       setUser(sess?.user ?? null);
-      
+
       if (sess?.user) {
-        if (event === "SIGNED_IN") {
-          // Defer to avoid deadlocks inside onAuthStateChange callback
+        if (event === "SIGNED_IN" && userChanged) {
           setTimeout(() => { logAudit("LOGIN", "auth", sess.user.id); }, 0);
         }
-        
-        // Fetch roles if user changed or it's a critical auth event
-        if (userChanged || event === "SIGNED_IN" || !initialized) {
+
+        // Only fetch roles when the user actually changes or first init.
+        // TOKEN_REFRESHED / repeated INITIAL_SESSION events should NOT refetch.
+        if (userChanged || !initialized) {
           if (!initialized) setLoading(true);
           await fetchRoles(sess.user.id);
         } else {
@@ -93,9 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
         setLoading(false);
       }
-      
+
       initialized = true;
     };
+
 
     // 1. Initial session check
     supabase.auth.getSession().then(({ data: { session: sess }, error }) => {
