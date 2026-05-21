@@ -4148,7 +4148,12 @@ export type Database = {
           description: string | null
           document_id: string | null
           due_date: string | null
+          duration_minutes: number | null
           id: string
+          kind: Database["public"]["Enums"]["task_kind"]
+          location: string | null
+          meeting_url: string | null
+          outcome: string | null
           partner_id: string | null
           payment_id: string | null
           priority: string | null
@@ -4157,10 +4162,12 @@ export type Database = {
           related_entity_type: string | null
           related_to_id: string | null
           related_to_type: string | null
+          reminder_minutes: number | null
           status: string | null
           status_new: Database["public"]["Enums"]["task_status_new"] | null
           title: string
           updated_at: string | null
+          visible_to_client: boolean | null
         }
         Insert: {
           assigned_to?: string | null
@@ -4173,7 +4180,12 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
+          duration_minutes?: number | null
           id?: string
+          kind?: Database["public"]["Enums"]["task_kind"]
+          location?: string | null
+          meeting_url?: string | null
+          outcome?: string | null
           partner_id?: string | null
           payment_id?: string | null
           priority?: string | null
@@ -4182,10 +4194,12 @@ export type Database = {
           related_entity_type?: string | null
           related_to_id?: string | null
           related_to_type?: string | null
+          reminder_minutes?: number | null
           status?: string | null
           status_new?: Database["public"]["Enums"]["task_status_new"] | null
           title: string
           updated_at?: string | null
+          visible_to_client?: boolean | null
         }
         Update: {
           assigned_to?: string | null
@@ -4198,7 +4212,12 @@ export type Database = {
           description?: string | null
           document_id?: string | null
           due_date?: string | null
+          duration_minutes?: number | null
           id?: string
+          kind?: Database["public"]["Enums"]["task_kind"]
+          location?: string | null
+          meeting_url?: string | null
+          outcome?: string | null
           partner_id?: string | null
           payment_id?: string | null
           priority?: string | null
@@ -4207,10 +4226,12 @@ export type Database = {
           related_entity_type?: string | null
           related_to_id?: string | null
           related_to_type?: string | null
+          reminder_minutes?: number | null
           status?: string | null
           status_new?: Database["public"]["Enums"]["task_status_new"] | null
           title?: string
           updated_at?: string | null
+          visible_to_client?: boolean | null
         }
         Relationships: [
           {
@@ -4452,6 +4473,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      notify_tasks_due_today: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role:
@@ -4561,6 +4583,13 @@ export type Database = {
         | "concluido"
         | "cancelado"
       subscription_status: "ativa" | "pausada" | "cancelada" | "inadimplente"
+      task_kind:
+        | "tarefa"
+        | "reuniao"
+        | "ligacao"
+        | "pendencia_documento"
+        | "lembrete"
+        | "follow_up"
       task_priority_new: "baixa" | "normal" | "alta" | "urgente"
       task_status_new:
         | "a_fazer"
@@ -4808,6 +4837,14 @@ export const Constants = {
         "cancelado",
       ],
       subscription_status: ["ativa", "pausada", "cancelada", "inadimplente"],
+      task_kind: [
+        "tarefa",
+        "reuniao",
+        "ligacao",
+        "pendencia_documento",
+        "lembrete",
+        "follow_up",
+      ],
       task_priority_new: ["baixa", "normal", "alta", "urgente"],
       task_status_new: [
         "a_fazer",

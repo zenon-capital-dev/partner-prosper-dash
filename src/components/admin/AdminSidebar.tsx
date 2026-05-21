@@ -23,8 +23,7 @@ const SECTIONS: NavSection[] = [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Alertas", url: "/cockpit", icon: Activity },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
-    { title: "Atuações", url: "/atuacoes", icon: CalendarClock, staffOnly: true },
-    { title: "Tarefas", url: "/tarefas", icon: Target },
+    { title: "Agenda", url: "/agenda", icon: CalendarClock },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
   { label: "CRM & Vendas", items: [

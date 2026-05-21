@@ -9,7 +9,7 @@ import {
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
   ChevronRight, Phone, Mail, Globe, MapPin, Trash2,
-  Wallet, PieChart, Star, Users, CalendarClock
+  Wallet, PieChart, Star, Users, CalendarClock, Calendar
 } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ import { ClientContracts } from "@/components/clients/tabs/ClientContracts";
 import { ClientFinancial } from "@/components/clients/tabs/ClientFinancial";
 import { ClientTasks } from "@/components/clients/tabs/ClientTasks";
 import { ClientHistory } from "@/components/clients/tabs/ClientHistory";
+import { ClientTimelineTab } from "@/components/clients/ClientTimelineTab";
 import { IntelligentSummary } from "@/components/clients/IntelligentSummary";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ const TABS = [
   { id: "financeiro", label: "Financeiro", icon: CreditCard },
   { id: "contratos", label: "Contratos", icon: FileSignature },
   { id: "relacionamento", label: "Relacionamento", icon: MessageSquare },
+  { id: "atividades", label: "Atividades", icon: Calendar },
   { id: "historico", label: "Histórico", icon: History },
   { id: "observacoes", label: "Observações", icon: AlertCircle },
 ];
@@ -524,6 +526,10 @@ export default function ClientDetail() {
 
           <TabsContent value="contratos" className="m-0">
             <ClientContracts clientId={id!} />
+          </TabsContent>
+
+          <TabsContent value="atividades" className="m-0">
+            <ClientTimelineTab clientId={id!} />
           </TabsContent>
 
           <TabsContent value="relacionamento" className="m-0">
