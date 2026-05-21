@@ -44,45 +44,27 @@ export default function CollaboratorPanel() {
   const setActiveTab = (v: string) => navigate(v === "dashboard" ? "/colaborador" : `/colaborador/${v}`);
   const qc = useQueryClient();
 
-  const { data: assignedClients = [] } = useQuery({
-    queryKey: ["collab-assigned-clients", user?.id],
+  // --- Demandas atribuídas (estrito: responsible_employee_id = eu) ---
+  const { data: demandas = [], isLoading: loadingDemandas } = useQuery({
+    queryKey: ["collab-demandas", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("clients")
-        .select("id, full_name, email, phone, status, created_at")
-        .eq("collaborator_id", user!.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-  const assignedClientIds = useMemo(() => assignedClients.map((c: any) => c.id).filter(Boolean), [assignedClients]);
-
-  // --- Demandas atribuídas ---
-  const { data: demandas = [], isLoading: loadingDemandas } = useQuery({
-    queryKey: ["collab-demandas", user?.id, assignedClientIds.join(",")],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      let query = supabase
         .from("client_products")
         .select(`
           id, status, sla_due_date, sla_status, deadline, priority, updated_at, created_at,
           custom_product_name,
-          clients ( id, full_name ),
+          clients ( id, full_name, email, phone, status ),
           products ( name )
-        `);
-      query = assignedClientIds.length > 0
-        ? query.or(`responsible_employee_id.eq.${user!.id},client_id.in.(${assignedClientIds.join(",")})`)
-        : query.eq("responsible_employee_id", user!.id);
-
-      const { data, error } = await query.order("updated_at", { ascending: false });
+        `)
+        .eq("responsible_employee_id", user!.id)
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  // --- Tarefas atribuídas ---
+  // --- Tarefas atribuídas (estrito: assigned_to = eu) ---
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ["collab-tasks", user?.id],
     enabled: !!user?.id,
@@ -90,48 +72,36 @@ export default function CollaboratorPanel() {
       const { data, error } = await supabase
         .from("tasks")
         .select("id, title, description, due_date, priority, status_new, client_id, client_product_id")
+        .eq("assigned_to", user!.id)
         .order("due_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  // --- Clientes vinculados (via demandas) ---
-  const clientIds = useMemo(
-    () => Array.from(new Set([...assignedClientIds, ...demandas.map((d: any) => d.clients?.id).filter(Boolean)])),
-    [assignedClientIds, demandas]
-  );
-  const { data: clientes = [] } = useQuery({
-    queryKey: ["collab-clients", clientIds.join(",")],
-    enabled: clientIds.length > 0,
+  // --- Clientes derivados das minhas demandas ---
+  const clientes = useMemo(() => {
+    const seen = new Map<string, any>();
+    for (const d of demandas as any[]) {
+      const c = d.clients;
+      if (c?.id && !seen.has(c.id)) seen.set(c.id, c);
+    }
+    return Array.from(seen.values());
+  }, [demandas]);
+  const clientIds = useMemo(() => clientes.map((c: any) => c.id), [clientes]);
+  const demandIds = useMemo(() => (demandas as any[]).map((d) => d.id), [demandas]);
+
+  // --- Documentos: estritamente das minhas demandas ---
+  const { data: docs = [] } = useQuery({
+    queryKey: ["collab-docs", user?.id, demandIds.join(",")],
+    enabled: !!user?.id && demandIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("clients")
-        .select("id, full_name, email, phone, status, created_at")
-        .in("id", clientIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  // --- Documentos das demandas dele ---
-  const demandIds = useMemo(() => demandas.map((d: any) => d.id), [demandas]);
-  const { data: docs = [] } = useQuery({
-    queryKey: ["collab-docs", user?.id, demandIds.join(","), clientIds.join(",")],
-    enabled: !!user?.id && (demandIds.length > 0 || clientIds.length > 0),
-    queryFn: async () => {
-      let query = supabase
         .from("documents")
         .select("id, name, status, created_at, client_id, client_product_id")
+        .in("client_product_id", demandIds)
         .order("created_at", { ascending: false })
         .limit(200);
-
-      const filters: string[] = [];
-      if (demandIds.length) filters.push(`client_product_id.in.(${demandIds.join(",")})`);
-      if (clientIds.length) filters.push(`client_id.in.(${clientIds.join(",")})`);
-      if (filters.length) query = query.or(filters.join(","));
-
-      const { data, error } = await query;
       if (error) throw error;
       return data ?? [];
     },
