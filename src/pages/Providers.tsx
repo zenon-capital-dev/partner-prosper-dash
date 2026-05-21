@@ -191,9 +191,7 @@ export default function Providers() {
     const { error } = await supabase.from("service_providers").update({ active: !p.active }).eq("id", p.id);
     if (error) { toast.error(error.message); return; }
     toast.success(p.active ? "Prestador desativado" : "Prestador ativado");
-    qc.invalidateQueries({ queryKey: ["providers-rich"] });
-    qc.invalidateQueries({ queryKey: ["dashboard"] });
-    qc.invalidateQueries({ queryKey: ["demands"] });
+    qc.invalidateQueries();
   };
 
   const removeProvider = async (p: any) => {
@@ -210,7 +208,7 @@ export default function Providers() {
     const { error } = await supabase.from("service_providers").delete().eq("id", p.id);
     if (error) { toast.error(error.message || "Não foi possível excluir."); return; }
     toast.success("Prestador excluído");
-    qc.invalidateQueries({ queryKey: ["providers-rich"] });
+    qc.invalidateQueries();
   };
 
   const refresh = () => {
