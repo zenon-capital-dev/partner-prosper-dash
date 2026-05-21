@@ -3224,8 +3224,10 @@ export type Database = {
           address_street: string | null
           address_zip: string | null
           address_zip_code: string | null
+          admission_date: string | null
           avatar_url: string | null
           created_at: string
+          department: string | null
           document_number: string | null
           email: string | null
           full_name: string | null
@@ -3237,6 +3239,7 @@ export type Database = {
           onboarding_started_at: string | null
           onboarding_step: number | null
           phone: string | null
+          position: string | null
           referral_id: string | null
           updated_at: string
         }
@@ -3250,8 +3253,10 @@ export type Database = {
           address_street?: string | null
           address_zip?: string | null
           address_zip_code?: string | null
+          admission_date?: string | null
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
           document_number?: string | null
           email?: string | null
           full_name?: string | null
@@ -3263,6 +3268,7 @@ export type Database = {
           onboarding_started_at?: string | null
           onboarding_step?: number | null
           phone?: string | null
+          position?: string | null
           referral_id?: string | null
           updated_at?: string
         }
@@ -3276,8 +3282,10 @@ export type Database = {
           address_street?: string | null
           address_zip?: string | null
           address_zip_code?: string | null
+          admission_date?: string | null
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
           document_number?: string | null
           email?: string | null
           full_name?: string | null
@@ -3289,6 +3297,7 @@ export type Database = {
           onboarding_started_at?: string | null
           onboarding_step?: number | null
           phone?: string | null
+          position?: string | null
           referral_id?: string | null
           updated_at?: string
         }
