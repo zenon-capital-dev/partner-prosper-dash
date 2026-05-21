@@ -42,7 +42,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
       contract_value: lead.estimated_value ?? "",
       partner_commission: "",
       contract_name: `Contrato — ${lead.full_name}`,
-      contract_type: "padrao",
+      contract_type: "cliente",
       first_task_title: `Iniciar onboarding de ${lead.full_name}`,
       first_task_due: localDue,
       create_product: true,
