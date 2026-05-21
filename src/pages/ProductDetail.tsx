@@ -146,10 +146,18 @@ export default function ProductDetail() {
 
   const remove = async () => {
     if (!product) return;
-    if (!(await confirmAction(`Excluir "${product.name}"? Esta ação não pode ser desfeita.`))) return;
-    const { error } = await supabase.from("products").delete().eq("id", product.id);
-    if (error) { toast.error("Existem registros vinculados. Use desativar."); return; }
-    toast.success("Serviço excluído");
+    if (!(await confirmAction(`Excluir definitivamente "${product.name}"?\n\nVendas e demandas ativas impedem a exclusão — nesses casos, use Desativar.`))) return;
+    const { data, error } = await supabase.rpc("admin_delete_product_cascade", { _product_id: product.id });
+    if (error) { toast.error(error.message); return; }
+    const result = data as { ok: boolean; message?: string } | null;
+    if (!result?.ok) {
+      const fb = await confirmAction(`${result?.message || "Não foi possível excluir."}\n\nDesativar agora?`);
+      if (!fb) return;
+      const { error: uerr } = await supabase.from("products").update({ active: false }).eq("id", product.id);
+      if (uerr) { toast.error(uerr.message); return; }
+      toast.success("Serviço desativado"); navigate("/produtos"); return;
+    }
+    toast.success(result.message || "Serviço excluído");
     navigate("/produtos");
   };
 
