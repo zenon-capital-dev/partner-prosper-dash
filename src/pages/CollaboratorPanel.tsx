@@ -741,7 +741,7 @@ function ClientDrawer({ clientId, onClose, userId }: { clientId: string | null; 
                   <p className="text-xs text-slate-500 mt-0.5">{client.email || "—"}</p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
                     <Badge variant="outline" className="text-[10px] capitalize border-slate-200 text-slate-700">{client.status || "—"}</Badge>
-                    {client.document_number && <Badge variant="outline" className="text-[10px] border-slate-200 text-slate-600 font-mono">{client.document_number}</Badge>}
+                    {client.document && <Badge variant="outline" className="text-[10px] border-slate-200 text-slate-600 font-mono">{client.document}</Badge>}
                   </div>
                 </div>
               </div>
