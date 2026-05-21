@@ -26,6 +26,7 @@ import { ClientContracts } from "@/components/clients/tabs/ClientContracts";
 import { ClientFinancial } from "@/components/clients/tabs/ClientFinancial";
 import { ClientTasks } from "@/components/clients/tabs/ClientTasks";
 import { ClientHistory } from "@/components/clients/tabs/ClientHistory";
+import { ClientTimelineTab } from "@/components/clients/ClientTimelineTab";
 import { IntelligentSummary } from "@/components/clients/IntelligentSummary";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
