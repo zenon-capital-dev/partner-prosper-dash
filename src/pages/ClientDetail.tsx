@@ -9,7 +9,7 @@ import {
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
   ChevronRight, Phone, Mail, Globe, MapPin, Trash2,
-  Wallet, PieChart, Star, Users, CalendarClock
+  Wallet, PieChart, Star, Users, CalendarClock, Calendar
 } from "lucide-react";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
