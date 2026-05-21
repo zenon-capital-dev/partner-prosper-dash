@@ -123,6 +123,14 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ---------- CONFIRM EMAIL ----------
+    if ((action as any) === "confirm_email") {
+      if (!body.user_id) return json({ error: "user_id obrigatório" }, 400);
+      const { error } = await admin.auth.admin.updateUserById(body.user_id, { email_confirm: true });
+      if (error) return json({ error: error.message }, 400);
+      return json({ ok: true });
+    }
+
     // ---------- UPDATE PROFILE ----------
     if (action === "update_profile") {
       if (!body.user_id) return json({ error: "user_id obrigatório" }, 400);
