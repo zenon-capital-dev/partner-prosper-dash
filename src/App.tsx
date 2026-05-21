@@ -52,6 +52,7 @@ import OperationalCockpit from "./pages/OperationalCockpit";
 import Proposals from "./pages/Proposals";
 import FinanceCenter from "./pages/FinanceCenter";
 import Atuacoes from "./pages/Atuacoes";
+import Agenda from "./pages/Agenda";
 import Support from "./pages/Support";
 import { ConfirmRoot } from "@/lib/confirm";
 import { useBodyScrollCleanup } from "@/hooks/use-body-scroll-cleanup";
