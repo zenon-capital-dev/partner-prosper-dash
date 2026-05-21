@@ -120,11 +120,11 @@ export default function ReferrerPanel() {
             description="Aguardando liquidação"
             highlight
           />
-          <IndicadorStat 
-            icon={Award} 
-            label="Taxa de Conversão" 
-            value={`${clients.length > 0 ? "84%" : "0%"}`} 
-            description="Das indicações enviadas"
+          <IndicadorStat
+            icon={Award}
+            label="Taxa de Conversão"
+            value={`${totals.conversion}%`}
+            description="Indicados que viraram clientes ativos"
           />
         </div>
 
