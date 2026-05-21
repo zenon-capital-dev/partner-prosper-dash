@@ -239,7 +239,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       // Acesso ao painel (cadastro novo + switch ligado)
       if (!client?.id && createAccess && clientId) {
         try {
-          const { error: invErr } = await withTimeout(
+          const result: any = await withTimeout(
             supabase.functions.invoke("invite-user", {
               body: {
                 email: form.email,
@@ -256,8 +256,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             15000,
             "criação de acesso"
           );
-          if (invErr) {
-            toast.warning("Cliente criado, mas o acesso falhou: " + invErr.message);
+          if (result?.error) {
+            toast.warning("Cliente criado, mas o acesso falhou: " + result.error.message);
           } else {
             try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
             toast.success(`Acesso criado para ${form.email}`, {
