@@ -1021,6 +1021,16 @@
    travam o scroll do body e mudam a largura da viewport. */
 html { scrollbar-gutter: stable; }
 
+/* Radix Dialog/Sheet trava o scroll do body e injeta padding/margin-right para
+   compensar o scrollbar, mas já reservamos o gutter — neutralizamos esse shift
+   para não gerar listras/cortes visuais atrás do overlay. */
+body[data-scroll-locked],
+body[data-scroll-locked="1"] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  overflow: hidden !important;
+}
+
 /* Slightly thinner default fonts for dense UI */
 body { letter-spacing: -0.005em; }
 h1, h2, h3, h4, h5 { letter-spacing: -0.02em; }
