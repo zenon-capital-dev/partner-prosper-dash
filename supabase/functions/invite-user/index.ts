@@ -249,10 +249,23 @@ Deno.serve(async (req) => {
       phone: body.phone ?? null,
       has_system_access: body.has_system_access ?? true,
       internal_notes: body.internal_notes ?? null,
+      document_number: (body as any).document_number ?? undefined,
+      address_zip: (body as any).address_zip ?? undefined,
+      address_zip_code: (body as any).address_zip_code ?? (body as any).address_zip ?? undefined,
+      address_street: (body as any).address_street ?? undefined,
+      address_number: (body as any).address_number ?? undefined,
+      address_complement: (body as any).address_complement ?? undefined,
+      address_neighborhood: (body as any).address_neighborhood ?? undefined,
+      address_city: (body as any).address_city ?? undefined,
+      address_state: (body as any).address_state ?? undefined,
+      position: (body as any).position ?? undefined,
+      department: (body as any).department ?? undefined,
+      admission_date: (body as any).admission_date ?? undefined,
       onboarding_completed: body.role === "cliente" ? (body.onboarding_completed ?? true) : undefined,
       onboarding_step: body.role === "cliente" && (body.onboarding_completed ?? true) ? 5 : undefined,
       manual_approval_required: body.role === "cliente" ? (body.manual_approval_required ?? false) : undefined,
     });
+
 
     // Only admin can grant admin role
     if (body.role === "admin" && !isAdmin) {
