@@ -23,18 +23,33 @@ interface Props {
   client?: any;
 }
 
+const ONBOARDING_STEPS = [
+  { id: "confirm_data", label: "Confirmar Dados" },
+  { id: "upload_docs", label: "Enviar Documentos" },
+  { id: "sign_contracts", label: "Assinar Contratos" },
+  { id: "initial_payment", label: "Pagamento Inicial" },
+];
+
+// Promise com timeout — evita "Salvando..." infinito quando a função fica pendurada
+function withTimeout<T>(p: Promise<T>, ms: number, label = "operação"): Promise<T> {
+  return Promise.race<T>([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Tempo esgotado em ${label} (${ms}ms)`)), ms)),
+  ]);
+}
+
 export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual", priority: "media" });
+  const [form, setForm] = useState<any>({ status: "novo_cliente", source: "cadastro_manual" });
 
   // Acesso ao painel (apenas no cadastro novo)
   const [createAccess, setCreateAccess] = useState(false);
   const [accessPwd, setAccessPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
 
-  // Onboarding settings
+  // Onboarding settings (apenas no cadastro novo)
   const [selectedTemplateDocs, setSelectedTemplateDocs] = useState<string[]>([]);
   const [customDocs, setCustomDocs] = useState<string[]>([]);
   const [newDocInput, setNewDocInput] = useState("");
@@ -43,13 +58,14 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   useEffect(() => {
     if (client) setForm(client);
-    else setForm({ status: "ativo" });
+    else setForm({ status: "novo_cliente", source: "cadastro_manual" });
     setCreateAccess(false);
     setAccessPwd("");
     setSelectedTemplateDocs([]);
     setCustomDocs([]);
     setNewDocInput("");
     setManualApproval(false);
+    setMandatorySteps(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
   }, [client, open]);
 
   const generatePassword = () => {
@@ -79,13 +95,6 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       return data ?? [];
     },
   });
-  const { data: serviceProviders } = useQuery({
-    queryKey: ["service-providers-select"],
-    queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name");
-      return (data ?? []).map((p: any) => ({ id: p.id, full_name: p.name }));
-    },
-  });
 
   const { data: docTemplates } = useQuery({
     queryKey: ["doc-templates-setting"],
@@ -109,202 +118,190 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   };
 
   const submit = async () => {
-    if (!form.full_name) {
+    if (submitting) return;
+
+    if (!form.full_name?.trim()) {
       toast.error("Nome obrigatório");
       return;
     }
 
-    setSubmitting(true);
-
-    // Se CEP preenchido mas endereço vazio, tenta buscar antes de salvar
-    if (form.address_zip_code && !form.address_street) {
-      const r = await lookupCEP(form.address_zip_code);
-      if (r) {
-        form.address_street = r.logradouro;
-        form.address_neighborhood = r.bairro;
-        form.city = r.localidade;
-        form.state = r.uf;
-      }
+    if (form.document && !isValidCPFOrCNPJ(form.document)) {
+      toast.error("CPF/CNPJ inválido"); return;
+    }
+    if (form.phone && !isValidPhoneBR(form.phone)) {
+      toast.error("Telefone inválido"); return;
     }
 
     if (!client?.id && createAccess) {
-      if (!form.email) { toast.error("Email obrigatório para criar acesso"); setSubmitting(false); return; }
-      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); setSubmitting(false); return; }
+      if (!form.email) { toast.error("Email obrigatório para criar acesso"); return; }
+      if (!accessPwd || accessPwd.length < 8) { toast.error("Senha deve ter no mínimo 8 caracteres"); return; }
     }
 
-    // Validações de máscara e duplicidade
-    if (form.document && !isValidCPFOrCNPJ(form.document)) {
-      toast.error("CPF/CNPJ inválido"); setSubmitting(false); return;
-    }
-    if (form.phone && !isValidPhoneBR(form.phone)) {
-      toast.error("Telefone inválido"); setSubmitting(false); return;
-    }
+    setSubmitting(true);
 
-    // Check for existing email/document — queries separadas para evitar injection em .or()
-    if (form.email || form.document) {
-      const cleanDoc = form.document ? onlyDigits(form.document) : null;
-      const checks: Array<{ data: any[] | null }> = [];
-      if (form.email) {
-        let q = supabase.from("clients").select("id, full_name").eq("email", form.email).limit(1);
-        if (client?.id) q = q.neq("id", client.id);
-        checks.push(await q);
-      }
-      if (cleanDoc) {
-        let q = supabase.from("clients").select("id, full_name").eq("document", cleanDoc).limit(1);
-        if (client?.id) q = q.neq("id", client.id);
-        checks.push(await q);
-      }
-      const dup = checks.find((r) => (r.data?.length ?? 0) > 0);
-
-      if (dup) {
-        toast.error("Já existe um cliente cadastrado com este email ou documento");
-        setSubmitting(false);
-        return;
-      }
-    }
-
-
-    const payload = {
-      full_name: form.full_name,
-      email: form.email || null,
-      phone: form.phone ? onlyDigits(form.phone) : null,
-      document: form.document ? onlyDigits(form.document) : null,
-      company: form.company || null,
-      address: form.address || null,
-      address_street: form.address_street || null,
-      address_number: form.address_number || null,
-      address_neighborhood: form.address_neighborhood || null,
-      address_zip_code: form.address_zip_code ? onlyDigits(form.address_zip_code) : null,
-      city: form.city || null,
-      state: form.state || null,
-      status: form.status,
-      partner_id: form.partner_id || null,
-      referrer_id: form.referrer_id || null,
-      collaborator_id: form.collaborator_id || null,
-      responsible_id: form.collaborator_id || null, // Ensure both are set for consistency
-      service_provider_id: form.service_provider_id || null,
-      origin: form.origin || null,
-      contract_value: form.contract_value ? Number(form.contract_value) : null,
-      commission_value: form.commission_value ? Number(form.commission_value) : null,
-      partner_commission_percent: form.partner_commission_percent ? Number(form.partner_commission_percent) : null,
-      referrer_commission_percent: form.referrer_commission_percent ? Number(form.referrer_commission_percent) : null,
-      collaborator_commission_percent: form.collaborator_commission_percent ? Number(form.collaborator_commission_percent) : null,
-      payment_status: form.payment_status || "pendente",
-      notes: form.notes || null,
-      tags: form.tags ?? [],
-      health_score: form.health_score || 100,
-      churn_risk: form.churn_risk || "Baixo",
-      created_by: user?.id,
-    };
-
-    let clientId = client?.id as string | undefined;
-    if (clientId) {
-      const { error } = await supabase.from("clients").update(payload).eq("id", clientId);
-      if (error) { setSubmitting(false); toast.error(error.message); return; }
-    } else {
-      const { data: created, error } = await supabase.from("clients").insert(payload).select("id").single();
-      if (error) { setSubmitting(false); toast.error(error.message); return; }
-      clientId = created.id;
-    }
-
-    // Garante que o colaborador escolhido no cliente também passe a enxergar demandas
-    // já existentes sem responsável definido.
-    if (clientId && form.collaborator_id) {
-      const { error: cpUpErr } = await supabase
-        .from("client_products")
-        .update({ responsible_employee_id: form.collaborator_id })
-        .eq("client_id", clientId)
-        .is("responsible_employee_id", null);
-      if (cpUpErr) console.error("Erro ao vincular colaborador a demandas existentes:", cpUpErr);
-    }
-
-    // Onboarding setup — profile só existe se o cliente tem user_id (acesso ao painel)
-    if (clientId) {
-      const shouldReleaseAccess = createAccess && !manualApproval;
-      const { data: clientRow } = await supabase
-        .from("clients")
-        .select("user_id")
-        .eq("id", clientId)
-        .maybeSingle();
-      const userId = clientRow?.user_id;
-      if (userId) {
-        const { error: profErr } = await supabase.from("profiles").update({
-          onboarding_completed: shouldReleaseAccess,
-          onboarding_step: 1,
-          manual_approval_required: manualApproval,
-        }).eq("id", userId);
-        if (profErr) console.error("Erro ao atualizar profile:", profErr);
-      }
-      if (shouldReleaseAccess) {
-        await supabase.from("clients").update({ onboarding_status: "concluido", onboarding_progress: 100 } as any).eq("id", clientId);
+    try {
+      // CEP lookup defensivo
+      if (form.address_zip_code && !form.address_street) {
+        try {
+          const r = await withTimeout(lookupCEP(form.address_zip_code), 6000, "consulta de CEP");
+          if (r) {
+            form.address_street = r.logradouro;
+            form.address_neighborhood = r.bairro;
+            form.city = r.localidade;
+            form.state = r.uf;
+          }
+        } catch (e) {
+          console.warn("CEP lookup falhou, seguindo sem preencher:", e);
+        }
       }
 
-      const allDocs = [...selectedTemplateDocs, ...customDocs];
-      if (allDocs.length > 0) {
-        const rows = allDocs.map((name) => ({
-          client_id: clientId!,
-          name: name,
-          is_required: true,
-          status: "pending",
-        }));
-        const { error: docErr } = await supabase.from("onboarding_documents").insert(rows);
-        if (docErr) console.error("Erro ao inserir documentos de onboarding:", docErr);
+      // Duplicidade
+      if (form.email || form.document) {
+        const cleanDoc = form.document ? onlyDigits(form.document) : null;
+        const checks: Array<{ data: any[] | null }> = [];
+        if (form.email) {
+          let q = supabase.from("clients").select("id").eq("email", form.email).limit(1);
+          if (client?.id) q = q.neq("id", client.id);
+          checks.push(await q);
+        }
+        if (cleanDoc) {
+          let q = supabase.from("clients").select("id").eq("document", cleanDoc).limit(1);
+          if (client?.id) q = q.neq("id", client.id);
+          checks.push(await q);
+        }
+        if (checks.find((r) => (r.data?.length ?? 0) > 0)) {
+          toast.error("Já existe um cliente cadastrado com este email ou documento");
+          return;
+        }
       }
-    }
 
+      const payload: any = {
+        full_name: form.full_name.trim(),
+        email: form.email || null,
+        phone: form.phone ? onlyDigits(form.phone) : null,
+        document: form.document ? onlyDigits(form.document) : null,
+        company: form.company || null,
+        birth_date: form.birth_date || null,
+        address_street: form.address_street || null,
+        address_number: form.address_number || null,
+        address_complement: form.address_complement || null,
+        address_neighborhood: form.address_neighborhood || null,
+        address_zip_code: form.address_zip_code ? onlyDigits(form.address_zip_code) : null,
+        city: form.city || null,
+        state: form.state || null,
+        status: form.status || "novo_cliente",
+        source: form.source || "cadastro_manual",
+        partner_id: form.partner_id || null,
+        referrer_id: form.referrer_id || null,
+        collaborator_id: form.collaborator_id || null,
+        responsible_id: form.collaborator_id || null,
+        notes: form.notes || null,
+        mandatory_steps: mandatorySteps,
+        manual_approval_required: manualApproval,
+        created_by: user?.id,
+      };
 
-    // Cria acesso ao painel via edge function (apenas no novo + checkbox marcado)
-    if (!client?.id && createAccess && clientId) {
-      const { error: invErr } = await supabase.functions.invoke("invite-user", {
-        body: {
-          email: form.email,
-          full_name: form.full_name,
-          phone: form.phone || null,
-          role: "cliente",
-          send_invite: false,
-          password: accessPwd,
-          link_client_id: clientId,
-          onboarding_completed: !manualApproval,
-          manual_approval_required: manualApproval,
-        },
-      });
-      if (invErr) {
-        setSubmitting(false);
-        toast.warning("Cliente criado, mas o acesso falhou: " + invErr.message);
-        onCreated?.();
-        return;
+      let clientId = client?.id as string | undefined;
+      if (clientId) {
+        const { error } = await supabase.from("clients").update(payload).eq("id", clientId);
+        if (error) { toast.error("Erro ao atualizar: " + error.message); return; }
+      } else {
+        const { data: created, error } = await supabase.from("clients").insert(payload).select("id").single();
+        if (error) { toast.error("Erro ao cadastrar: " + error.message); return; }
+        clientId = created.id;
       }
-      try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
-      toast.success(`Acesso criado para ${form.email}`, {
-        description: `Senha: ${accessPwd} (copiada para a área de transferência)`,
-        duration: 20000,
-      });
-    } else {
-      toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
-    }
 
-    setSubmitting(false);
-    // Invalida caches dos painéis impactados pelos vínculos (parceiro, indicador, colaborador, prestador)
-    [
-      "clients", "client", "client-collaborator", "client-provider", "client-referrer",
-      "collab-assigned-clients", "collab-demandas", "collab-tasks", "collab-clients",
-      "provider-self", "provider-client-products", "provider-documents",
-      "referrer-panel",
-      "partner-panel",
-      "demands", "demands-list", "tasks", "tasks-list", "commissions", "commissions-list",
-    ].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
-    onCreated?.();
-    onOpenChange(false);
+      // Propaga colaborador para demandas sem responsável
+      if (clientId && form.collaborator_id) {
+        const { error: cpUpErr } = await supabase
+          .from("client_products")
+          .update({ responsible_employee_id: form.collaborator_id })
+          .eq("client_id", clientId)
+          .is("responsible_employee_id", null);
+        if (cpUpErr) console.warn("Vínculo colaborador-demandas:", cpUpErr);
+      }
+
+      // Pendências de documentos (cadastro novo)
+      if (!client?.id && clientId) {
+        const allDocs = [...selectedTemplateDocs, ...customDocs];
+        if (allDocs.length > 0) {
+          const rows = allDocs.map((name) => ({
+            client_id: clientId!,
+            name,
+            is_required: true,
+            status: "pending",
+          }));
+          const { error: docErr } = await supabase.from("onboarding_documents").insert(rows);
+          if (docErr) console.warn("Onboarding docs:", docErr);
+        }
+      }
+
+      // Acesso ao painel (cadastro novo + switch ligado)
+      if (!client?.id && createAccess && clientId) {
+        try {
+          const { error: invErr } = await withTimeout(
+            supabase.functions.invoke("invite-user", {
+              body: {
+                email: form.email,
+                full_name: form.full_name,
+                phone: form.phone || null,
+                role: "cliente",
+                send_invite: false,
+                password: accessPwd,
+                link_client_id: clientId,
+                onboarding_completed: !manualApproval,
+                manual_approval_required: manualApproval,
+              },
+            }) as any,
+            15000,
+            "criação de acesso"
+          );
+          if (invErr) {
+            toast.warning("Cliente criado, mas o acesso falhou: " + invErr.message);
+          } else {
+            try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
+            toast.success(`Acesso criado para ${form.email}`, {
+              description: `Senha: ${accessPwd} (copiada para a área de transferência)`,
+              duration: 20000,
+            });
+          }
+        } catch (e: any) {
+          toast.warning("Cliente criado, mas o acesso travou: " + (e?.message || "tempo esgotado"));
+        }
+      } else {
+        toast.success(client?.id ? "Cliente atualizado" : "Cliente cadastrado");
+      }
+
+      // Invalida caches
+      [
+        "clients", "client", "client-collaborator", "client-referrer",
+        "collab-assigned-clients", "collab-demandas", "collab-tasks", "collab-clients",
+        "referrer-panel", "partner-panel",
+        "demands", "demands-list", "tasks", "tasks-list",
+      ].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+
+      onCreated?.();
+      onOpenChange(false);
+    } catch (err: any) {
+      console.error("[ClientFormDialog] erro inesperado:", err);
+      toast.error(err?.message || "Erro inesperado ao salvar");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!submitting) onOpenChange(v); }}>
       <DialogContent className="max-w-2xl max-h-[calc(100svh-1rem)] overflow-y-auto overscroll-contain">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">{client?.id ? "Editar cliente" : "Novo cliente"}</DialogTitle>
-          <DialogDescription>Cadastre os dados do cliente. Você pode opcionalmente já criar o acesso ao painel.</DialogDescription>
+          <DialogDescription>
+            Cadastre os dados do cliente. Comissões e valores ficam no fluxo de <strong>Vendas</strong>.
+          </DialogDescription>
         </DialogHeader>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4 py-4">
+          {/* DADOS PESSOAIS */}
           <div className="col-span-1 sm:col-span-2 space-y-2">
             <Label className="text-[13px] font-semibold text-slate-700">Nome completo *</Label>
             <Input className="h-10 rounded-lg border-slate-200" value={form.full_name ?? ""} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
@@ -325,8 +322,38 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label className="text-[13px] font-semibold text-slate-700">Empresa</Label>
             <Input className="h-10 rounded-lg border-slate-200" value={form.company ?? ""} onChange={(e) => setForm({ ...form, company: e.target.value })} />
           </div>
+          <div className="space-y-2">
+            <Label className="text-[13px] font-semibold text-slate-700">Data de nascimento</Label>
+            <Input className="h-10 rounded-lg border-slate-200" type="date" value={form.birth_date ?? ""} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} />
+          </div>
+
+          {/* ENDEREÇO */}
           <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="sm:col-span-3 space-y-2">
+            <div className="space-y-2">
+              <Label>CEP</Label>
+              <MaskedInput
+                mask="cep"
+                value={form.address_zip_code ?? ""}
+                onChange={(v) => setForm({ ...form, address_zip_code: v })}
+                onBlur={async () => {
+                  try {
+                    const r = await withTimeout(lookupCEP(form.address_zip_code ?? ""), 6000, "CEP");
+                    if (r) {
+                      setForm((p: any) => ({
+                        ...p,
+                        address_street: p.address_street || r.logradouro,
+                        address_neighborhood: p.address_neighborhood || r.bairro,
+                        city: p.city || r.localidade,
+                        state: p.state || r.uf,
+                      }));
+                      toast.success("Endereço preenchido pelo CEP");
+                    }
+                  } catch {}
+                }}
+                placeholder="00000-000"
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-2">
               <Label>Logradouro</Label>
               <Input value={form.address_street ?? ""} onChange={(e) => setForm({ ...form, address_street: e.target.value })} placeholder="Ex: Av. Paulista" />
             </div>
@@ -340,26 +367,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Input value={form.address_neighborhood ?? ""} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label>CEP</Label>
-            <MaskedInput
-              mask="cep"
-              value={form.address_zip_code ?? ""}
-              onChange={(v) => setForm({ ...form, address_zip_code: v })}
-              onBlur={async () => {
-                const r = await lookupCEP(form.address_zip_code ?? "");
-                if (r) {
-                  setForm((p: any) => ({
-                    ...p,
-                    address_street: p.address_street || r.logradouro,
-                    address_neighborhood: p.address_neighborhood || r.bairro,
-                    city: p.city || r.localidade,
-                    state: p.state || r.uf,
-                  }));
-                  toast.success("Endereço preenchido pelo CEP");
-                }
-              }}
-              placeholder="00000-000"
-            />
+            <Label>Complemento</Label>
+            <Input value={form.address_complement ?? ""} onChange={(e) => setForm({ ...form, address_complement: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label>Cidade</Label>
@@ -369,70 +378,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label>Estado</Label>
             <Input value={form.state ?? ""} onChange={(e) => setForm({ ...form, state: e.target.value })} />
           </div>
+
+          {/* CLASSIFICAÇÃO */}
           <div className="space-y-2">
-            <Label>Parceiro</Label>
-            <Select value={form.partner_id ?? "none"} onValueChange={(v) => setForm({ ...form, partner_id: v === "none" ? null : v })}>
-              <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem parceiro</SelectItem>
-                {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Comissão parceiro (%)</Label>
-            <Input type="number" step="0.01" min="0" max="100" placeholder="Ex: 10"
-              value={form.partner_commission_percent ?? ""}
-              disabled={!form.partner_id}
-              onChange={(e) => setForm({ ...form, partner_commission_percent: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Indicador</Label>
-            <Select value={form.referrer_id ?? "none"} onValueChange={(v) => setForm({ ...form, referrer_id: v === "none" ? null : v })}>
-              <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem indicador</SelectItem>
-                {referrers?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Comissão indicador (%)</Label>
-            <Input type="number" step="0.01" min="0" max="100" placeholder="Ex: 5"
-              value={form.referrer_commission_percent ?? ""}
-              disabled={!form.referrer_id}
-              onChange={(e) => setForm({ ...form, referrer_commission_percent: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Colaborador responsável</Label>
-            <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
-              <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem colaborador</SelectItem>
-                {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Comissão colaborador (%)</Label>
-            <Input type="number" step="0.01" min="0" max="100" placeholder="Ex: 3"
-              value={form.collaborator_commission_percent ?? ""}
-              disabled={!form.collaborator_id}
-              onChange={(e) => setForm({ ...form, collaborator_commission_percent: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Prestador de serviço</Label>
-            <Select value={form.service_provider_id ?? "none"} onValueChange={(v) => setForm({ ...form, service_provider_id: v === "none" ? null : v })}>
-              <SelectTrigger><SelectValue placeholder="Sem prestador" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem prestador</SelectItem>
-                {serviceProviders?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Origem do cliente *</Label>
-            <Select value={form.source} onValueChange={(v) => setForm({ ...form, source: v })}>
+            <Label>Origem do cliente</Label>
+            <Select value={form.source ?? "cadastro_manual"} onValueChange={(v) => setForm({ ...form, source: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="cadastro_manual">Cadastro manual</SelectItem>
@@ -450,96 +400,73 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Status do Cliente</Label>
-            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+            <Label>Status</Label>
+            <Select value={form.status ?? "novo_cliente"} onValueChange={(v) => setForm({ ...form, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="novo_cliente">Novo Cliente</SelectItem>
-                <SelectItem value="aguardando_atendimento">Aguardando atendimento</SelectItem>
-                <SelectItem value="aguardando_documentos">Aguardando documentos</SelectItem>
-                <SelectItem value="documentos_enviados">Documentos enviados</SelectItem>
-                <SelectItem value="documentos_analise">Documentos em análise</SelectItem>
-                <SelectItem value="documentos_aprovados">Documentos aprovados</SelectItem>
-                <SelectItem value="documentos_reprovados">Documentos reprovados</SelectItem>
-                <SelectItem value="aguardando_contrato">Aguardando contrato</SelectItem>
-                <SelectItem value="contrato_enviado">Contrato enviado</SelectItem>
-                <SelectItem value="contrato_assinado">Contrato assinado</SelectItem>
-                <SelectItem value="pagamento_pendente">Pagamento pendente</SelectItem>
-                <SelectItem value="pagamento_parcial">Pagamento parcial</SelectItem>
-                <SelectItem value="pagamento_confirmado">Pagamento confirmado</SelectItem>
-                <SelectItem value="em_andamento">Em andamento</SelectItem>
-                <SelectItem value="aguardando_terceiro">Aguardando terceiro</SelectItem>
-                <SelectItem value="finalizado">Finalizado</SelectItem>
-                <SelectItem value="cancelado">Cancelado</SelectItem>
+                <SelectItem value="novo_cliente">Novo cliente</SelectItem>
+                <SelectItem value="ativo">Ativo</SelectItem>
                 <SelectItem value="inativo">Inativo</SelectItem>
-                <SelectItem value="reembolso">Reembolso</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Valor do contrato (R$)</Label>
-            <Input type="number" step="0.01" value={form.contract_value ?? ""} onChange={(e) => setForm({ ...form, contract_value: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Comissão (R$)</Label>
-            <Input type="number" step="0.01" value={form.commission_value ?? ""} onChange={(e) => setForm({ ...form, commission_value: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label>Status de pagamento</Label>
-            <Select value={form.payment_status} onValueChange={(v) => setForm({ ...form, payment_status: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="pago">Pago</SelectItem>
-                <SelectItem value="atrasado">Atrasado</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* VÍNCULOS */}
           <div className="space-y-2">
-            <Label>Engajamento (0-100)</Label>
-            <Input type="number" min="0" max="100" value={form.health_score ?? 100} onChange={(e) => setForm({ ...form, health_score: e.target.value })} />
+            <Label>Parceiro</Label>
+            <Select value={form.partner_id ?? "none"} onValueChange={(v) => setForm({ ...form, partner_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem parceiro" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem parceiro</SelectItem>
+                {partners?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label>Risco de Cancelamento</Label>
-            <Select value={form.churn_risk ?? "Baixo"} onValueChange={(v) => setForm({ ...form, churn_risk: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Label>Indicador</Label>
+            <Select value={form.referrer_id ?? "none"} onValueChange={(v) => setForm({ ...form, referrer_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem indicador" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Baixo">Baixo</SelectItem>
-                <SelectItem value="Médio">Médio</SelectItem>
-                <SelectItem value="Alto">Alto</SelectItem>
+                <SelectItem value="none">Sem indicador</SelectItem>
+                {referrers?.map((p) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="sm:col-span-2 space-y-2">
-            <Label>Tags (separadas por vírgula)</Label>
-            <Input
-              placeholder="VIP, risco, novo, prioridade"
-              value={(form.tags ?? []).join(", ")}
-              onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map((t: string) => t.trim()).filter(Boolean) })}
-            />
-            <p className="text-[10px] text-muted-foreground">Sugestões: VIP, risco, novo, prioridade</p>
+            <Label>Colaborador responsável</Label>
+            <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem colaborador</SelectItem>
+                {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Comissões e valores são definidos quando você registra uma <strong>venda</strong> para este cliente.
+            </p>
           </div>
+
           <div className="sm:col-span-2 space-y-2">
             <Label>Observações internas</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
 
-          {/* Pendências de documentos — apenas no cadastro novo */}
+          {/* PENDÊNCIAS DE DOCUMENTOS — só cadastro novo */}
           {!client?.id && (
             <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-amber-300/60 bg-amber-50/40">
               <div className="flex items-center gap-2">
                 <FileText className="size-4 text-amber-700" />
                 <div>
                   <p className="text-sm font-bold">Pendências de documentos</p>
-                  <p className="text-[11px] text-muted-foreground">Aparecerão para o cliente no painel assim que ele logar.</p>
+                  <p className="text-[11px] text-muted-foreground">Aparecerão no painel do cliente assim que ele logar.</p>
                 </div>
               </div>
 
               {docTemplates && docTemplates.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-[11px]">Selecione dos templates</Label>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {docTemplates.map((doc) => (
                       <label key={doc} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white cursor-pointer border border-transparent hover:border-amber-200">
                         <Checkbox checked={selectedTemplateDocs.includes(doc)} onCheckedChange={() => toggleTemplate(doc)} />
@@ -552,7 +479,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
               <div className="space-y-2 pt-1">
                 <Label className="text-[11px]">Adicionar pendência personalizada</Label>
-                 <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={newDocInput}
                     onChange={(e) => setNewDocInput(e.target.value)}
@@ -586,7 +513,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </div>
           )}
 
-          {/* Onboarding Options */}
+          {/* ONBOARDING — só cadastro novo */}
           {!client?.id && (
             <div className="sm:col-span-2 space-y-3 p-5 rounded-2xl border border-indigo-100 bg-indigo-50/30">
               <div className="flex items-center gap-2 mb-2">
@@ -595,27 +522,22 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               </div>
               <div className="flex items-center justify-between py-2 border-b border-indigo-100">
                 <div className="space-y-0.5">
-                  <Label className="text-sm cursor-pointer" htmlFor="manual-approval">Aprovação Manual Obrigatória</Label>
-                  <p className="text-[10px] text-muted-foreground">O acesso ao painel só é liberado após o admin validar tudo.</p>
+                  <Label className="text-sm cursor-pointer" htmlFor="manual-approval">Aprovação manual obrigatória</Label>
+                  <p className="text-[10px] text-muted-foreground">O acesso só é liberado depois que um admin validar.</p>
                 </div>
                 <Switch id="manual-approval" checked={manualApproval} onCheckedChange={setManualApproval} />
               </div>
               <div className="space-y-2 pt-1">
-                <Label className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Etapas Obrigatórias</Label>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[
-                    { id: "confirm_data", label: "Confirmar Dados" },
-                    { id: "upload_docs", label: "Enviar Documentos" },
-                    { id: "sign_contracts", label: "Assinar Contratos" },
-                    { id: "initial_payment", label: "Pagamento Inicial" },
-                  ].map((step) => (
+                <Label className="text-[11px] font-bold text-indigo-800 uppercase tracking-wider">Etapas obrigatórias</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {ONBOARDING_STEPS.map((step) => (
                     <div key={step.id} className="flex items-center gap-2">
-                      <Checkbox 
-                        id={`step-${step.id}`} 
+                      <Checkbox
+                        id={`step-${step.id}`}
                         checked={mandatorySteps.includes(step.id)}
                         onCheckedChange={(checked) => {
-                          if (checked) setMandatorySteps(prev => [...prev, step.id]);
-                          else setMandatorySteps(prev => prev.filter(s => s !== step.id));
+                          if (checked) setMandatorySteps((prev) => [...prev, step.id]);
+                          else setMandatorySteps((prev) => prev.filter((s) => s !== step.id));
                         }}
                       />
                       <Label htmlFor={`step-${step.id}`} className="text-xs cursor-pointer">{step.label}</Label>
@@ -626,7 +548,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </div>
           )}
 
-          {/* Acesso ao painel — apenas no cadastro novo */}
+          {/* ACESSO AO PAINEL — só cadastro novo */}
           {!client?.id && (
             <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
               <div className="flex items-center justify-between">
@@ -688,9 +610,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             </div>
           )}
         </div>
+
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={submit} disabled={submitting} className="bg-gradient-primary hover:opacity-90">{submitting ? "Salvando..." : "Salvar"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancelar</Button>
+          <Button onClick={submit} disabled={submitting} className="bg-gradient-primary hover:opacity-90">
+            {submitting ? "Salvando..." : "Salvar"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
