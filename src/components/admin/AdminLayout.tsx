@@ -5,6 +5,7 @@ import { AdminHeader } from "./AdminHeader";
 import { RouteGuard } from "@/components/RouteGuard";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 
 // Rotas em que colaborador pode entrar (somente leitura via UI + RLS).
@@ -44,6 +45,19 @@ const ROUTE_LABEL: Record<string, string> = {
 function AdminShell() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Cmd/Ctrl+K abre a busca global.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // 🔒 Painel admin sempre LIGHT (regra fixa do projeto — feedback explícito do usuário).
   useEffect(() => {
@@ -68,9 +82,7 @@ function AdminShell() {
   // Vendedores são staff interno mas com escopo restrito (RLS já bloqueia dados sensíveis).
   const blocked = !isFullAdmin && ADMIN_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
-  const handleSearchClick = () => {
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
-  };
+  const handleSearchClick = () => setSearchOpen(true);
 
   if (blocked) return <Navigate to="/admin" replace />;
 
