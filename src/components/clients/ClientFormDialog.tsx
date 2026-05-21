@@ -96,6 +96,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     },
   });
 
+  const { data: providers } = useQuery({
+    queryKey: ["providers-select-active"],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").eq("active", true).order("name")).data ?? [],
+  });
+
   const { data: docTemplates } = useQuery({
     queryKey: ["doc-templates-setting"],
     queryFn: async () => {
@@ -194,6 +199,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         partner_id: form.partner_id || null,
         referrer_id: form.referrer_id || null,
         collaborator_id: form.collaborator_id || null,
+        service_provider_id: form.service_provider_id || null,
         responsible_id: form.collaborator_id || null,
         notes: form.notes || null,
         mandatory_steps: mandatorySteps,
@@ -219,6 +225,15 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           .eq("client_id", clientId)
           .is("responsible_employee_id", null);
         if (cpUpErr) console.warn("Vínculo colaborador-demandas:", cpUpErr);
+      }
+
+      if (clientId && form.service_provider_id) {
+        const { error: providerUpErr } = await supabase
+          .from("client_products")
+          .update({ service_provider_id: form.service_provider_id })
+          .eq("client_id", clientId)
+          .is("service_provider_id", null);
+        if (providerUpErr) console.warn("Vínculo prestador-demandas:", providerUpErr);
       }
 
       // Pendências de documentos (cadastro novo)
