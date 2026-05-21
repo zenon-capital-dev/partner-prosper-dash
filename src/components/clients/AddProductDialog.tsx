@@ -115,7 +115,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("clients")
-        .select("partner_id, referrer_id, collaborator_id, partners(commission_percent), referrers(commission_percent)")
+        .select("partner_id, referrer_id, collaborator_id, service_provider_id, partners(commission_percent), referrers(commission_percent)")
         .eq("id", clientId)
         .maybeSingle();
       if (data) {
@@ -126,6 +126,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           referrer_id: f.referrer_id || data.referrer_id || "",
           referrer_commission: data.referrer_id && (data as any).referrers?.commission_percent ? Number((data as any).referrers.commission_percent) : f.referrer_commission,
           collaborator_id: f.collaborator_id || (data.collaborator_id ?? ""),
+          service_provider_id: f.service_provider_id || (data.service_provider_id ?? ""),
         }));
       }
       return data;
@@ -237,6 +238,19 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
         .select("id")
         .single();
       if (cpErr) throw cpErr;
+
+      const clientLinkPatch: any = {};
+      if (form.partner_id) clientLinkPatch.partner_id = form.partner_id;
+      if (form.referrer_id) clientLinkPatch.referrer_id = form.referrer_id;
+      if (form.collaborator_id) {
+        clientLinkPatch.collaborator_id = form.collaborator_id;
+        clientLinkPatch.responsible_id = form.collaborator_id;
+      }
+      if (form.service_provider_id) clientLinkPatch.service_provider_id = form.service_provider_id;
+      if (Object.keys(clientLinkPatch).length) {
+        const { error: linkErr } = await supabase.from("clients").update(clientLinkPatch).eq("id", clientId);
+        if (linkErr) throw linkErr;
+      }
 
       const { error: sErr } = await supabase.from("sales").insert({
         client_id: clientId,
