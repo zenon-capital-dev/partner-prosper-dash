@@ -113,7 +113,7 @@ export function ClientDocumentsTab({
 
       const now = new Date().toISOString();
       const { error: updErr } = req.source === "document_requests"
-        ? await supabase.from("document_requests").update({ file_url: path, submission_date: now, status: "enviado", rejection_reason: null }).eq("id", req.id)
+        ? await supabase.from("client_document_requests").update({ file_url: path, status: "enviado", updated_at: now }).eq("id", req.id)
         : await supabase.from("documents").update({ file_path: path, status: "enviado", uploaded_at: now, rejection_reason: null, file_size: file.size, mime_type: file.type }).eq("id", req.id);
       if (updErr) throw updErr;
 
