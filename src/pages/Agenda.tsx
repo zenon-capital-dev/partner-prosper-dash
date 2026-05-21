@@ -274,7 +274,7 @@ export default function Agenda() {
       <PageHero
         icon={<CalendarClock className="size-5" />}
         title="Agenda"
-        subtitle="Tarefas, reuniões, ligações e pendências em um único lugar."
+        description="Tarefas, reuniões, ligações e pendências em um único lugar."
         actions={
           <Button onClick={() => setOpenCreate(true)} className="gap-2">
             <Plus className="size-4" /> Novo item
