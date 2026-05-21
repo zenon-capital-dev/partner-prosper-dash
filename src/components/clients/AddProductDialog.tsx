@@ -269,8 +269,11 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
       toast.success("Produto adicionado com sucesso", {
         description: `Comissões geradas: ${formatBRL(totalCommissions)} (${totalPercent.toFixed(1)}%)`,
       });
-      qc.invalidateQueries({ queryKey: ["client-products"] });
-      qc.invalidateQueries({ queryKey: ["client", clientId] });
+      [
+        ["client-products"], ["client", clientId], ["clients"], ["admin-demands"],
+        ["dash-demands"], ["dash-sales"], ["dash-commissions"], ["partner-panel"],
+        ["provider-client-products"], ["providers-rich"], ["partners-rich"], ["dashboard-stats"],
+      ].forEach((queryKey) => qc.invalidateQueries({ queryKey }));
       onOpenChange(false);
       setForm({
         product_id: "", value: 0, partner_id: "", partner_commission: 10,
