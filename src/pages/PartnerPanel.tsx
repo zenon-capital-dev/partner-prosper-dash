@@ -120,7 +120,7 @@ export default function PartnerPanel() {
   const totals = useMemo(() => {
     const cs = (data?.commissions ?? []) as any[];
     const total = cs.reduce((s, x) => s + Number(x.amount || 0), 0);
-    const paid = cs.filter((x) => x.workflow_status === "paga").reduce((s, x) => s + Number(x.amount || 0), 0);
+    const paid = cs.filter((x) => x.workflow_status === "paga" || x.status === "pago" || x.status === "paga").reduce((s, x) => s + Number(x.amount || 0), 0);
     const pending = cs.filter((x) => ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"].includes(x.workflow_status)).reduce((s, x) => s + Number(x.amount || 0), 0);
     const active = (data?.clients ?? []).filter((c: any) => c.status === "ativo").length;
     const totalClients = (data?.clients ?? []).length;
