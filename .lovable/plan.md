@@ -1,135 +1,99 @@
-# Agenda Unificada — fundir Demandas + Atuações + Tarefas
+## Plano: Painéis Premium (Colaborador, Prestador, Parceiro, Indicador, Cliente) + Fix exclusão de produto
 
-## Decisão de arquitetura
+### 1. Correção: Exclusão de Produto/Serviço
+**Problema:** `delete().eq("id", p.id)` falha por FK (sales, client_products, commissions, etc.) — toast atual diz "Use Desativar", mas não há fallback real.
 
-Hoje existem 3 tabelas com propósitos sobrepostos:
+**Solução:**
+- Criar RPC `admin_delete_product_cascade(_product_id uuid)` análoga a `admin_delete_client_cascade`: remove client_products, documents, tasks, product_steps, custom_fields, service_provider_products, collaborator_products vinculados; se houver venda concluída, recusa e retorna mensagem clara para desativar.
+- Botão de exclusão passa a abrir AlertDialog: "Excluir definitivamente" vs "Apenas desativar (recomendado)".
+- Adicionar coluna `active boolean` (já existe `is_active`) — usar essa flag.
 
-| Tabela | Hoje serve para |
-|---|---|
-| `client_products` (Demandas) | Serviço vendido ao cliente, com SLA, etapas, status — é uma **entidade de negócio**, não um item de agenda |
-| `daily_actions` (Atuações) | Ações comerciais agendadas por dia (ligação, follow-up) |
-| `tasks` (Tarefas) | To-do interno com prioridade, responsável, vínculo a qualquer entidade |
+### 2. Refatoração dos 5 Painéis — Conceito "Site Premium"
+Cada painel vira uma **landing-app**: hero personalizado com saudação + KPIs grandes, seções em cards com glass/gradient sutis, navegação inferior fixa no mobile (bottom tab bar estilo iOS), header sticky compacto, animações suaves (Framer Motion fade/slide), tipografia Inter + JetBrains Mono nos números, paleta clara premium (indigo/violet accent sobre slate-50, igual ao admin já memorizado para esses usuários externos teremos um tema PRÓPRIO mais quente — slate-50 base + accent indigo-600 + gradientes pastel por papel).
 
-**Plano**: consolidar tudo o que é "coisa que precisa ser feita em uma data" em **`tasks`** (já tem todos os campos: `client_id`, `due_date`, `priority`, `assigned_to`, `client_product_id`, `partner_id`, `provider_id`, etc). Demandas (`client_products`) **continuam existindo como entidade própria** (têm SLA, etapas, ligação a vendas/comissões — não dá pra fundir), mas aparecem na nova Agenda como **um tipo de item** ao lado de tarefas e reuniões.
+Estrutura nova compartilhada:
+- `src/components/panels/PanelShell.tsx` — layout responsivo (sidebar desktop / bottom-nav mobile + top header com avatar, notificações, busca)
+- `src/components/panels/PanelHero.tsx` — hero com saudação dinâmica, métrica destaque, ilustração SVG por papel
+- `src/components/panels/KpiCard.tsx`, `SectionCard.tsx`, `EmptyState.tsx`, `MobileBottomNav.tsx`
+- Cores accent por papel: Colaborador=indigo, Prestador=teal, Parceiro=violet, Indicador=amber, Cliente=blue
 
-Atuações migram pra `tasks` com tipo `ligacao` — tabela `daily_actions` fica obsoleta (não dropo, só paro de usar).
+#### 2.1 CollaboratorPanel (`/colaborador`)
+- Hero: "Olá, {nome}" + tarefas hoje, demandas ativas, SLA crítico
+- Tabs: Visão geral · Minhas Demandas · Tarefas · Clientes · Documentos · Perfil
+- Cada demanda mostra cliente, produto, etapa atual, SLA, próxima ação — card com timeline mini
+- Tarefas: kanban simplificado (A fazer / Em andamento / Concluído) com drag opcional, no mobile vira lista swipeable
+- Sem link de indicação
 
-## 1. Banco (1 migration)
+#### 2.2 ProviderPanel (`/prestador`)
+- Hero teal: demandas atribuídas, prazo médio, avaliação
+- Tabs: Visão geral · Demandas · Reportar Status · Documentos · Faturamento · Perfil
+- Form de reportar status com upload de comprovante
+- Sem link de indicação
 
-```sql
--- 1. Tipos novos
-CREATE TYPE task_kind AS ENUM ('tarefa', 'reuniao', 'ligacao', 'pendencia_documento', 'lembrete', 'follow_up');
+#### 2.3 PartnerPanel (`/parceiro`)
+- Hero violet: comissões do mês, comissões pendentes, total pago
+- Tabs: Visão geral · Meus Clientes · Comissões · Extrato · Perfil
+- Gráfico simples (recharts) de comissões últimos 6 meses
+- **Sem link/aba de indicação** (remover qualquer botão "Indicar")
 
--- 2. Estender tasks
-ALTER TABLE tasks 
-  ADD COLUMN kind task_kind NOT NULL DEFAULT 'tarefa',
-  ADD COLUMN location text,           -- pra reuniões (endereço/link)
-  ADD COLUMN meeting_url text,        -- link Meet/Zoom
-  ADD COLUMN duration_minutes int,    -- duração estimada
-  ADD COLUMN reminder_minutes int,    -- avisar X min antes
-  ADD COLUMN visible_to_client boolean DEFAULT false,
-  ADD COLUMN outcome text;            -- resultado (pra ligações/reuniões pós-execução)
+#### 2.4 ReferrerPanel (`/indicador`)
+- Hero amber: indicações ativas, conversão, ganhos
+- Tabs: Visão geral · Minhas Indicações · Histórico · Perfil
+- Sem botão "Nova Indicação WhatsApp" — apenas acompanhamento. Remover o link de indicação adicionado anteriormente.
 
-CREATE INDEX idx_tasks_kind ON tasks(kind);
-CREATE INDEX idx_tasks_due_client ON tasks(due_date, client_id);
+#### 2.5 ClientPanel (`/cliente`)
+- Hero blue: status do serviço atual, próxima ação requerida, % progresso
+- Tabs: Visão geral · Meus Serviços · Documentos · Contratos · Pagamentos · Suporte · Perfil
+- Documentos com upload drag-and-drop, status colorido, prazo
+- Mobile: bottom nav com 5 ícones principais
 
--- 3. Backfill daily_actions → tasks
-INSERT INTO tasks (title, kind, client_id, client_product_id, due_date, priority, status_new, assigned_to, created_by, description, outcome, completed_at)
-SELECT 
-  'Ligação / contato', 'ligacao'::task_kind, client_id, client_product_id, scheduled_date::timestamptz, 
-  priority::text, 
-  CASE status WHEN 'executada' THEN 'concluido' WHEN 'cancelada' THEN 'cancelado' ELSE 'a_fazer' END::task_status_new,
-  assigned_to, created_by, notes, COALESCE(result, execution_notes), executed_at
-FROM daily_actions
-WHERE NOT EXISTS (SELECT 1 FROM tasks t WHERE t.kind = 'ligacao' AND t.client_id = daily_actions.client_id AND t.due_date = daily_actions.scheduled_date::timestamptz);
+### 3. Mobile
+- Todos os painéis ganham `MobileBottomNav` com 5 itens fixos
+- Header colapsa para 56px no mobile, esconde labels longos
+- Cards full-width com padding reduzido (`px-4` no mobile vs `px-8` no desktop)
+- Sidebar desktop vira Sheet (drawer) no mobile, acessível via menu hamburger
+- Testar em 375px, 768px, 1280px
 
--- 4. Trigger pra notificar quando vencendo hoje (cron job às 8h)
--- + reuso do notify_on_task_assign existente
+### 4. Arquivos a criar/editar
+**Criar:**
+- `src/components/panels/PanelShell.tsx`
+- `src/components/panels/PanelHero.tsx`
+- `src/components/panels/KpiCard.tsx`
+- `src/components/panels/SectionCard.tsx`
+- `src/components/panels/MobileBottomNav.tsx`
+- `src/components/panels/EmptyState.tsx`
+- `supabase/migrations/<ts>_admin_delete_product_cascade.sql`
+
+**Reescrever do zero:**
+- `src/pages/CollaboratorPanel.tsx`
+- `src/pages/ProviderPanel.tsx`
+- `src/pages/PartnerPanel.tsx`
+- `src/pages/ReferrerPanel.tsx`
+- `src/pages/ClientPanel.tsx`
+
+**Editar:**
+- `src/pages/Products.tsx` — novo dialog de exclusão (excluir cascade vs desativar)
+- `src/pages/ProductDetail.tsx` — mesma lógica
+- `src/index.css` — adicionar tokens de accent por papel (`--accent-collab`, `--accent-provider`, etc.)
+
+### 5. Não-mudanças
+- Admin (`/admin/*`) permanece intacto (tema claro premium B2B já aprovado)
+- Esquema de banco existente não muda (apenas RPC nova)
+- Auth e roteamento permanecem
+
+### Diagrama de navegação mobile (todos os painéis)
+```text
+┌─────────────────────┐
+│  Header (56px)      │ ← avatar, sino, menu
+├─────────────────────┤
+│                     │
+│   Hero + conteúdo   │
+│   (scroll)          │
+│                     │
+├─────────────────────┤
+│ 🏠 📋 ✅ 📄 👤      │ ← bottom nav (64px, safe-area)
+└─────────────────────┘
 ```
 
-## 2. Página única `/agenda`
-
-Substitui no menu lateral: **Tarefas** e **Atuações** (Demandas continua com sua página separada, porque tem fluxo próprio de SLA/etapas/kanban de produção). A Agenda inclui demandas como **referência cruzada** (ver linha "Demanda XYZ: próximo prazo dia tal").
-
-**Views (tabs no topo)**:
-1. **Hoje** — agrupado por horário, destaque pro que está atrasado em vermelho no topo
-2. **Esta semana** — timeline horizontal seg→dom
-3. **Atrasados** — só o que passou e não tá concluído
-4. **Próximos** — 30 dias à frente
-5. **Calendário** — mês cheio, eventos clicáveis
-6. **Kanban** — colunas a_fazer / em_andamento / aguardando / concluído
-7. **Concluídos** — histórico com busca + filtro de período
-
-**Filtros sempre visíveis**: tipo (tarefa/reunião/ligação/pendência doc), cliente, responsável, prioridade, "só meus".
-
-**Card de item** (compacto, legível):
-- Pill com ícone+cor do tipo (📋 tarefa, 📅 reunião, 📞 ligação, 📄 pendência doc)
-- Título + cliente (com link pra ficha)
-- Horário + duração se houver
-- Responsável (avatar)
-- Badge SLA: "Hoje 14h" / "Atrasou 2 dias" / "Em 3 dias"
-- Ações inline: ✓ Concluir | ⏰ Reagendar | ✏️ Editar | 🗑️
-
-**Botão "Criar" único** abre dialog com:
-- Tipo (radio): Tarefa / Reunião / Ligação / Pendência de documento / Lembrete
-- Campos dinâmicos por tipo:
-  - Reunião → data+hora, duração, local/link, participantes
-  - Ligação → cliente obrigatório, melhor horário, notas
-  - Pendência doc → cliente, qual documento (lista de templates + custom), prazo
-  - Tarefa → genérica
-- Vincular a cliente (autocomplete) — quando preenchido, aparece automaticamente na ficha do cliente
-- Responsável (default = eu)
-- Prioridade
-- Lembrete (opção: 15min / 1h / 1 dia antes — gera notificação)
-
-## 3. Linha do tempo no ClientDetail
-
-Nova aba **"Atividades"** no `ClientDetail.tsx` agregando, em ordem cronológica reversa:
-- Reuniões realizadas/agendadas
-- Ligações com resultado
-- Documentos solicitados/recebidos
-- Demandas iniciadas/concluídas
-- Pagamentos / contratos assinados (do audit log já existente)
-
-Botão "+ Agendar reunião" / "+ Pedir documento" inline na aba.
-
-## 4. Notificações
-
-- Trigger ao criar/atribuir → já existe (`notify_on_task_assign`)
-- Cron diário 8h: notifica responsável dos itens **do dia** e dos **atrasados**
-- `reminder_minutes` antes do evento (reunião): notifica em tempo real via Edge Function chamada por pg_cron
-
-## 5. Rotas e menu
-
-- `/agenda` — nova página
-- `/tarefas` → redirect `/agenda`
-- `/atuacoes` → redirect `/agenda?tipo=ligacao`
-- `/demandas` continua igual (fluxo de produção é diferente)
-- Sidebar passa a ter: **Demandas** + **Agenda** (em vez de Demandas+Atuações+Tarefas)
-- QuickCreate: "Nova Tarefa" + "Nova Reunião" + "Nova Ligação" + "Pedir documento"
-
-## 6. Detalhe de implementação
-
-| Arquivo | Ação |
-|---|---|
-| Migration nova | enum, colunas, índices, backfill |
-| `src/pages/Agenda.tsx` | **nova** página com 7 views |
-| `src/components/agenda/AgendaItemCard.tsx` | card universal |
-| `src/components/agenda/CreateAgendaItemDialog.tsx` | dialog único com switch de tipo |
-| `src/components/agenda/AgendaCalendar.tsx` | view mês |
-| `src/components/agenda/AgendaWeek.tsx` | view semana |
-| `src/components/agenda/AgendaKanban.tsx` | view kanban |
-| `src/components/clients/tabs/ClientTimelineTab.tsx` | **nova** aba no ClientDetail |
-| `src/App.tsx` | rota /agenda + redirects |
-| `src/components/admin/AdminSidebar.tsx` | remove Tarefas/Atuações, adiciona Agenda |
-| `src/pages/Tasks.tsx`, `src/pages/Atuacoes.tsx` | mantidos por compatibilidade interna mas sem link no menu (podem ser apagados depois) |
-| `src/components/QuickCreateButton.tsx` | adiciona Reunião + Pedir doc |
-| Cron job (pg_cron) | aviso diário de pendências do dia |
-
-## Fora de escopo
-
-- Não migrar demandas (`client_products`) — entidade diferente, mantém fluxo próprio
-- Não dropar `daily_actions` agora — só backfill + parar de escrever; remoção em migration futura
-- Integração com Google Calendar / Outlook (pode vir depois)
-
-Posso executar?
+### Estimativa
+~7 arquivos novos, 5 reescritos, 3 editados, 1 migração. Trabalho grande mas focado.
