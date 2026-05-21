@@ -1,71 +1,82 @@
-# Arrumar o cadastro de cliente (e o que vem junto)
+# Limpeza geral: health score fora, topbar/busca/criar arrumados, dark mode premium, bugs de dados antigos
 
-## Diagnóstico do que tá quebrado hoje
+## 1. Tirar "Saúde / Health Score / Risco de Cancelamento" de tudo
 
-Olhando o `ClientFormDialog.tsx` e o banco, achei o seguinte:
+Some por completo da interface (campo continua existindo no banco pra não quebrar nada, só não aparece mais):
 
-1. **Campos de comissão no cliente não geram comissão nenhuma.** Os campos "Comissão parceiro/indicador/colaborador (%)" e "Valor do contrato" são salvos em colunas da tabela `clients`, mas o sistema só gera comissão e split quando existe uma **venda** (`sales`) — pelos triggers `handle_new_sale` e `handle_sale_splits`. Ou seja: preencher comissão no cliente nunca virou comissão nenhuma. Por isso "parceiro/indicador/colaborador não funciona realmente".
-2. **"Salvando..." infinito**: quando algo falha depois do insert (ex.: insert em `onboarding_documents`, ou edge function `invite-user` retorna erro de rede sem mensagem clara), o botão fica preso ou exibe toast estranho. Algumas branches saem com `setSubmitting(false)` certinho, outras dependem do toast e o estado de loading não some se o `invoke` travar.
-3. **Onboarding não funciona direito**: o form coleta "Etapas Obrigatórias" e "Aprovação Manual", mas isso **não é persistido em lugar nenhum**. `manual_approval_required` é enviado ao `invite-user`, e mesmo assim só funciona se o cliente tiver `user_id` (o que só acontece quando "Criar acesso" está ligado). Sem acesso = nada do onboarding existe.
-4. **Comissão quando muda de pendente → pago não divide certo**: o trigger `sync_commission_split_status` só roda quando o status da `commissions` muda; quando o `payments` vira "pago", o `maybe_release_commission` muda `workflow_status` (não `status`), então o split não é marcado como pago. Resultado: split fica eternamente "pendente" mesmo com pagamento confirmado.
-5. **Muito campo inútil** no form: `health_score`, `churn_risk`, `tags`, "Engajamento", lista de status com 19 opções, "Comissão (R$)" solto, "Valor do contrato" (que pertence à venda, não ao cliente), `service_provider_id` (delegar prestador é feito por demanda via `DelegateProviderDialog`).
+- `src/components/clients/IntelligentSummary.tsx` — remove o bloco do Heart + score + churn risk
+- `src/pages/ClientDetail.tsx` — remove o card de health score, o badge de risco e o `<EngagementCard />`
+- `src/pages/DashboardAdmin.tsx` — remove qualquer widget que ainda mostre saúde
+- `src/components/clients/ClientFormDialog.tsx` — já tirei na última passada, só conferir
 
-## O que vou fazer
+## 2. Criação Rápida mais bonita e funcional
 
-### 1. Simplificar drasticamente o `ClientFormDialog`
+Redesenhar o dropdown `QuickCreateButton`:
 
-Manter só o que faz sentido **para cadastrar um cliente** (dados pessoais + acesso + onboarding). Tudo que é de **venda/comissão** sai daqui e vai pro fluxo de venda (`Sales`), que é onde funciona de verdade.
+- Largura maior (288px), padding mais respirado
+- Cada item vira card com **ícone colorido em pill** (azul pra cliente, indigo pra demanda, âmbar pra documento, etc.) — não mais ícone cinza solto
+- Header com gradiente sutil + descrição curta ("Atalhos para criar registros sem sair da tela")
+- Atalho de teclado funcional: registrar listener global pra `C`, `D`, `T`, `U`, `K`, `P`, `R`, `F` (quando nenhum input estiver focado)
+- Hover state premium com leve translate
 
-**Mantém:**
-- Dados pessoais: Nome*, Email, Telefone, CPF/CNPJ, Empresa, Nascimento
-- Endereço com CEP (lookup automático)
-- Origem do cliente, Status (lista enxuta: `novo_cliente`, `ativo`, `inativo`, `cancelado`)
-- Parceiro / Indicador / Colaborador responsáveis (só vínculo, **sem campos de %**)
-- Observações internas
-- Criar acesso ao painel (email + senha, igual hoje)
-- Pendências de documentos (templates + customizados) — agora gravando em `onboarding_documents` **mesmo sem user_id**, e aparecendo quando o cliente logar
-- Configuração de onboarding (etapas obrigatórias + aprovação manual)
+## 3. Topbar mais clean + busca funcionando
 
-**Remove do form do cliente:**
-- Valor do contrato, Comissão (R$), Comissão parceiro %, Comissão indicador %, Comissão colaborador %, Status de pagamento → tudo isso pertence a **Venda**, não a Cliente
-- Prestador de serviço (já existe `DelegateProviderDialog` por demanda)
-- Engajamento, Risco, Tags (movido para edição na ficha do cliente, não no cadastro)
-- Lista de 19 status reduzida pra 4
+**Por que a busca não funciona hoje**: o `AdminLayout` dispara um evento Cmd+K fake, mas o `<GlobalSearch />` **não está montado em lugar nenhum** dentro do shell admin. O componente só existe no `AppLayout` (portal do cliente). Resultado: clicar no campo de busca não faz nada.
 
-### 2. Persistir o onboarding de verdade
+Correção:
+- Mover/montar `<GlobalSearch />` controlado dentro do `AdminLayout` (estado `searchOpen`, passado pro `AdminHeader`)
+- `AdminHeader` chama `setSearchOpen(true)` direto no clique, sem hack de KeyboardEvent
+- Atalho Cmd+K listener no próprio AdminLayout
 
-- Salvar `mandatory_steps` (jsonb) e `manual_approval_required` numa nova coluna em `clients` (não depende de profile/user_id).
-- `ClientOnboarding.tsx` passa a ler `mandatory_steps` do cliente e só mostrar as etapas marcadas.
-- `complete_client_onboarding()` respeita `manual_approval_required` (se true, marca como `aguardando_aprovacao` ao invés de `completo`).
+Redesign visual do header:
+- Reduzir poluição: remover o badge "Operação online" e o "Central Admin" (não agregam info útil, ocupam espaço)
+- Campo de busca: maior (h-11), borda mais sutil, ícone à esquerda mais elegante, kbd hint refinado
+- Espaçamento generoso entre breadcrumb, busca e ações
+- Botões de ação (theme, chat, notif) padronizados em pills uniformes de 36px
 
-### 3. Acabar com o "Salvando..." infinito
+## 4. Bugs de dados antigos ("scanner geral")
 
-- Envolver o `submit` em `try/catch/finally`, com `setSubmitting(false)` no `finally` — garantido.
-- Timeout de 15s no `supabase.functions.invoke("invite-user")` (Promise.race) — se travar, mostra erro e libera o botão.
-- Mesmo padrão aplicado nos outros dialogs de criação que têm `Salvando...` (Produtos, Vendas, Colaboradores, Demandas, Tarefas) — varredura rápida pra padronizar.
+Auditoria nos fluxos de delete e nas listagens:
 
-### 4. Corrigir o split de comissão quando paga
+| Entidade | Onde verificar |
+|---|---|
+| Clients | `Clients.tsx` delete handler + selects em forms |
+| Partners | `Partners.tsx`, `PartnerDetail.tsx`, todos `partners-select` queries |
+| Collaborators | `Collaborators.tsx` delete + caches |
+| Providers | `Providers.tsx`, `service-providers-select` |
+| Referrers | `Indicators.tsx` |
 
-Migration ajustando o trigger `maybe_release_commission` para, além de mudar `workflow_status`, **também atualizar `status` da commission para `pago` e marcar `paid_at`** quando o payment vira pago. Aí o `sync_commission_split_status` propaga corretamente para `commission_splits`.
+Ações:
+- Todo delete chama `qc.invalidateQueries()` para **todas** as queryKeys que referenciam aquela entidade (não só a lista da página atual)
+- Selects que carregam parceiros/colaboradores/etc filtram `active=true` (alguns já fazem, outros não — vou padronizar)
+- Listagens principais filtram `active=true` por padrão, com toggle "Mostrar inativos" pra admin
+- Onde o delete é só soft-delete (set active=false), garantir que os triggers/queries dependentes (commissions, sales) também respeitem o flag
 
-Adicionalmente: se o payment volta de pago → pendente, reverter commission para `pendente` e split também.
+Não vou dropar dados existentes — só esconder corretamente. Se tiver órfãos no banco (ex.: partner_id apontando pra parceiro deletado), faço uma migration de cleanup opcional ao final.
 
-### 5. Limpar colunas mortas (opcional, não destrutivo)
+## 5. Dark mode premium (azul escuro mais clarinho)
 
-Não vou dropar colunas do banco (risco de quebrar algo). Apenas paro de gravar/ler campos que ninguém usa. O schema fica "sujo" mas estável; podemos limpar depois com calma.
+Hoje o dark está **quase preto puro** — agressivo e cansativo. Vou mudar a paleta CSS em `src/index.css`:
 
-## Arquivos afetados
+```css
+.dark {
+  --background: 222 28% 11%;     /* navy escuro suave (era ~5% lightness) */
+  --card: 222 26% 14%;
+  --popover: 222 26% 15%;
+  --muted: 222 22% 18%;
+  --accent: 222 22% 20%;
+  --border: 222 20% 22%;
+  --foreground: 220 15% 92%;
+  --primary: 231 80% 64%;        /* indigo mais brilhante pra contrastar */
+}
+```
 
-- `src/components/clients/ClientFormDialog.tsx` — reescrita enxuta
-- `src/pages/ClientOnboarding.tsx` — ler `mandatory_steps`
-- `supabase/migrations/*` — adicionar `clients.mandatory_steps` + `clients.manual_approval_required`; corrigir trigger `maybe_release_commission`; atualizar `complete_client_onboarding()`
-- Varredura: `ProductFormDialog`, `SaleFormDialog`, `CreateCollaboratorDialog`, `TaskFormDialog`, `DemandFormDialog` → padronizar try/finally + timeout no invoke
+Tom = "Linear dark mode" — azul-marinho premium em vez de preto. Texto fica mais legível, cards se destacam do fundo, bordas visíveis sem agredir.
 
-## Fora de escopo (pra não inchar)
+## Fora de escopo
 
-- Reformatar a tabela de listagem de clientes
-- Mexer no fluxo de venda em si (só corrige o split)
-- Dropar colunas legadas do banco
-- Refatorar `DelegateProviderDialog`
+- Reescrever inteiro nenhum dashboard
+- Mudar o tema light (continua o admin claro premium)
+- Renomear/remover colunas do banco (`health_score`, `churn_risk` ficam lá, só não aparecem)
 
-Confirma se posso seguir assim? Se quiser que eu mantenha algum campo que estou removendo (ex.: tags no cadastro), me avisa antes.
+Confirma que posso executar? Se quiser que eu mantenha health score em **alguma** tela específica (tipo só na ficha do cliente), me avisa antes.
