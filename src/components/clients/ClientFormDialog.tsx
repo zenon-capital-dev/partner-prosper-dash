@@ -448,7 +448,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               </SelectContent>
             </Select>
           </div>
-          <div className="sm:col-span-2 space-y-2">
+          <div className="space-y-2">
             <Label>Colaborador responsável</Label>
             <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
               <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
@@ -457,8 +457,22 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                 {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Prestador padrão</Label>
+            <Select value={form.service_provider_id ?? "none"} onValueChange={(v) => setForm({ ...form, service_provider_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem prestador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem prestador</SelectItem>
+                {providers?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}{p.specialty ? ` · ${p.specialty}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="sm:col-span-2 -mt-2">
             <p className="text-[11px] text-muted-foreground">
-              Comissões e valores são definidos quando você registra uma <strong>venda</strong> para este cliente.
+              Esses vínculos alimentam automaticamente o painel do parceiro, do prestador, do colaborador e as demandas abertas.
             </p>
           </div>
 
