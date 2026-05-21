@@ -21,10 +21,24 @@ interface Props {
 }
 
 /**
+ * Devolve a home canônica de cada role. Usado para mandar o usuário
+ * direto pro painel dele quando ele tentar entrar em área proibida.
+ */
+function homeForRoles(roles: string[]): string {
+  if (roles.includes("admin") || roles.includes("admin_secondary") || roles.includes("vendedor")) return "/admin";
+  if (roles.includes("colaborador")) return "/colaborador";
+  if (roles.includes("parceiro")) return "/parceiro";
+  if (roles.includes("prestador")) return "/prestador";
+  if (roles.includes("indicador")) return "/indicador";
+  if (roles.includes("cliente") || roles.includes("lead")) return "/portal-cliente";
+  return "/";
+}
+
+/**
  * Single source of truth for auth + role gating.
  * - Waits for session AND roles to be fully loaded before deciding.
  * - Redirects unauthenticated users to /auth.
- * - Redirects authenticated users without the required role to their own home.
+ * - Redirects authenticated users without the required role direto pro painel deles.
  */
 export function RouteGuard({ allow, children }: Props) {
   const { user, loading, roles } = useAuth();
@@ -41,8 +55,10 @@ export function RouteGuard({ allow, children }: Props) {
   if (allow && allow.length > 0) {
     const ok = roles.some((r) => allow.includes(r as AppRole));
     if (!ok) {
-      // Send the user to root, where RoleHome routes them to their own panel.
-      return <Navigate to="/" replace />;
+      const home = homeForRoles(roles);
+      // Se já estamos na home da role, evita loop e cai pra "/".
+      if (home === pathname) return <Navigate to="/" replace />;
+      return <Navigate to={home} replace />;
     }
   }
 
