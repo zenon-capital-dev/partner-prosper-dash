@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useCepLookup } from "@/hooks/useCepLookup";
+
 import {
   UserCircle, Search, Plus, Mail, Phone, Shield, Loader2, Copy, Users2, ShieldCheck,
   Crown, KeyRound, MoreHorizontal, Pencil, Power, Trash2, Download, X, ArrowUp, ArrowDown,
