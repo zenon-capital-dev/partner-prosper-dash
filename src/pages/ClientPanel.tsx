@@ -101,7 +101,7 @@ export default function ClientPanel() {
       const [docs, catalog, requests, contracts, payments, granularProducts, reports, formalDeliveries] = await Promise.all([
         safe(supabase.from("documents").select("*, products(name)").eq("client_id", client.id).order("created_at", { ascending: false })),
         safe(supabase.from("products").select("id, name, description, base_price, recurring, product_categories(name, color)").eq("active", true)),
-        safe(supabase.from("document_requests").select("*").eq("client_id", client.id).order("requested_at", { ascending: false })),
+        safe(supabase.from("client_document_requests").select("id, client_id, client_product_id, title, description, status, due_date, file_url, reviewed_at, created_at, updated_at").eq("client_id", client.id).order("created_at", { ascending: false })),
         safe(supabase.from("contracts").select("id, name, status, amount, signed_at, sent_at, file_path, created_at, products(name)").eq("client_id", client.id).order("created_at", { ascending: false })),
         safe(supabase.from("payments").select("id, amount, due_date, status, paid_at, payment_method, installment_number, installments_count").eq("client_id", client.id).order("due_date", { ascending: false })),
         safe(supabase.from("client_products").select("id, client_id, product_id, custom_product_name, status, value, custom_value, discount, priority, sla_start_date, sla_due_date, sla_status, is_sla_frozen, deadline, start_date, end_date, current_step_id, current_steps, notes, adjustment_description, adjustment_due_date, delay_reason, created_at, updated_at, company_id, service_provider_id, responsible_provider_id, products(name, description), companies(id, name, trade_name)").eq("client_id", client.id).order("created_at", { ascending: false })),
@@ -147,8 +147,8 @@ export default function ClientPanel() {
   const allDocumentItems = [
     ...allDocs.map((d: any) => ({ ...d, source: "documents" })),
     ...requests.map((r: any) => ({
-      ...r, source: "document_requests", name: r.request_title, file_path: r.file_url,
-      due_date: r.deadline, uploaded_at: r.submission_date, reviewed_at: r.approval_date, created_at: r.requested_at,
+      ...r, source: "document_requests", name: r.title, file_path: r.file_url,
+      due_date: r.due_date, uploaded_at: r.file_url ? r.updated_at : null, reviewed_at: r.reviewed_at, created_at: r.created_at,
     })),
   ];
 

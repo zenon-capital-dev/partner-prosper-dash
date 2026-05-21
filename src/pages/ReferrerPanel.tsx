@@ -40,12 +40,15 @@ export default function ReferrerPanel() {
   });
 
   const totals = useMemo(() => {
-    if (!data) return { total: 0, paid: 0, pending: 0 };
+    if (!data) return { total: 0, paid: 0, pending: 0, conversion: 0 };
     const splits = data.splits;
     const total = splits.reduce((s, x: any) => s + Number(x.amount), 0);
     const paid = splits.filter((x: any) => x.status === "pago").reduce((s, x: any) => s + Number(x.amount), 0);
     const pending = splits.filter((x: any) => x.status === "pendente").reduce((s, x: any) => s + Number(x.amount), 0);
-    return { total, paid, pending };
+    const totalClients = data.clients.length;
+    const activeClients = data.clients.filter((c: any) => c.status === "ativo").length;
+    const conversion = totalClients > 0 ? Math.round((activeClients / totalClients) * 100) : 0;
+    return { total, paid, pending, conversion };
   }, [data]);
 
   if (isLoading) return (
@@ -92,7 +95,11 @@ export default function ReferrerPanel() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Button size="lg" className="rounded-full bg-slate-900 hover:bg-slate-800 text-white px-8 h-14 font-bold tracking-wide shadow-xl shadow-slate-200">
+            <Button
+              size="lg"
+              onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent("Olá! Quero indicar um novo cliente. Aqui estão os dados de contato:")}`, "_blank")}
+              className="rounded-full bg-slate-900 hover:bg-slate-800 text-white px-8 h-14 font-bold tracking-wide shadow-xl shadow-slate-200"
+            >
               Nova Indicação <Share2 className="size-4 ml-2" />
             </Button>
           </div>
@@ -113,11 +120,11 @@ export default function ReferrerPanel() {
             description="Aguardando liquidação"
             highlight
           />
-          <IndicadorStat 
-            icon={Award} 
-            label="Taxa de Conversão" 
-            value={`${clients.length > 0 ? "84%" : "0%"}`} 
-            description="Das indicações enviadas"
+          <IndicadorStat
+            icon={Award}
+            label="Taxa de Conversão"
+            value={`${totals.conversion}%`}
+            description="Indicados que viraram clientes ativos"
           />
         </div>
 
@@ -177,7 +184,7 @@ export default function ReferrerPanel() {
                         <td className="px-8 py-6 text-slate-400 font-medium">{formatDate(s.created_at)}</td>
                         <td className="px-8 py-6">
                           <p className="font-bold text-slate-900">{s.sales?.clients?.full_name || "Venda Direta"}</p>
-                          <p className="text-[11px] text-slate-500 font-medium">{s.sales?.products?.name || "Premium Service"}</p>
+                          <p className="text-[11px] text-slate-500 font-medium">{s.sales?.products?.name || "Produto"}</p>
                         </td>
                         <td className="px-8 py-6 text-right font-editorial text-xl font-bold text-emerald-600">
                           {formatBRL(s.amount)}
