@@ -128,7 +128,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
           client_product_id: clientProductId,
           partner_id: lead.partner_id || null,
           product_id: form.product_id || null,
-          contract_type: form.contract_type || "padrao",
+          contract_type: form.contract_type || "cliente",
           contract_kind: "cliente",
           status: "criado",
           amount: form.contract_value ? Number(form.contract_value) : null,
