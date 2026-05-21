@@ -703,39 +703,98 @@ function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess
   );
 }
 
+function generateStrongPassword(): string {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnpqrstuvwxyz";
+  const digits = "23456789";
+  const symbols = "!@#$%&*";
+  const all = upper + lower + digits + symbols;
+  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
+  let pw = pick(upper) + pick(lower) + pick(digits) + pick(symbols);
+  for (let i = 0; i < 8; i++) pw += pick(all);
+  return pw.split("").sort(() => Math.random() - 0.5).join("");
+}
+
 function CreateCollaboratorDialog({
   open, onOpenChange, onCreated,
 }: { open: boolean; onOpenChange: (v: boolean) => void; onCreated: () => void; }) {
-  const [form, setForm] = useState({
-    email: "",
+  const initialForm = {
+    // Identificação
     full_name: "",
+    document_number: "",
+    email: "",
     phone: "",
+    // Cargo
+    position: "",
+    department: "",
+    admission_date: "",
+    // Endereço
+    address_zip: "",
+    address_street: "",
+    address_number: "",
+    address_complement: "",
+    address_neighborhood: "",
+    address_city: "",
+    address_state: "",
+    // Observações
+    internal_notes: "",
+    // Acesso
     role: "colaborador" as Role,
     has_system_access: true,
-    internal_notes: "",
-    send_invite: true,
     password: "",
-  });
+    password_confirm: "",
+  };
+  const [form, setForm] = useState(initialForm);
+  const [tab, setTab] = useState<"dados" | "acesso">("dados");
   const [loading, setLoading] = useState(false);
-  const [tempPassword, setTempPassword] = useState<string | null>(null);
+  const [created, setCreated] = useState<{ email: string; password: string | null } | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+  const { lookup } = useCepLookup();
 
-  const reset = () => {
-    setForm({
-      email: "", full_name: "", phone: "",
-      role: "colaborador", has_system_access: true,
-      internal_notes: "", send_invite: true, password: "",
-    });
-    setTempPassword(null);
+  const reset = () => { setForm(initialForm); setTab("dados"); setCreated(null); };
+
+  // Regras de senha em tempo real
+  const pw = form.password;
+  const pwRules = {
+    len: pw.length >= 8,
+    letter: /[A-Za-z]/.test(pw),
+    digit: /\d/.test(pw),
+    match: pw.length > 0 && pw === form.password_confirm,
+  };
+  const passwordValid = pwRules.len && pwRules.letter && pwRules.digit && pwRules.match;
+
+  const handleCepBlur = async () => {
+    const digits = onlyDigits(form.address_zip);
+    if (digits.length !== 8) return;
+    setCepLoading(true);
+    const data = await lookup(digits);
+    setCepLoading(false);
+    if (data) {
+      setForm((f) => ({
+        ...f,
+        address_street: f.address_street || data.street,
+        address_neighborhood: f.address_neighborhood || data.neighborhood,
+        address_city: f.address_city || data.city,
+        address_state: f.address_state || data.state,
+      }));
+    }
   };
 
   const submit = async () => {
     const name = form.full_name.trim();
     const email = form.email.trim();
-    if (!name) { toast.error("Nome obrigatório"); return; }
-    if (!email || !isEmail(email)) { toast.error("E-mail inválido"); return; }
-    if (form.password && form.password.length < 8) { toast.error("Senha deve ter pelo menos 8 caracteres"); return; }
+    if (!name) { toast.error("Nome obrigatório"); setTab("dados"); return; }
+    if (!email || !isEmail(email)) { toast.error("E-mail inválido"); setTab("dados"); return; }
+    if (form.has_system_access) {
+      if (!passwordValid) {
+        toast.error("Defina uma senha válida (8+ caracteres, com letra e número, e confirme)");
+        setTab("acesso");
+        return;
+      }
+    }
     setLoading(true);
     try {
+      const passwordToSend = form.has_system_access ? form.password : undefined;
       const { data, error } = await supabase.functions.invoke("invite-user", {
         body: {
           email,
@@ -744,17 +803,31 @@ function CreateCollaboratorDialog({
           role: form.role,
           has_system_access: form.has_system_access,
           internal_notes: form.internal_notes || undefined,
-          send_invite: form.send_invite && !form.password,
-          password: form.password || undefined,
+          send_invite: false,
+          password: passwordToSend,
+          document_number: form.document_number ? onlyDigits(form.document_number) : undefined,
+          address_zip: form.address_zip ? onlyDigits(form.address_zip) : undefined,
+          address_zip_code: form.address_zip ? onlyDigits(form.address_zip) : undefined,
+          address_street: form.address_street || undefined,
+          address_number: form.address_number || undefined,
+          address_complement: form.address_complement || undefined,
+          address_neighborhood: form.address_neighborhood || undefined,
+          address_city: form.address_city || undefined,
+          address_state: form.address_state || undefined,
+          position: form.position || undefined,
+          department: form.department || undefined,
+          admission_date: form.admission_date || undefined,
         },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      const tp = (data as any)?.temp_password as string | null;
       toast.success("Colaborador criado");
       onCreated();
-      if (tp) setTempPassword(tp);
-      else { onOpenChange(false); reset(); }
+      if (form.has_system_access) {
+        setCreated({ email, password: form.password });
+      } else {
+        onOpenChange(false); reset();
+      }
     } catch (e: any) {
       toast.error(e.message ?? "Erro ao criar colaborador");
     } finally {
@@ -762,86 +835,249 @@ function CreateCollaboratorDialog({
     }
   };
 
+  const Rule = ({ ok, text }: { ok: boolean; text: string }) => (
+    <li className={cn("flex items-center gap-1.5 text-xs", ok ? "text-emerald-600" : "text-slate-400")}>
+      <span className={cn("inline-block size-1.5 rounded-full", ok ? "bg-emerald-500" : "bg-slate-300")} />
+      {text}
+    </li>
+  );
+
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
-      <DialogContent className="max-w-xl bg-white">
+      <DialogContent className="max-w-2xl bg-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl text-slate-900">Cadastrar colaborador</DialogTitle>
         </DialogHeader>
 
-        {tempPassword ? (
+        {created ? (
           <div className="space-y-4 py-2">
             <div className="p-4 rounded-lg border border-emerald-200 bg-emerald-50">
-              <p className="text-sm font-bold text-emerald-800 mb-1">Senha temporária gerada</p>
+              <p className="text-sm font-bold text-emerald-800 mb-1">Colaborador criado com sucesso</p>
               <p className="text-xs text-emerald-700 mb-3">
-                Compartilhe com o colaborador. Ele poderá alterá-la após o primeiro login.
+                Compartilhe as credenciais abaixo com o colaborador. Ele poderá trocar a senha após o primeiro login.
               </p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-white border border-emerald-200 rounded px-3 py-2 font-mono text-sm">
-                  {tempPassword}
-                </code>
-                <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(tempPassword); toast.success("Copiado"); }}>
-                  <Copy className="size-3.5" />
-                </Button>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700/70 mb-1">E-mail</p>
+                  <code className="block bg-white border border-emerald-200 rounded px-3 py-2 font-mono text-sm">{created.email}</code>
+                </div>
+                {created.password && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700/70 mb-1">Senha</p>
+                    <code className="block bg-white border border-emerald-200 rounded px-3 py-2 font-mono text-sm">{created.password}</code>
+                  </div>
+                )}
               </div>
+              {created.password && (
+                <Button
+                  size="sm" variant="outline" className="mt-3 w-full"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`E-mail: ${created.email}\nSenha: ${created.password}`);
+                    toast.success("Credenciais copiadas");
+                  }}
+                >
+                  <Copy className="size-3.5 mr-1.5" /> Copiar credenciais
+                </Button>
+              )}
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={reset} className="sm:mr-auto">Cadastrar outro</Button>
               <Button onClick={() => { onOpenChange(false); reset(); }} className="bg-indigo-600 hover:bg-indigo-700 text-white">Fechar</Button>
             </DialogFooter>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-              <div className="space-y-1.5">
-                <Label>Nome completo *</Label>
-                <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: Ana Silva" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>E-mail *</Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ana@empresa.com" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Telefone</Label>
-                <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Função</Label>
-                <Select value={form.role} onValueChange={(v: any) => setForm({ ...form, role: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="colaborador">Colaborador</SelectItem>
-                    <SelectItem value="admin_secondary">Admin Secundário</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5 col-span-1 sm:col-span-2 flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
-                <div>
-                  <Label>Acesso ao sistema</Label>
-                  <p className="text-xs text-slate-500">Permite login na plataforma.</p>
-                </div>
-                <Switch checked={form.has_system_access} onCheckedChange={(v) => setForm({ ...form, has_system_access: v })} />
-              </div>
-              <div className="space-y-1.5 col-span-1 sm:col-span-2">
-                <Label>Senha inicial (opcional)</Label>
-                <Input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Se vazio, um convite será enviado"
-                />
-              </div>
-              <div className="space-y-1.5 col-span-1 sm:col-span-2">
-                <Label>Observações internas</Label>
-                <Textarea value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} placeholder="Ex: Setor comercial, turno manhã..." />
-              </div>
+            <div className="flex gap-1 border-b border-slate-200 -mx-6 px-6">
+              <button
+                type="button"
+                onClick={() => setTab("dados")}
+                className={cn("px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+                  tab === "dados" ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-700")}
+              >
+                1. Dados do colaborador
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("acesso")}
+                className={cn("px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+                  tab === "acesso" ? "border-indigo-600 text-indigo-700" : "border-transparent text-slate-500 hover:text-slate-700")}
+              >
+                2. Acesso ao sistema
+              </button>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button disabled={loading} onClick={submit} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                {loading && <Loader2 className="size-4 animate-spin mr-2" />}
-                Cadastrar
-              </Button>
+
+            {tab === "dados" && (
+              <div className="space-y-4 py-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Identificação</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>Nome completo *</Label>
+                      <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} placeholder="Ex: Ana Maria Silva" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>CPF</Label>
+                      <MaskedInput mask="cpf" value={form.document_number} onChange={(v) => setForm({ ...form, document_number: v })} placeholder="000.000.000-00" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>E-mail *</Label>
+                      <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ana@empresa.com" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Telefone</Label>
+                      <MaskedInput mask="phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="(00) 00000-0000" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Cargo e setor</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                      <Label>Cargo</Label>
+                      <Input value={form.position} onChange={(e) => setForm({ ...form, position: e.target.value })} placeholder="Analista de operações" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Setor / Departamento</Label>
+                      <Input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder="Comercial" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Data de admissão</Label>
+                      <Input type="date" value={form.admission_date} onChange={(e) => setForm({ ...form, admission_date: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Endereço</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-6 gap-3">
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>CEP {cepLoading && <Loader2 className="inline size-3 animate-spin ml-1" />}</Label>
+                      <MaskedInput mask="cep" value={form.address_zip} onChange={(v) => setForm({ ...form, address_zip: v })} onBlur={handleCepBlur} placeholder="00000-000" />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-4">
+                      <Label>Rua</Label>
+                      <Input value={form.address_street} onChange={(e) => setForm({ ...form, address_street: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-1">
+                      <Label>Número</Label>
+                      <Input value={form.address_number} onChange={(e) => setForm({ ...form, address_number: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>Complemento</Label>
+                      <Input value={form.address_complement} onChange={(e) => setForm({ ...form, address_complement: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-3">
+                      <Label>Bairro</Label>
+                      <Input value={form.address_neighborhood} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-4">
+                      <Label>Cidade</Label>
+                      <Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label>UF</Label>
+                      <Input maxLength={2} value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value.toUpperCase() })} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Observações internas</Label>
+                  <Textarea value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} placeholder="Ex: Turno manhã, responsável pelo cliente X..." />
+                </div>
+              </div>
+            )}
+
+            {tab === "acesso" && (
+              <div className="space-y-4 py-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Função no sistema</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {([
+                      { v: "colaborador", t: "Colaborador", d: "Acesso ao painel /colaborador" },
+                      { v: "admin_secondary", t: "Admin Secundário", d: "Acesso ao admin sem gerir admins" },
+                      { v: "admin", t: "Admin", d: "Controle total da plataforma" },
+                    ] as const).map((r) => (
+                      <button
+                        key={r.v}
+                        type="button"
+                        onClick={() => setForm({ ...form, role: r.v })}
+                        className={cn("text-left p-3 border rounded-lg transition-all",
+                          form.role === r.v ? "border-indigo-600 bg-indigo-50 ring-1 ring-indigo-200" : "border-slate-200 hover:border-slate-300 bg-white")}
+                      >
+                        <p className="text-sm font-bold text-slate-900">{r.t}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">{r.d}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50/60">
+                  <div>
+                    <Label>Permitir login no sistema</Label>
+                    <p className="text-xs text-slate-500">Se desligado, o colaborador fica apenas como cadastro interno (sem acesso).</p>
+                  </div>
+                  <Switch checked={form.has_system_access} onCheckedChange={(v) => setForm({ ...form, has_system_access: v })} />
+                </div>
+
+                {form.has_system_access && (
+                  <div className="space-y-3 p-3 border border-indigo-200 bg-indigo-50/40 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-slate-900">Senha de primeiro acesso *</Label>
+                      <Button
+                        type="button" size="sm" variant="outline"
+                        onClick={() => {
+                          const p = generateStrongPassword();
+                          setForm((f) => ({ ...f, password: p, password_confirm: p }));
+                        }}
+                      >
+                        <KeyRound className="size-3.5 mr-1.5" /> Gerar senha forte
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Senha</Label>
+                        <Input type="text" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mínimo 8 caracteres" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Confirmar senha</Label>
+                        <Input type="text" value={form.password_confirm} onChange={(e) => setForm({ ...form, password_confirm: e.target.value })} placeholder="Repita a senha" />
+                      </div>
+                    </div>
+                    <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
+                      <Rule ok={pwRules.len} text="Pelo menos 8 caracteres" />
+                      <Rule ok={pwRules.letter} text="Contém letra" />
+                      <Rule ok={pwRules.digit} text="Contém número" />
+                      <Rule ok={pwRules.match} text="Senhas coincidem" />
+                    </ul>
+                    <p className="text-[11px] text-slate-600">
+                      Esta será a senha de primeiro acesso. O colaborador poderá trocá-la em <strong>Perfil &gt; Segurança</strong> após logar.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="flex-row gap-2 justify-between sm:justify-between">
+              <div className="flex gap-2">
+                {tab === "acesso" && (
+                  <Button variant="outline" onClick={() => setTab("dados")}>Voltar</Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                {tab === "dados" ? (
+                  <Button onClick={() => setTab("acesso")} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                    Próximo: acesso →
+                  </Button>
+                ) : (
+                  <Button disabled={loading} onClick={submit} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                    {loading && <Loader2 className="size-4 animate-spin mr-2" />}
+                    Cadastrar colaborador
+                  </Button>
+                )}
+              </div>
             </DialogFooter>
           </>
         )}
@@ -849,3 +1085,4 @@ function CreateCollaboratorDialog({
     </Dialog>
   );
 }
+
