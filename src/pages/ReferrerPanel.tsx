@@ -184,7 +184,7 @@ export default function ReferrerPanel() {
                         <td className="px-8 py-6 text-slate-400 font-medium">{formatDate(s.created_at)}</td>
                         <td className="px-8 py-6">
                           <p className="font-bold text-slate-900">{s.sales?.clients?.full_name || "Venda Direta"}</p>
-                          <p className="text-[11px] text-slate-500 font-medium">{s.sales?.products?.name || "Premium Service"}</p>
+                          <p className="text-[11px] text-slate-500 font-medium">{s.sales?.products?.name || "Produto"}</p>
                         </td>
                         <td className="px-8 py-6 text-right font-editorial text-xl font-bold text-emerald-600">
                           {formatBRL(s.amount)}
