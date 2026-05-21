@@ -57,14 +57,14 @@ export default function ProviderPanel() {
     queryFn: async () => {
       let { data } = await supabase
         .from("service_providers")
-        .select("id, name, specialty, email, user_id")
+        .select("id, name, specialty, email, phone, document_number, user_id")
         .eq("user_id", user!.id)
         .maybeSingle();
       
       if (!data && user?.email) {
         const { data: byEmail } = await supabase
           .from("service_providers")
-          .select("id, name, specialty, email, user_id")
+          .select("id, name, specialty, email, phone, document_number, user_id")
           .ilike("email", user.email)
           .maybeSingle();
         data = byEmail;
