@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.notify_tasks_due_today() FROM PUBLIC, anon, authenticated;
