@@ -55,6 +55,7 @@ const TABS = [
   { id: "financeiro", label: "Financeiro", icon: CreditCard },
   { id: "contratos", label: "Contratos", icon: FileSignature },
   { id: "relacionamento", label: "Relacionamento", icon: MessageSquare },
+  { id: "atividades", label: "Atividades", icon: Calendar },
   { id: "historico", label: "Histórico", icon: History },
   { id: "observacoes", label: "Observações", icon: AlertCircle },
 ];
