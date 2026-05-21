@@ -528,6 +528,10 @@ export default function ClientDetail() {
             <ClientContracts clientId={id!} />
           </TabsContent>
 
+          <TabsContent value="atividades" className="m-0">
+            <ClientTimelineTab clientId={id!} />
+          </TabsContent>
+
           <TabsContent value="relacionamento" className="m-0">
             <div className="cp-panel p-6 space-y-4">
               <div className="flex items-center justify-between">
