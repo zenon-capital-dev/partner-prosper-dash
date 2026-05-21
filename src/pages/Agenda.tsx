@@ -272,7 +272,7 @@ export default function Agenda() {
   return (
     <div className="space-y-6">
       <PageHero
-        icon={CalendarClock}
+        icon={<CalendarClock className="size-5" />}
         title="Agenda"
         subtitle="Tarefas, reuniões, ligações e pendências em um único lugar."
         actions={
