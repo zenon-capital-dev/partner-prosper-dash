@@ -96,6 +96,11 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     },
   });
 
+  const { data: providers } = useQuery({
+    queryKey: ["providers-select-active"],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").eq("active", true).order("name")).data ?? [],
+  });
+
   const { data: docTemplates } = useQuery({
     queryKey: ["doc-templates-setting"],
     queryFn: async () => {
@@ -194,6 +199,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         partner_id: form.partner_id || null,
         referrer_id: form.referrer_id || null,
         collaborator_id: form.collaborator_id || null,
+        service_provider_id: form.service_provider_id || null,
         responsible_id: form.collaborator_id || null,
         notes: form.notes || null,
         mandatory_steps: mandatorySteps,
@@ -219,6 +225,15 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           .eq("client_id", clientId)
           .is("responsible_employee_id", null);
         if (cpUpErr) console.warn("Vínculo colaborador-demandas:", cpUpErr);
+      }
+
+      if (clientId && form.service_provider_id) {
+        const { error: providerUpErr } = await supabase
+          .from("client_products")
+          .update({ service_provider_id: form.service_provider_id })
+          .eq("client_id", clientId)
+          .is("service_provider_id", null);
+        if (providerUpErr) console.warn("Vínculo prestador-demandas:", providerUpErr);
       }
 
       // Pendências de documentos (cadastro novo)
@@ -433,7 +448,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               </SelectContent>
             </Select>
           </div>
-          <div className="sm:col-span-2 space-y-2">
+          <div className="space-y-2">
             <Label>Colaborador responsável</Label>
             <Select value={form.collaborator_id ?? "none"} onValueChange={(v) => setForm({ ...form, collaborator_id: v === "none" ? null : v })}>
               <SelectTrigger><SelectValue placeholder="Sem colaborador" /></SelectTrigger>
@@ -442,8 +457,22 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                 {collaborators?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name ?? c.email}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Prestador padrão</Label>
+            <Select value={form.service_provider_id ?? "none"} onValueChange={(v) => setForm({ ...form, service_provider_id: v === "none" ? null : v })}>
+              <SelectTrigger><SelectValue placeholder="Sem prestador" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem prestador</SelectItem>
+                {providers?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}{p.specialty ? ` · ${p.specialty}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="sm:col-span-2 -mt-2">
             <p className="text-[11px] text-muted-foreground">
-              Comissões e valores são definidos quando você registra uma <strong>venda</strong> para este cliente.
+              Esses vínculos alimentam automaticamente o painel do parceiro, do prestador, do colaborador e as demandas abertas.
             </p>
           </div>
 

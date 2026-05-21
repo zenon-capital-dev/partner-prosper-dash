@@ -161,7 +161,8 @@ export default function DashboardAdmin() {
     const openContracts = contracts.filter((c: any) => ["criado", "enviado", "aguardando_assinatura"].includes(c.status)).length;
     const waitingSignatureContracts = contracts.filter((c: any) => ["aguardando_assinatura", "enviado"].includes(c.status)).length;
     const pendingDocs = docRequests.filter((d: any) => ["solicitado", "pendente_correcao", "pendente", "enviado", "em_analise"].includes(d.status)).length;
-    const isTaskOpen = (t: any) => t.status !== "concluida" && t.status !== "completed" && t.status !== "done";
+    const taskStatus = (t: any) => t.status_new || t.status;
+    const isTaskOpen = (t: any) => !["concluida", "cancelada", "completed", "done", "cancelled"].includes(taskStatus(t));
     const overdueTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) < todayISO).length;
     const todayTasks = tasks.filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO).length;
     const openTasks = tasks.filter(isTaskOpen).length;

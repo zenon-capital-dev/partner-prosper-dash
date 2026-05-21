@@ -22,7 +22,7 @@ export function useDashboardStats() {
         supabase.from("document_requests").select("status"),
         supabase.from("payments").select("amount, amount_paid, status"),
         supabase.from("commissions").select("amount, status"),
-        supabase.from("tasks").select("id, status, due_date"),
+        supabase.from("tasks").select("id, status, status_new, due_date"),
         supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(5),
       ]);
 
@@ -64,8 +64,10 @@ export function useDashboardStats() {
         .filter((c: any) => c.status === "gerada" || c.status === "em_analise" || c.status === "aprovada" || c.status === "pending")
         .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
 
+      const taskStatus = (t: any) => t.status_new || t.status;
+      const isTaskOpen = (t: any) => !["concluida", "cancelada", "completed", "done", "cancelled"].includes(taskStatus(t));
       const overdueTasks = tasks.filter(
-        (t: any) => t.status !== "concluida" && t.status !== "completed" && t.due_date && new Date(t.due_date) < now
+        (t: any) => isTaskOpen(t) && t.due_date && new Date(t.due_date) < now
       ).length;
 
       return {
@@ -103,7 +105,7 @@ export function useDashboardStats() {
           paid: commsPaid,
         },
         tasks: {
-          open: tasks.filter((t: any) => t.status !== "concluida" && t.status !== "completed").length,
+          open: tasks.filter(isTaskOpen).length,
           overdue: overdueTasks,
         },
         recentActivities: recentActivities.map((a: any) => ({
