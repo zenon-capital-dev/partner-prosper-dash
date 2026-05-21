@@ -123,6 +123,14 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ---------- CONFIRM EMAIL ----------
+    if ((action as any) === "confirm_email") {
+      if (!body.user_id) return json({ error: "user_id obrigatório" }, 400);
+      const { error } = await admin.auth.admin.updateUserById(body.user_id, { email_confirm: true });
+      if (error) return json({ error: error.message }, 400);
+      return json({ ok: true });
+    }
+
     // ---------- UPDATE PROFILE ----------
     if (action === "update_profile") {
       if (!body.user_id) return json({ error: "user_id obrigatório" }, 400);
@@ -213,24 +221,9 @@ Deno.serve(async (req) => {
       if (cErr) throw cErr;
       userId = created.user!.id;
       tempPassword = body.password;
-    } else if (body.send_invite !== false) {
-      const { data: inv, error: invErr } = await admin.auth.admin.inviteUserByEmail(body.email, {
-        data: { full_name: body.full_name ?? body.email },
-      });
-      if (invErr) {
-        tempPassword = crypto.randomUUID().slice(0, 12) + "Aa1!";
-        const { data: created, error: cErr } = await admin.auth.admin.createUser({
-          email: body.email,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: { full_name: body.full_name ?? body.email },
-        });
-        if (cErr) throw cErr;
-        userId = created.user!.id;
-      } else {
-        userId = inv.user!.id;
-      }
     } else {
+      // Sem senha informada: cria com senha temporária + e-mail confirmado.
+      // Evitamos inviteUserByEmail pois exige verificação de e-mail (que pode não chegar).
       tempPassword = crypto.randomUUID().slice(0, 12) + "Aa1!";
       const { data: created, error: cErr } = await admin.auth.admin.createUser({
         email: body.email,
@@ -240,6 +233,13 @@ Deno.serve(async (req) => {
       });
       if (cErr) throw cErr;
       userId = created.user!.id;
+    }
+
+    // Garantia: força confirmação de e-mail mesmo se o usuário já existia
+    if (userId) {
+      try {
+        await admin.auth.admin.updateUserById(userId, { email_confirm: true });
+      } catch (_) { /* ignore */ }
     }
 
     await admin.from("profiles").upsert({
