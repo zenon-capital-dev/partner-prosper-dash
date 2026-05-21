@@ -211,48 +211,28 @@ export function IntelligentSummary({ clientId }: IntelligentSummaryProps) {
           </div>
         </div>
 
-        {/* Health & Risk Stats */}
+        {/* Stats */}
         <div className="cp-panel p-6 flex flex-col justify-between">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="editorial-label text-[9px] mb-1">Engajamento</p>
-                <div className="flex items-center gap-2">
-                  <Heart className={cn("size-5", getHealthColor(client.health_score || 100))} />
-                  <span className={cn("text-2xl font-bold font-mono", getHealthColor(client.health_score || 100))}>
-                    {client.health_score || 100}%
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="editorial-label text-[9px] mb-1 text-right">Risco</p>
-                <span className={cn("px-2 py-1 rounded-md text-[10px] font-bold border uppercase tracking-wider", getRiskColor(client.churn_risk))}>
-                  {client.churn_risk || 'Baixo'}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <QuickStat 
-                icon={ShoppingBag} 
-                label="Produtos" 
-                value={`${activeProducts.length} Ativos`} 
-                subValue={`${completedProducts.length} Concluídos`} 
-                color="text-primary"
-              />
-              <QuickStat 
-                icon={FileText} 
-                label="Documentos" 
-                value={`${pendingDocs.length} Pendentes`} 
-                color={pendingDocs.length > 0 ? "text-amber-500" : "text-slate-500"}
-              />
-              <QuickStat 
-                icon={CreditCard} 
-                label="Financeiro" 
-                value={`${pendingPayments.length} Pendentes`} 
-                color={pendingPayments.length > 0 ? "text-rose-500" : "text-slate-500"}
-              />
-            </div>
+          <div className="space-y-3">
+            <QuickStat 
+              icon={ShoppingBag} 
+              label="Produtos" 
+              value={`${activeProducts.length} Ativos`} 
+              subValue={`${completedProducts.length} Concluídos`} 
+              color="text-primary"
+            />
+            <QuickStat 
+              icon={FileText} 
+              label="Documentos" 
+              value={`${pendingDocs.length} Pendentes`} 
+              color={pendingDocs.length > 0 ? "text-amber-500" : "text-slate-500"}
+            />
+            <QuickStat 
+              icon={CreditCard} 
+              label="Financeiro" 
+              value={`${pendingPayments.length} Pendentes`} 
+              color={pendingPayments.length > 0 ? "text-rose-500" : "text-slate-500"}
+            />
           </div>
         </div>
       </div>

@@ -369,22 +369,6 @@ export default function ClientDetail() {
             tone={client.payment_status === 'pago' ? 'success' : client.payment_status === 'pendente' ? 'warning' : 'danger'}
           />
           <div className="flex flex-col gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm min-w-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70">Engajamento</span>
-            <div className="flex items-center gap-3">
-              <span className={cn("text-sm font-bold shrink-0", 
-                client.health_score >= 80 ? "text-emerald-600" : client.health_score >= 50 ? "text-amber-600" : "text-rose-600"
-              )}>
-                {client.health_score || 100}
-              </span>
-              <Progress value={client.health_score || 100} className="h-1.5 flex-1 min-w-0" />
-            </div>
-          </div>
-          <StatusCluster 
-            label="Risco Churn" 
-            value={client.churn_risk || "Baixo"} 
-            tone={client.churn_risk === 'Alto' ? 'danger' : client.churn_risk === 'Médio' ? 'warning' : 'success'}
-          />
-          <div className="flex flex-col gap-1.5 px-3 py-2.5 rounded-xl bg-white border border-slate-200 shadow-sm min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500/70">Responsável</span>
             <div className="flex items-center gap-2 min-w-0">
               <UserCheck className="size-4 text-indigo-600 shrink-0" />
@@ -468,7 +452,6 @@ export default function ClientDetail() {
               </div>
               <div className="space-y-6">
                 <RelationshipSummary client={client} />
-                <EngagementCard health={client.health_score} risk={client.churn_risk} />
               </div>
             </div>
           </TabsContent>

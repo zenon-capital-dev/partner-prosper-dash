@@ -651,24 +651,6 @@ export default function DashboardAdmin() {
                 <EmptyRow message="Sem dados de receita" />
               )}
             </div>
-            {/* Health score footer */}
-            <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/40">
-              <div className="flex items-end justify-between mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Health operacional</span>
-                <span className="font-display text-[20px] font-bold tabular-nums text-slate-900 leading-none">
-                  {stats.healthScore}<span className="text-[12px] text-slate-400 font-semibold ml-0.5">%</span>
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-slate-200/70 overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-700",
-                    stats.healthScore >= 80 ? "bg-emerald-500" : stats.healthScore >= 60 ? "bg-amber-500" : "bg-rose-500"
-                  )}
-                  style={{ width: `${stats.healthScore}%` }}
-                />
-              </div>
-            </div>
           </Card>
 
           <Card>

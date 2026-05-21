@@ -251,7 +251,7 @@ export default function Clients() {
       if (!(await confirmAction(confirmMsg))) return;
       const { error } = await supabase.rpc("admin_delete_client_cascade" as any, { _client_id: id });
       if (error) toast.error(error.message);
-      else { toast.success("Cliente e todos os vínculos excluídos"); qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); }
+      else { toast.success("Cliente e todos os vínculos excluídos"); qc.invalidateQueries(); }
       return;
     }
 
@@ -260,7 +260,7 @@ export default function Clients() {
     if (error) toast.error(error.message);
     else {
       toast.success("Cliente removido");
-      qc.invalidateQueries({ queryKey: ["clients-admin-list"] });
+      qc.invalidateQueries();
     }
   };
 
@@ -273,7 +273,7 @@ export default function Clients() {
     if (error) toast.error(error.message);
     else {
       toast.success(next === "inativo" ? "Cliente arquivado" : "Cliente reativado");
-      qc.invalidateQueries({ queryKey: ["clients-admin-list"] });
+      qc.invalidateQueries();
     }
   };
 

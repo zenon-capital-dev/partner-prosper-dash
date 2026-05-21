@@ -248,7 +248,7 @@ export default function Collaborators() {
     if (error) return toast.error(error.message);
     await supabase.from("profiles").update({ active: false, has_system_access: false }).eq("id", r.id);
     toast.success("Colaborador removido da equipe");
-    qc.invalidateQueries({ queryKey: ["collaborators-list"] });
+    qc.invalidateQueries();
   };
 
   const exportCsv = () => {

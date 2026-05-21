@@ -277,7 +277,7 @@ export default function Partners() {
     if (error) toast.error(error.message);
     else {
       toast.success(p.active ? "Parceiro desativado" : "Parceiro ativado");
-      qc.invalidateQueries({ queryKey: ["partners-rich"] });
+      qc.invalidateQueries();
     }
   };
 
