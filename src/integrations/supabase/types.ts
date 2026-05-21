@@ -913,6 +913,8 @@ export type Database = {
           id: string
           indicator_id: string | null
           internal_notes: string | null
+          mandatory_steps: Json
+          manual_approval_required: boolean
           notes: string | null
           onboarding_completed_at: string | null
           onboarding_progress: number | null
@@ -970,6 +972,8 @@ export type Database = {
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
+          mandatory_steps?: Json
+          manual_approval_required?: boolean
           notes?: string | null
           onboarding_completed_at?: string | null
           onboarding_progress?: number | null
@@ -1027,6 +1031,8 @@ export type Database = {
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
+          mandatory_steps?: Json
+          manual_approval_required?: boolean
           notes?: string | null
           onboarding_completed_at?: string | null
           onboarding_progress?: number | null
