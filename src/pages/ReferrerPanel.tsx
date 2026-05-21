@@ -95,7 +95,11 @@ export default function ReferrerPanel() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Button size="lg" className="rounded-full bg-slate-900 hover:bg-slate-800 text-white px-8 h-14 font-bold tracking-wide shadow-xl shadow-slate-200">
+            <Button
+              size="lg"
+              onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent("Olá! Quero indicar um novo cliente. Aqui estão os dados de contato:")}`, "_blank")}
+              className="rounded-full bg-slate-900 hover:bg-slate-800 text-white px-8 h-14 font-bold tracking-wide shadow-xl shadow-slate-200"
+            >
               Nova Indicação <Share2 className="size-4 ml-2" />
             </Button>
           </div>
