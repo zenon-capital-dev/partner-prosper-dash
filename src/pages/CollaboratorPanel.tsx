@@ -89,7 +89,7 @@ export default function CollaboratorPanel() {
         .select(`
           id, status, sla_due_date, sla_status, deadline, priority, updated_at, created_at,
           custom_product_name, value, start_date,
-          clients ( id, full_name, email, phone, status, document_number ),
+          clients ( id, full_name, email, phone, status, document ),
           products ( name )
         `)
         .eq("responsible_employee_id", user!.id)
