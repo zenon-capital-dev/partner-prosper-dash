@@ -63,27 +63,35 @@ export default function ReferrerPanel() {
   });
 
   const clientIds = useMemo(() => (clients as any[]).map((c) => c.id), [clients]);
-  const { data: payments = [] } = useQuery({
-    queryKey: ["referrer-payments", referrer?.id],
-    enabled: !!referrer?.id,
+  const { data: commissions = [] } = useQuery({
+    queryKey: ["referrer-commissions", referrer?.id, user?.id],
+    enabled: !!(referrer?.id || user?.id),
     queryFn: async () => {
+      const ids = [referrer?.id, user?.id].filter(Boolean) as string[];
       const { data } = await supabase
-        .from("payments")
-        .select("id, amount, status, paid_at, due_date, client_id")
-        .eq("referrer_id", referrer!.id)
+        .from("commission_splits")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "referrer")
+        .in("beneficiary_id", ids)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []).map((c: any) => ({
+        ...c,
+        client_name: c.sales?.clients?.full_name,
+        product_name: c.sales?.products?.name,
+      }));
     },
   });
+
+  const payments = commissions;
 
   const kpis = useMemo(() => {
     const total = (clients as any[]).length;
     const ativos = (clients as any[]).filter((c) => c.status === "ativo").length;
     const conv = total > 0 ? Math.round((ativos / total) * 100) : 0;
-    const ganhos = (payments as any[]).filter((p) => p.status === "pago").reduce((s, p) => s + Number(p.amount || 0), 0);
-    const pendentes = (payments as any[]).filter((p) => p.status !== "pago" && p.status !== "cancelado").reduce((s, p) => s + Number(p.amount || 0), 0);
+    const ganhos = (commissions as any[]).filter((p) => p.status === "pago").reduce((s, p) => s + Number(p.amount || 0), 0);
+    const pendentes = (commissions as any[]).filter((p) => p.status === "pendente").reduce((s, p) => s + Number(p.amount || 0), 0);
     return { total, ativos, conv, ganhos, pendentes };
-  }, [clients, payments]);
+  }, [clients, commissions]);
 
   const firstName = (referrer?.full_name || user?.user_metadata?.full_name || user?.email || "Indicador").split(" ")[0];
 
