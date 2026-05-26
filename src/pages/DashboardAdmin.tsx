@@ -146,11 +146,14 @@ export default function DashboardAdmin() {
     const newClientsRange = clients.filter((c: any) => c.created_at && c.created_at.slice(0,10) >= startISO).length;
 
     const isDoneDemand = (s: string) => ["concluido", "concluida", "cancelado", "cancelada"].includes(s);
-    const delayedDemands = clientProducts.filter((p: any) =>
-      p.status === "atrasado" ||
-      (p.deadline && dateOnly(p.deadline) < todayISO && !isDoneDemand(p.status))
-    ).length;
-    const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio"].includes(p.status)).length;
+    const demandDueISO = (p: any) => p.deadline || p.sla_due_date || p.end_date;
+    const delayedDemands = clientProducts.filter((p: any) => {
+      if (isDoneDemand(p.status)) return false;
+      if (p.status === "atrasado") return true;
+      const due = demandDueISO(p);
+      return due && dateOnly(due) < todayISO;
+    }).length;
+    const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio", "em_execucao", "pausado"].includes(p.status)).length;
     const completedDemands = clientProducts.filter((p: any) => p.status === "concluido" || p.status === "concluida").length;
 
     const pipelineTotal = leads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
