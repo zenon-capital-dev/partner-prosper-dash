@@ -442,7 +442,14 @@ export default function Commissions() {
       approval_date: isClosed ? null : (isApproved ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : (editing.approval_date || new Date().toISOString())) : (editing.approval_date || null)),
       paid_at: isClosed ? null : (isPaid ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : (editing.paid_at || new Date().toISOString())) : null),
     };
-    const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
+    const { error } = editing._source === "split"
+      ? await updateSplit([editing.id], {
+          status: splitStatusFor(ws),
+          paid_at: payload.paid_at,
+          payment_method: payload.payment_method,
+          notes: payload.notes,
+        })
+      : await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão atualizada");
     setEditOpen(false); setEditing(null);
