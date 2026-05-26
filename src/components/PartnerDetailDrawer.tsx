@@ -252,7 +252,6 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
                           ) : availableProducts.map((p: any) => (
                             <SelectItem key={p.id} value={p.id}>
                               <span className="inline-flex items-center gap-2">
-                                <span className="size-2 rounded-full" style={{ background: p.product_categories?.color ?? "#6366f1" }} />
                                 {p.name}
                               </span>
                             </SelectItem>
