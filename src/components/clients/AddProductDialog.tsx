@@ -540,63 +540,66 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
           </div>
 
           {/* SIDEBAR */}
-          <aside className="bg-slate-50/80 border-l border-slate-200 p-6 flex flex-col gap-6 overflow-y-auto">
-            <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Split de receita</p>
-              <div className="space-y-2.5">
-                <div className="flex justify-between items-center text-slate-600">
-                  <span className="text-xs">Bruto</span>
-                  <span className="font-mono text-sm">{formatBRL(form.value)}</span>
+          {/* SIDEBAR */}
+          <aside className="bg-slate-50/80 border-l border-slate-200 flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Split de receita</p>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center text-slate-600">
+                    <span className="text-xs">Bruto</span>
+                    <span className="font-mono text-sm">{formatBRL(form.value)}</span>
+                  </div>
+                  {partnerCalc > 0 && (
+                    <div className="flex justify-between items-center text-rose-600">
+                      <span className="text-xs">Parceiro · {form.partner_commission}%</span>
+                      <span className="font-mono text-sm">− {formatBRL(partnerCalc)}</span>
+                    </div>
+                  )}
+                  {referrerCalc > 0 && (
+                    <div className="flex justify-between items-center text-rose-600">
+                      <span className="text-xs">Indicador · {form.referrer_commission}%</span>
+                      <span className="font-mono text-sm">− {formatBRL(referrerCalc)}</span>
+                    </div>
+                  )}
+                  {collaboratorCalc > 0 && (
+                    <div className="flex justify-between items-center text-rose-600">
+                      <span className="text-xs">Vendedor int. · {form.collaborator_commission}%</span>
+                      <span className="font-mono text-sm">− {formatBRL(collaboratorCalc)}</span>
+                    </div>
+                  )}
+                  {providerCalc > 0 && (
+                    <div className="flex justify-between items-center text-rose-600">
+                      <span className="text-xs">Prestador (repasse)</span>
+                      <span className="font-mono text-sm">− {formatBRL(providerCalc)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-slate-200/80 my-1" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-emerald-700">Líquido empresa</span>
+                    <span className="font-mono text-xl font-bold text-emerald-700">{formatBRL(companyShare)}</span>
+                  </div>
+                  {form.value > 0 && (
+                    <div className="flex justify-between text-[11px] text-slate-500 font-mono">
+                      <span>Margem</span>
+                      <span>{((companyShare / form.value) * 100).toFixed(1)}%</span>
+                    </div>
+                  )}
                 </div>
-                {partnerCalc > 0 && (
-                  <div className="flex justify-between items-center text-rose-600">
-                    <span className="text-xs">Parceiro · {form.partner_commission}%</span>
-                    <span className="font-mono text-sm">− {formatBRL(partnerCalc)}</span>
-                  </div>
-                )}
-                {referrerCalc > 0 && (
-                  <div className="flex justify-between items-center text-rose-600">
-                    <span className="text-xs">Indicador · {form.referrer_commission}%</span>
-                    <span className="font-mono text-sm">− {formatBRL(referrerCalc)}</span>
-                  </div>
-                )}
-                {collaboratorCalc > 0 && (
-                  <div className="flex justify-between items-center text-rose-600">
-                    <span className="text-xs">Vendedor int. · {form.collaborator_commission}%</span>
-                    <span className="font-mono text-sm">− {formatBRL(collaboratorCalc)}</span>
-                  </div>
-                )}
-                {providerCalc > 0 && (
-                  <div className="flex justify-between items-center text-rose-600">
-                    <span className="text-xs">Prestador (repasse)</span>
-                    <span className="font-mono text-sm">− {formatBRL(providerCalc)}</span>
-                  </div>
-                )}
-                <div className="h-px bg-slate-200/80 my-1" />
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold text-emerald-700">Líquido empresa</span>
-                  <span className="font-mono text-xl font-bold text-emerald-700">{formatBRL(companyShare)}</span>
-                </div>
-                {form.value > 0 && (
-                  <div className="flex justify-between text-[11px] text-slate-500 font-mono">
-                    <span>Margem</span>
-                    <span>{((companyShare / form.value) * 100).toFixed(1)}%</span>
-                  </div>
-                )}
+              </div>
+
+              <div className="p-4 bg-white border border-slate-200 rounded-xl">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Nota interna</p>
+                <Textarea
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="bg-transparent border-none p-0 text-xs text-slate-700 focus-visible:ring-0 resize-none h-24"
+                  placeholder="Adicionar notas internas sobre esta venda..."
+                />
               </div>
             </div>
 
-            <div className="p-4 bg-white border border-slate-200 rounded-xl">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Nota interna</p>
-              <Textarea
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                className="bg-transparent border-none p-0 text-xs text-slate-700 focus-visible:ring-0 resize-none h-24"
-                placeholder="Adicionar notas internas sobre esta venda..."
-              />
-            </div>
-
-            <div className="mt-auto space-y-2">
+            <div className="p-6 border-t border-slate-100 space-y-2 bg-white/50">
               <Button
                 disabled={saving || !form.product_id || form.value <= 0}
                 onClick={handleSave}
