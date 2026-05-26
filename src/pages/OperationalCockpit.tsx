@@ -70,21 +70,22 @@ export default function OperationalCockpit() {
       
       if (error) throw error;
       
-      return data.filter(d => {
+      return data.map(d => {
         const dueRaw = d.deadline || d.sla_due_date || d.end_date;
-        if (!dueRaw) return false;
-        const deadline = new Date(dueRaw);
-        return isToday(deadline) || isBefore(deadline, startOfDay(today));
-      }).map(d => ({
-        id: d.id,
-        type: 'demand',
-        title: (d.product as any)?.name || "Produto",
-        subtitle: (d.client as any)?.full_name || "Cliente",
-        status: d.status,
-        date: d.deadline || d.sla_due_date || d.end_date,
-        severity: isBefore(new Date(d.deadline || d.sla_due_date || d.end_date), startOfDay(today)) ? 'critical' : 'high',
-        metadata: d
-      })) as CockpitItem[];
+        const deadline = dueRaw ? new Date(dueRaw) : null;
+        const isOverdue = deadline ? (isToday(deadline) || isBefore(deadline, startOfDay(today))) : false;
+        
+        return ({
+          id: d.id,
+          type: 'demand',
+          title: (d.product as any)?.name || "Produto",
+          subtitle: (d.client as any)?.full_name || "Cliente",
+          status: d.status,
+          date: d.deadline || d.sla_due_date || d.end_date,
+          severity: isOverdue ? 'critical' : (deadline ? 'high' : 'medium'),
+          metadata: d
+        });
+      }) as CockpitItem[];
     }
   });
 
@@ -154,7 +155,7 @@ export default function OperationalCockpit() {
           client:clients(id, full_name)
         `)
         .neq("status", "pago")
-        .lt("due_date", new Date().toISOString());
+        .lte("due_date", new Date().toISOString());
       
       if (error) throw error;
       
@@ -179,7 +180,9 @@ export default function OperationalCockpit() {
         .from("commissions")
         .select(`
           id, status, workflow_status, amount, created_at,
-          partner:partners(id, full_name, user_id)
+          partner:partners(id, full_name, user_id),
+          collaborator:profiles!collaborator_id(id, full_name),
+          referrer:referrers(id, full_name)
         `)
         .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"]);
       
@@ -189,7 +192,7 @@ export default function OperationalCockpit() {
         id: c.id,
         type: 'commission',
         title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR')}`,
-        subtitle: (c.partner as any)?.full_name || 'Parceiro desconhecido',
+        subtitle: (c.partner as any)?.full_name || (c.collaborator as any)?.full_name || (c.referrer as any)?.full_name || 'Beneficiário desconhecido',
         status: (c as any).workflow_status || c.status,
         date: c.created_at,
         severity: 'medium',

@@ -29,12 +29,12 @@ const SECTIONS: NavSection[] = [
   { label: "CRM & Vendas", items: [
     { title: "Clientes", url: "/clientes", icon: Users, staffOnly: true },
     { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
-    { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
+    // { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
   ]},
   { label: "Catálogo", staffOnly: true, items: [
     { title: "Serviços", url: "/produtos", icon: Package },
-    { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
+    // { title: "Templates", url: "/templates", icon: MessageSquare, adminOnly: true },
   ]},
   { label: "Rede", items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, staffOnly: true },
@@ -55,7 +55,7 @@ const SECTIONS: NavSection[] = [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
     { title: "Auditoria", url: "/auditoria", icon: History, adminOnly: true },
     { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true },
-    { title: "Automações", url: "/automacoes", icon: Zap, adminOnly: true },
+    // { title: "Automações", url: "/automacoes", icon: Zap, adminOnly: true },
     { title: "Configurações", url: "/configuracoes", icon: Settings, adminOnly: true },
   ]},
 ];
