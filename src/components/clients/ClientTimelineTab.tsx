@@ -28,13 +28,21 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id, title, description, kind, due_date, status_new, priority, location, meeting_url, completed_at, outcome, created_at, assignee:profiles!tasks_assigned_to_fkey(full_name,email)")
+        .select("id, title, description, kind, due_date, status_new, priority, location, meeting_url, completed_at, outcome, created_at, assigned_to")
         .eq("client_id", clientId)
         .order("due_date", { ascending: false, nullsFirst: false });
       if (error) throw error;
-      return data || [];
+      const rows = data || [];
+      const ids = Array.from(new Set(rows.map((r: any) => r.assigned_to).filter(Boolean)));
+      let profMap = new Map<string, any>();
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name, email").in("id", ids);
+        profMap = new Map((profs || []).map((p: any) => [p.id, p]));
+      }
+      return rows.map((r: any) => ({ ...r, assignee: r.assigned_to ? profMap.get(r.assigned_to) || null : null }));
     },
   });
+
 
   const filtered = useMemo(() => {
     if (filter === "pendentes") return items.filter((i: any) => i.status_new !== "concluida" && i.status_new !== "cancelada");
