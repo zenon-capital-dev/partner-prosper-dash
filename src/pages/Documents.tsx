@@ -365,8 +365,10 @@ export default function Documents() {
     
     const ext = doc.file_path.split(".").pop() || "bin";
     const clientName = doc.clients?.full_name ? `${doc.clients.full_name.replace(/\s+/g, "_")}_` : "";
+    const providerName = doc.providers?.name ? `${doc.providers.name.replace(/\s+/g, "_")}_` : "";
+    const collaboratorName = doc.collaborators?.full_name ? `${doc.collaborators.full_name.replace(/\s+/g, "_")}_` : "";
     const docName = doc.name.replace(/\s+/g, "_");
-    const filename = `${clientName}${docName}.${ext}`;
+    const filename = `${clientName || providerName || collaboratorName}${docName}.${ext}`;
     
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
