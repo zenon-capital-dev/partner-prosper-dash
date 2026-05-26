@@ -181,7 +181,7 @@ export default function ReferrerPanel() {
                       <div className="size-9 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center"><TrendingUp className="size-4" /></div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[13px] font-medium text-slate-900">{formatBRL(p.amount)}</p>
-                        <p className="text-[11.5px] text-slate-500">{p.paid_at ? `pago em ${formatDate(p.paid_at)}` : `vence em ${formatDate(p.due_date)}`}</p>
+                        <p className="text-[11.5px] text-slate-500">{p.paid_at ? `pago em ${formatDate(p.paid_at)}` : `criado em ${formatDate(p.created_at)}`}{p.client_name ? ` · ${p.client_name}` : ""}</p>
                       </div>
                       <Badge variant="outline" className={cn("text-[10px] border capitalize", p.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{p.status}</Badge>
                     </li>
