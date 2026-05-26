@@ -39,9 +39,9 @@ export const ThemeCustomizer: React.FC = () => {
   const handleChange = (key: keyof ThemeColors, value: string) => {
     const newColors = { ...colors, [key]: value };
     setColors(newColors);
-    // Debounce application to prevent lag
-    const timer = setTimeout(() => updateThemeColors(newColors), 100);
-    return () => clearTimeout(timer);
+    
+    // Immediate update for CSS variables to feel snappy, but global dispatch is throttled
+    updateThemeColors(newColors);
   };
 
   const applyPreset = (presetColors: ThemeColors) => {
