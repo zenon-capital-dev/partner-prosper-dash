@@ -137,13 +137,53 @@ export default function FinanceCenter() {
 
   const { data: commissions = [], isLoading: loadingCom } = useQuery({
     queryKey: ["fin-commissions"],
-    queryFn: async () =>
-      (
-        await supabase
-          .from("commissions")
-          .select("*, partners(full_name), products(name), clients(full_name), profiles!collaborator_id(full_name), referrers(full_name)")
-          .order("created_at", { ascending: false })
-      ).data ?? [],
+    queryFn: async () => {
+      const [splitsRes, salesRes, partnersRes, profilesRes, referrersRes, clientsRes, productsRes] = await Promise.all([
+        supabase
+          .from("commission_splits")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase.from("sales").select("id, client_id, product_id, amount, sale_date"),
+        supabase.from("partners").select("id, full_name"),
+        supabase.from("profiles").select("id, full_name"),
+        supabase.from("referrers").select("id, full_name"),
+        supabase.from("clients").select("id, full_name, company"),
+        supabase.from("products").select("id, name"),
+      ]);
+      const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
+      const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
+      const profilesMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
+      const referrersMap = new Map((referrersRes.data ?? []).map((r: any) => [r.id, r]));
+      const clientsMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c]));
+      const productsMap = new Map((productsRes.data ?? []).map((p: any) => [p.id, p]));
+
+      return (splitsRes.data ?? []).map((s: any) => {
+        const sale: any = salesMap.get(s.sale_id) || {};
+        const partner = s.beneficiary_type === "partner" ? partnersMap.get(s.beneficiary_id) : null;
+        const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
+        const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
+        const beneficiaryName = (partner as any)?.full_name || (profile as any)?.full_name || (referrer as any)?.full_name || "—";
+        const beneficiaryLabel =
+          s.beneficiary_type === "partner" ? "Parceiro" :
+          s.beneficiary_type === "collaborator" ? "Colaborador" :
+          s.beneficiary_type === "referrer" ? "Indicador" : "—";
+        return {
+          ...s,
+          workflow_status: s.status,
+          partner_id: s.beneficiary_type === "partner" ? s.beneficiary_id : null,
+          collaborator_id: s.beneficiary_type === "collaborator" ? s.beneficiary_id : null,
+          referrer_id: s.beneficiary_type === "referrer" ? s.beneficiary_id : null,
+          partners: partner || null,
+          profiles: profile || null,
+          referrers: referrer || null,
+          clients: clientsMap.get(sale.client_id) || null,
+          products: productsMap.get(sale.product_id) || null,
+          sale,
+          beneficiary_name: beneficiaryName,
+          beneficiary_label: beneficiaryLabel,
+        };
+      });
+    },
   });
 
   const { data: alerts = [] } = useQuery({
@@ -580,15 +620,14 @@ function PaymentsTable({
     // After confirming the client payment, surface related commissions so the
     // admin can pay everyone now or postpone individual splits.
     if (payment?.sale_id) {
-      const { data: comms } = await supabase
-        .from("commissions")
-        .select("id, amount, status, workflow_status, partner_id, collaborator_id, referrer_id, rule_type")
+      const { data: splits } = await supabase
+        .from("commission_splits")
+        .select("id, amount, percent, status, beneficiary_type, beneficiary_id")
         .eq("sale_id", payment.sale_id);
-      if (comms && comms.length > 0) {
-        // Enrich with beneficiary names
-        const partnerIds = Array.from(new Set(comms.map((c: any) => c.partner_id).filter(Boolean)));
-        const collabIds = Array.from(new Set(comms.map((c: any) => c.collaborator_id).filter(Boolean)));
-        const refIds = Array.from(new Set(comms.map((c: any) => c.referrer_id).filter(Boolean)));
+      if (splits && splits.length > 0) {
+        const partnerIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "partner").map((s: any) => s.beneficiary_id)));
+        const collabIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "collaborator").map((s: any) => s.beneficiary_id)));
+        const refIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "referrer").map((s: any) => s.beneficiary_id)));
         const [partnersRes, collabsRes, refsRes] = await Promise.all([
           partnerIds.length ? supabase.from("partners").select("id, full_name").in("id", partnerIds) : Promise.resolve({ data: [] as any[] }),
           collabIds.length ? supabase.from("profiles").select("id, full_name").in("id", collabIds) : Promise.resolve({ data: [] as any[] }),
@@ -597,12 +636,12 @@ function PaymentsTable({
         const pMap = new Map((partnersRes.data ?? []).map((x: any) => [x.id, x.full_name]));
         const cMap = new Map((collabsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
         const rMap = new Map((refsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
-        const enriched = comms.map((c: any) => ({
-          ...c,
+        const enriched = splits.map((s: any) => ({
+          ...s,
           _beneficiary:
-            (c.partner_id && `Parceiro · ${pMap.get(c.partner_id) ?? "—"}`) ||
-            (c.collaborator_id && `Colaborador · ${cMap.get(c.collaborator_id) ?? "—"}`) ||
-            (c.referrer_id && `Indicador · ${rMap.get(c.referrer_id) ?? "—"}`) ||
+            (s.beneficiary_type === "partner" && `Parceiro · ${pMap.get(s.beneficiary_id) ?? "—"}`) ||
+            (s.beneficiary_type === "collaborator" && `Colaborador · ${cMap.get(s.beneficiary_id) ?? "—"}`) ||
+            (s.beneficiary_type === "referrer" && `Indicador · ${rMap.get(s.beneficiary_id) ?? "—"}`) ||
             "Beneficiário",
         }));
         setDialog({ kind: "commissions", payment, commissions: enriched });
@@ -621,26 +660,15 @@ function PaymentsTable({
 
     if (payNowIds.length > 0) {
       const { error } = await supabase
-        .from("commissions")
-        .update({
-          status: "pago",
-          workflow_status: "liberada",
-          paid_at: nowIso,
-          payment_date: nowIso,
-          approval_date: nowIso,
-        })
+        .from("commission_splits")
+        .update({ status: "pago" as any, paid_at: nowIso })
         .in("id", payNowIds);
       if (error) return toast.error(error.message);
     }
     if (postponeIds.length > 0) {
       const { error } = await supabase
-        .from("commissions")
-        .update({
-          status: "pendente",
-          workflow_status: "aguardando_confirmacao",
-          paid_at: null,
-          payment_date: null,
-        })
+        .from("commission_splits")
+        .update({ status: "pendente" as any, paid_at: null })
         .in("id", postponeIds);
       if (error) return toast.error(error.message);
     }
@@ -1180,19 +1208,11 @@ function CommissionsTable({
   const paid = filtered.filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status));
 
   const markPaid = async (c: any) => {
-    if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} como paga?`))) return;
-    // Try both enum spellings; commissions table has historically used either.
-    const payload: any = {
-      status: "pago",
-      workflow_status: "pago",
-      paid_at: new Date().toISOString(),
-    };
-    let { error } = await supabase.from("commissions").update(payload).eq("id", c.id);
-    if (error && /invalid input value/i.test(error.message)) {
-      // fallback to "paga"
-      const alt: any = { status: "paga", workflow_status: "paga", paid_at: new Date().toISOString() };
-      ({ error } = await supabase.from("commissions").update(alt).eq("id", c.id));
-    }
+    if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} para ${c.beneficiary_name} como paga?`))) return;
+    const { error } = await supabase
+      .from("commission_splits")
+      .update({ status: "pago" as any, paid_at: new Date().toISOString() })
+      .eq("id", c.id);
     if (error) {
       toast.error("Erro ao marcar paga: " + error.message);
       return;
@@ -1200,6 +1220,7 @@ function CommissionsTable({
     toast.success("Comissão marcada como paga");
     qc.invalidateQueries({ queryKey: ["fin-commissions"] });
     qc.invalidateQueries({ queryKey: ["fin-payments"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
   };
 
@@ -1212,9 +1233,11 @@ function CommissionsTable({
         <table className="w-full text-sm">
           <thead className="text-[11px] uppercase tracking-wider text-slate-500">
             <tr className="border-b border-slate-100">
-              <th className="text-left px-4 py-2 font-semibold">Parceiro</th>
+              <th className="text-left px-4 py-2 font-semibold">Beneficiário</th>
+              <th className="text-left px-4 py-2 font-semibold">Tipo</th>
               <th className="text-left px-4 py-2 font-semibold">Cliente</th>
               <th className="text-left px-4 py-2 font-semibold">Produto</th>
+              <th className="text-right px-4 py-2 font-semibold">%</th>
               <th className="text-right px-4 py-2 font-semibold">Valor</th>
               <th className="text-left px-4 py-2 font-semibold">Status</th>
               <th></th>
@@ -1224,38 +1247,47 @@ function CommissionsTable({
             {loading ? (
               [...Array(3)].map((_, i) => (
                 <tr key={i}>
-                  <td colSpan={6} className="px-4 py-3"><Skeleton className="h-6 w-full" /></td>
+                  <td colSpan={8} className="px-4 py-3"><Skeleton className="h-6 w-full" /></td>
                 </tr>
               ))
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-slate-500 text-xs">
+                <td colSpan={8} className="p-6 text-center text-slate-500 text-xs">
                   Sem registros.
                 </td>
               </tr>
             ) : (
-              rows.map((c: any) => (
-                <tr key={c.id} className="hover:bg-slate-50/60">
-                  <td className="px-4 py-2.5 text-slate-800">
-                    {c.partners?.full_name || c.profiles?.full_name || c.referrers?.full_name || "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-right font-medium font-mono tabular-nums">{formatBRL(c.amount)}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge variant="outline" className="text-xs">
-                      {c.status}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-2.5 text-right">
-                    {action && canManage && (
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => markPaid(c)}>
-                        Marcar paga
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))
+              rows.map((c: any) => {
+                const typeColor =
+                  c.beneficiary_type === "partner" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                  c.beneficiary_type === "collaborator" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                  c.beneficiary_type === "referrer" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                  "bg-slate-50 text-slate-700 border-slate-200";
+                return (
+                  <tr key={c.id} className="hover:bg-slate-50/60">
+                    <td className="px-4 py-2.5 text-slate-800 font-medium">{c.beneficiary_name ?? "—"}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant="outline" className={`text-[10px] uppercase tracking-wider ${typeColor}`}>
+                        {c.beneficiary_label ?? "—"}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-600">{Number(c.percent || 0).toFixed(2)}%</td>
+                    <td className="px-4 py-2.5 text-right font-semibold font-mono tabular-nums">{formatBRL(c.amount)}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant="outline" className="text-xs">{c.status}</Badge>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      {action && canManage && (
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => markPaid(c)}>
+                          Marcar paga
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
