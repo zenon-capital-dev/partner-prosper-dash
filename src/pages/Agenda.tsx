@@ -397,9 +397,15 @@ export default function Agenda() {
           clients={clients}
           assignees={assignees}
           userId={user?.id}
-          onSaved={() => { qc.invalidateQueries({ queryKey: ["agenda"] }); }}
+          defaultClientId={presetClientId}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["agenda"] });
+            qc.invalidateQueries({ queryKey: ["client-timeline"] });
+            qc.invalidateQueries({ queryKey: ["client-tasks"] });
+          }}
         />
       )}
+
     </div>
   );
 }
