@@ -39,6 +39,14 @@ const parseLocalDate = (value?: string | null) => {
 
 const dateOnly = (value?: string | null) => value?.slice(0, 10) ?? "";
 
+const BRASILIA_TZ = "America/Sao_Paulo";
+const brasiliaTimeFmt = new Intl.DateTimeFormat("pt-BR", { timeZone: BRASILIA_TZ, hour: "2-digit", minute: "2-digit", hour12: false });
+const formatBrasiliaTime = (value: string) => {
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return null;
+  return brasiliaTimeFmt.format(d);
+};
+
 export default function DashboardAdmin() {
   const { user } = useAuth();
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
@@ -204,7 +212,7 @@ export default function DashboardAdmin() {
     const todayTasksList = tasks
       .filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO)
       .slice(0, 5)
-      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? format(parseLocalDate(t.due_date) ?? new Date(t.due_date), "HH:mm") : null }));
+      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? formatBrasiliaTime(t.due_date) : null }));
 
     const todayDemandsList = clientProducts
       .filter((p: any) => {
