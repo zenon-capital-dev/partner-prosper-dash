@@ -171,7 +171,7 @@ export function DailyAgenda() {
             <ChevronRight className="size-4" />
           </Button>
           {!isTodayBR(selectedDate) && (
-            <Button variant="ghost" size="sm" onClick={() => setSelectedDate(nowBR())}>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())}>
               Hoje
             </Button>
           )}
