@@ -51,7 +51,7 @@ export function QualityApprovalDialog({ open, onOpenChange, demandId }: QualityA
         updateData.adjustment_due_date = adjustmentDeadline ? new Date(adjustmentDeadline).toISOString() : null;
         updateData.adjustment_notes = internalNotes;
       } else {
-        updateData.completed_at = new Date().toISOString();
+        updateData.completed_at = nowBR().toISOString();
       }
 
       const { error: demandError } = await supabase

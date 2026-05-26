@@ -162,7 +162,7 @@ export default function DashboardAdmin() {
       const due = demandDueISO(p);
       return due && dateOnly(due) < todayISO;
     }).length;
-    const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio", "em_execucao", "pausado"].includes(p.status)).length;
+    const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio", "em_execucao", "pausado", "ajuste_solicitado"].includes(p.status)).length;
     const completedDemands = clientProducts.filter((p: any) => p.status === "concluido" || p.status === "concluida").length;
 
     const pipelineTotal = leads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
@@ -245,10 +245,11 @@ export default function DashboardAdmin() {
 
 
     const demandsByStatus = [
-      { name: "Em andamento", value: clientProducts.filter((p: any) => p.status === "em_andamento").length, color: "#4f46e5" },
+      { name: "Em andamento", value: clientProducts.filter((p: any) => ["em_andamento", "em_execucao", "ajuste_solicitado"].includes(p.status)).length, color: "#4f46e5" },
       { name: "Aguardando", value: clientProducts.filter((p: any) => p.status === "aguardando_inicio").length, color: "#f59e0b" },
       { name: "Concluídas", value: completedDemands, color: "#10b981" },
       { name: "Atrasadas", value: delayedDemands, color: "#f43f5e" },
+      { name: "Pausadas", value: clientProducts.filter((p: any) => p.status === "pausado").length, color: "#94a3b8" },
     ].filter(d => d.value > 0);
 
     const leadsByStage = [
