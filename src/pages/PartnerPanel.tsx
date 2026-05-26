@@ -63,18 +63,23 @@ export default function PartnerPanel() {
     enabled: !!partner?.id,
     queryFn: async () => {
       const { data } = await supabase
-        .from("commissions")
-        .select("id, amount, percent, status, workflow_status, paid_at, created_at, sale_id, clients(full_name), products(name)")
-        .eq("partner_id", partner!.id)
+        .from("commission_splits")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "partner")
+        .eq("beneficiary_id", partner!.id)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []).map((c: any) => ({
+        ...c,
+        clients: c.sales?.clients,
+        products: c.sales?.products,
+      }));
     },
   });
 
   const kpis = useMemo(() => {
     const all = commissions as any[];
-    const paid = all.filter((c) => c.status === "pago" || c.status === "paga" || c.workflow_status === "paga" || c.workflow_status === "liberada");
-    const pending = all.filter((c) => !paid.includes(c) && c.status !== "cancelada");
+    const paid = all.filter((c) => c.status === "pago");
+    const pending = all.filter((c) => c.status === "pendente");
     const totalPaid = paid.reduce((s, c) => s + Number(c.amount || 0), 0);
     const totalPending = pending.reduce((s, c) => s + Number(c.amount || 0), 0);
 

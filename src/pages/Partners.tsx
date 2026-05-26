@@ -73,11 +73,23 @@ export default function Partners() {
   const { data: partners, isLoading } = useQuery({
     queryKey: ["partners-rich"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("partners")
-        .select("*, commissions(amount, status, created_at), clients(id), partner_products(id)")
-        .order("created_at", { ascending: false });
-      return data ?? [];
+      const [{ data: ps }, { data: splits }] = await Promise.all([
+        supabase
+          .from("partners")
+          .select("*, clients(id), partner_products(id)")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("commission_splits")
+          .select("beneficiary_id, amount, status, created_at")
+          .eq("beneficiary_type", "partner"),
+      ]);
+      const byPartner = new Map<string, any[]>();
+      (splits ?? []).forEach((s: any) => {
+        const arr = byPartner.get(s.beneficiary_id) ?? [];
+        arr.push(s);
+        byPartner.set(s.beneficiary_id, arr);
+      });
+      return (ps ?? []).map((p: any) => ({ ...p, commissions: byPartner.get(p.id) ?? [] }));
     },
   });
 

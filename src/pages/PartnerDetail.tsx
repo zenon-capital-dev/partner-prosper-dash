@@ -31,11 +31,16 @@ export default function PartnerDetail() {
       setClients(cl || []);
 
       const { data: comm } = await supabase
-        .from("commissions")
-        .select("*, clients(full_name), products(name)")
-        .eq("partner_id", id)
+        .from("commission_splits")
+        .select("*, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "partner")
+        .eq("beneficiary_id", id)
         .order("created_at", { ascending: false });
-      setCommissions(comm || []);
+      setCommissions((comm || []).map((c: any) => ({
+        ...c,
+        clients: c.sales?.clients,
+        products: c.sales?.products,
+      })));
 
       const { data: ct } = await supabase
         .from("contracts")
@@ -51,8 +56,8 @@ export default function PartnerDetail() {
   if (loading) return <div className="p-12 text-center text-muted-foreground">Carregando...</div>;
   if (!partner) return <div className="p-12 text-center text-destructive">Parceiro não encontrado.</div>;
 
-  const paid = commissions.filter((c) => c.status === "paga");
-  const pending = commissions.filter((c) => c.status !== "paga" && c.status !== "cancelada");
+  const paid = commissions.filter((c) => c.status === "pago");
+  const pending = commissions.filter((c) => c.status === "pendente");
   const totalPaid = paid.reduce((s, c) => s + Number(c.amount || 0), 0);
   const totalPending = pending.reduce((s, c) => s + Number(c.amount || 0), 0);
 
@@ -131,8 +136,8 @@ export default function PartnerDetail() {
                     <TableCell>{c.clients?.full_name || "—"}</TableCell>
                     <TableCell>{c.products?.name || "—"}</TableCell>
                     <TableCell>{formatBRL(Number(c.amount || 0))}</TableCell>
-                    <TableCell><Badge variant="outline">{c.workflow_status || c.status}</Badge></TableCell>
-                    <TableCell>{c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : (c.expected_date ? format(new Date(c.expected_date), "dd/MM/yyyy") : "—")}</TableCell>
+                    <TableCell><Badge variant="outline">{c.status}</Badge></TableCell>
+                    <TableCell>{c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : (c.created_at ? format(new Date(c.created_at), "dd/MM/yyyy") : "—")}</TableCell>
                   </TableRow>
                 ))}
                 {commissions.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhuma comissão</TableCell></TableRow>}

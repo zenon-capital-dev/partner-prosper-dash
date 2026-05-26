@@ -63,27 +63,35 @@ export default function ReferrerPanel() {
   });
 
   const clientIds = useMemo(() => (clients as any[]).map((c) => c.id), [clients]);
-  const { data: payments = [] } = useQuery({
-    queryKey: ["referrer-payments", referrer?.id],
-    enabled: !!referrer?.id,
+  const { data: commissions = [] } = useQuery({
+    queryKey: ["referrer-commissions", referrer?.id, user?.id],
+    enabled: !!(referrer?.id || user?.id),
     queryFn: async () => {
+      const ids = [referrer?.id, user?.id].filter(Boolean) as string[];
       const { data } = await supabase
-        .from("payments")
-        .select("id, amount, status, paid_at, due_date, client_id")
-        .eq("referrer_id", referrer!.id)
+        .from("commission_splits")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "referrer")
+        .in("beneficiary_id", ids)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []).map((c: any) => ({
+        ...c,
+        client_name: c.sales?.clients?.full_name,
+        product_name: c.sales?.products?.name,
+      }));
     },
   });
+
+  const payments = commissions;
 
   const kpis = useMemo(() => {
     const total = (clients as any[]).length;
     const ativos = (clients as any[]).filter((c) => c.status === "ativo").length;
     const conv = total > 0 ? Math.round((ativos / total) * 100) : 0;
-    const ganhos = (payments as any[]).filter((p) => p.status === "pago").reduce((s, p) => s + Number(p.amount || 0), 0);
-    const pendentes = (payments as any[]).filter((p) => p.status !== "pago" && p.status !== "cancelado").reduce((s, p) => s + Number(p.amount || 0), 0);
+    const ganhos = (commissions as any[]).filter((p) => p.status === "pago").reduce((s, p) => s + Number(p.amount || 0), 0);
+    const pendentes = (commissions as any[]).filter((p) => p.status === "pendente").reduce((s, p) => s + Number(p.amount || 0), 0);
     return { total, ativos, conv, ganhos, pendentes };
-  }, [clients, payments]);
+  }, [clients, commissions]);
 
   const firstName = (referrer?.full_name || user?.user_metadata?.full_name || user?.email || "Indicador").split(" ")[0];
 
@@ -173,7 +181,7 @@ export default function ReferrerPanel() {
                       <div className="size-9 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center"><TrendingUp className="size-4" /></div>
                       <div className="min-w-0 flex-1">
                         <p className="text-[13px] font-medium text-slate-900">{formatBRL(p.amount)}</p>
-                        <p className="text-[11.5px] text-slate-500">{p.paid_at ? `pago em ${formatDate(p.paid_at)}` : `vence em ${formatDate(p.due_date)}`}</p>
+                        <p className="text-[11.5px] text-slate-500">{p.paid_at ? `pago em ${formatDate(p.paid_at)}` : `criado em ${formatDate(p.created_at)}`}{p.client_name ? ` · ${p.client_name}` : ""}</p>
                       </div>
                       <Badge variant="outline" className={cn("text-[10px] border capitalize", p.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{p.status}</Badge>
                     </li>
