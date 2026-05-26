@@ -207,6 +207,20 @@ export default function DashboardAdmin() {
       .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
     const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
     const receivedTotal = payments.filter((p: any) => p.status === "pago").reduce((a, p: any) => a + Number(p.amount_paid || 0), 0);
+    
+    // Receita Bruta = total recebido (pago)
+    const grossRevenue = receivedTotal;
+    // Comissões já pagas (sai do caixa)
+    const commissionsPaid = commissions
+      .filter((c: any) => ["pago", "paga"].includes(c.status) || ["pago", "paga"].includes(c.workflow_status))
+      .reduce((a, c: any) => a + Number(c.amount || 0), 0);
+    // Receita Líquida = Bruto - comissões pagas
+    const netRevenue = grossRevenue - commissionsPaid;
+    // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
+    const estimatedRevenue = payments
+      .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
+      .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
+    const estimatedRevenueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status)).length;
 
     // Chart length matches the selected range exactly (HOJE = últimos 7 dias para contexto).
     const len =
@@ -302,6 +316,7 @@ export default function DashboardAdmin() {
       openContracts, waitingSignatureContracts, pendingDocs, overdueTasks, todayTasks, openTasks,
       commissionsToPay, commissionsCount,
       receivable7d, receivable7dCount, overdueAmount, overdueCount, receivedTotal,
+      grossRevenue, netRevenue, commissionsPaid, estimatedRevenue, estimatedRevenueCount,
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
@@ -432,8 +447,19 @@ export default function DashboardAdmin() {
 
                   {/* footer stats */}
                   <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <Link to="/financeiro/central?tab=recebidos" className="block hover:bg-emerald-50/40 rounded-lg -m-1 p-1 transition-colors">
+                      <FooterStat label="Receita Bruta" value={formatBRL(stats.grossRevenue)} accent="emerald" />
+                    </Link>
+                    <Link to="/financeiro/central?tab=relatorios" className="block hover:bg-indigo-50/40 rounded-lg -m-1 p-1 transition-colors">
+                      <FooterStat label="Receita Líquida" value={formatBRL(stats.netRevenue)} />
+                    </Link>
+                    <Link to="/financeiro/central?tab=a_receber" className="block hover:bg-amber-50/40 rounded-lg -m-1 p-1 transition-colors">
+                      <FooterStat label={`Estimativa (${stats.estimatedRevenueCount})`} value={formatBRL(stats.estimatedRevenue)} accent={stats.estimatedRevenue > 0 ? "rose" : undefined} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-100">
                     <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
-                    <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
+                    <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} />
                     <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
                   </div>
                 </>
