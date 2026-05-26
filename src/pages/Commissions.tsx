@@ -120,6 +120,11 @@ export default function Commissions() {
     queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
   });
 
+  const { data: providers = [] } = useQuery({
+    queryKey: ["providers-simple"],
+    queryFn: async () => (await supabase.from("service_providers").select("id,name").order("name")).data ?? [],
+  });
+
 
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
