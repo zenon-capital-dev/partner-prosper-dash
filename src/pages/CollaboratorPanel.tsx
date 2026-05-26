@@ -22,12 +22,13 @@ import { formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { key: "dashboard",  label: "Início",     shortLabel: "Início",  icon: LayoutDashboard },
-  { key: "demandas",   label: "Demandas",   shortLabel: "Demandas",icon: ClipboardList  },
-  { key: "tarefas",    label: "Tarefas",    shortLabel: "Tarefas", icon: ListChecks     },
-  { key: "documentos", label: "Documentos", shortLabel: "Docs",    icon: FileText       },
-  { key: "perfil",     label: "Perfil",     shortLabel: "Perfil",  icon: UserCog        },
-  { key: "clientes",   label: "Clientes",                          icon: Users          },
+  { key: "dashboard",  label: "Início",     shortLabel: "Início",   icon: LayoutDashboard },
+  { key: "demandas",   label: "Demandas",   shortLabel: "Demandas", icon: ClipboardList  },
+  { key: "tarefas",    label: "Tarefas",    shortLabel: "Tarefas",  icon: ListChecks     },
+  { key: "comissoes",  label: "Comissões",  shortLabel: "Comissões",icon: Wallet         },
+  { key: "documentos", label: "Documentos", shortLabel: "Docs",     icon: FileText       },
+  { key: "perfil",     label: "Perfil",     shortLabel: "Perfil",   icon: UserCog        },
+  { key: "clientes",   label: "Clientes",                            icon: Users          },
 ];
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
