@@ -366,10 +366,10 @@ export function AppSidebar() {
     <>
       <Sidebar
         collapsible="icon"
-        className="border-r border-slate-200/70 bg-white transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
+        className="border-r border-slate-200/70 bg-sidebar transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
       >
         {/* ===== Brand ===== */}
-        <SidebarHeader className="!bg-white px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
+        <SidebarHeader className="bg-sidebar px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
           <button
             onClick={() => navigate("/")}
             className={cn("flex items-center gap-3.5 group w-full transition-all", collapsed && "justify-center")}
@@ -424,7 +424,7 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ===== Navigation ===== */}
-        <SidebarContent className="!bg-white px-2.5 pt-4 pb-4 overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        <SidebarContent className="bg-sidebar px-2.5 pt-4 pb-4 overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
           {sections.map((section, idx) => (
             <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
