@@ -137,13 +137,53 @@ export default function FinanceCenter() {
 
   const { data: commissions = [], isLoading: loadingCom } = useQuery({
     queryKey: ["fin-commissions"],
-    queryFn: async () =>
-      (
-        await supabase
-          .from("commissions")
-          .select("*, partners(full_name), products(name), clients(full_name), profiles!collaborator_id(full_name), referrers(full_name)")
-          .order("created_at", { ascending: false })
-      ).data ?? [],
+    queryFn: async () => {
+      const [splitsRes, salesRes, partnersRes, profilesRes, referrersRes, clientsRes, productsRes] = await Promise.all([
+        supabase
+          .from("commission_splits")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase.from("sales").select("id, client_id, product_id, amount, sale_date"),
+        supabase.from("partners").select("id, full_name"),
+        supabase.from("profiles").select("id, full_name"),
+        supabase.from("referrers").select("id, full_name"),
+        supabase.from("clients").select("id, full_name, company"),
+        supabase.from("products").select("id, name"),
+      ]);
+      const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
+      const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
+      const profilesMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
+      const referrersMap = new Map((referrersRes.data ?? []).map((r: any) => [r.id, r]));
+      const clientsMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c]));
+      const productsMap = new Map((productsRes.data ?? []).map((p: any) => [p.id, p]));
+
+      return (splitsRes.data ?? []).map((s: any) => {
+        const sale: any = salesMap.get(s.sale_id) || {};
+        const partner = s.beneficiary_type === "partner" ? partnersMap.get(s.beneficiary_id) : null;
+        const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
+        const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
+        const beneficiaryName = (partner as any)?.full_name || (profile as any)?.full_name || (referrer as any)?.full_name || "—";
+        const beneficiaryLabel =
+          s.beneficiary_type === "partner" ? "Parceiro" :
+          s.beneficiary_type === "collaborator" ? "Colaborador" :
+          s.beneficiary_type === "referrer" ? "Indicador" : "—";
+        return {
+          ...s,
+          workflow_status: s.status,
+          partner_id: s.beneficiary_type === "partner" ? s.beneficiary_id : null,
+          collaborator_id: s.beneficiary_type === "collaborator" ? s.beneficiary_id : null,
+          referrer_id: s.beneficiary_type === "referrer" ? s.beneficiary_id : null,
+          partners: partner || null,
+          profiles: profile || null,
+          referrers: referrer || null,
+          clients: clientsMap.get(sale.client_id) || null,
+          products: productsMap.get(sale.product_id) || null,
+          sale,
+          beneficiary_name: beneficiaryName,
+          beneficiary_label: beneficiaryLabel,
+        };
+      });
+    },
   });
 
   const { data: alerts = [] } = useQuery({
