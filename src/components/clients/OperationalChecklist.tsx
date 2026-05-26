@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,7 +64,7 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
       // Auto-fill completed_at
       if (patch.status === "concluido" && !patch.completed_at) {
         patch.completed = true;
-        patch.completed_at = new Date().toISOString();
+        patch.completed_at = nowBR().toISOString();
       } else if (patch.status && patch.status !== "concluido") {
         patch.completed = false;
         patch.completed_at = null;

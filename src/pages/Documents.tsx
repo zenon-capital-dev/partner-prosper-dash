@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { endOfDay, startOfMonth, startOfToday, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHero } from "@/components/PageHero";
 import {
@@ -27,7 +28,7 @@ import {
   Unlock,
   X,
 } from "lucide-react";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
@@ -81,7 +82,8 @@ const getDateRange = (range: PeriodKey) => {
 const effectiveStatus = (doc: any) => {
   if (["aprovado", "enviado", "em_analise", "pendente_correcao"].includes(doc.status)) return doc.status;
   if (doc.status === "vencido") return "atrasado";
-  if (doc.due_date && new Date(doc.due_date) < startOfToday()) return "atrasado";
+  const now = nowBR();
+  if (doc.due_date && toBR(doc.due_date) < now && !isTodayBR(doc.due_date)) return "atrasado";
   return doc.status;
 };
 
