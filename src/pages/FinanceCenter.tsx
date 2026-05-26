@@ -1220,19 +1220,11 @@ function CommissionsTable({
   const paid = filtered.filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status));
 
   const markPaid = async (c: any) => {
-    if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} como paga?`))) return;
-    // Try both enum spellings; commissions table has historically used either.
-    const payload: any = {
-      status: "pago",
-      workflow_status: "pago",
-      paid_at: new Date().toISOString(),
-    };
-    let { error } = await supabase.from("commissions").update(payload).eq("id", c.id);
-    if (error && /invalid input value/i.test(error.message)) {
-      // fallback to "paga"
-      const alt: any = { status: "paga", workflow_status: "paga", paid_at: new Date().toISOString() };
-      ({ error } = await supabase.from("commissions").update(alt).eq("id", c.id));
-    }
+    if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} para ${c.beneficiary_name} como paga?`))) return;
+    const { error } = await supabase
+      .from("commission_splits")
+      .update({ status: "pago" as any, paid_at: new Date().toISOString() })
+      .eq("id", c.id);
     if (error) {
       toast.error("Erro ao marcar paga: " + error.message);
       return;
@@ -1240,6 +1232,7 @@ function CommissionsTable({
     toast.success("Comissão marcada como paga");
     qc.invalidateQueries({ queryKey: ["fin-commissions"] });
     qc.invalidateQueries({ queryKey: ["fin-payments"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
   };
 
