@@ -386,6 +386,7 @@ type ConfirmDialogState =
   | { kind: "confirm"; payment: any }
   | { kind: "cancel"; payment: any }
   | { kind: "refund"; payment: any }
+  | { kind: "commissions"; payment: any; commissions: any[] }
   | null;
 
 function PaymentsTable({
@@ -555,10 +556,15 @@ function PaymentsTable({
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["fin-payments"] });
     qc.invalidateQueries({ queryKey: ["fin-alerts"] });
+    qc.invalidateQueries({ queryKey: ["fin-commissions"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dash-payments"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
+    qc.invalidateQueries({ queryKey: ["dash-sales"] });
   };
 
   const submitConfirm = async (paymentId: string, amountPaid: number, paidAt: string) => {
+    const payment = (payments as any[]).find((p: any) => p.id === paymentId);
     const { error } = await supabase
       .from("payments")
       .update({
@@ -569,6 +575,80 @@ function PaymentsTable({
       .eq("id", paymentId);
     if (error) return toast.error(error.message);
     toast.success("Pagamento confirmado");
+    invalidate();
+
+    // After confirming the client payment, surface related commissions so the
+    // admin can pay everyone now or postpone individual splits.
+    if (payment?.sale_id) {
+      const { data: comms } = await supabase
+        .from("commissions")
+        .select("id, amount, status, workflow_status, partner_id, collaborator_id, referrer_id, rule_type")
+        .eq("sale_id", payment.sale_id);
+      if (comms && comms.length > 0) {
+        // Enrich with beneficiary names
+        const partnerIds = Array.from(new Set(comms.map((c: any) => c.partner_id).filter(Boolean)));
+        const collabIds = Array.from(new Set(comms.map((c: any) => c.collaborator_id).filter(Boolean)));
+        const refIds = Array.from(new Set(comms.map((c: any) => c.referrer_id).filter(Boolean)));
+        const [partnersRes, collabsRes, refsRes] = await Promise.all([
+          partnerIds.length ? supabase.from("partners").select("id, full_name").in("id", partnerIds) : Promise.resolve({ data: [] as any[] }),
+          collabIds.length ? supabase.from("profiles").select("id, full_name").in("id", collabIds) : Promise.resolve({ data: [] as any[] }),
+          refIds.length ? supabase.from("referrers").select("id, full_name").in("id", refIds) : Promise.resolve({ data: [] as any[] }),
+        ]);
+        const pMap = new Map((partnersRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const cMap = new Map((collabsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const rMap = new Map((refsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const enriched = comms.map((c: any) => ({
+          ...c,
+          _beneficiary:
+            (c.partner_id && `Parceiro · ${pMap.get(c.partner_id) ?? "—"}`) ||
+            (c.collaborator_id && `Colaborador · ${cMap.get(c.collaborator_id) ?? "—"}`) ||
+            (c.referrer_id && `Indicador · ${rMap.get(c.referrer_id) ?? "—"}`) ||
+            "Beneficiário",
+        }));
+        setDialog({ kind: "commissions", payment, commissions: enriched });
+        return;
+      }
+    }
+    setDialog(null);
+  };
+
+  const submitCommissionDecisions = async (
+    decisions: { id: string; payNow: boolean }[]
+  ) => {
+    const payNowIds = decisions.filter((d) => d.payNow).map((d) => d.id);
+    const postponeIds = decisions.filter((d) => !d.payNow).map((d) => d.id);
+    const nowIso = new Date().toISOString();
+
+    if (payNowIds.length > 0) {
+      const { error } = await supabase
+        .from("commissions")
+        .update({
+          status: "pago",
+          workflow_status: "liberada",
+          paid_at: nowIso,
+          payment_date: nowIso,
+          approval_date: nowIso,
+        })
+        .in("id", payNowIds);
+      if (error) return toast.error(error.message);
+    }
+    if (postponeIds.length > 0) {
+      const { error } = await supabase
+        .from("commissions")
+        .update({
+          status: "pendente",
+          workflow_status: "aguardando_confirmacao",
+          paid_at: null,
+          payment_date: null,
+        })
+        .in("id", postponeIds);
+      if (error) return toast.error(error.message);
+    }
+    toast.success(
+      payNowIds.length > 0
+        ? `${payNowIds.length} comissão(ões) marcada(s) como paga(s)`
+        : "Comissões mantidas como pendentes"
+    );
     invalidate();
     setDialog(null);
   };
@@ -838,6 +918,7 @@ function PaymentsTable({
         onConfirm={submitConfirm}
         onCancel={submitCancel}
         onRefund={submitRefund}
+        onCommissions={submitCommissionDecisions}
       />
     </div>
   );
@@ -849,16 +930,19 @@ function PaymentActionDialog({
   onConfirm,
   onCancel,
   onRefund,
+  onCommissions,
 }: {
   state: ConfirmDialogState;
   onClose: () => void;
   onConfirm: (id: string, amountPaid: number, paidAt: string) => void;
   onCancel: (id: string, reason: string) => void;
   onRefund: (id: string, amount: number) => void;
+  onCommissions: (decisions: { id: string; payNow: boolean }[]) => void;
 }) {
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(todayIsoStr());
   const [reason, setReason] = useState("");
+  const [commDecisions, setCommDecisions] = useState<Record<string, boolean>>({});
 
   useMemo(() => {
     if (!state) return;
@@ -869,20 +953,31 @@ function PaymentActionDialog({
       setAmount(String(state.payment.amount_paid || state.payment.amount || ""));
     } else if (state.kind === "cancel") {
       setReason("");
+    } else if (state.kind === "commissions") {
+      const init: Record<string, boolean> = {};
+      state.commissions.forEach((c: any) => { init[c.id] = true; });
+      setCommDecisions(init);
     }
-  }, [state?.kind, state?.payment?.id]);
+  }, [state?.kind, (state as any)?.payment?.id]);
 
   if (!state) return null;
   const { kind, payment } = state;
 
+  const isComm = kind === "commissions";
+  const commissions = isComm ? (state as any).commissions as any[] : [];
+  const totalNow = commissions
+    .filter((c) => commDecisions[c.id])
+    .reduce((a, c) => a + Number(c.amount || 0), 0);
+
   return (
     <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-white border-slate-200/70 max-w-md">
+      <DialogContent className={cn("bg-white border-slate-200/70", isComm ? "max-w-lg" : "max-w-md")}>
         <DialogHeader>
           <DialogTitle>
             {kind === "confirm" && "Confirmar pagamento"}
             {kind === "cancel" && "Cancelar pagamento"}
             {kind === "refund" && "Registrar reembolso"}
+            {kind === "commissions" && "Pagar comissões desta venda"}
           </DialogTitle>
           <DialogDescription>
             {payment.clients?.full_name ?? "Cliente"} · Valor original:{" "}
@@ -935,9 +1030,65 @@ function PaymentActionDialog({
           </div>
         )}
 
+        {isComm && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">
+              O pagamento do cliente foi registrado. Marque quais comissões deseja pagar agora —
+              as desmarcadas ficarão pendentes na Central Financeira para pagar depois.
+            </p>
+            <div className="space-y-2 max-h-72 overflow-auto rounded-md border border-slate-200 divide-y divide-slate-100">
+              {commissions.map((c) => (
+                <label
+                  key={c.id}
+                  className="flex items-center justify-between gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={!!commDecisions[c.id]}
+                      onChange={(e) =>
+                        setCommDecisions((s) => ({ ...s, [c.id]: e.target.checked }))
+                      }
+                      className="size-4 accent-emerald-600"
+                    />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-slate-800 truncate">
+                        {c._beneficiary}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {c.rule_type ?? "comissão"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm text-slate-700 whitespace-nowrap">
+                    {formatBRL(Number(c.amount || 0))}
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <button
+                type="button"
+                className="text-indigo-600 hover:underline"
+                onClick={() => {
+                  const allOn = commissions.every((c) => commDecisions[c.id]);
+                  const next: Record<string, boolean> = {};
+                  commissions.forEach((c) => { next[c.id] = !allOn; });
+                  setCommDecisions(next);
+                }}
+              >
+                {commissions.every((c) => commDecisions[c.id]) ? "Desmarcar todas" : "Marcar todas"}
+              </button>
+              <span className="font-mono text-slate-700">
+                A pagar agora: {formatBRL(totalNow)}
+              </span>
+            </div>
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Voltar
+            {isComm ? "Concluir depois" : "Voltar"}
           </Button>
           {kind === "confirm" && (
             <Button
@@ -976,11 +1127,24 @@ function PaymentActionDialog({
               Reembolsar
             </Button>
           )}
+          {isComm && (
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() =>
+                onCommissions(
+                  commissions.map((c) => ({ id: c.id, payNow: !!commDecisions[c.id] }))
+                )
+              }
+            >
+              Aplicar
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({
