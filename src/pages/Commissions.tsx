@@ -146,11 +146,70 @@ export default function Commissions() {
   const { data: commissions = [], isLoading } = useQuery({
     queryKey: ["commissions-list"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("commissions")
-        .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
-        .order("created_at", { ascending: false });
-      return data ?? [];
+      const [commsRes, splitsRes, partnersRes, profilesRes, referrersRes, salesRes, clientsRes, productsRes] = await Promise.all([
+        supabase
+          .from("commissions")
+          .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
+          .order("created_at", { ascending: false }),
+        supabase.from("commission_splits").select("*").order("created_at", { ascending: false }),
+        supabase.from("partners").select("id,full_name,email,pix_key"),
+        supabase.from("profiles").select("id,full_name"),
+        supabase.from("referrers").select("id,full_name"),
+        supabase.from("sales").select("id, amount, sale_date, client_id, product_id"),
+        supabase.from("clients").select("id, full_name"),
+        supabase.from("products").select("id, name"),
+      ]);
+      const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
+      const profilesMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
+      const referrersMap = new Map((referrersRes.data ?? []).map((r: any) => [r.id, r]));
+      const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
+      const clientsMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c]));
+      const productsMap = new Map((productsRes.data ?? []).map((p: any) => [p.id, p]));
+
+      const splitRows = (splitsRes.data ?? []).map((s: any) => {
+        const sale: any = salesMap.get(s.sale_id) || {};
+        const partner = s.beneficiary_type === "partner" ? partnersMap.get(s.beneficiary_id) : null;
+        const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
+        const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
+        const wsMap: Record<string, string> = { pendente: "aguardando_confirmacao", pago: "paga", cancelado: "cancelada" };
+        return {
+          id: s.id,
+          _source: "split",
+          sale_id: s.sale_id,
+          partner_id: s.beneficiary_type === "partner" ? s.beneficiary_id : null,
+          collaborator_id: s.beneficiary_type === "collaborator" ? s.beneficiary_id : null,
+          referrer_id: s.beneficiary_type === "referrer" ? s.beneficiary_id : null,
+          amount: s.amount,
+          percent: s.percent,
+          status: s.status,
+          workflow_status: wsMap[s.status] || s.status,
+          commission_type: "percentual",
+          paid_at: s.paid_at,
+          approval_date: s.paid_at,
+          payment_method: s.payment_method,
+          notes: s.notes,
+          created_at: s.created_at,
+          partners: partner || null,
+          profiles: profile || null,
+          referrers: referrer || null,
+          sales: sale.id ? {
+            amount: sale.amount,
+            sale_date: sale.sale_date,
+            clients: clientsMap.get(sale.client_id) || null,
+            products: productsMap.get(sale.product_id) || null,
+          } : null,
+        };
+      });
+
+      // Avoid showing manual commissions if a split already exists for same sale+beneficiary
+      const splitKeys = new Set(splitRows.map((s: any) => `${s.sale_id}|${s.partner_id || s.collaborator_id || s.referrer_id}`));
+      const commRows = (commsRes.data ?? [])
+        .filter((c: any) => !splitKeys.has(`${c.sale_id}|${c.partner_id || c.collaborator_id || c.referrer_id}`))
+        .map((c: any) => ({ ...c, _source: "commission" }));
+
+      return [...splitRows, ...commRows].sort((a: any, b: any) =>
+        (b.created_at || "").localeCompare(a.created_at || "")
+      );
     },
   });
 
@@ -268,7 +327,24 @@ export default function Commissions() {
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["commissions-list"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
+    qc.invalidateQueries({ queryKey: ["fin-commissions"] });
     qc.invalidateQueries({ queryKey: ["finance-splits"] });
+    qc.invalidateQueries({ queryKey: ["commission-splits-unified"] });
+  };
+
+  // Split rows in commission_splits use a simpler enum (pendente/pago/cancelado).
+  // Map workflow_status → split_status and route the update to the correct table.
+  const splitStatusFor = (ws: string) =>
+    PAID_STATUSES.includes(ws) ? "pago" : (["cancelada", "estornada"].includes(ws) ? "cancelado" : "pendente");
+
+  const updateSplit = async (ids: string[], patch: { status?: string; paid_at?: string | null; payment_method?: string | null; notes?: string | null }) => {
+    const upd: any = {};
+    if (patch.status !== undefined) upd.status = patch.status;
+    if (patch.paid_at !== undefined) upd.paid_at = patch.paid_at;
+    if (patch.payment_method !== undefined) upd.payment_method = patch.payment_method;
+    if (patch.notes !== undefined) upd.notes = patch.notes;
+    return supabase.from("commission_splits").update(upd).in("id", ids);
   };
 
   // ----- Mutations -----
@@ -276,24 +352,17 @@ export default function Commissions() {
     if (!createForm.beneficiary_id) { toast.error("Selecione um beneficiário"); return; }
     if (!createForm.sale_id) { toast.error("Vincule a uma venda"); return; }
     if (!Number(createForm.amount) || Number(createForm.amount) <= 0) { toast.error("Informe um valor maior que zero"); return; }
-    const sale = sales.find((s: any) => s.id === createForm.sale_id);
-    const payload: any = {
+    
+    const splitPayload: any = {
       sale_id: createForm.sale_id,
-      client_id: sale?.client_id ?? null,
-      product_id: sale?.product_id ?? null,
+      beneficiary_type: createForm.beneficiary_type,
+      beneficiary_id: createForm.beneficiary_id,
       amount: Number(createForm.amount),
       percent: Number(createForm.percent || 0),
-      commission_type: createForm.commission_type,
-      workflow_status: createForm.status,
-      status: createForm.status === "paga" ? "pago" : (createForm.status === "aguardando_confirmacao" ? "pendente" : createForm.status),
+      status: splitStatusFor(createForm.status),
       notes: createForm.notes || null,
     };
-
-    if (createForm.beneficiary_type === "partner") payload.partner_id = createForm.beneficiary_id;
-    else if (createForm.beneficiary_type === "collaborator") payload.collaborator_id = createForm.beneficiary_id;
-    else if (createForm.beneficiary_type === "referrer") payload.referrer_id = createForm.beneficiary_id;
-
-    const { error } = await supabase.from("commissions").insert(payload);
+    const { error } = await supabase.from("commission_splits").insert(splitPayload);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão criada");
     setCreateOpen(false);
@@ -366,7 +435,14 @@ export default function Commissions() {
       approval_date: isClosed ? null : (isApproved ? (editForm.approval_date ? new Date(editForm.approval_date).toISOString() : (editing.approval_date || new Date().toISOString())) : (editing.approval_date || null)),
       paid_at: isClosed ? null : (isPaid ? (editForm.paid_at ? new Date(editForm.paid_at).toISOString() : (editing.paid_at || new Date().toISOString())) : null),
     };
-    const { error } = await supabase.from("commissions").update(payload).eq("id", editing.id);
+    const { error } = editing._source === "split"
+      ? await updateSplit([editing.id], {
+          status: splitStatusFor(ws),
+          paid_at: payload.paid_at,
+          payment_method: payload.payment_method,
+          notes: payload.notes,
+        })
+      : await supabase.from("commissions").update(payload).eq("id", editing.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão atualizada");
     setEditOpen(false); setEditing(null);
@@ -380,7 +456,9 @@ export default function Commissions() {
       confirmText: "Excluir", destructive: true,
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions").delete().eq("id", c.id);
+    const { error } = c._source === "split"
+      ? await supabase.from("commission_splits").delete().eq("id", c.id)
+      : await supabase.from("commissions").delete().eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão excluída");
     invalidateAll();
@@ -393,9 +471,11 @@ export default function Commissions() {
       confirmText: "Cancelar comissão",
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions")
-      .update({ workflow_status: "cancelada", status: "cancelado", paid_at: null, approval_date: null })
-      .eq("id", c.id);
+    const { error } = c._source === "split"
+      ? await updateSplit([c.id], { status: "cancelado", paid_at: null })
+      : await supabase.from("commissions")
+          .update({ workflow_status: "cancelada", status: "cancelado", paid_at: null, approval_date: null })
+          .eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão cancelada");
     invalidateAll();
@@ -408,9 +488,11 @@ export default function Commissions() {
       confirmText: "Reabrir",
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions")
-      .update({ workflow_status: "aguardando_confirmacao", status: "pendente", paid_at: null, approval_date: null })
-      .eq("id", c.id);
+    const { error } = c._source === "split"
+      ? await updateSplit([c.id], { status: "pendente", paid_at: null })
+      : await supabase.from("commissions")
+          .update({ workflow_status: "aguardando_confirmacao", status: "pendente", paid_at: null, approval_date: null })
+          .eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão reaberta");
     invalidateAll();
@@ -435,19 +517,32 @@ export default function Commissions() {
     });
     if (!ok) return;
     const now = new Date().toISOString();
-    const payload: any = {
-      workflow_status: "paga",
-      status: "pago",
-      paid_at: new Date(payForm.paid_at).toISOString(),
-      approval_date: now,
-      payment_method: payForm.payment_method,
-      notes: payForm.notes || null,
-    };
-    const { error } = await supabase.from("commissions").update(payload).in("id", payTarget.ids);
-    if (error) { toast.error(error.message); return; }
+    const paidAtIso = new Date(payForm.paid_at).toISOString();
+    const idSet = new Set(payTarget.ids);
+    const splitIds = commissions.filter((c: any) => idSet.has(c.id) && c._source === "split").map((c: any) => c.id);
+    const commIds = commissions.filter((c: any) => idSet.has(c.id) && c._source !== "split").map((c: any) => c.id);
+    const errors: string[] = [];
+    if (commIds.length > 0) {
+      const payload: any = { workflow_status: "paga", status: "pago", paid_at: paidAtIso, approval_date: now, payment_method: payForm.payment_method, notes: payForm.notes || null };
+      const { error } = await supabase.from("commissions").update(payload).in("id", commIds);
+      if (error) errors.push(error.message);
+    }
+    if (splitIds.length > 0) {
+      const { error } = await updateSplit(splitIds, { status: "pago", paid_at: paidAtIso, payment_method: payForm.payment_method, notes: payForm.notes || null });
+      if (error) errors.push(error.message);
+    }
+    if (errors.length) { toast.error(errors.join(" · ")); return; }
     toast.success(`${payTarget.ids.length} comissão(ões) marcada(s) como paga(s)`);
     setPayOpen(false); setPayTarget(null); setSelected({});
     invalidateAll();
+  };
+
+  const _splitAndCommissionIds = () => {
+    const idSet = new Set(selectedIds);
+    return {
+      splitIds: commissions.filter((c: any) => idSet.has(c.id) && c._source === "split").map((c: any) => c.id),
+      commIds: commissions.filter((c: any) => idSet.has(c.id) && c._source !== "split").map((c: any) => c.id),
+    };
   };
 
   const bulkCancel = async () => {
@@ -458,10 +553,17 @@ export default function Commissions() {
       confirmText: "Cancelar", destructive: true,
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions")
-      .update({ workflow_status: "cancelada", status: "cancelado", paid_at: null, approval_date: null })
-      .in("id", selectedIds);
-    if (error) { toast.error(error.message); return; }
+    const { splitIds, commIds } = _splitAndCommissionIds();
+    const errs: string[] = [];
+    if (commIds.length) {
+      const { error } = await supabase.from("commissions").update({ workflow_status: "cancelada", status: "cancelado", paid_at: null, approval_date: null }).in("id", commIds);
+      if (error) errs.push(error.message);
+    }
+    if (splitIds.length) {
+      const { error } = await updateSplit(splitIds, { status: "cancelado", paid_at: null });
+      if (error) errs.push(error.message);
+    }
+    if (errs.length) { toast.error(errs.join(" · ")); return; }
     toast.success("Comissões canceladas"); setSelected({}); invalidateAll();
   };
 
@@ -473,8 +575,17 @@ export default function Commissions() {
       confirmText: "Excluir", destructive: true,
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions").delete().in("id", selectedIds);
-    if (error) { toast.error(error.message); return; }
+    const { splitIds, commIds } = _splitAndCommissionIds();
+    const errs: string[] = [];
+    if (commIds.length) {
+      const { error } = await supabase.from("commissions").delete().in("id", commIds);
+      if (error) errs.push(error.message);
+    }
+    if (splitIds.length) {
+      const { error } = await supabase.from("commission_splits").delete().in("id", splitIds);
+      if (error) errs.push(error.message);
+    }
+    if (errs.length) { toast.error(errs.join(" · ")); return; }
     toast.success("Comissões excluídas"); setSelected({}); invalidateAll();
   };
 

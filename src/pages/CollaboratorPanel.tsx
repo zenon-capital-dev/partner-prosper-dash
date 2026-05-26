@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, ClipboardList, ListChecks, Users, FileText, UserCog,
   CheckCircle2, AlertCircle, Calendar, Inbox, Clock, Flame, Search,
-  ChevronRight, Mail, Phone,
+  ChevronRight, Mail, Phone, Wallet,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -18,16 +18,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDate, initials } from "@/lib/format";
+import { formatDate, initials, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { key: "dashboard",  label: "Início",     shortLabel: "Início",  icon: LayoutDashboard },
-  { key: "demandas",   label: "Demandas",   shortLabel: "Demandas",icon: ClipboardList  },
-  { key: "tarefas",    label: "Tarefas",    shortLabel: "Tarefas", icon: ListChecks     },
-  { key: "documentos", label: "Documentos", shortLabel: "Docs",    icon: FileText       },
-  { key: "perfil",     label: "Perfil",     shortLabel: "Perfil",  icon: UserCog        },
-  { key: "clientes",   label: "Clientes",                          icon: Users          },
+  { key: "dashboard",  label: "Início",     shortLabel: "Início",   icon: LayoutDashboard },
+  { key: "demandas",   label: "Demandas",   shortLabel: "Demandas", icon: ClipboardList  },
+  { key: "tarefas",    label: "Tarefas",    shortLabel: "Tarefas",  icon: ListChecks     },
+  { key: "comissoes",  label: "Comissões",  shortLabel: "Comissões",icon: Wallet         },
+  { key: "documentos", label: "Documentos", shortLabel: "Docs",     icon: FileText       },
+  { key: "perfil",     label: "Perfil",     shortLabel: "Perfil",   icon: UserCog        },
+  { key: "clientes",   label: "Clientes",                            icon: Users          },
 ];
 
 const STATUS_META: Record<string, { label: string; tone: string }> = {
@@ -100,6 +101,26 @@ export default function CollaboratorPanel() {
       return data ?? [];
     },
   });
+
+  const { data: comissoes = [], isLoading: loadingComissoes } = useQuery({
+    queryKey: ["collab-comissoes", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data: splits } = await supabase
+        .from("commission_splits")
+        .select("*, sales(amount, sale_date, clients(full_name), products(name))")
+        .eq("beneficiary_type", "collaborator")
+        .eq("beneficiary_id", user!.id)
+        .order("created_at", { ascending: false });
+      return splits ?? [];
+    },
+  });
+  const comissoesKpis = useMemo(() => {
+    const total = (comissoes as any[]).reduce((a, c) => a + Number(c.amount || 0), 0);
+    const pago = (comissoes as any[]).filter((c) => c.status === "pago").reduce((a, c) => a + Number(c.amount || 0), 0);
+    const pendente = (comissoes as any[]).filter((c) => c.status === "pendente").reduce((a, c) => a + Number(c.amount || 0), 0);
+    return { total, pago, pendente, count: (comissoes as any[]).length };
+  }, [comissoes]);
 
   const clientes = useMemo(() => {
     const m = new Map<string, any>();
@@ -357,6 +378,57 @@ export default function CollaboratorPanel() {
                     </li>
                   ))}
                 </ul>}
+            </SectionCard>
+          </>
+        )}
+
+        {activeKey === "comissoes" && (
+          <>
+            <PanelHero
+              role="colaborador"
+              eyebrow="Financeiro"
+              title="Minhas comissões"
+              subtitle={`${comissoesKpis.count} lançamento(s)`}
+              stats={[
+                { label: "Total", value: formatBRL(comissoesKpis.total) },
+                { label: "Pago", value: formatBRL(comissoesKpis.pago) },
+                { label: "Pendente", value: formatBRL(comissoesKpis.pendente) },
+              ]}
+            />
+            <SectionCard title="Histórico" icon={Wallet}>
+              {loadingComissoes ? (
+                <EmptyState icon={Clock} title="Carregando..." />
+              ) : comissoes.length === 0 ? (
+                <EmptyState icon={Wallet} title="Sem comissões" description="Suas comissões aparecerão aqui assim que forem geradas." />
+              ) : (
+                <ul className="divide-y divide-slate-100 -mx-1">
+                  {(comissoes as any[]).map((c) => {
+                    const tone = c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : c.status === "cancelado" ? "bg-slate-100 text-slate-600 border-slate-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200";
+                    return (
+                      <li key={c.id} className="flex items-center gap-3 px-3 py-3">
+                        <div className="size-9 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                          <Wallet className="size-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13.5px] font-medium text-slate-900 truncate">
+                            {c.sales?.clients?.full_name || "—"} · {c.sales?.products?.name || "—"}
+                          </p>
+                          <p className="text-[11.5px] text-slate-500">
+                            {Number(c.percent || 0).toFixed(2)}% sobre {formatBRL(c.sales?.amount || 0)} · {formatDate(c.created_at)}
+                            {c.paid_at ? ` · Pago em ${formatDate(c.paid_at)}` : ""}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-mono font-semibold text-slate-900 text-[13.5px]">{formatBRL(c.amount)}</p>
+                          <Badge variant="outline" className={cn("text-[10px] mt-1 capitalize", tone)}>{c.status}</Badge>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </SectionCard>
           </>
         )}
