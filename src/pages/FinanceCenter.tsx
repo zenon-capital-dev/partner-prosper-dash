@@ -386,6 +386,7 @@ type ConfirmDialogState =
   | { kind: "confirm"; payment: any }
   | { kind: "cancel"; payment: any }
   | { kind: "refund"; payment: any }
+  | { kind: "commissions"; payment: any; commissions: any[] }
   | null;
 
 function PaymentsTable({
