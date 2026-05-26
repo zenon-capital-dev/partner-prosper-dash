@@ -182,13 +182,14 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[95vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="font-display text-xl flex items-center gap-2">
             <UserPlus className="size-5 text-primary" /> Converter lead em cliente
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-5 py-2">
+        
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
           <div className="rounded-xl border border-border bg-muted/30 p-3 text-sm">
             <p className="font-bold">{lead.full_name}{lead.company ? ` — ${lead.company}` : ""}</p>
             <p className="text-xs text-muted-foreground">{lead.email || lead.whatsapp || lead.phone}</p>
@@ -271,7 +272,8 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
             )}
           </div>
         </div>
-        <DialogFooter>
+        
+        <DialogFooter className="p-6 border-t bg-slate-50/50">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={submit} disabled={submitting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             {submitting ? "Convertendo..." : "Converter lead"}

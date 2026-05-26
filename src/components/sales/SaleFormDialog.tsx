@@ -191,7 +191,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-slate-200 shadow-2xl gap-0 bg-white">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-slate-200 shadow-2xl gap-0 bg-white flex flex-col max-h-[95vh] sm:max-h-[90vh]">
         {/* Header Ultra Premium */}
         <DialogHeader className="px-6 sm:px-10 pt-8 pb-10 bg-gradient-to-br from-[#1e293b] via-[#334155] to-[#1e293b] text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -251,7 +251,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         </DialogHeader>
 
         {/* Body com Scroll Suave */}
-        <div className="px-6 sm:px-10 py-8 max-h-[65vh] overflow-y-auto bg-slate-50/50 space-y-8 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="px-6 sm:px-10 py-8 flex-1 overflow-y-auto bg-slate-50/50 space-y-8 scrollbar-thin scrollbar-thumb-slate-200">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Coluna Principal */}
