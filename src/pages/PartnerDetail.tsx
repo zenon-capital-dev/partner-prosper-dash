@@ -31,11 +31,16 @@ export default function PartnerDetail() {
       setClients(cl || []);
 
       const { data: comm } = await supabase
-        .from("commissions")
-        .select("*, clients(full_name), products(name)")
-        .eq("partner_id", id)
+        .from("commission_splits")
+        .select("*, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "partner")
+        .eq("beneficiary_id", id)
         .order("created_at", { ascending: false });
-      setCommissions(comm || []);
+      setCommissions((comm || []).map((c: any) => ({
+        ...c,
+        clients: c.sales?.clients,
+        products: c.sales?.products,
+      })));
 
       const { data: ct } = await supabase
         .from("contracts")
@@ -51,8 +56,8 @@ export default function PartnerDetail() {
   if (loading) return <div className="p-12 text-center text-muted-foreground">Carregando...</div>;
   if (!partner) return <div className="p-12 text-center text-destructive">Parceiro não encontrado.</div>;
 
-  const paid = commissions.filter((c) => c.status === "paga");
-  const pending = commissions.filter((c) => c.status !== "paga" && c.status !== "cancelada");
+  const paid = commissions.filter((c) => c.status === "pago");
+  const pending = commissions.filter((c) => c.status === "pendente");
   const totalPaid = paid.reduce((s, c) => s + Number(c.amount || 0), 0);
   const totalPending = pending.reduce((s, c) => s + Number(c.amount || 0), 0);
 
