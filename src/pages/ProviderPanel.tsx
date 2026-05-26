@@ -92,6 +92,30 @@ export default function ProviderPanel() {
     },
   });
 
+  const { data: commissions = [] } = useQuery({
+    queryKey: ["provider-commissions", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "service_provider")
+        .eq("beneficiary_id", providerId!)
+        .order("created_at", { ascending: false });
+      return (data ?? []).map((c: any) => ({
+        ...c,
+        client_name: c.sales?.clients?.full_name,
+        product_name: c.sales?.products?.name,
+      }));
+    },
+  });
+  const commKpis = useMemo(() => {
+    const all = commissions as any[];
+    const pago = all.filter((c) => c.status === "pago").reduce((a, c) => a + Number(c.amount || 0), 0);
+    const pendente = all.filter((c) => c.status === "pendente").reduce((a, c) => a + Number(c.amount || 0), 0);
+    return { pago, pendente, total: pago + pendente, count: all.length };
+  }, [commissions]);
+
   const stats = useMemo(() => {
     const all = clientProducts as any[];
     const active = all.filter((c) => !["concluido","concluida","cancelado","cancelada"].includes(c.status)).length;
