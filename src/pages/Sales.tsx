@@ -551,8 +551,11 @@ export default function Sales() {
                     </td>
                   </tr>
                 ) : sorted.map((s: any) => {
-                  const commissionPct = Number(s.commission_percent || 0);
-                  const commissionVal = (Number(s.amount || 0) * commissionPct) / 100;
+                  const splits = splitsBySale.get(s.id) ?? [];
+                  const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
+                  const baseAmt = Number(s.amount || 0);
+                  const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
+                  const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
                       <Td><StatusPill status={s.status} /></Td>
