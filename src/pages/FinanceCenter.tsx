@@ -141,7 +141,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("commissions")
-          .select("*, partners(full_name), products(name), clients(full_name)")
+          .select("*, partners(full_name), products(name), clients(full_name), profiles!collaborator_id(full_name), referrers(full_name)")
           .order("created_at", { ascending: false })
       ).data ?? [],
   });
@@ -1004,7 +1004,7 @@ function CommissionsTable({
       if (statusFilter === "pago" && !paid) return false;
       if (q) {
         const hay = norm(
-          `${c.partners?.full_name ?? ""} ${c.clients?.full_name ?? ""} ${c.products?.name ?? ""} ${c.status ?? ""}`
+          `${c.partners?.full_name ?? ""} ${c.profiles?.full_name ?? ""} ${c.referrers?.full_name ?? ""} ${c.clients?.full_name ?? ""} ${c.products?.name ?? ""} ${c.status ?? ""}`
         );
         if (!hay.includes(q)) return false;
       }
@@ -1072,7 +1072,9 @@ function CommissionsTable({
             ) : (
               rows.map((c: any) => (
                 <tr key={c.id} className="hover:bg-slate-50/60">
-                  <td className="px-4 py-2.5 text-slate-800">{c.partners?.full_name ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-slate-800">
+                    {c.partners?.full_name || c.profiles?.full_name || c.referrers?.full_name || "—"}
+                  </td>
                   <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
                   <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
                   <td className="px-4 py-2.5 text-right font-medium font-mono tabular-nums">{formatBRL(c.amount)}</td>
