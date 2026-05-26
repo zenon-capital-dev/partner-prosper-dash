@@ -229,6 +229,7 @@ export type Database = {
           due_date: string | null
           file_url: string | null
           id: string
+          priority: string | null
           reviewed_at: string | null
           status: string
           title: string
@@ -242,6 +243,7 @@ export type Database = {
           due_date?: string | null
           file_url?: string | null
           id?: string
+          priority?: string | null
           reviewed_at?: string | null
           status?: string
           title: string
@@ -255,6 +257,7 @@ export type Database = {
           due_date?: string | null
           file_url?: string | null
           id?: string
+          priority?: string | null
           reviewed_at?: string | null
           status?: string
           title?: string
@@ -1929,6 +1932,7 @@ export type Database = {
           file_url: string | null
           id: string
           observations: string | null
+          priority: string | null
           product_id: string | null
           rejection_reason: string | null
           request_title: string
@@ -1946,6 +1950,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           observations?: string | null
+          priority?: string | null
           product_id?: string | null
           rejection_reason?: string | null
           request_title: string
@@ -1963,6 +1968,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           observations?: string | null
+          priority?: string | null
           product_id?: string | null
           rejection_reason?: string | null
           request_title?: string
@@ -2062,6 +2068,7 @@ export type Database = {
           is_required: boolean
           mime_type: string | null
           name: string
+          priority: string | null
           product_id: string | null
           rejection_reason: string | null
           requested_at: string | null
@@ -2088,6 +2095,7 @@ export type Database = {
           is_required?: boolean
           mime_type?: string | null
           name: string
+          priority?: string | null
           product_id?: string | null
           rejection_reason?: string | null
           requested_at?: string | null
@@ -2114,6 +2122,7 @@ export type Database = {
           is_required?: boolean
           mime_type?: string | null
           name?: string
+          priority?: string | null
           product_id?: string | null
           rejection_reason?: string | null
           requested_at?: string | null
