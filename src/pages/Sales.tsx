@@ -261,15 +261,17 @@ export default function Sales() {
   const exportCSV = () => {
     const headers = ["Data", "Cliente", "Empresa", "Produto", "Parceiro", "Valor", "Comissão %", "Comissão R$", "Status"];
     const rows = sorted.map((s: any) => {
-      const pct = Number(s.commission_percent || 0);
-      const com = (Number(s.amount || 0) * pct) / 100;
+      const splits = splitsBySale.get(s.id) ?? [];
+      const com = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
+      const baseAmt = Number(s.amount || 0);
+      const pct = baseAmt > 0 ? (com / baseAmt) * 100 : 0;
       return [
         s.sale_date,
         s.clients?.full_name ?? "",
         s.clients?.company ?? "",
         s.products?.name ?? "",
         s.partners?.full_name ?? "",
-        Number(s.amount || 0).toFixed(2),
+        baseAmt.toFixed(2),
         pct.toFixed(2),
         com.toFixed(2),
         s.status,
