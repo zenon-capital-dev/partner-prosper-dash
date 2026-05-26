@@ -714,7 +714,7 @@ export default function Documents() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="bg-slate-50 border-b border-slate-200/70">
-                    <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                    <SortableTh label="Destinatário" k="client" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                     <SortableTh label="Demanda" k="product" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                     <SortableTh label="Documento" k="name" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                     <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider font-semibold text-slate-500">Arquivo</th>
