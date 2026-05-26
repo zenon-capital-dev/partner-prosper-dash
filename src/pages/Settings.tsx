@@ -15,8 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Building2, Palette, Shield, Bell, FileText, Users, Package,
-  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2,
+  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2, Palette as PaletteIcon
 } from "lucide-react";
+import { ThemeCustomizer } from "@/components/ThemeCustomizer";
 
 type ListItem = { id: string; label: string };
 
@@ -512,33 +513,20 @@ export default function Settings() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Cor Principal (Botões e Destaques)</Label>
-                    <div className="flex gap-3">
-                      <Input
-                        type="color"
-                        className="p-1 size-10"
-                        value={companySettings.primary_color}
-                        onChange={(e) =>
-                          setCompanySettings({
-                            ...companySettings,
-                            primary_color: e.target.value,
-                          })
-                        }
-                      />
-                      <Input
-                        className="flex-1"
-                        value={companySettings.primary_color}
-                        onChange={(e) =>
-                          setCompanySettings({
-                            ...companySettings,
-                            primary_color: e.target.value,
-                          })
-                        }
-                      />
+                  <div className="p-6 border rounded-xl bg-muted/30 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <PaletteIcon className="size-6" />
                     </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold">Personalização Avançada</p>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        Ajuste as cores principais, barra lateral e arredondamento de bordas em toda a plataforma com pré-visualização ao vivo.
+                      </p>
+                    </div>
+                    <ThemeCustomizer />
                   </div>
-                  <div className="space-y-2">
+                  
+                  <div className="space-y-2 opacity-50 pointer-events-none">
                     <Label>Logotipo (URL)</Label>
                     <Input
                       placeholder="https://..."
