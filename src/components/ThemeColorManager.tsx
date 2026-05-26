@@ -58,10 +58,12 @@ export const ThemeColorManager: React.FC = () => {
     
     // We update individually to avoid heavy calculations if only one changed
     root.style.setProperty('--primary', hexToHSL(colorsToApply.primary));
+    root.style.setProperty('--custom-primary', hexToHSL(colorsToApply.primary));
     root.style.setProperty('--ring', hexToHSL(colorsToApply.primary));
     root.style.setProperty('--sidebar-background', hexToHSL(colorsToApply.sidebarBackground));
     root.style.setProperty('--sidebar-foreground', hexToHSL(colorsToApply.sidebarForeground));
     root.style.setProperty('--accent', hexToHSL(colorsToApply.accent));
+    root.style.setProperty('--custom-accent', hexToHSL(colorsToApply.accent));
     root.style.setProperty('--radius', colorsToApply.radius);
     
     // Admin sidebar specific
