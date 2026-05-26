@@ -2,17 +2,19 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
+import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 
 export function ClientFinancial({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [marking, setMarking] = useState<string | null>(null);
+  const [saleOpen, setSaleOpen] = useState(false);
 
   const markPaid = async (paymentId: string, amount: number) => {
     const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
@@ -40,6 +42,18 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
     },
   });
 
+  const { data: sales = [], isLoading: salesLoading } = useQuery({
+    queryKey: ["client-sales", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sales")
+        .select("*, products(name), partners(full_name), referrers(full_name)")
+        .eq("client_id", clientId)
+        .order("sale_date", { ascending: false });
+      return data ?? [];
+    },
+  });
+
   const totals = payments?.reduce((acc: any, p: any) => {
     acc.total += Number(p.amount || 0);
     acc.paid += Number(p.amount_paid || 0);
@@ -47,8 +61,72 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
     return acc;
   }, { total: 0, paid: 0, pending: 0 }) || { total: 0, paid: 0, pending: 0 };
 
+  const salesTotal = sales.reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
+
   return (
     <div className="space-y-6 animate-fade-up">
+      <SaleFormDialog open={saleOpen} onOpenChange={setSaleOpen} clientId={clientId} onCreated={() => { qc.invalidateQueries({ queryKey: ["client-sales", clientId] }); qc.invalidateQueries({ queryKey: ["client-payments", clientId] }); }} />
+
+      {/* Vendas do cliente */}
+      <div className="cp-panel overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-gradient-to-r from-indigo-50/40 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="size-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center"><ShoppingBag className="size-4" /></div>
+            <div>
+              <h3 className="text-sm font-bold">Vendas registradas</h3>
+              <p className="text-[11px] text-muted-foreground">{sales.length} venda(s) · Total {formatBRL(salesTotal)}</p>
+            </div>
+          </div>
+          <Button size="sm" onClick={() => setSaleOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+            <Plus className="size-4 mr-1.5" /> Nova venda
+          </Button>
+        </div>
+        {salesLoading ? (
+          <div className="px-6 py-10 text-center text-sm text-muted-foreground">Carregando vendas...</div>
+        ) : sales.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-muted-foreground">Nenhuma venda registrada para este cliente.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted/30 border-b border-border/40">
+                <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Data</th>
+                <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Produto</th>
+                <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Parceiro / Indicador</th>
+                <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Valor</th>
+                <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</th>
+                <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40">
+              {sales.map((s: any) => (
+                <tr key={s.id} className="hover:bg-muted/20 transition-colors">
+                  <td className="px-6 py-3 text-xs font-mono">{formatDate(s.sale_date)}</td>
+                  <td className="px-6 py-3 font-medium">{s.products?.name ?? "—"}</td>
+                  <td className="px-6 py-3 text-xs text-muted-foreground">
+                    {s.partners?.full_name || s.referrers?.full_name || "—"}
+                  </td>
+                  <td className="px-6 py-3 text-right font-mono font-bold tabular-nums">{formatBRL(s.amount)}</td>
+                  <td className="px-6 py-3">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider",
+                      s.status === "concluida" && "bg-emerald-100 text-emerald-700",
+                      s.status === "pendente" && "bg-amber-100 text-amber-700",
+                      s.status === "em_andamento" && "bg-sky-100 text-sky-700",
+                      s.status === "cancelada" && "bg-rose-100 text-rose-700",
+                    )}>{s.status}</span>
+                  </td>
+                  <td className="px-6 py-3 text-right">
+                    <Button size="sm" variant="ghost" onClick={() => navigate(`/vendas?search=${encodeURIComponent(s.id)}`)}>
+                      <ExternalLink className="size-3.5" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <FinancialCard label="Total Contratado" value={totals.total} icon={Wallet} color="indigo" />
         <FinancialCard label="Valor Recebido" value={totals.paid} icon={CheckCircle2} color="emerald" />

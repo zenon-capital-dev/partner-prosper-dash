@@ -50,7 +50,7 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
       if (!partnerId) return [];
       const { data } = await supabase
         .from("partner_products")
-        .select("*, products(id,name,base_price,default_commission_percent,product_categories(name,color))")
+        .select("*, products(id,name,base_price,default_commission_percent)")
         .eq("partner_id", partnerId)
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -63,7 +63,7 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("id,name,base_price,default_commission_percent,allow_partner,active,product_categories(name,color)")
+        .select("id,name,base_price,default_commission_percent,allow_partner,active")
         .eq("active", true)
         .eq("allow_partner", true)
         .order("name");

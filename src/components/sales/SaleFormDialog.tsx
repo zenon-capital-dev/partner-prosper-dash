@@ -176,20 +176,42 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl p-0 overflow-hidden rounded-2xl border-slate-200 shadow-2xl gap-0">
         {/* Header premium */}
-        <DialogHeader className="px-6 sm:px-8 pt-6 pb-5 bg-gradient-to-br from-white via-indigo-50/30 to-white border-b border-slate-200/70">
+        <DialogHeader className="px-6 sm:px-8 pt-6 pb-5 bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600 border-b border-slate-200/70 text-white">
           <div className="flex items-center gap-3">
-            <div className="size-11 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/25">
-              <CircleDollarSign className="size-5" strokeWidth={2.4} />
+            <div className="size-12 rounded-xl bg-white/15 backdrop-blur ring-1 ring-white/30 flex items-center justify-center text-white shadow-lg">
+              <CircleDollarSign className="size-6" strokeWidth={2.4} />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="font-display text-[20px] font-bold text-slate-900 leading-tight tracking-tight">
-                Nova venda
+              <DialogTitle className="font-display text-[22px] font-bold text-white leading-tight tracking-tight">
+                Registrar nova venda
               </DialogTitle>
-              <DialogDescription className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mt-0.5">
-                Registro comercial · Comissões automáticas
+              <DialogDescription className="text-[11px] font-semibold text-indigo-100 uppercase tracking-widest mt-0.5">
+                Cliente · Produto · Comissionamento automático
               </DialogDescription>
             </div>
+            {amount > 0 && (
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-100/80">Valor bruto</span>
+                <span className="font-mono text-xl font-bold tabular-nums">{fmt(amount)}</span>
+              </div>
+            )}
           </div>
+          {amount > 0 && (
+            <div className="mt-4 grid grid-cols-3 gap-2 text-[11px]">
+              <div className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 ring-1 ring-white/15">
+                <div className="text-[9.5px] uppercase tracking-widest text-indigo-100/80 font-bold">Comissões</div>
+                <div className="font-mono font-bold tabular-nums">{fmt(totalCommissions)}</div>
+              </div>
+              <div className="rounded-lg bg-white/10 backdrop-blur px-3 py-2 ring-1 ring-white/15">
+                <div className="text-[9.5px] uppercase tracking-widest text-indigo-100/80 font-bold">% repassado</div>
+                <div className={cn("font-mono font-bold tabular-nums", totalPct > 100 && "text-rose-200")}>{totalPct.toFixed(1)}%</div>
+              </div>
+              <div className="rounded-lg bg-emerald-400/20 backdrop-blur px-3 py-2 ring-1 ring-emerald-200/30">
+                <div className="text-[9.5px] uppercase tracking-widest text-emerald-100 font-bold">Líquido</div>
+                <div className="font-mono font-bold tabular-nums text-emerald-50">{fmt(liquido)}</div>
+              </div>
+            </div>
+          )}
         </DialogHeader>
 
         {/* Body */}

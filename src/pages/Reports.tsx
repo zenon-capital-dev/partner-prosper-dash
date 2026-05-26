@@ -82,7 +82,7 @@ export default function Reports() {
     queryKey: ["report-data-sales", from, to, filterProduct, filterPartner, filterClient, filterStatus],
     queryFn: async () => {
       let q = supabase.from("sales")
-        .select("*, clients(full_name), products(name, product_categories(name, color)), partners(full_name)")
+        .select("*, clients(full_name), products(name), partners(full_name)")
         .gte("sale_date", from).lte("sale_date", to);
       if (filterProduct !== "all") q = q.eq("product_id", filterProduct);
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
