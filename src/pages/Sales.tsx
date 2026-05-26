@@ -56,11 +56,19 @@ export default function Sales() {
   }, [searchParams]);
 
   const { data: sales = [], isLoading } = useQuery({
-    queryKey: ["sales-rich"],
-    queryFn: async () => (await supabase
-      .from("sales")
-      .select("*, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key)")
-      .order("sale_date", { ascending: false })).data ?? [],
+    queryKey: ["sales-rich-v2"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales")
+        .select("*, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name), profiles:profiles!sales_collaborator_id_fkey(full_name)")
+        .order("sale_date", { ascending: false });
+      if (error) {
+        console.error("[Sales] query error:", error);
+        toast.error("Erro ao carregar vendas: " + error.message);
+        return [];
+      }
+      return data ?? [];
+    },
   });
 
   const { data: partnersList = [] } = useQuery({
