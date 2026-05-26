@@ -153,7 +153,7 @@ export default function Sales() {
           case "product": return norm(x.products?.name);
           case "partner": return norm(x.partners?.full_name);
           case "amount": return Number(x.amount || 0);
-          case "commission": return (Number(x.amount || 0) * Number(x.commission_percent || 0)) / 100;
+          case "commission": return (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
           case "status": return String(x.status || "");
         }
       };
