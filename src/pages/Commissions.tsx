@@ -208,7 +208,7 @@ export default function Commissions() {
         if (sort.k === "amount") return Number(x.amount || 0);
         if (sort.k === "percent") return Number(x.percent || 0);
         if (sort.k === "base") return Number(x.sales?.amount || 0);
-        if (sort.k === "partner") return norm(c.partners?.full_name ?? c.referrers?.full_name ?? (c.profiles as any)?.full_name);
+        if (sort.k === "partner") return norm(x.partners?.full_name ?? x.referrers?.full_name ?? (x.profiles as any)?.full_name);
         if (sort.k === "client") return norm(x.sales?.clients?.full_name);
         if (sort.k === "status") return x.workflow_status || x.status || "";
         return x.created_at || "";
