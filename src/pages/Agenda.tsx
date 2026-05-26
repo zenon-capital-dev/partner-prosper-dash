@@ -117,6 +117,8 @@ export default function Agenda() {
   const [editing, setEditing] = useState<AgendaItem | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
+  const presetClientId = searchParams.get("client");
+
   useEffect(() => {
     if (searchParams.get("new") === "1") {
       setOpenCreate(true);
@@ -124,6 +126,7 @@ export default function Agenda() {
       setSearchParams(searchParams, { replace: true });
     }
   }, []); // eslint-disable-line
+
 
   // Lista de clientes pra autocomplete e filtro
   const { data: clients = [] } = useQuery({
@@ -394,9 +397,15 @@ export default function Agenda() {
           clients={clients}
           assignees={assignees}
           userId={user?.id}
-          onSaved={() => { qc.invalidateQueries({ queryKey: ["agenda"] }); }}
+          defaultClientId={presetClientId}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["agenda"] });
+            qc.invalidateQueries({ queryKey: ["client-timeline"] });
+            qc.invalidateQueries({ queryKey: ["client-tasks"] });
+          }}
         />
       )}
+
     </div>
   );
 }
@@ -707,7 +716,7 @@ function Kanban({ items, onUpdate, onItemClick }: { items: AgendaItem[]; onUpdat
 }
 
 function CreateOrEditDialog({
-  open, onClose, editing, clients, assignees, userId, onSaved,
+  open, onClose, editing, clients, assignees, userId, defaultClientId, onSaved,
 }: {
   open: boolean;
   onClose: () => void;
@@ -715,6 +724,7 @@ function CreateOrEditDialog({
   clients: any[];
   assignees: any[];
   userId?: string;
+  defaultClientId?: string | null;
   onSaved: () => void;
 }) {
   const isEdit = !!editing;
@@ -729,10 +739,11 @@ function CreateOrEditDialog({
   const [reminderMin, setReminderMin] = useState<string>(editing?.reminder_minutes?.toString() || "0");
   const [priority, setPriority] = useState(editing?.priority || "normal");
   const [status, setStatus] = useState<Status>(editing?.status_new || "a_fazer");
-  const [clientId, setClientId] = useState<string>(editing?.client_id || "none");
+  const [clientId, setClientId] = useState<string>(editing?.client_id || defaultClientId || "none");
   const [assigneeId, setAssigneeId] = useState<string>(editing?.assigned_to || userId || "none");
   const [visibleToClient, setVisibleToClient] = useState(!!editing?.visible_to_client);
   const [saving, setSaving] = useState(false);
+
 
   const handleSave = async () => {
     if (!title.trim()) { toast.error("Informe um título"); return; }
