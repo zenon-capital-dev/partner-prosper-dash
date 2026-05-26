@@ -315,7 +315,7 @@ export default function SLAPages() {
                             {d.service_providers?.name || "Não atribuído"}
                           </span>
                           <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium">
-                            <Calendar className="size-3" />
+                            <CalendarIcon className="size-3" />
                             {d.sla?.dueDate ? format(d.sla.dueDate, "dd/MM/yyyy") : "Sem prazo"}
                           </span>
                         </div>
