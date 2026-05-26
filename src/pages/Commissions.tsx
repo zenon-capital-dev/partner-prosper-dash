@@ -524,19 +524,32 @@ export default function Commissions() {
     });
     if (!ok) return;
     const now = new Date().toISOString();
-    const payload: any = {
-      workflow_status: "paga",
-      status: "pago",
-      paid_at: new Date(payForm.paid_at).toISOString(),
-      approval_date: now,
-      payment_method: payForm.payment_method,
-      notes: payForm.notes || null,
-    };
-    const { error } = await supabase.from("commissions").update(payload).in("id", payTarget.ids);
-    if (error) { toast.error(error.message); return; }
+    const paidAtIso = new Date(payForm.paid_at).toISOString();
+    const idSet = new Set(payTarget.ids);
+    const splitIds = commissions.filter((c: any) => idSet.has(c.id) && c._source === "split").map((c: any) => c.id);
+    const commIds = commissions.filter((c: any) => idSet.has(c.id) && c._source !== "split").map((c: any) => c.id);
+    const errors: string[] = [];
+    if (commIds.length > 0) {
+      const payload: any = { workflow_status: "paga", status: "pago", paid_at: paidAtIso, approval_date: now, payment_method: payForm.payment_method, notes: payForm.notes || null };
+      const { error } = await supabase.from("commissions").update(payload).in("id", commIds);
+      if (error) errors.push(error.message);
+    }
+    if (splitIds.length > 0) {
+      const { error } = await updateSplit(splitIds, { status: "pago", paid_at: paidAtIso, payment_method: payForm.payment_method, notes: payForm.notes || null });
+      if (error) errors.push(error.message);
+    }
+    if (errors.length) { toast.error(errors.join(" · ")); return; }
     toast.success(`${payTarget.ids.length} comissão(ões) marcada(s) como paga(s)`);
     setPayOpen(false); setPayTarget(null); setSelected({});
     invalidateAll();
+  };
+
+  const _splitAndCommissionIds = () => {
+    const idSet = new Set(selectedIds);
+    return {
+      splitIds: commissions.filter((c: any) => idSet.has(c.id) && c._source === "split").map((c: any) => c.id),
+      commIds: commissions.filter((c: any) => idSet.has(c.id) && c._source !== "split").map((c: any) => c.id),
+    };
   };
 
   const bulkCancel = async () => {
