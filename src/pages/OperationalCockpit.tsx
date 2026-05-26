@@ -138,7 +138,7 @@ export default function OperationalCockpit() {
         subtitle: `${d.client?.full_name || 'Cliente desconhecido'} - ${d.status === 'enviado' ? 'Aguardando Análise' : d.status === 'reprovado' ? 'Reprovado / Reenvio' : d.status === 'em_analise' ? 'Em Análise' : 'Solicitado'}`,
         status: d.status,
         date: d.created_at,
-        severity: d.status === 'reprovado' ? 'high' : 'medium',
+        severity: (['reprovado', 'pendente_correcao', 'vencido'].includes(d.status) ? 'high' : 'medium'),
         metadata: d
       })) as CockpitItem[];
     }
