@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
-import { format, subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { format, subDays, startOfMonth, startOfToday, endOfDay, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/use-debounce";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,17 +69,20 @@ const Th = ({ children, className }: { children: React.ReactNode, className?: st
 const SLAIndicator = ({ dueDate, status }: { dueDate: string | null, status: string | null }) => {
   if (!dueDate) return <span className="text-[10px] text-muted-foreground/40 italic font-medium">Não definido</span>;
   
-  const today = new Date();
-  const due = new Date(dueDate);
-  const diffTime = due.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const now = nowBR();
+  const due = toBR(dueDate);
+  const diffDays = differenceInCalendarDays(due, now);
+  const isToday = isTodayBR(dueDate);
   
   let color = "text-emerald-600 bg-emerald-500/10 border-emerald-500/20";
   let label = `${diffDays}d restantes`;
   
-  if (diffDays < 0) {
+  if (due < now && !isToday) {
     color = "text-rose-600 bg-rose-500/10 border-rose-500/20";
     label = `${Math.abs(diffDays)}d atrasado`;
+  } else if (isToday) {
+    color = "text-amber-600 bg-amber-500/10 border-amber-500/20";
+    label = "Vence hoje";
   } else if (diffDays <= 2) {
     color = "text-amber-600 bg-amber-500/10 border-amber-500/20";
     label = "Vence em breve";

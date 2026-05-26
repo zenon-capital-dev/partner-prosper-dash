@@ -1,4 +1,4 @@
-import { formatBR as format } from "@/lib/datetime";
+import { formatBR as format, nowBR, toBR, formatBRDate, formatBRDateTime } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -66,7 +66,7 @@ const statusMeta = (s: string) => STATUSES.find(x => x.value === s) ?? STATUSES[
 const priorityMeta = (p: string) => PRIORITIES.find(x => x.value === p) ?? PRIORITIES[1];
 
 const isOverdue = (t: any) =>
-  t.due_date && new Date(t.due_date) < new Date() && !["concluida", "cancelada"].includes(t.status_new);
+  t.due_date && toBR(t.due_date) < nowBR() && !["concluida", "cancelada"].includes(t.status_new);
 
 type EntityType = "none" | "client" | "client_product" | "provider" | "partner" | "payment" | "contract";
 
@@ -105,7 +105,7 @@ export default function Tasks() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [calendarDate, setCalendarDate] = useState<Date | undefined>(new Date());
+  const [calendarDate, setCalendarDate] = useState<Date | undefined>(nowBR());
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<FormState>(emptyForm);

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { nowBR } from "@/lib/datetime";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -86,6 +87,7 @@ export function DemandComments({ clientProductId, role }: Props) {
       author_id: user.id,
       content: content.trim(),
       visibility,
+      created_at: nowBR().toISOString(),
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);

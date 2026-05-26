@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { nowBR, formatBR, toBR, isTodayBR } from "@/lib/datetime";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
@@ -46,10 +47,10 @@ const REPORT_LABELS: Record<ReportType, string> = {
 
 export default function Reports() {
   const [from, setFrom] = useState(() => {
-    const d = new Date(); d.setMonth(d.getMonth() - 1);
-    return d.toISOString().split("T")[0];
+    const d = nowBR(); d.setMonth(d.getMonth() - 1);
+    return formatBR(d, "yyyy-MM-dd");
   });
-  const [to, setTo] = useState(() => new Date().toISOString().split("T")[0]);
+  const [to, setTo] = useState(() => formatBR(nowBR(), "yyyy-MM-dd"));
   const [reportType, setReportType] = useState<ReportType>("revenue_period");
   
   // Filters
@@ -238,8 +239,8 @@ export default function Reports() {
         };
       }
       case "delayed_demands": {
-        const now = new Date();
-        const delayed = clientProducts.filter(p => p.deadline && new Date(p.deadline) < now && p.status !== 'concluido' && p.status !== 'cancelado');
+        const now = nowBR();
+        const delayed = clientProducts.filter(p => p.deadline && toBR(p.deadline) < now && !isTodayBR(p.deadline) && p.status !== 'concluido' && p.status !== 'cancelado');
         return {
           title: "Demandas Atrasadas",
           columns: [
@@ -258,7 +259,8 @@ export default function Reports() {
         };
       }
       case "delinquency": {
-        const unpaid = payments.filter(p => p.status === 'vencido' || (p.status === 'pendente' && new Date(p.due_date) < new Date()));
+        const now = nowBR();
+        const unpaid = payments.filter(p => p.status === 'vencido' || (p.status === 'pendente' && toBR(p.due_date) < now && !isTodayBR(p.due_date)));
         const total = unpaid.reduce((sum, p) => sum + Number(p.amount), 0);
         return {
           title: "Relatório de Inadimplência",
@@ -355,7 +357,7 @@ export default function Reports() {
     const completedDemands = clientProducts.filter((p: any) => p.status === "concluido").length;
     const openDemands = clientProducts.filter((p: any) => p.status !== "concluido" && p.status !== "cancelado").length;
     const conversion = newClients > 0 ? Math.round((totalDeals / newClients) * 100) : 0;
-    const overdue = payments.filter((p: any) => p.status === "vencido" || (p.status === "pendente" && new Date(p.due_date) < new Date()));
+    const overdue = payments.filter((p: any) => p.status === "vencido" || (p.status === "pendente" && toBR(p.due_date) < nowBR() && !isTodayBR(p.due_date)));
     const overdueAmount = overdue.reduce((s, p: any) => s + Number(p.amount || 0), 0);
     const commissionsTotal = commissions.reduce((s, c: any) => s + Number(c.amount || 0), 0);
     return { totalRevenue, totalDeals, avgTicket, newClients, completedDemands, openDemands, conversion, overdueAmount, commissionsTotal };

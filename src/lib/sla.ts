@@ -1,4 +1,5 @@
-import { differenceInBusinessDays, differenceInCalendarDays, isToday, isBefore, addDays, parseISO } from "date-fns";
+import { differenceInBusinessDays, differenceInCalendarDays, parseISO } from "date-fns";
+import { isTodayBR, toBR, nowBR } from "./datetime";
 
 export type SLAStatus = 'no_prazo' | 'atencao' | 'vence_hoje' | 'atrasado' | 'pausado' | 'concluido';
 
@@ -19,9 +20,9 @@ export function calculateSLA(
 ): SLAMetrics | null {
   if (!startDateStr) return null;
 
-  const start = parseISO(startDateStr);
-  const due = dueDateStr ? parseISO(dueDateStr) : null;
-  const now = new Date();
+  const start = toBR(startDateStr);
+  const due = dueDateStr ? toBR(dueDateStr) : null;
+  const now = nowBR();
 
   if (currentStatus === 'concluido') {
     return {
@@ -55,11 +56,12 @@ export function calculateSLA(
       ? differenceInBusinessDays(due, now) 
       : differenceInCalendarDays(due, now);
     
-    isOverdue = isBefore(due, now) && !isToday(due);
+    // Use zoned dates for comparison
+    isOverdue = due < now && !isTodayBR(due);
     
     if (isOverdue) {
       status = 'atrasado';
-    } else if (isToday(due)) {
+    } else if (isTodayBR(due)) {
       status = 'vence_hoje';
       isExpiringSoon = true;
     } else if (daysRemaining <= 2) {
