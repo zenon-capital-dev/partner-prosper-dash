@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   LayoutDashboard, ClipboardList, ListChecks, Users, FileText, UserCog,
   CheckCircle2, AlertCircle, Calendar, Inbox, Clock, Flame, Search,
-  ChevronRight, Mail, Phone,
+  ChevronRight, Mail, Phone, Wallet,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
