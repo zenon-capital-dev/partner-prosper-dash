@@ -352,7 +352,7 @@ export default function Commissions() {
     if (!createForm.beneficiary_id) { toast.error("Selecione um beneficiário"); return; }
     if (!createForm.sale_id) { toast.error("Vincule a uma venda"); return; }
     if (!Number(createForm.amount) || Number(createForm.amount) <= 0) { toast.error("Informe um valor maior que zero"); return; }
-    const sale = sales.find((s: any) => s.id === createForm.sale_id);
+    
     const splitPayload: any = {
       sale_id: createForm.sale_id,
       beneficiary_type: createForm.beneficiary_type,
