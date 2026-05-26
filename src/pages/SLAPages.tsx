@@ -35,6 +35,7 @@ const isNoDueDate = (d: any) =>
   d.sla?.daysRemaining == null && d.sla?.status !== "pausado" && d.sla?.status !== "concluido";
 
 export default function SLAPages() {
+  const qc = useQueryClient();
   const navigate = useNavigate();
   const [bucket, setBucket] = useState<Bucket>("todos");
   const [search, setSearch] = useState("");
