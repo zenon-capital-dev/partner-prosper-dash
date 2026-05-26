@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
+import { subDays, startOfMonth, startOfToday, endOfDay, parseISO } from "date-fns";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +10,10 @@ import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
   CalendarRange, Sparkles, ArrowUp, ArrowDown, TrendingUp, BarChart3,
-  Users, Trophy, Inbox,
+  Users, Trophy, Inbox, Pencil
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
+import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -39,6 +40,7 @@ export default function Sales() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
+  const [editingSale, setEditingSale] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
@@ -79,8 +81,8 @@ export default function Sales() {
   const usingManualRange = !!dateFrom || !!dateTo;
 
   const filtered = useMemo(() => {
-    const today = startOfToday();
-    let start: Date = today;
+    const today = nowBR();
+    let start: Date = startOfToday();
     let end: Date = endOfDay(today);
 
     if (usingManualRange) {
@@ -219,6 +221,11 @@ export default function Sales() {
     if (error) { toast.error(error.message); return; }
     toast.success("Status atualizado");
     invalidateRelated();
+  };
+
+  const editOne = (s: any) => {
+    setEditingSale(s);
+    setOpen(true);
   };
 
   const removeOne = async (s: any) => {
@@ -551,7 +558,7 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400 italic">Direto</span>
                         )}
                       </Td>
-                      <Td className="text-slate-600 text-xs font-mono">{formatDate(s.sale_date)}</Td>
+                      <Td className="text-slate-600 text-xs font-mono">{s.sale_date ? formatBRDate(parseISO(s.sale_date)) : "—"}</Td>
                       <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>
                       <Td align="right">
                         {commissionVal > 0 ? (
@@ -577,6 +584,10 @@ export default function Sales() {
                                   <Eye className="size-3.5 mr-2" /> Ver Cliente
                                 </DropdownMenuItem>
                               )}
+                               <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => editOne(s)}>
+                                <Pencil className="size-3.5 mr-2 text-indigo-600" /> Editar Venda
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
                                 <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar concluída
@@ -613,7 +624,15 @@ export default function Sales() {
         </div>
       </div>
 
-      <SaleFormDialog open={open} onOpenChange={setOpen} onCreated={invalidateRelated} />
+      <SaleFormDialog 
+        open={open} 
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) setEditingSale(null);
+        }} 
+        onCreated={invalidateRelated}
+        sale={editingSale}
+      />
     </div>
   );
 }
