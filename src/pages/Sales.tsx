@@ -530,18 +530,6 @@ export default function Sales() {
                       </Td>
                       <Td>
                         <div className="flex items-center gap-2">
-                          {s.products?.product_categories && (
-                            <span
-                              className="text-[9px] font-bold px-1.5 py-0.5 rounded border"
-                              style={{
-                                borderColor: `${s.products.product_categories.color}40`,
-                                color: s.products.product_categories.color,
-                                backgroundColor: `${s.products.product_categories.color}10`,
-                              }}
-                            >
-                              {s.products.product_categories.name.toUpperCase()}
-                            </span>
-                          )}
                           <span className="text-slate-700">{s.products?.name ?? "—"}</span>
                         </div>
                       </Td>

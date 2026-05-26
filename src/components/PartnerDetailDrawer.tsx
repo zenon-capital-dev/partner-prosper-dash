@@ -409,7 +409,7 @@ function LinkRow({ link, onUpdate, onRemove }: any) {
   const [pct, setPct] = useState(String(link.commission_percent ?? ""));
   const [price, setPrice] = useState(String(link.custom_price ?? ""));
   const product = link.products;
-  const color = product?.product_categories?.color ?? "hsl(var(--primary))";
+  const color = "hsl(var(--primary))";
 
   const save = () => {
     onUpdate(link.id, {
