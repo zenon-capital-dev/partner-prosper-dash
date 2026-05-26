@@ -1266,6 +1266,7 @@ export type Database = {
           approved_by: string | null
           client_id: string | null
           client_product_id: string | null
+          collaborator_id: string | null
           commission_type: string | null
           created_at: string
           expected_date: string | null
@@ -1280,6 +1281,7 @@ export type Database = {
           product_id: string | null
           reason: string | null
           receipt_url: string | null
+          referrer_id: string | null
           rule_type: string | null
           rule_value: number | null
           sale_id: string | null
@@ -1298,6 +1300,7 @@ export type Database = {
           approved_by?: string | null
           client_id?: string | null
           client_product_id?: string | null
+          collaborator_id?: string | null
           commission_type?: string | null
           created_at?: string
           expected_date?: string | null
@@ -1312,6 +1315,7 @@ export type Database = {
           product_id?: string | null
           reason?: string | null
           receipt_url?: string | null
+          referrer_id?: string | null
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string | null
@@ -1330,6 +1334,7 @@ export type Database = {
           approved_by?: string | null
           client_id?: string | null
           client_product_id?: string | null
+          collaborator_id?: string | null
           commission_type?: string | null
           created_at?: string
           expected_date?: string | null
@@ -1344,6 +1349,7 @@ export type Database = {
           product_id?: string | null
           reason?: string | null
           receipt_url?: string | null
+          referrer_id?: string | null
           rule_type?: string | null
           rule_value?: number | null
           sale_id?: string | null
@@ -1377,6 +1383,13 @@ export type Database = {
             referencedColumns: ["client_id"]
           },
           {
+            foreignKeyName: "commissions_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "commissions_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
@@ -1396,6 +1409,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "commissions_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "commissions_sale_id_fkey"
