@@ -131,9 +131,20 @@ export function ClientDocumentsTab({
     const path = req.file_path || req.file_url;
     if (!path) return;
     if (path.startsWith("http")) return window.open(path, "_blank");
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
+    
+    const { data, error } = await supabase.storage.from("documents").download(path);
     if (error || !data) return toast.error("Não foi possível acessar o arquivo");
-    window.open(data.signedUrl, "_blank");
+    
+    const ext = path.split(".").pop() || "bin";
+    const docName = req.name.replace(/\s+/g, "_");
+    const filename = `${docName}.${ext}`;
+    
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   if (requests.length === 0) {
