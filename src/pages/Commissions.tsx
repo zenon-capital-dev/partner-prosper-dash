@@ -353,23 +353,16 @@ export default function Commissions() {
     if (!createForm.sale_id) { toast.error("Vincule a uma venda"); return; }
     if (!Number(createForm.amount) || Number(createForm.amount) <= 0) { toast.error("Informe um valor maior que zero"); return; }
     const sale = sales.find((s: any) => s.id === createForm.sale_id);
-    const payload: any = {
+    const splitPayload: any = {
       sale_id: createForm.sale_id,
-      client_id: sale?.client_id ?? null,
-      product_id: sale?.product_id ?? null,
+      beneficiary_type: createForm.beneficiary_type,
+      beneficiary_id: createForm.beneficiary_id,
       amount: Number(createForm.amount),
       percent: Number(createForm.percent || 0),
-      commission_type: createForm.commission_type,
-      workflow_status: createForm.status,
-      status: createForm.status === "paga" ? "pago" : (createForm.status === "aguardando_confirmacao" ? "pendente" : createForm.status),
+      status: splitStatusFor(createForm.status),
       notes: createForm.notes || null,
     };
-
-    if (createForm.beneficiary_type === "partner") payload.partner_id = createForm.beneficiary_id;
-    else if (createForm.beneficiary_type === "collaborator") payload.collaborator_id = createForm.beneficiary_id;
-    else if (createForm.beneficiary_type === "referrer") payload.referrer_id = createForm.beneficiary_id;
-
-    const { error } = await supabase.from("commissions").insert(payload);
+    const { error } = await supabase.from("commission_splits").insert(splitPayload);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão criada");
     setCreateOpen(false);
