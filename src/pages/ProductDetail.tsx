@@ -154,16 +154,19 @@ export default function ProductDetail() {
 
   const remove = async () => {
     if (!product) return;
-    if (!(await confirmAction(`Excluir definitivamente "${product.name}"?\n\nVendas e demandas ativas impedem a exclusão — nesses casos, use Desativar.`))) return;
+    if (!(await confirmAction(`Excluir definitivamente "${product.name}"?`))) return;
     const { data, error } = await supabase.rpc("admin_delete_product_cascade", { _product_id: product.id });
     if (error) { toast.error(error.message); return; }
     const result = data as { ok: boolean; message?: string } | null;
     if (!result?.ok) {
-      const fb = await confirmAction(`${result?.message || "Não foi possível excluir."}\n\nDesativar agora?`);
-      if (!fb) return;
-      const { error: uerr } = await supabase.from("products").update({ active: false }).eq("id", product.id);
-      if (uerr) { toast.error(uerr.message); return; }
-      toast.success("Serviço desativado"); navigate("/produtos"); return;
+      const force = await confirmAction(`${result?.message || "Não foi possível excluir."}\n\nFORÇAR EXCLUSÃO TOTAL? Isso apaga vendas, comissões, pagamentos, demandas, tarefas e documentos vinculados. Ação irreversível.`);
+      if (!force) return;
+      const { data: d2, error: e2 } = await supabase.rpc("admin_delete_product_cascade", { _product_id: product.id, _force: true });
+      if (e2) { toast.error(e2.message); return; }
+      const r2 = d2 as { ok: boolean; message?: string } | null;
+      if (!r2?.ok) { toast.error(r2?.message || "Falha na exclusão forçada"); return; }
+      toast.success(r2.message || "Serviço e vínculos excluídos");
+      navigate("/produtos"); return;
     }
     toast.success(result.message || "Serviço excluído");
     navigate("/produtos");
