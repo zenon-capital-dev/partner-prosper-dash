@@ -960,10 +960,11 @@ function TodayBoard({
   ];
 
   const accentMap: Record<string, { bg: string; text: string; ring: string; chip: string }> = {
-    indigo: { bg: "bg-indigo-50", text: "text-indigo-600", ring: "ring-indigo-100", chip: "bg-indigo-100 text-indigo-700" },
-    amber:  { bg: "bg-amber-50",  text: "text-amber-600",  ring: "ring-amber-100",  chip: "bg-amber-100 text-amber-700" },
-    sky:    { bg: "bg-sky-50",    text: "text-sky-600",    ring: "ring-sky-100",    chip: "bg-sky-100 text-sky-700" },
-    violet: { bg: "bg-violet-50", text: "text-violet-600", ring: "ring-violet-100", chip: "bg-violet-100 text-violet-700" },
+    indigo:  { bg: "bg-indigo-50",  text: "text-indigo-600",  ring: "ring-indigo-100",  chip: "bg-indigo-100 text-indigo-700" },
+    amber:   { bg: "bg-amber-50",   text: "text-amber-600",   ring: "ring-amber-100",   chip: "bg-amber-100 text-amber-700" },
+    sky:     { bg: "bg-sky-50",     text: "text-sky-600",     ring: "ring-sky-100",     chip: "bg-sky-100 text-sky-700" },
+    violet:  { bg: "bg-violet-50",  text: "text-violet-600",  ring: "ring-violet-100",  chip: "bg-violet-100 text-violet-700" },
+    emerald: { bg: "bg-emerald-50", text: "text-emerald-600", ring: "ring-emerald-100", chip: "bg-emerald-100 text-emerald-700" },
   };
 
   return (
