@@ -116,7 +116,17 @@ export default function DashboardAdmin() {
     queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date")).data ?? [] 
   });
 
+  const { data: agendaInteractions = [] } = useQuery({
+    queryKey: ["dash-agenda-today"],
+    queryFn: async () => {
+      const today = toLocalISO(brasiliaToday);
+      const { data } = await supabase.from("client_interactions").select("*").eq("next_action_at", today).eq("status", "pendente");
+      return data ?? [];
+    }
+  });
+
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ 
+
     queryKey: ["dash-payments"], 
     queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] 
   });
@@ -227,16 +237,6 @@ export default function DashboardAdmin() {
         const product = clientProducts.find((x: any) => x.id === p.id);
         return { id: p.id, title: client?.full_name || "Cliente", subtitle: product?.custom_product_name || "Serviço" };
       });
-
-    // Puxando da agenda (Interações com data de hoje)
-    const { data: agendaInteractions = [] } = useQuery({
-      queryKey: ["dash-agenda-today"],
-      queryFn: async () => {
-        const today = toLocalISO(brasiliaToday);
-        const { data } = await supabase.from("client_interactions").select("*").eq("next_action_at", today).eq("status", "pendente");
-        return data ?? [];
-      }
-    });
 
     const todayAgendaList = agendaInteractions.map((i: any) => {
       const client = clients.find((c: any) => c.id === i.client_id);
