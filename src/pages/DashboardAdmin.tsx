@@ -125,18 +125,17 @@ export default function DashboardAdmin() {
     }
   });
 
-  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
-
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ 
-
-
     queryKey: ["dash-payments"], 
     queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] 
   });
+
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
+
+  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
 
   
 
