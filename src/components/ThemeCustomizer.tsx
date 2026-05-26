@@ -22,6 +22,14 @@ const DEFAULT_COLORS: ThemeColors = {
   radius: '0.5rem',
 };
 
+const PRESETS = [
+  { name: 'Padrão', colors: DEFAULT_COLORS },
+  { name: 'Ocean', colors: { ...DEFAULT_COLORS, primary: '#0ea5e9', sidebarBackground: '#0c4a6e', sidebarForeground: '#bae6fd' } },
+  { name: 'Emerald', colors: { ...DEFAULT_COLORS, primary: '#10b981', sidebarBackground: '#064e3b', sidebarForeground: '#d1fae5' } },
+  { name: 'Midnight', colors: { ...DEFAULT_COLORS, primary: '#8b5cf6', sidebarBackground: '#1e1b4b', sidebarForeground: '#e0e7ff' } },
+  { name: 'Rose', colors: { ...DEFAULT_COLORS, primary: '#f43f5e', sidebarBackground: '#4c0519', sidebarForeground: '#ffe4e6' } },
+];
+
 export const ThemeCustomizer: React.FC = () => {
   const [colors, setColors] = useState<ThemeColors>(() => {
     const saved = localStorage.getItem('custom-theme-colors');
@@ -34,9 +42,13 @@ export const ThemeCustomizer: React.FC = () => {
     updateThemeColors(newColors);
   };
 
+  const applyPreset = (presetColors: ThemeColors) => {
+    setColors(presetColors);
+    updateThemeColors(presetColors);
+  };
+
   const handleReset = () => {
-    setColors(DEFAULT_COLORS);
-    updateThemeColors(DEFAULT_COLORS);
+    applyPreset(DEFAULT_COLORS);
   };
 
   return (
@@ -58,6 +70,24 @@ export const ThemeCustomizer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
           {/* Controls */}
           <div className="space-y-6">
+            <div className="space-y-2">
+              <Label>Sugestões de Temas</Label>
+              <div className="flex flex-wrap gap-2">
+                {PRESETS.map((p) => (
+                  <Button 
+                    key={p.name} 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 text-[11px] gap-1.5"
+                    onClick={() => applyPreset(p.colors)}
+                  >
+                    <div className="size-2.5 rounded-full" style={{ backgroundColor: p.colors.primary }} />
+                    {p.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
