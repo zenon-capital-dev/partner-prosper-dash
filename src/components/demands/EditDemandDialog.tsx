@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { nowBR, toBR } from "@/lib/datetime";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,7 +52,7 @@ export function EditDemandDialog({ open, onOpenChange, demand }: Props) {
       const patch: any = {
         priority: form.priority,
         deadline: form.deadline || null,
-        sla_due_date: form.sla_due_date ? new Date(form.sla_due_date).toISOString() : null,
+        sla_due_date: form.sla_due_date ? toBR(form.sla_due_date).toISOString() : null,
         value: form.value ? Number(form.value) : null,
         custom_product_name: form.custom_product_name || null,
         internal_notes: form.internal_notes || null,
