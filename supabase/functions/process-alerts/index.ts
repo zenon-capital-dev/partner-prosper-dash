@@ -72,15 +72,18 @@ Deno.serve(async (req) => {
         .gt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       if (!existing || existing.length === 0) {
-        await admin.from("notifications").insert({
-          user_id: adminToNotify?.id,
-          title: "Comissão Pendente",
-          message,
-          type: "warning",
-          link: "/commissions"
-        });
-        
-        alerts.push({ type: 'commission', id: c.id, recipient: adminToNotify?.email });
+        if (adminUserIds.length > 0) {
+          await admin.from("notifications").insert(
+            adminUserIds.map((uid) => ({
+              user_id: uid,
+              title: "Comissão Pendente",
+              message,
+              type: "warning",
+              link: "/commissions",
+            }))
+          );
+          alerts.push({ type: 'commission', id: c.id, recipients: adminUserIds.length });
+        }
       }
     }
 
