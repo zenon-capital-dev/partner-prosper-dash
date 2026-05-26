@@ -550,6 +550,18 @@ export default function Products() {
           if (id && !editing) navigate(`/produtos/${id}`);
         }}
       />
+
+      <DeleteProductDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+        productId={deleteTarget?.id ?? null}
+        productName={deleteTarget?.name ?? ""}
+        onDeleted={() => {
+          setDeleteTarget(null);
+          qc.invalidateQueries({ queryKey: ["products-list"] });
+          qc.invalidateQueries({ queryKey: ["product-usage"] });
+        }}
+      />
     </div>
   );
 }
