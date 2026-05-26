@@ -1277,7 +1277,7 @@ export type Database = {
           is_recurring: boolean | null
           notes: string | null
           paid_at: string | null
-          partner_id: string
+          partner_id: string | null
           payment_date: string | null
           payment_method: string | null
           percent: number | null
@@ -1311,7 +1311,7 @@ export type Database = {
           is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
-          partner_id: string
+          partner_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
           percent?: number | null
@@ -1345,7 +1345,7 @@ export type Database = {
           is_recurring?: boolean | null
           notes?: string | null
           paid_at?: string | null
-          partner_id?: string
+          partner_id?: string | null
           payment_date?: string | null
           payment_method?: string | null
           percent?: number | null

@@ -1,0 +1,2 @@
+ALTER TABLE public.commissions ALTER COLUMN partner_id DROP NOT NULL;
+ALTER TABLE public.commissions ADD CONSTRAINT commissions_beneficiary_check CHECK (partner_id IS NOT NULL OR collaborator_id IS NOT NULL OR referrer_id IS NOT NULL);
