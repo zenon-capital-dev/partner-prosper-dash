@@ -78,6 +78,27 @@ export default function Sales() {
     queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name")).data ?? [],
   });
 
+  const { data: allSplits = [] } = useQuery({
+    queryKey: ["sales-commission-splits"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("sale_id, amount, percent, beneficiary_type, status");
+      return (data as any[]) ?? [];
+    },
+  });
+
+  const splitsBySale = useMemo(() => {
+    const m = new Map<string, any[]>();
+    allSplits.forEach((s: any) => {
+      if (!s.sale_id) return;
+      const arr = m.get(s.sale_id) ?? [];
+      arr.push(s);
+      m.set(s.sale_id, arr);
+    });
+    return m;
+  }, [allSplits]);
+
   const usingManualRange = !!dateFrom || !!dateTo;
 
   const filtered = useMemo(() => {
