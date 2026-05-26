@@ -123,7 +123,7 @@ export default function Commissions() {
     notes: "",
   });
   const [createForm, setCreateForm] = useState<any>({
-    partner_id: "", sale_id: "", amount: 0, percent: 10,
+    beneficiary_id: "", beneficiary_type: "partner", sale_id: "", amount: 0, percent: 10,
     commission_type: "percentual", status: "aguardando_confirmacao", notes: "",
   });
   const [ruleForm, setRuleForm] = useState<any>({
@@ -262,12 +262,11 @@ export default function Commissions() {
 
   // ----- Mutations -----
   const createCommission = async () => {
-    if (!createForm.partner_id) { toast.error("Selecione um indicador"); return; }
-    if (!createForm.sale_id) { toast.error("Vincule a uma venda — comissões manuais sem venda não são suportadas"); return; }
+    if (!createForm.beneficiary_id) { toast.error("Selecione um beneficiário"); return; }
+    if (!createForm.sale_id) { toast.error("Vincule a uma venda"); return; }
     if (!Number(createForm.amount) || Number(createForm.amount) <= 0) { toast.error("Informe um valor maior que zero"); return; }
     const sale = sales.find((s: any) => s.id === createForm.sale_id);
     const payload: any = {
-      partner_id: createForm.partner_id,
       sale_id: createForm.sale_id,
       client_id: sale?.client_id ?? null,
       product_id: sale?.product_id ?? null,
@@ -278,11 +277,16 @@ export default function Commissions() {
       status: createForm.status === "paga" ? "pago" : (createForm.status === "aguardando_confirmacao" ? "pendente" : createForm.status),
       notes: createForm.notes || null,
     };
+
+    if (createForm.beneficiary_type === "partner") payload.partner_id = createForm.beneficiary_id;
+    else if (createForm.beneficiary_type === "collaborator") payload.collaborator_id = createForm.beneficiary_id;
+    else if (createForm.beneficiary_type === "referrer") payload.referrer_id = createForm.beneficiary_id;
+
     const { error } = await supabase.from("commissions").insert(payload);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão criada");
     setCreateOpen(false);
-    setCreateForm({ partner_id: "", sale_id: "", amount: 0, percent: 10, commission_type: "percentual", status: "aguardando_confirmacao", notes: "" });
+    setCreateForm({ beneficiary_id: "", beneficiary_type: "partner", sale_id: "", amount: 0, percent: 10, commission_type: "percentual", status: "aguardando_confirmacao", notes: "" });
     invalidateAll();
   };
 
