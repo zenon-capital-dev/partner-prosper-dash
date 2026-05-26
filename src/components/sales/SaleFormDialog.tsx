@@ -251,7 +251,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         </DialogHeader>
 
         {/* Body com Scroll Suave */}
-        <div className="px-6 sm:px-10 py-8 max-h-[65vh] overflow-y-auto bg-slate-50/50 space-y-8 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="px-6 sm:px-10 py-8 flex-1 overflow-y-auto bg-slate-50/50 space-y-8 scrollbar-thin scrollbar-thumb-slate-200">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Coluna Principal */}
