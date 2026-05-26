@@ -60,7 +60,7 @@ export default function Sales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("*, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name), profiles:profiles!sales_collaborator_id_fkey(full_name)")
+        .select("*, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
         .order("sale_date", { ascending: false });
       if (error) {
         console.error("[Sales] query error:", error);
