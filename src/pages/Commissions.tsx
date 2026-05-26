@@ -137,7 +137,7 @@ export default function Commissions() {
     queryFn: async () => {
       const { data } = await supabase
         .from("commissions")
-        .select("*, partners(id,full_name,email,pix_key), sales(amount, sale_date, clients(id,full_name), products(id,name))")
+        .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -191,7 +191,8 @@ export default function Commissions() {
       if (dateFrom && (c.created_at || "").slice(0,10) < dateFrom) return false;
       if (dateTo && (c.created_at || "").slice(0,10) > dateTo) return false;
       if (q) {
-        const hay = norm(`${c.partners?.full_name ?? ""} ${c.sales?.clients?.full_name ?? ""} ${c.sales?.products?.name ?? ""} ${c.notes ?? ""}`);
+        const beneficiaryName = c.partners?.full_name ?? c.referrers?.full_name ?? (c.profiles as any)?.full_name ?? "";
+        const hay = norm(`${beneficiaryName} ${c.sales?.clients?.full_name ?? ""} ${c.sales?.products?.name ?? ""} ${c.notes ?? ""}`);
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -207,7 +208,7 @@ export default function Commissions() {
         if (sort.k === "amount") return Number(x.amount || 0);
         if (sort.k === "percent") return Number(x.percent || 0);
         if (sort.k === "base") return Number(x.sales?.amount || 0);
-        if (sort.k === "partner") return norm(x.partners?.full_name);
+        if (sort.k === "partner") return norm(c.partners?.full_name ?? c.referrers?.full_name ?? (c.profiles as any)?.full_name);
         if (sort.k === "client") return norm(x.sales?.clients?.full_name);
         if (sort.k === "status") return x.workflow_status || x.status || "";
         return x.created_at || "";
