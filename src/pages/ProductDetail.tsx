@@ -86,12 +86,20 @@ export default function ProductDetail() {
   const { data: collabLinks = [], refetch: refetchCollabs } = useQuery({
     queryKey: ["product-collabs", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: rows, error } = await supabase
         .from("collaborator_products")
-        .select("id, notes, active, collaborator_id, created_at, profiles!collaborator_products_collaborator_id_fkey(id, full_name, email)")
+        .select("id, notes, active, collaborator_id, created_at")
         .eq("product_id", id!)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      if (error) { console.error(error); return []; }
+      const ids = (rows ?? []).map((r: any) => r.collaborator_id).filter(Boolean);
+      if (ids.length === 0) return rows ?? [];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((r: any) => ({ ...r, profiles: map.get(r.collaborator_id) ?? null }));
     },
     enabled: !!id,
   });
