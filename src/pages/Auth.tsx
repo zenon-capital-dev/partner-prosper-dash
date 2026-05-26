@@ -147,7 +147,7 @@ export default function AuthPage() {
 
         <footer className="flex items-end justify-between">
           <div>
-            <p className="font-display text-[11px] font-semibold tracking-[0.28em] uppercase text-white/40">MMXXVI</p>
+            <p className="font-display text-[11px] font-semibold tracking-[0.28em] uppercase text-white/40">​</p>
             <p className="text-[10.5px] text-white/25 mt-1.5 font-light tracking-wide">© Prosper · Todos os direitos reservados</p>
           </div>
           <div className="flex items-center gap-1.5 text-[10.5px] text-white/30 font-medium tracking-wider uppercase">
