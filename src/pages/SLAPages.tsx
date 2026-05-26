@@ -319,7 +319,7 @@ export default function SLAPages() {
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right">
+                        <div className="text-right mr-2">
                           <div
                             className={cn(
                               "text-2xl font-display font-black tracking-tight tabular-nums",
@@ -339,14 +339,48 @@ export default function SLAPages() {
                             dias
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="opacity-0 group-hover:opacity-100 md:opacity-0 sm:opacity-100 transition-opacity gap-1"
-                          onClick={(e) => { e.stopPropagation(); navigate(`/demandas/${d.id}`); }}
-                        >
-                          Abrir <ArrowUpRight className="size-3" />
-                        </Button>
+                        
+                        <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 gap-1 text-[11px]"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/demandas/${d.id}`); }}
+                          >
+                            Abrir <ArrowUpRight className="size-3" />
+                          </Button>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                Alterar Prazo
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end" onClick={(e) => e.stopPropagation()}>
+                              <Calendar
+                                mode="single"
+                                selected={d.sla_due_date ? new Date(d.sla_due_date) : undefined}
+                                onSelect={async (date) => {
+                                  if (!date) return;
+                                  const { error } = await supabase
+                                    .from("client_products")
+                                    .update({ sla_due_date: date.toISOString() })
+                                    .eq("id", d.id);
+                                  if (error) toast.error(error.message);
+                                  else {
+                                    toast.success("Prazo atualizado");
+                                    qc.invalidateQueries({ queryKey: ["admin-sla-demands"] });
+                                  }
+                                }}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
                       </div>
                     </div>
                   </div>
