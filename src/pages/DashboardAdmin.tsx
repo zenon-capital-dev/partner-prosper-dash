@@ -101,7 +101,29 @@ export default function DashboardAdmin() {
   });
   const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({ 
     queryKey: ["dash-commissions"], 
-    queryFn: async () => (await supabase.from("commissions").select("*")).data ?? [] 
+    queryFn: async () => {
+      const [splitsRes, legacyRes] = await Promise.all([
+        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at"),
+        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at"),
+      ]);
+      const splits = (splitsRes.data ?? []).map((s: any) => ({
+        id: s.id,
+        sale_id: s.sale_id,
+        amount: s.amount,
+        percent: s.percent,
+        status: s.status,
+        workflow_status: s.status,
+        paid_at: s.paid_at,
+        created_at: s.created_at,
+        _source: "split",
+      }));
+      // Legacy commissions: only include those whose sale_id has NO split (avoid double counting)
+      const splitSaleIds = new Set(splits.map((s: any) => s.sale_id).filter(Boolean));
+      const legacy = (legacyRes.data ?? [])
+        .filter((c: any) => !splitSaleIds.has(c.sale_id))
+        .map((c: any) => ({ ...c, _source: "legacy" }));
+      return [...splits, ...legacy];
+    }
   });
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({ 
     queryKey: ["dash-tasks"], 
