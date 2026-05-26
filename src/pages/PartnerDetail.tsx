@@ -136,8 +136,8 @@ export default function PartnerDetail() {
                     <TableCell>{c.clients?.full_name || "—"}</TableCell>
                     <TableCell>{c.products?.name || "—"}</TableCell>
                     <TableCell>{formatBRL(Number(c.amount || 0))}</TableCell>
-                    <TableCell><Badge variant="outline">{c.workflow_status || c.status}</Badge></TableCell>
-                    <TableCell>{c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : (c.expected_date ? format(new Date(c.expected_date), "dd/MM/yyyy") : "—")}</TableCell>
+                    <TableCell><Badge variant="outline">{c.status}</Badge></TableCell>
+                    <TableCell>{c.paid_at ? format(new Date(c.paid_at), "dd/MM/yyyy") : (c.created_at ? format(new Date(c.created_at), "dd/MM/yyyy") : "—")}</TableCell>
                   </TableRow>
                 ))}
                 {commissions.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">Nenhuma comissão</TableCell></TableRow>}
