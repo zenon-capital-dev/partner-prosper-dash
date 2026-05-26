@@ -120,6 +120,16 @@ export default function Commissions() {
     queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
   });
 
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ["collaborators-simple"],
+    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name")).data ?? [],
+  });
+
+  const { data: referrers = [] } = useQuery({
+    queryKey: ["referrers-simple"],
+    queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
+  });
+
   const onSelectSale = (id: string) => {
     const s = sales.find((x: any) => x.id === id);
     if (!s) return;
@@ -519,7 +529,7 @@ export default function Commissions() {
   const onSelectSale = (saleId: string) => {
     const s = sales.find((x: any) => x.id === saleId);
     if (s) {
-      const pct = Number(s.commission_percent ?? createForm.percent ?? 10);
+      const pct = Number(s.commission_percent ?? 10);
       const amount = Math.round(Number(s.amount) * pct) / 100;
       setCreateForm((f: any) => ({ ...f, sale_id: saleId, percent: pct, amount }));
     } else {
