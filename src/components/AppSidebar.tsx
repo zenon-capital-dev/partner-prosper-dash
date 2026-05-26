@@ -41,7 +41,7 @@ const adminSections: NavSection[] = [
   {
     label: "Comercial",
     items: [
-      { title: "Propostas", url: "/propostas", icon: FileText },
+      // { title: "Propostas", url: "/propostas", icon: FileText },
       { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
       { title: "Produtos", url: "/produtos", icon: Package },
     ],
@@ -56,7 +56,7 @@ const adminSections: NavSection[] = [
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ListChecks },
       { title: "Projetos", url: "/projetos", icon: Briefcase },
-      { title: "Templates", url: "/templates", icon: MessageSquare, badge: "BETA" },
+      // { title: "Templates", url: "/templates", icon: MessageSquare, badge: "BETA" },
     ],
   },
   {
@@ -97,7 +97,7 @@ const adminSections: NavSection[] = [
     label: "Sistema",
     items: [
       { title: "Usuários & Acessos", url: "/usuarios", icon: UserCog },
-      { title: "Automações(Desenvolvimento)", url: "/automacoes", icon: Zap },
+      // { title: "Automações(Desenvolvimento)", url: "/automacoes", icon: Zap },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },

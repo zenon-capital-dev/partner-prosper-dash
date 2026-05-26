@@ -210,9 +210,9 @@ export default function Settings() {
               <TabsTrigger value="status" className="rounded-lg h-9 gap-2">
                 <Tag className="size-4" /> Status
               </TabsTrigger>
-              <TabsTrigger value="docs" className="rounded-lg h-9 gap-2">
+              {/* <TabsTrigger value="docs" className="rounded-lg h-9 gap-2">
                 <FileText className="size-4" /> Templates Doc
-              </TabsTrigger>
+              </TabsTrigger> */}
               <TabsTrigger value="checklist" className="rounded-lg h-9 gap-2">
                 <ListChecks className="size-4" /> Checklists
               </TabsTrigger>
@@ -222,9 +222,9 @@ export default function Settings() {
               <TabsTrigger value="notifications" className="rounded-lg h-9 gap-2">
                 <Bell className="size-4" /> Notificações
               </TabsTrigger>
-              <TabsTrigger value="automations" className="rounded-lg h-9 gap-2">
+              {/* <TabsTrigger value="automations" className="rounded-lg h-9 gap-2">
                 <Zap className="size-4" /> Automações(Desenvolvimento)
-              </TabsTrigger>
+              </TabsTrigger> */}
               <TabsTrigger value="appearance" className="rounded-lg h-9 gap-2">
                 <Palette className="size-4" /> Aparência
               </TabsTrigger>
@@ -387,30 +387,13 @@ export default function Settings() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="docs" className="space-y-4">
+            {/* <TabsContent value="docs" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Templates de Documentos</CardTitle>
-                  <CardDescription>
-                    Lista de documentos padrão solicitados em cada produto.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ListEditor
-                    items={docTemplates}
-                    setItems={setDocTemplates}
-                    placeholder="Ex: RG, Comprovante de residência..."
-                    onSave={() => saveKey("doc_templates", docTemplates)}
-                  />
-                </CardContent>
-              </Card>
-              <ShortcutCard
-                icon={FileText}
-                title="Templates(Desenvolvimento) de Mensagens"
+...
                 description="Modelos de e-mail e WhatsApp para envios automáticos."
                 href="/templates"
               />
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="checklist" className="space-y-4">
               <Card>
@@ -511,14 +494,14 @@ export default function Settings() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="automations" className="space-y-4">
+            {/* <TabsContent value="automations" className="space-y-4">
               <ShortcutCard
                 icon={Zap}
                 title="Automações(Desenvolvimento) Internas"
                 description="Configure gatilhos automáticos para notificações e ações."
                 href="/automacoes"
               />
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="appearance" className="space-y-4">
               <Card>
