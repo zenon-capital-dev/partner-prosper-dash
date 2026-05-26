@@ -47,7 +47,7 @@ export function maskCurrencyBR(value: string | number): string {
   const d = onlyDigits(String(value));
   if (!d) return "";
   const n = Number(d) / 100;
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", timeZone: "America/Sao_Paulo" });
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export type MaskKind = "cpf" | "cnpj" | "cpfcnpj" | "cep" | "phone" | "currency";

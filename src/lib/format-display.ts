@@ -10,5 +10,5 @@ export function formatCurrencyBRL(v?: number | string | null): string {
   if (v == null || v === "") return "R$ 0,00";
   const n = typeof v === "string" ? Number(v) : v;
   if (!Number.isFinite(n)) return "R$ 0,00";
-  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", timeZone: "America/Sao_Paulo" });
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }

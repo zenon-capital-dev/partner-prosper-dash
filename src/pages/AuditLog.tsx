@@ -179,7 +179,7 @@ export default function AuditLog() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
-          { label: "Total de Eventos", value: kpis.total.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }), icon: Database, tone: "text-primary bg-primary/5" },
+          { label: "Total de Eventos", value: kpis.total.toLocaleString("pt-BR"), icon: Database, tone: "text-primary bg-primary/5" },
           { label: "Hoje", value: kpis.today, icon: Activity, tone: "text-emerald-600 bg-emerald-500/5" },
           { label: "Últimos 7 dias", value: kpis.week, icon: CalendarIcon, tone: "text-indigo-600 bg-indigo-500/5" },
           { label: "Usuários Ativos", value: kpis.users, icon: UserIcon, tone: "text-sky-600 bg-sky-500/5" },
