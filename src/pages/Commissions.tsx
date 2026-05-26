@@ -937,7 +937,9 @@ export default function Commissions() {
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Editar comissão</DialogTitle>
-            <DialogDescription>{editing?.partners?.full_name} · {editing?.sales?.clients?.full_name ?? "Manual"}</DialogDescription>
+            <DialogDescription>
+              {editing?.partners?.full_name ?? editing?.profiles?.full_name ?? editing?.referrers?.full_name ?? "—"} · {editing?.sales?.clients?.full_name ?? "Manual"}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="space-y-1.5">
