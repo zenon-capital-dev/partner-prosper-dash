@@ -447,8 +447,19 @@ export default function DashboardAdmin() {
 
                   {/* footer stats */}
                   <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <Link to="/financeiro/central?tab=recebidos" className="block hover:bg-emerald-50/40 rounded-lg -m-1 p-1 transition-colors">
+                      <FooterStat label="Receita Bruta" value={formatBRL(stats.grossRevenue)} accent="emerald" />
+                    </Link>
+                    <Link to="/financeiro/central?tab=relatorios" className="block hover:bg-indigo-50/40 rounded-lg -m-1 p-1 transition-colors">
+                      <FooterStat label="Receita Líquida" value={formatBRL(stats.netRevenue)} />
+                    </Link>
+                    <Link to="/financeiro/central?tab=a_receber" className="block hover:bg-amber-50/40 rounded-lg -m-1 p-1 transition-colors">
+                      <FooterStat label={`Estimativa (${stats.estimatedRevenueCount})`} value={formatBRL(stats.estimatedRevenue)} accent={stats.estimatedRevenue > 0 ? "rose" : undefined} />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-100">
                     <FooterStat label="Ticket médio" value={formatBRL(stats.avgTicket)} />
-                    <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} accent="emerald" />
+                    <FooterStat label="A receber 7d" value={formatBRL(stats.receivable7d)} />
                     <FooterStat label="Inadimplência" value={formatBRL(stats.overdueAmount)} accent={stats.overdueAmount > 0 ? "rose" : undefined} />
                   </div>
                 </>
