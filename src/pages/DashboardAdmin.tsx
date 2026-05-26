@@ -207,6 +207,20 @@ export default function DashboardAdmin() {
       .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
     const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
     const receivedTotal = payments.filter((p: any) => p.status === "pago").reduce((a, p: any) => a + Number(p.amount_paid || 0), 0);
+    
+    // Receita Bruta = total recebido (pago)
+    const grossRevenue = receivedTotal;
+    // Comissões já pagas (sai do caixa)
+    const commissionsPaid = commissions
+      .filter((c: any) => ["pago", "paga"].includes(c.status) || ["pago", "paga"].includes(c.workflow_status))
+      .reduce((a, c: any) => a + Number(c.amount || 0), 0);
+    // Receita Líquida = Bruto - comissões pagas
+    const netRevenue = grossRevenue - commissionsPaid;
+    // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
+    const estimatedRevenue = payments
+      .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
+      .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
+    const estimatedRevenueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status)).length;
 
     // Chart length matches the selected range exactly (HOJE = últimos 7 dias para contexto).
     const len =
@@ -302,6 +316,7 @@ export default function DashboardAdmin() {
       openContracts, waitingSignatureContracts, pendingDocs, overdueTasks, todayTasks, openTasks,
       commissionsToPay, commissionsCount,
       receivable7d, receivable7dCount, overdueAmount, overdueCount, receivedTotal,
+      grossRevenue, netRevenue, commissionsPaid, estimatedRevenue, estimatedRevenueCount,
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
