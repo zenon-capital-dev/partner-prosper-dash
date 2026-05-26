@@ -146,6 +146,7 @@ const prestadorSections: NavSection[] = [
     label: "Operação",
     items: [
       { title: "Dashboard", url: "/prestador", icon: LayoutDashboard },
+      { title: "Alertas", url: "/cockpit", icon: Zap },
       { title: "Atuação", url: "/prestador/atuacao", icon: Briefcase },
       { title: "Demandas", url: "/prestador/demandas", icon: ClipboardList },
       { title: "Por Cliente", url: "/prestador/por-cliente", icon: Users },
@@ -172,6 +173,7 @@ const collaboratorSections: NavSection[] = [
     label: "Operação",
     items: [
       { title: "Dashboard", url: "/colaborador", icon: LayoutDashboard },
+      { title: "Alertas", url: "/cockpit", icon: Zap },
       { title: "Minhas Demandas", url: "/colaborador/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/colaborador/tarefas", icon: ListChecks },
     ],
