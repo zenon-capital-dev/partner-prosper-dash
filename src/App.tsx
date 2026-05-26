@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppLayout from "@/components/AppLayout";
+import { ThemeColorManager } from "@/components/ThemeColorManager";
 import AdminLayout from "@/components/admin/AdminLayout";
 import Auth from "./pages/Auth";
 import { Navigate } from "react-router-dom";
@@ -80,6 +81,7 @@ const App = () => (
       <Sonner />
       <ConfirmRoot />
       <GlobalEffects />
+      <ThemeColorManager />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <Routes>
