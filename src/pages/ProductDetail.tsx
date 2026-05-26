@@ -495,7 +495,7 @@ function CollaboratorsTab({ productId, links, canManage, refetch, qc }: any) {
 
   const add = async () => {
     if (!selected) { toast.error("Selecione um colaborador"); return; }
-    const { error } = await supabase.from("collaborator_products").insert({ product_id: productId, collaborator_id: selected });
+    const { error } = await supabase.from("collaborator_products").upsert({ product_id: productId, collaborator_id: selected, active: true }, { onConflict: "collaborator_id,product_id" });
     if (error) { toast.error(error.message); return; }
     toast.success("Colaborador vinculado");
     setSelected(""); setOpen(false);
