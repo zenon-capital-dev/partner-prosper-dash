@@ -227,6 +227,7 @@ export default function Sales() {
 
   const invalidateRelated = () => {
     qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
+    qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });
     qc.invalidateQueries({ queryKey: ["payments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
