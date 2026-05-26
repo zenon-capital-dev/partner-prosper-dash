@@ -155,7 +155,11 @@ export default function Documents() {
           .select(`
             *,
             priority,
+            collaborator_id,
+            provider_id,
             clients(id, full_name),
+            collaborators:collaborator_id(id, full_name, email),
+            providers:provider_id(id, name),
             products(id, name),
             client_products(
               id,
