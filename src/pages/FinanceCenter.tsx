@@ -918,6 +918,7 @@ function PaymentsTable({
         onConfirm={submitConfirm}
         onCancel={submitCancel}
         onRefund={submitRefund}
+        onCommissions={submitCommissionDecisions}
       />
     </div>
   );
