@@ -256,6 +256,14 @@ export default function ProductDetail() {
         editing={product}
         onSaved={() => { qc.invalidateQueries({ queryKey: ["product", id] }); }}
       />
+
+      <DeleteProductDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        productId={product?.id ?? null}
+        productName={product?.name ?? ""}
+        onDeleted={() => navigate("/produtos")}
+      />
     </div>
   );
 }
