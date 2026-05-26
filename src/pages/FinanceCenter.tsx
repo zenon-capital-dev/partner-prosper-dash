@@ -1233,9 +1233,11 @@ function CommissionsTable({
         <table className="w-full text-sm">
           <thead className="text-[11px] uppercase tracking-wider text-slate-500">
             <tr className="border-b border-slate-100">
-              <th className="text-left px-4 py-2 font-semibold">Parceiro</th>
+              <th className="text-left px-4 py-2 font-semibold">Beneficiário</th>
+              <th className="text-left px-4 py-2 font-semibold">Tipo</th>
               <th className="text-left px-4 py-2 font-semibold">Cliente</th>
               <th className="text-left px-4 py-2 font-semibold">Produto</th>
+              <th className="text-right px-4 py-2 font-semibold">%</th>
               <th className="text-right px-4 py-2 font-semibold">Valor</th>
               <th className="text-left px-4 py-2 font-semibold">Status</th>
               <th></th>
@@ -1245,38 +1247,47 @@ function CommissionsTable({
             {loading ? (
               [...Array(3)].map((_, i) => (
                 <tr key={i}>
-                  <td colSpan={6} className="px-4 py-3"><Skeleton className="h-6 w-full" /></td>
+                  <td colSpan={8} className="px-4 py-3"><Skeleton className="h-6 w-full" /></td>
                 </tr>
               ))
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-slate-500 text-xs">
+                <td colSpan={8} className="p-6 text-center text-slate-500 text-xs">
                   Sem registros.
                 </td>
               </tr>
             ) : (
-              rows.map((c: any) => (
-                <tr key={c.id} className="hover:bg-slate-50/60">
-                  <td className="px-4 py-2.5 text-slate-800">
-                    {c.partners?.full_name || c.profiles?.full_name || c.referrers?.full_name || "—"}
-                  </td>
-                  <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
-                  <td className="px-4 py-2.5 text-right font-medium font-mono tabular-nums">{formatBRL(c.amount)}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge variant="outline" className="text-xs">
-                      {c.status}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-2.5 text-right">
-                    {action && canManage && (
-                      <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => markPaid(c)}>
-                        Marcar paga
-                      </Button>
-                    )}
-                  </td>
-                </tr>
-              ))
+              rows.map((c: any) => {
+                const typeColor =
+                  c.beneficiary_type === "partner" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                  c.beneficiary_type === "collaborator" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                  c.beneficiary_type === "referrer" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                  "bg-slate-50 text-slate-700 border-slate-200";
+                return (
+                  <tr key={c.id} className="hover:bg-slate-50/60">
+                    <td className="px-4 py-2.5 text-slate-800 font-medium">{c.beneficiary_name ?? "—"}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant="outline" className={`text-[10px] uppercase tracking-wider ${typeColor}`}>
+                        {c.beneficiary_label ?? "—"}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
+                    <td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-600">{Number(c.percent || 0).toFixed(2)}%</td>
+                    <td className="px-4 py-2.5 text-right font-semibold font-mono tabular-nums">{formatBRL(c.amount)}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant="outline" className="text-xs">{c.status}</Badge>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      {action && canManage && (
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => markPaid(c)}>
+                          Marcar paga
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
