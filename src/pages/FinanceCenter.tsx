@@ -634,20 +634,24 @@ function PaymentsTable({
         const partnerIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "partner").map((s: any) => s.beneficiary_id)));
         const collabIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "collaborator").map((s: any) => s.beneficiary_id)));
         const refIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "referrer").map((s: any) => s.beneficiary_id)));
-        const [partnersRes, collabsRes, refsRes] = await Promise.all([
+        const provIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "service_provider").map((s: any) => s.beneficiary_id)));
+        const [partnersRes, collabsRes, refsRes, provsRes] = await Promise.all([
           partnerIds.length ? supabase.from("partners").select("id, full_name").in("id", partnerIds) : Promise.resolve({ data: [] as any[] }),
           collabIds.length ? supabase.from("profiles").select("id, full_name").in("id", collabIds) : Promise.resolve({ data: [] as any[] }),
           refIds.length ? supabase.from("referrers").select("id, full_name").in("id", refIds) : Promise.resolve({ data: [] as any[] }),
+          provIds.length ? supabase.from("service_providers").select("id, name").in("id", provIds) : Promise.resolve({ data: [] as any[] }),
         ]);
         const pMap = new Map((partnersRes.data ?? []).map((x: any) => [x.id, x.full_name]));
         const cMap = new Map((collabsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
         const rMap = new Map((refsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const spMap = new Map((provsRes.data ?? []).map((x: any) => [x.id, x.name]));
         const enriched = splits.map((s: any) => ({
           ...s,
           _beneficiary:
             (s.beneficiary_type === "partner" && `Parceiro · ${pMap.get(s.beneficiary_id) ?? "—"}`) ||
             (s.beneficiary_type === "collaborator" && `Colaborador · ${cMap.get(s.beneficiary_id) ?? "—"}`) ||
             (s.beneficiary_type === "referrer" && `Indicador · ${rMap.get(s.beneficiary_id) ?? "—"}`) ||
+            (s.beneficiary_type === "service_provider" && `Prestador · ${spMap.get(s.beneficiary_id) ?? "—"}`) ||
             "Beneficiário",
         }));
         setDialog({ kind: "commissions", payment, commissions: enriched });
