@@ -71,8 +71,8 @@ export default function Indicators() {
   });
 
   const { data: splits = [], isLoading: loadingS } = useQuery({
-    queryKey: ["referrer-splits-all"],
-    queryFn: async () => (await supabase.from("commission_splits").select("beneficiary_id, amount, status").eq("beneficiary_type", "referrer")).data ?? [],
+    queryKey: ["referrer-commissions-all"],
+    queryFn: async () => (await supabase.from("commissions").select("referrer_id, amount, status").not("referrer_id", "is", null)).data ?? [],
   });
 
   const { data: clientsByReferrer = [] } = useQuery({
@@ -84,7 +84,7 @@ export default function Indicators() {
 
   const enriched = useMemo(() => {
     return (referrers ?? []).map((r: any) => {
-      const mySplits = splits.filter((s: any) => s.beneficiary_id === r.id);
+      const mySplits = splits.filter((s: any) => s.referrer_id === r.id);
       const total = mySplits.reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
       const paid = mySplits.filter((s: any) => s.status === "pago").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
       const pending = mySplits.filter((s: any) => s.status === "pendente").reduce((a: number, s: any) => a + Number(s.amount || 0), 0);

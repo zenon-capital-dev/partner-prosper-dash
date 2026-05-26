@@ -252,7 +252,6 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
                           ) : availableProducts.map((p: any) => (
                             <SelectItem key={p.id} value={p.id}>
                               <span className="inline-flex items-center gap-2">
-                                <span className="size-2 rounded-full" style={{ background: p.product_categories?.color ?? "#6366f1" }} />
                                 {p.name}
                               </span>
                             </SelectItem>
@@ -410,7 +409,7 @@ function LinkRow({ link, onUpdate, onRemove }: any) {
   const [pct, setPct] = useState(String(link.commission_percent ?? ""));
   const [price, setPrice] = useState(String(link.custom_price ?? ""));
   const product = link.products;
-  const color = product?.product_categories?.color ?? "hsl(var(--primary))";
+  const color = "hsl(var(--primary))";
 
   const save = () => {
     onUpdate(link.id, {
