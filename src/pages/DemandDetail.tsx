@@ -167,7 +167,7 @@ export default function DemandDetail() {
     if (!ok) return;
     const { error } = await supabase
       .from("client_products")
-      .update({ status: "concluido", end_date: new Date().toISOString().slice(0, 10) })
+      .update({ status: "concluido", end_date: nowBR().toISOString().slice(0, 10) })
       .eq("id", demand.id);
     if (error) return toast.error(error.message);
     toast.success("Demanda finalizada");
@@ -178,7 +178,7 @@ export default function DemandDetail() {
     if (!nextAction) return;
     const { error } = await supabase
       .from("client_product_steps")
-      .update({ completed: true, status: "concluido", completed_at: new Date().toISOString() })
+      .update({ completed: true, status: "concluido", completed_at: nowBR().toISOString() })
       .eq("id", nextAction.id);
     if (error) return toast.error(error.message);
     toast.success(`Etapa "${nextAction.label}" concluída`);
@@ -270,7 +270,7 @@ export default function DemandDetail() {
   const reviewDocument = async (docId: string, status: "aprovado" | "reprovado", reason?: string) => {
     const patch: any = {
       status,
-      reviewed_at: new Date().toISOString(),
+      reviewed_at: nowBR().toISOString(),
       approved_by: status === "aprovado" ? (user?.id ?? null) : null,
       rejection_reason: status === "reprovado" ? (reason ?? null) : null,
     };

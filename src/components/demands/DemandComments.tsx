@@ -126,7 +126,7 @@ export function DemandComments({ clientProductId, role }: Props) {
       )}
 
       {/* Thread */}
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-[600px] overflow-y-auto px-1 pr-2 scrollbar-thin">
         {filtered.length === 0 ? (
           <div className="vx-card p-12 text-center border-dashed border-2">
             <MessageSquare className="size-10 text-muted-foreground/30 mx-auto mb-3" />
@@ -172,7 +172,7 @@ export function DemandComments({ clientProductId, role }: Props) {
       </div>
 
       {/* Composer */}
-      <div className="vx-card p-4 space-y-3 sticky bottom-4 bg-card/95 backdrop-blur border-primary/10">
+      <div className="vx-card p-4 space-y-3 bg-card/95 backdrop-blur border-primary/10 shadow-lg">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Visibilidade</span>

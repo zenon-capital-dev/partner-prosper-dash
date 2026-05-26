@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { nowBR } from "@/lib/datetime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -51,7 +52,7 @@ export function QualityApprovalDialog({ open, onOpenChange, demandId }: QualityA
         updateData.adjustment_due_date = adjustmentDeadline ? new Date(adjustmentDeadline).toISOString() : null;
         updateData.adjustment_notes = internalNotes;
       } else {
-        updateData.completed_at = new Date().toISOString();
+        updateData.completed_at = nowBR().toISOString();
       }
 
       const { error: demandError } = await supabase

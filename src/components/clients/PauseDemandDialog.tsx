@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { nowBR } from "@/lib/datetime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,7 +43,7 @@ export function PauseDemandDialog({ open, onOpenChange, demandId, isPaused }: Pa
         // Retomar
         const { error } = await supabase
           .from("client_product_pauses")
-          .update({ resumed_at: new Date().toISOString() })
+          .update({ resumed_at: nowBR().toISOString() })
           .eq("client_product_id", demandId)
           .is("resumed_at", null);
         if (error) throw error;

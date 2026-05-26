@@ -44,6 +44,7 @@ import { NewDemandDialog } from "@/components/demands/NewDemandDialog";
 const STATUS_META: Record<string, { label: string; tone: string }> = {
   aguardando_inicio: { label: "Aguardando início", tone: "bg-slate-100 text-slate-700" },
   em_andamento: { label: "Em andamento", tone: "bg-blue-50 text-blue-700" },
+  ajuste_solicitado: { label: "Ajuste solicitado", tone: "bg-orange-50 text-orange-700" },
   pausado: { label: "Pausado", tone: "bg-amber-50 text-amber-700" },
   concluido: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700" },
   cancelado: { label: "Cancelado", tone: "bg-rose-50 text-rose-700" },
@@ -234,7 +235,7 @@ export default function Demands() {
       total: demands.length,
       urgent: demands.filter(d => d.priority === 'urgente').length,
       pendingDocs: demands.filter(d => d.documents?.some((doc: any) => doc.status === 'solicitado')).length,
-      inProgress: demands.filter(d => d.status === 'em_andamento').length
+      inProgress: demands.filter(d => ['em_andamento', 'ajuste_solicitado', 'em_execucao'].includes(d.status)).length
     };
   }, [demands]);
 
@@ -242,6 +243,7 @@ export default function Demands() {
   const baseColumns = [
     { id: "aguardando_inicio", label: "Aguardando início" },
     { id: "em_andamento", label: "Em andamento" },
+    { id: "ajuste_solicitado", label: "Ajuste solicitado" },
     { id: "pausado", label: "Pausado" },
     { id: "concluido", label: "Concluído" },
     { id: "cancelado", label: "Cancelado" },
@@ -257,7 +259,7 @@ export default function Demands() {
     mutationFn: async ({ id, status, completedAt }: { id: string; status: string; completedAt?: string }) => {
       const updateData: any = { status };
       if (status === 'concluido') {
-        updateData.completed_at = completedAt ?? new Date().toISOString();
+        updateData.completed_at = completedAt ?? nowBR().toISOString();
       }
       const { error } = await supabase
         .from("client_products")
@@ -282,7 +284,7 @@ export default function Demands() {
     const demand = demands.find((d: any) => d.id === draggableId);
     if (!demand || demand.status === newStatus) return;
     if (newStatus === 'concluido') {
-      setCompleteDialog({ id: draggableId, date: new Date().toISOString().split("T")[0] });
+      setCompleteDialog({ id: draggableId, date: nowBR().toISOString().split("T")[0] });
       return;
     }
     updateStatusMutation.mutate({ id: draggableId, status: newStatus });

@@ -1,4 +1,4 @@
-import { formatBR as format } from "@/lib/datetime";
+import { formatBR as format, nowBR, formatBRDate, formatBRDateTime } from "@/lib/datetime";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -6,7 +6,7 @@ import {
   FileText, ChevronRight, UserPlus,
   Receipt, Wallet, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, Activity, Zap, Sparkles,
-  CalendarCheck, AlertCircle,
+  CalendarCheck, AlertCircle, MessageSquare
 } from "lucide-react";
 
 // Format Date as YYYY-MM-DD using LOCAL components — avoids timezone shift
@@ -116,16 +116,28 @@ export default function DashboardAdmin() {
     queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date")).data ?? [] 
   });
 
+  const { data: agendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
+    queryKey: ["dash-agenda-today"],
+    queryFn: async () => {
+      const today = toLocalISO(brasiliaToday);
+      const { data } = await supabase.from("client_interactions").select("*").eq("next_action_at", today).eq("status", "pendente");
+      return data ?? [];
+    }
+  });
+
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ 
     queryKey: ["dash-payments"], 
     queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] 
   });
+
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
-  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity;
+  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
+
+  
 
 
   const stats = useMemo(() => {
@@ -162,7 +174,7 @@ export default function DashboardAdmin() {
       const due = demandDueISO(p);
       return due && dateOnly(due) < todayISO;
     }).length;
-    const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio", "em_execucao", "pausado"].includes(p.status)).length;
+    const activeDemands = clientProducts.filter((p: any) => ["em_andamento", "aguardando_inicio", "em_execucao", "pausado", "ajuste_solicitado"].includes(p.status)).length;
     const completedDemands = clientProducts.filter((p: any) => p.status === "concluido" || p.status === "concluida").length;
 
     const pipelineTotal = leads.reduce((a, l: any) => a + Number(l.estimated_value || 0), 0);
@@ -209,7 +221,7 @@ export default function DashboardAdmin() {
       return { name: String(d.getDate()).padStart(2, "0"), fullDate: format(d, "dd/MM/yyyy"), value, isToday: iso === todayISO };
     });
 
-    // ============ PENDÊNCIAS DE HOJE ============
+    // ============ PRÓXIMAS AÇÕES E PENDÊNCIAS ============
     const todayTasksList = tasks
       .filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO)
       .slice(0, 5)
@@ -224,8 +236,15 @@ export default function DashboardAdmin() {
       .slice(0, 5)
       .map((p: any) => {
         const client = clients.find((c: any) => c.id === p.client_id);
-        return { id: p.id, title: client?.full_name || "Cliente", subtitle: p.status };
+        const product = clientProducts.find((x: any) => x.id === p.id);
+        return { id: p.id, title: client?.full_name || "Cliente", subtitle: product?.custom_product_name || "Serviço" };
       });
+
+    const todayAgendaList = agendaInteractions.map((i: any) => {
+      const client = clients.find((c: any) => c.id === i.client_id);
+      return { id: i.id, title: client?.full_name || "Cliente", subtitle: i.next_action_note || "Ação agendada" };
+    });
+
 
     const todayDocsList = docRequests
       .filter((d: any) => ["solicitado", "pendente", "enviado", "em_analise", "pendente_correcao"].includes(d.status))
@@ -241,14 +260,15 @@ export default function DashboardAdmin() {
       .map((c: any) => ({ id: c.id, title: c.name || "Contrato", subtitle: "Aguardando assinatura" }));
 
     const todayPendingCount =
-      todayTasksList.length + todayDemandsList.length + todayDocsList.length + todayContractsList.length;
+      todayTasksList.length + todayDemandsList.length + todayDocsList.length + todayContractsList.length + todayAgendaList.length;
 
 
     const demandsByStatus = [
-      { name: "Em andamento", value: clientProducts.filter((p: any) => p.status === "em_andamento").length, color: "#4f46e5" },
+      { name: "Em andamento", value: clientProducts.filter((p: any) => ["em_andamento", "em_execucao", "ajuste_solicitado"].includes(p.status)).length, color: "#4f46e5" },
       { name: "Aguardando", value: clientProducts.filter((p: any) => p.status === "aguardando_inicio").length, color: "#f59e0b" },
       { name: "Concluídas", value: completedDemands, color: "#10b981" },
       { name: "Atrasadas", value: delayedDemands, color: "#f43f5e" },
+      { name: "Pausadas", value: clientProducts.filter((p: any) => p.status === "pausado").length, color: "#94a3b8" },
     ].filter(d => d.value > 0);
 
     const leadsByStage = [
@@ -285,7 +305,7 @@ export default function DashboardAdmin() {
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
-      todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount,
+      todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount, todayAgendaList,
     };
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday]);
 
@@ -452,6 +472,7 @@ export default function DashboardAdmin() {
           demands={stats.todayDemandsList}
           docs={stats.todayDocsList}
           contracts={stats.todayContractsList}
+          agenda={stats.todayAgendaList}
         />
 
         {/* ============ OPERATIONAL ROW ============ */}
@@ -865,7 +886,7 @@ function EmptyRow({ message }: { message: string }) {
 }
 
 function TodayBoard({
-  loading, dateLabel, totalCount, tasks, demands, docs, contracts,
+  loading, dateLabel, totalCount, tasks, demands, docs, contracts, agenda,
 }: {
   loading: boolean;
   dateLabel: string;
@@ -874,6 +895,7 @@ function TodayBoard({
   demands: { id: string; title: string; subtitle: string }[];
   docs: { id: string; title: string; subtitle: string }[];
   contracts: { id: string; title: string; subtitle: string }[];
+  agenda: { id: string; title: string; subtitle: string }[];
 }) {
   const cols: {
     key: string;
@@ -888,6 +910,11 @@ function TodayBoard({
       key: "tasks", label: "Tarefas de hoje", count: tasks.length, to: "/tarefas",
       icon: ClipboardList, accent: "indigo",
       items: tasks.map(t => ({ id: t.id, title: t.title, sub: t.time })),
+    },
+    {
+      key: "agenda", label: "Agenda (Atendimentos)", count: agenda.length, to: "/demandas",
+      icon: MessageSquare, accent: "emerald",
+      items: agenda.map(i => ({ id: i.id, title: i.title, sub: i.subtitle })),
     },
     {
       key: "demands", label: "Demandas com prazo hoje", count: demands.length, to: "/demandas",
@@ -934,7 +961,7 @@ function TodayBoard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-100">
         {cols.map((c) => {
           const a = accentMap[c.accent];
           return (
