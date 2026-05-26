@@ -463,7 +463,9 @@ export default function Commissions() {
       confirmText: "Excluir", destructive: true,
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions").delete().eq("id", c.id);
+    const { error } = c._source === "split"
+      ? await supabase.from("commission_splits").delete().eq("id", c.id)
+      : await supabase.from("commissions").delete().eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão excluída");
     invalidateAll();
