@@ -560,10 +560,17 @@ export default function Commissions() {
       confirmText: "Cancelar", destructive: true,
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions")
-      .update({ workflow_status: "cancelada", status: "cancelado", paid_at: null, approval_date: null })
-      .in("id", selectedIds);
-    if (error) { toast.error(error.message); return; }
+    const { splitIds, commIds } = _splitAndCommissionIds();
+    const errs: string[] = [];
+    if (commIds.length) {
+      const { error } = await supabase.from("commissions").update({ workflow_status: "cancelada", status: "cancelado", paid_at: null, approval_date: null }).in("id", commIds);
+      if (error) errs.push(error.message);
+    }
+    if (splitIds.length) {
+      const { error } = await updateSplit(splitIds, { status: "cancelado", paid_at: null });
+      if (error) errs.push(error.message);
+    }
+    if (errs.length) { toast.error(errs.join(" · ")); return; }
     toast.success("Comissões canceladas"); setSelected({}); invalidateAll();
   };
 
@@ -575,8 +582,17 @@ export default function Commissions() {
       confirmText: "Excluir", destructive: true,
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions").delete().in("id", selectedIds);
-    if (error) { toast.error(error.message); return; }
+    const { splitIds, commIds } = _splitAndCommissionIds();
+    const errs: string[] = [];
+    if (commIds.length) {
+      const { error } = await supabase.from("commissions").delete().in("id", commIds);
+      if (error) errs.push(error.message);
+    }
+    if (splitIds.length) {
+      const { error } = await supabase.from("commission_splits").delete().in("id", splitIds);
+      if (error) errs.push(error.message);
+    }
+    if (errs.length) { toast.error(errs.join(" · ")); return; }
     toast.success("Comissões excluídas"); setSelected({}); invalidateAll();
   };
 
