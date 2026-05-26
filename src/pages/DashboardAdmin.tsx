@@ -209,7 +209,7 @@ export default function DashboardAdmin() {
       return { name: String(d.getDate()).padStart(2, "0"), fullDate: format(d, "dd/MM/yyyy"), value, isToday: iso === todayISO };
     });
 
-    // ============ PENDÊNCIAS DE HOJE ============
+    // ============ PRÓXIMAS AÇÕES E PENDÊNCIAS ============
     const todayTasksList = tasks
       .filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO)
       .slice(0, 5)
@@ -224,8 +224,25 @@ export default function DashboardAdmin() {
       .slice(0, 5)
       .map((p: any) => {
         const client = clients.find((c: any) => c.id === p.client_id);
-        return { id: p.id, title: client?.full_name || "Cliente", subtitle: p.status };
+        const product = clientProducts.find((x: any) => x.id === p.id);
+        return { id: p.id, title: client?.full_name || "Cliente", subtitle: product?.custom_product_name || "Serviço" };
       });
+
+    // Puxando da agenda (Interações com data de hoje)
+    const { data: agendaInteractions = [] } = useQuery({
+      queryKey: ["dash-agenda-today"],
+      queryFn: async () => {
+        const today = toLocalISO(brasiliaToday);
+        const { data } = await supabase.from("client_interactions").select("*").eq("next_action_at", today).eq("status", "pendente");
+        return data ?? [];
+      }
+    });
+
+    const todayAgendaList = agendaInteractions.map((i: any) => {
+      const client = clients.find((c: any) => c.id === i.client_id);
+      return { id: i.id, title: client?.full_name || "Cliente", subtitle: i.next_action_note || "Ação agendada" };
+    });
+
 
     const todayDocsList = docRequests
       .filter((d: any) => ["solicitado", "pendente", "enviado", "em_analise", "pendente_correcao"].includes(d.status))
@@ -241,7 +258,7 @@ export default function DashboardAdmin() {
       .map((c: any) => ({ id: c.id, title: c.name || "Contrato", subtitle: "Aguardando assinatura" }));
 
     const todayPendingCount =
-      todayTasksList.length + todayDemandsList.length + todayDocsList.length + todayContractsList.length;
+      todayTasksList.length + todayDemandsList.length + todayDocsList.length + todayContractsList.length + todayAgendaList.length;
 
 
     const demandsByStatus = [
