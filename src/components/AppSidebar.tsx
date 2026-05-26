@@ -382,7 +382,7 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-display text-[22px] font-bold tracking-tight text-slate-900">
+                <p className="font-display text-[22px] font-bold tracking-tight text-sidebar-foreground">
                   Prosper
                 </p>
                 <p className="text-[10px] font-black tracking-[0.25em] uppercase text-indigo-600 mt-0.5">
@@ -429,7 +429,7 @@ export function AppSidebar() {
             <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
                 <div className="px-2.5 mb-2">
-                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
+                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-sidebar-foreground/60">
                     {section.label}
                   </span>
                 </div>
