@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { nowBR, formatBRDate } from "@/lib/datetime";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,7 +145,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       file_size = file.size;
       mime_type = file.type;
       status = "enviado";
-      uploaded_at = new Date().toISOString();
+      uploaded_at = nowBR().toISOString();
     }
 
     const payload = {
@@ -279,7 +280,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                   <SelectItem value="none">Nenhuma venda específica</SelectItem>
                   {sales?.map((s: any) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.products?.name || "Venda"} — {new Date(s.sale_date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} — R$ {Number(s.amount).toFixed(2)}
+                      {s.products?.name || "Venda"} — {formatBRDate(s.sale_date)} — R$ {Number(s.amount).toFixed(2)}
                     </SelectItem>
                   ))}
                 </SelectContent>

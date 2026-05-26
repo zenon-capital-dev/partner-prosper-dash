@@ -45,7 +45,7 @@ export const timeAgo = (date: string | Date) => {
   if (h < 24) return `${h}h atrás`;
   const days = Math.floor(h / 24);
   if (days < 7) return `${days}d atrás`;
-  return new Date(date).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  return formatBRDate(date);
 };
 
 export const formatDoc = (doc?: string | null) => {
