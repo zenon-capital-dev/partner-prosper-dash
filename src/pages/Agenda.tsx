@@ -148,8 +148,9 @@ export default function Agenda() {
 
   // Tasks (Agenda items)
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ["agenda", filterKind, filterMine, filterClient, filterAssignee, user?.id],
+    queryKey: ["agenda", filterKind, filterMine, filterClient, filterAssignee, user?.id, assignees.length],
     queryFn: async () => {
+
       let q = supabase
         .from("tasks")
         .select(`
