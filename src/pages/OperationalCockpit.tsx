@@ -125,7 +125,7 @@ export default function OperationalCockpit() {
           id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["pendente", "solicitado", "enviado", "em_analise", "reprovado"]);
+        .in("status", ["solicitado", "enviado", "em_analise", "reprovado", "pendente_correcao", "vencido"]);
       
       if (error) throw error;
       
