@@ -495,9 +495,11 @@ export default function Commissions() {
       confirmText: "Reabrir",
     });
     if (!ok) return;
-    const { error } = await supabase.from("commissions")
-      .update({ workflow_status: "aguardando_confirmacao", status: "pendente", paid_at: null, approval_date: null })
-      .eq("id", c.id);
+    const { error } = c._source === "split"
+      ? await updateSplit([c.id], { status: "pendente", paid_at: null })
+      : await supabase.from("commissions")
+          .update({ workflow_status: "aguardando_confirmacao", status: "pendente", paid_at: null, approval_date: null })
+          .eq("id", c.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão reaberta");
     invalidateAll();
