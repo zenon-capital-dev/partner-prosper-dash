@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, X, Calendar as CalendarIcon, Package } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Props {
   open: boolean;
@@ -22,10 +23,13 @@ interface Props {
   clientProductId?: string | null;
 }
 
+type RecipientType = "client" | "collaborator" | "provider";
+
 export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [recipientType, setRecipientType] = useState<RecipientType>("client");
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>("");
   const [form, setForm] = useState<any>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -42,7 +46,17 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           is_required: editDoc.is_required ?? true,
           priority: editDoc.priority || "media",
         });
-        setSelectedClientId(editDoc.client_id);
+        
+        if (editDoc.collaborator_id) {
+          setRecipientType("collaborator");
+          setSelectedRecipientId(editDoc.collaborator_id);
+        } else if (editDoc.provider_id) {
+          setRecipientType("provider");
+          setSelectedRecipientId(editDoc.provider_id);
+        } else {
+          setRecipientType("client");
+          setSelectedRecipientId(editDoc.client_id || "");
+        }
       } else {
         setForm({
           name: "",
@@ -54,23 +68,24 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           is_required: true,
           priority: "media",
         });
-        setSelectedClientId(propClientId || "");
+        setRecipientType("client");
+        setSelectedRecipientId(propClientId || "");
       }
     }
-  }, [open, editDoc, propClientId]);
+  }, [open, editDoc, propClientId, defaultProductId, propClientProductId]);
 
-  const clientId = propClientId || selectedClientId;
   const { data: sales } = useQuery({
-    queryKey: ["sales-by-client", clientId],
+    queryKey: ["sales-by-client", selectedRecipientId],
     queryFn: async () => {
+      if (recipientType !== "client") return [];
       const { data } = await supabase
         .from("sales")
         .select("id, amount, sale_date, products(name)")
-        .eq("client_id", clientId)
+        .eq("client_id", selectedRecipientId)
         .order("sale_date", { ascending: false });
       return data ?? [];
     },
-    enabled: open && !!clientId,
+    enabled: open && !!selectedRecipientId && recipientType === "client",
   });
 
   const { data: clients } = useQuery({
@@ -79,36 +94,46 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name");
       return data ?? [];
     },
-    enabled: open && !propClientId && !editDoc,
+    enabled: open,
   });
 
-  const { data: clientProducts } = useQuery({
-    queryKey: ["client-products-list", clientId],
+  const { data: collaborators } = useQuery({
+    queryKey: ["collaborators-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("client_products")
-        .select("id, product_id, custom_product_name, products(id, name)")
-        .eq("client_id", clientId);
-      return data ?? [];
-    },
-    enabled: open && !!clientId,
-  });
-
-  const { data: products } = useQuery({
-    queryKey: ["products-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, name").eq("active", true).order("name");
+      const { data } = await supabase.from("profiles").select("id, full_name, email").eq("active", true).order("full_name");
       return data ?? [];
     },
     enabled: open,
   });
 
+  const { data: providers } = useQuery({
+    queryKey: ["providers-list-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_providers").select("id, name").order("name");
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
+  const { data: clientProducts } = useQuery({
+    queryKey: ["client-products-list", selectedRecipientId],
+    queryFn: async () => {
+      if (recipientType !== "client") return [];
+      const { data } = await supabase
+        .from("client_products")
+        .select("id, product_id, custom_product_name, products(id, name)")
+        .eq("client_id", selectedRecipientId);
+      return data ?? [];
+    },
+    enabled: open && !!selectedRecipientId && recipientType === "client",
+  });
+
   const submit = async () => {
-    const clientId = propClientId || selectedClientId;
-    if (!clientId) { toast.error("Selecione um cliente"); return; }
+    if (!selectedRecipientId) { toast.error("Selecione um destinatário"); return; }
     if (!form.name) { toast.error("Nome do documento é obrigatório"); return; }
-    if (!form.client_product_id || form.client_product_id === "none") {
-      toast.error("Selecione a demanda/produto vinculado (obrigatório)");
+    
+    if (recipientType === "client" && (!form.client_product_id || form.client_product_id === "none")) {
+      toast.error("Selecione a demanda/produto vinculado (obrigatório para clientes)");
       return;
     }
 
@@ -122,11 +147,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     const file = fileRef.current?.files?.[0];
     if (file) {
-      const path = `${clientId}/${Date.now()}-${file.name}`;
+      const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
+      const path = `${folder}/${Date.now()}-${file.name}`;
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
       if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
 
-      // Versionamento: ao reenviar, arquiva o arquivo anterior em document_versions
       if (editDoc?.id && editDoc.file_path) {
         const { count } = await supabase
           .from("document_versions")
@@ -150,12 +175,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       uploaded_at = nowBR().toISOString();
     }
 
-    const payload = {
-      client_id: clientId,
+    const payload: any = {
       name: form.name,
       description: form.description || null,
       product_id: form.product_id === "none" ? null : form.product_id,
-      client_product_id: form.client_product_id,
+      client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
       sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       is_required: form.is_required ?? true,
@@ -169,6 +193,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       uploaded_at,
     };
 
+    if (recipientType === "client") payload.client_id = selectedRecipientId;
+    else if (recipientType === "collaborator") payload.collaborator_id = selectedRecipientId;
+    else if (recipientType === "provider") payload.provider_id = selectedRecipientId;
+
     const { error } = editDoc
       ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
       : await supabase.from("documents").insert(payload);
@@ -176,7 +204,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
 
-    toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : "Documento solicitado ao cliente"));
+    toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : `Documento solicitado ao ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : 'prestador'}`));
     onSuccess?.();
     onOpenChange(false);
     setForm({});
@@ -185,7 +213,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
             {editDoc ? "Editar solicitação" : "Nova solicitação de documento"}
@@ -193,16 +221,30 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         </DialogHeader>
         
         <div className="space-y-4 py-2">
-          {!propClientId && !editDoc && (
-            <div className="space-y-2">
-              <Label>Cliente *</Label>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+          {!editDoc && (
+            <div className="space-y-3">
+              <Label>Destinatário</Label>
+              <Tabs value={recipientType} onValueChange={(v) => { setRecipientType(v as RecipientType); setSelectedRecipientId(""); }} className="w-full">
+                <TabsList className="grid grid-cols-3 w-full">
+                  <TabsTrigger value="client" className="text-xs gap-1.5"><Users className="size-3.5" /> Cliente</TabsTrigger>
+                  <TabsTrigger value="collaborator" className="text-xs gap-1.5"><UserCircle className="size-3.5" /> Colab.</TabsTrigger>
+                  <TabsTrigger value="provider" className="text-xs gap-1.5"><Building2 className="size-3.5" /> Prest.</TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o cliente" />
+                  <SelectValue placeholder={`Selecione o ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : 'prestador'}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients?.map((c) => (
+                  {recipientType === "client" && clients?.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>
+                  ))}
+                  {recipientType === "collaborator" && collaborators?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
+                  ))}
+                  {recipientType === "provider" && providers?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -219,28 +261,30 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2">
-              <Label>Produto / Demanda vinculada *</Label>
-              <Select
-                value={form.client_product_id || ""}
-                onValueChange={(v) => {
-                   const cp = clientProducts?.find((x: any) => x.id === v);
-                   setForm({ ...form, client_product_id: v, product_id: cp?.product_id || "none" });
-                }}
-              >
-                <SelectTrigger>
-                  <Package className="size-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Selecione a demanda (obrigatório)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(clientProducts?.length ?? 0) === 0 ? (
-                    <div className="p-3 text-xs text-muted-foreground">Nenhuma demanda para este cliente.</div>
-                  ) : clientProducts!.map((cp: any) => (
-                    <SelectItem key={cp.id} value={cp.id}>{cp.products?.name || cp.custom_product_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {recipientType === "client" && (
+              <div className="space-y-2 col-span-2">
+                <Label>Produto / Demanda vinculada *</Label>
+                <Select
+                  value={form.client_product_id || ""}
+                  onValueChange={(v) => {
+                     const cp = clientProducts?.find((x: any) => x.id === v);
+                     setForm({ ...form, client_product_id: v, product_id: cp?.product_id || "none" });
+                  }}
+                >
+                  <SelectTrigger>
+                    <Package className="size-3.5 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Selecione a demanda (obrigatório)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(clientProducts?.length ?? 0) === 0 ? (
+                      <div className="p-3 text-xs text-muted-foreground">Nenhuma demanda para este cliente.</div>
+                    ) : clientProducts!.map((cp: any) => (
+                      <SelectItem key={cp.id} value={cp.id}>{cp.products?.name || cp.custom_product_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label>Prazo para envio</Label>
@@ -287,7 +331,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             </Label>
           </div>
 
-          {clientId && (sales?.length ?? 0) > 0 && (
+          {recipientType === "client" && selectedRecipientId && (sales?.length ?? 0) > 0 && (
             <div className="space-y-2">
               <Label>Vincular a uma venda (opcional)</Label>
               <Select value={form.sale_id || "none"} onValueChange={(v) => setForm({ ...form, sale_id: v })}>
@@ -309,9 +353,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           <div className="space-y-2">
             <Label>Instruções / Descrição</Label>
             <Textarea 
-              placeholder="Explique ao cliente o que ele precisa enviar..."
+              placeholder="Explique o que precisa ser enviado..."
               value={form.description ?? ""} 
               onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              className="min-h-[100px]"
             />
           </div>
 
