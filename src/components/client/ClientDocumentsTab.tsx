@@ -32,6 +32,7 @@ type DocRequest = {
   due_date: string | null;
   rejection_reason: string | null;
   uploaded_at: string | null;
+  priority?: string | null;
   submission_date?: string | null;
   reviewed_at: string | null;
   created_at: string;
