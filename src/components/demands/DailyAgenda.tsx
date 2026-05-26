@@ -1,7 +1,8 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, isToday, isPast, addDays } from "date-fns";
+import { parseISO, isToday, isPast, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CalendarDays, Phone, MessageCircle, Mail, Users2, MapPin,

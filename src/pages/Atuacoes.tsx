@@ -1,8 +1,9 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format, isToday, isPast, isFuture, parseISO, startOfDay } from "date-fns";
+import { isToday, isPast, isFuture, parseISO, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CalendarClock, CheckCircle2, Clock, Plus, AlertTriangle, History as HistoryIcon,

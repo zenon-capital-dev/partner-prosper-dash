@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Zap, Settings, Bell, Mail, MessageSquare, History } from "lucide-react";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 
 interface Rule {

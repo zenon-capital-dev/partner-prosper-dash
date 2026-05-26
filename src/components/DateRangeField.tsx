@@ -1,5 +1,6 @@
+import { formatBR as format } from "@/lib/datetime";
 import * as React from "react";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, X } from "lucide-react";
 import type { DateRange } from "react-day-picker";

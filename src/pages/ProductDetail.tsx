@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,7 +26,7 @@ import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+;
 import { cn } from "@/lib/utils";
 
 export default function ProductDetail() {

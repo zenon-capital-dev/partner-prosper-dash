@@ -1,5 +1,6 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
-import { subDays, startOfMonth, startOfToday, endOfDay, format, eachDayOfInterval, eachMonthOfInterval, subMonths, endOfMonth } from "date-fns";
+import { subDays, startOfMonth, startOfToday, endOfDay, eachDayOfInterval, eachMonthOfInterval, subMonths, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

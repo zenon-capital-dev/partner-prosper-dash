@@ -1,7 +1,8 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, differenceInCalendarDays, isToday } from "date-fns";
+import { parseISO, differenceInCalendarDays, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CheckCircle2, Video, Phone, FileText, Bell, RotateCcw, Calendar, Plus, Clock, AlertTriangle, MapPin,

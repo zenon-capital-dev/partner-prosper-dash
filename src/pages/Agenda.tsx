@@ -1,12 +1,10 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  format, isToday, isPast, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek,
-  startOfMonth, endOfMonth, isSameDay, differenceInCalendarDays, parseISO,
-} from "date-fns";
+import { isToday, isPast, startOfDay, endOfDay, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isSameDay, differenceInCalendarDays, parseISO,  } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CalendarClock, Plus, Search, CheckCircle2, Clock, AlertTriangle, Filter,

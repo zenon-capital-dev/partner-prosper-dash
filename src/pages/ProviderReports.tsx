@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 import { ClipboardList, Eye, Search } from "lucide-react";
 import { Link } from "react-router-dom";
