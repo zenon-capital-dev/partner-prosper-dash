@@ -78,6 +78,27 @@ export default function Sales() {
     queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name")).data ?? [],
   });
 
+  const { data: allSplits = [] } = useQuery({
+    queryKey: ["sales-commission-splits"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("sale_id, amount, percent, beneficiary_type, status");
+      return (data as any[]) ?? [];
+    },
+  });
+
+  const splitsBySale = useMemo(() => {
+    const m = new Map<string, any[]>();
+    allSplits.forEach((s: any) => {
+      if (!s.sale_id) return;
+      const arr = m.get(s.sale_id) ?? [];
+      arr.push(s);
+      m.set(s.sale_id, arr);
+    });
+    return m;
+  }, [allSplits]);
+
   const usingManualRange = !!dateFrom || !!dateTo;
 
   const filtered = useMemo(() => {
@@ -132,7 +153,7 @@ export default function Sales() {
           case "product": return norm(x.products?.name);
           case "partner": return norm(x.partners?.full_name);
           case "amount": return Number(x.amount || 0);
-          case "commission": return (Number(x.amount || 0) * Number(x.commission_percent || 0)) / 100;
+          case "commission": return (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
           case "status": return String(x.status || "");
         }
       };
@@ -145,7 +166,7 @@ export default function Sales() {
       return 0;
     });
     return arr;
-  }, [filtered, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir, splitsBySale]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -206,6 +227,7 @@ export default function Sales() {
 
   const invalidateRelated = () => {
     qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
+    qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });
     qc.invalidateQueries({ queryKey: ["payments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
@@ -240,15 +262,17 @@ export default function Sales() {
   const exportCSV = () => {
     const headers = ["Data", "Cliente", "Empresa", "Produto", "Parceiro", "Valor", "Comissão %", "Comissão R$", "Status"];
     const rows = sorted.map((s: any) => {
-      const pct = Number(s.commission_percent || 0);
-      const com = (Number(s.amount || 0) * pct) / 100;
+      const splits = splitsBySale.get(s.id) ?? [];
+      const com = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
+      const baseAmt = Number(s.amount || 0);
+      const pct = baseAmt > 0 ? (com / baseAmt) * 100 : 0;
       return [
         s.sale_date,
         s.clients?.full_name ?? "",
         s.clients?.company ?? "",
         s.products?.name ?? "",
         s.partners?.full_name ?? "",
-        Number(s.amount || 0).toFixed(2),
+        baseAmt.toFixed(2),
         pct.toFixed(2),
         com.toFixed(2),
         s.status,
@@ -528,8 +552,11 @@ export default function Sales() {
                     </td>
                   </tr>
                 ) : sorted.map((s: any) => {
-                  const commissionPct = Number(s.commission_percent || 0);
-                  const commissionVal = (Number(s.amount || 0) * commissionPct) / 100;
+                  const splits = splitsBySale.get(s.id) ?? [];
+                  const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
+                  const baseAmt = Number(s.amount || 0);
+                  const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
+                  const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
                       <Td><StatusPill status={s.status} /></Td>
@@ -565,7 +592,10 @@ export default function Sales() {
                         {commissionVal > 0 ? (
                           <div>
                             <p className="font-semibold text-emerald-700 font-mono text-[12px]">{formatBRL(commissionVal)}</p>
-                            <p className="text-[10px] text-slate-500 font-mono">{commissionPct}%</p>
+                            <p className="text-[10px] text-slate-500 font-mono">
+                              {commissionPct.toFixed(1)}% · {splits.length} {splits.length === 1 ? "benef." : "benefs."}
+                              {paidCount > 0 && <span className="text-emerald-600"> · {paidCount} pago{paidCount > 1 ? "s" : ""}</span>}
+                            </p>
                           </div>
                         ) : (
                           <span className="text-[11px] text-slate-400">—</span>
