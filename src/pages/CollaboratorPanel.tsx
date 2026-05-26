@@ -40,8 +40,8 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   cancelada:         { label: "Cancelada",         tone: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
-const isToday = (d?: string | null) => { if (!d) return false; const a = new Date(d), b = new Date(); return a.toDateString() === b.toDateString(); };
-const isOverdue = (d?: string | null) => { if (!d) return false; return new Date(d) < new Date(new Date().toDateString()); };
+const isToday = (d?: string | null) => { if (!d) return false; const a = new Date(d), b = new Date(); return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); };
+const isOverdue = (d?: string | null) => { if (!d) return false; const today = new Date(); today.setHours(0, 0, 0, 0); return new Date(d) < today; };
 
 export default function CollaboratorPanel() {
   const { user } = useAuth() as any;
@@ -113,7 +113,12 @@ export default function CollaboratorPanel() {
 
   const kpis = useMemo(() => {
     const open = (demandas as any[]).filter((d) => !["concluida", "cancelada", "concluido", "cancelado"].includes(d.status)).length;
-    const overdue = (demandas as any[]).filter((d) => d.sla_status === "atrasado" || (d.sla_due_date && new Date(d.sla_due_date) < new Date())).length;
+    const overdue = (demandas as any[]).filter((d) => {
+      if (["concluida", "cancelada", "concluido", "cancelado"].includes(d.status)) return false;
+      if (d.sla_status === "atrasado") return true;
+      const due = d.deadline || d.sla_due_date || d.end_date;
+      return due && isOverdue(due);
+    }).length;
     const tasksOpen = (tasks as any[]).filter((t) => t.status_new !== "concluida").length;
     const dueToday = (tasks as any[]).filter((t) => t.status_new !== "concluida" && isToday(t.due_date)).length;
     return { open, overdue, tasksOpen, dueToday };

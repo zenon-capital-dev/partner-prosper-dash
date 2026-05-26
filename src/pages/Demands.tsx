@@ -125,17 +125,17 @@ export default function Demands() {
         .from("client_products")
         .select(`
           *,
-          clients(
+          clients:client_id(
             id, 
             full_name, 
             company, 
             partners(id, full_name),
             referrers(id, full_name)
           ),
-          companies(id, name, trade_name),
-          products(id, name),
+          companies:company_id(id, name, trade_name),
+          products:product_id(id, name),
           service_providers:service_provider_id(id, name),
-          documents(id, status)
+          documents:documents(id, status)
         `)
         .order("created_at", { ascending: false });
       const { data: reports = [] } = await supabase.from("client_product_status_reports").select("id, client_product_id, notes, created_at").order("created_at", { ascending: false });
@@ -191,7 +191,7 @@ export default function Demands() {
 
       if (deadlineFilter !== "all") {
         const today = new Date();
-        const dueRaw = d.sla_due_date || d.deadline;
+        const dueRaw = d.deadline || d.sla_due_date || d.end_date;
         const deadline = dueRaw ? new Date(dueRaw) : null;
         if (!deadline) return false;
 
