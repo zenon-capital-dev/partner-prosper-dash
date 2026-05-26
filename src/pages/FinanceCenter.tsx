@@ -555,10 +555,15 @@ function PaymentsTable({
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["fin-payments"] });
     qc.invalidateQueries({ queryKey: ["fin-alerts"] });
+    qc.invalidateQueries({ queryKey: ["fin-commissions"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dash-payments"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
+    qc.invalidateQueries({ queryKey: ["dash-sales"] });
   };
 
   const submitConfirm = async (paymentId: string, amountPaid: number, paidAt: string) => {
+    const payment = (payments as any[]).find((p: any) => p.id === paymentId);
     const { error } = await supabase
       .from("payments")
       .update({
@@ -569,6 +574,80 @@ function PaymentsTable({
       .eq("id", paymentId);
     if (error) return toast.error(error.message);
     toast.success("Pagamento confirmado");
+    invalidate();
+
+    // After confirming the client payment, surface related commissions so the
+    // admin can pay everyone now or postpone individual splits.
+    if (payment?.sale_id) {
+      const { data: comms } = await supabase
+        .from("commissions")
+        .select("id, amount, status, workflow_status, partner_id, collaborator_id, referrer_id, rule_type")
+        .eq("sale_id", payment.sale_id);
+      if (comms && comms.length > 0) {
+        // Enrich with beneficiary names
+        const partnerIds = Array.from(new Set(comms.map((c: any) => c.partner_id).filter(Boolean)));
+        const collabIds = Array.from(new Set(comms.map((c: any) => c.collaborator_id).filter(Boolean)));
+        const refIds = Array.from(new Set(comms.map((c: any) => c.referrer_id).filter(Boolean)));
+        const [partnersRes, collabsRes, refsRes] = await Promise.all([
+          partnerIds.length ? supabase.from("partners").select("id, full_name").in("id", partnerIds) : Promise.resolve({ data: [] as any[] }),
+          collabIds.length ? supabase.from("profiles").select("id, full_name").in("id", collabIds) : Promise.resolve({ data: [] as any[] }),
+          refIds.length ? supabase.from("referrers").select("id, full_name").in("id", refIds) : Promise.resolve({ data: [] as any[] }),
+        ]);
+        const pMap = new Map((partnersRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const cMap = new Map((collabsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const rMap = new Map((refsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
+        const enriched = comms.map((c: any) => ({
+          ...c,
+          _beneficiary:
+            (c.partner_id && `Parceiro · ${pMap.get(c.partner_id) ?? "—"}`) ||
+            (c.collaborator_id && `Colaborador · ${cMap.get(c.collaborator_id) ?? "—"}`) ||
+            (c.referrer_id && `Indicador · ${rMap.get(c.referrer_id) ?? "—"}`) ||
+            "Beneficiário",
+        }));
+        setDialog({ kind: "commissions", payment, commissions: enriched });
+        return;
+      }
+    }
+    setDialog(null);
+  };
+
+  const submitCommissionDecisions = async (
+    decisions: { id: string; payNow: boolean }[]
+  ) => {
+    const payNowIds = decisions.filter((d) => d.payNow).map((d) => d.id);
+    const postponeIds = decisions.filter((d) => !d.payNow).map((d) => d.id);
+    const nowIso = new Date().toISOString();
+
+    if (payNowIds.length > 0) {
+      const { error } = await supabase
+        .from("commissions")
+        .update({
+          status: "pago",
+          workflow_status: "liberada",
+          paid_at: nowIso,
+          payment_date: nowIso,
+          approval_date: nowIso,
+        })
+        .in("id", payNowIds);
+      if (error) return toast.error(error.message);
+    }
+    if (postponeIds.length > 0) {
+      const { error } = await supabase
+        .from("commissions")
+        .update({
+          status: "pendente",
+          workflow_status: "aguardando_confirmacao",
+          paid_at: null,
+          payment_date: null,
+        })
+        .in("id", postponeIds);
+      if (error) return toast.error(error.message);
+    }
+    toast.success(
+      payNowIds.length > 0
+        ? `${payNowIds.length} comissão(ões) marcada(s) como paga(s)`
+        : "Comissões mantidas como pendentes"
+    );
     invalidate();
     setDialog(null);
   };
