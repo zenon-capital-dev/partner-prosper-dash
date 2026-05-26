@@ -12,6 +12,7 @@ import {
   X, Inbox, Handshake, ArrowRight,
 } from "lucide-react";
 import { ProductFormDialog } from "@/components/products/ProductFormDialog";
+import { DeleteProductDialog } from "@/components/products/DeleteProductDialog";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import {
