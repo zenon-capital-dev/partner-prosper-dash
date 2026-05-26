@@ -181,8 +181,13 @@ export function DailyAgenda() {
             {dayPending.length} {dayPending.length === 1 ? "pendência do dia" : "pendências do dia"}
           </Badge>
           {overdue.length > 0 && (
-            <Badge className="bg-rose-50 text-rose-700 border-rose-200 font-semibold">
+            <Badge className="bg-rose-50 text-rose-700 border-rose-200 font-semibold animate-pulse">
               {overdue.length} atrasada{overdue.length > 1 ? "s" : ""}
+            </Badge>
+          )}
+          {dayPending.some((i: any) => i.next_action_at && new Date(i.next_action_at) < new Date()) && (
+            <Badge className="bg-rose-100 text-rose-800 border-rose-300 font-bold flex items-center gap-1">
+              <AlertCircle className="size-3" /> Horário passou
             </Badge>
           )}
         </div>
