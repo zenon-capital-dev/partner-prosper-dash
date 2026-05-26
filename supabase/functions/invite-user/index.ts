@@ -268,8 +268,8 @@ Deno.serve(async (req) => {
 
 
     // Only admin can grant admin role
-    if (body.role === "admin" && !isAdmin) {
-      return json({ error: "Apenas o admin principal pode promover a admin" }, 403);
+    if ((body.role === "admin" || body.role === "admin_secondary") && !isAdmin) {
+      return json({ error: "Apenas o admin principal pode conceder roles administrativos" }, 403);
     }
 
     await admin.from("user_roles").delete().eq("user_id", userId);
