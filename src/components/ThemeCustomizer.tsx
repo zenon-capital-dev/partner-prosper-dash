@@ -39,6 +39,8 @@ export const ThemeCustomizer: React.FC = () => {
   const handleChange = (key: keyof ThemeColors, value: string) => {
     const newColors = { ...colors, [key]: value };
     setColors(newColors);
+    
+    // Immediate update for CSS variables to feel snappy, but global dispatch is throttled
     updateThemeColors(newColors);
   };
 

@@ -1846,30 +1846,36 @@ export type Database = {
       demand_deliveries: {
         Row: {
           client_product_id: string
+          collaborator_id: string | null
           created_at: string | null
           description: string | null
           file_url: string | null
           id: string
+          provider_id: string | null
           status: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
           client_product_id: string
+          collaborator_id?: string | null
           created_at?: string | null
           description?: string | null
           file_url?: string | null
           id?: string
+          provider_id?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
           client_product_id?: string
+          collaborator_id?: string | null
           created_at?: string | null
           description?: string | null
           file_url?: string | null
           id?: string
+          provider_id?: string | null
           status?: string | null
           title?: string
           updated_at?: string | null
@@ -1880,6 +1886,20 @@ export type Database = {
             columns: ["client_product_id"]
             isOneToOne: false
             referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demand_deliveries_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demand_deliveries_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -1927,6 +1947,7 @@ export type Database = {
           approval_date: string | null
           client_id: string
           client_product_id: string | null
+          collaborator_id: string | null
           deadline: string | null
           description: string | null
           file_url: string | null
@@ -1934,6 +1955,7 @@ export type Database = {
           observations: string | null
           priority: string | null
           product_id: string | null
+          provider_id: string | null
           rejection_reason: string | null
           request_title: string
           requested_at: string
@@ -1945,6 +1967,7 @@ export type Database = {
           approval_date?: string | null
           client_id: string
           client_product_id?: string | null
+          collaborator_id?: string | null
           deadline?: string | null
           description?: string | null
           file_url?: string | null
@@ -1952,6 +1975,7 @@ export type Database = {
           observations?: string | null
           priority?: string | null
           product_id?: string | null
+          provider_id?: string | null
           rejection_reason?: string | null
           request_title: string
           requested_at?: string
@@ -1963,6 +1987,7 @@ export type Database = {
           approval_date?: string | null
           client_id?: string
           client_product_id?: string | null
+          collaborator_id?: string | null
           deadline?: string | null
           description?: string | null
           file_url?: string | null
@@ -1970,6 +1995,7 @@ export type Database = {
           observations?: string | null
           priority?: string | null
           product_id?: string | null
+          provider_id?: string | null
           rejection_reason?: string | null
           request_title?: string
           requested_at?: string
@@ -1993,6 +2019,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "document_requests_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "document_requests_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -2005,6 +2038,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "document_requests_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2057,6 +2097,7 @@ export type Database = {
           approved_by: string | null
           client_id: string
           client_product_id: string | null
+          collaborator_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -2070,6 +2111,7 @@ export type Database = {
           name: string
           priority: string | null
           product_id: string | null
+          provider_id: string | null
           rejection_reason: string | null
           requested_at: string | null
           requested_by: string | null
@@ -2084,6 +2126,7 @@ export type Database = {
           approved_by?: string | null
           client_id: string
           client_product_id?: string | null
+          collaborator_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -2097,6 +2140,7 @@ export type Database = {
           name: string
           priority?: string | null
           product_id?: string | null
+          provider_id?: string | null
           rejection_reason?: string | null
           requested_at?: string | null
           requested_by?: string | null
@@ -2111,6 +2155,7 @@ export type Database = {
           approved_by?: string | null
           client_id?: string
           client_product_id?: string | null
+          collaborator_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -2124,6 +2169,7 @@ export type Database = {
           name?: string
           priority?: string | null
           product_id?: string | null
+          provider_id?: string | null
           rejection_reason?: string | null
           requested_at?: string | null
           requested_by?: string | null
@@ -2157,6 +2203,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "documents_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "documents_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
@@ -2169,6 +2222,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "documents_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "documents_sale_id_fkey"
