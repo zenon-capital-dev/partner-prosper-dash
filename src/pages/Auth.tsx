@@ -285,7 +285,7 @@ export default function AuthPage() {
         <div className="lg:hidden mt-8 flex items-center gap-2 text-[10px] text-white/30 font-medium tracking-wider uppercase">
           <span>​</span>
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
-          <span>ISO 27001</span>
+          <span>​</span>
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
           <span>LGPD</span>
         </div>
