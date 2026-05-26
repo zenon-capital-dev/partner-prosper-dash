@@ -94,8 +94,15 @@ function dueBadge(item: AgendaItem) {
   const d = parseISO(item.due_date);
   if (item.status_new === "concluida") return { text: "Concluída", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" };
   if (item.status_new === "cancelada") return { text: "Cancelada", tone: "bg-slate-100 text-slate-500 border-slate-200" };
+  
   const diff = differenceInCalendarDays(d, new Date());
-  if (diff < 0) return { text: `Atrasou ${Math.abs(diff)}d`, tone: "bg-rose-50 text-rose-700 border-rose-200" };
+  const isOverdue = d < new Date();
+
+  if (isOverdue && item.status_new !== "concluida") {
+    if (diff === 0) return { text: `Atrasada (${format(d, "HH:mm")})`, tone: "bg-rose-100 text-rose-700 border-rose-200 animate-pulse" };
+    return { text: `Atrasou ${Math.abs(diff)}d`, tone: "bg-rose-50 text-rose-700 border-rose-200" };
+  }
+
   if (isToday(d)) return { text: `Hoje ${format(d, "HH:mm")}`, tone: "bg-orange-50 text-orange-700 border-orange-200" };
   if (diff === 1) return { text: `Amanhã ${format(d, "HH:mm")}`, tone: "bg-amber-50 text-amber-700 border-amber-200" };
   if (diff <= 7) return { text: `Em ${diff}d`, tone: "bg-blue-50 text-blue-700 border-blue-200" };

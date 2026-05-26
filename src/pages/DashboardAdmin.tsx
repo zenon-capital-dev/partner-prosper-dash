@@ -1,4 +1,4 @@
-import { formatBR as format, nowBR, formatBRDate, formatBRDateTime } from "@/lib/datetime";
+import { formatBR as format, nowBR, formatBRDate, formatBRDateTime, formatBRTime } from "@/lib/datetime";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -6,7 +6,7 @@ import {
   FileText, ChevronRight, UserPlus,
   Receipt, Wallet, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, Activity, Zap, Sparkles,
-  CalendarCheck, AlertCircle, MessageSquare
+  CalendarCheck, AlertCircle, MessageSquare, AlertTriangle
 } from "lucide-react";
 
 // Format Date as YYYY-MM-DD using LOCAL components — avoids timezone shift
@@ -261,7 +261,12 @@ export default function DashboardAdmin() {
     const todayTasksList = tasks
       .filter((t: any) => isTaskOpen(t) && t.due_date && dateOnly(t.due_date) === todayISO)
       .slice(0, 5)
-      .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? formatBrasiliaTime(t.due_date) : null }));
+      .map((t: any) => ({ 
+        id: t.id, 
+        title: t.title || "Tarefa sem título", 
+        time: t.due_date ? formatBrasiliaTime(t.due_date) : null,
+        isOverdue: t.due_date ? new Date(t.due_date) < new Date() : false
+      }));
 
     const todayDemandsList = clientProducts
       .filter((p: any) => {
@@ -278,7 +283,12 @@ export default function DashboardAdmin() {
 
     const todayAgendaList = agendaInteractions.map((i: any) => {
       const client = clients.find((c: any) => c.id === i.client_id);
-      return { id: i.id, title: client?.full_name || "Cliente", subtitle: i.next_action_note || "Ação agendada" };
+      return { 
+        id: i.id, 
+        title: client?.full_name || "Cliente", 
+        subtitle: i.next_action_note || "Ação agendada",
+        isOverdue: i.next_action_at && i.status === "pendente" && new Date(i.next_action_at) < new Date()
+      };
     });
 
 
