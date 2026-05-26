@@ -14,6 +14,7 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [marking, setMarking] = useState<string | null>(null);
+  const [saleOpen, setSaleOpen] = useState(false);
 
   const markPaid = async (paymentId: string, amount: number) => {
     const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
