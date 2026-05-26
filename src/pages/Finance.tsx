@@ -47,6 +47,13 @@ const SPLIT_STATUS: Record<string, { label: string; cls: string }> = {
   cancelado: { label: "Cancelado", cls: "bg-slate-100 text-slate-500 border-slate-200" },
 };
 
+const WORKFLOW_STATUS: Record<string, { label: string; cls: string }> = {
+  aguardando_confirmacao: { label: "Aguardando Confirmação", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+  em_analise: { label: "Em Análise", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  aprovada: { label: "Aprovada", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  rejeitada: { label: "Rejeitada", cls: "bg-rose-50 text-rose-700 border-rose-200" },
+};
+
 const BENEFICIARY_LABEL: Record<string, string> = {
   partner: "Parceiro",
   collaborator: "Colaborador",
@@ -149,17 +156,28 @@ export default function Finance() {
   const { data: splits = [], isLoading: lSplits } = useQuery({
     queryKey: ["finance-splits", from, to],
     queryFn: async () => {
-      // Filtra por created_at OU paid_at no período; busca tudo e filtra em memória pra ser preciso
-      const { data, error } = await supabase.from("commission_splits")
-        .select("*, sales(sale_date, clients(full_name), products(name))")
+      // Busca comissões (commissions) em vez de commission_splits (se for o caso da estrutura atual)
+      // Vou tentar buscar da tabela 'commissions' que parece ser a principal agora
+      const { data, error } = await supabase.from("commissions")
+        .select(`
+          *,
+          sales(sale_date, clients(full_name), products(name)),
+          partners(full_name),
+          referrers(full_name),
+          collaborator:profiles!collaborator_id(full_name)
+        `)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Erro ao buscar comissões:", error);
+        return [];
+      }
+      
       let rows = data ?? [];
-      if (from) {
+      if (from && to) {
         rows = rows.filter((c: any) => {
-          const created = (c.created_at || "").slice(0, 10);
-          const paid = (c.paid_at || "").slice(0, 10);
-          return (created >= from && created <= to) || (paid && paid >= from && paid <= to);
+          const date = (c.paid_at || c.created_at || "").slice(0, 10);
+          return date >= from && date <= to;
         });
       }
       return rows;
@@ -309,14 +327,17 @@ export default function Finance() {
     let r = splits.filter((c: any) => {
       if (splitStatus !== "all" && c.status !== splitStatus) return false;
       if (!q) return true;
-      return norm(c.sales?.clients?.full_name).includes(q) || norm(c.sales?.products?.name).includes(q) || norm(BENEFICIARY_LABEL[c.beneficiary_type]).includes(q);
+      const beneficiaryName = norm(c.partners?.full_name || c.referrers?.full_name || c.collaborator?.full_name || "");
+      return norm(c.sales?.clients?.full_name).includes(q) || 
+             norm(c.sales?.products?.name).includes(q) || 
+             beneficiaryName.includes(q);
     });
     r = [...r].sort((a: any, b: any) => {
       const dir = splitSort.d === "asc" ? 1 : -1;
       const get = (x: any) => {
         if (splitSort.k === "amount") return Number(x.amount || 0);
         if (splitSort.k === "status") return x.status;
-        if (splitSort.k === "beneficiary") return x.beneficiary_type;
+        if (splitSort.k === "beneficiary") return x.partners?.full_name || x.referrers?.full_name || x.collaborator?.full_name || "";
         return x.created_at || "";
       };
       const va = get(a), vb = get(b);
@@ -386,14 +407,15 @@ export default function Finance() {
   };
 
   const markSplitPaid = async (c: any) => {
+    const beneficiaryName = c.partners?.full_name || c.referrers?.full_name || c.collaborator?.full_name || "Beneficiário";
     const ok = await confirmAction({
       title: "Marcar comissão como paga?",
-      description: `Beneficiário: ${BENEFICIARY_LABEL[c.beneficiary_type] || c.beneficiary_type} — Valor: ${formatBRL(c.amount)}`,
+      description: `Beneficiário: ${beneficiaryName} — Valor: ${formatBRL(c.amount)}`,
       confirmText: "Confirmar pagamento",
     });
     if (!ok) return;
-    const { error } = await supabase.from("commission_splits")
-      .update({ status: "pago", paid_at: new Date().toISOString() })
+    const { error } = await supabase.from("commissions")
+      .update({ status: "pago", paid_at: new Date().toISOString(), workflow_status: "aprovada" })
       .eq("id", c.id);
     if (error) { toast.error("Erro: " + error.message); return; }
     toast.success("Comissão paga");
