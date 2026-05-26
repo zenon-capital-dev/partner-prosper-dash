@@ -327,7 +327,24 @@ export default function Commissions() {
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["commissions-list"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dash-commissions"] });
+    qc.invalidateQueries({ queryKey: ["fin-commissions"] });
     qc.invalidateQueries({ queryKey: ["finance-splits"] });
+    qc.invalidateQueries({ queryKey: ["commission-splits-unified"] });
+  };
+
+  // Split rows in commission_splits use a simpler enum (pendente/pago/cancelado).
+  // Map workflow_status → split_status and route the update to the correct table.
+  const splitStatusFor = (ws: string) =>
+    PAID_STATUSES.includes(ws) ? "pago" : (["cancelada", "estornada"].includes(ws) ? "cancelado" : "pendente");
+
+  const updateSplit = async (ids: string[], patch: { status?: string; paid_at?: string | null; payment_method?: string | null; notes?: string | null }) => {
+    const upd: any = {};
+    if (patch.status !== undefined) upd.status = patch.status;
+    if (patch.paid_at !== undefined) upd.paid_at = patch.paid_at;
+    if (patch.payment_method !== undefined) upd.payment_method = patch.payment_method;
+    if (patch.notes !== undefined) upd.notes = patch.notes;
+    return supabase.from("commission_splits").update(upd).in("id", ids);
   };
 
   // ----- Mutations -----
