@@ -15,8 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Building2, Palette, Shield, Bell, FileText, Users, Package,
-  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2,
+  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2, Palette as PaletteIcon
 } from "lucide-react";
+import { ThemeCustomizer } from "@/components/ThemeCustomizer";
 
 type ListItem = { id: string; label: string };
 
@@ -210,9 +211,9 @@ export default function Settings() {
               <TabsTrigger value="status" className="rounded-lg h-9 gap-2">
                 <Tag className="size-4" /> Status
               </TabsTrigger>
-              <TabsTrigger value="docs" className="rounded-lg h-9 gap-2">
+              {/* <TabsTrigger value="docs" className="rounded-lg h-9 gap-2">
                 <FileText className="size-4" /> Templates Doc
-              </TabsTrigger>
+              </TabsTrigger> */}
               <TabsTrigger value="checklist" className="rounded-lg h-9 gap-2">
                 <ListChecks className="size-4" /> Checklists
               </TabsTrigger>
@@ -222,9 +223,9 @@ export default function Settings() {
               <TabsTrigger value="notifications" className="rounded-lg h-9 gap-2">
                 <Bell className="size-4" /> Notificações
               </TabsTrigger>
-              <TabsTrigger value="automations" className="rounded-lg h-9 gap-2">
+              {/* <TabsTrigger value="automations" className="rounded-lg h-9 gap-2">
                 <Zap className="size-4" /> Automações(Desenvolvimento)
-              </TabsTrigger>
+              </TabsTrigger> */}
               <TabsTrigger value="appearance" className="rounded-lg h-9 gap-2">
                 <Palette className="size-4" /> Aparência
               </TabsTrigger>
@@ -387,30 +388,13 @@ export default function Settings() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="docs" className="space-y-4">
+            {/* <TabsContent value="docs" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>Templates de Documentos</CardTitle>
-                  <CardDescription>
-                    Lista de documentos padrão solicitados em cada produto.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ListEditor
-                    items={docTemplates}
-                    setItems={setDocTemplates}
-                    placeholder="Ex: RG, Comprovante de residência..."
-                    onSave={() => saveKey("doc_templates", docTemplates)}
-                  />
-                </CardContent>
-              </Card>
-              <ShortcutCard
-                icon={FileText}
-                title="Templates(Desenvolvimento) de Mensagens"
+...
                 description="Modelos de e-mail e WhatsApp para envios automáticos."
                 href="/templates"
               />
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="checklist" className="space-y-4">
               <Card>
@@ -511,14 +495,14 @@ export default function Settings() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="automations" className="space-y-4">
+            {/* <TabsContent value="automations" className="space-y-4">
               <ShortcutCard
                 icon={Zap}
                 title="Automações(Desenvolvimento) Internas"
                 description="Configure gatilhos automáticos para notificações e ações."
                 href="/automacoes"
               />
-            </TabsContent>
+            </TabsContent> */}
 
             <TabsContent value="appearance" className="space-y-4">
               <Card>
@@ -529,33 +513,20 @@ export default function Settings() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Cor Principal (Botões e Destaques)</Label>
-                    <div className="flex gap-3">
-                      <Input
-                        type="color"
-                        className="p-1 size-10"
-                        value={companySettings.primary_color}
-                        onChange={(e) =>
-                          setCompanySettings({
-                            ...companySettings,
-                            primary_color: e.target.value,
-                          })
-                        }
-                      />
-                      <Input
-                        className="flex-1"
-                        value={companySettings.primary_color}
-                        onChange={(e) =>
-                          setCompanySettings({
-                            ...companySettings,
-                            primary_color: e.target.value,
-                          })
-                        }
-                      />
+                  <div className="p-6 border rounded-xl bg-muted/30 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <PaletteIcon className="size-6" />
                     </div>
+                    <div className="space-y-1">
+                      <p className="font-semibold">Personalização Avançada</p>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        Ajuste as cores principais, barra lateral e arredondamento de bordas em toda a plataforma com pré-visualização ao vivo.
+                      </p>
+                    </div>
+                    <ThemeCustomizer />
                   </div>
-                  <div className="space-y-2">
+                  
+                  <div className="space-y-2 opacity-50 pointer-events-none">
                     <Label>Logotipo (URL)</Label>
                     <Input
                       placeholder="https://..."

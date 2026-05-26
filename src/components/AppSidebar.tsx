@@ -41,7 +41,7 @@ const adminSections: NavSection[] = [
   {
     label: "Comercial",
     items: [
-      { title: "Propostas", url: "/propostas", icon: FileText },
+      // { title: "Propostas", url: "/propostas", icon: FileText },
       { title: "Vendas", url: "/vendas", icon: CircleDollarSign },
       { title: "Produtos", url: "/produtos", icon: Package },
     ],
@@ -56,7 +56,7 @@ const adminSections: NavSection[] = [
       { title: "Demandas", url: "/demandas", icon: ClipboardList },
       { title: "Tarefas", url: "/tarefas", icon: ListChecks },
       { title: "Projetos", url: "/projetos", icon: Briefcase },
-      { title: "Templates", url: "/templates", icon: MessageSquare, badge: "BETA" },
+      // { title: "Templates", url: "/templates", icon: MessageSquare, badge: "BETA" },
     ],
   },
   {
@@ -97,7 +97,7 @@ const adminSections: NavSection[] = [
     label: "Sistema",
     items: [
       { title: "Usuários & Acessos", url: "/usuarios", icon: UserCog },
-      { title: "Automações(Desenvolvimento)", url: "/automacoes", icon: Zap },
+      // { title: "Automações(Desenvolvimento)", url: "/automacoes", icon: Zap },
       { title: "Configurações", url: "/configuracoes", icon: Settings },
     ],
   },
@@ -366,10 +366,10 @@ export function AppSidebar() {
     <>
       <Sidebar
         collapsible="icon"
-        className="border-r border-slate-200/70 bg-white transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
+        className="border-r border-slate-200/70 bg-sidebar transition-[width] duration-300 shadow-[1px_0_0_rgba(15,23,42,0.02)]"
       >
         {/* ===== Brand ===== */}
-        <SidebarHeader className="!bg-white px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
+        <SidebarHeader className="bg-sidebar px-4 pt-6 pb-5 border-b border-slate-200/70 shrink-0">
           <button
             onClick={() => navigate("/")}
             className={cn("flex items-center gap-3.5 group w-full transition-all", collapsed && "justify-center")}
@@ -382,7 +382,7 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <div className="min-w-0 flex-1 text-left leading-tight">
-                <p className="font-display text-[22px] font-bold tracking-tight text-slate-900">
+                <p className="font-display text-[22px] font-bold tracking-tight text-sidebar-foreground">
                   Prosper
                 </p>
                 <p className="text-[10px] font-black tracking-[0.25em] uppercase text-indigo-600 mt-0.5">
@@ -424,12 +424,12 @@ export function AppSidebar() {
         </SidebarHeader>
 
         {/* ===== Navigation ===== */}
-        <SidebarContent className="!bg-white px-2.5 pt-4 pb-4 overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        <SidebarContent className="bg-sidebar px-2.5 pt-4 pb-4 overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
           {sections.map((section, idx) => (
             <SidebarGroup key={section.label} className={cn("py-0", idx > 0 && "mt-5")}>
               {!collapsed && (
                 <div className="px-2.5 mb-2">
-                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-slate-500">
+                  <span className="text-[9.5px] font-extrabold uppercase tracking-[0.22em] text-sidebar-foreground/60">
                     {section.label}
                   </span>
                 </div>
