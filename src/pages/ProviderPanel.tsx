@@ -21,6 +21,7 @@ const NAV = [
   { key: "demandas",   label: "Demandas",   icon: Briefcase },
   { key: "reportes",   label: "Reportes",   icon: ClipboardCheck, shortLabel: "Reportes" },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
+  { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
 ];
 
@@ -90,6 +91,30 @@ export default function ProviderPanel() {
       return data ?? [];
     },
   });
+
+  const { data: commissions = [] } = useQuery({
+    queryKey: ["provider-commissions", providerId],
+    enabled: !!providerId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "service_provider")
+        .eq("beneficiary_id", providerId!)
+        .order("created_at", { ascending: false });
+      return (data ?? []).map((c: any) => ({
+        ...c,
+        client_name: c.sales?.clients?.full_name,
+        product_name: c.sales?.products?.name,
+      }));
+    },
+  });
+  const commKpis = useMemo(() => {
+    const all = commissions as any[];
+    const pago = all.filter((c) => c.status === "pago").reduce((a, c) => a + Number(c.amount || 0), 0);
+    const pendente = all.filter((c) => c.status === "pendente").reduce((a, c) => a + Number(c.amount || 0), 0);
+    return { pago, pendente, total: pago + pendente, count: all.length };
+  }, [commissions]);
 
   const stats = useMemo(() => {
     const all = clientProducts as any[];
@@ -219,6 +244,33 @@ export default function ProviderPanel() {
             </SectionCard>
           </>
         )}
+
+        {activeKey === "comissoes" && (
+          <>
+            <PanelHero role="prestador" eyebrow="Financeiro" title="Suas comissões" subtitle="Histórico de comissões vinculadas às suas demandas." stats={[
+              { label: "Pagas", value: formatBRL(commKpis.pago) },
+              { label: "Pendentes", value: formatBRL(commKpis.pendente) },
+              { label: "Total", value: formatBRL(commKpis.total) },
+              { label: "Lançamentos", value: commKpis.count },
+            ]} />
+            <SectionCard title="">
+              {commissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
+                <ul className="divide-y divide-slate-100 -mx-1">
+                  {(commissions as any[]).map((c) => (
+                    <li key={c.id} className="flex items-center gap-3 px-3 py-3">
+                      <div className="size-9 rounded-md bg-teal-50 text-teal-700 flex items-center justify-center"><Wallet className="size-4" /></div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-medium text-slate-900">{formatBRL(c.amount)} <span className="text-[11px] text-slate-400 font-normal">· {Number(c.percent || 0)}%</span></p>
+                        <p className="text-[11.5px] text-slate-500 truncate">{c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""} · {c.paid_at ? `pago em ${formatDate(c.paid_at)}` : `criado em ${formatDate(c.created_at)}`}</p>
+                      </div>
+                      <Badge variant="outline" className={cn("text-[10px] border capitalize", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
+                    </li>
+                  ))}
+                </ul>}
+            </SectionCard>
+          </>
+        )}
+
 
         {activeKey === "perfil" && (
           <>

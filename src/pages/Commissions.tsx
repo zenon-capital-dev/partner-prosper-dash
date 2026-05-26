@@ -120,6 +120,11 @@ export default function Commissions() {
     queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
   });
 
+  const { data: providers = [] } = useQuery({
+    queryKey: ["providers-simple"],
+    queryFn: async () => (await supabase.from("service_providers").select("id,name").order("name")).data ?? [],
+  });
+
 
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
@@ -146,7 +151,7 @@ export default function Commissions() {
   const { data: commissions = [], isLoading } = useQuery({
     queryKey: ["commissions-list"],
     queryFn: async () => {
-      const [commsRes, splitsRes, partnersRes, profilesRes, referrersRes, salesRes, clientsRes, productsRes] = await Promise.all([
+      const [commsRes, splitsRes, partnersRes, profilesRes, referrersRes, providersRes, salesRes, clientsRes, productsRes] = await Promise.all([
         supabase
           .from("commissions")
           .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
@@ -155,6 +160,7 @@ export default function Commissions() {
         supabase.from("partners").select("id,full_name,email,pix_key"),
         supabase.from("profiles").select("id,full_name"),
         supabase.from("referrers").select("id,full_name"),
+        supabase.from("service_providers").select("id,name"),
         supabase.from("sales").select("id, amount, sale_date, client_id, product_id"),
         supabase.from("clients").select("id, full_name"),
         supabase.from("products").select("id, name"),
@@ -162,6 +168,7 @@ export default function Commissions() {
       const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
       const profilesMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
       const referrersMap = new Map((referrersRes.data ?? []).map((r: any) => [r.id, r]));
+      const providersMap = new Map((providersRes.data ?? []).map((p: any) => [p.id, { id: p.id, full_name: p.name }]));
       const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
       const clientsMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c]));
       const productsMap = new Map((productsRes.data ?? []).map((p: any) => [p.id, p]));
@@ -171,6 +178,7 @@ export default function Commissions() {
         const partner = s.beneficiary_type === "partner" ? partnersMap.get(s.beneficiary_id) : null;
         const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
         const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
+        const provider = s.beneficiary_type === "service_provider" ? providersMap.get(s.beneficiary_id) : null;
         const wsMap: Record<string, string> = { pendente: "aguardando_confirmacao", pago: "paga", cancelado: "cancelada" };
         return {
           id: s.id,
@@ -179,6 +187,8 @@ export default function Commissions() {
           partner_id: s.beneficiary_type === "partner" ? s.beneficiary_id : null,
           collaborator_id: s.beneficiary_type === "collaborator" ? s.beneficiary_id : null,
           referrer_id: s.beneficiary_type === "referrer" ? s.beneficiary_id : null,
+          provider_id: s.beneficiary_type === "service_provider" ? s.beneficiary_id : null,
+          beneficiary_type: s.beneficiary_type,
           amount: s.amount,
           percent: s.percent,
           status: s.status,
@@ -192,6 +202,7 @@ export default function Commissions() {
           partners: partner || null,
           profiles: profile || null,
           referrers: referrer || null,
+          service_providers: provider || null,
           sales: sale.id ? {
             amount: sale.amount,
             sale_date: sale.sale_date,
@@ -202,7 +213,7 @@ export default function Commissions() {
       });
 
       // Avoid showing manual commissions if a split already exists for same sale+beneficiary
-      const splitKeys = new Set(splitRows.map((s: any) => `${s.sale_id}|${s.partner_id || s.collaborator_id || s.referrer_id}`));
+      const splitKeys = new Set(splitRows.map((s: any) => `${s.sale_id}|${s.partner_id || s.collaborator_id || s.referrer_id || s.provider_id}`));
       const commRows = (commsRes.data ?? [])
         .filter((c: any) => !splitKeys.has(`${c.sale_id}|${c.partner_id || c.collaborator_id || c.referrer_id}`))
         .map((c: any) => ({ ...c, _source: "commission" }));
@@ -983,6 +994,7 @@ export default function Commissions() {
                   <SelectItem value="partner">Parceiro</SelectItem>
                   <SelectItem value="collaborator">Colaborador</SelectItem>
                   <SelectItem value="referrer">Indicador</SelectItem>
+                  <SelectItem value="service_provider">Prestador</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -994,6 +1006,7 @@ export default function Commissions() {
                   {createForm.beneficiary_type === "partner" && partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                   {createForm.beneficiary_type === "collaborator" && collaborators.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                   {createForm.beneficiary_type === "referrer" && referrers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  {createForm.beneficiary_type === "service_provider" && (providers as any[]).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

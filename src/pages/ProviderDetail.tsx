@@ -61,11 +61,13 @@ export default function ProviderDetail() {
         .order("created_at", { ascending: false });
       setContracts(c || []);
 
-      // Commissions for the provider via splits (if applicable)
+      // Commissions for the provider via splits
       const { data: splits } = await supabase
         .from("commission_splits")
-        .select("*")
-        .eq("beneficiary_id", id);
+        .select("*, sales(clients(full_name), products(name))")
+        .eq("beneficiary_type", "service_provider")
+        .eq("beneficiary_id", id)
+        .order("created_at", { ascending: false });
       setCommissions(splits || []);
 
       setLoading(false);
