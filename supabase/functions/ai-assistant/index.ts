@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,10 +12,32 @@ serve(async (req) => {
   }
 
   try {
+    // Require authenticated user
+    const authHeader = req.headers.get('Authorization') ?? '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Não autenticado' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY') ?? Deno.env.get('SUPABASE_PUBLISHABLE_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claims, error: authErr } = await supabase.auth.getClaims(token);
+    if (authErr || !claims?.claims) {
+      return new Response(JSON.stringify({ error: 'Não autenticado' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { message } = await req.json()
 
     let reply = "";
-    const lowerMessage = message.toLowerCase();
+    const lowerMessage = String(message ?? "").toLowerCase();
 
     if (lowerMessage.includes("ajuda") || lowerMessage.includes("help")) {
       reply = "Olá! Como assistente de IA da Prosper, posso te ajudar a navegar pelo CRM. Você pode me perguntar sobre como gerenciar clientes, ver propostas ou configurar automações.";
@@ -36,7 +59,7 @@ serve(async (req) => {
     )
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
