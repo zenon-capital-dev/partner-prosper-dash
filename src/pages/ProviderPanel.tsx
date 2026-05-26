@@ -21,6 +21,7 @@ const NAV = [
   { key: "demandas",   label: "Demandas",   icon: Briefcase },
   { key: "reportes",   label: "Reportes",   icon: ClipboardCheck, shortLabel: "Reportes" },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
+  { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
 ];
 
