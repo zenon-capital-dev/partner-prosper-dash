@@ -470,6 +470,7 @@ export default function DashboardAdmin() {
           demands={stats.todayDemandsList}
           docs={stats.todayDocsList}
           contracts={stats.todayContractsList}
+          agenda={stats.todayAgendaList}
         />
 
         {/* ============ OPERATIONAL ROW ============ */}
@@ -892,6 +893,7 @@ function TodayBoard({
   demands: { id: string; title: string; subtitle: string }[];
   docs: { id: string; title: string; subtitle: string }[];
   contracts: { id: string; title: string; subtitle: string }[];
+  agenda: { id: string; title: string; subtitle: string }[];
 }) {
   const cols: {
     key: string;
