@@ -376,7 +376,7 @@ export default function Commissions() {
   const removeOne = async (c: any) => {
     const ok = await confirmAction({
       title: "Excluir comissão?",
-      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? "—"}. Ação irreversível.`,
+      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? c.profiles?.full_name ?? c.referrers?.full_name ?? "—"}. Ação irreversível.`,
       confirmText: "Excluir", destructive: true,
     });
     if (!ok) return;
@@ -389,7 +389,7 @@ export default function Commissions() {
   const cancelOne = async (c: any) => {
     const ok = await confirmAction({
       title: "Cancelar comissão?",
-      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? "—"}`,
+      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? c.profiles?.full_name ?? c.referrers?.full_name ?? "—"}`,
       confirmText: "Cancelar comissão",
     });
     if (!ok) return;
