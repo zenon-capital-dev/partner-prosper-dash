@@ -1,4 +1,4 @@
-import { formatBR as format } from "@/lib/datetime";
+import { formatBR as format, nowBR, formatBRDate, formatBRDateTime } from "@/lib/datetime";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -6,7 +6,7 @@ import {
   FileText, ChevronRight, UserPlus,
   Receipt, Wallet, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, Activity, Zap, Sparkles,
-  CalendarCheck, AlertCircle,
+  CalendarCheck, AlertCircle, MessageSquare
 } from "lucide-react";
 
 // Format Date as YYYY-MM-DD using LOCAL components — avoids timezone shift
