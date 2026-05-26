@@ -389,11 +389,12 @@ function ProvidersTab({ productId, links, canManage, refetch, qc }: any) {
 
   const add = async () => {
     if (!selected) { toast.error("Selecione um prestador"); return; }
-    const { error } = await supabase.from("service_provider_products").insert({
+    const { error } = await supabase.from("service_provider_products").upsert({
       product_id: productId,
       service_provider_id: selected,
       custom_value: customValue ? Number(customValue) : null,
-    });
+      active: true,
+    }, { onConflict: "service_provider_id,product_id" });
     if (error) { toast.error(error.message); return; }
     toast.success("Prestador vinculado");
     setSelected(""); setCustomValue(""); setQuery(""); setOpen(false);
