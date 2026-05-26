@@ -13,12 +13,20 @@ export function ClientTasks({ clientId }: { clientId: string }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("tasks")
-        .select("*, assigned_profile:profiles!assigned_to(full_name)")
+        .select("*")
         .or(`client_id.eq.${clientId},related_entity_id.eq.${clientId}`)
         .order("due_date", { ascending: true, nullsFirst: false });
-      return data ?? [];
+      const rows = data ?? [];
+      const ids = Array.from(new Set(rows.map((r: any) => r.assigned_to).filter(Boolean)));
+      let profMap = new Map<string, any>();
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        profMap = new Map((profs || []).map((p: any) => [p.id, p]));
+      }
+      return rows.map((r: any) => ({ ...r, assigned_profile: r.assigned_to ? profMap.get(r.assigned_to) || null : null }));
     },
   });
+
 
   return (
     <div className="space-y-6 animate-fade-up">
