@@ -994,6 +994,7 @@ export default function Commissions() {
                   <SelectItem value="partner">Parceiro</SelectItem>
                   <SelectItem value="collaborator">Colaborador</SelectItem>
                   <SelectItem value="referrer">Indicador</SelectItem>
+                  <SelectItem value="service_provider">Prestador</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1005,6 +1006,7 @@ export default function Commissions() {
                   {createForm.beneficiary_type === "partner" && partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                   {createForm.beneficiary_type === "collaborator" && collaborators.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                   {createForm.beneficiary_type === "referrer" && referrers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  {createForm.beneficiary_type === "service_provider" && (providers as any[]).map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
