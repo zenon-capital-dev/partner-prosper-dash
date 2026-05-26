@@ -151,7 +151,7 @@ export default function AuthPage() {
             <p className="text-[10.5px] text-white/25 mt-1.5 font-light tracking-wide">© Prosper · Todos os direitos reservados</p>
           </div>
           <div className="flex items-center gap-1.5 text-[10.5px] text-white/30 font-medium tracking-wider uppercase">
-            <span>SOC 2</span>
+            <span>​</span>
             <span className="size-1 rounded-full bg-white/30 mx-2" />
             <span>ISO 27001</span>
             <span className="size-1 rounded-full bg-white/30 mx-2" />
@@ -283,7 +283,7 @@ export default function AuthPage() {
 
         {/* Mobile footer */}
         <div className="lg:hidden mt-8 flex items-center gap-2 text-[10px] text-white/30 font-medium tracking-wider uppercase">
-          <span>SOC 2</span>
+          <span>​</span>
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
           <span>ISO 27001</span>
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
