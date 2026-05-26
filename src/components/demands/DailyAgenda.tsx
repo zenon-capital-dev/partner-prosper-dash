@@ -39,6 +39,7 @@ const CHANNEL_META: Record<Channel, { label: string; icon: any; color: string }>
 };
 
 const ymd = (d: Date) => format(d, "yyyy-MM-dd");
+const ymdToday = () => ymdBR();
 const initials = (n?: string | null) =>
   (n ?? "?").split(" ").filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("");
 
@@ -83,8 +84,8 @@ export function DailyAgenda() {
 
   // Atrasadas (pendentes com data anterior a hoje) — só mostra quando o dia selecionado é hoje
   const overdue = useMemo(() => {
-    if (!isToday(selectedDate)) return [];
-    const today = ymd(new Date());
+    if (!isTodayBR(selectedDate)) return [];
+    const today = ymdToday();
     return interactions.filter(
       (i: any) => i.status === "pendente" && i.next_action_at && i.next_action_at < today
     );
@@ -169,8 +170,8 @@ export function DailyAgenda() {
           >
             <ChevronRight className="size-4" />
           </Button>
-          {!isToday(selectedDate) && (
-            <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())}>
+          {!isTodayBR(selectedDate) && (
+            <Button variant="ghost" size="sm" onClick={() => setSelectedDate(nowBR())}>
               Hoje
             </Button>
           )}
