@@ -62,6 +62,7 @@ export default function Products() {
 
   const [productOpen, setProductOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products-list"],
