@@ -884,7 +884,7 @@ function EmptyRow({ message }: { message: string }) {
 }
 
 function TodayBoard({
-  loading, dateLabel, totalCount, tasks, demands, docs, contracts,
+  loading, dateLabel, totalCount, tasks, demands, docs, contracts, agenda,
 }: {
   loading: boolean;
   dateLabel: string;
@@ -959,7 +959,7 @@ function TodayBoard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-100">
         {cols.map((c) => {
           const a = accentMap[c.accent];
           return (
