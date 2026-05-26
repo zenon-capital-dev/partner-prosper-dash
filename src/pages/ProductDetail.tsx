@@ -86,12 +86,20 @@ export default function ProductDetail() {
   const { data: collabLinks = [], refetch: refetchCollabs } = useQuery({
     queryKey: ["product-collabs", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: rows, error } = await supabase
         .from("collaborator_products")
-        .select("id, notes, active, collaborator_id, created_at, profiles!collaborator_products_collaborator_id_fkey(id, full_name, email)")
+        .select("id, notes, active, collaborator_id, created_at")
         .eq("product_id", id!)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      if (error) { console.error(error); return []; }
+      const ids = (rows ?? []).map((r: any) => r.collaborator_id).filter(Boolean);
+      if (ids.length === 0) return rows ?? [];
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+      return (rows ?? []).map((r: any) => ({ ...r, profiles: map.get(r.collaborator_id) ?? null }));
     },
     enabled: !!id,
   });
@@ -381,11 +389,12 @@ function ProvidersTab({ productId, links, canManage, refetch, qc }: any) {
 
   const add = async () => {
     if (!selected) { toast.error("Selecione um prestador"); return; }
-    const { error } = await supabase.from("service_provider_products").insert({
+    const { error } = await supabase.from("service_provider_products").upsert({
       product_id: productId,
       service_provider_id: selected,
       custom_value: customValue ? Number(customValue) : null,
-    });
+      active: true,
+    }, { onConflict: "service_provider_id,product_id" });
     if (error) { toast.error(error.message); return; }
     toast.success("Prestador vinculado");
     setSelected(""); setCustomValue(""); setQuery(""); setOpen(false);
@@ -486,7 +495,7 @@ function CollaboratorsTab({ productId, links, canManage, refetch, qc }: any) {
 
   const add = async () => {
     if (!selected) { toast.error("Selecione um colaborador"); return; }
-    const { error } = await supabase.from("collaborator_products").insert({ product_id: productId, collaborator_id: selected });
+    const { error } = await supabase.from("collaborator_products").upsert({ product_id: productId, collaborator_id: selected, active: true }, { onConflict: "collaborator_id,product_id" });
     if (error) { toast.error(error.message); return; }
     toast.success("Colaborador vinculado");
     setSelected(""); setOpen(false);
