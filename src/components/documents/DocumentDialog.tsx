@@ -40,6 +40,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           due_date: editDoc.due_date || "",
           sale_id: editDoc.sale_id || "none",
           is_required: editDoc.is_required ?? true,
+          priority: editDoc.priority || "media",
         });
         setSelectedClientId(editDoc.client_id);
       } else {
@@ -51,6 +52,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           due_date: "",
           sale_id: "none",
           is_required: true,
+          priority: "media",
         });
         setSelectedClientId(propClientId || "");
       }
@@ -157,6 +159,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       sale_id: form.sale_id === "none" ? null : form.sale_id,
       due_date: form.due_date || null,
       is_required: form.is_required ?? true,
+      priority: form.priority || "media",
       status,
       file_path,
       file_size,
@@ -215,8 +218,8 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-2">
               <Label>Produto / Demanda vinculada *</Label>
               <Select
                 value={form.client_product_id || ""}
@@ -250,6 +253,21 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                   onChange={(e) => setForm({ ...form, due_date: e.target.value })} 
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Prioridade</Label>
+              <Select value={form.priority || "media"} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="baixa">Baixa</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="urgente">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
