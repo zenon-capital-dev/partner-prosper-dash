@@ -2,12 +2,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
+import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 
 export function ClientFinancial({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
