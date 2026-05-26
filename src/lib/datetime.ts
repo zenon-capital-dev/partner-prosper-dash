@@ -16,7 +16,7 @@ const toDate = (v: DateInput): Date | null => {
  * Substituto drop-in para `date-fns#format`, mas sempre rendendo no fuso de Brasília.
  * Use `import { formatBR as format } from "@/lib/datetime"`.
  */
-export function formatBR(date: DateInput, pattern: string, options?: Parameters<typeof fnsFormat>[2]): string {
+export function formatBR(date: DateInput, pattern: string, options?: any): string {
   const d = toDate(date);
   if (!d) return "";
   return formatInTimeZone(d, BR_TZ, pattern, options);
