@@ -415,7 +415,7 @@ export default function Finance() {
     });
     if (!ok) return;
     const { error } = await supabase.from("commissions")
-      .update({ status: "pago", paid_at: new Date().toISOString(), workflow_status: "aprovada" })
+      .update({ status: "pago", paid_at: new Date().toISOString() })
       .eq("id", c.id);
     if (error) { toast.error("Erro: " + error.message); return; }
     toast.success("Comissão paga");
@@ -763,7 +763,14 @@ export default function Finance() {
                               <div className="text-slate-900 font-medium">{c.sales?.clients?.full_name || "—"}</div>
                               <div className="text-xs text-slate-500">{c.sales?.products?.name || "—"}</div>
                             </td>
-                            <td className="px-4 py-3"><Badge variant="outline" className="bg-sky-50 text-sky-700 border-sky-200">{BENEFICIARY_LABEL[c.beneficiary_type] || c.beneficiary_type}</Badge></td>
+                            <td className="px-4 py-3">
+                              <p className="text-slate-900 font-medium">
+                                {c.partners?.full_name || c.referrers?.full_name || c.collaborator?.full_name || "—"}
+                              </p>
+                              <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase tracking-tighter">
+                                {c.partner_id ? "Parceiro" : c.referrer_id ? "Indicador" : "Colaborador"}
+                              </Badge>
+                            </td>
                             <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900">{formatBRL(c.amount)}</td>
                             <td className="px-4 py-3"><Badge variant="outline" className={SPLIT_STATUS[c.status]?.cls || ""}>{SPLIT_STATUS[c.status]?.label || c.status}</Badge></td>
                             {canManage && (
