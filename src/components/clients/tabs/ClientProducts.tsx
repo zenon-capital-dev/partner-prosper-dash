@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { 
-  ChevronRight, Package, User, UserCog, ClipboardCheck, 
-  Plus, Layers, Calendar, DollarSign, Activity,
-  MoreVertical, Edit3, Trash2, Clock
+import {
+  Package, User, UserCog, ClipboardCheck,
+  Plus, Calendar, DollarSign, Activity,
+  MoreVertical, ExternalLink, Trash2, Clock, CheckCircle2,
+  PauseCircle, PlayCircle, XCircle, FileText, MessageSquare,
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -14,19 +15,44 @@ import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDia
 import { AddProductDialog } from "@/components/clients/AddProductDialog";
 import { ClientProductSteps } from "./ClientProductSteps";
 import { confirmAction } from "@/lib/confirm";
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+
+const STATUS_OPTIONS = [
+  { value: "aguardando_inicio", label: "Aguardando início" },
+  { value: "em_andamento", label: "Em andamento" },
+  { value: "pausado", label: "Pausado" },
+  { value: "concluido", label: "Concluído" },
+  { value: "cancelado", label: "Cancelado" },
+];
+
+const STATUS_STYLE: Record<string, string> = {
+  aguardando_inicio: "bg-slate-100 text-slate-600 border-slate-200",
+  em_andamento: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  pausado: "bg-amber-50 text-amber-700 border-amber-200",
+  concluido: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  cancelado: "bg-rose-50 text-rose-700 border-rose-200",
+  ativo: "bg-emerald-50 text-emerald-700 border-emerald-200",
+};
 
 export function ClientProducts({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [delegateTarget, setDelegateTarget] = useState<{ id: string; providerId?: string | null; productName?: string } | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [deadlineTarget, setDeadlineTarget] = useState<{ id: string; current: string | null } | null>(null);
+  const [deadlineValue, setDeadlineValue] = useState("");
 
-  const { data: clientProducts, isLoading } = useQuery({
+  const { data: clientProducts = [], isLoading } = useQuery({
     queryKey: ["client-products", clientId],
     queryFn: async () => {
       const { data } = await supabase
@@ -34,7 +60,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         .select(`
           *,
           products(name, description),
-          service_providers(id, name, specialty)
+          service_providers:service_provider_id(id, name, specialty),
+          responsible:responsible_employee_id(id, full_name)
         `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
@@ -42,19 +69,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
     },
   });
 
-  const deleteProduct = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("client_products").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["client-products", clientId] });
-      toast.success("Produto removido");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
-
-  const cpIds = (clientProducts ?? []).map((c: any) => c.id);
+  const cpIds = clientProducts.map((c: any) => c.id);
 
   const { data: latestReports = {} } = useQuery({
     queryKey: ["latest-status-reports", cpIds.join(",")],
@@ -73,139 +88,228 @@ export function ClientProducts({ clientId }: { clientId: string }) {
     },
   });
 
+  const updateProduct = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: any }) => {
+      const { error } = await supabase.from("client_products").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+      qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      toast.success("Atualizado");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("client_products").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+      toast.success("Demanda removida");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const changeStatus = (id: string, status: string) => {
+    const patch: any = { status };
+    if (status === "concluido") patch.end_date = new Date().toISOString().slice(0, 10);
+    updateProduct.mutate({ id, patch });
+  };
+
+  const openDeadline = (cp: any) => {
+    setDeadlineTarget({ id: cp.id, current: cp.deadline });
+    setDeadlineValue(cp.deadline?.slice(0, 10) ?? "");
+  };
+  const saveDeadline = () => {
+    if (!deadlineTarget) return;
+    updateProduct.mutate({ id: deadlineTarget.id, patch: { deadline: deadlineValue || null } });
+    setDeadlineTarget(null);
+  };
+
   return (
-    <div className="space-y-8 animate-fade-up">
+    <div className="space-y-5 animate-fade-up">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-editorial text-2xl font-bold">Ecossistema de Soluções</h3>
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">Serviços ativos e gestão operacional dedicada</p>
+          <h3 className="text-xl font-bold text-slate-900">Ecossistema de Soluções</h3>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500/70 mt-0.5">
+            {clientProducts.length} serviço(s) ativo(s)
+          </p>
         </div>
-        <Button onClick={() => setAddOpen(true)} className="btn-premium gap-2 h-10 px-5 rounded-xl">
+        <Button onClick={() => setAddOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 h-10 px-4 rounded-lg">
           <Plus className="size-4" /> Adicionar Produto
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {isLoading ? (
-          <div className="p-20 text-center"><Activity className="size-8 animate-spin mx-auto text-primary/20" /></div>
-        ) : clientProducts?.length === 0 ? (
-          <div className="vx-card p-20 text-center border-dashed border-2 bg-slate-50 rounded-[40px]">
-            <Package className="size-16 text-slate-200 mx-auto mb-6" />
-            <p className="font-editorial text-xl font-bold">Nenhum serviço contratado</p>
-            <p className="text-muted-foreground text-sm mt-2 mb-8 max-w-xs mx-auto">Vincule os produtos negociados para iniciar a gestão operacional e técnica.</p>
-            <Button onClick={() => setAddOpen(true)} variant="outline" className="gap-2 rounded-xl">
-              <Plus className="size-4" /> Adicionar Primeiro Produto
-            </Button>
-          </div>
-        ) : clientProducts?.map((cp: any) => {
-          const lastReport = (latestReports as any)[cp.id];
-          return (
-            <div key={cp.id} className="vx-card bg-white border-slate-100 rounded-[40px] overflow-hidden group hover:border-primary/20 transition-all duration-500">
-               <div className="p-8 lg:p-10">
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-8">
-                     <div className="flex items-start gap-6">
-                        <div className="size-16 rounded-[24px] bg-primary/5 flex items-center justify-center text-primary shrink-0 transition-transform group-hover:scale-110">
-                           <Package className="size-8" />
-                        </div>
-                        <div className="space-y-2">
-                           <div className="flex items-center gap-3">
-                              <h4 className="font-editorial text-3xl font-bold text-slate-900 leading-none">
-                                {cp.products?.name || cp.custom_product_name}
-                              </h4>
-                              <StatusBadge status={cp.status} />
-                           </div>
-                           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
-                              {cp.products?.description || "Acompanhamento técnico e gestão estratégica personalizada para o perfil do cliente."}
-                           </p>
-                        </div>
-                     </div>
+      {isLoading ? (
+        <div className="p-12 text-center"><Activity className="size-6 animate-spin mx-auto text-slate-300" /></div>
+      ) : clientProducts.length === 0 ? (
+        <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-16 text-center">
+          <Package className="size-12 text-slate-200 mx-auto mb-4" />
+          <p className="text-lg font-bold text-slate-900">Nenhum serviço contratado</p>
+          <p className="text-sm text-slate-500 mt-1.5 mb-6 max-w-sm mx-auto">Vincule um produto para iniciar a gestão operacional.</p>
+          <Button onClick={() => setAddOpen(true)} variant="outline" className="gap-2 rounded-lg">
+            <Plus className="size-4" /> Adicionar Primeiro Produto
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {clientProducts.map((cp: any) => {
+            const lastReport = (latestReports as any)[cp.id];
+            const statusCls = STATUS_STYLE[cp.status] || "bg-slate-100 text-slate-600 border-slate-200";
+            const statusLabel = STATUS_OPTIONS.find(s => s.value === cp.status)?.label || (cp.status || "—").replace(/_/g, " ");
+            const isOverdue = cp.deadline && new Date(cp.deadline) < new Date() && cp.status !== "concluido";
 
-                     <div className="flex items-center gap-3 self-end lg:self-start">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-9 rounded-xl border-slate-200 gap-2 hover:bg-primary hover:text-white transition-all"
-                          onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
-                        >
-                          <UserCog className="size-4" /> Delegar Técnico
+            return (
+              <div key={cp.id} className="bg-white border border-slate-200/70 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
+                {/* HEADER */}
+                <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-4">
+                  <button
+                    onClick={() => navigate(`/demandas/${cp.id}`)}
+                    className="flex items-start gap-4 min-w-0 flex-1 text-left group"
+                  >
+                    <div className="size-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                      <Package className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-[16px] font-bold text-slate-900 group-hover:text-indigo-700 transition-colors truncate">
+                          {cp.products?.name || cp.custom_product_name || "Produto"}
+                        </h4>
+                        <Badge variant="outline" className={cn("text-[9.5px] font-bold tracking-wider uppercase border px-2 py-0", statusCls)}>
+                          {statusLabel}
+                        </Badge>
+                      </div>
+                      <p className="text-[12.5px] text-slate-500 mt-1 line-clamp-1">
+                        {cp.products?.description || "Acompanhamento técnico e gestão estratégica."}
+                      </p>
+                    </div>
+                  </button>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      variant="outline" size="sm"
+                      className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+                      onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
+                    >
+                      <UserCog className="size-3.5" /> {cp.service_providers ? "Trocar" : "Delegar"}
+                    </Button>
+                    <Button
+                      variant="outline" size="sm"
+                      className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+                      onClick={() => navigate(`/demandas/${cp.id}`)}
+                    >
+                      <ExternalLink className="size-3.5" /> Abrir
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-9 rounded-lg hover:bg-slate-100">
+                          <MoreVertical className="size-4 text-slate-500" />
                         </Button>
-                        <DropdownMenu>
-                           <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-9 rounded-xl hover:bg-slate-100">
-                                 <MoreVertical className="size-4 text-muted-foreground" />
-                              </Button>
-                           </DropdownMenuTrigger>
-                           <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => navigate(`/demandas?id=${cp.id}`)}><Edit3 className="size-4" /> Abrir Demanda</DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="gap-2 text-rose-500 focus:text-rose-500 cursor-pointer"
-                                onClick={async () => { if (await confirmAction("Remover este produto?")) deleteProduct.mutate(cp.id); }}
-                              >
-                                <Trash2 className="size-4" /> Remover Produto
-                              </DropdownMenuItem>
-                           </DropdownMenuContent>
-                        </DropdownMenu>
-                     </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-slate-500">Mudar status</DropdownMenuLabel>
+                        {STATUS_OPTIONS.map((s) => (
+                          <DropdownMenuItem
+                            key={s.value}
+                            disabled={cp.status === s.value}
+                            onClick={() => changeStatus(cp.id, s.value)}
+                            className="gap-2 cursor-pointer text-[13px]"
+                          >
+                            {s.value === "concluido" ? <CheckCircle2 className="size-3.5 text-emerald-600" /> :
+                             s.value === "pausado" ? <PauseCircle className="size-3.5 text-amber-600" /> :
+                             s.value === "em_andamento" ? <PlayCircle className="size-3.5 text-indigo-600" /> :
+                             s.value === "cancelado" ? <XCircle className="size-3.5 text-rose-600" /> :
+                             <Clock className="size-3.5 text-slate-500" />}
+                            {s.label}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => openDeadline(cp)} className="gap-2 cursor-pointer text-[13px]">
+                          <Calendar className="size-3.5" /> Definir prazo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate(`/demandas/${cp.id}`)} className="gap-2 cursor-pointer text-[13px]">
+                          <FileText className="size-3.5" /> Ver detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="gap-2 text-rose-600 focus:text-rose-700 cursor-pointer text-[13px]"
+                          onClick={async () => { if (await confirmAction("Remover esta demanda?")) deleteProduct.mutate(cp.id); }}
+                        >
+                          <Trash2 className="size-3.5" /> Remover demanda
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                {/* DATA GRID */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-100">
+                  <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
+                  <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
+                  <DataField
+                    label="Prazo Final"
+                    value={cp.deadline ? formatDate(cp.deadline) : "Definir"}
+                    icon={Clock}
+                    tone={isOverdue ? "danger" : cp.deadline ? "default" : "muted"}
+                    onClick={() => openDeadline(cp)}
+                  />
+                  <DataField
+                    label="Prestador"
+                    value={cp.service_providers?.name || "Não delegado"}
+                    icon={User}
+                    tone={cp.service_providers ? "primary" : "muted"}
+                    onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
+                  />
+                </div>
+
+                {/* CHECKLIST + REPORT */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
+                  <div className="p-5 border-r border-slate-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ClipboardCheck className="size-3.5 text-emerald-600" />
+                      <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Checklist de Entrega</h5>
+                    </div>
+                    <ClientProductSteps clientProductId={cp.id} />
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10 pt-10 border-t border-slate-50">
-                     <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
-                     <DataField label="Data de Início" value={formatDate(cp.created_at)} icon={Calendar} />
-                     <DataField label="Prazo Fatal" value={cp.deadline ? formatDate(cp.deadline) : "Nenhum"} icon={Clock} />
-                     <DataField 
-                       label="Prestador Responsável" 
-                       value={cp.service_providers?.name || "Não Delegado"} 
-                       icon={User}
-                       highlight={!!cp.service_providers}
-                     />
+                  <div className="p-5 bg-slate-50/40">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MessageSquare className="size-3.5 text-indigo-600" />
+                      <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Último Reporte Técnico</h5>
+                    </div>
+                    {lastReport ? (
+                      <div className="space-y-3">
+                        <p className="text-[13px] text-slate-700 leading-relaxed italic">"{lastReport.notes || "(sem observações)"}"</p>
+                        <div className="flex items-center justify-between text-[10.5px]">
+                          <Badge variant="outline" className={cn("text-[9px] font-bold uppercase border", STATUS_STYLE[lastReport.status] || "bg-slate-100 text-slate-600 border-slate-200")}>
+                            {lastReport.status}
+                          </Badge>
+                          <span className="font-mono text-slate-500">{formatDate(lastReport.created_at)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-6 text-center">
+                        <Activity className="size-5 text-slate-300 mx-auto mb-2" />
+                        <p className="text-[12px] text-slate-500">Nenhum reporte enviado ainda.</p>
+                        <Button
+                          variant="outline" size="sm"
+                          className="mt-3 h-8 text-[11px] rounded-lg"
+                          onClick={() => navigate(`/demandas/${cp.id}`)}
+                        >
+                          Abrir demanda
+                        </Button>
+                      </div>
+                    )}
                   </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-10 mt-10">
-                     <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                           <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                              <ClipboardCheck className="size-4" />
-                           </div>
-                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900">Checklist de Entrega</h5>
-                        </div>
-                        <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100">
-                           <ClientProductSteps clientProductId={cp.id} />
-                        </div>
-                     </div>
-
-                     <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                           <div className="size-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
-                              <Activity className="size-4" />
-                           </div>
-                           <h5 className="text-sm font-bold uppercase tracking-widest text-slate-900">Último Reporte Técnico</h5>
-                        </div>
-                        <div className={cn(
-                          "rounded-[32px] p-8 border border-slate-100 h-full min-h-[160px] flex flex-col justify-between transition-colors",
-                          lastReport ? "bg-indigo-50/30" : "bg-slate-50/50 border-dashed border-2"
-                        )}>
-                           {lastReport ? (
-                             <>
-                                <p className="text-sm text-slate-600 font-medium leading-relaxed italic">"{lastReport.notes}"</p>
-                                <div className="mt-6 flex items-center justify-between border-t border-indigo-100/50 pt-4">
-                                   <StatusBadge status={lastReport.status} />
-                                   <span className="text-[10px] font-bold text-muted-foreground uppercase">{formatDate(lastReport.created_at)}</span>
-                                </div>
-                             </>
-                           ) : (
-                             <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
-                                <Activity className="size-6 text-slate-200" />
-                                <p className="text-xs text-muted-foreground font-medium">Nenhum reporte enviado pelo técnico ainda.</p>
-                             </div>
-                           )}
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          );
-        })}
-      </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {delegateTarget && (
         <DelegateProviderDialog
@@ -217,46 +321,51 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         />
       )}
 
-      <AddProductDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        clientId={clientId}
-      />
+      <AddProductDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} />
+
+      <Dialog open={!!deadlineTarget} onOpenChange={(v) => !v && setDeadlineTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Prazo final da demanda</DialogTitle></DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-xs">Data limite</Label>
+            <Input type="date" value={deadlineValue} onChange={(e) => setDeadlineValue(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeadlineTarget(null)}>Cancelar</Button>
+            <Button onClick={saveDeadline} className="bg-indigo-600 hover:bg-indigo-700 text-white">Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function DataField({ label, value, icon: Icon, highlight }: { label: string; value: string; icon: any; highlight?: boolean }) {
+function DataField({
+  label, value, icon: Icon, tone = "default", onClick,
+}: {
+  label: string; value: string; icon: any;
+  tone?: "default" | "primary" | "muted" | "danger";
+  onClick?: () => void;
+}) {
+  const toneCls =
+    tone === "danger" ? "text-rose-600" :
+    tone === "primary" ? "text-indigo-700" :
+    tone === "muted" ? "text-slate-400 italic" : "text-slate-900";
   return (
-    <div className="space-y-1.5 min-w-0">
-      <div className="flex items-center gap-2">
-        <Icon className="size-3 text-muted-foreground/60" />
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 truncate">{label}</p>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
+      className={cn(
+        "bg-white px-4 py-3 text-left flex flex-col gap-1 min-w-0",
+        onClick && "hover:bg-slate-50 transition-colors cursor-pointer"
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        <Icon className="size-3 text-slate-400" />
+        <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
       </div>
-      <p className={cn(
-        "text-sm font-bold truncate",
-        highlight ? "text-primary" : "text-slate-900"
-      )}>{value}</p>
-    </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: any = {
-    aguardando_documentos: { label: "AGUARDANDO DOCS", className: "bg-amber-500/10 text-amber-700 border-amber-500/20" },
-    em_analise: { label: "EM ANÁLISE", className: "bg-blue-500/10 text-blue-700 border-blue-500/20" },
-    aguardando_cliente: { label: "AGUARDANDO CLIENTE", className: "bg-orange-500/10 text-orange-700 border-orange-500/20" },
-    em_andamento: { label: "EM ANDAMENTO", className: "bg-indigo-500/10 text-indigo-700 border-indigo-500/20" },
-    pendente_correcao: { label: "PEND. CORREÇÃO", className: "bg-rose-500/10 text-rose-700 border-rose-500/20" },
-    concluido: { label: "CONCLUÍDO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-    aguardando_inicio: { label: "AGUARDANDO", className: "bg-slate-100 text-slate-600 border-slate-200" },
-    ativo: { label: "ATIVO", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" },
-    finalizado: { label: "FINALIZADO", className: "bg-muted text-muted-foreground border-border" },
-  };
-  const cfg = map[status] || { label: (status || "—").toUpperCase(), className: "bg-muted text-muted-foreground border-border" };
-  return (
-    <Badge variant="outline" className={cn("text-[9px] font-bold tracking-widest border px-2 py-0.5", cfg.className)}>
-      {cfg.label}
-    </Badge>
+      <p className={cn("text-[13.5px] font-semibold truncate", toneCls)}>{value}</p>
+    </button>
   );
 }
