@@ -591,7 +591,10 @@ export default function Sales() {
                         {commissionVal > 0 ? (
                           <div>
                             <p className="font-semibold text-emerald-700 font-mono text-[12px]">{formatBRL(commissionVal)}</p>
-                            <p className="text-[10px] text-slate-500 font-mono">{commissionPct}%</p>
+                            <p className="text-[10px] text-slate-500 font-mono">
+                              {commissionPct.toFixed(1)}% · {splits.length} {splits.length === 1 ? "benef." : "benefs."}
+                              {paidCount > 0 && <span className="text-emerald-600"> · {paidCount} pago{paidCount > 1 ? "s" : ""}</span>}
+                            </p>
                           </div>
                         ) : (
                           <span className="text-[11px] text-slate-400">—</span>
