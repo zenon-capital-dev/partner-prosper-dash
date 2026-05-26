@@ -4579,7 +4579,11 @@ export type Database = {
         | "admin_secondary"
         | "lead"
         | "indicador"
-      beneficiary_type: "partner" | "referrer" | "collaborator"
+      beneficiary_type:
+        | "partner"
+        | "referrer"
+        | "collaborator"
+        | "service_provider"
       billing_cycle: "mensal" | "trimestral" | "semestral" | "anual" | "unico"
       client_status:
         | "ativo"
@@ -4830,7 +4834,12 @@ export const Constants = {
         "lead",
         "indicador",
       ],
-      beneficiary_type: ["partner", "referrer", "collaborator"],
+      beneficiary_type: [
+        "partner",
+        "referrer",
+        "collaborator",
+        "service_provider",
+      ],
       billing_cycle: ["mensal", "trimestral", "semestral", "anual", "unico"],
       client_status: [
         "ativo",
