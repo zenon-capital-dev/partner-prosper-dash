@@ -110,6 +110,17 @@ export default function Commissions() {
   }, [debouncedSearch, statusFilter, partnerFilter, rangeKey, dateFrom, dateTo]);
 
   // dialogs
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ["collaborators-simple"],
+    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name")).data ?? [],
+  });
+
+  const { data: referrers = [] } = useQuery({
+    queryKey: ["referrers-simple"],
+    queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
+  });
+
+
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -123,7 +134,7 @@ export default function Commissions() {
     notes: "",
   });
   const [createForm, setCreateForm] = useState<any>({
-    partner_id: "", sale_id: "", amount: 0, percent: 10,
+    beneficiary_id: "", beneficiary_type: "partner", sale_id: "", amount: 0, percent: 10,
     commission_type: "percentual", status: "aguardando_confirmacao", notes: "",
   });
   const [ruleForm, setRuleForm] = useState<any>({
@@ -262,12 +273,11 @@ export default function Commissions() {
 
   // ----- Mutations -----
   const createCommission = async () => {
-    if (!createForm.partner_id) { toast.error("Selecione um indicador"); return; }
-    if (!createForm.sale_id) { toast.error("Vincule a uma venda — comissões manuais sem venda não são suportadas"); return; }
+    if (!createForm.beneficiary_id) { toast.error("Selecione um beneficiário"); return; }
+    if (!createForm.sale_id) { toast.error("Vincule a uma venda"); return; }
     if (!Number(createForm.amount) || Number(createForm.amount) <= 0) { toast.error("Informe um valor maior que zero"); return; }
     const sale = sales.find((s: any) => s.id === createForm.sale_id);
     const payload: any = {
-      partner_id: createForm.partner_id,
       sale_id: createForm.sale_id,
       client_id: sale?.client_id ?? null,
       product_id: sale?.product_id ?? null,
@@ -278,11 +288,16 @@ export default function Commissions() {
       status: createForm.status === "paga" ? "pago" : (createForm.status === "aguardando_confirmacao" ? "pendente" : createForm.status),
       notes: createForm.notes || null,
     };
+
+    if (createForm.beneficiary_type === "partner") payload.partner_id = createForm.beneficiary_id;
+    else if (createForm.beneficiary_type === "collaborator") payload.collaborator_id = createForm.beneficiary_id;
+    else if (createForm.beneficiary_type === "referrer") payload.referrer_id = createForm.beneficiary_id;
+
     const { error } = await supabase.from("commissions").insert(payload);
     if (error) { toast.error(error.message); return; }
     toast.success("Comissão criada");
     setCreateOpen(false);
-    setCreateForm({ partner_id: "", sale_id: "", amount: 0, percent: 10, commission_type: "percentual", status: "aguardando_confirmacao", notes: "" });
+    setCreateForm({ beneficiary_id: "", beneficiary_type: "partner", sale_id: "", amount: 0, percent: 10, commission_type: "percentual", status: "aguardando_confirmacao", notes: "" });
     invalidateAll();
   };
 
@@ -361,7 +376,7 @@ export default function Commissions() {
   const removeOne = async (c: any) => {
     const ok = await confirmAction({
       title: "Excluir comissão?",
-      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? "—"}. Ação irreversível.`,
+      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? c.profiles?.full_name ?? c.referrers?.full_name ?? "—"}. Ação irreversível.`,
       confirmText: "Excluir", destructive: true,
     });
     if (!ok) return;
@@ -374,7 +389,7 @@ export default function Commissions() {
   const cancelOne = async (c: any) => {
     const ok = await confirmAction({
       title: "Cancelar comissão?",
-      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? "—"}`,
+      description: `${formatBRL(c.amount)} para ${c.partners?.full_name ?? c.profiles?.full_name ?? c.referrers?.full_name ?? "—"}`,
       confirmText: "Cancelar comissão",
     });
     if (!ok) return;
@@ -497,7 +512,7 @@ export default function Commissions() {
   const onSelectSale = (saleId: string) => {
     const s = sales.find((x: any) => x.id === saleId);
     if (s) {
-      const pct = Number(s.commission_percent ?? createForm.percent ?? 10);
+      const pct = Number(s.commission_percent ?? 10);
       const amount = Math.round(Number(s.amount) * pct) / 100;
       setCreateForm((f: any) => ({ ...f, sale_id: saleId, percent: pct, amount }));
     } else {
@@ -850,11 +865,24 @@ export default function Commissions() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="col-span-2 space-y-1.5">
-              <Label>Indicador *</Label>
-              <Select value={createForm.partner_id} onValueChange={(v) => setCreateForm({ ...createForm, partner_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar indicador" /></SelectTrigger>
+              <Label>Tipo de Beneficiário *</Label>
+              <Select value={createForm.beneficiary_type} onValueChange={(v) => setCreateForm({ ...createForm, beneficiary_type: v, beneficiary_id: "" })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  <SelectItem value="partner">Parceiro</SelectItem>
+                  <SelectItem value="collaborator">Colaborador</SelectItem>
+                  <SelectItem value="referrer">Indicador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Beneficiário *</Label>
+              <Select value={createForm.beneficiary_id} onValueChange={(v) => setCreateForm({ ...createForm, beneficiary_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar beneficiário" /></SelectTrigger>
+                <SelectContent>
+                  {createForm.beneficiary_type === "partner" && partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  {createForm.beneficiary_type === "collaborator" && collaborators.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  {createForm.beneficiary_type === "referrer" && referrers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -909,7 +937,9 @@ export default function Commissions() {
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle>Editar comissão</DialogTitle>
-            <DialogDescription>{editing?.partners?.full_name} · {editing?.sales?.clients?.full_name ?? "Manual"}</DialogDescription>
+            <DialogDescription>
+              {editing?.partners?.full_name ?? editing?.profiles?.full_name ?? editing?.referrers?.full_name ?? "—"} · {editing?.sales?.clients?.full_name ?? "Manual"}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="space-y-1.5">

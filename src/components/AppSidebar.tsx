@@ -69,7 +69,7 @@ const adminSections: NavSection[] = [
   {
     label: "Financeiro",
     items: [
-      { title: "Financeiro", url: "/financeiro", icon: Banknote },
+      // { title: "Financeiro", url: "/financeiro", icon: Banknote },
       { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
       { title: "Comissões", url: "/comissoes", icon: Wallet },
     ],
