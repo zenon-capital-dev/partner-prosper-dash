@@ -61,7 +61,7 @@ export default function OperationalCockpit() {
       const { data, error } = await supabase
         .from("client_products")
         .select(`
-          id, status, deadline, 
+          id, status, deadline, sla_due_date, end_date, 
           client:clients(id, full_name, user_id),
           product:products(name)
         `)
@@ -70,8 +70,9 @@ export default function OperationalCockpit() {
       if (error) throw error;
       
       return data.filter(d => {
-        if (!d.deadline) return false;
-        const deadline = new Date(d.deadline);
+        const dueRaw = d.deadline || d.sla_due_date || d.end_date;
+        if (!dueRaw) return false;
+        const deadline = new Date(dueRaw);
         return isToday(deadline) || isBefore(deadline, startOfDay(today));
       }).map(d => ({
         id: d.id,
@@ -79,8 +80,8 @@ export default function OperationalCockpit() {
         title: (d.product as any)?.name || "Produto",
         subtitle: (d.client as any)?.full_name || "Cliente",
         status: d.status,
-        date: d.deadline,
-        severity: isBefore(new Date(d.deadline), startOfDay(today)) ? 'critical' : 'high',
+        date: d.deadline || d.sla_due_date || d.end_date,
+        severity: isBefore(new Date(d.deadline || d.sla_due_date || d.end_date), startOfDay(today)) ? 'critical' : 'high',
         metadata: d
       })) as CockpitItem[];
     }
