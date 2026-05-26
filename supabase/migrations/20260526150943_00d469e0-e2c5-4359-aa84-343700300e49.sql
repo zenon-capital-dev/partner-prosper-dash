@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.admin_delete_product_cascade(uuid);
