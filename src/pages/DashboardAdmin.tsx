@@ -910,6 +910,11 @@ function TodayBoard({
       items: tasks.map(t => ({ id: t.id, title: t.title, sub: t.time })),
     },
     {
+      key: "agenda", label: "Agenda (Atendimentos)", count: agenda.length, to: "/demandas",
+      icon: MessageSquare, accent: "emerald",
+      items: agenda.map(i => ({ id: i.id, title: i.title, sub: i.subtitle })),
+    },
+    {
       key: "demands", label: "Demandas com prazo hoje", count: demands.length, to: "/demandas",
       icon: Clock, accent: "amber",
       items: demands.map(d => ({ id: d.id, title: d.title, sub: d.subtitle })),
