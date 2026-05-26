@@ -148,8 +148,9 @@ export default function Agenda() {
 
   // Tasks (Agenda items)
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ["agenda", filterKind, filterMine, filterClient, filterAssignee, user?.id],
+    queryKey: ["agenda", filterKind, filterMine, filterClient, filterAssignee, user?.id, assignees.length],
     queryFn: async () => {
+
       let q = supabase
         .from("tasks")
         .select(`
@@ -157,8 +158,7 @@ export default function Agenda() {
           meeting_url, reminder_minutes, priority, status_new, assigned_to,
           outcome, visible_to_client, client_id, client_product_id,
           completed_at, created_at,
-          client:clients(id, full_name),
-          assignee:profiles!tasks_assigned_to_fkey(id, full_name, email)
+          client:clients(id, full_name)
         `)
         .order("due_date", { ascending: true, nullsFirst: false })
         .limit(500);
@@ -168,8 +168,14 @@ export default function Agenda() {
       if (filterAssignee !== "all") q = q.eq("assigned_to", filterAssignee);
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []) as unknown as AgendaItem[];
+      const rows = (data || []) as any[];
+      const assigneeMap = new Map(assignees.map((a: any) => [a.id, a]));
+      return rows.map((r) => ({
+        ...r,
+        assignee: r.assigned_to ? assigneeMap.get(r.assigned_to) || null : null,
+      })) as unknown as AgendaItem[];
     },
+
   });
 
   const filtered = useMemo(() => {
