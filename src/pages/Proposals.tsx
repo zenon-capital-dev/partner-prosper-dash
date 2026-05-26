@@ -727,13 +727,13 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[95vh] flex flex-col p-0 overflow-hidden bg-white">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>{proposal ? "Editar proposta" : "Nova proposta"}</DialogTitle>
           <DialogDescription>Monte uma proposta comercial profissional.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
           <div>
             <Label className="mb-2 block">Destinatário</Label>
             <div className="flex flex-wrap gap-2 mb-3">
@@ -872,7 +872,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="p-6 border-t bg-slate-50/50">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
         </DialogFooter>
