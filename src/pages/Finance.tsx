@@ -161,9 +161,9 @@ export default function Finance() {
       const { data, error } = await supabase.from("commissions")
         .select(`
           *,
-          sales(sale_date, clients(full_name), products(name)),
-          partners(full_name),
-          referrers(full_name),
+          sales:sale_id(sale_date, clients(full_name), products(name)),
+          partners:partner_id(full_name),
+          referrers:referrer_id(full_name),
           collaborator:profiles!collaborator_id(full_name)
         `)
         .order("created_at", { ascending: false });
@@ -772,7 +772,16 @@ export default function Finance() {
                               </Badge>
                             </td>
                             <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900">{formatBRL(c.amount)}</td>
-                            <td className="px-4 py-3"><Badge variant="outline" className={SPLIT_STATUS[c.status]?.cls || ""}>{SPLIT_STATUS[c.status]?.label || c.status}</Badge></td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="outline" className={SPLIT_STATUS[c.status]?.cls || ""}>{SPLIT_STATUS[c.status]?.label || c.status}</Badge>
+                                {c.workflow_status && (
+                                  <Badge variant="outline" className={cn("text-[9px] h-4", WORKFLOW_STATUS[c.workflow_status]?.cls)}>
+                                    {WORKFLOW_STATUS[c.workflow_status]?.label}
+                                  </Badge>
+                                )}
+                              </div>
+                            </td>
                             {canManage && (
                               <td className="px-4 py-3 text-right">
                                 {c.status === "pendente" && (
