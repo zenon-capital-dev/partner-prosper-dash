@@ -270,7 +270,7 @@ export default function AuthPage() {
 
             {/* Hint */}
             <p className="text-center text-[12px] text-white/40 mt-6">
-              Acesso restrito. Contas são criadas pelo administrador.
+              Acesso restrito. <span>​</span>
             </p>
 
             {/* Trust footer */}
