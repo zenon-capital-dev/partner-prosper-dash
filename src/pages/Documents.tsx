@@ -154,6 +154,7 @@ export default function Documents() {
           .from("documents")
           .select(`
             *,
+            priority,
             clients(id, full_name),
             products(id, name),
             client_products(
