@@ -1,4 +1,4 @@
-import { formatBR as format, nowBR, toBR, isTodayBR, ymdBR } from "@/lib/datetime";
+import { formatBR, nowBR, toBR, isTodayBR, ymdBR } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +38,7 @@ const CHANNEL_META: Record<Channel, { label: string; icon: any; color: string }>
   outro:      { label: "Outro",      icon: Sparkles,      color: "text-slate-600 bg-slate-50 border-slate-200" },
 };
 
-const ymd = (d: Date) => format(d, "yyyy-MM-dd");
+const ymd = (d: Date) => formatBR(d, "yyyy-MM-dd");
 const ymdToday = () => ymdBR();
 const initials = (n?: string | null) =>
   (n ?? "?").split(" ").filter(Boolean).slice(0, 2).map(s => s[0]?.toUpperCase()).join("");
@@ -148,7 +148,7 @@ export function DailyAgenda() {
             <PopoverTrigger asChild>
               <Button variant="outline" className="h-10 gap-2 min-w-[260px] justify-start font-semibold">
                 <CalendarDays className="size-4 text-indigo-600" />
-                {format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                {formatBR(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -232,7 +232,7 @@ export function DailyAgenda() {
               <div className="flex items-center gap-2">
                 <CalendarDays className="size-4 text-indigo-600" />
                 <h3 className="font-semibold text-slate-800 text-sm">
-                  Pendências para {format(selectedDate, "dd/MM", { locale: ptBR })}
+                  Pendências para {formatBR(selectedDate, "dd/MM", { locale: ptBR })}
                 </h3>
               </div>
             </header>
@@ -312,7 +312,7 @@ export function DailyAgenda() {
                       <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
                         <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
                           <Clock className="size-3" />
-                          Último contato: {format(parseISO(data.last.occurred_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                          Último contato: {formatBR(parseISO(data.last.occurred_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
                         </div>
                         <p className="text-xs text-slate-700 line-clamp-2">{data.last.summary}</p>
                       </div>
@@ -357,14 +357,14 @@ export function DailyAgenda() {
                             <span className="font-semibold text-sm text-slate-800">{c?.full_name ?? "Cliente"}</span>
                             <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
                             <span className="text-[11px] text-slate-400">
-                              {format(parseISO(i.occurred_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              {formatBR(parseISO(i.occurred_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                             </span>
                           </div>
                           <p className="text-sm text-slate-700 mt-1">{i.summary}</p>
                           {i.next_action_at && (
                             <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
                               <CalendarDays className="size-3" />
-                              Próxima ação: {format(parseISO(i.next_action_at), "dd/MM", { locale: ptBR })}
+                              Próxima ação: {formatBR(parseISO(i.next_action_at), "dd/MM", { locale: ptBR })}
                               {i.next_action_note && <span>— {i.next_action_note}</span>}
                               {i.status === "feito" && <Badge className="ml-1 bg-emerald-50 text-emerald-700 border-emerald-200 text-[9px]">feita</Badge>}
                             </div>
@@ -414,7 +414,7 @@ function PendingRow({
             {client?.company && <span className="text-xs text-slate-500">· {client.company}</span>}
             {overdue && (
               <Badge className="bg-rose-100 text-rose-700 border-rose-200 text-[9px] font-bold">
-                {format(parseISO(interaction.next_action_at), "dd/MM", { locale: ptBR })}
+                {formatBR(parseISO(interaction.next_action_at), "dd/MM", { locale: ptBR })}
               </Badge>
             )}
           </div>
@@ -601,7 +601,7 @@ function ClientInteractionDialog({
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline" className="text-[10px]">{meta.label}</Badge>
                           <span className="text-[11px] text-slate-400">
-                            {format(parseISO(i.occurred_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            {formatBR(parseISO(i.occurred_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </span>
                         </div>
                         <p className="text-sm text-slate-700 mt-1">{i.summary}</p>
@@ -616,7 +616,7 @@ function ClientInteractionDialog({
                                 : "bg-amber-50 text-amber-700 border-amber-200"
                             )}>
                               <CalendarDays className="size-3 mr-1" />
-                              {format(parseISO(i.next_action_at), "dd/MM", { locale: ptBR })}
+                              {formatBR(parseISO(i.next_action_at), "dd/MM", { locale: ptBR })}
                               {i.status === "feito" ? " · feita" : " · pendente"}
                             </Badge>
                             {i.next_action_note && (
