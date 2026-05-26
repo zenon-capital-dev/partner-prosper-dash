@@ -660,26 +660,15 @@ function PaymentsTable({
 
     if (payNowIds.length > 0) {
       const { error } = await supabase
-        .from("commissions")
-        .update({
-          status: "pago",
-          workflow_status: "liberada",
-          paid_at: nowIso,
-          payment_date: nowIso,
-          approval_date: nowIso,
-        })
+        .from("commission_splits")
+        .update({ status: "pago" as any, paid_at: nowIso })
         .in("id", payNowIds);
       if (error) return toast.error(error.message);
     }
     if (postponeIds.length > 0) {
       const { error } = await supabase
-        .from("commissions")
-        .update({
-          status: "pendente",
-          workflow_status: "aguardando_confirmacao",
-          paid_at: null,
-          payment_date: null,
-        })
+        .from("commission_splits")
+        .update({ status: "pendente" as any, paid_at: null })
         .in("id", postponeIds);
       if (error) return toast.error(error.message);
     }
