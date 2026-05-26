@@ -679,10 +679,17 @@ export default function Commissions() {
                               )}
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2.5">
-                                  <div className="size-8 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-bold">{initials(c.partners?.full_name)}</div>
+                                  <div className={cn("size-8 rounded-full flex items-center justify-center text-[10px] font-bold", 
+                                    c.partners ? "bg-indigo-50 text-indigo-700" : 
+                                    c.referrers ? "bg-amber-50 text-amber-700" : 
+                                    "bg-emerald-50 text-emerald-700")}>
+                                    {initials(c.partners?.full_name ?? c.referrers?.full_name ?? (c.profiles as any)?.full_name)}
+                                  </div>
                                   <div className="min-w-0">
-                                    <p className="font-medium text-slate-900 truncate">{c.partners?.full_name ?? "—"}</p>
-                                    {c.partners?.pix_key && <p className="text-[10px] text-slate-500 font-mono truncate max-w-[180px]">PIX: {c.partners.pix_key}</p>}
+                                    <p className="font-medium text-slate-900 truncate">
+                                      {c.partners?.full_name ?? c.referrers?.full_name ?? (c.profiles as any)?.full_name ?? "—"}
+                                    </p>
+                                    {(c.partners?.pix_key) && <p className="text-[10px] text-slate-500 font-mono truncate max-w-[180px]">PIX: {c.partners.pix_key}</p>}
                                   </div>
                                 </div>
                               </td>
