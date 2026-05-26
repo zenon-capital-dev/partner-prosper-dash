@@ -257,7 +257,7 @@ export default function Demands() {
     mutationFn: async ({ id, status, completedAt }: { id: string; status: string; completedAt?: string }) => {
       const updateData: any = { status };
       if (status === 'concluido') {
-        updateData.completed_at = completedAt ?? new Date().toISOString();
+        updateData.completed_at = completedAt ?? nowBR().toISOString();
       }
       const { error } = await supabase
         .from("client_products")
@@ -282,7 +282,7 @@ export default function Demands() {
     const demand = demands.find((d: any) => d.id === draggableId);
     if (!demand || demand.status === newStatus) return;
     if (newStatus === 'concluido') {
-      setCompleteDialog({ id: draggableId, date: new Date().toISOString().split("T")[0] });
+      setCompleteDialog({ id: draggableId, date: nowBR().toISOString().split("T")[0] });
       return;
     }
     updateStatusMutation.mutate({ id: draggableId, status: newStatus });

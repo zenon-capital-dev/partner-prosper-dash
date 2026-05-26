@@ -120,7 +120,7 @@ export function DailyAgenda() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("client_interactions" as any)
-        .update({ status: "feito", done_at: new Date().toISOString() })
+        .update({ status: "feito", done_at: nowBR().toISOString() })
         .eq("id", id);
       if (error) throw error;
     },
@@ -450,7 +450,7 @@ function ClientInteractionDialog({
   const [channel, setChannel] = useState<Channel>("whatsapp");
   const [summary, setSummary] = useState("");
   const [occurredAt, setOccurredAt] = useState<string>(
-    new Date().toISOString().slice(0, 16)
+    formatBR(new Date(), "yyyy-MM-dd'T'HH:mm")
   );
   const [nextActionAt, setNextActionAt] = useState<string>("");
   const [nextActionNote, setNextActionNote] = useState("");
@@ -462,7 +462,7 @@ function ClientInteractionDialog({
         client_id: client.id,
         channel,
         summary,
-        occurred_at: new Date(occurredAt).toISOString(),
+        occurred_at: toBR(occurredAt).toISOString(),
         next_action_at: nextActionAt || null,
         next_action_note: nextActionNote || null,
         created_by: user?.id ?? null,
@@ -482,7 +482,7 @@ function ClientInteractionDialog({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("client_interactions" as any)
-        .update({ status: "feito", done_at: new Date().toISOString() })
+        .update({ status: "feito", done_at: nowBR().toISOString() })
         .eq("id", id);
       if (error) throw error;
     },
