@@ -240,14 +240,22 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       if (!client?.id && clientId) {
         const allDocs = [...selectedTemplateDocs, ...customDocs];
         if (allDocs.length > 0) {
-          const rows = allDocs.map((name) => ({
-            client_id: clientId!,
-            name,
-            is_required: true,
-            status: "pending",
-          }));
-          const { error: docErr } = await supabase.from("onboarding_documents").insert(rows);
-          if (docErr) console.warn("Onboarding docs:", docErr);
+          // Check for existing to avoid duplicates if something retried
+          const { data: existing } = await supabase.from("onboarding_documents").select("name").eq("client_id", clientId);
+          const existingNames = new Set((existing ?? []).map(e => e.name));
+          
+          const rows = allDocs
+            .filter(name => !existingNames.has(name))
+            .map((name) => ({
+              client_id: clientId!,
+              name,
+              is_required: true,
+              status: "pending",
+            }));
+          if (rows.length > 0) {
+            const { error: docErr } = await supabase.from("onboarding_documents").insert(rows);
+            if (docErr) console.warn("Onboarding docs:", docErr);
+          }
         }
       }
 
