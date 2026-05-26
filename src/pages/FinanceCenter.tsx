@@ -620,15 +620,14 @@ function PaymentsTable({
     // After confirming the client payment, surface related commissions so the
     // admin can pay everyone now or postpone individual splits.
     if (payment?.sale_id) {
-      const { data: comms } = await supabase
-        .from("commissions")
-        .select("id, amount, status, workflow_status, partner_id, collaborator_id, referrer_id, rule_type")
+      const { data: splits } = await supabase
+        .from("commission_splits")
+        .select("id, amount, percent, status, beneficiary_type, beneficiary_id")
         .eq("sale_id", payment.sale_id);
-      if (comms && comms.length > 0) {
-        // Enrich with beneficiary names
-        const partnerIds = Array.from(new Set(comms.map((c: any) => c.partner_id).filter(Boolean)));
-        const collabIds = Array.from(new Set(comms.map((c: any) => c.collaborator_id).filter(Boolean)));
-        const refIds = Array.from(new Set(comms.map((c: any) => c.referrer_id).filter(Boolean)));
+      if (splits && splits.length > 0) {
+        const partnerIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "partner").map((s: any) => s.beneficiary_id)));
+        const collabIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "collaborator").map((s: any) => s.beneficiary_id)));
+        const refIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "referrer").map((s: any) => s.beneficiary_id)));
         const [partnersRes, collabsRes, refsRes] = await Promise.all([
           partnerIds.length ? supabase.from("partners").select("id, full_name").in("id", partnerIds) : Promise.resolve({ data: [] as any[] }),
           collabIds.length ? supabase.from("profiles").select("id, full_name").in("id", collabIds) : Promise.resolve({ data: [] as any[] }),
@@ -637,12 +636,12 @@ function PaymentsTable({
         const pMap = new Map((partnersRes.data ?? []).map((x: any) => [x.id, x.full_name]));
         const cMap = new Map((collabsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
         const rMap = new Map((refsRes.data ?? []).map((x: any) => [x.id, x.full_name]));
-        const enriched = comms.map((c: any) => ({
-          ...c,
+        const enriched = splits.map((s: any) => ({
+          ...s,
           _beneficiary:
-            (c.partner_id && `Parceiro · ${pMap.get(c.partner_id) ?? "—"}`) ||
-            (c.collaborator_id && `Colaborador · ${cMap.get(c.collaborator_id) ?? "—"}`) ||
-            (c.referrer_id && `Indicador · ${rMap.get(c.referrer_id) ?? "—"}`) ||
+            (s.beneficiary_type === "partner" && `Parceiro · ${pMap.get(s.beneficiary_id) ?? "—"}`) ||
+            (s.beneficiary_type === "collaborator" && `Colaborador · ${cMap.get(s.beneficiary_id) ?? "—"}`) ||
+            (s.beneficiary_type === "referrer" && `Indicador · ${rMap.get(s.beneficiary_id) ?? "—"}`) ||
             "Beneficiário",
         }));
         setDialog({ kind: "commissions", payment, commissions: enriched });
