@@ -865,11 +865,24 @@ export default function Commissions() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="col-span-2 space-y-1.5">
-              <Label>Indicador *</Label>
-              <Select value={createForm.partner_id} onValueChange={(v) => setCreateForm({ ...createForm, partner_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecionar indicador" /></SelectTrigger>
+              <Label>Tipo de Beneficiário *</Label>
+              <Select value={createForm.beneficiary_type} onValueChange={(v) => setCreateForm({ ...createForm, beneficiary_type: v, beneficiary_id: "" })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  <SelectItem value="partner">Parceiro</SelectItem>
+                  <SelectItem value="collaborator">Colaborador</SelectItem>
+                  <SelectItem value="referrer">Indicador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Beneficiário *</Label>
+              <Select value={createForm.beneficiary_id} onValueChange={(v) => setCreateForm({ ...createForm, beneficiary_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecionar beneficiário" /></SelectTrigger>
+                <SelectContent>
+                  {createForm.beneficiary_type === "partner" && partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  {createForm.beneficiary_type === "collaborator" && collaborators.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+                  {createForm.beneficiary_type === "referrer" && referrers.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
