@@ -350,13 +350,21 @@ export default function Documents() {
   const downloadFile = async (doc: any) => {
     if (!doc.file_path) return toast.error("Arquivo ainda não enviado.");
     if (/^https?:\/\//.test(doc.file_path)) return window.open(doc.file_path, "_blank", "noopener,noreferrer");
+    
     const { data, error } = await supabase.storage.from("documents").download(doc.file_path);
     if (error) return toast.error(error.message);
+    
     logAudit("DOCUMENT_DOWNLOAD", doc.__source ?? "documents", doc.id, { name: doc.name });
+    
+    const ext = doc.file_path.split(".").pop() || "bin";
+    const clientName = doc.clients?.full_name ? `${doc.clients.full_name.replace(/\s+/g, "_")}_` : "";
+    const docName = doc.name.replace(/\s+/g, "_");
+    const filename = `${clientName}${docName}.${ext}`;
+    
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
     a.href = url;
-    a.download = fileNameFromPath(doc.file_path) || doc.name;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   };
