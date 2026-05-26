@@ -146,11 +146,70 @@ export default function Commissions() {
   const { data: commissions = [], isLoading } = useQuery({
     queryKey: ["commissions-list"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("commissions")
-        .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
-        .order("created_at", { ascending: false });
-      return data ?? [];
+      const [commsRes, splitsRes, partnersRes, profilesRes, referrersRes, salesRes, clientsRes, productsRes] = await Promise.all([
+        supabase
+          .from("commissions")
+          .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
+          .order("created_at", { ascending: false }),
+        supabase.from("commission_splits").select("*").order("created_at", { ascending: false }),
+        supabase.from("partners").select("id,full_name,email,pix_key"),
+        supabase.from("profiles").select("id,full_name"),
+        supabase.from("referrers").select("id,full_name"),
+        supabase.from("sales").select("id, amount, sale_date, client_id, product_id"),
+        supabase.from("clients").select("id, full_name"),
+        supabase.from("products").select("id, name"),
+      ]);
+      const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
+      const profilesMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
+      const referrersMap = new Map((referrersRes.data ?? []).map((r: any) => [r.id, r]));
+      const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
+      const clientsMap = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c]));
+      const productsMap = new Map((productsRes.data ?? []).map((p: any) => [p.id, p]));
+
+      const splitRows = (splitsRes.data ?? []).map((s: any) => {
+        const sale: any = salesMap.get(s.sale_id) || {};
+        const partner = s.beneficiary_type === "partner" ? partnersMap.get(s.beneficiary_id) : null;
+        const profile = s.beneficiary_type === "collaborator" ? profilesMap.get(s.beneficiary_id) : null;
+        const referrer = s.beneficiary_type === "referrer" ? referrersMap.get(s.beneficiary_id) : null;
+        const wsMap: Record<string, string> = { pendente: "aguardando_confirmacao", pago: "paga", cancelado: "cancelada" };
+        return {
+          id: s.id,
+          _source: "split",
+          sale_id: s.sale_id,
+          partner_id: s.beneficiary_type === "partner" ? s.beneficiary_id : null,
+          collaborator_id: s.beneficiary_type === "collaborator" ? s.beneficiary_id : null,
+          referrer_id: s.beneficiary_type === "referrer" ? s.beneficiary_id : null,
+          amount: s.amount,
+          percent: s.percent,
+          status: s.status,
+          workflow_status: wsMap[s.status] || s.status,
+          commission_type: "percentual",
+          paid_at: s.paid_at,
+          approval_date: s.paid_at,
+          payment_method: s.payment_method,
+          notes: s.notes,
+          created_at: s.created_at,
+          partners: partner || null,
+          profiles: profile || null,
+          referrers: referrer || null,
+          sales: sale.id ? {
+            amount: sale.amount,
+            sale_date: sale.sale_date,
+            clients: clientsMap.get(sale.client_id) || null,
+            products: productsMap.get(sale.product_id) || null,
+          } : null,
+        };
+      });
+
+      // Avoid showing manual commissions if a split already exists for same sale+beneficiary
+      const splitKeys = new Set(splitRows.map((s: any) => `${s.sale_id}|${s.partner_id || s.collaborator_id || s.referrer_id}`));
+      const commRows = (commsRes.data ?? [])
+        .filter((c: any) => !splitKeys.has(`${c.sale_id}|${c.partner_id || c.collaborator_id || c.referrer_id}`))
+        .map((c: any) => ({ ...c, _source: "commission" }));
+
+      return [...splitRows, ...commRows].sort((a: any, b: any) =>
+        (b.created_at || "").localeCompare(a.created_at || "")
+      );
     },
   });
 
