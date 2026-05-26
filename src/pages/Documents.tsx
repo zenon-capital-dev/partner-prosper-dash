@@ -437,7 +437,7 @@ export default function Documents() {
         toast.error("Comentários internos disponíveis apenas em documentos cadastrados.");
       } else {
         const prev = actionDoc.internal_notes ?? "";
-        const stamp = new Date().toLocaleString("pt-BR");
+        const stamp = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
         const merged = `${prev ? `${prev}\n\n` : ""}[${stamp}] ${actionReason.trim()}`;
         const { error } = await supabase.from("documents").update({ internal_notes: merged }).eq("id", actionDoc.id);
         if (error) return toast.error(error.message);

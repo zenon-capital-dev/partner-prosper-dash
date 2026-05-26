@@ -161,7 +161,7 @@ export default function OperationalCockpit() {
       return data.map(p => ({
         id: p.id,
         type: 'payment',
-        title: `R$ ${p.amount.toLocaleString('pt-BR')}`,
+        title: `R$ ${p.amount.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
         subtitle: (p.client as any)?.full_name,
         status: p.status,
         date: p.due_date,
@@ -188,7 +188,7 @@ export default function OperationalCockpit() {
       return data.map(c => ({
         id: c.id,
         type: 'commission',
-        title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR')}`,
+        title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
         subtitle: (c.partner as any)?.full_name || 'Parceiro desconhecido',
         status: (c as any).workflow_status || c.status,
         date: c.created_at,

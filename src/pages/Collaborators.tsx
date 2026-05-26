@@ -260,7 +260,7 @@ export default function Collaborators() {
       ROLE_META[r.role]?.label ?? r.role,
       r.active ? "Ativo" : "Inativo",
       r.has_system_access ? "Sim" : "Não",
-      r.created_at ? new Date(r.created_at).toLocaleDateString("pt-BR") : "",
+      r.created_at ? new Date(r.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "",
     ]);
     const csv = [headers, ...rows2].map((line) =>
       line.map((c) => { const s = String(c ?? ""); return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }).join(";")
@@ -472,7 +472,7 @@ export default function Collaborators() {
                           </Badge>
                         </td>
                         <td className="px-5 py-3 text-right text-xs font-mono text-slate-500">
-                          {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-BR") : "—"}
+                          {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "—"}
                         </td>
                         <td className="px-5 py-3 text-right">
                           {canManage ? (

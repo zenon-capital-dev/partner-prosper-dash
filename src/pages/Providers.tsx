@@ -236,7 +236,7 @@ export default function Providers() {
       p.internal_rating != null ? Number(p.internal_rating).toFixed(1) : "",
       p.active ? "Ativo" : "Inativo",
       p._hasAccess ? "Sim" : "Não",
-      p.created_at ? new Date(p.created_at).toLocaleDateString("pt-BR") : "",
+      p.created_at ? new Date(p.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "",
     ]);
     const csv = [headers, ...rows].map(r => r.map(c => {
       const s = String(c ?? "");

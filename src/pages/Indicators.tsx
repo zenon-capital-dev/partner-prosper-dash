@@ -261,7 +261,7 @@ export default function Indicators() {
       Number(r._pending).toFixed(2),
       r.active ? "Ativo" : "Inativo",
       r._hasAccess ? "Sim" : "Não",
-      r.created_at ? new Date(r.created_at).toLocaleDateString("pt-BR") : "",
+      r.created_at ? new Date(r.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "",
     ]);
     const csv = [headers, ...rows].map(line => line.map(c => {
       const s = String(c ?? "");

@@ -29,7 +29,7 @@ export function exportToPDF({ title, subtitle, columns, rows, filename, totals }
   doc.text("VENDX CRM", 14, 13);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, pageWidth - 14, 13, { align: "right" });
+  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}`, pageWidth - 14, 13, { align: "right" });
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.text(title, 14, 22);

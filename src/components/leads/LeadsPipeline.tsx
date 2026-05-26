@@ -77,7 +77,7 @@ function isTodayOrPast(iso?: string | null) {
 
 function brl(v?: number | string | null) {
   if (v == null || v === "") return null;
-  return `R$ ${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
+  return `R$ ${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0, timeZone: "America/Sao_Paulo" })}`;
 }
 
 function buildPriority(lead: any): { score: number; reason: string; tone: string } | null {

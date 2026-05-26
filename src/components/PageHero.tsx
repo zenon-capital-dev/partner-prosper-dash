@@ -43,7 +43,7 @@ export function PageHero({
   icon,
   hideBreadcrumbs,
 }: Props) {
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", timeZone: "America/Sao_Paulo" });
 
   return (
     <section className="relative max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8 pt-5 sm:pt-8 lg:pt-10 pb-2 space-y-5 sm:space-y-7">
