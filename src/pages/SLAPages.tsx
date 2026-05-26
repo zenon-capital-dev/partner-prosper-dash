@@ -1,11 +1,11 @@
 import { formatBR as format, nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-;
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
 import {
-  Zap, Clock, AlertTriangle, PauseCircle, CheckCircle2, User, Calendar,
+  Zap, Clock, AlertTriangle, PauseCircle, CheckCircle2, User, Calendar as CalendarIcon,
   ChevronRight, Search, ListFilter, TrendingDown, Timer, CalendarOff, ArrowUpRight, X,
 } from "lucide-react";
 import { calculateSLA } from "@/lib/sla";
@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 type Bucket = "todos" | "atrasado" | "vence_hoje" | "atencao" | "no_prazo" | "pausado" | "sem_prazo";
