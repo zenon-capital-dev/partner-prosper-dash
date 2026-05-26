@@ -48,9 +48,14 @@ Deno.serve(async (req) => {
 
     if (commError) throw commError;
 
-    // Get an admin to notify (simplified)
-    const { data: adminUsers } = await admin.auth.admin.listUsers();
-    const adminToNotify = adminUsers.users.find(u => u.user_metadata?.role === 'admin') || adminUsers.users[0];
+    // Look up admins from user_roles (this app does NOT store roles in user_metadata)
+    const { data: adminRoleRows } = await admin
+      .from("user_roles")
+      .select("user_id")
+      .in("role", ["admin", "admin_secondary"]);
+    const adminUserIds: string[] = Array.from(
+      new Set((adminRoleRows ?? []).map((r: any) => r.user_id).filter(Boolean))
+    );
 
     const alerts = [];
 
@@ -67,15 +72,18 @@ Deno.serve(async (req) => {
         .gt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       if (!existing || existing.length === 0) {
-        await admin.from("notifications").insert({
-          user_id: adminToNotify?.id,
-          title: "Comissão Pendente",
-          message,
-          type: "warning",
-          link: "/commissions"
-        });
-        
-        alerts.push({ type: 'commission', id: c.id, recipient: adminToNotify?.email });
+        if (adminUserIds.length > 0) {
+          await admin.from("notifications").insert(
+            adminUserIds.map((uid) => ({
+              user_id: uid,
+              title: "Comissão Pendente",
+              message,
+              type: "warning",
+              link: "/commissions",
+            }))
+          );
+          alerts.push({ type: 'commission', id: c.id, recipients: adminUserIds.length });
+        }
       }
     }
 
@@ -100,15 +108,18 @@ Deno.serve(async (req) => {
         .gt("created_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       if (!existing || existing.length === 0) {
-        await admin.from("notifications").insert({
-          user_id: adminToNotify?.id,
-          title: "Documento Atrasado",
-          message,
-          type: "error",
-          link: "/clients"
-        });
-        
-        alerts.push({ type: 'document', id: d.id, recipient: adminToNotify?.email });
+        if (adminUserIds.length > 0) {
+          await admin.from("notifications").insert(
+            adminUserIds.map((uid) => ({
+              user_id: uid,
+              title: "Documento Atrasado",
+              message,
+              type: "error",
+              link: "/clients",
+            }))
+          );
+          alerts.push({ type: 'document', id: d.id, recipients: adminUserIds.length });
+        }
       }
     }
 
