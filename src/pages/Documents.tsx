@@ -732,7 +732,26 @@ export default function Documents() {
                       const uploader = d.uploaded_by ? profileMap.get(d.uploaded_by) : null;
                       return (
                         <tr key={d.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-4 min-w-[180px]"><div className="flex items-center gap-2"><div className="size-8 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-bold border border-indigo-100">{d.clients?.full_name?.substring(0, 2).toUpperCase() || "??"}</div><span className="text-xs font-medium text-slate-800 truncate max-w-[150px]">{d.clients?.full_name || "—"}</span></div></td>
+                          <td className="px-4 py-4 min-w-[180px]">
+                            <div className="flex items-center gap-2">
+                              <div className={cn(
+                                "size-8 rounded-full flex items-center justify-center text-[10px] font-bold border",
+                                d.collaborator_id ? "bg-amber-50 text-amber-700 border-amber-100" :
+                                d.provider_id ? "bg-blue-50 text-blue-700 border-blue-100" :
+                                "bg-indigo-50 text-indigo-700 border-indigo-100"
+                              )}>
+                                {(d.clients?.full_name || d.collaborators?.full_name || d.providers?.name || "??").substring(0, 2).toUpperCase()}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-xs font-medium text-slate-800 truncate max-w-[150px]">
+                                  {d.clients?.full_name || d.collaborators?.full_name || d.providers?.name || "—"}
+                                </span>
+                                <span className="text-[10px] text-slate-400">
+                                  {d.collaborator_id ? "Colaborador" : d.provider_id ? "Prestador" : "Cliente"}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
                           <td className="px-4 py-4 min-w-[160px] text-xs text-slate-500">{getProductName(d)}{d.client_products?.service_providers?.name && <span className="block text-[10px] text-slate-400 mt-0.5">{d.client_products.service_providers.name}</span>}</td>
                           <td className="px-4 py-4 min-w-[230px]"><span className="text-xs font-semibold text-slate-900 truncate max-w-[220px] block">{d.name}</span><div className="flex flex-wrap gap-1 mt-1 items-center">{d.priority && d.priority !== "media" && <Badge variant="outline" className={cn("h-4 px-1.5 text-[9px] border-slate-200", d.priority === "urgente" ? "bg-red-600 text-white border-red-700" : d.priority === "alta" ? "bg-orange-500 text-white border-orange-600" : "bg-blue-50 text-blue-700")}>{d.priority.toUpperCase()}</Badge>}{d.is_required && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-rose-200 text-rose-700 bg-rose-50">Obrigatório</Badge>}{d.__source === "document_requests" && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-sky-200 text-sky-700 bg-sky-50">Solicitação</Badge>}{d.__source === "demand_deliveries" && <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-violet-200 text-violet-700 bg-violet-50">Entregável</Badge>}{d.description && <span className="text-[10px] text-slate-500 truncate max-w-[180px]">{d.description}</span>}</div></td>
                           <td className="px-4 py-4"><div className="flex items-center gap-2 text-xs text-slate-500"><FileText className={cn("size-4", d.file_path ? "text-indigo-600" : "text-slate-300")} /><span className="font-mono text-[10px]">{getFileExt(d)}</span></div></td>
