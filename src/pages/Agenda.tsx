@@ -117,6 +117,8 @@ export default function Agenda() {
   const [editing, setEditing] = useState<AgendaItem | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
+  const presetClientId = searchParams.get("client");
+
   useEffect(() => {
     if (searchParams.get("new") === "1") {
       setOpenCreate(true);
@@ -124,6 +126,7 @@ export default function Agenda() {
       setSearchParams(searchParams, { replace: true });
     }
   }, []); // eslint-disable-line
+
 
   // Lista de clientes pra autocomplete e filtro
   const { data: clients = [] } = useQuery({
