@@ -1,10 +1,10 @@
 export const formatBRL = (value: number | null | undefined) => {
   const v = Number(value ?? 0);
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", timeZone: "America/Sao_Paulo" });
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 };
 
 export const formatNumber = (value: number | null | undefined) => {
-  return Number(value ?? 0).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  return Number(value ?? 0).toLocaleString("pt-BR");
 };
 
 export const formatPercent = (value: number | null | undefined, decimals = 1) => {

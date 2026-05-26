@@ -9,14 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet } from "lucide-react";
+import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onCreated?: () => void;
   clientId?: string;
+  sale?: any;
 }
 
 function Section({ icon: Icon, title, hint, children }: { icon: any; title: string; hint?: string; children: React.ReactNode }) {
@@ -47,14 +49,23 @@ function Field({ label, required, children, className }: { label: string; requir
   );
 }
 
-export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Props) {
+export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: new Date().toISOString().split("T")[0] });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()) });
 
   useEffect(() => {
-    if (open) setForm({ status: "pendente", commission_percent: 10, sale_date: new Date().toISOString().split("T")[0], client_id: clientId });
-  }, [open, clientId]);
+    if (open) {
+      if (sale) {
+        setForm({
+          ...sale,
+          sale_date: sale.sale_date || ymdBR(nowBR())
+        });
+      } else {
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId });
+      }
+    }
+  }, [open, clientId, sale]);
 
   const { data: clients } = useQuery({
     queryKey: ["clients-select"],
@@ -131,7 +142,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
     }
     setSubmitting(true);
     try {
-      const { data: sale, error } = await supabase.from("sales").insert({
+      const payload = {
         client_id: form.client_id,
         product_id: form.product_id,
         partner_id: form.partner_id || null,
@@ -144,19 +155,25 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
         status: form.status,
         sale_date: form.sale_date,
         notes: form.notes || null,
-        created_by: user?.id,
-      }).select().single();
+      };
 
-      if (error) throw error;
+      if (form.id) {
+        const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
+        if (error) throw error;
+        toast.success("Venda atualizada com sucesso");
+      } else {
+        const { error } = await supabase.from("sales").insert({
+          ...payload,
+          created_by: user?.id,
+        });
+        if (error) throw error;
+        toast.success("Venda registrada e comissões geradas");
+      }
 
-      // Comissões são geradas automaticamente pelo trigger handle_new_sale
-      // (parceiro, indicador e colaborador). Não inserir manualmente para evitar duplicação.
-
-      toast.success("Venda registrada e comissões geradas");
       onCreated?.();
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err.message || "Erro ao registrar venda");
+      toast.error(err.message || "Erro ao salvar venda");
     } finally {
       setSubmitting(false);
     }
@@ -170,7 +187,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
   const liquido = amount - totalCommissions;
   const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
 
-  const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", timeZone: "America/Sao_Paulo" });
+  const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -188,7 +205,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId }: Prop
               </div>
               <div className="flex-1 min-w-0">
                 <DialogTitle className="font-display text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight">
-                  Nova Venda
+                  {form.id ? "Editar Venda" : "Nova Venda"}
                 </DialogTitle>
                 <DialogDescription className="text-xs font-medium text-slate-300 uppercase tracking-[0.2em] mt-1">
                   Gestão de Receita & Comissionamento
