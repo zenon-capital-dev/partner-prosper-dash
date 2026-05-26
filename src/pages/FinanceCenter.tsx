@@ -930,16 +930,19 @@ function PaymentActionDialog({
   onConfirm,
   onCancel,
   onRefund,
+  onCommissions,
 }: {
   state: ConfirmDialogState;
   onClose: () => void;
   onConfirm: (id: string, amountPaid: number, paidAt: string) => void;
   onCancel: (id: string, reason: string) => void;
   onRefund: (id: string, amount: number) => void;
+  onCommissions: (decisions: { id: string; payNow: boolean }[]) => void;
 }) {
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(todayIsoStr());
   const [reason, setReason] = useState("");
+  const [commDecisions, setCommDecisions] = useState<Record<string, boolean>>({});
 
   useMemo(() => {
     if (!state) return;
@@ -950,20 +953,31 @@ function PaymentActionDialog({
       setAmount(String(state.payment.amount_paid || state.payment.amount || ""));
     } else if (state.kind === "cancel") {
       setReason("");
+    } else if (state.kind === "commissions") {
+      const init: Record<string, boolean> = {};
+      state.commissions.forEach((c: any) => { init[c.id] = true; });
+      setCommDecisions(init);
     }
-  }, [state?.kind, state?.payment?.id]);
+  }, [state?.kind, (state as any)?.payment?.id]);
 
   if (!state) return null;
   const { kind, payment } = state;
 
+  const isComm = kind === "commissions";
+  const commissions = isComm ? (state as any).commissions as any[] : [];
+  const totalNow = commissions
+    .filter((c) => commDecisions[c.id])
+    .reduce((a, c) => a + Number(c.amount || 0), 0);
+
   return (
     <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-white border-slate-200/70 max-w-md">
+      <DialogContent className={cn("bg-white border-slate-200/70", isComm ? "max-w-lg" : "max-w-md")}>
         <DialogHeader>
           <DialogTitle>
             {kind === "confirm" && "Confirmar pagamento"}
             {kind === "cancel" && "Cancelar pagamento"}
             {kind === "refund" && "Registrar reembolso"}
+            {kind === "commissions" && "Pagar comissões desta venda"}
           </DialogTitle>
           <DialogDescription>
             {payment.clients?.full_name ?? "Cliente"} · Valor original:{" "}
@@ -1016,9 +1030,65 @@ function PaymentActionDialog({
           </div>
         )}
 
+        {isComm && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">
+              O pagamento do cliente foi registrado. Marque quais comissões deseja pagar agora —
+              as desmarcadas ficarão pendentes na Central Financeira para pagar depois.
+            </p>
+            <div className="space-y-2 max-h-72 overflow-auto rounded-md border border-slate-200 divide-y divide-slate-100">
+              {commissions.map((c) => (
+                <label
+                  key={c.id}
+                  className="flex items-center justify-between gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={!!commDecisions[c.id]}
+                      onChange={(e) =>
+                        setCommDecisions((s) => ({ ...s, [c.id]: e.target.checked }))
+                      }
+                      className="size-4 accent-emerald-600"
+                    />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-slate-800 truncate">
+                        {c._beneficiary}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {c.rule_type ?? "comissão"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm text-slate-700 whitespace-nowrap">
+                    {formatBRL(Number(c.amount || 0))}
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <button
+                type="button"
+                className="text-indigo-600 hover:underline"
+                onClick={() => {
+                  const allOn = commissions.every((c) => commDecisions[c.id]);
+                  const next: Record<string, boolean> = {};
+                  commissions.forEach((c) => { next[c.id] = !allOn; });
+                  setCommDecisions(next);
+                }}
+              >
+                {commissions.every((c) => commDecisions[c.id]) ? "Desmarcar todas" : "Marcar todas"}
+              </button>
+              <span className="font-mono text-slate-700">
+                A pagar agora: {formatBRL(totalNow)}
+              </span>
+            </div>
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Voltar
+            {isComm ? "Concluir depois" : "Voltar"}
           </Button>
           {kind === "confirm" && (
             <Button
@@ -1057,11 +1127,24 @@ function PaymentActionDialog({
               Reembolsar
             </Button>
           )}
+          {isComm && (
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() =>
+                onCommissions(
+                  commissions.map((c) => ({ id: c.id, payNow: !!commDecisions[c.id] }))
+                )
+              }
+            >
+              Aplicar
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({
