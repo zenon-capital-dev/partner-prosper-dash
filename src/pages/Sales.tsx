@@ -103,7 +103,8 @@ export default function Sales() {
     const qDigits = onlyDigits(search);
 
     return sales.filter((s: any) => {
-      const saleDate = new Date(s.sale_date);
+      const saleDate = s.sale_date ? parseISO(s.sale_date) : null;
+      if (!saleDate) return false;
       if (saleDate < start || saleDate > end) return false;
       if (status !== "todos" && s.status !== status) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
