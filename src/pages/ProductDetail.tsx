@@ -20,6 +20,7 @@ import {
   Building2, Search,
 } from "lucide-react";
 import { ProductFormDialog } from "@/components/products/ProductFormDialog";
+import { DeleteProductDialog } from "@/components/products/DeleteProductDialog";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
@@ -34,6 +35,7 @@ export default function ProductDetail() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -152,24 +154,9 @@ export default function ProductDetail() {
     if (data?.id) navigate(`/produtos/${data.id}`);
   };
 
-  const remove = async () => {
+  const remove = () => {
     if (!product) return;
-    if (!(await confirmAction(`Excluir definitivamente "${product.name}"?`))) return;
-    const { data, error } = await supabase.rpc("admin_delete_product_cascade", { _product_id: product.id });
-    if (error) { toast.error(error.message); return; }
-    const result = data as { ok: boolean; message?: string } | null;
-    if (!result?.ok) {
-      const force = await confirmAction(`${result?.message || "Não foi possível excluir."}\n\nFORÇAR EXCLUSÃO TOTAL? Isso apaga vendas, comissões, pagamentos, demandas, tarefas e documentos vinculados. Ação irreversível.`);
-      if (!force) return;
-      const { data: d2, error: e2 } = await supabase.rpc("admin_delete_product_cascade", { _product_id: product.id, _force: true });
-      if (e2) { toast.error(e2.message); return; }
-      const r2 = d2 as { ok: boolean; message?: string } | null;
-      if (!r2?.ok) { toast.error(r2?.message || "Falha na exclusão forçada"); return; }
-      toast.success(r2.message || "Serviço e vínculos excluídos");
-      navigate("/produtos"); return;
-    }
-    toast.success(result.message || "Serviço excluído");
-    navigate("/produtos");
+    setDeleteOpen(true);
   };
 
   if (isLoading) return <div className="p-12 text-center text-slate-400">Carregando...</div>;
@@ -268,6 +255,14 @@ export default function ProductDetail() {
         onOpenChange={setEditOpen}
         editing={product}
         onSaved={() => { qc.invalidateQueries({ queryKey: ["product", id] }); }}
+      />
+
+      <DeleteProductDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        productId={product?.id ?? null}
+        productName={product?.name ?? ""}
+        onDeleted={() => navigate("/produtos")}
       />
     </div>
   );

@@ -12,6 +12,7 @@ import {
   X, Inbox, Handshake, ArrowRight,
 } from "lucide-react";
 import { ProductFormDialog } from "@/components/products/ProductFormDialog";
+import { DeleteProductDialog } from "@/components/products/DeleteProductDialog";
 import { formatBRL, formatPercent } from "@/lib/format";
 import { toast } from "sonner";
 import {
@@ -61,6 +62,7 @@ export default function Products() {
 
   const [productOpen, setProductOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products-list"],
@@ -184,30 +186,9 @@ export default function Products() {
     }
   };
 
-  const handleDelete = async (p: Product) => {
+  const handleDelete = (p: Product) => {
     if (!canManage) return;
-    if (!(await confirmAction(`Excluir definitivamente "${p.name}"?`))) return;
-
-    const { data, error } = await supabase.rpc("admin_delete_product_cascade", { _product_id: p.id });
-    if (error) { toast.error(error.message || "Falha ao excluir"); return; }
-    const result = data as { ok: boolean; message?: string } | null;
-    if (!result?.ok) {
-      const force = await confirmAction(
-        `${result?.message || "Não foi possível excluir."}\n\nFORÇAR EXCLUSÃO TOTAL? Isso apaga vendas, comissões, pagamentos, demandas, tarefas e documentos vinculados. Ação irreversível.`
-      );
-      if (!force) return;
-      const { data: d2, error: e2 } = await supabase.rpc("admin_delete_product_cascade", { _product_id: p.id, _force: true });
-      if (e2) { toast.error(e2.message); return; }
-      const r2 = d2 as { ok: boolean; message?: string } | null;
-      if (!r2?.ok) { toast.error(r2?.message || "Falha na exclusão forçada"); return; }
-      toast.success(r2.message || "Serviço e vínculos excluídos");
-      qc.invalidateQueries({ queryKey: ["products-list"] });
-      qc.invalidateQueries({ queryKey: ["product-usage"] });
-      return;
-    }
-    toast.success(result.message || "Serviço excluído");
-    qc.invalidateQueries({ queryKey: ["products-list"] });
-    qc.invalidateQueries({ queryKey: ["product-usage"] });
+    setDeleteTarget(p);
   };
 
   const clearFilters = () => {
@@ -567,6 +548,18 @@ export default function Products() {
           qc.invalidateQueries({ queryKey: ["products-list"] });
           qc.invalidateQueries({ queryKey: ["product-usage"] });
           if (id && !editing) navigate(`/produtos/${id}`);
+        }}
+      />
+
+      <DeleteProductDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+        productId={deleteTarget?.id ?? null}
+        productName={deleteTarget?.name ?? ""}
+        onDeleted={() => {
+          setDeleteTarget(null);
+          qc.invalidateQueries({ queryKey: ["products-list"] });
+          qc.invalidateQueries({ queryKey: ["product-usage"] });
         }}
       />
     </div>
