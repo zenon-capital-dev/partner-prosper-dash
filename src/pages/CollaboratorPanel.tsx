@@ -382,6 +382,57 @@ export default function CollaboratorPanel() {
           </>
         )}
 
+        {activeKey === "comissoes" && (
+          <>
+            <PanelHero
+              role="colaborador"
+              eyebrow="Financeiro"
+              title="Minhas comissões"
+              subtitle={`${comissoesKpis.count} lançamento(s)`}
+              stats={[
+                { label: "Total", value: formatBRL(comissoesKpis.total) },
+                { label: "Pago", value: formatBRL(comissoesKpis.pago) },
+                { label: "Pendente", value: formatBRL(comissoesKpis.pendente) },
+              ]}
+            />
+            <SectionCard title="Histórico" icon={Wallet}>
+              {loadingComissoes ? (
+                <EmptyState icon={Clock} title="Carregando..." />
+              ) : comissoes.length === 0 ? (
+                <EmptyState icon={Wallet} title="Sem comissões" description="Suas comissões aparecerão aqui assim que forem geradas." />
+              ) : (
+                <ul className="divide-y divide-slate-100 -mx-1">
+                  {(comissoes as any[]).map((c) => {
+                    const tone = c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : c.status === "cancelado" ? "bg-slate-100 text-slate-600 border-slate-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200";
+                    return (
+                      <li key={c.id} className="flex items-center gap-3 px-3 py-3">
+                        <div className="size-9 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                          <Wallet className="size-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13.5px] font-medium text-slate-900 truncate">
+                            {c.sales?.clients?.full_name || "—"} · {c.sales?.products?.name || "—"}
+                          </p>
+                          <p className="text-[11.5px] text-slate-500">
+                            {Number(c.percent || 0).toFixed(2)}% sobre {formatBRL(c.sales?.amount || 0)} · {formatDate(c.created_at)}
+                            {c.paid_at ? ` · Pago em ${formatDate(c.paid_at)}` : ""}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-mono font-semibold text-slate-900 text-[13.5px]">{formatBRL(c.amount)}</p>
+                          <Badge variant="outline" className={cn("text-[10px] mt-1 capitalize", tone)}>{c.status}</Badge>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </SectionCard>
+          </>
+        )}
+
         {activeKey === "perfil" && <PerfilTab />}
       </PanelContainer>
     </PanelShell>
