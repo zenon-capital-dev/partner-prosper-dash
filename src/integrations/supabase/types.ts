@@ -4404,10 +4404,9 @@ export type Database = {
         Args: { _client_id: string }
         Returns: undefined
       }
-      admin_delete_product_cascade: {
-        Args: { _product_id: string }
-        Returns: Json
-      }
+      admin_delete_product_cascade:
+        | { Args: { _product_id: string }; Returns: Json }
+        | { Args: { _force?: boolean; _product_id: string }; Returns: Json }
       calculate_sla_due_date: {
         Args: { day_type: string; days_to_add: number; start_date: string }
         Returns: string
