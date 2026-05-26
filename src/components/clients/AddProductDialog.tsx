@@ -290,8 +290,8 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[92vh] overflow-hidden bg-white border-slate-200 shadow-2xl p-0 rounded-2xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] max-h-[92vh]">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden bg-white border-slate-200 shadow-2xl p-0 rounded-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] h-full max-h-[95vh]">
           {/* MAIN */}
           <div className="overflow-y-auto p-8 space-y-8">
             <DialogHeader className="space-y-2">
