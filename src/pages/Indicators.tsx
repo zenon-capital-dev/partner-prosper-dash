@@ -72,7 +72,13 @@ export default function Indicators() {
 
   const { data: splits = [], isLoading: loadingS } = useQuery({
     queryKey: ["referrer-commissions-all"],
-    queryFn: async () => (await supabase.from("commissions").select("referrer_id, amount, status").not("referrer_id", "is", null)).data ?? [],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("beneficiary_id, amount, status")
+        .eq("beneficiary_type", "referrer");
+      return (data ?? []).map((s: any) => ({ ...s, referrer_id: s.beneficiary_id }));
+    },
   });
 
   const { data: clientsByReferrer = [] } = useQuery({
