@@ -287,7 +287,7 @@ export default function AuthPage() {
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
           <span>​</span>
           <span className="size-1 rounded-full bg-white/30 mx-1.5" />
-          <span>LGPD</span>
+          <span>​</span>
         </div>
       </div>
 
