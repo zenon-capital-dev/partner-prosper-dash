@@ -207,7 +207,11 @@ export default function DashboardAdmin() {
       .map((t: any) => ({ id: t.id, title: t.title || "Tarefa sem título", time: t.due_date ? format(parseLocalDate(t.due_date) ?? new Date(t.due_date), "HH:mm") : null }));
 
     const todayDemandsList = clientProducts
-      .filter((p: any) => !isDoneDemand(p.status) && p.deadline && dateOnly(p.deadline) === todayISO)
+      .filter((p: any) => {
+        if (isDoneDemand(p.status)) return false;
+        const due = demandDueISO(p);
+        return due && dateOnly(due) === todayISO;
+      })
       .slice(0, 5)
       .map((p: any) => {
         const client = clients.find((c: any) => c.id === p.client_id);
@@ -215,11 +219,11 @@ export default function DashboardAdmin() {
       });
 
     const todayDocsList = docRequests
-      .filter((d: any) => ["enviado", "em_analise"].includes(d.status))
+      .filter((d: any) => ["solicitado", "pendente", "enviado", "em_analise", "pendente_correcao"].includes(d.status))
       .slice(0, 5)
       .map((d: any) => {
         const client = clients.find((c: any) => c.id === d.client_id);
-        return { id: d.id, title: d.request_title || "Documento", subtitle: client?.full_name || "Cliente" };
+        return { id: d.id, title: d.name || d.request_title || "Documento", subtitle: client?.full_name || "Cliente" };
       });
 
     const todayContractsList = contracts
