@@ -202,6 +202,14 @@ export function ClientDocumentsTab({
                       <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider", meta.tone)}>
                         {meta.label}
                       </Badge>
+                      {req.priority && req.priority !== "media" && (
+                        <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider", 
+                          req.priority === "urgente" ? "bg-red-600 text-white border-red-700" : 
+                          req.priority === "alta" ? "bg-orange-500 text-white border-orange-600" : 
+                          "bg-blue-50 text-blue-700")}>
+                          {req.priority}
+                        </Badge>
+                      )}
                     </div>
                     {req.description && <p className="text-sm text-muted-foreground mt-1">{req.description}</p>}
                     
