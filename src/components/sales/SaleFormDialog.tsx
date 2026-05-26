@@ -187,7 +187,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const liquido = amount - totalCommissions;
   const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
 
-  const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", timeZone: "America/Sao_Paulo" });
+  const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
