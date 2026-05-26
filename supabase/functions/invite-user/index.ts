@@ -161,10 +161,10 @@ Deno.serve(async (req) => {
         // Block admin_secondary from promoting/demoting admins
         if (!isAdmin) {
           const { data: targetRoles } = await admin.from("user_roles").select("role").eq("user_id", body.user_id);
-          const targetIsAdmin = (targetRoles ?? []).some((r: any) => r.role === "admin");
-          const wantsAdmin = body.roles.includes("admin");
-          if (targetIsAdmin || wantsAdmin) {
-            return json({ error: "Apenas o admin principal pode gerenciar admins" }, 403);
+          const targetIsElevated = (targetRoles ?? []).some((r: any) => r.role === "admin" || r.role === "admin_secondary");
+          const wantsElevated = body.roles.some((r) => r === "admin" || r === "admin_secondary");
+          if (targetIsElevated || wantsElevated) {
+            return json({ error: "Apenas o admin principal pode conceder roles administrativos" }, 403);
           }
         }
         await admin.from("user_roles").delete().eq("user_id", body.user_id);
