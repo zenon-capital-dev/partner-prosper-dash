@@ -202,7 +202,7 @@ export default function Sales() {
   }, [kpis]);
 
   const invalidateRelated = () => {
-    qc.invalidateQueries({ queryKey: ["sales-rich"] });
+    qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });
     qc.invalidateQueries({ queryKey: ["payments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
