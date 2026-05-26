@@ -531,7 +531,8 @@ export default function Documents() {
       if (dateTo && (!refDate || refDate > `${dateTo}T23:59:59`)) return false;
       if (q) {
         const uploader = d.uploaded_by ? profileMap.get(d.uploaded_by) : null;
-        const hay = norm(`${d.name} ${d.description ?? ""} ${d.clients?.full_name ?? ""} ${getProductName(d)} ${d.client_products?.service_providers?.name ?? ""} ${uploader?.full_name ?? ""} ${d.status ?? ""}`);
+        const recipientName = d.clients?.full_name || d.collaborators?.full_name || d.providers?.name || "";
+        const hay = norm(`${d.name} ${d.description ?? ""} ${recipientName} ${getProductName(d)} ${d.client_products?.service_providers?.name ?? ""} ${uploader?.full_name ?? ""} ${d.status ?? ""}`);
         if (!hay.includes(q)) return false;
       }
       return true;
