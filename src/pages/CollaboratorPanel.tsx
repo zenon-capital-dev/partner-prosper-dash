@@ -102,6 +102,26 @@ export default function CollaboratorPanel() {
     },
   });
 
+  const { data: comissoes = [], isLoading: loadingComissoes } = useQuery({
+    queryKey: ["collab-comissoes", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data: splits } = await supabase
+        .from("commission_splits")
+        .select("*, sales(amount, sale_date, clients(full_name), products(name))")
+        .eq("beneficiary_type", "collaborator")
+        .eq("beneficiary_id", user!.id)
+        .order("created_at", { ascending: false });
+      return splits ?? [];
+    },
+  });
+  const comissoesKpis = useMemo(() => {
+    const total = (comissoes as any[]).reduce((a, c) => a + Number(c.amount || 0), 0);
+    const pago = (comissoes as any[]).filter((c) => c.status === "pago").reduce((a, c) => a + Number(c.amount || 0), 0);
+    const pendente = (comissoes as any[]).filter((c) => c.status === "pendente").reduce((a, c) => a + Number(c.amount || 0), 0);
+    return { total, pago, pendente, count: (comissoes as any[]).length };
+  }, [comissoes]);
+
   const clientes = useMemo(() => {
     const m = new Map<string, any>();
     for (const d of demandas as any[]) {
