@@ -186,25 +186,21 @@ export default function Products() {
 
   const handleDelete = async (p: Product) => {
     if (!canManage) return;
-    const confirmDelete = await confirmAction(
-      `Excluir definitivamente "${p.name}"?\n\nIsso remove o serviço, etapas-padrão, documentos requeridos e vínculos com prestadores/colaboradores/parceiros.\n\nVendas registradas e demandas ativas impedem a exclusão — nesses casos, use "Desativar".`
-    );
-    if (!confirmDelete) return;
+    if (!(await confirmAction(`Excluir definitivamente "${p.name}"?`))) return;
 
     const { data, error } = await supabase.rpc("admin_delete_product_cascade", { _product_id: p.id });
-    if (error) {
-      toast.error(error.message || "Falha ao excluir");
-      return;
-    }
+    if (error) { toast.error(error.message || "Falha ao excluir"); return; }
     const result = data as { ok: boolean; message?: string } | null;
     if (!result?.ok) {
-      const fallback = await confirmAction(
-        `${result?.message || "Não foi possível excluir."}\n\nDeseja DESATIVAR este serviço agora? Ele sai do catálogo, mas o histórico fica preservado.`
+      const force = await confirmAction(
+        `${result?.message || "Não foi possível excluir."}\n\nFORÇAR EXCLUSÃO TOTAL? Isso apaga vendas, comissões, pagamentos, demandas, tarefas e documentos vinculados. Ação irreversível.`
       );
-      if (!fallback) return;
-      const { error: uerr } = await supabase.from("products").update({ active: false }).eq("id", p.id);
-      if (uerr) { toast.error(uerr.message); return; }
-      toast.success("Serviço desativado (histórico preservado)");
+      if (!force) return;
+      const { data: d2, error: e2 } = await supabase.rpc("admin_delete_product_cascade", { _product_id: p.id, _force: true });
+      if (e2) { toast.error(e2.message); return; }
+      const r2 = d2 as { ok: boolean; message?: string } | null;
+      if (!r2?.ok) { toast.error(r2?.message || "Falha na exclusão forçada"); return; }
+      toast.success(r2.message || "Serviço e vínculos excluídos");
       qc.invalidateQueries({ queryKey: ["products-list"] });
       qc.invalidateQueries({ queryKey: ["product-usage"] });
       return;
