@@ -1,10 +1,10 @@
 export const formatBRL = (value: number | null | undefined) => {
   const v = Number(value ?? 0);
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", timeZone: "America/Sao_Paulo" });
 };
 
 export const formatNumber = (value: number | null | undefined) => {
-  return Number(value ?? 0).toLocaleString("pt-BR");
+  return Number(value ?? 0).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
 
 export const formatPercent = (value: number | null | undefined, decimals = 1) => {
@@ -13,12 +13,17 @@ export const formatPercent = (value: number | null | undefined, decimals = 1) =>
 
 export const formatDate = (date: string | Date | null | undefined) => {
   if (!date) return "—";
-  return new Date(date).toLocaleDateString("pt-BR");
+  return new Date(date).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
 
 export const formatDateTime = (date: string | Date | null | undefined) => {
   if (!date) return "—";
-  return new Date(date).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  return new Date(date).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
+};
+
+export const formatTime = (date: string | Date | null | undefined) => {
+  if (!date) return "—";
+  return new Date(date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 };
 
 export const initials = (name?: string | null) => {
@@ -41,7 +46,7 @@ export const timeAgo = (date: string | Date) => {
   if (h < 24) return `${h}h atrás`;
   const days = Math.floor(h / 24);
   if (days < 7) return `${days}d atrás`;
-  return new Date(date).toLocaleDateString("pt-BR");
+  return new Date(date).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 };
 
 export const formatDoc = (doc?: string | null) => {

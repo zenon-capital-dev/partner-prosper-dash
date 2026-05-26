@@ -1,6 +1,7 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, addDays, startOfDay, isBefore, isToday } from "date-fns";
+import { addDays, startOfDay, isBefore, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CalendarDays, ChevronLeft, ChevronRight, Plus, MessageSquare, Phone,

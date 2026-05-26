@@ -279,7 +279,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                   <SelectItem value="none">Nenhuma venda específica</SelectItem>
                   {sales?.map((s: any) => (
                     <SelectItem key={s.id} value={s.id}>
-                      {s.products?.name || "Venda"} — {new Date(s.sale_date).toLocaleDateString('pt-BR')} — R$ {Number(s.amount).toFixed(2)}
+                      {s.products?.name || "Venda"} — {new Date(s.sale_date).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} — R$ {Number(s.amount).toFixed(2)}
                     </SelectItem>
                   ))}
                 </SelectContent>

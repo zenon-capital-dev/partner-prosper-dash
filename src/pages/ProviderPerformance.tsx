@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Star, Activity, CheckCircle2, AlertTriangle, Clock, FileCheck, MessageSquare, TrendingUp } from "lucide-react";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 
 interface Provider {

@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -23,7 +24,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
-import { format, isToday, isBefore, subDays, startOfDay, addDays } from "date-fns";
+import { isToday, isBefore, subDays, startOfDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -160,7 +161,7 @@ export default function OperationalCockpit() {
       return data.map(p => ({
         id: p.id,
         type: 'payment',
-        title: `R$ ${p.amount.toLocaleString('pt-BR')}`,
+        title: `R$ ${p.amount.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
         subtitle: (p.client as any)?.full_name,
         status: p.status,
         date: p.due_date,
@@ -187,7 +188,7 @@ export default function OperationalCockpit() {
       return data.map(c => ({
         id: c.id,
         type: 'commission',
-        title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR')}`,
+        title: `Comissão R$ ${Number(c.amount || 0).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
         subtitle: (c.partner as any)?.full_name || 'Parceiro desconhecido',
         status: (c as any).workflow_status || c.status,
         date: c.created_at,

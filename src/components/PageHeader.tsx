@@ -29,7 +29,7 @@ export function PageHeader({
   hideBreadcrumbs,
   breadcrumbOverride,
 }: Props) {
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", timeZone: "America/Sao_Paulo" });
   return (
     <header className={cn("relative px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-4 sm:pb-6 space-y-4 sm:space-y-6 border-b border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.02)]", className)}>
       {!hideBreadcrumbs && <Breadcrumbs override={breadcrumbOverride} />}

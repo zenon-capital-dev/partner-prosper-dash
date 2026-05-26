@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Shield, User, Activity } from "lucide-react";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 
 export default function AdminProfile() {

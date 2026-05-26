@@ -1,5 +1,6 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
-import { subDays, startOfMonth, startOfToday, endOfDay, format, eachDayOfInterval, eachMonthOfInterval, subMonths, endOfMonth } from "date-fns";
+import { subDays, startOfMonth, startOfToday, endOfDay, eachDayOfInterval, eachMonthOfInterval, subMonths, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -605,7 +606,7 @@ export default function Finance() {
                     <ComposedChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={(v) => `R$${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={(v) => `R$${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0, timeZone: "America/Sao_Paulo" })}`} />
                       <Tooltip
                         contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", boxShadow: "0 4px 12px rgba(0,0,0,0.06)", fontSize: 12 }}
                         formatter={(v: any) => formatBRL(Number(v))}
@@ -791,7 +792,7 @@ export default function Finance() {
                   <BarChart data={monthlyReport}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={(v) => `R$${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={(v) => `R$${Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0, timeZone: "America/Sao_Paulo" })}`} />
                     <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12 }} formatter={(v: any) => formatBRL(Number(v))} />
                     <Bar dataKey="revenue" name="Receita" fill="#4f46e5" radius={[3, 3, 0, 0]} />
                     <Bar dataKey="expenses" name="Despesas" fill="#f43f5e" radius={[3, 3, 0, 0]} />

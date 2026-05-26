@@ -69,7 +69,7 @@ const norm = (s: any) =>
 const formatDate = (d?: string | null) => {
   if (!d) return "—";
   try {
-    return new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return new Date(d).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
   } catch { return "—"; }
 };
 const relativeLastSeen = (d?: string | null) => {

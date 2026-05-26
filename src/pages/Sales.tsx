@@ -168,7 +168,7 @@ export default function Sales() {
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      days.push({ key, label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), v: 0 });
+      days.push({ key, label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }), v: 0 });
     }
     const idx = Object.fromEntries(days.map((d, i) => [d.key, i]));
     filtered.forEach((s: any) => {

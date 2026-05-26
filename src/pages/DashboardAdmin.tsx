@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,7 +22,7 @@ import { useMemo, useState, useEffect, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -63,7 +64,7 @@ export default function DashboardAdmin() {
   const firstName = String(fullName).split(/[ @]/)[0];
   const hour = parseInt(new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", hour12: false }).format(new Date()), 10);
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-  const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+  const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
 
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({ 
     queryKey: ["dash-clients"], 

@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -5,7 +6,7 @@ import {
   DollarSign, Users, Wallet, Target, Activity,
   FileSignature, FileUp, MoreHorizontal, Clock
 } from "lucide-react";
-import { format } from "date-fns";
+;
 import { ptBR } from "date-fns/locale";
 import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";

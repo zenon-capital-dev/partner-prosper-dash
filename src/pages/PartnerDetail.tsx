@@ -1,3 +1,4 @@
+import { formatBR as format } from "@/lib/datetime";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History } from "lucide-react";
-import { format } from "date-fns";
+;
 import { formatBRL } from "@/lib/format";
 
 export default function PartnerDetail() {
