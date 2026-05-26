@@ -133,13 +133,13 @@ export function PartnerDetailDrawer({ partnerId, open, onOpenChange }: Props) {
   const handleAddLink = async () => {
     if (!partnerId || !addProductId) { toast.error("Selecione um produto"); return; }
     const product = allProducts.find((p: any) => p.id === addProductId);
-    const { error } = await supabase.from("partner_products").insert({
+    const { error } = await supabase.from("partner_products").upsert({
       partner_id: partnerId,
       product_id: addProductId,
       commission_percent: Number(addCommission || product?.default_commission_percent || 10),
       custom_price: addPrice ? Number(addPrice) : null,
       active: true,
-    });
+    }, { onConflict: "partner_id,product_id" });
     if (error) { toast.error(error.message); return; }
     toast.success("Produto vinculado");
     setAddProductId(""); setAddCommission(""); setAddPrice("");
