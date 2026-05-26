@@ -98,7 +98,7 @@ function dueBadge(item: AgendaItem) {
   const diff = differenceInCalendarDays(d, new Date());
   const isOverdue = d < new Date();
 
-  if (isOverdue && item.status_new !== "concluida") {
+  if (isOverdue && item.status_new !== ("concluida" as any)) {
     if (diff === 0) return { text: `Atrasada (${format(d, "HH:mm")})`, tone: "bg-rose-100 text-rose-700 border-rose-200 animate-pulse" };
     return { text: `Atrasou ${Math.abs(diff)}d`, tone: "bg-rose-50 text-rose-700 border-rose-200" };
   }
