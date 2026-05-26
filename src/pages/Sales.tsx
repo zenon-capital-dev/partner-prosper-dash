@@ -59,7 +59,7 @@ export default function Sales() {
     queryKey: ["sales-rich"],
     queryFn: async () => (await supabase
       .from("sales")
-      .select("*, clients(id, full_name, email, document, company), products(name, product_categories(name, color)), partners(full_name, pix_key)")
+      .select("*, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key)")
       .order("sale_date", { ascending: false })).data ?? [],
   });
 
