@@ -190,8 +190,7 @@ export default function Collaborators() {
       const { error } = await supabase.from("profiles").update(rest).eq("id", id);
       if (error) throw error;
       if (role) {
-        await supabase.from("user_roles").delete().eq("user_id", id);
-        const { error: rErr } = await supabase.from("user_roles").insert({ user_id: id, role });
+        const { error: rErr } = await supabase.from("user_roles").upsert({ user_id: id, role }, { onConflict: "user_id" });
         if (rErr) throw rErr;
       }
     },

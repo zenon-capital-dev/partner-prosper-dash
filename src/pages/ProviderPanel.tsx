@@ -94,7 +94,11 @@ export default function ProviderPanel() {
   const stats = useMemo(() => {
     const all = clientProducts as any[];
     const active = all.filter((c) => !["concluido","concluida","cancelado","cancelada"].includes(c.status)).length;
-    const delayed = all.filter((c) => c.sla_due_date && new Date(c.sla_due_date) < new Date() && !["concluido","concluida"].includes(c.status)).length;
+    const delayed = all.filter((c) => {
+      if (["concluido", "concluida", "cancelado", "cancelada"].includes(c.status)) return false;
+      const due = c.deadline || c.sla_due_date || c.end_date;
+      return due && new Date(due) < new Date();
+    }).length;
     const earnings = all.filter((c) => c.status !== "cancelado").reduce((s, c) => s + Number(c.value || 0), 0);
     return { total: all.length, active, delayed, earnings };
   }, [clientProducts]);
