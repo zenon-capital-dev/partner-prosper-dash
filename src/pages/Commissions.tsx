@@ -110,6 +110,24 @@ export default function Commissions() {
   }, [debouncedSearch, statusFilter, partnerFilter, rangeKey, dateFrom, dateTo]);
 
   // dialogs
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ["collaborators-simple"],
+    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name")).data ?? [],
+  });
+
+  const { data: referrers = [] } = useQuery({
+    queryKey: ["referrers-simple"],
+    queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
+  });
+
+  const onSelectSale = (id: string) => {
+    const s = sales.find((x: any) => x.id === id);
+    if (!s) return;
+    const perc = Number(s.commission_percent || 10);
+    const amt = (Number(s.amount || 0) * perc) / 100;
+    setCreateForm({ ...createForm, sale_id: id, percent: perc, amount: amt.toFixed(2) });
+  };
+
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
