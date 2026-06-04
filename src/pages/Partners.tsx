@@ -13,7 +13,7 @@ import {
   Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
   Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,
   Copy, KeyRound, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowUp, ArrowDown,
-  Inbox, ShieldCheck, Filter,
+  Inbox, ShieldCheck, Filter, Trash2,
 } from "lucide-react";
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
@@ -293,6 +293,31 @@ export default function Partners() {
     }
   };
 
+  const removePartner = async (p: any) => {
+    if (!canManage) return;
+    const { checkFkLinks, summarizeBlocks } = await import("@/lib/safe-delete");
+    const res = await checkFkLinks(p.id, [
+      { table: "clients", column: "partner_id", label: "cliente(s)" },
+      { table: "sales", column: "partner_id", label: "venda(s)" },
+      { table: "commissions", column: "partner_id", label: "comissão(ões)" },
+      { table: "partner_products", column: "partner_id", label: "produto(s) vinculado(s)" },
+    ]);
+    if (!res.canDelete) {
+      const summary = summarizeBlocks(res.blockedBy);
+      if (!(await confirmAction(`${p.full_name} está vinculado a ${summary}. DESATIVAR em vez de excluir?`))) return;
+      const { error } = await supabase.from("partners").update({ active: false }).eq("id", p.id);
+      if (error) return toast.error(error.message);
+      toast.success("Parceiro desativado");
+      qc.invalidateQueries();
+      return;
+    }
+    if (!(await confirmAction(`Excluir definitivamente "${p.full_name}"? Esta ação é irreversível.`))) return;
+    const { error } = await supabase.from("partners").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    toast.success("Parceiro removido");
+    qc.invalidateQueries();
+  };
+
   const exportCSV = () => {
     const headers = ["Nome", "Email", "Telefone", "Documento", "Categoria", "% Comissão", "Indicações", "Total Ganho", "Pendente", "Status", "Criado em"];
     const rows = filtered.map((p: any) => [
@@ -455,6 +480,7 @@ export default function Partners() {
               onDetail={setDrawerId}
               onEdit={openEdit}
               onToggle={toggleActive}
+              onDelete={removePartner}
               canManage={canManage}
               sortBy={sortBy}
               sortDir={sortDir}
@@ -464,7 +490,7 @@ export default function Partners() {
           </div>
         ) : (
           <div className="space-y-4">
-            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} canManage={canManage} />
+            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} onDelete={removePartner} canManage={canManage} />
             <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
           </div>
         )}
@@ -638,7 +664,7 @@ export default function Partners() {
   );
 }
 
-function ListView({ partners, topIds, onDetail, onEdit, onToggle, canManage, sortBy, sortDir, onSort }: any) {
+function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage, sortBy, sortDir, onSort }: any) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[13px] min-w-[960px]">
@@ -700,6 +726,9 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, canManage, sor
                         <button onClick={() => onToggle(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-amber-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
                           {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
                         </button>
+                        <button onClick={() => onDelete(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-red-50 text-slate-600 hover:text-red-700 hover:border-red-200 flex items-center justify-center transition-colors" title="Excluir">
+                          <Trash2 className="size-3.5" />
+                        </button>
                       </>
                     )}
                   </div>
@@ -713,7 +742,7 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, canManage, sor
   );
 }
 
-function GridView({ partners, topIds, onDetail, onEdit, onToggle, canManage }: any) {
+function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage }: any) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {partners.map((p: any) => {
@@ -736,6 +765,9 @@ function GridView({ partners, topIds, onDetail, onEdit, onToggle, canManage }: a
                     </button>
                     <button onClick={() => onToggle(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-amber-700 flex items-center justify-center" title={p.active ? "Desativar" : "Ativar"}>
                       {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
+                    </button>
+                    <button onClick={() => onDelete(p)} className="size-8 rounded-md hover:bg-red-50 text-slate-500 hover:text-red-700 flex items-center justify-center" title="Excluir">
+                      <Trash2 className="size-3.5" />
                     </button>
                   </>
                 )}
