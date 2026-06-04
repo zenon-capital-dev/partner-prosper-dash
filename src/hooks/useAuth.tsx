@@ -84,7 +84,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Only fetch roles when the user actually changes or first init.
         // TOKEN_REFRESHED / repeated INITIAL_SESSION events should NOT refetch.
         if (userChanged || !initialized) {
-          if (!initialized) setLoading(true);
+          // Sempre marcar loading + limpar roles antigos antes de buscar.
+          // Sem isso, após SIGNED_IN o RoleHome renderiza com roles=[] e
+          // mostra "Conta sem perfil atribuído" durante o fetch.
+          setLoading(true);
+          setRoles([]);
           await fetchRoles(sess.user.id);
         } else {
           setLoading(false);
