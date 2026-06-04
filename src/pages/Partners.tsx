@@ -742,7 +742,7 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canM
   );
 }
 
-function GridView({ partners, topIds, onDetail, onEdit, onToggle, canManage }: any) {
+function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage }: any) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {partners.map((p: any) => {
@@ -765,6 +765,9 @@ function GridView({ partners, topIds, onDetail, onEdit, onToggle, canManage }: a
                     </button>
                     <button onClick={() => onToggle(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-amber-700 flex items-center justify-center" title={p.active ? "Desativar" : "Ativar"}>
                       {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
+                    </button>
+                    <button onClick={() => onDelete(p)} className="size-8 rounded-md hover:bg-red-50 text-slate-500 hover:text-red-700 flex items-center justify-center" title="Excluir">
+                      <Trash2 className="size-3.5" />
                     </button>
                   </>
                 )}
