@@ -293,6 +293,31 @@ export default function Partners() {
     }
   };
 
+  const removePartner = async (p: any) => {
+    if (!canManage) return;
+    const { checkFkLinks, summarizeBlocks } = await import("@/lib/safe-delete");
+    const res = await checkFkLinks(p.id, [
+      { table: "clients", column: "partner_id", label: "cliente(s)" },
+      { table: "sales", column: "partner_id", label: "venda(s)" },
+      { table: "commissions", column: "partner_id", label: "comissão(ões)" },
+      { table: "partner_products", column: "partner_id", label: "produto(s) vinculado(s)" },
+    ]);
+    if (!res.canDelete) {
+      const summary = summarizeBlocks(res.blockedBy);
+      if (!(await confirmAction(`${p.full_name} está vinculado a ${summary}. DESATIVAR em vez de excluir?`))) return;
+      const { error } = await supabase.from("partners").update({ active: false }).eq("id", p.id);
+      if (error) return toast.error(error.message);
+      toast.success("Parceiro desativado");
+      qc.invalidateQueries();
+      return;
+    }
+    if (!(await confirmAction(`Excluir definitivamente "${p.full_name}"? Esta ação é irreversível.`))) return;
+    const { error } = await supabase.from("partners").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    toast.success("Parceiro removido");
+    qc.invalidateQueries();
+  };
+
   const exportCSV = () => {
     const headers = ["Nome", "Email", "Telefone", "Documento", "Categoria", "% Comissão", "Indicações", "Total Ganho", "Pendente", "Status", "Criado em"];
     const rows = filtered.map((p: any) => [
