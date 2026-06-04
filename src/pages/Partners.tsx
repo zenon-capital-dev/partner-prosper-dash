@@ -13,7 +13,7 @@ import {
   Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
   Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,
   Copy, KeyRound, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowUp, ArrowDown,
-  Inbox, ShieldCheck, Filter,
+  Inbox, ShieldCheck, Filter, Trash2,
 } from "lucide-react";
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
