@@ -51,6 +51,7 @@ const TABS = [
   { id: "visao-geral", label: "Visão Geral", icon: Info },
   { id: "onboarding", label: "Onboarding", icon: Sparkles },
   { id: "empresas", label: "Empresas", icon: Building2 },
+  { id: "vinculos", label: "Vínculos", icon: Users },
   { id: "produtos", label: "Produtos/Demandas", icon: ShoppingBag },
   { id: "documentos", label: "Documentos", icon: FileText },
   { id: "entregas", label: "Entregas", icon: ClipboardList },
