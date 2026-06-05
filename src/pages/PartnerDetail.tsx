@@ -191,6 +191,10 @@ export default function PartnerDetail() {
             ))}
           </CardContent></Card>
         </TabsContent>
+
+        <TabsContent value="acesso" className="mt-4">
+          <CredentialsManager userId={partner.user_id} currentEmail={partner.email} entityLabel="parceiro" />
+        </TabsContent>
       </Tabs>
     </div>
   );
