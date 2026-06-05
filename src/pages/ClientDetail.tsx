@@ -12,6 +12,7 @@ import {
   Wallet, PieChart, Star, Users, CalendarClock, Calendar, KeyRound
 } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
+import { ClientLinksPanel } from "@/components/clients/ClientLinksManager";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
