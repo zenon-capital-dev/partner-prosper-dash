@@ -763,7 +763,7 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
   );
 }
 
-function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage }: any) {
+function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCredentials, canManage }: any) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {partners.map((p: any) => {
