@@ -483,6 +483,7 @@ export default function Partners() {
               onEdit={openEdit}
               onToggle={toggleActive}
               onDelete={removePartner}
+              onCredentials={setCredRow}
               canManage={canManage}
               sortBy={sortBy}
               sortDir={sortDir}
@@ -492,7 +493,7 @@ export default function Partners() {
           </div>
         ) : (
           <div className="space-y-4">
-            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} onDelete={removePartner} canManage={canManage} />
+            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} onDelete={removePartner} onCredentials={setCredRow} canManage={canManage} />
             <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
           </div>
         )}
