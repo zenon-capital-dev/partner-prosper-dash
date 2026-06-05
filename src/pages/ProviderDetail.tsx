@@ -123,6 +123,7 @@ export default function ProviderDetail() {
           <TabsTrigger value="performance"><TrendingUp className="h-3 w-3 mr-1" />Performance</TabsTrigger>
           <TabsTrigger value="contrato"><FileSignature className="h-3 w-3 mr-1" />Contrato</TabsTrigger>
           <TabsTrigger value="pagamento"><CreditCard className="h-3 w-3 mr-1" />Pagamento</TabsTrigger>
+          <TabsTrigger value="acesso"><KeyRound className="h-3 w-3 mr-1" />Acesso</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4">
