@@ -24,6 +24,7 @@ import { PartnerDetailDrawer } from "@/components/PartnerDetailDrawer";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
+import { CredentialsManager } from "@/components/CredentialsManager";
 
 const emptyForm = { active: true, commission_percent: 10, partner_category: "indicador" };
 type SortKey = "recent" | "name" | "commissions" | "pending" | "clients";
