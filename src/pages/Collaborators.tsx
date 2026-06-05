@@ -486,6 +486,9 @@ export default function Collaborators() {
                                 <DropdownMenuItem onClick={() => toggleAccess(c)} disabled={c.id === myId}>
                                   <KeyRound className="size-4 mr-2" /> {c.has_system_access ? "Remover acesso" : "Liberar acesso"}
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setCredRow(c)}>
+                                  <KeyRound className="size-4 mr-2" /> Alterar e-mail/senha
+                                </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toggleActive(c)} disabled={c.id === myId}>
                                   <Power className="size-4 mr-2" /> {c.active ? "Desativar" : "Ativar"}
                                 </DropdownMenuItem>
