@@ -64,6 +64,7 @@ export default function Partners() {
   const [accessPwd, setAccessPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [credRow, setCredRow] = useState<any>(null);
 
   const qc = useQueryClient();
 
