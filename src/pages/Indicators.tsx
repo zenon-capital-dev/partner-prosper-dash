@@ -600,7 +600,7 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
   );
 }
 
-function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete }: any) {
+function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete, onCredentials }: any) {
   return (
     <div className="group relative overflow-hidden rounded-lg border border-slate-200/70 bg-white shadow-sm p-5 hover:border-indigo-200 hover:shadow-md transition-all">
       <div className="flex items-start justify-between gap-3 mb-4">
