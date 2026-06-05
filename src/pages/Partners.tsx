@@ -682,7 +682,7 @@ export default function Partners() {
   );
 }
 
-function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage, sortBy, sortDir, onSort }: any) {
+function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCredentials, canManage, sortBy, sortDir, onSort }: any) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[13px] min-w-[960px]">
