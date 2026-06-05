@@ -625,6 +625,7 @@ function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete, onCredentials 
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+              <DropdownMenuItem onClick={onCredentials} disabled={!r.user_id}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>
               <DropdownMenuItem onClick={onToggle}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
