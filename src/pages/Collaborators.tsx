@@ -651,9 +651,10 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
   );
 }
 
-function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess, onRemove }: {
+function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess, onRemove, onCredentials }: {
   c: CollabRow; canManage: boolean; isMe: boolean;
   onEdit: () => void; onToggleActive: () => void; onToggleAccess: () => void; onRemove: () => void;
+  onCredentials: () => void;
 }) {
   const meta = ROLE_META[c.role];
   const Icon = meta.icon;
