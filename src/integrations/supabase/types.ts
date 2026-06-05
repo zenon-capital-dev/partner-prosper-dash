@@ -220,6 +220,57 @@ export type Database = {
         }
         Relationships: []
       }
+      client_collaborators: {
+        Row: {
+          added_by: string | null
+          client_id: string
+          collaborator_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          client_id: string
+          collaborator_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          client_id?: string
+          collaborator_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_collaborators_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_collaborators_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_document_requests: {
         Row: {
           client_id: string
@@ -337,6 +388,64 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_client_financial_summary"
             referencedColumns: ["client_id"]
+          },
+        ]
+      }
+      client_partners: {
+        Row: {
+          added_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          partner_id: string
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          partner_id: string
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          partner_id?: string
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_partners_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_partners_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_partners_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -804,6 +913,122 @@ export type Database = {
             columns: ["service_provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_providers: {
+        Row: {
+          added_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          role: string | null
+          service_provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          role?: string | null
+          service_provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          role?: string | null
+          service_provider_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_providers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_providers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_providers_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_referrers: {
+        Row: {
+          added_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          referrer_id: string
+          share_percent: number | null
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          referrer_id: string
+          share_percent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          referrer_id?: string
+          share_percent?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_referrers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_referrers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_referrers_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
             referencedColumns: ["id"]
           },
         ]
