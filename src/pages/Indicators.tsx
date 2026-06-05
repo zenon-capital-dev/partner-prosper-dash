@@ -413,6 +413,7 @@ export default function Indicators() {
                   onEdit={() => openEdit(r)}
                   onToggle={() => toggleActive(r)}
                   onDelete={() => remove(r)}
+                  onCredentials={() => setCredRow(r)}
                 />
               ))}
             </div>
