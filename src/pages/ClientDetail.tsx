@@ -512,9 +512,14 @@ export default function ClientDetail() {
             </div>
           </TabsContent>
 
+          <TabsContent value="vinculos" className="m-0">
+            <ClientLinksPanel clientId={id!} />
+          </TabsContent>
+
           <TabsContent value="produtos" className="m-0">
             <ClientProducts clientId={id!} />
           </TabsContent>
+
 
           <TabsContent value="documentos" className="m-0">
             <ClientDocuments clientId={id!} user_id={client.user_id} />
