@@ -88,13 +88,15 @@ export default function CollaboratorPanel() {
 
   const demandIds = useMemo(() => (demandas as any[]).map((d) => d.id), [demandas]);
   const { data: docs = [] } = useQuery({
-    queryKey: ["collab-docs", demandIds.join(",")],
-    enabled: demandIds.length > 0,
+    queryKey: ["collab-docs", user?.id, demandIds.join(",")],
+    enabled: !!user?.id,
     queryFn: async () => {
+      const filters: string[] = [`collaborator_id.eq.${user!.id}`];
+      if (demandIds.length > 0) filters.push(`client_product_id.in.(${demandIds.join(",")})`);
       const { data, error } = await supabase
         .from("documents")
-        .select("id, name, status, created_at, client_id, client_product_id, clients(full_name)")
-        .in("client_product_id", demandIds)
+        .select("id, name, status, created_at, due_date, description, client_id, client_product_id, clients(full_name)")
+        .or(filters.join(","))
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
