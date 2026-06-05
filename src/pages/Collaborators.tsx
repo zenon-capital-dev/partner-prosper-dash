@@ -28,6 +28,7 @@ import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { initials, formatPhone } from "@/lib/format";
+import { CredentialsManager } from "@/components/CredentialsManager";
 
 type Role = "admin" | "admin_secondary" | "colaborador";
 type CollabRow = {
