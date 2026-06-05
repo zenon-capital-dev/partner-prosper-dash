@@ -111,20 +111,54 @@ export function ClientLinksManager({ clientId, kind }: Props) {
 
   const queryKey = ["client-links", kind, clientId];
 
+  const legacyFields: Record<LinkKind, string[]> = {
+    partner: ["partner_id"],
+    referrer: ["referrer_id", "indicator_id"],
+    collaborator: ["collaborator_id", "responsible_id"],
+    provider: ["service_provider_id", "provider_id"],
+  };
+
   const { data: links = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
       const selectCols = cfg.joinSelect
         ? `id, ${cfg.fkField}, is_primary, role, created_at, ${cfg.joinSelect}`
         : `id, ${cfg.fkField}, is_primary, role, created_at`;
-      const { data, error } = await supabase
-        .from(cfg.table as any)
-        .select(selectCols)
-        .eq("client_id", clientId)
-        .order("is_primary", { ascending: false })
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      let rows = (data ?? []) as any[];
+
+      const fetchRows = async () => {
+        const { data, error } = await supabase
+          .from(cfg.table as any)
+          .select(selectCols)
+          .eq("client_id", clientId)
+          .order("is_primary", { ascending: false })
+          .order("created_at", { ascending: true });
+        if (error) throw error;
+        return (data ?? []) as any[];
+      };
+
+      let rows = await fetchRows();
+
+      // Auto-backfill: se a tabela de vínculos está vazia mas o cliente já
+      // possui o FK legado preenchido, cria a linha primária automaticamente.
+      if (rows.length === 0) {
+        const { data: clientRow } = await supabase
+          .from("clients")
+          .select(legacyFields[kind].join(","))
+          .eq("id", clientId)
+          .maybeSingle();
+        const legacyId = clientRow
+          ? (legacyFields[kind].map((f) => (clientRow as any)[f]).find((v) => !!v) as string | undefined)
+          : undefined;
+        if (legacyId) {
+          const { error: insErr } = await supabase.from(cfg.table as any).insert({
+            client_id: clientId,
+            [cfg.fkField]: legacyId,
+            is_primary: true,
+          } as any);
+          if (!insErr) rows = await fetchRows();
+        }
+      }
+
       // Enrich collaborator rows with profile info (no FK to profiles)
       if (kind === "collaborator" && rows.length) {
         const ids = rows.map((r) => r.collaborator_id).filter(Boolean);
