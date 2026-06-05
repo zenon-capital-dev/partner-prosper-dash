@@ -2095,7 +2095,7 @@ export type Database = {
       documents: {
         Row: {
           approved_by: string | null
-          client_id: string
+          client_id: string | null
           client_product_id: string | null
           collaborator_id: string | null
           created_at: string
@@ -2124,7 +2124,7 @@ export type Database = {
         }
         Insert: {
           approved_by?: string | null
-          client_id: string
+          client_id?: string | null
           client_product_id?: string | null
           collaborator_id?: string | null
           created_at?: string
@@ -2153,7 +2153,7 @@ export type Database = {
         }
         Update: {
           approved_by?: string | null
-          client_id?: string
+          client_id?: string | null
           client_product_id?: string | null
           collaborator_id?: string | null
           created_at?: string
