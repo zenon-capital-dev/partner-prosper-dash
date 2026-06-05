@@ -497,6 +497,21 @@ export default function Providers() {
       {assignTarget && (
         <ProviderAssignDialog open={assignOpen} onOpenChange={(o) => { setAssignOpen(o); if (!o) setAssignTarget(null); }} providerId={assignTarget.id} providerName={assignTarget.name} onSuccess={refresh} />
       )}
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.name}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.user_id}
+              currentEmail={credRow.email}
+              entityLabel="prestador"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
