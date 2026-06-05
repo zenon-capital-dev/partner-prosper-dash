@@ -683,6 +683,7 @@ function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
               <DropdownMenuItem onClick={onToggleAccess} disabled={isMe}><KeyRound className="size-4 mr-2" /> {c.has_system_access ? "Remover acesso" : "Liberar acesso"}</DropdownMenuItem>
+              <DropdownMenuItem onClick={onCredentials}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>
               <DropdownMenuItem onClick={onToggleActive} disabled={isMe}><Power className="size-4 mr-2" /> {c.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onRemove} disabled={isMe} className="text-destructive focus:text-destructive">
