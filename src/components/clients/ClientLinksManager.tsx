@@ -145,8 +145,21 @@ export function ClientLinksManager({ clientId, kind }: Props) {
     queryKey: [`opts-${kind}`],
     enabled: adding,
     queryFn: async () => {
-      let q = supabase.from(cfg.sourceTable as any).select(cfg.sourceFields);
-      if (cfg.sourceTable !== "profiles") q = q.eq("active", true);
+      if (kind === "collaborator") {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("role", ["admin", "admin_secondary", "colaborador"] as any);
+        const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
+        if (ids.length === 0) return [];
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name, email, active")
+          .in("id", ids)
+          .order("full_name");
+        return (profs ?? []).filter((p: any) => p.active !== false);
+      }
+      let q = supabase.from(cfg.sourceTable as any).select(cfg.sourceFields).eq("active", true);
       const { data } = await q.order(kind === "provider" ? "name" : "full_name");
       return data ?? [];
     },
