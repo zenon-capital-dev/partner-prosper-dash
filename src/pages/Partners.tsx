@@ -663,6 +663,21 @@ export default function Partners() {
       </Dialog>
 
       <PartnerDetailDrawer partnerId={drawerId} open={!!drawerId} onOpenChange={(o) => !o && setDrawerId(null)} />
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.full_name}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.user_id}
+              currentEmail={credRow.email}
+              entityLabel="parceiro"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
