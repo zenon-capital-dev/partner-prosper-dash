@@ -46,6 +46,7 @@ export default function Indicators() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(emptyForm);
+  const [credRow, setCredRow] = useState<any>(null);
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
