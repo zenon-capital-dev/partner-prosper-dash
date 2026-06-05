@@ -94,6 +94,7 @@ export default function PartnerDetail() {
           <TabsTrigger value="contrato"><FileSignature className="h-3 w-3 mr-1" />Contrato</TabsTrigger>
           <TabsTrigger value="bancarios"><Building2 className="h-3 w-3 mr-1" />Bancários</TabsTrigger>
           <TabsTrigger value="historico"><History className="h-3 w-3 mr-1" />Histórico</TabsTrigger>
+          <TabsTrigger value="acesso"><KeyRound className="h-3 w-3 mr-1" />Acesso</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4">
