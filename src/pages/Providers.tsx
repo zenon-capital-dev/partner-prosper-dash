@@ -466,6 +466,7 @@ export default function Providers() {
                               {canManage && <DropdownMenuItem onClick={() => { setEditing(p); setCreateOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>}
                               {canManage && <DropdownMenuSeparator />}
                               {canManage && <DropdownMenuItem onClick={() => toggleActive(p)}><Power className="size-4 mr-2" /> {p.active ? "Desativar" : "Ativar"}</DropdownMenuItem>}
+                              {canManage && <DropdownMenuItem onClick={() => setCredRow(p)}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>}
                               {canManage && (
                                 <DropdownMenuItem onClick={() => removeProvider(p)} className="text-destructive focus:text-destructive">
                                   <Trash2 className="size-4 mr-2" /> Excluir
