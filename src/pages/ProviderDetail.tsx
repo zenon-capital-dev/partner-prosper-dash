@@ -240,6 +240,10 @@ export default function ProviderDetail() {
             {commissions.length === 0 && <p className="text-muted-foreground text-sm text-center">Sem pagamentos registrados</p>}
           </CardContent></Card>
         </TabsContent>
+
+        <TabsContent value="acesso" className="mt-4">
+          <CredentialsManager userId={provider.user_id} currentEmail={provider.email} entityLabel="prestador" />
+        </TabsContent>
       </Tabs>
     </div>
   );
