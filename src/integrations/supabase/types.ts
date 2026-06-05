@@ -422,6 +422,57 @@ export type Database = {
           },
         ]
       }
+      client_product_providers: {
+        Row: {
+          added_by: string | null
+          client_product_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          role: string | null
+          service_provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          client_product_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          role?: string | null
+          service_provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          client_product_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          role?: string | null
+          service_provider_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_product_providers_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_product_providers_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_product_quality_checks: {
         Row: {
           adjustment_deadline: string | null
