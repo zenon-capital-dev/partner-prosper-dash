@@ -24,6 +24,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { CredentialsManager } from "@/components/CredentialsManager";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type ViewMode = "grid" | "list";
 type SortKey = "name" | "specialty" | "active_demands" | "clients" | "revenue" | "rating" | "status";
