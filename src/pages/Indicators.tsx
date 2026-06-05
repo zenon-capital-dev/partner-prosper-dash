@@ -483,6 +483,9 @@ export default function Indicators() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEdit(r)}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setCredRow(r)} disabled={!r.user_id}>
+                                <KeyRound className="size-4 mr-2" /> Alterar e-mail/senha
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => toggleActive(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => remove(r)} className="text-destructive focus:text-destructive">
