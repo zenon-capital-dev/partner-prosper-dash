@@ -114,14 +114,30 @@ export function ClientLinksManager({ clientId, kind }: Props) {
   const { data: links = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
+      const selectCols = cfg.joinSelect
+        ? `id, ${cfg.fkField}, is_primary, role, created_at, ${cfg.joinSelect}`
+        : `id, ${cfg.fkField}, is_primary, role, created_at`;
       const { data, error } = await supabase
         .from(cfg.table as any)
-        .select(`id, ${cfg.fkField}, is_primary, role, created_at, ${cfg.joinSelect}`)
+        .select(selectCols)
         .eq("client_id", clientId)
         .order("is_primary", { ascending: false })
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data ?? [];
+      let rows = (data ?? []) as any[];
+      // Enrich collaborator rows with profile info (no FK to profiles)
+      if (kind === "collaborator" && rows.length) {
+        const ids = rows.map((r) => r.collaborator_id).filter(Boolean);
+        if (ids.length) {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, full_name, email")
+            .in("id", ids);
+          const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+          rows = rows.map((r) => ({ ...r, _profile: map.get(r.collaborator_id) }));
+        }
+      }
+      return rows;
     },
   });
 
