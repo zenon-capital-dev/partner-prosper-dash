@@ -744,6 +744,9 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
                         <button onClick={() => onToggle(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-amber-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
                           {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
                         </button>
+                        <button onClick={() => onCredentials(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Alterar e-mail/senha">
+                          <KeyRound className="size-3.5" />
+                        </button>
                         <button onClick={() => onDelete(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-red-50 text-slate-600 hover:text-red-700 hover:border-red-200 flex items-center justify-center transition-colors" title="Excluir">
                           <Trash2 className="size-3.5" />
                         </button>
