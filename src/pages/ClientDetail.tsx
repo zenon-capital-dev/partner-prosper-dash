@@ -12,6 +12,7 @@ import {
   Wallet, PieChart, Star, Users, CalendarClock, Calendar, KeyRound
 } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
+import { ClientLinksPanel } from "@/components/clients/ClientLinksManager";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
@@ -51,6 +52,7 @@ const TABS = [
   { id: "visao-geral", label: "Visão Geral", icon: Info },
   { id: "onboarding", label: "Onboarding", icon: Sparkles },
   { id: "empresas", label: "Empresas", icon: Building2 },
+  { id: "vinculos", label: "Vínculos", icon: Users },
   { id: "produtos", label: "Produtos/Demandas", icon: ShoppingBag },
   { id: "documentos", label: "Documentos", icon: FileText },
   { id: "entregas", label: "Entregas", icon: ClipboardList },
@@ -510,9 +512,14 @@ export default function ClientDetail() {
             </div>
           </TabsContent>
 
+          <TabsContent value="vinculos" className="m-0">
+            <ClientLinksPanel clientId={id!} />
+          </TabsContent>
+
           <TabsContent value="produtos" className="m-0">
             <ClientProducts clientId={id!} />
           </TabsContent>
+
 
           <TabsContent value="documentos" className="m-0">
             <ClientDocuments clientId={id!} user_id={client.user_id} />
