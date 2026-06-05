@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { cn } from "@/lib/utils";
+import { CredentialsManager } from "@/components/CredentialsManager";
 
 type SortKey = "name" | "clients" | "total" | "pending" | "percent" | "status" | "recent";
 type SortDir = "asc" | "desc";
