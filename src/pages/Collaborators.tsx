@@ -404,6 +404,7 @@ export default function Collaborators() {
                   onToggleActive={() => toggleActive(c)}
                   onToggleAccess={() => toggleAccess(c)}
                   onRemove={() => removeCollab(c)}
+                  onCredentials={() => setCredRow(c)}
                 />
               ))}
             </div>
