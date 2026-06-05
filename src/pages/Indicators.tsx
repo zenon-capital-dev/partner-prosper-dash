@@ -558,6 +558,21 @@ export default function Indicators() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.full_name}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.user_id}
+              currentEmail={credRow.email}
+              entityLabel="indicador"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
