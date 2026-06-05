@@ -9,8 +9,9 @@ import {
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
   ChevronRight, Phone, Mail, Globe, MapPin, Trash2,
-  Wallet, PieChart, Star, Users, CalendarClock, Calendar
+  Wallet, PieChart, Star, Users, CalendarClock, Calendar, KeyRound
 } from "lucide-react";
+import { CredentialsManager } from "@/components/CredentialsManager";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
