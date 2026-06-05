@@ -60,6 +60,7 @@ const TABS = [
   { id: "atividades", label: "Atividades", icon: Calendar },
   { id: "historico", label: "Histórico", icon: History },
   { id: "observacoes", label: "Observações", icon: AlertCircle },
+  { id: "acesso", label: "Acesso", icon: KeyRound },
 ];
 
 export default function ClientDetail() {
