@@ -24,6 +24,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { CredentialsManager } from "@/components/CredentialsManager";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type ViewMode = "grid" | "list";
 type SortKey = "name" | "specialty" | "active_demands" | "clients" | "revenue" | "rating" | "status";
@@ -64,6 +66,7 @@ export default function Providers() {
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [credRow, setCredRow] = useState<any>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -380,6 +383,7 @@ export default function Providers() {
                   onAssign={() => { setAssignTarget(p); setAssignOpen(true); }}
                   onToggle={() => toggleActive(p)}
                   onDelete={() => removeProvider(p)}
+                  onCredentials={() => setCredRow(p)}
                 />
               ))}
             </div>
@@ -463,6 +467,7 @@ export default function Providers() {
                               {canManage && <DropdownMenuItem onClick={() => { setEditing(p); setCreateOpen(true); }}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>}
                               {canManage && <DropdownMenuSeparator />}
                               {canManage && <DropdownMenuItem onClick={() => toggleActive(p)}><Power className="size-4 mr-2" /> {p.active ? "Desativar" : "Ativar"}</DropdownMenuItem>}
+                              {canManage && <DropdownMenuItem onClick={() => setCredRow(p)}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>}
                               {canManage && (
                                 <DropdownMenuItem onClick={() => removeProvider(p)} className="text-destructive focus:text-destructive">
                                   <Trash2 className="size-4 mr-2" /> Excluir
@@ -492,6 +497,21 @@ export default function Providers() {
       {assignTarget && (
         <ProviderAssignDialog open={assignOpen} onOpenChange={(o) => { setAssignOpen(o); if (!o) setAssignTarget(null); }} providerId={assignTarget.id} providerName={assignTarget.name} onSuccess={refresh} />
       )}
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.name}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.user_id}
+              currentEmail={credRow.email}
+              entityLabel="prestador"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -517,7 +537,7 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
   );
 }
 
-function ProviderCard({ provider, canManage, onDetail, onEdit, onAssign, onToggle, onDelete }: any) {
+function ProviderCard({ provider, canManage, onDetail, onEdit, onAssign, onToggle, onDelete, onCredentials }: any) {
   return (
     <div className="group relative overflow-hidden rounded-lg border border-slate-200/70 bg-white shadow-sm p-5 hover:border-indigo-200 hover:shadow-md transition-all">
       <div className="flex items-start justify-between mb-4 gap-3">
@@ -572,6 +592,7 @@ function ProviderCard({ provider, canManage, onDetail, onEdit, onAssign, onToggl
                 <DropdownMenuItem onClick={onDetail}><ArrowUpRight className="size-4 mr-2" /> Ver perfil</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onToggle}><Power className="size-4 mr-2" /> {provider.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                <DropdownMenuItem onClick={onCredentials}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>
                 <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
                   <Trash2 className="size-4 mr-2" /> Excluir
                 </DropdownMenuItem>

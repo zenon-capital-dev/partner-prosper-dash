@@ -24,6 +24,7 @@ import { PartnerDetailDrawer } from "@/components/PartnerDetailDrawer";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
+import { CredentialsManager } from "@/components/CredentialsManager";
 
 const emptyForm = { active: true, commission_percent: 10, partner_category: "indicador" };
 type SortKey = "recent" | "name" | "commissions" | "pending" | "clients";
@@ -63,6 +64,7 @@ export default function Partners() {
   const [accessPwd, setAccessPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [credRow, setCredRow] = useState<any>(null);
 
   const qc = useQueryClient();
 
@@ -481,6 +483,7 @@ export default function Partners() {
               onEdit={openEdit}
               onToggle={toggleActive}
               onDelete={removePartner}
+              onCredentials={setCredRow}
               canManage={canManage}
               sortBy={sortBy}
               sortDir={sortDir}
@@ -490,7 +493,7 @@ export default function Partners() {
           </div>
         ) : (
           <div className="space-y-4">
-            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} onDelete={removePartner} canManage={canManage} />
+            <GridView partners={paginated} topIds={topIds} onDetail={setDrawerId} onEdit={openEdit} onToggle={toggleActive} onDelete={removePartner} onCredentials={setCredRow} canManage={canManage} />
             <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={itemsPerPage} />
           </div>
         )}
@@ -660,11 +663,26 @@ export default function Partners() {
       </Dialog>
 
       <PartnerDetailDrawer partnerId={drawerId} open={!!drawerId} onOpenChange={(o) => !o && setDrawerId(null)} />
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.full_name}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.user_id}
+              currentEmail={credRow.email}
+              entityLabel="parceiro"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage, sortBy, sortDir, onSort }: any) {
+function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCredentials, canManage, sortBy, sortDir, onSort }: any) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[13px] min-w-[960px]">
@@ -726,6 +744,9 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canM
                         <button onClick={() => onToggle(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-amber-700 flex items-center justify-center transition-colors" title={p.active ? "Desativar" : "Ativar"}>
                           {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
                         </button>
+                        <button onClick={() => onCredentials(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Alterar e-mail/senha">
+                          <KeyRound className="size-3.5" />
+                        </button>
                         <button onClick={() => onDelete(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-red-50 text-slate-600 hover:text-red-700 hover:border-red-200 flex items-center justify-center transition-colors" title="Excluir">
                           <Trash2 className="size-3.5" />
                         </button>
@@ -742,7 +763,7 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canM
   );
 }
 
-function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canManage }: any) {
+function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCredentials, canManage }: any) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {partners.map((p: any) => {
@@ -765,6 +786,9 @@ function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, canM
                     </button>
                     <button onClick={() => onToggle(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-amber-700 flex items-center justify-center" title={p.active ? "Desativar" : "Ativar"}>
                       {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
+                    </button>
+                    <button onClick={() => onCredentials(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-indigo-700 flex items-center justify-center" title="Alterar e-mail/senha">
+                      <KeyRound className="size-3.5" />
                     </button>
                     <button onClick={() => onDelete(p)} className="size-8 rounded-md hover:bg-red-50 text-slate-500 hover:text-red-700 flex items-center justify-center" title="Excluir">
                       <Trash2 className="size-3.5" />
