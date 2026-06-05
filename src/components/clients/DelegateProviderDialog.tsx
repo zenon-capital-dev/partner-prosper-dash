@@ -6,11 +6,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { UserCog } from "lucide-react";
+import { UserCog, Star, Trash2, Plus } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -21,10 +23,11 @@ interface Props {
 }
 
 export function DelegateProviderDialog({
-  open, onOpenChange, clientProductId, currentProviderId, productName,
+  open, onOpenChange, clientProductId, productName,
 }: Props) {
   const qc = useQueryClient();
-  const [selected, setSelected] = useState<string>(currentProviderId ?? "");
+  const [selected, setSelected] = useState<string>("");
+  const [role, setRole] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   const { data: providers = [] } = useQuery({
@@ -32,69 +35,159 @@ export function DelegateProviderDialog({
     queryFn: async () => {
       const { data } = await supabase
         .from("service_providers")
-        .select("id, name, specialty, email")
+        .select("id, name, specialty")
         .eq("active", true)
         .order("name");
       return data ?? [];
     },
   });
 
-  async function handleSave() {
-    if (!selected) {
-      toast.error("Selecione um prestador");
+  const { data: assigned = [], refetch } = useQuery({
+    queryKey: ["client-product-providers", clientProductId],
+    enabled: open && !!clientProductId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_product_providers")
+        .select("id, service_provider_id, role, is_primary, created_at, service_providers(name, specialty)")
+        .eq("client_product_id", clientProductId)
+        .order("is_primary", { ascending: false })
+        .order("created_at", { ascending: true });
+      return data ?? [];
+    },
+  });
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["client-product-providers", clientProductId] });
+    qc.invalidateQueries({ queryKey: ["client-products"] });
+    refetch();
+  };
+
+  async function handleAdd() {
+    if (!selected) { toast.error("Selecione um prestador"); return; }
+    if (assigned.some((a: any) => a.service_provider_id === selected)) {
+      toast.error("Este prestador já está vinculado");
       return;
     }
     setSaving(true);
+    const isFirst = assigned.length === 0;
     const { error } = await supabase
-      .from("client_products")
-      .update({ service_provider_id: selected })
-      .eq("id", clientProductId);
+      .from("client_product_providers")
+      .insert({
+        client_product_id: clientProductId,
+        service_provider_id: selected,
+        role: role || null,
+        is_primary: isFirst,
+      });
     setSaving(false);
-    if (error) {
-      toast.error("Erro ao delegar prestador", { description: error.message });
-      return;
-    }
-    toast.success("Prestador delegado com sucesso");
-    qc.invalidateQueries({ queryKey: ["client-products"] });
-    onOpenChange(false);
+    if (error) { toast.error("Erro ao vincular prestador", { description: error.message }); return; }
+    toast.success("Prestador vinculado");
+    setSelected(""); setRole("");
+    invalidateAll();
   }
+
+  async function handleRemove(id: string) {
+    const { error } = await supabase.from("client_product_providers").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Prestador removido");
+    invalidateAll();
+  }
+
+  async function handleSetPrimary(id: string) {
+    const { error } = await supabase
+      .from("client_product_providers")
+      .update({ is_primary: true })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Prestador principal atualizado");
+    invalidateAll();
+  }
+
+  const available = providers.filter((p: any) => !assigned.some((a: any) => a.service_provider_id === p.id));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserCog className="size-5 text-primary" />
-            Delegar Prestador
+            Prestadores da demanda
           </DialogTitle>
           <DialogDescription>
-            Define o prestador responsável por <strong>{productName ?? "este produto"}</strong>.
-            Ele terá acesso somente aos documentos vinculados a este atendimento.
+            Vincule um ou mais prestadores a <strong>{productName ?? "esta demanda"}</strong>.
+            O prestador marcado como principal aparece como responsável padrão.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 py-4">
-          <Label>Prestador de Serviço</Label>
-          <Select value={selected} onValueChange={setSelected}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um prestador..." />
-            </SelectTrigger>
-            <SelectContent>
-              {providers.map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                  {p.specialty ? ` · ${p.specialty}` : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="space-y-4 py-2">
+          {/* Lista atual */}
+          <div className="space-y-2">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Vinculados</Label>
+            {assigned.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+                Nenhum prestador vinculado ainda.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {assigned.map((a: any) => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-lg border p-2.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm">{a.service_providers?.name ?? "Prestador"}</span>
+                        {a.is_primary && (
+                          <Badge variant="default" className="text-[10px] gap-1">
+                            <Star className="size-2.5" /> Principal
+                          </Badge>
+                        )}
+                        {a.role && <Badge variant="outline" className="text-[10px]">{a.role}</Badge>}
+                      </div>
+                      {a.service_providers?.specialty && (
+                        <p className="text-[11px] text-muted-foreground">{a.service_providers.specialty}</p>
+                      )}
+                    </div>
+                    {!a.is_primary && (
+                      <Button size="sm" variant="ghost" onClick={() => handleSetPrimary(a.id)} title="Definir como principal">
+                        <Star className="size-4" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => handleRemove(a.id)} title="Remover">
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Adicionar novo */}
+          <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Adicionar prestador</Label>
+            <Select value={selected} onValueChange={setSelected}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um prestador..." />
+              </SelectTrigger>
+              <SelectContent>
+                {available.length === 0 ? (
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">Todos os prestadores ativos já estão vinculados.</div>
+                ) : available.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}{p.specialty ? ` · ${p.specialty}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Função / especialidade nesta demanda (opcional)"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            />
+            <Button onClick={handleAdd} disabled={saving || !selected} className="w-full" size="sm">
+              <Plus className="size-4 mr-1" /> {saving ? "Vinculando..." : "Vincular prestador"}
+            </Button>
+          </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Salvando..." : "Delegar"}
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
