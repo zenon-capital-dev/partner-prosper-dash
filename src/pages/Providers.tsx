@@ -383,6 +383,7 @@ export default function Providers() {
                   onAssign={() => { setAssignTarget(p); setAssignOpen(true); }}
                   onToggle={() => toggleActive(p)}
                   onDelete={() => removeProvider(p)}
+                  onCredentials={() => setCredRow(p)}
                 />
               ))}
             </div>
