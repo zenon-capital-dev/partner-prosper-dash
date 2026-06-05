@@ -582,6 +582,10 @@ export default function ClientDetail() {
               </div>
             </div>
           </TabsContent>
+
+          <TabsContent value="acesso" className="m-0">
+            <CredentialsManager userId={client.user_id} currentEmail={client.email} entityLabel="cliente" />
+          </TabsContent>
         </div>
       </Tabs>
 
