@@ -577,6 +577,7 @@ function ProviderCard({ provider, canManage, onDetail, onEdit, onAssign, onToggl
                 <DropdownMenuItem onClick={onDetail}><ArrowUpRight className="size-4 mr-2" /> Ver perfil</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onToggle}><Power className="size-4 mr-2" /> {provider.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
+                <DropdownMenuItem onClick={onCredentials}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>
                 <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
                   <Trash2 className="size-4 mr-2" /> Excluir
                 </DropdownMenuItem>
