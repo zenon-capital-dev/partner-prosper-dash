@@ -84,10 +84,19 @@ export default function ProviderPanel() {
   });
 
   const { data: documents = [] } = useQuery({
-    queryKey: ["provider-docs", cpIds.join(",")],
-    enabled: cpIds.length > 0,
+    queryKey: ["provider-docs", providerId, cpIds.join(",")],
+    enabled: !!providerId,
     queryFn: async () => {
-      const { data } = await supabase.from("documents").select("id, name, status, created_at, client_product_id, clients(full_name)").in("client_product_id", cpIds).order("created_at", { ascending: false }).limit(200);
+      const filters: string[] = [];
+      if (providerId) filters.push(`provider_id.eq.${providerId}`);
+      if (cpIds.length > 0) filters.push(`client_product_id.in.(${cpIds.join(",")})`);
+      if (filters.length === 0) return [];
+      const { data } = await supabase
+        .from("documents")
+        .select("id, name, status, created_at, client_product_id, due_date, description, clients(full_name)")
+        .or(filters.join(","))
+        .order("created_at", { ascending: false })
+        .limit(200);
       return data ?? [];
     },
   });
