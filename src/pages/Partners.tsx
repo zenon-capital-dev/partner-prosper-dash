@@ -787,6 +787,9 @@ function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
                     <button onClick={() => onToggle(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-amber-700 flex items-center justify-center" title={p.active ? "Desativar" : "Ativar"}>
                       {p.active ? <PowerOff className="size-3.5" /> : <Power className="size-3.5" />}
                     </button>
+                    <button onClick={() => onCredentials(p)} className="size-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-indigo-700 flex items-center justify-center" title="Alterar e-mail/senha">
+                      <KeyRound className="size-3.5" />
+                    </button>
                     <button onClick={() => onDelete(p)} className="size-8 rounded-md hover:bg-red-50 text-slate-500 hover:text-red-700 flex items-center justify-center" title="Excluir">
                       <Trash2 className="size-3.5" />
                     </button>
