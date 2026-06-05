@@ -627,6 +627,21 @@ export default function Collaborators() {
           </DialogContent>
         </Dialog>
       )}
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.full_name ?? credRow?.email}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.id}
+              currentEmail={credRow.email}
+              entityLabel="colaborador"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
