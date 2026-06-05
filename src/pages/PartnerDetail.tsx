@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History } from "lucide-react";
+import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound } from "lucide-react";
+import { CredentialsManager } from "@/components/CredentialsManager";
 ;
 import { formatBRL } from "@/lib/format";
 
