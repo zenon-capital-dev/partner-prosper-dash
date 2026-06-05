@@ -9,8 +9,9 @@ import {
   Building2, UserCheck, TrendingUp, Activity,
   Clock, CheckCircle2, MoreVertical, ShieldAlert,
   ChevronRight, Phone, Mail, Globe, MapPin, Trash2,
-  Wallet, PieChart, Star, Users, CalendarClock, Calendar
+  Wallet, PieChart, Star, Users, CalendarClock, Calendar, KeyRound
 } from "lucide-react";
+import { CredentialsManager } from "@/components/CredentialsManager";
 import { openWhatsApp } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { formatBRL, initials, formatDate, formatDoc, formatPhone } from "@/lib/format";
@@ -59,6 +60,7 @@ const TABS = [
   { id: "atividades", label: "Atividades", icon: Calendar },
   { id: "historico", label: "Histórico", icon: History },
   { id: "observacoes", label: "Observações", icon: AlertCircle },
+  { id: "acesso", label: "Acesso", icon: KeyRound },
 ];
 
 export default function ClientDetail() {
@@ -579,6 +581,10 @@ export default function ClientDetail() {
                 {client.internal_notes || "Nenhuma observação interna registrada para este cliente."}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="acesso" className="m-0">
+            <CredentialsManager userId={client.user_id} currentEmail={client.email} entityLabel="cliente" />
           </TabsContent>
         </div>
       </Tabs>

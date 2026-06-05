@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History } from "lucide-react";
+import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound } from "lucide-react";
+import { CredentialsManager } from "@/components/CredentialsManager";
 ;
 import { formatBRL } from "@/lib/format";
 
@@ -93,6 +94,7 @@ export default function PartnerDetail() {
           <TabsTrigger value="contrato"><FileSignature className="h-3 w-3 mr-1" />Contrato</TabsTrigger>
           <TabsTrigger value="bancarios"><Building2 className="h-3 w-3 mr-1" />Bancários</TabsTrigger>
           <TabsTrigger value="historico"><History className="h-3 w-3 mr-1" />Histórico</TabsTrigger>
+          <TabsTrigger value="acesso"><KeyRound className="h-3 w-3 mr-1" />Acesso</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="mt-4">
@@ -188,6 +190,10 @@ export default function PartnerDetail() {
               </div>
             ))}
           </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="acesso" className="mt-4">
+          <CredentialsManager userId={partner.user_id} currentEmail={partner.email} entityLabel="parceiro" />
         </TabsContent>
       </Tabs>
     </div>

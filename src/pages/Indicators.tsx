@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { cn } from "@/lib/utils";
+import { CredentialsManager } from "@/components/CredentialsManager";
 
 type SortKey = "name" | "clients" | "total" | "pending" | "percent" | "status" | "recent";
 type SortDir = "asc" | "desc";
@@ -46,6 +47,7 @@ export default function Indicators() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>(emptyForm);
+  const [credRow, setCredRow] = useState<any>(null);
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
@@ -411,6 +413,7 @@ export default function Indicators() {
                   onEdit={() => openEdit(r)}
                   onToggle={() => toggleActive(r)}
                   onDelete={() => remove(r)}
+                  onCredentials={() => setCredRow(r)}
                 />
               ))}
             </div>
@@ -482,6 +485,9 @@ export default function Indicators() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEdit(r)}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setCredRow(r)} disabled={!r.user_id}>
+                                <KeyRound className="size-4 mr-2" /> Alterar e-mail/senha
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => toggleActive(r)}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => remove(r)} className="text-destructive focus:text-destructive">
@@ -554,6 +560,21 @@ export default function Indicators() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.full_name}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.user_id}
+              currentEmail={credRow.email}
+              entityLabel="indicador"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -579,7 +600,7 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
   );
 }
 
-function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete }: any) {
+function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete, onCredentials }: any) {
   return (
     <div className="group relative overflow-hidden rounded-lg border border-slate-200/70 bg-white shadow-sm p-5 hover:border-indigo-200 hover:shadow-md transition-all">
       <div className="flex items-start justify-between gap-3 mb-4">
@@ -604,6 +625,7 @@ function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete }: any) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
+              <DropdownMenuItem onClick={onCredentials} disabled={!r.user_id}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>
               <DropdownMenuItem onClick={onToggle}><Power className="size-4 mr-2" /> {r.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">

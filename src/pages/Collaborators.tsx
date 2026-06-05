@@ -28,6 +28,7 @@ import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { initials, formatPhone } from "@/lib/format";
+import { CredentialsManager } from "@/components/CredentialsManager";
 
 type Role = "admin" | "admin_secondary" | "colaborador";
 type CollabRow = {
@@ -75,6 +76,7 @@ export default function Collaborators() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<CollabRow | null>(null);
+  const [credRow, setCredRow] = useState<CollabRow | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -403,6 +405,7 @@ export default function Collaborators() {
                   onToggleActive={() => toggleActive(c)}
                   onToggleAccess={() => toggleAccess(c)}
                   onRemove={() => removeCollab(c)}
+                  onCredentials={() => setCredRow(c)}
                 />
               ))}
             </div>
@@ -484,6 +487,9 @@ export default function Collaborators() {
                                 <DropdownMenuItem onClick={() => setEditing(c)}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toggleAccess(c)} disabled={c.id === myId}>
                                   <KeyRound className="size-4 mr-2" /> {c.has_system_access ? "Remover acesso" : "Liberar acesso"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setCredRow(c)}>
+                                  <KeyRound className="size-4 mr-2" /> Alterar e-mail/senha
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => toggleActive(c)} disabled={c.id === myId}>
                                   <Power className="size-4 mr-2" /> {c.active ? "Desativar" : "Ativar"}
@@ -621,6 +627,21 @@ export default function Collaborators() {
           </DialogContent>
         </Dialog>
       )}
+
+      <Dialog open={!!credRow} onOpenChange={(v) => !v && setCredRow(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso de {credRow?.full_name ?? credRow?.email}</DialogTitle>
+          </DialogHeader>
+          {credRow && (
+            <CredentialsManager
+              userId={credRow.id}
+              currentEmail={credRow.email}
+              entityLabel="colaborador"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -646,9 +667,10 @@ function SortableTh({ label, k, sortKey, sortDir, onSort, align = "left" }: any)
   );
 }
 
-function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess, onRemove }: {
+function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess, onRemove, onCredentials }: {
   c: CollabRow; canManage: boolean; isMe: boolean;
   onEdit: () => void; onToggleActive: () => void; onToggleAccess: () => void; onRemove: () => void;
+  onCredentials: () => void;
 }) {
   const meta = ROLE_META[c.role];
   const Icon = meta.icon;
@@ -677,6 +699,7 @@ function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
               <DropdownMenuItem onClick={onToggleAccess} disabled={isMe}><KeyRound className="size-4 mr-2" /> {c.has_system_access ? "Remover acesso" : "Liberar acesso"}</DropdownMenuItem>
+              <DropdownMenuItem onClick={onCredentials}><KeyRound className="size-4 mr-2" /> Alterar e-mail/senha</DropdownMenuItem>
               <DropdownMenuItem onClick={onToggleActive} disabled={isMe}><Power className="size-4 mr-2" /> {c.active ? "Desativar" : "Ativar"}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onRemove} disabled={isMe} className="text-destructive focus:text-destructive">
