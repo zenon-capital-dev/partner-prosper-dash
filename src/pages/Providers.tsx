@@ -66,6 +66,7 @@ export default function Providers() {
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignTarget, setAssignTarget] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [credRow, setCredRow] = useState<any>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
