@@ -75,6 +75,7 @@ export default function Collaborators() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<CollabRow | null>(null);
+  const [credRow, setCredRow] = useState<CollabRow | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
