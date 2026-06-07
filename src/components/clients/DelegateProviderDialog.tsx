@@ -59,8 +59,25 @@ export function DelegateProviderDialog({
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ["client-product-providers", clientProductId] });
     qc.invalidateQueries({ queryKey: ["client-products"] });
+    qc.invalidateQueries({ queryKey: ["demand-detail", clientProductId] });
+    qc.invalidateQueries({ queryKey: ["provider-cp"] });
     refetch();
   };
+
+  // Keep client_products.service_provider_id in sync with the primary delegate.
+  async function syncPrimary() {
+    const { data: rows } = await supabase
+      .from("client_product_providers")
+      .select("service_provider_id, is_primary, created_at")
+      .eq("client_product_id", clientProductId)
+      .order("is_primary", { ascending: false })
+      .order("created_at", { ascending: true });
+    const primary = (rows ?? []).find((r: any) => r.is_primary) ?? rows?.[0];
+    await supabase
+      .from("client_products")
+      .update({ service_provider_id: primary?.service_provider_id ?? null })
+      .eq("id", clientProductId);
+  }
 
   async function handleAdd() {
     if (!selected) { toast.error("Selecione um prestador"); return; }
@@ -78,8 +95,9 @@ export function DelegateProviderDialog({
         role: role || null,
         is_primary: isFirst,
       });
+    if (error) { setSaving(false); toast.error("Erro ao vincular prestador", { description: error.message }); return; }
+    await syncPrimary();
     setSaving(false);
-    if (error) { toast.error("Erro ao vincular prestador", { description: error.message }); return; }
     toast.success("Prestador vinculado");
     setSelected(""); setRole("");
     invalidateAll();
@@ -88,19 +106,27 @@ export function DelegateProviderDialog({
   async function handleRemove(id: string) {
     const { error } = await supabase.from("client_product_providers").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
+    await syncPrimary();
     toast.success("Prestador removido");
     invalidateAll();
   }
 
   async function handleSetPrimary(id: string) {
+    // Clear any other primary first
+    await supabase
+      .from("client_product_providers")
+      .update({ is_primary: false })
+      .eq("client_product_id", clientProductId);
     const { error } = await supabase
       .from("client_product_providers")
       .update({ is_primary: true })
       .eq("id", id);
     if (error) { toast.error(error.message); return; }
+    await syncPrimary();
     toast.success("Prestador principal atualizado");
     invalidateAll();
   }
+
 
   const available = providers.filter((p: any) => !assigned.some((a: any) => a.service_provider_id === p.id));
 
