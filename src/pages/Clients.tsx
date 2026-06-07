@@ -625,9 +625,20 @@ export default function Clients() {
                         </span>
                       ))}
                       {c._productNames.length > 3 && (
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold">
-                          +{c._productNames.length - 3}
-                        </span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold cursor-help">
+                              +{c._productNames.length - 3}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <div className="flex flex-col gap-0.5">
+                              {c._productNames.slice(3).map((p: string, i: number) => (
+                                <span key={i} className="text-xs">• {p}</span>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
                   )}
