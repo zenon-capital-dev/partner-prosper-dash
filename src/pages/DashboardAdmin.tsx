@@ -66,94 +66,97 @@ export default function DashboardAdmin() {
   const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
   const todayLabel = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric", timeZone: "America/Sao_Paulo" });
 
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({ 
-    queryKey: ["dash-clients"], 
-    queryFn: async () => (await supabase.from("clients").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
+  const STALE = 60_000; // 1 min — evita refetch agressivo ao trocar de aba/foco
+
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+    queryKey: ["dash-clients"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
-  const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({ 
-    queryKey: ["dash-demands"], 
-    queryFn: async () => (await supabase.from("client_products").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
+  const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
+    queryKey: ["dash-demands"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("client_products").select("id, status, client_id, custom_product_name, deadline, sla_due_date, end_date, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
-  const { data: sales = [], isLoading: isLoadingSales } = useQuery({ 
-    queryKey: ["dash-sales", rangeKey], 
+  const { data: sales = [], isLoading: isLoadingSales } = useQuery({
+    queryKey: ["dash-sales", rangeKey],
+    staleTime: STALE,
     queryFn: async () => {
-      let query = supabase.from("sales").select("*").order("sale_date", { ascending: false }).limit(5000);
-      
+      let query = supabase.from("sales").select("id, sale_date, amount, client_id").order("sale_date", { ascending: false }).limit(2000);
+
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
-      
+
       if (rangeKey === "7D") rangeStart.setDate(brasiliaToday.getDate() - 6);
       else if (rangeKey === "30D") rangeStart.setDate(brasiliaToday.getDate() - 29);
       else if (rangeKey === "MÊS") rangeStart = new Date(brasiliaToday.getFullYear(), brasiliaToday.getMonth(), 1);
-      
+
       const fetchStart = new Date(rangeStart);
       const periodDays = Math.max(1, Math.round((rangeEnd.getTime() - rangeStart.getTime()) / 86400000) + 1);
       fetchStart.setDate(fetchStart.getDate() - periodDays);
-      
+
       const { data, error } = await query.gte("sale_date", toLocalISO(fetchStart)).lte("sale_date", toLocalISO(rangeEnd));
       if (error) throw error;
       return data ?? [];
     }
   });
-  const { data: leads = [], isLoading: isLoadingLeads } = useQuery({ 
-    queryKey: ["dash-leads"], 
-    queryFn: async () => (await supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
+  const { data: leads = [], isLoading: isLoadingLeads } = useQuery({
+    queryKey: ["dash-leads"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("leads").select("id, status, estimated_value, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
-  const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({ 
-    queryKey: ["dash-commissions"], 
+  const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({
+    queryKey: ["dash-commissions"],
+    staleTime: STALE,
     queryFn: async () => {
-      const [splitsRes, legacyRes] = await Promise.all([
-        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(5000),
-        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at").order("created_at", { ascending: false }).limit(5000),
+      const [splits, comms] = await Promise.all([
+        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(2000),
+        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at").order("created_at", { ascending: false }).limit(2000),
       ]);
-      const splits = (splitsRes.data ?? []).map((s: any) => ({
-        id: s.id,
-        sale_id: s.sale_id,
-        amount: s.amount,
-        percent: s.percent,
-        status: s.status,
-        workflow_status: s.status,
-        paid_at: s.paid_at,
-        created_at: s.created_at,
-        _source: "split",
+      const splitsData = (splits.data ?? []).map((s: any) => ({
+        id: s.id, sale_id: s.sale_id, partner_id: s.beneficiary_type === "parceiro" ? s.beneficiary_id : null,
+        collaborator_id: s.beneficiary_type === "colaborador" ? s.beneficiary_id : null,
+        referrer_id: s.beneficiary_type === "indicador" ? s.beneficiary_id : null,
+        amount: s.amount, percent: s.percent, status: s.status, workflow_status: s.status, paid_at: s.paid_at, created_at: s.created_at,
       }));
-      // Legacy commissions: only include those whose sale_id has NO split (avoid double counting)
-      const splitSaleIds = new Set(splits.map((s: any) => s.sale_id).filter(Boolean));
-      const legacy = (legacyRes.data ?? [])
-        .filter((c: any) => !splitSaleIds.has(c.sale_id))
-        .map((c: any) => ({ ...c, _source: "legacy" }));
-      return [...splits, ...legacy];
+      return [...splitsData, ...(comms.data ?? [])];
     }
   });
-  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({ 
-    queryKey: ["dash-tasks"], 
-    queryFn: async () => (await supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
+  const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
+    queryKey: ["dash-tasks"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("tasks").select("id, title, status, status_new, due_date, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
-  const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({ 
-    queryKey: ["dash-contracts"], 
-    queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
+  const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({
+    queryKey: ["dash-contracts"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
-  const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({ 
-    queryKey: ["dash-doc-requests"], 
-    queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
+  const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({
+    queryKey: ["dash-doc-requests"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
 
   const { data: agendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
     queryKey: ["dash-agenda-today"],
+    staleTime: STALE,
     queryFn: async () => {
       const today = toLocalISO(brasiliaToday);
-      const { data } = await supabase.from("client_interactions").select("*").eq("next_action_at", today).eq("status", "pendente");
+      const { data } = await supabase.from("client_interactions").select("id, client_id, next_action_at, next_action_note, status").eq("next_action_at", today).eq("status", "pendente");
       return data ?? [];
     }
   });
 
-  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({ 
-    queryKey: ["dash-payments"], 
-    queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date")).data ?? [] 
+  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({
+    queryKey: ["dash-payments"],
+    staleTime: STALE,
+    queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date").limit(2000)).data ?? []
   });
 
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
+    staleTime: STALE,
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
