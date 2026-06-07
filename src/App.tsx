@@ -33,6 +33,7 @@ import Indicators from "./pages/Indicators";
 import Leads from "./pages/Leads";
 import PartnerPanel from "./pages/PartnerPanel";
 import PartnerMaterialsAdmin from "./pages/PartnerMaterialsAdmin";
+import PartnerContractsAdmin from "./pages/PartnerContractsAdmin";
 import PartnerSupportAdmin from "./pages/PartnerSupportAdmin";
 import ClientPanel from "./pages/ClientPanel";
 import ClientOnboarding from "./pages/ClientOnboarding";
@@ -103,6 +104,7 @@ const App = () => (
               <Route path="/parceiros/:id" element={<PartnerDetail />} />
               <Route path="/parceiros-materiais" element={<PartnerMaterialsAdmin />} />
               <Route path="/parceiros-suporte" element={<PartnerSupportAdmin />} />
+              <Route path="/parceiros-contratos" element={<PartnerContractsAdmin />} />
               <Route path="/produtos" element={<Products />} />
               <Route path="/produtos/:id" element={<ProductDetail />} />
               <Route path="/indicadores" element={<Indicators />} />
