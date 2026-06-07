@@ -105,6 +105,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").eq("active", true).order("name")).data ?? [],
   });
 
+  const { data: productsList } = useQuery({
+    queryKey: ["products-select-active"],
+    queryFn: async () => (await supabase.from("products").select("id, name, price").eq("active", true).order("name")).data ?? [],
+  });
+
+
   const { data: docTemplates } = useQuery({
     queryKey: ["doc-templates-setting"],
     queryFn: async () => {
