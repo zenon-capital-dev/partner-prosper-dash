@@ -326,7 +326,7 @@ export default function Collaborators() {
           { label: "Total", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" /> },
           { label: "Ativos", value: kpis.active, tone: "success", icon: <UserCircle className="size-4" />, onClick: () => setStatusFilter(statusFilter === "ativos" ? "todos" : "ativos") },
           { label: "Com acesso", value: kpis.withAccess, tone: "info", icon: <KeyRound className="size-4" />, onClick: () => setAccessFilter(accessFilter === "com" ? "todos" : "com") },
-          { label: "Admins", value: kpis.admins, tone: "violet", icon: <ShieldCheck className="size-4" />, onClick: () => setRoleFilter(roleFilter === "admin" ? "todos" : "admin") },
+          { label: "Comissões (total)", value: formatBRL(kpis.commTotal), tone: "violet", icon: <ShieldCheck className="size-4" />, hint: `Pago ${formatBRL(kpis.commPago)} · Pendente ${formatBRL(kpis.commPendente)}` } as any,
         ]}
       />
 
