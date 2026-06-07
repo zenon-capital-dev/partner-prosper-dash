@@ -523,7 +523,12 @@ export default function DashboardAdmin() {
                       <FooterStat label="Receita Bruta" value={formatBRL(stats.grossRevenue)} accent="emerald" />
                     </Link>
                     <Link to="/financeiro/central?tab=relatorios" className="block hover:bg-indigo-50/40 rounded-lg -m-1 p-1 transition-colors">
-                      <FooterStat label="Receita Líquida" value={formatBRL(stats.netRevenue)} />
+                      <FooterStat
+                        label="Receita Líquida"
+                        value={formatBRL(stats.netRevenue)}
+                        accent={stats.netRevenue < 0 ? "rose" : undefined}
+                        hint={`−${formatBRL(stats.periodCommissions)} com. · −${formatBRL(stats.periodTaxes)} imp.${stats.taxRate ? ` (${stats.taxRate}%)` : ""}`}
+                      />
                     </Link>
                     <Link to="/financeiro/central?tab=a_receber" className="block hover:bg-amber-50/40 rounded-lg -m-1 p-1 transition-colors">
                       <FooterStat label={`Estimativa (${stats.estimatedRevenueCount})`} value={formatBRL(stats.estimatedRevenue)} accent={stats.estimatedRevenue > 0 ? "rose" : undefined} />
