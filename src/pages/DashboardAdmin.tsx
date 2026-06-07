@@ -262,11 +262,6 @@ export default function DashboardAdmin() {
       .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
       .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
     const estimatedRevenueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status)).length;
-    // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
-    const estimatedRevenue = payments
-      .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
-      .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
-    const estimatedRevenueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status)).length;
 
     // Chart length matches the selected range exactly (HOJE = últimos 7 dias para contexto).
     const len =
