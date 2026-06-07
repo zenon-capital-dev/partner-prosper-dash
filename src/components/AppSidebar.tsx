@@ -203,7 +203,6 @@ const partnerSections: NavSection[] = [
     items: [
       { title: "Indicados", url: "/parceiro/clientes", icon: Users },
       { title: "Demandas", url: "/parceiro/demandas", icon: ClipboardList },
-      { title: "Contratos", url: "/parceiro/contratos", icon: FileSignature },
     ],
   },
   {
