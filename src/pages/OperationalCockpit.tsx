@@ -7,8 +7,12 @@ import {
   Zap, MoreHorizontal, ExternalLink,
   PlusCircle, CheckSquare, UserCheck, DollarSign,
   RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle,
-  Search, History as HistoryIcon, ArrowRight, UserPlus, Eye, Trash2
+  Search, History as HistoryIcon, ArrowRight, UserPlus, Eye, Trash2,
+  Calendar as CalendarIcon, Pencil
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
