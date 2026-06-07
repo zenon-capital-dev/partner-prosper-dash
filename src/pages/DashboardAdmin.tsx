@@ -885,12 +885,13 @@ function DeltaBadge({ value }: { value: number }) {
   );
 }
 
-function FooterStat({ label, value, accent }: { label: string; value: string; accent?: "emerald" | "rose" }) {
+function FooterStat({ label, value, accent, hint }: { label: string; value: string; accent?: "emerald" | "rose"; hint?: string }) {
   const color = accent === "emerald" ? "text-emerald-600" : accent === "rose" ? "text-rose-600" : "text-slate-900";
   return (
     <div>
       <p className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
       <p className={cn("font-display text-[15px] font-bold tabular-nums mt-1 leading-none", color)}>{value}</p>
+      {hint && <p className="text-[10px] text-slate-500 mt-1 leading-tight tabular-nums">{hint}</p>}
     </div>
   );
 }
