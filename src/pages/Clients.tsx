@@ -698,8 +698,21 @@ export default function Clients() {
                     <tr
                       key={c.id}
                       className="group hover:bg-slate-50/70 transition-colors cursor-pointer"
-                      onClick={() => navigate(`/clientes/${c.id}`)}
+                      onClick={(e) => {
+                        if ((e as any).metaKey || (e as any).ctrlKey || (e as any).shiftKey) {
+                          window.open(`/clientes/${c.id}`, "_blank");
+                          return;
+                        }
+                        navigate(`/clientes/${c.id}`);
+                      }}
+                      onAuxClick={(e) => {
+                        if (e.button === 1) {
+                          e.preventDefault();
+                          window.open(`/clientes/${c.id}`, "_blank");
+                        }
+                      }}
                     >
+
                       <td className="px-4 py-3.5 max-w-[280px]">
                         <div className="flex items-center gap-3">
                           <div className="size-9 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center text-[11px] font-bold shrink-0">
