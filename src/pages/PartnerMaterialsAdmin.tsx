@@ -47,7 +47,7 @@ export default function PartnerMaterialsAdmin() {
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["partner-materials-admin"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("partner_materials").select("*").order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("partner_materials").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []) as Material[];
     },
@@ -96,11 +96,11 @@ export default function PartnerMaterialsAdmin() {
       };
 
       if (editing) {
-        const { error } = await supabase.from("partner_materials").update(payload).eq("id", editing.id);
+        const { error } = await (supabase as any).from("partner_materials").update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
         payload.created_by = user?.id;
-        const { error } = await supabase.from("partner_materials").insert(payload);
+        const { error } = await (supabase as any).from("partner_materials").insert(payload);
         if (error) throw error;
       }
     },
@@ -116,7 +116,7 @@ export default function PartnerMaterialsAdmin() {
   const del = useMutation({
     mutationFn: async (m: Material) => {
       if (m.file_path) await supabase.storage.from("partner-materials").remove([m.file_path]);
-      const { error } = await supabase.from("partner_materials").delete().eq("id", m.id);
+      const { error } = await (supabase as any).from("partner_materials").delete().eq("id", m.id);
       if (error) throw error;
     },
     onSuccess: () => {
