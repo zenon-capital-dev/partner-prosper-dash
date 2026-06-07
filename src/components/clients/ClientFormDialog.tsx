@@ -559,7 +559,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                         setSelectedProducts((arr) => arr.map((r, i) => i === idx ? {
                           ...r,
                           product_id: v,
-                          value: r.value || (prod?.base_price ? String(prod.price) : ""),
+                          value: r.value || (prod?.base_price ? String(prod.base_price) : ""),
                         } : r));
                       }}
                     >
