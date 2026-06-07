@@ -256,10 +256,9 @@ export default function ClientPanel() {
         {activeKey === "pagamentos" && (
           <>
             <PanelHero role="cliente" eyebrow="Financeiro" title="Pagamentos" subtitle={`${payments.length} faturas`} stats={[
-              { label: "Pago", value: formatBRL(kpis.totalPaid) },
-              { label: "Em aberto", value: formatBRL(kpis.totalDue) },
               { label: "Faturas", value: payments.length },
               { label: "Pendentes", value: (payments as any[]).filter((p) => p.status !== "pago").length },
+              { label: "Pagas", value: (payments as any[]).filter((p) => p.status === "pago").length },
             ]} />
             <SectionCard title="">
               {payments.length === 0 ? <EmptyState icon={Wallet} title="Sem faturas" /> :
@@ -272,8 +271,8 @@ export default function ClientPanel() {
                           {p.status === "pago" ? <CheckCircle2 className="size-5" /> : <AlertCircle className="size-5" />}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-mono text-[14px] font-semibold text-slate-900 tabular-nums">{formatBRL(p.amount)}</p>
-                          <p className="text-[11.5px] text-slate-500 truncate">{p.description || "Fatura"} · {p.paid_at ? `pago ${formatDate(p.paid_at)}` : `vence ${formatDate(p.due_date)}`}</p>
+                          <p className="text-[13.5px] font-medium text-slate-900 truncate">{p.description || "Fatura"}</p>
+                          <p className="text-[11.5px] text-slate-500 truncate">{p.paid_at ? `Pago em ${formatDate(p.paid_at)}` : `Vence em ${formatDate(p.due_date)}`}</p>
                         </div>
                         <Badge variant="outline" className={cn("text-[10px] border capitalize shrink-0", p.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : overdue ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{overdue ? "vencido" : p.status}</Badge>
                       </li>
@@ -283,6 +282,7 @@ export default function ClientPanel() {
             </SectionCard>
           </>
         )}
+
 
         {activeKey === "suporte" && (
           <>
