@@ -66,17 +66,19 @@ export function DelegateProviderDialog({
 
   // Keep client_products.service_provider_id in sync with the primary delegate.
   async function syncPrimary() {
-    const { data: rows } = await supabase
+    const { data: rows, error: selErr } = await supabase
       .from("client_product_providers")
       .select("service_provider_id, is_primary, created_at")
       .eq("client_product_id", clientProductId)
       .order("is_primary", { ascending: false })
       .order("created_at", { ascending: true });
+    if (selErr) { toast.error("Erro ao ler vínculos", { description: selErr.message }); return; }
     const primary = (rows ?? []).find((r: any) => r.is_primary) ?? rows?.[0];
-    await supabase
+    const { error: upErr } = await supabase
       .from("client_products")
       .update({ service_provider_id: primary?.service_provider_id ?? null })
       .eq("id", clientProductId);
+    if (upErr) toast.error("Erro ao atualizar responsável", { description: upErr.message });
   }
 
   async function handleAdd() {
