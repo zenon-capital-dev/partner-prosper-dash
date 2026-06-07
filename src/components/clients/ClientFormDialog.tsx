@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { onlyDigits, maskCPFCNPJ, maskPhoneBR, maskCEP } from "@/lib/masks";
 import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
+import { generateSecurePassword } from "@/lib/password";
 
 interface Props {
   open: boolean;
@@ -73,11 +74,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   }, [client, open]);
 
   const generatePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-    let p = "";
-    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
-    p += "!" + Math.floor(Math.random() * 90 + 10);
-    setAccessPwd(p);
+    setAccessPwd(generateSecurePassword(12));
     setShowPwd(true);
   };
 

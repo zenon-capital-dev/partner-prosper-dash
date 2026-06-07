@@ -739,12 +739,16 @@ export default function OperationalCockpit() {
                 {detailItem.date && (
                   <DetailRow label="Data" value={format(new Date(detailItem.date), "dd/MM/yyyy HH:mm", { locale: ptBR })} />
                 )}
-                <div className="pt-4 border-t">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Dados completos</p>
-                  <pre className="text-[11px] bg-slate-50 p-3 rounded-lg overflow-auto max-h-72 border border-slate-200">
+                {import.meta.env.DEV && (
+                  <details className="pt-4 border-t">
+                    <summary className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 cursor-pointer">
+                      Debug (dev only)
+                    </summary>
+                    <pre className="text-[11px] bg-slate-50 p-3 rounded-lg overflow-auto max-h-72 border border-slate-200">
 {JSON.stringify(detailItem.metadata, null, 2)}
-                  </pre>
-                </div>
+                    </pre>
+                  </details>
+                )}
               </div>
               <SheetFooter className="mt-6 flex-row gap-2 sm:flex-row">
                 <Button className="flex-1" onClick={() => { openItem(detailItem); setDetailItem(null); }}>

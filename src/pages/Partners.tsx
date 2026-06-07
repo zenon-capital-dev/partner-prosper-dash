@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
+import { generateSecurePassword } from "@/lib/password";
 import {
   Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
   Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,
@@ -184,11 +185,7 @@ export default function Partners() {
   };
 
   const generatePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-    let p = "";
-    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
-    p += "!" + Math.floor(Math.random() * 90 + 10);
-    setAccessPwd(p);
+    setAccessPwd(generateSecurePassword(12));
     setShowPwd(true);
   };
 

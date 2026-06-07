@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { onlyDigits } from "@/lib/masks";
 import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
-import { validatePassword } from "@/lib/password";
+import { validatePassword, generateSecurePassword } from "@/lib/password";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -83,17 +83,7 @@ const relativeLastSeen = (d?: string | null) => {
   return `${Math.floor(diffMs / (365 * day))}a atrás`;
 };
 
-const generatePassword = () => {
-  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lower = "abcdefghijkmnopqrstuvwxyz";
-  const num = "23456789";
-  const sym = "!@#$%&*";
-  const all = upper + lower + num + sym;
-  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
-  let pwd = pick(upper) + pick(lower) + pick(num) + pick(sym);
-  for (let i = 0; i < 8; i++) pwd += pick(all);
-  return pwd.split("").sort(() => Math.random() - 0.5).join("");
-};
+const generatePassword = () => generateSecurePassword(12);
 
 type SortKey = "name" | "email" | "last_sign_in_at" | "created_at";
 type SortDir = "asc" | "desc";
