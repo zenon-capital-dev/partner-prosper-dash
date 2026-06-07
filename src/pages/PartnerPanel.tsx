@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
-  BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare,
+  BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare, FileSignature, Upload, FileCheck2,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -29,6 +29,7 @@ const NAV = [
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "extrato",    label: "Extrato",    icon: FileText },
   { key: "materiais",  label: "Materiais",  icon: BookOpen },
+  { key: "contratos",  label: "Contratos",  icon: FileSignature },
   { key: "suporte",    label: "Suporte",    icon: LifeBuoy },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
 ];
