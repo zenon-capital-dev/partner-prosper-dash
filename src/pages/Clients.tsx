@@ -625,9 +625,20 @@ export default function Clients() {
                         </span>
                       ))}
                       {c._productNames.length > 3 && (
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold">
-                          +{c._productNames.length - 3}
-                        </span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold cursor-help">
+                              +{c._productNames.length - 3}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <div className="flex flex-col gap-0.5">
+                              {c._productNames.slice(3).map((p: string, i: number) => (
+                                <span key={i} className="text-xs">• {p}</span>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
                   )}
@@ -715,7 +726,20 @@ export default function Clients() {
                               {c._productNames.slice(0, 2).map((p: string, i: number) => (
                                 <span key={i} className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] text-slate-700 whitespace-nowrap">{p}</span>
                               ))}
-                              {c._productNames.length > 2 && <span className="px-2 py-0.5 rounded-md bg-slate-100 text-[11px] text-slate-500">+{c._productNames.length - 2}</span>}
+                              {c._productNames.length > 2 && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-[11px] text-slate-500 cursor-help">+{c._productNames.length - 2}</span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <div className="flex flex-col gap-0.5">
+                                      {c._productNames.slice(2).map((p: string, i: number) => (
+                                        <span key={i} className="text-xs">• {p}</span>
+                                      ))}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
                             </>
                           ) : <span className="text-xs text-slate-400">—</span>}
                         </div>
