@@ -683,12 +683,18 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatTile({ label, value, icon: Icon, tone, onClick }: any) {
+function StatTile({ label, value, icon: Icon, tone, onClick, active }: any) {
   const tones = {
     primary: "bg-primary/10 text-primary border-primary/20",
     success: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     warning: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     danger: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+  };
+  const activeRings = {
+    primary: "ring-2 ring-primary ring-offset-2",
+    success: "ring-2 ring-emerald-500 ring-offset-2",
+    warning: "ring-2 ring-amber-500 ring-offset-2",
+    danger: "ring-2 ring-rose-500 ring-offset-2",
   };
 
   return (
@@ -696,7 +702,8 @@ function StatTile({ label, value, icon: Icon, tone, onClick }: any) {
       onClick={onClick}
       className={cn(
         "vx-card p-6 flex flex-col gap-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]",
-        onClick ? "cursor-pointer" : "cursor-default"
+        onClick ? "cursor-pointer" : "cursor-default",
+        active && activeRings[tone as keyof typeof activeRings]
       )}
     >
       <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone as keyof typeof tones])}>
