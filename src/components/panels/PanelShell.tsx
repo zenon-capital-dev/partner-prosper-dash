@@ -88,7 +88,7 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
               <div className="lg:hidden">
                 <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Abrir menu">
                       <Menu className="size-5" />
                     </Button>
                   </SheetTrigger>
