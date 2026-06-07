@@ -32,6 +32,8 @@ import UsersPage from "./pages/UsersPage";
 import Indicators from "./pages/Indicators";
 import Leads from "./pages/Leads";
 import PartnerPanel from "./pages/PartnerPanel";
+import PartnerMaterialsAdmin from "./pages/PartnerMaterialsAdmin";
+import PartnerSupportAdmin from "./pages/PartnerSupportAdmin";
 import ClientPanel from "./pages/ClientPanel";
 import ClientOnboarding from "./pages/ClientOnboarding";
 import Collaborators from "./pages/Collaborators";
@@ -99,6 +101,8 @@ const App = () => (
               <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="/parceiros" element={<Partners />} />
               <Route path="/parceiros/:id" element={<PartnerDetail />} />
+              <Route path="/parceiros-materiais" element={<PartnerMaterialsAdmin />} />
+              <Route path="/parceiros-suporte" element={<PartnerSupportAdmin />} />
               <Route path="/produtos" element={<Products />} />
               <Route path="/produtos/:id" element={<ProductDetail />} />
               <Route path="/indicadores" element={<Indicators />} />
