@@ -590,21 +590,6 @@ export default function PartnerPanel() {
                 )}
               </div>
             </SectionCard>
-              <div className="flex items-center gap-2 mt-5">
-                {editing ? (
-                  <>
-                    <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
-                      <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar"}
-                    </Button>
-                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>
-                      Cancelar
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={() => setEditing(true)} className="bg-indigo-600 hover:bg-indigo-700">Editar dados</Button>
-                )}
-              </div>
-            </SectionCard>
 
             <SectionCard title="Preferências" icon={Eye}>
               <div className="flex items-center justify-between gap-4">
