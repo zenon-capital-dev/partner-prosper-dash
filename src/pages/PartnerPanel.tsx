@@ -500,14 +500,96 @@ export default function PartnerPanel() {
                   <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} disabled={!editing} className="mt-1" placeholder="(00) 0000-0000" />
                 </div>
                 <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento (CPF/CNPJ)</Label>
+                  <Input value={form.document} onChange={(e) => setForm({ ...form, document: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div>
                   <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">WhatsApp</Label>
                   <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} disabled={!editing} className="mt-1" placeholder="(00) 00000-0000" />
                 </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Endereço" icon={UserCog}>
+              <div className="grid sm:grid-cols-6 gap-4">
+                <div className="sm:col-span-2">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">CEP</Label>
+                  <Input value={form.address_zip} onChange={(e) => setForm({ ...form, address_zip: e.target.value })} disabled={!editing} className="mt-1" placeholder="00000-000" />
+                </div>
+                <div className="sm:col-span-4">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Rua</Label>
+                  <Input value={form.address_street} onChange={(e) => setForm({ ...form, address_street: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div className="sm:col-span-1">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Número</Label>
+                  <Input value={form.address_number} onChange={(e) => setForm({ ...form, address_number: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Complemento</Label>
+                  <Input value={form.address_complement} onChange={(e) => setForm({ ...form, address_complement: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div className="sm:col-span-3">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Bairro</Label>
+                  <Input value={form.address_neighborhood} onChange={(e) => setForm({ ...form, address_neighborhood: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div className="sm:col-span-4">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Cidade</Label>
+                  <Input value={form.address_city} onChange={(e) => setForm({ ...form, address_city: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Estado (UF)</Label>
+                  <Input value={form.address_state} onChange={(e) => setForm({ ...form, address_state: e.target.value })} disabled={!editing} className="mt-1" maxLength={2} />
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Dados bancários" icon={UserCog}>
+              <p className="text-[12px] text-slate-500 mb-4">Usamos esses dados para pagar suas comissões.</p>
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Chave PIX</Label>
                   <Input value={form.pix_key} onChange={(e) => setForm({ ...form, pix_key: e.target.value })} disabled={!editing} className="mt-1" placeholder="CPF, e-mail, telefone ou chave aleatória" />
                 </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Banco</Label>
+                  <Input value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Tipo de conta</Label>
+                  <Select value={form.bank_account_type || "corrente"} onValueChange={(v) => setForm({ ...form, bank_account_type: v })} disabled={!editing}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="corrente">Conta corrente</SelectItem>
+                      <SelectItem value="poupanca">Conta poupança</SelectItem>
+                      <SelectItem value="pagamento">Conta de pagamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Agência</Label>
+                  <Input value={form.bank_agency} onChange={(e) => setForm({ ...form, bank_agency: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Conta</Label>
+                  <Input value={form.bank_account} onChange={(e) => setForm({ ...form, bank_account: e.target.value })} disabled={!editing} className="mt-1" placeholder="00000-0" />
+                </div>
               </div>
+            </SectionCard>
+
+            <SectionCard title="">
+              <div className="flex items-center gap-2">
+                {editing ? (
+                  <>
+                    <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                      <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar todos os dados"}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>Cancelar</Button>
+                  </>
+                ) : (
+                  <Button onClick={() => setEditing(true)} className="bg-indigo-600 hover:bg-indigo-700">Editar dados</Button>
+                )}
+              </div>
+            </SectionCard>
               <div className="flex items-center gap-2 mt-5">
                 {editing ? (
                   <>
