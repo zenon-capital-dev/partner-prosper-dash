@@ -191,8 +191,12 @@ export default function Collaborators() {
     const active = rows.filter((r) => r.active).length;
     const withAccess = rows.filter((r) => r.has_system_access).length;
     const admins = rows.filter((r) => r.role === "admin" || r.role === "admin_secondary").length;
-    return { total, active, withAccess, admins };
-  }, [rows]);
+    const totals = Object.values(commissionTotals as Record<string, { total: number; pago: number; pendente: number }>);
+    const commTotal = totals.reduce((a, t) => a + t.total, 0);
+    const commPago = totals.reduce((a, t) => a + t.pago, 0);
+    const commPendente = totals.reduce((a, t) => a + t.pendente, 0);
+    return { total, active, withAccess, admins, commTotal, commPago, commPendente };
+  }, [rows, commissionTotals]);
 
   const adminCount = useMemo(
     () => rows.filter((r) => (r.role === "admin" || r.role === "admin_secondary") && r.active && r.has_system_access).length,
