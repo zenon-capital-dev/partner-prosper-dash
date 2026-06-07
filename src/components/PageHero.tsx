@@ -114,7 +114,7 @@ export function PageHero({
                 onClick={k.onClick}
                 type={k.onClick ? "button" : undefined}
                 className={cn(
-                  "group/kpi relative min-w-0 overflow-hidden rounded-xl border bg-white dark:bg-card p-3 sm:p-4 lg:p-[18px] transition-all duration-300 text-left",
+                  "group/kpi relative min-w-0 overflow-hidden rounded-xl border bg-white dark:bg-card p-3 sm:p-3.5 lg:p-4 transition-all duration-300 text-left",
                   "border-slate-200/70 dark:border-border shadow-[0_1px_0_rgba(15,23,42,0.04)]",
                   "hover:shadow-[0_8px_28px_-12px_rgba(15,23,42,0.15)] hover:-translate-y-[1px] hover:border-slate-300/80",
                   k.onClick && "cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-200"
@@ -143,7 +143,11 @@ export function PageHero({
                     </div>
                   )}
                 </div>
-                <p className="font-display text-[20px] sm:text-[24px] lg:text-[28px] font-extrabold tabular-nums leading-tight break-words text-slate-950 dark:text-foreground relative">
+                <p
+                  className="font-display font-extrabold tabular-nums leading-tight whitespace-nowrap overflow-hidden text-ellipsis tracking-tight text-slate-950 dark:text-foreground relative"
+                  style={{ fontSize: "clamp(16px, 1.55vw, 26px)" }}
+                  title={typeof k.value === "string" || typeof k.value === "number" ? String(k.value) : undefined}
+                >
                   {k.value}
                 </p>
                 {k.hint && (
