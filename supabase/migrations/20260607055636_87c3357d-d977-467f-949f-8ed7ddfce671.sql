@@ -1,0 +1,15 @@
+CREATE INDEX IF NOT EXISTS idx_expenses_expense_date ON public.expenses (expense_date DESC);
+CREATE INDEX IF NOT EXISTS idx_expenses_created_by ON public.expenses (created_by);
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON public.tasks (assigned_to);
+CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON public.tasks (due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks (status);
+CREATE INDEX IF NOT EXISTS idx_sales_created_at ON public.sales (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sales_sale_date ON public.sales (sale_date DESC);
+CREATE INDEX IF NOT EXISTS idx_payments_due_date ON public.payments (due_date);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON public.payments (status);
+CREATE INDEX IF NOT EXISTS idx_commission_splits_status ON public.commission_splits (status);
+CREATE INDEX IF NOT EXISTS idx_leads_created_at ON public.leads (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON public.leads (status);
+CREATE INDEX IF NOT EXISTS idx_documents_created_at ON public.documents (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_contracts_created_at ON public.contracts (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_client_products_created_at ON public.client_products (created_at DESC);
