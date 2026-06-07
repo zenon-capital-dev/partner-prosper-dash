@@ -367,13 +367,13 @@ export default function DashboardAdmin() {
       openContracts, waitingSignatureContracts, pendingDocs, overdueTasks, todayTasks, openTasks,
       commissionsToPay, commissionsCount,
       receivable7d, receivable7dCount, overdueAmount, overdueCount, receivedTotal,
-      grossRevenue, netRevenue, commissionsPaid, estimatedRevenue, estimatedRevenueCount,
+      grossRevenue, netRevenue, commissionsPaid, periodCommissions, periodTaxes, taxRate: Number(taxRate) || 0, estimatedRevenue, estimatedRevenueCount,
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
       todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount, todayAgendaList,
     };
-  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday]);
+  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday, taxRate]);
 
   return (
     <div className="min-h-screen bg-background text-foreground admin-shell overflow-x-hidden">
