@@ -7,8 +7,12 @@ import {
   Zap, MoreHorizontal, ExternalLink,
   PlusCircle, CheckSquare, UserCheck, DollarSign,
   RefreshCcw, ShieldAlert, Send, Paperclip, MessageCircle,
-  Search, History as HistoryIcon, ArrowRight, UserPlus, Eye, Trash2
+  Search, History as HistoryIcon, ArrowRight, UserPlus, Eye, Trash2,
+  Calendar as CalendarIcon, Pencil
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -337,6 +341,36 @@ export default function OperationalCockpit() {
 
   const [detailItem, setDetailItem] = useState<CockpitItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<CockpitItem | null>(null);
+  const [selectedDemandIds, setSelectedDemandIds] = useState<Set<string>>(new Set());
+  const [bulkDate, setBulkDate] = useState<Date | undefined>();
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const updateDeadlineMutation = useMutation({
+    mutationFn: async ({ ids, date }: { ids: string[]; date: Date }) => {
+      const iso = date.toISOString().slice(0, 10);
+      const { error } = await supabase
+        .from("client_products")
+        .update({ deadline: iso })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(`Data de atuação atualizada em ${vars.ids.length} demanda(s).`);
+      queryClient.invalidateQueries();
+      setSelectedDemandIds(new Set());
+      setBulkDate(undefined);
+      setBulkOpen(false);
+    },
+    onError: (e: any) => toast.error("Erro ao atualizar: " + e.message),
+  });
+
+  const toggleDemandSelect = (id: string) => {
+    setSelectedDemandIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const notifyMutation = useMutation({
     mutationFn: async ({ userId, title, message }: { userId: string, title: string, message: string }) => {
@@ -585,6 +619,80 @@ export default function OperationalCockpit() {
         </Tabs>
       </div>
 
+      {/* BULK ACTIONS — DEMANDAS */}
+      {(() => {
+        const visibleDemands = filteredItems.filter(i => i.type === 'demand');
+        if (visibleDemands.length === 0) return null;
+        const allSelected = visibleDemands.every(d => selectedDemandIds.has(d.id));
+        const someSelected = selectedDemandIds.size > 0;
+        return (
+          <div className="vx-card p-3 flex flex-wrap items-center gap-3 border-indigo-200/60 bg-indigo-50/40">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(c) => {
+                  if (c) setSelectedDemandIds(new Set(visibleDemands.map(d => d.id)));
+                  else setSelectedDemandIds(new Set());
+                }}
+              />
+              <span className="text-xs font-bold text-slate-700">
+                {someSelected
+                  ? `${selectedDemandIds.size} demanda(s) selecionada(s)`
+                  : `Selecionar todas as ${visibleDemands.length} demandas visíveis`}
+              </span>
+            </div>
+            <div className="flex-1" />
+            <Popover open={bulkOpen} onOpenChange={setBulkOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="sm"
+                  className="rounded-xl gap-2 text-xs font-bold"
+                  disabled={!someSelected}
+                >
+                  <CalendarIcon className="size-3.5" />
+                  {bulkDate
+                    ? `Aplicar ${format(bulkDate, "dd/MM/yyyy")}`
+                    : "Definir data de atuação"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={bulkDate}
+                  onSelect={setBulkDate}
+                  initialFocus
+                />
+                <div className="p-3 border-t flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setBulkOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!bulkDate || updateDeadlineMutation.isPending}
+                    onClick={() => bulkDate && updateDeadlineMutation.mutate({
+                      ids: Array.from(selectedDemandIds),
+                      date: bulkDate
+                    })}
+                  >
+                    Replicar para {selectedDemandIds.size}
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            {someSelected && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="rounded-xl text-xs"
+                onClick={() => setSelectedDemandIds(new Set())}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+        );
+      })()}
+
       {/* MAIN LIST */}
       <div className="space-y-4">
         {filteredItems.length > 0 ? (
@@ -592,7 +700,11 @@ export default function OperationalCockpit() {
             <CockpitRow 
               key={`${item.type}-${item.id}`} 
               item={item} 
-              onAction={(action) => handleAction(action, item)} 
+              onAction={(action) => handleAction(action, item)}
+              selected={selectedDemandIds.has(item.id)}
+              onToggleSelect={() => toggleDemandSelect(item.id)}
+              onUpdateDate={(date) => updateDeadlineMutation.mutate({ ids: [item.id], date })}
+              isUpdatingDate={updateDeadlineMutation.isPending}
             />
           ))
         ) : (
@@ -717,7 +829,16 @@ function StatTile({ label, value, icon: Icon, tone, onClick, active }: any) {
   );
 }
 
-function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: string) => void }) {
+function CockpitRow({ item, onAction, selected, onToggleSelect, onUpdateDate, isUpdatingDate }: {
+  item: CockpitItem;
+  onAction: (action: string) => void;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+  onUpdateDate?: (date: Date) => void;
+  isUpdatingDate?: boolean;
+}) {
+  const [dateOpen, setDateOpen] = useState(false);
+  const [pickedDate, setPickedDate] = useState<Date | undefined>(item.date ? new Date(item.date) : undefined);
   const navigate = useNavigate();
   const typeConfig = {
     demand: { icon: Zap, label: 'Demanda', color: 'bg-indigo-500/10 text-indigo-500' },
@@ -743,6 +864,9 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
 
   return (
     <div className="vx-card group flex flex-col md:flex-row items-center gap-4 p-4 transition-all hover:bg-slate-50 border-slate-100">
+      {item.type === 'demand' && onToggleSelect && (
+        <Checkbox checked={!!selected} onCheckedChange={() => onToggleSelect()} className="shrink-0" />
+      )}
       <div className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0", config.color)}>
         <Icon className="size-6" />
       </div>
@@ -760,6 +884,31 @@ function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: 
               <Clock className="size-3" /> 
               {format(new Date(item.date), "dd 'de' MMM", { locale: ptBR })}
             </span>
+          )}
+          {item.type === 'demand' && onUpdateDate && (
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-indigo-50"
+                  title="Alterar data de atuação"
+                >
+                  <Pencil className="size-3" /> editar data
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={pickedDate} onSelect={setPickedDate} initialFocus />
+                <div className="p-3 border-t flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setDateOpen(false)}>Cancelar</Button>
+                  <Button
+                    size="sm"
+                    disabled={!pickedDate || isUpdatingDate}
+                    onClick={() => { if (pickedDate) { onUpdateDate(pickedDate); setDateOpen(false); } }}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
         <h3 className="text-base font-bold text-slate-900 mt-1 group-hover:text-primary transition-colors truncate">
