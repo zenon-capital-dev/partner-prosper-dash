@@ -157,14 +157,15 @@ export default function ClientPanel() {
               role="cliente"
               eyebrow="Portal do cliente"
               title={<>Olá, {firstName} 👋</>}
-              subtitle="Acompanhe seus serviços, documentos e pagamentos em um só lugar."
+              subtitle="Acompanhe seus serviços e documentos em um só lugar."
               stats={[
                 { label: "Serviços ativos", value: kpis.active },
                 { label: "Docs pendentes", value: kpis.docsPend, sub: kpis.docsPend ? "ação necessária" : "tudo enviado" },
-                { label: "Pago", value: formatBRL(kpis.totalPaid) },
-                { label: "Em aberto", value: formatBRL(kpis.totalDue) },
+                { label: "Faturas", value: payments.length },
+                { label: "Pendentes", value: (payments as any[]).filter((p) => p.status !== "pago").length },
               ]}
             />
+
 
             <div className="grid lg:grid-cols-3 gap-5">
               <SectionCard className="lg:col-span-2" title="Seus serviços" icon={Briefcase} action={<Button size="sm" variant="outline" onClick={() => onNavigate("servicos")}>Ver todos</Button>}>
