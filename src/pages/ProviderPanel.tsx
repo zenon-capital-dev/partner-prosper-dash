@@ -61,6 +61,9 @@ export default function ProviderPanel() {
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["provider-cp", providerId],
     enabled: !!providerId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       // Só consideramos demandas em que o prestador foi atribuído explicitamente:
       //  - service_provider_id (prestador principal da demanda)
