@@ -34,10 +34,10 @@ const CONFIG: Record<LinkKind, Cfg> = {
     table: "client_partners",
     fkField: "partner_id",
     sourceTable: "partners",
-    sourceFields: "id, full_name, company, email, active",
-    joinSelect: "partners(id, full_name, company, email)",
+    sourceFields: "id, full_name, email, active",
+    joinSelect: "partners(id, full_name, email)",
     labelKey: (r) => r.partners?.full_name ?? "Parceiro",
-    subKey: (r) => r.partners?.company || r.partners?.email,
+    subKey: (r) => r.partners?.email,
     title: "Parceiros",
     icon: <Handshake className="size-4" />,
     color: "indigo",
@@ -273,7 +273,6 @@ export function ClientLinksManager({ clientId, kind }: Props) {
                     <SelectItem key={o.id} value={o.id}>
                       {kind === "provider" ? o.name : o.full_name}
                       {o.specialty ? ` · ${o.specialty}` : ""}
-                      {o.company ? ` · ${o.company}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
