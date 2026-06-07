@@ -376,7 +376,7 @@ export default function Reports() {
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [sales]);
 
-  // Top 5 produtos
+  // Top 5 produtos por receita
   const topProducts = useMemo(() => {
     const map: Record<string, number> = {};
     sales.forEach((s: any) => {
@@ -385,6 +385,48 @@ export default function Reports() {
     });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
   }, [sales]);
+
+  // Produtos mais vendidos (quantidade de vendas)
+  const topByQuantity = useMemo(() => {
+    const map: Record<string, number> = {};
+    sales.forEach((s: any) => {
+      const n = s.products?.name || "Outros";
+      map[n] = (map[n] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [sales]);
+
+  // Produtos com maior adesão (clientes únicos)
+  const topByAdoption = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+    clientProducts.forEach((p: any) => {
+      const n = p.products?.name || "Outros";
+      const cid = p.client_id;
+      if (!cid) return;
+      (map[n] ||= new Set()).add(cid);
+    });
+    return Object.entries(map)
+      .map(([name, set]) => ({ name, value: set.size }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [clientProducts]);
+
+  // Produtos com maior conversão efetiva (concluído / total demandas)
+  const topByConversion = useMemo(() => {
+    const map: Record<string, { total: number; concl: number }> = {};
+    const concludedStatuses = new Set(["concluido", "concluída", "concluida", "finalizado", "entregue", "fechado"]);
+    clientProducts.forEach((p: any) => {
+      const n = p.products?.name || "Outros";
+      (map[n] ||= { total: 0, concl: 0 });
+      map[n].total += 1;
+      if (concludedStatuses.has(String(p.status ?? "").toLowerCase())) map[n].concl += 1;
+    });
+    return Object.entries(map)
+      .filter(([, v]) => v.total >= 1)
+      .map(([name, v]) => ({ name, value: v.total === 0 ? 0 : Math.round((v.concl / v.total) * 1000) / 10, concl: v.concl, total: v.total }))
+      .sort((a, b) => b.value - a.value || b.total - a.total)
+      .slice(0, 5);
+  }, [clientProducts]);
 
   // Demandas por status
   const demandsByStatus = useMemo(() => {
@@ -513,6 +555,53 @@ export default function Reports() {
           )}
         </div>
       </div>
+
+      {/* Análise de produtos: quantidade, adesão, conversão */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {[
+          { title: "Mais Vendidos", subtitle: "Quantidade de vendas no período", data: topByQuantity, fmt: (v: number) => `${v} venda${v === 1 ? "" : "s"}`, accent: "from-indigo-500 to-indigo-600", empty: "Sem vendas no período." },
+          { title: "Maior Adesão", subtitle: "Clientes únicos que aderiram", data: topByAdoption, fmt: (v: number) => `${v} cliente${v === 1 ? "" : "s"}`, accent: "from-emerald-500 to-emerald-600", empty: "Sem demandas no período." },
+          { title: "Maior Conversão", subtitle: "% de demandas concluídas", data: topByConversion, fmt: (v: number, extra?: any) => `${v.toFixed(1)}% (${extra?.concl ?? 0}/${extra?.total ?? 0})`, accent: "from-amber-500 to-amber-600", empty: "Sem demandas no período." },
+        ].map((card) => {
+          const max = card.data[0]?.value || 1;
+          return (
+            <div key={card.title} className="vx-card p-6 rounded-[24px] bg-white border border-slate-100">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-editorial text-lg font-bold">{card.title}</h3>
+                  <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+                </div>
+                <Award className="size-5 text-slate-300" />
+              </div>
+              <div className="space-y-3">
+                {card.data.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">{card.empty}</p>
+                ) : (
+                  card.data.map((p: any, i: number) => {
+                    const pct = max === 0 ? 0 : (p.value / max) * 100;
+                    return (
+                      <div key={p.name} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs font-semibold gap-2">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="size-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black shrink-0">{i + 1}</span>
+                            <span className="truncate">{p.name}</span>
+                          </span>
+                          <span className="tabular-nums whitespace-nowrap text-slate-700">{card.fmt(p.value, p)}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${card.accent}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+
 
 
       {/* FILTERS */}
