@@ -64,6 +64,9 @@ export default function ClientPanel() {
   const { data: demandas = [] } = useQuery({
     queryKey: ["client-demandas", clientId],
     enabled: !!clientId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 45_000,
     queryFn: async () => {
       const { data } = await supabase.from("client_products")
         .select("id, status, value, deadline, sla_due_date, created_at, custom_product_name, products(name, description)")
@@ -75,6 +78,9 @@ export default function ClientPanel() {
   const { data: docs = [] } = useQuery({
     queryKey: ["client-docs", clientId],
     enabled: !!clientId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 30_000,
     queryFn: async () => {
       // Read from both legacy (client_document_requests) and the main documents table
       // used by the admin "Solicitar Documento" flow.
@@ -110,6 +116,9 @@ export default function ClientPanel() {
   const { data: payments = [] } = useQuery({
     queryKey: ["client-payments", clientId],
     enabled: !!clientId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("payments")
         .select("id, amount, status, due_date, paid_at, description, created_at")
@@ -117,6 +126,7 @@ export default function ClientPanel() {
       return data ?? [];
     },
   });
+
 
   const kpis = useMemo(() => {
     const active = (demandas as any[]).filter((d) => !["concluida","concluido","cancelada"].includes(d.status)).length;
@@ -147,14 +157,15 @@ export default function ClientPanel() {
               role="cliente"
               eyebrow="Portal do cliente"
               title={<>Olá, {firstName} 👋</>}
-              subtitle="Acompanhe seus serviços, documentos e pagamentos em um só lugar."
+              subtitle="Acompanhe seus serviços e documentos em um só lugar."
               stats={[
                 { label: "Serviços ativos", value: kpis.active },
                 { label: "Docs pendentes", value: kpis.docsPend, sub: kpis.docsPend ? "ação necessária" : "tudo enviado" },
-                { label: "Pago", value: formatBRL(kpis.totalPaid) },
-                { label: "Em aberto", value: formatBRL(kpis.totalDue) },
+                { label: "Faturas", value: payments.length },
+                { label: "Pendentes", value: (payments as any[]).filter((p) => p.status !== "pago").length },
               ]}
             />
+
 
             <div className="grid lg:grid-cols-3 gap-5">
               <SectionCard className="lg:col-span-2" title="Seus serviços" icon={Briefcase} action={<Button size="sm" variant="outline" onClick={() => onNavigate("servicos")}>Ver todos</Button>}>
@@ -200,8 +211,8 @@ export default function ClientPanel() {
                   <div key={d.id} className="bg-white rounded-xl border border-slate-200/70 p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <Badge variant="outline" className={cn("text-[10px] border", STATUS_META[d.status]?.tone || "bg-slate-100")}>{STATUS_META[d.status]?.label || d.status}</Badge>
-                      <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(d.value)}</p>
                     </div>
+
                     <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{d.products?.name || d.custom_product_name || "—"}</p>
                     {d.products?.description && <p className="text-[12px] text-slate-500 mt-1 line-clamp-2">{d.products.description}</p>}
                     <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11.5px] text-slate-500">
@@ -245,10 +256,9 @@ export default function ClientPanel() {
         {activeKey === "pagamentos" && (
           <>
             <PanelHero role="cliente" eyebrow="Financeiro" title="Pagamentos" subtitle={`${payments.length} faturas`} stats={[
-              { label: "Pago", value: formatBRL(kpis.totalPaid) },
-              { label: "Em aberto", value: formatBRL(kpis.totalDue) },
               { label: "Faturas", value: payments.length },
               { label: "Pendentes", value: (payments as any[]).filter((p) => p.status !== "pago").length },
+              { label: "Pagas", value: (payments as any[]).filter((p) => p.status === "pago").length },
             ]} />
             <SectionCard title="">
               {payments.length === 0 ? <EmptyState icon={Wallet} title="Sem faturas" /> :
@@ -261,8 +271,8 @@ export default function ClientPanel() {
                           {p.status === "pago" ? <CheckCircle2 className="size-5" /> : <AlertCircle className="size-5" />}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-mono text-[14px] font-semibold text-slate-900 tabular-nums">{formatBRL(p.amount)}</p>
-                          <p className="text-[11.5px] text-slate-500 truncate">{p.description || "Fatura"} · {p.paid_at ? `pago ${formatDate(p.paid_at)}` : `vence ${formatDate(p.due_date)}`}</p>
+                          <p className="text-[13.5px] font-medium text-slate-900 truncate">{p.description || "Fatura"}</p>
+                          <p className="text-[11.5px] text-slate-500 truncate">{p.paid_at ? `Pago em ${formatDate(p.paid_at)}` : `Vence em ${formatDate(p.due_date)}`}</p>
                         </div>
                         <Badge variant="outline" className={cn("text-[10px] border capitalize shrink-0", p.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : overdue ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{overdue ? "vencido" : p.status}</Badge>
                       </li>
@@ -272,6 +282,7 @@ export default function ClientPanel() {
             </SectionCard>
           </>
         )}
+
 
         {activeKey === "suporte" && (
           <>
