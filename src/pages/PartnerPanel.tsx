@@ -378,6 +378,106 @@ export default function PartnerPanel() {
           </>
         )}
 
+        {activeKey === "materiais" && (
+          <>
+            <PanelHero role="parceiro" eyebrow="Educacional" title="Materiais" subtitle="Institucional, treinamentos, argumentos de vendas e gatilhos." />
+            <SectionCard title="">
+              {materials.length === 0 ? (
+                <EmptyState icon={BookOpen} title="Nenhum material disponível" description="Assim que nossa equipe publicar materiais, eles aparecerão aqui." />
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(materials as any[]).map((m) => (
+                    <div key={m.id} className="border border-slate-200/70 rounded-lg p-4 hover:shadow-md transition-shadow bg-white flex flex-col">
+                      <Badge variant="outline" className="text-[10px] mb-2 w-fit capitalize">{MATERIAL_CATEGORIES[m.category] || m.category}</Badge>
+                      <h3 className="font-semibold text-slate-900 text-[14px] mb-1">{m.title}</h3>
+                      {m.description && <p className="text-[12px] text-slate-500 line-clamp-3 mb-3">{m.description}</p>}
+                      <div className="mt-auto pt-3">
+                        <Button size="sm" variant="outline" className="w-full gap-2" onClick={() => downloadMaterial(m)}>
+                          {m.external_url ? <><ExternalLink className="size-3.5" /> Acessar link</> : <><Download className="size-3.5" /> Baixar</>}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          </>
+        )}
+
+        {activeKey === "suporte" && (
+          <>
+            <PanelHero role="parceiro" eyebrow="Atendimento" title="Suporte" subtitle="Fale com nossa equipe — tire dúvidas, peça ajuda ou reporte problemas." />
+            <div className="flex items-center justify-end mb-3">
+              <Button onClick={() => setTicketOpen(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                <Plus className="size-4" /> Novo chamado
+              </Button>
+            </div>
+            <SectionCard title="Seus chamados" icon={MessageSquare}>
+              {tickets.length === 0 ? (
+                <EmptyState icon={LifeBuoy} title="Nenhum chamado aberto" description="Clique em 'Novo chamado' para falar com nossa equipe." />
+              ) : (
+                <ul className="divide-y divide-slate-100 -mx-1">
+                  {(tickets as any[]).map((t) => (
+                    <li key={t.id} className="px-3 py-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="text-[13.5px] font-semibold text-slate-900">{t.subject}</p>
+                            <Badge variant="outline" className={cn("text-[10px] capitalize", t.priority === "alta" && "border-red-200 text-red-700 bg-red-50")}>{t.priority}</Badge>
+                          </div>
+                          <p className="text-[12px] text-slate-600 whitespace-pre-wrap">{t.message}</p>
+                          {t.admin_response && (
+                            <div className="mt-2 p-3 bg-indigo-50/60 border border-indigo-100 rounded">
+                              <p className="text-[10px] uppercase tracking-wider font-bold text-indigo-700 mb-1">Resposta da equipe</p>
+                              <p className="text-[12.5px] text-slate-700 whitespace-pre-wrap">{t.admin_response}</p>
+                              {t.responded_at && <p className="text-[10px] text-slate-500 mt-1">{formatDate(t.responded_at)}</p>}
+                            </div>
+                          )}
+                          <p className="text-[10.5px] text-slate-400 mt-1.5">Aberto em {formatDate(t.created_at)}</p>
+                        </div>
+                        <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : t.status === "respondido" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-emerald-50 text-emerald-700 border-emerald-200")}>{t.status}</Badge>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+
+            <Dialog open={ticketOpen} onOpenChange={setTicketOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader><DialogTitle>Novo chamado de suporte</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Assunto</Label>
+                    <Input value={ticketForm.subject} onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })} maxLength={150} placeholder="Ex.: Dúvida sobre comissão" />
+                  </div>
+                  <div>
+                    <Label>Prioridade</Label>
+                    <Select value={ticketForm.priority} onValueChange={(v) => setTicketForm({ ...ticketForm, priority: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="baixa">Baixa</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="alta">Alta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Mensagem</Label>
+                    <Textarea value={ticketForm.message} onChange={(e) => setTicketForm({ ...ticketForm, message: e.target.value })} rows={5} maxLength={2000} placeholder="Descreva sua dúvida ou solicitação..." />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setTicketOpen(false)}>Cancelar</Button>
+                  <Button onClick={() => submitTicket.mutate()} disabled={submitTicket.isPending} className="bg-indigo-600 hover:bg-indigo-700">
+                    {submitTicket.isPending ? "Enviando..." : "Enviar chamado"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
+
         {activeKey === "perfil" && (
           <>
             <PanelHero role="parceiro" eyebrow="Perfil" title="Sua conta" subtitle={user?.email} />
