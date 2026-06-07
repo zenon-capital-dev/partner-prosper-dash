@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -69,7 +69,13 @@ export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState("visao-geral");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "visao-geral";
+  const setActiveTab = (tab: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (tab === "visao-geral") next.delete("tab"); else next.set("tab", tab);
+    setSearchParams(next, { replace: true });
+  };
   const [editOpen, setEditOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
