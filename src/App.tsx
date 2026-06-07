@@ -119,7 +119,7 @@ const App = () => (
               <Route path="/tarefas" element={<Navigate to="/agenda" replace />} />
               <Route path="/vendas" element={<Sales />} />
               <Route path="/propostas" element={<Proposals />} />
-              <Route path="/comissoes" element={<Commissions />} />
+              <Route path="/comissoes" element={<Navigate to="/financeiro/central?tab=comissoes" replace />} />
               <Route path="/documentos" element={<Documents />} />
               
               <Route path="/financeiro" element={<Finance />} />
