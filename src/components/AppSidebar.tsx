@@ -63,7 +63,6 @@ const adminSections: NavSection[] = [
     label: "Documentos",
     items: [
       { title: "Documentos", url: "/documentos", icon: FileText },
-      { title: "Contratos", url: "/contratos", icon: FileSignature },
     ],
   },
   {
