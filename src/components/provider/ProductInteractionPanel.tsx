@@ -180,7 +180,7 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
                 </div>
                 <Badge variant="outline" className="text-[9px] mr-2">{d.status}</Badge>
                 {d.file_url && (
-                  <Button size="icon" variant="ghost" onClick={() => downloadDelivery(d.file_url)} className="size-8">
+                  <Button size="icon" variant="ghost" onClick={() => downloadDelivery(d.file_url)} className="size-8" aria-label="Baixar entrega">
                     <Download className="size-4" />
                   </Button>
                 )}
