@@ -124,18 +124,41 @@ export default function ProviderPanel() {
   const { data: documents = [] } = useQuery({
     queryKey: ["provider-docs", providerId, cpIds.join(",")],
     enabled: !!providerId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       const filters: string[] = [];
       if (providerId) filters.push(`provider_id.eq.${providerId}`);
       if (cpIds.length > 0) filters.push(`client_product_id.in.(${cpIds.join(",")})`);
       if (filters.length === 0) return [];
-      const { data } = await supabase
-        .from("documents")
-        .select("id, name, status, created_at, client_product_id, due_date, description, clients(full_name)")
-        .or(filters.join(","))
-        .order("created_at", { ascending: false })
-        .limit(200);
-      return data ?? [];
+
+      const [docsRes, reqRes] = await Promise.all([
+        supabase
+          .from("documents")
+          .select("id, name, status, created_at, client_product_id, due_date, description, clients(full_name)")
+          .or(filters.join(","))
+          .order("created_at", { ascending: false })
+          .limit(200),
+        supabase
+          .from("document_requests")
+          .select("id, request_title, status, requested_at, client_product_id, deadline, description, clients(full_name)")
+          .or(filters.join(","))
+          .order("requested_at", { ascending: false })
+          .limit(200),
+      ]);
+
+      const docs = (docsRes.data ?? []).map((d: any) => ({
+        id: d.id, name: d.name, status: d.status, created_at: d.created_at,
+        client_product_id: d.client_product_id, due_date: d.due_date,
+        description: d.description, clients: d.clients, source: "doc",
+      }));
+      const reqs = (reqRes.data ?? []).map((r: any) => ({
+        id: r.id, name: r.request_title, status: r.status, created_at: r.requested_at,
+        client_product_id: r.client_product_id, due_date: r.deadline,
+        description: r.description, clients: r.clients, source: "request",
+      }));
+      return [...reqs, ...docs];
     },
   });
 
