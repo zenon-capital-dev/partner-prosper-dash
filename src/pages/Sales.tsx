@@ -405,38 +405,82 @@ export default function Sales() {
       {/* INSIGHTS */}
       <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8 mt-4">
         <div className="lg:col-span-7 bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-start justify-between mb-4 gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500">
-                <BarChart3 className="size-3 text-indigo-500" /> Performance · 30 dias
+                <BarChart3 className="size-3 text-indigo-500" /> Performance · {usingManualRange ? "Período personalizado" : rangeKey}
               </div>
               <h3 className="text-base font-bold mt-1 text-slate-900">Fluxo de Receita Diário</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Bruto vs. Concluído · {chartSeries.length} {chartSeries.length === 1 ? "dia" : "dias"}</p>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total no período</p>
-              <p className="text-lg font-bold font-mono text-indigo-700">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
+            <div className="flex items-center gap-5">
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Bruto</p>
+                <p className="text-base font-bold font-mono text-indigo-700">{formatBRL(chartTotals.bruto)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Concluído</p>
+                <p className="text-base font-bold font-mono text-emerald-600">{formatBRL(chartTotals.concluida)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Ticket médio</p>
+                <p className="text-base font-bold font-mono text-slate-900">{formatBRL(chartTotals.ticket)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Vendas</p>
+                <p className="text-base font-bold font-mono text-slate-900">{chartTotals.count}</p>
+              </div>
             </div>
           </div>
-          <div className="h-[160px] -mx-2">
+          <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series30d} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
+              <ComposedChart data={chartSeries} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                  <linearGradient id="salesGradBruto" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.28} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#64748b" }} interval={4} tickLine={false} axisLine={false} />
-                <Tooltip
-                  formatter={(v: any) => formatBRL(Number(v))}
-                  contentStyle={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ fontSize: 10, fontWeight: 600, color: "#0f172a" }}
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: "#64748b" }}
+                  interval={chartInterval}
+                  tickLine={false}
+                  axisLine={{ stroke: "#e2e8f0" }}
                 />
-                <Area type="monotone" dataKey="v" stroke="#6366f1" strokeWidth={2} fill="url(#salesGrad)" />
-              </AreaChart>
+                <YAxis
+                  tick={{ fontSize: 10, fill: "#64748b" }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={70}
+                  tickFormatter={(v: number) =>
+                    v >= 1_000_000
+                      ? `R$ ${(v / 1_000_000).toFixed(1)}M`
+                      : v >= 1_000
+                      ? `R$ ${(v / 1_000).toFixed(0)}k`
+                      : `R$ ${v}`
+                  }
+                />
+                <Tooltip
+                  formatter={(v: any, name: any) => [formatBRL(Number(v)), name]}
+                  contentStyle={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 12px rgba(15,23,42,0.08)" }}
+                  labelStyle={{ fontSize: 11, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}
+                  cursor={{ fill: "rgba(99,102,241,0.06)" }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                  iconType="circle"
+                  iconSize={8}
+                />
+                <Bar dataKey="bruto" name="Bruto" fill="url(#salesGradBruto)" stroke="#6366f1" strokeWidth={1} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Line type="monotone" dataKey="concluida" name="Concluído" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3, fill: "#10b981" }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="pendente" name="Pend./Andamento" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" dot={false} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
+
 
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
