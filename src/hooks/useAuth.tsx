@@ -112,9 +112,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // 2. Auth state listener
+    // 2. Auth state listener — NEVER await Supabase calls inside this callback (causes deadlock).
+    // Defer the async work with setTimeout(0).
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
-      handleSession(sess, event);
+      setTimeout(() => { handleSession(sess, event); }, 0);
     });
 
     // 3. Safety fallback: force loading false after 10s
