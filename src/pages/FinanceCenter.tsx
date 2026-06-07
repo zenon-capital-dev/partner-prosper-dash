@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -1253,6 +1253,24 @@ function CommissionsTable({
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [typeFilter, setTypeFilter] = useState<string>("todos");
+  const [beneficiaryFilter, setBeneficiaryFilter] = useState<string>("todos");
+
+  // Reset beneficiary when type changes
+  useEffect(() => {
+    setBeneficiaryFilter("todos");
+  }, [typeFilter]);
+
+  const beneficiaryOptions = useMemo(() => {
+    const pool = typeFilter === "todos" ? commissions : commissions.filter((c: any) => c.beneficiary_type === typeFilter);
+    const map = new Map<string, string>();
+    pool.forEach((c: any) => {
+      if (c.beneficiary_id && c.beneficiary_name) map.set(c.beneficiary_id, c.beneficiary_name);
+    });
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [commissions, typeFilter]);
 
   const filtered = useMemo(() => {
     const q = norm(search);
@@ -1260,6 +1278,8 @@ function CommissionsTable({
       const paid = isPaid(c.status) || isPaid(c.workflow_status);
       if (statusFilter === "pendente" && paid) return false;
       if (statusFilter === "pago" && !paid) return false;
+      if (typeFilter !== "todos" && c.beneficiary_type !== typeFilter) return false;
+      if (beneficiaryFilter !== "todos" && c.beneficiary_id !== beneficiaryFilter) return false;
       if (q) {
         const hay = norm(
           `${c.partners?.full_name ?? ""} ${c.profiles?.full_name ?? ""} ${c.referrers?.full_name ?? ""} ${c.clients?.full_name ?? ""} ${c.products?.name ?? ""} ${c.status ?? ""}`
@@ -1268,10 +1288,51 @@ function CommissionsTable({
       }
       return true;
     });
-  }, [commissions, search, statusFilter]);
+  }, [commissions, search, statusFilter, typeFilter, beneficiaryFilter]);
 
   const pending = filtered.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status));
   const paid = filtered.filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status));
+
+  const totals = useMemo(() => {
+    const totalAll = filtered.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const totalPaid = paid.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const totalPending = pending.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    return { totalAll, totalPaid, totalPending, count: filtered.length };
+  }, [filtered, paid, pending]);
+
+  const byBeneficiary = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; type: string; label: string; total: number; pago: number; pendente: number; count: number }>();
+    filtered.forEach((c: any) => {
+      const key = `${c.beneficiary_type}:${c.beneficiary_id}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          id: c.beneficiary_id,
+          name: c.beneficiary_name ?? "—",
+          type: c.beneficiary_type,
+          label: c.beneficiary_label ?? "—",
+          total: 0,
+          pago: 0,
+          pendente: 0,
+          count: 0,
+        });
+      }
+      const row = map.get(key)!;
+      const amt = Number(c.amount || 0);
+      row.total += amt;
+      row.count += 1;
+      if (isPaid(c.status) || isPaid(c.workflow_status)) row.pago += amt;
+      else row.pendente += amt;
+    });
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [filtered]);
+
+  const hasFilter = statusFilter !== "todos" || typeFilter !== "todos" || beneficiaryFilter !== "todos" || !!search;
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("todos");
+    setTypeFilter("todos");
+    setBeneficiaryFilter("todos");
+  };
 
   const markPaid = async (c: any) => {
     if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} para ${c.beneficiary_name} como paga?`))) return;
@@ -1292,8 +1353,13 @@ function CommissionsTable({
 
   const Block = ({ rows, title, action }: { rows: any[]; title: string; action: boolean }) => (
     <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
-      <div className="px-4 py-2.5 bg-slate-50/80 border-b border-slate-200/70 text-sm font-semibold text-slate-800">
-        {title} <span className="text-slate-500 font-mono text-xs">({rows.length})</span>
+      <div className="px-4 py-2.5 bg-slate-50/80 border-b border-slate-200/70 text-sm font-semibold text-slate-800 flex items-center justify-between">
+        <span>
+          {title} <span className="text-slate-500 font-mono text-xs">({rows.length})</span>
+        </span>
+        <span className="font-mono text-xs text-slate-600 tabular-nums">
+          {formatBRL(rows.reduce((a: number, c: any) => a + Number(c.amount || 0), 0))}
+        </span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -1373,8 +1439,31 @@ function CommissionsTable({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="h-9 w-[170px] bg-white border-slate-200">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos tipos</SelectItem>
+            <SelectItem value="collaborator">Colaboradores</SelectItem>
+            <SelectItem value="partner">Parceiros</SelectItem>
+            <SelectItem value="referrer">Indicadores</SelectItem>
+            <SelectItem value="service_provider">Prestadores</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={beneficiaryFilter} onValueChange={setBeneficiaryFilter}>
+          <SelectTrigger className="h-9 w-[220px] bg-white border-slate-200">
+            <SelectValue placeholder="Beneficiário" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px]">
+            <SelectItem value="todos">Todos beneficiários</SelectItem>
+            {beneficiaryOptions.map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-9 w-[160px] bg-white border-slate-200">
+          <SelectTrigger className="h-9 w-[140px] bg-white border-slate-200">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1383,7 +1472,86 @@ function CommissionsTable({
             <SelectItem value="pago">Pagas</SelectItem>
           </SelectContent>
         </Select>
+        {hasFilter && (
+          <button onClick={clearFilters} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+            Limpar filtros
+          </button>
+        )}
       </div>
+
+      {/* Totais do filtro */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="rounded-lg border border-slate-200/70 bg-white shadow-sm p-3">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Registros</p>
+          <p className="font-mono text-lg font-bold text-slate-900 mt-1 tabular-nums">{totals.count}</p>
+        </div>
+        <div className="rounded-lg border border-indigo-200/70 bg-indigo-50/50 shadow-sm p-3">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-indigo-700">Total do filtro</p>
+          <p className="font-mono text-lg font-bold text-indigo-800 mt-1 tabular-nums">{formatBRL(totals.totalAll)}</p>
+        </div>
+        <div className="rounded-lg border border-emerald-200/70 bg-emerald-50/50 shadow-sm p-3">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-emerald-700">Pago</p>
+          <p className="font-mono text-lg font-bold text-emerald-800 mt-1 tabular-nums">{formatBRL(totals.totalPaid)}</p>
+        </div>
+        <div className="rounded-lg border border-amber-200/70 bg-amber-50/50 shadow-sm p-3">
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">Pendente</p>
+          <p className="font-mono text-lg font-bold text-amber-800 mt-1 tabular-nums">{formatBRL(totals.totalPending)}</p>
+        </div>
+      </div>
+
+      {/* Breakdown por beneficiário */}
+      {byBeneficiary.length > 1 && (
+        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+          <div className="px-4 py-2.5 bg-slate-50/80 border-b border-slate-200/70 text-sm font-semibold text-slate-800">
+            Total por beneficiário <span className="text-slate-500 font-mono text-xs">({byBeneficiary.length})</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-[11px] uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-4 py-2 font-semibold">Beneficiário</th>
+                  <th className="text-left px-4 py-2 font-semibold">Tipo</th>
+                  <th className="text-right px-4 py-2 font-semibold">Lançamentos</th>
+                  <th className="text-right px-4 py-2 font-semibold">Pago</th>
+                  <th className="text-right px-4 py-2 font-semibold">Pendente</th>
+                  <th className="text-right px-4 py-2 font-semibold">Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {byBeneficiary.map((b) => {
+                  const typeColor =
+                    b.type === "partner" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                    b.type === "collaborator" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                    b.type === "referrer" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                    "bg-slate-50 text-slate-700 border-slate-200";
+                  return (
+                    <tr key={`${b.type}:${b.id}`} className="hover:bg-slate-50/60">
+                      <td className="px-4 py-2.5 text-slate-800 font-medium">{b.name}</td>
+                      <td className="px-4 py-2.5">
+                        <Badge variant="outline" className={`text-[10px] uppercase tracking-wider ${typeColor}`}>{b.label}</Badge>
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-600">{b.count}</td>
+                      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-emerald-700">{formatBRL(b.pago)}</td>
+                      <td className="px-4 py-2.5 text-right font-mono tabular-nums text-amber-700">{formatBRL(b.pendente)}</td>
+                      <td className="px-4 py-2.5 text-right font-mono tabular-nums font-semibold text-slate-900">{formatBRL(b.total)}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          onClick={() => { setTypeFilter(b.type); setBeneficiaryFilter(b.id); }}
+                          className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-700"
+                        >
+                          Filtrar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <Block rows={pending} title="Pendentes" action />
       <Block rows={paid} title="Pagas" action={false} />
     </div>
