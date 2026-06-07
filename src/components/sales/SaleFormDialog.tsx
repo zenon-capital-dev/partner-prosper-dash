@@ -149,72 +149,25 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         referrer_id: form.referrer_id || null,
         collaborator_id: form.collaborator_id || null,
         amount: Number(form.amount),
+        zenon_cost: Number(form.zenon_cost || 0),
         commission_percent: Number(form.commission_percent || 0),
         referrer_percent: Number(form.referrer_percent || 0),
         collaborator_percent: Number(form.collaborator_percent || 0),
         status: form.status,
         sale_date: form.sale_date,
         notes: form.notes || null,
-      };
+      } as any;
 
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
         if (error) throw error;
         toast.success("Venda atualizada com sucesso");
       } else {
-        const { data: saleData, error } = await supabase.from("sales").insert({
+        const { error } = await supabase.from("sales").insert({
           ...payload,
           created_by: user?.id,
         }).select().single();
         if (error) throw error;
-        
-        // Manual commission generation to ensure visibility in Finance Center
-        const commissionsToInsert = [];
-        if (payload.partner_id && payload.commission_percent > 0) {
-          commissionsToInsert.push({
-            sale_id: saleData.id,
-            partner_id: payload.partner_id,
-            amount: (payload.amount * payload.commission_percent) / 100,
-            percent: payload.commission_percent,
-            status: "pendente",
-            client_id: payload.client_id,
-            product_id: payload.product_id,
-            notes: `Comissão parceiro via venda ${saleData.id}`,
-            commission_type: 'percentual'
-          });
-        }
-        if (payload.referrer_id && payload.referrer_percent > 0) {
-          commissionsToInsert.push({
-            sale_id: saleData.id,
-            referrer_id: payload.referrer_id,
-            amount: (payload.amount * payload.referrer_percent) / 100,
-            percent: payload.referrer_percent,
-            status: "pendente",
-            client_id: payload.client_id,
-            product_id: payload.product_id,
-            notes: `Comissão indicador via venda ${saleData.id}`,
-            commission_type: 'percentual'
-          });
-        }
-        if (payload.collaborator_id && payload.collaborator_percent > 0) {
-          commissionsToInsert.push({
-            sale_id: saleData.id,
-            collaborator_id: payload.collaborator_id,
-            amount: (payload.amount * payload.collaborator_percent) / 100,
-            percent: payload.collaborator_percent,
-            status: "pendente",
-            client_id: payload.client_id,
-            product_id: payload.product_id,
-            notes: `Comissão colaborador via venda ${saleData.id}`,
-            commission_type: 'percentual'
-          });
-        }
-
-        if (commissionsToInsert.length > 0) {
-          const { error: commError } = await supabase.from("commissions").insert(commissionsToInsert);
-          if (commError) console.error("Erro ao gerar comissões:", commError);
-        }
-
         toast.success("Venda registrada e comissões geradas");
       }
 
@@ -228,11 +181,13 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   };
 
   const amount = Number(form.amount || 0);
-  const partnerCalc = form.partner_id ? (amount * Number(form.commission_percent || 0)) / 100 : 0;
+  const zenonCost = Number(form.zenon_cost || 0);
+  const partnerBase = Math.max(amount - zenonCost, 0);
+  const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
   const referrerCalc = form.referrer_id ? (amount * Number(form.referrer_percent || 0)) / 100 : 0;
   const collaboratorCalc = form.collaborator_id ? (amount * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
-  const liquido = amount - totalCommissions;
+  const liquido = amount - zenonCost - totalCommissions;
   const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
 
   const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -344,6 +299,26 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                           placeholder="0,00" 
                         />
                       </div>
+                    </Field>
+                  </div>
+
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+                    <Field label="🔒 Custo Zenon (interno — não visível ao parceiro)">
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-sm">R$</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="h-11 pl-10 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right"
+                          value={form.zenon_cost ?? ""}
+                          onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
+                          placeholder="0,00"
+                        />
+                      </div>
+                      <p className="text-[10.5px] text-amber-700 mt-1.5 leading-tight">
+                        Esse valor vai direto para o caixa da Zenon como lucro. O parceiro vê apenas o valor após dedução: <strong>{fmt(partnerBase)}</strong>. Comissão do parceiro é calculada sobre esse valor líquido.
+                      </p>
                     </Field>
                   </div>
                 </div>
@@ -475,13 +450,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       <span>Valor de Venda</span>
                       <span className="text-slate-900 font-bold tabular-nums">{fmt(amount)}</span>
                     </div>
-                    
+
+                    {zenonCost > 0 && (
+                      <div className="flex justify-between text-xs text-amber-700 font-semibold">
+                        <span>🔒 Custo Zenon (lucro Zenon)</span>
+                        <span className="tabular-nums">-{fmt(zenonCost)}</span>
+                      </div>
+                    )}
+
                     {partnerCalc > 0 && (
                       <div className="flex justify-between text-xs text-rose-500/80 font-medium">
-                        <span>Repasse Parceiro ({form.commission_percent}%)</span>
+                        <span>Repasse Parceiro ({form.commission_percent}% sobre {fmt(partnerBase)})</span>
                         <span className="tabular-nums">-{fmt(partnerCalc)}</span>
                       </div>
                     )}
+                    
                     
                     {referrerCalc > 0 && (
                       <div className="flex justify-between text-xs text-rose-500/80 font-medium">

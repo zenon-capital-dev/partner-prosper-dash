@@ -4141,6 +4141,7 @@ export type Database = {
           sale_date: string
           status: Database["public"]["Enums"]["sale_status"]
           updated_at: string
+          zenon_cost: number
         }
         Insert: {
           amount?: number
@@ -4162,6 +4163,7 @@ export type Database = {
           sale_date?: string
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
+          zenon_cost?: number
         }
         Update: {
           amount?: number
@@ -4183,6 +4185,7 @@ export type Database = {
           sale_date?: string
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
+          zenon_cost?: number
         }
         Relationships: [
           {
