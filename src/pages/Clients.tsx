@@ -479,7 +479,7 @@ export default function Clients() {
               <FilterChip label={`Risco: ${riskFilter}`} onClear={() => setRiskFilter("all")} />
             )}
             {productFilter !== "all" && (
-              <FilterChip label={`Produto: ${productById[productFilter] || productFilter}`} onClear={() => setProductFilter("all")} />
+              <FilterChip label={productFilter === "_none" ? "Sem produto" : `Produto: ${productById[productFilter] || productFilter}`} onClear={() => setProductFilter("all")} />
             )}
             {partnerFilter !== "all" && (
               <FilterChip label={`Parceiro: ${partnerById[partnerFilter] || partnerFilter}`} onClear={() => setPartnerFilter("all")} />
