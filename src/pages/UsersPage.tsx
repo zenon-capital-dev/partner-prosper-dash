@@ -435,7 +435,7 @@ export default function UsersPage() {
                           </Select>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="size-4" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
                               <DropdownMenuItem onClick={() => setDetailUserId(u.id)}><Eye className="size-4 mr-2" /> Ver detalhes</DropdownMenuItem>

@@ -523,7 +523,7 @@ export default function Collaborators() {
                           {canManage ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
+                                <Button size="icon" variant="ghost" className="size-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => setEditing(c)}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
@@ -736,7 +736,7 @@ function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess
         {canManage && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
+              <Button size="icon" variant="ghost" className="size-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>

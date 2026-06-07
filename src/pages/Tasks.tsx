@@ -375,7 +375,7 @@ export default function Tasks() {
         </Select>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8"><MoreHorizontal className="size-4" /></Button>
+            <Button variant="ghost" size="icon" className="size-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuItem onClick={() => openEdit(task)}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
