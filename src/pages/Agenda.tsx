@@ -510,31 +510,72 @@ function ItemRow({
   const prio = PRIORITY_META[item.priority] || PRIORITY_META.normal;
   const isDone = item.status_new === "concluida" || item.status_new === "cancelada";
   const statusMeta = STATUS_META[item.status_new];
-  onDelete: (id: string) => void;
-  onEdit: (i: AgendaItem) => void;
-  onReschedule?: (id: string, d: Date) => void;
-}) {
-  const meta = KIND_META[item.kind] || KIND_META.tarefa;
-  const Icon = meta.icon;
-  const due = dueBadge(item);
-  const prio = PRIORITY_META[item.priority] || PRIORITY_META.normal;
-  const isDone = item.status_new === "concluida" || item.status_new === "cancelada";
 
   return (
     <div className={cn(
       "group relative flex items-start gap-3 rounded-xl border bg-white p-3.5 shadow-sm hover:shadow-md transition-all",
       isDone ? "border-slate-200 opacity-70" : "border-slate-200",
     )}>
-      <button
-        title={isDone ? "Reabrir" : "Concluir"}
-        onClick={() => (isDone ? onReopen?.(item.id) : onComplete(item.id))}
-        className={cn(
-          "mt-0.5 shrink-0 size-5 rounded-full border-2 transition-all flex items-center justify-center",
-          isDone ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 hover:border-emerald-500 hover:bg-emerald-50",
-        )}
-      >
-        {isDone && <CheckCircle2 className="size-3" />}
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            title={`Status: ${statusMeta?.label || item.status_new}`}
+            className={cn(
+              "mt-0.5 shrink-0 size-5 rounded-full border-2 transition-all flex items-center justify-center",
+              isDone
+                ? "bg-emerald-500 border-emerald-500 text-white"
+                : item.status_new === "em_andamento" ? "bg-blue-500 border-blue-500 text-white"
+                : item.status_new === "aguardando_terceiros" ? "bg-amber-500 border-amber-500 text-white"
+                : item.status_new === "bloqueada" ? "bg-rose-500 border-rose-500 text-white"
+                : "border-slate-300 hover:border-emerald-500 hover:bg-emerald-50",
+            )}
+          >
+            {isDone && <CheckCircle2 className="size-3" />}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-52">
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "concluida")}>
+            <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Concluir
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "em_andamento")}>
+            <RotateCcw className="size-3.5 mr-2 text-blue-600" /> Em andamento
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "aguardando_terceiros")}>
+            <Clock className="size-3.5 mr-2 text-amber-600" /> Aguardando terceiros
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "bloqueada")}>
+            <AlertTriangle className="size-3.5 mr-2 text-rose-600" /> Bloqueada
+          </DropdownMenuItem>
+          {onReschedule && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
+                </DropdownMenuItem>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" onSelect={(d) => d && onReschedule(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onEdit(item)}>
+            <Edit3 className="size-3.5 mr-2" /> Detalhar / editar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "cancelada")}>
+            <Trash2 className="size-3.5 mr-2 text-slate-500" /> Cancelar tarefa
+          </DropdownMenuItem>
+          {isDone && onReopen && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onReopen(item.id)}>
+                <RotateCcw className="size-3.5 mr-2" /> Reabrir
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
 
       <div className={cn("shrink-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10.5px] font-bold uppercase tracking-wider", meta.color)}>
         <Icon className="size-3" />
