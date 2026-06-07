@@ -132,6 +132,7 @@ export default function FinanceCenter() {
           .from("payments")
           .select("*, clients(id, full_name, company), products(name), client_products(custom_product_name)")
           .order("due_date", { ascending: false })
+          .limit(5000)
       ).data ?? [],
   });
 
@@ -142,14 +143,15 @@ export default function FinanceCenter() {
         supabase
           .from("commission_splits")
           .select("*")
-          .order("created_at", { ascending: false }),
-        supabase.from("sales").select("id, client_id, product_id, amount, sale_date"),
-        supabase.from("partners").select("id, full_name"),
-        supabase.from("profiles").select("id, full_name"),
-        supabase.from("referrers").select("id, full_name"),
-        supabase.from("service_providers").select("id, name"),
-        supabase.from("clients").select("id, full_name, company"),
-        supabase.from("products").select("id, name"),
+          .order("created_at", { ascending: false })
+          .limit(5000),
+        supabase.from("sales").select("id, client_id, product_id, amount, sale_date").limit(5000),
+        supabase.from("partners").select("id, full_name").limit(2000),
+        supabase.from("profiles").select("id, full_name").limit(2000),
+        supabase.from("referrers").select("id, full_name").limit(2000),
+        supabase.from("service_providers").select("id, name").limit(2000),
+        supabase.from("clients").select("id, full_name, company").limit(5000),
+        supabase.from("products").select("id, name").limit(2000),
       ]);
       const salesMap = new Map((salesRes.data ?? []).map((s: any) => [s.id, s]));
       const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
@@ -208,7 +210,7 @@ export default function FinanceCenter() {
   const { data: expenses = [] } = useQuery({
     queryKey: ["fin-expenses"],
     queryFn: async () =>
-      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false })).data ?? [],
+      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(5000)).data ?? [],
   });
 
   const today = todayIsoStr();

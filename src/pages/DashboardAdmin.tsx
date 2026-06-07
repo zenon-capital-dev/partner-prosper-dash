@@ -68,16 +68,16 @@ export default function DashboardAdmin() {
 
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({ 
     queryKey: ["dash-clients"], 
-    queryFn: async () => (await supabase.from("clients").select("*")).data ?? [] 
+    queryFn: async () => (await supabase.from("clients").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
   });
   const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({ 
     queryKey: ["dash-demands"], 
-    queryFn: async () => (await supabase.from("client_products").select("*")).data ?? [] 
+    queryFn: async () => (await supabase.from("client_products").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
   });
   const { data: sales = [], isLoading: isLoadingSales } = useQuery({ 
     queryKey: ["dash-sales", rangeKey], 
     queryFn: async () => {
-      let query = supabase.from("sales").select("*").order("sale_date", { ascending: false });
+      let query = supabase.from("sales").select("*").order("sale_date", { ascending: false }).limit(5000);
       
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
@@ -97,14 +97,14 @@ export default function DashboardAdmin() {
   });
   const { data: leads = [], isLoading: isLoadingLeads } = useQuery({ 
     queryKey: ["dash-leads"], 
-    queryFn: async () => (await supabase.from("leads").select("*")).data ?? [] 
+    queryFn: async () => (await supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
   });
   const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({ 
     queryKey: ["dash-commissions"], 
     queryFn: async () => {
       const [splitsRes, legacyRes] = await Promise.all([
-        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at"),
-        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at"),
+        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(5000),
+        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at").order("created_at", { ascending: false }).limit(5000),
       ]);
       const splits = (splitsRes.data ?? []).map((s: any) => ({
         id: s.id,
@@ -127,7 +127,7 @@ export default function DashboardAdmin() {
   });
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({ 
     queryKey: ["dash-tasks"], 
-    queryFn: async () => (await supabase.from("tasks").select("*")).data ?? [] 
+    queryFn: async () => (await supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(5000)).data ?? [] 
   });
   const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({ 
     queryKey: ["dash-contracts"], 
