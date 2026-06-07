@@ -116,6 +116,27 @@ export default function Collaborators() {
     },
   });
 
+  const { data: commissionTotals = {} } = useQuery({
+    queryKey: ["collab-commission-totals"],
+    queryFn: async (): Promise<Record<string, { total: number; pago: number; pendente: number }>> => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("beneficiary_id, amount, status")
+        .eq("beneficiary_type", "collaborator");
+      const map: Record<string, { total: number; pago: number; pendente: number }> = {};
+      (data ?? []).forEach((s: any) => {
+        const id = s.beneficiary_id;
+        if (!id) return;
+        if (!map[id]) map[id] = { total: 0, pago: 0, pendente: 0 };
+        const amt = Number(s.amount || 0);
+        map[id].total += amt;
+        if (s.status === "pago") map[id].pago += amt;
+        else map[id].pendente += amt;
+      });
+      return map;
+    },
+  });
+
   const filtered = useMemo(() => {
     const q = norm(debouncedSearch);
     const qD = onlyDigits(debouncedSearch);
