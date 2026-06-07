@@ -205,6 +205,12 @@ export default function FinanceCenter() {
       ).data ?? [],
   });
 
+  const { data: expenses = [] } = useQuery({
+    queryKey: ["fin-expenses"],
+    queryFn: async () =>
+      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false })).data ?? [],
+  });
+
   const today = todayIsoStr();
 
   const kpis = useMemo(() => {
@@ -223,9 +229,25 @@ export default function FinanceCenter() {
     const commissionsPaid = commissions
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const netRevenue = totalReceived - commissionsPaid;
-    return { totalReceived, totalReceivable, totalOverdue, commissionsPending, commissionsPaid, netRevenue };
-  }, [payments, commissions, today]);
+    // Breakdown of paid commissions: indicadores (referrer) vs. demais (parceiro/colaborador/prestador)
+    const indicatorsPaid = commissions
+      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer")
+      .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
+    const variableExpenses = (expenses as any[]).reduce((a, e) => a + Number(e.amount || 0), 0);
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses;
+    return {
+      totalReceived,
+      totalReceivable,
+      totalOverdue,
+      commissionsPending,
+      commissionsPaid,
+      indicatorsPaid,
+      commissionsOthersPaid,
+      variableExpenses,
+      netRevenue,
+    };
+  }, [payments, commissions, expenses, today]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
