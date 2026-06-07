@@ -365,9 +365,27 @@ export default function Finance() {
     setExpDialogOpen(true);
   };
   const saveExpense = async () => {
+    const description = expForm.description.trim();
     const amount = Number(expForm.amount);
-    if (!expForm.description.trim() || isNaN(amount) || amount <= 0) {
-      toast.error("Preencha descrição e valor maior que zero");
+    if (description.length < 3) {
+      toast.error("Descrição deve ter pelo menos 3 caracteres");
+      return;
+    }
+    if (description.length > 200) {
+      toast.error("Descrição muito longa (máx. 200 caracteres)");
+      return;
+    }
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Valor deve ser maior que zero");
+      return;
+    }
+    if (amount > 1_000_000_000) {
+      toast.error("Valor acima do limite permitido");
+      return;
+    }
+    const dateObj = new Date(expForm.expense_date);
+    if (isNaN(dateObj.getTime())) {
+      toast.error("Data inválida");
       return;
     }
     if (expForm.expense_date > new Date().toISOString().slice(0, 10)) {
@@ -376,7 +394,7 @@ export default function Finance() {
     }
     setSubmitting(true);
     try {
-      const payload = { description: expForm.description.trim(), amount, category: expForm.category, expense_date: expForm.expense_date };
+      const payload = { description, amount, category: expForm.category, expense_date: expForm.expense_date };
       const { error } = editingExpense
         ? await supabase.from("expenses").update(payload).eq("id", editingExpense.id)
         : await supabase.from("expenses").insert(payload);
