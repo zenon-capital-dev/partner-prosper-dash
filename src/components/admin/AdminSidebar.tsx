@@ -38,6 +38,7 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Rede", items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, staffOnly: true },
+    { title: "Materiais p/ Parceiros", url: "/parceiros-materiais", icon: BookOpen, staffOnly: true },
     { title: "Prestadores", url: "/prestadores", icon: Truck, staffOnly: true },
     { title: "Indicadores", url: "/indicadores", icon: Sparkles, staffOnly: true },
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
