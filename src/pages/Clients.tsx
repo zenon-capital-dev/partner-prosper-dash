@@ -177,7 +177,9 @@ export default function Clients() {
         if (!matchText && !matchDoc) return false;
       }
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
-      if (productFilter !== "all") {
+      if (productFilter === "_none") {
+        if ((c.client_products?.length || 0) > 0) return false;
+      } else if (productFilter !== "all") {
         const has = c.client_products?.some((p: any) => p.product_id === productFilter);
         if (!has) return false;
       }
