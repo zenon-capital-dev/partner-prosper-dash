@@ -271,6 +271,22 @@ export default function Agenda() {
     },
   });
 
+  const setStatusMut = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Status }) => {
+      const upd: any = { status_new: status };
+      if (status === "concluida") upd.completed_at = new Date().toISOString();
+      else upd.completed_at = null;
+      const { error } = await supabase.from("tasks").update(upd).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["agenda"] });
+      toast.success(`Status: ${STATUS_META[vars.status]?.label || vars.status}`);
+    },
+    onError: (e: any) => toast.error(e?.message || "Erro"),
+  });
+
+
   const handleDelete = async (id: string) => {
     if (await confirmAction({ title: "Excluir item da agenda?", description: "Esta ação não pode ser desfeita." })) {
       deleteMut.mutate(id);
@@ -359,26 +375,26 @@ export default function Agenda() {
         <TabsContent value="hoje" className="mt-4 space-y-6">
           {buckets.overdue.length > 0 && (
             <Section title="Atrasados" tone="rose" count={buckets.overdue.length}>
-              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />
+              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />
             </Section>
           )}
           <Section title="Hoje" tone="orange" count={buckets.today.length}>
             {buckets.today.length === 0
               ? <EmptyHint text="Nenhum item pra hoje. Aproveite ou crie um." />
-              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />}
+              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
           </Section>
         </TabsContent>
 
         <TabsContent value="atrasados" className="mt-4">
           {buckets.overdue.length === 0
             ? <EmptyHint text="Sem itens atrasados. Tudo em dia!" />
-            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />}
+            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
         </TabsContent>
 
         <TabsContent value="proximos" className="mt-4">
           {buckets.upcoming.length === 0
             ? <EmptyHint text="Nada agendado pra frente." />
-            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />}
+            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
         </TabsContent>
 
         <TabsContent value="concluidos" className="mt-4">
@@ -458,7 +474,7 @@ function EmptyHint({ text }: { text: string }) {
 }
 
 function ItemList({
-  items, onComplete, onReopen, onDelete, onEdit, onReschedule,
+  items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
 }: {
   items: AgendaItem[];
   onComplete: (id: string) => void;
@@ -466,18 +482,19 @@ function ItemList({
   onDelete: (id: string) => void;
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
+  onSetStatus?: (id: string, s: Status) => void;
 }) {
   return (
     <div className="space-y-2">
       {items.map((it) => (
-        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} />
+        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} />
       ))}
     </div>
   );
 }
 
 function ItemRow({
-  item, onComplete, onReopen, onDelete, onEdit, onReschedule,
+  item, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
 }: {
   item: AgendaItem;
   onComplete: (id: string) => void;
@@ -485,28 +502,80 @@ function ItemRow({
   onDelete: (id: string) => void;
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
+  onSetStatus?: (id: string, s: Status) => void;
 }) {
   const meta = KIND_META[item.kind] || KIND_META.tarefa;
   const Icon = meta.icon;
   const due = dueBadge(item);
   const prio = PRIORITY_META[item.priority] || PRIORITY_META.normal;
   const isDone = item.status_new === "concluida" || item.status_new === "cancelada";
+  const statusMeta = STATUS_META[item.status_new];
 
   return (
     <div className={cn(
       "group relative flex items-start gap-3 rounded-xl border bg-white p-3.5 shadow-sm hover:shadow-md transition-all",
       isDone ? "border-slate-200 opacity-70" : "border-slate-200",
     )}>
-      <button
-        title={isDone ? "Reabrir" : "Concluir"}
-        onClick={() => (isDone ? onReopen?.(item.id) : onComplete(item.id))}
-        className={cn(
-          "mt-0.5 shrink-0 size-5 rounded-full border-2 transition-all flex items-center justify-center",
-          isDone ? "bg-emerald-500 border-emerald-500 text-white" : "border-slate-300 hover:border-emerald-500 hover:bg-emerald-50",
-        )}
-      >
-        {isDone && <CheckCircle2 className="size-3" />}
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            title={`Status: ${statusMeta?.label || item.status_new}`}
+            className={cn(
+              "mt-0.5 shrink-0 size-5 rounded-full border-2 transition-all flex items-center justify-center",
+              isDone
+                ? "bg-emerald-500 border-emerald-500 text-white"
+                : item.status_new === "em_andamento" ? "bg-blue-500 border-blue-500 text-white"
+                : item.status_new === "aguardando_terceiros" ? "bg-amber-500 border-amber-500 text-white"
+                : item.status_new === "bloqueada" ? "bg-rose-500 border-rose-500 text-white"
+                : "border-slate-300 hover:border-emerald-500 hover:bg-emerald-50",
+            )}
+          >
+            {isDone && <CheckCircle2 className="size-3" />}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-52">
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "concluida")}>
+            <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Concluir
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "em_andamento")}>
+            <RotateCcw className="size-3.5 mr-2 text-blue-600" /> Em andamento
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "aguardando_terceiros")}>
+            <Clock className="size-3.5 mr-2 text-amber-600" /> Aguardando terceiros
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "bloqueada")}>
+            <AlertTriangle className="size-3.5 mr-2 text-rose-600" /> Bloqueada
+          </DropdownMenuItem>
+          {onReschedule && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
+                </DropdownMenuItem>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" onSelect={(d) => d && onReschedule(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onEdit(item)}>
+            <Edit3 className="size-3.5 mr-2" /> Detalhar / editar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "cancelada")}>
+            <Trash2 className="size-3.5 mr-2 text-slate-500" /> Cancelar tarefa
+          </DropdownMenuItem>
+          {isDone && onReopen && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onReopen(item.id)}>
+                <RotateCcw className="size-3.5 mr-2" /> Reabrir
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
 
       <div className={cn("shrink-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10.5px] font-bold uppercase tracking-wider", meta.color)}>
         <Icon className="size-3" />
