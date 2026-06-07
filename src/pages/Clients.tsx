@@ -704,9 +704,13 @@ export default function Clients() {
                             {initials(c.full_name)}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">
+                            <a
+                              href={`/clientes/${c.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors no-underline hover:underline block"
+                            >
                               {c.full_name}
-                            </p>
+                            </a>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Building2 className="size-3 text-slate-400" />
                               <p className="text-xs text-slate-500 truncate">{c.company || "Pessoa física"}</p>
