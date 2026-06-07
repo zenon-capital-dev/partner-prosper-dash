@@ -155,7 +155,6 @@ const prestadorSections: NavSection[] = [
     label: "Arquivos",
     items: [
       { title: "Documentos", url: "/prestador/documentos", icon: FileText },
-      { title: "Contratos", url: "/prestador/contratos", icon: FileSignature },
     ],
   },
   {
