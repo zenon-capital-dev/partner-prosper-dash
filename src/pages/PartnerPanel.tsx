@@ -1,10 +1,10 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  LayoutDashboard, Users, Wallet, FileText, UserCog, TrendingUp, CheckCircle2, Inbox, Clock,
+  LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -12,6 +12,10 @@ import { PanelContainer } from "@/components/panels/PanelContainer";
 import { SectionCard, EmptyState } from "@/components/panels/SectionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -29,12 +33,23 @@ const CLIENT_TONE: Record<string, string> = {
   inativo: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
+const SHOW_PRODUCT_KEY = "partner_show_product_name";
+
 export default function PartnerPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/parceiro" : `/parceiro/${k}`);
+
+  const [showProductName, setShowProductName] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(SHOW_PRODUCT_KEY) === "1";
+  });
+  useEffect(() => {
+    localStorage.setItem(SHOW_PRODUCT_KEY, showProductName ? "1" : "0");
+  }, [showProductName]);
 
   const { data: partner } = useQuery({
     queryKey: ["partner-self", user?.id],
@@ -96,6 +111,43 @@ export default function PartnerPanel() {
 
   const firstName = (partner?.full_name || user?.user_metadata?.full_name || user?.email || "Parceiro").split(" ")[0];
 
+  // ----- Edit profile -----
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ full_name: "", email: "", phone: "", whatsapp: "", pix_key: "" });
+  useEffect(() => {
+    if (partner) {
+      setForm({
+        full_name: partner.full_name || "",
+        email: partner.email || "",
+        phone: partner.phone || "",
+        whatsapp: partner.whatsapp || "",
+        pix_key: partner.pix_key || "",
+      });
+    }
+  }, [partner]);
+
+  const saveProfile = useMutation({
+    mutationFn: async () => {
+      if (!partner?.id) throw new Error("Parceiro não encontrado");
+      const { error } = await supabase.from("partners").update({
+        full_name: form.full_name,
+        email: form.email,
+        phone: form.phone,
+        whatsapp: form.whatsapp,
+        pix_key: form.pix_key,
+      }).eq("id", partner.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Dados de contato atualizados");
+      qc.invalidateQueries({ queryKey: ["partner-self"] });
+      setEditing(false);
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
+  });
+
+  const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");
+
   return (
     <PanelShell role="parceiro" nav={NAV} activeKey={activeKey} onNavigate={onNavigate} userName={partner?.full_name}>
       <PanelContainer>
@@ -139,7 +191,7 @@ export default function PartnerPanel() {
                           <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)}</p>
                           <Badge variant="outline" className={cn("text-[10px] border capitalize", (c.status === "pago" || c.status === "paga") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
                         </div>
-                        <p className="text-[11px] text-slate-500 truncate">{c.clients?.full_name || "—"} · {c.products?.name || ""}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{c.clients?.full_name || "—"} · {productLabel(c)}</p>
                       </li>
                     ))}
                   </ul>}
@@ -177,20 +229,35 @@ export default function PartnerPanel() {
               { label: "Total", value: commissions.length },
               { label: "Mês atual", value: formatBRL(kpis.monthPaid) },
             ]} />
+            <div className="flex items-center justify-end gap-2 mb-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowProductName((v) => !v)}
+                className="gap-2 text-[12px]"
+              >
+                {showProductName ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                {showProductName ? "Ocultar nome do produto" : "Mostrar nome do produto"}
+              </Button>
+            </div>
             <SectionCard title="">
               {commissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
                 <div className="overflow-x-auto -mx-2">
                   <table className="w-full text-[13px]">
                     <thead>
                       <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 font-semibold border-b border-slate-100">
-                        <th className="px-3 py-2.5">Cliente</th><th className="px-3 py-2.5">Produto</th><th className="px-3 py-2.5 text-right">Valor</th><th className="px-3 py-2.5">Status</th><th className="px-3 py-2.5">Data</th>
+                        <th className="px-3 py-2.5">Cliente</th>
+                        {showProductName && <th className="px-3 py-2.5">Produto</th>}
+                        <th className="px-3 py-2.5 text-right">Valor</th>
+                        <th className="px-3 py-2.5">Status</th>
+                        <th className="px-3 py-2.5">Data</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(commissions as any[]).map((c) => (
                         <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50/60">
                           <td className="px-3 py-2.5 text-slate-900 font-medium">{c.clients?.full_name || "—"}</td>
-                          <td className="px-3 py-2.5 text-slate-600">{c.products?.name || "—"}</td>
+                          {showProductName && <td className="px-3 py-2.5 text-slate-600">{c.products?.name || "—"}</td>}
                           <td className="px-3 py-2.5 text-right font-mono tabular-nums font-semibold">{formatBRL(c.amount)}</td>
                           <td className="px-3 py-2.5"><Badge variant="outline" className={cn("text-[10px] border capitalize", (c.status === "pago" || c.status === "paga") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge></td>
                           <td className="px-3 py-2.5 text-slate-500">{formatDate(c.paid_at || c.created_at)}</td>
@@ -218,7 +285,7 @@ export default function PartnerPanel() {
                           <p className="text-[13px] font-medium text-slate-900">{formatBRL(c.amount)} · {c.clients?.full_name || "—"}</p>
                           <p className="text-[11.5px] text-slate-500">{formatDate(c.paid_at || c.created_at)}</p>
                         </div>
-                        <p className="text-[11.5px] text-slate-500 capitalize">{paid ? "Comissão paga" : "Aguardando pagamento"} · {c.products?.name || ""}</p>
+                        <p className="text-[11.5px] text-slate-500 capitalize">{paid ? "Comissão paga" : "Aguardando pagamento"} · {productLabel(c)}</p>
                       </li>
                     );
                   })}
@@ -230,14 +297,61 @@ export default function PartnerPanel() {
         {activeKey === "perfil" && (
           <>
             <PanelHero role="parceiro" eyebrow="Perfil" title="Sua conta" subtitle={user?.email} />
-            <SectionCard title="Dados" icon={UserCog}>
-              <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</dt><dd className="text-slate-900">{partner?.full_name || "—"}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</dt><dd className="text-slate-900">{partner?.email || user?.email}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</dt><dd className="text-slate-900">{partner?.phone || "—"}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{partner?.document || "—"}</dd></div>
-              </dl>
-              <Button variant="outline" className="mt-5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
+
+            <SectionCard title="Dados de contato" icon={UserCog}>
+              <p className="text-[12px] text-slate-500 mb-4">
+                Esses são os dados que nossa equipe usa para entrar em contato com você. Mantenha-os sempre atualizados.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</Label>
+                  <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</Label>
+                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={!editing} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</Label>
+                  <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} disabled={!editing} className="mt-1" placeholder="(00) 0000-0000" />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">WhatsApp</Label>
+                  <Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} disabled={!editing} className="mt-1" placeholder="(00) 00000-0000" />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Chave PIX</Label>
+                  <Input value={form.pix_key} onChange={(e) => setForm({ ...form, pix_key: e.target.value })} disabled={!editing} className="mt-1" placeholder="CPF, e-mail, telefone ou chave aleatória" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-5">
+                {editing ? (
+                  <>
+                    <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                      <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar"}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm({ full_name: partner.full_name || "", email: partner.email || "", phone: partner.phone || "", whatsapp: partner.whatsapp || "", pix_key: partner.pix_key || "" }); }}>
+                      Cancelar
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={() => setEditing(true)} className="bg-indigo-600 hover:bg-indigo-700">Editar dados</Button>
+                )}
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Preferências" icon={Eye}>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[13px] font-medium text-slate-900">Mostrar nome do produto nas comissões</p>
+                  <p className="text-[11.5px] text-slate-500">Quando desativado, listas e extrato mostram apenas o cliente e o valor.</p>
+                </div>
+                <Switch checked={showProductName} onCheckedChange={setShowProductName} />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="">
+              <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
             </SectionCard>
           </>
         )}
