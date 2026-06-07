@@ -21,7 +21,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -186,22 +186,78 @@ export default function Sales() {
     return acc;
   }, [filtered]);
 
-  const series30d = useMemo(() => {
-    const days: { label: string; v: number; key: string }[] = [];
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+  const chartSeries = useMemo(() => {
+    const today = nowBR();
+    let start: Date;
+    let end: Date = endOfDay(today);
+
+    if (usingManualRange) {
+      start = dateFrom ? new Date(`${dateFrom}T00:00:00`) : subDays(today, 29);
+      end = dateTo ? new Date(`${dateTo}T23:59:59`) : endOfDay(today);
+    } else if (rangeKey === "HOJE") {
+      start = startOfToday();
+    } else if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      // fallback: últimos 90 dias para o gráfico não ficar gigante
+      const earliest = filtered.reduce((acc: Date | null, s: any) => {
+        const d = s.sale_date ? parseISO(s.sale_date) : null;
+        if (!d) return acc;
+        return !acc || d < acc ? d : acc;
+      }, null as Date | null);
+      start = earliest ?? subDays(today, 89);
+    } else {
+      start = subDays(today, 29);
+    }
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / dayMs) + 1);
+    const days: { key: string; label: string; bruto: number; concluida: number; pendente: number; count: number }[] = [];
+    const base = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      days.push({ key, label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }), v: 0 });
+      days.push({
+        key,
+        label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }),
+        bruto: 0,
+        concluida: 0,
+        pendente: 0,
+        count: 0,
+      });
     }
     const idx = Object.fromEntries(days.map((d, i) => [d.key, i]));
     filtered.forEach((s: any) => {
       if (!s.sale_date) return;
       const key = String(s.sale_date).slice(0, 10);
-      if (idx[key] !== undefined) days[idx[key]].v += Number(s.amount || 0);
+      const i = idx[key];
+      if (i === undefined) return;
+      const v = Number(s.amount || 0);
+      days[i].bruto += v;
+      days[i].count += 1;
+      if (s.status === "concluida") days[i].concluida += v;
+      else if (s.status === "pendente" || s.status === "em_andamento") days[i].pendente += v;
     });
     return days;
-  }, [filtered]);
+  }, [filtered, rangeKey, usingManualRange, dateFrom, dateTo]);
+
+  const chartTotals = useMemo(() => {
+    const t = chartSeries.reduce(
+      (acc, d) => {
+        acc.bruto += d.bruto;
+        acc.concluida += d.concluida;
+        acc.count += d.count;
+        return acc;
+      },
+      { bruto: 0, concluida: 0, count: 0 }
+    );
+    const ticket = t.count > 0 ? t.bruto / t.count : 0;
+    return { ...t, ticket };
+  }, [chartSeries]);
+
+  const chartInterval = chartSeries.length > 60 ? Math.floor(chartSeries.length / 10) : chartSeries.length > 14 ? Math.floor(chartSeries.length / 8) : 0;
 
   const topPartners = useMemo(() => {
     const m = new Map<string, { name: string; total: number; deals: number }>();
@@ -349,38 +405,82 @@ export default function Sales() {
       {/* INSIGHTS */}
       <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8 mt-4">
         <div className="lg:col-span-7 bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-start justify-between mb-4 gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500">
-                <BarChart3 className="size-3 text-indigo-500" /> Performance · 30 dias
+                <BarChart3 className="size-3 text-indigo-500" /> Performance · {usingManualRange ? "Período personalizado" : rangeKey}
               </div>
               <h3 className="text-base font-bold mt-1 text-slate-900">Fluxo de Receita Diário</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">Bruto vs. Concluído · {chartSeries.length} {chartSeries.length === 1 ? "dia" : "dias"}</p>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Total no período</p>
-              <p className="text-lg font-bold font-mono text-indigo-700">{formatBRL(series30d.reduce((a, d) => a + d.v, 0))}</p>
+            <div className="flex items-center gap-5">
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Bruto</p>
+                <p className="text-base font-bold font-mono text-indigo-700">{formatBRL(chartTotals.bruto)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Concluído</p>
+                <p className="text-base font-bold font-mono text-emerald-600">{formatBRL(chartTotals.concluida)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Ticket médio</p>
+                <p className="text-base font-bold font-mono text-slate-900">{formatBRL(chartTotals.ticket)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500">Vendas</p>
+                <p className="text-base font-bold font-mono text-slate-900">{chartTotals.count}</p>
+              </div>
             </div>
           </div>
-          <div className="h-[160px] -mx-2">
+          <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={series30d} margin={{ top: 5, right: 5, left: 5, bottom: 0 }}>
+              <ComposedChart data={chartSeries} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                  <linearGradient id="salesGradBruto" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.28} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#64748b" }} interval={4} tickLine={false} axisLine={false} />
-                <Tooltip
-                  formatter={(v: any) => formatBRL(Number(v))}
-                  contentStyle={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ fontSize: 10, fontWeight: 600, color: "#0f172a" }}
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 10, fill: "#64748b" }}
+                  interval={chartInterval}
+                  tickLine={false}
+                  axisLine={{ stroke: "#e2e8f0" }}
                 />
-                <Area type="monotone" dataKey="v" stroke="#6366f1" strokeWidth={2} fill="url(#salesGrad)" />
-              </AreaChart>
+                <YAxis
+                  tick={{ fontSize: 10, fill: "#64748b" }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={70}
+                  tickFormatter={(v: number) =>
+                    v >= 1_000_000
+                      ? `R$ ${(v / 1_000_000).toFixed(1)}M`
+                      : v >= 1_000
+                      ? `R$ ${(v / 1_000).toFixed(0)}k`
+                      : `R$ ${v}`
+                  }
+                />
+                <Tooltip
+                  formatter={(v: any, name: any) => [formatBRL(Number(v)), name]}
+                  contentStyle={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 12, boxShadow: "0 4px 12px rgba(15,23,42,0.08)" }}
+                  labelStyle={{ fontSize: 11, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}
+                  cursor={{ fill: "rgba(99,102,241,0.06)" }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                  iconType="circle"
+                  iconSize={8}
+                />
+                <Bar dataKey="bruto" name="Bruto" fill="url(#salesGradBruto)" stroke="#6366f1" strokeWidth={1} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Line type="monotone" dataKey="concluida" name="Concluído" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3, fill: "#10b981" }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="pendente" name="Pend./Andamento" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" dot={false} />
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </div>
+
 
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
