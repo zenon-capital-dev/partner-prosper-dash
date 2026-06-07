@@ -121,7 +121,6 @@ const clientSections: NavSection[] = [
     label: "Arquivos",
     items: [
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
-      { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
       { title: "Biblioteca", url: "/portal-cliente?tab=docs", icon: FolderArchive },
     ],
   },
