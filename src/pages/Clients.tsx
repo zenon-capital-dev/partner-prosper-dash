@@ -531,10 +531,15 @@ export default function Clients() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {paginated.map((c: any) => (
-                <div
+                <a
                   key={c.id}
-                  onClick={() => navigate(`/clientes/${c.id}`)}
-                  className="group relative rounded-2xl border border-slate-200/70 bg-white p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md active:scale-[0.99] transition-all cursor-pointer overflow-hidden shadow-sm"
+                  href={`/clientes/${c.id}`}
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                    e.preventDefault();
+                    navigate(`/clientes/${c.id}`);
+                  }}
+                  className="group relative rounded-2xl border border-slate-200/70 bg-white p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md active:scale-[0.99] transition-all cursor-pointer overflow-hidden shadow-sm block no-underline text-inherit"
                 >
                   <div
                     className={cn(
