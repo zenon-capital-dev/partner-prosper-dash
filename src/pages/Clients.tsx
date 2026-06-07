@@ -177,7 +177,9 @@ export default function Clients() {
         if (!matchText && !matchDoc) return false;
       }
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
-      if (productFilter !== "all") {
+      if (productFilter === "_none") {
+        if ((c.client_products?.length || 0) > 0) return false;
+      } else if (productFilter !== "all") {
         const has = c.client_products?.some((p: any) => p.product_id === productFilter);
         if (!has) return false;
       }
@@ -402,6 +404,7 @@ export default function Clients() {
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="_none">Sem produto</SelectItem>
                   {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -476,7 +479,7 @@ export default function Clients() {
               <FilterChip label={`Risco: ${riskFilter}`} onClear={() => setRiskFilter("all")} />
             )}
             {productFilter !== "all" && (
-              <FilterChip label={`Produto: ${productById[productFilter] || productFilter}`} onClear={() => setProductFilter("all")} />
+              <FilterChip label={productFilter === "_none" ? "Sem produto" : `Produto: ${productById[productFilter] || productFilter}`} onClear={() => setProductFilter("all")} />
             )}
             {partnerFilter !== "all" && (
               <FilterChip label={`Parceiro: ${partnerById[partnerFilter] || partnerFilter}`} onClear={() => setPartnerFilter("all")} />
