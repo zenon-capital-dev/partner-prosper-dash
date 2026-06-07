@@ -259,6 +259,7 @@ export default function PartnerPanel() {
     if (contract) {
       setContractForm({ ...emptyContract, ...contract, birth_date: contract.birth_date || "" });
     } else if (partner) {
+      const p: any = partner;
       setContractForm((cf: any) => ({
         ...cf,
         full_name: partner.full_name || cf.full_name,
@@ -266,17 +267,17 @@ export default function PartnerPanel() {
         phone: partner.phone || cf.phone,
         whatsapp: partner.whatsapp || cf.whatsapp,
         cpf: partner.document || cf.cpf,
-        address_zip: partner.address_zip || cf.address_zip,
-        address_street: partner.address_street || cf.address_street,
-        address_number: partner.address_number || cf.address_number,
-        address_complement: partner.address_complement || cf.address_complement,
-        address_neighborhood: partner.address_neighborhood || cf.address_neighborhood,
-        address_city: partner.address_city || cf.address_city,
-        address_state: partner.address_state || cf.address_state,
+        address_zip: p.address_zip || cf.address_zip,
+        address_street: p.address_street || cf.address_street,
+        address_number: p.address_number || cf.address_number,
+        address_complement: p.address_complement || cf.address_complement,
+        address_neighborhood: p.address_neighborhood || cf.address_neighborhood,
+        address_city: p.address_city || cf.address_city,
+        address_state: p.address_state || cf.address_state,
         bank_name: partner.bank_name || cf.bank_name,
         bank_agency: partner.bank_agency || cf.bank_agency,
         bank_account: partner.bank_account || cf.bank_account,
-        bank_account_type: partner.bank_account_type || cf.bank_account_type,
+        bank_account_type: p.bank_account_type || cf.bank_account_type,
         pix_key: partner.pix_key || cf.pix_key,
       }));
     }
