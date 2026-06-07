@@ -26,7 +26,7 @@ import Automations from "./pages/Automations";
 import ProviderDetail from "./pages/ProviderDetail";
 import PartnerDetail from "./pages/PartnerDetail";
 import AdminProfile from "./pages/AdminProfile";
-import Contracts from "./pages/Contracts";
+
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
 import Indicators from "./pages/Indicators";
