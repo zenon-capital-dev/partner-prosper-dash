@@ -271,6 +271,22 @@ export default function Agenda() {
     },
   });
 
+  const setStatusMut = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Status }) => {
+      const upd: any = { status_new: status };
+      if (status === "concluida") upd.completed_at = new Date().toISOString();
+      else upd.completed_at = null;
+      const { error } = await supabase.from("tasks").update(upd).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["agenda"] });
+      toast.success(`Status: ${STATUS_META[vars.status]?.label || vars.status}`);
+    },
+    onError: (e: any) => toast.error(e?.message || "Erro"),
+  });
+
+
   const handleDelete = async (id: string) => {
     if (await confirmAction({ title: "Excluir item da agenda?", description: "Esta ação não pode ser desfeita." })) {
       deleteMut.mutate(id);
