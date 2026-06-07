@@ -468,10 +468,15 @@ export default function OperationalCockpit() {
         item.subtitle.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesTab = activeTab === "all" || item.type === activeTab;
+
+      const matchesSeverity =
+        severityFilter === "all" ? true :
+        severityFilter === "ok" ? (item.severity !== "critical" && item.severity !== "high") :
+        item.severity === severityFilter;
       
-      return matchesSearch && matchesTab;
+      return matchesSearch && matchesTab && matchesSeverity;
     });
-  }, [allItems, searchTerm, activeTab]);
+  }, [allItems, searchTerm, activeTab, severityFilter]);
 
   const stats = {
     critical: allItems.filter(i => i.severity === 'critical').length,
