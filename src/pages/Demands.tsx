@@ -360,6 +360,7 @@ export default function Demands() {
               <Button 
                 variant="ghost" 
                 size="icon" 
+                aria-label="Visualizar em Kanban"
                 className={cn("size-9 rounded-lg transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")} 
                 onClick={() => setViewMode('kanban')}
                 title="Kanban"
@@ -369,6 +370,7 @@ export default function Demands() {
               <Button 
                 variant="ghost" 
                 size="icon" 
+                aria-label="Visualizar em lista"
                 className={cn("size-9 rounded-lg transition-all", viewMode === 'list' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")} 
                 onClick={() => setViewMode('list')}
                 title="Lista"
@@ -704,7 +706,7 @@ export default function Demands() {
                     <td className="vx-table-cell text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="size-8 rounded-lg hover:bg-primary/5 hover:text-primary transition-all">
+                          <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-8 rounded-lg hover:bg-primary/5 hover:text-primary transition-all">
                             <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>

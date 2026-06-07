@@ -592,6 +592,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label="Remover produto"
                       className="size-9 text-rose-600 hover:bg-rose-50"
                       onClick={() => setSelectedProducts((arr) => arr.filter((_, i) => i !== idx))}
                     >
@@ -748,7 +749,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                         <Sparkles className="size-3.5" /> Gerar
                       </Button>
                       {accessPwd && (
-                        <Button type="button" variant="ghost" size="icon" className="h-9 w-9"
+                        <Button type="button" variant="ghost" size="icon" aria-label="Copiar senha" className="h-9 w-9"
                           onClick={() => { navigator.clipboard.writeText(accessPwd); toast.success("Senha copiada"); }}>
                           <Copy className="size-3.5" />
                         </Button>

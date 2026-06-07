@@ -429,7 +429,7 @@ function ProvidersTab({ productId, links, canManage, refetch, qc }: any) {
               <div className="flex items-center gap-4">
                 {l.custom_value && <span className="text-[12px] font-mono font-semibold text-slate-900">{formatBRL(l.custom_value)}</span>}
                 {canManage && (
-                  <Button variant="ghost" size="icon" className="size-8 text-rose-500" onClick={() => remove(l.id)}><X className="size-4" /></Button>
+                  <Button variant="ghost" size="icon" aria-label="Remover" className="size-8 text-rose-500" onClick={() => remove(l.id)}><X className="size-4" /></Button>
                 )}
               </div>
             </div>
@@ -528,7 +528,7 @@ function CollaboratorsTab({ productId, links, canManage, refetch, qc }: any) {
                 <p className="text-[11.5px] text-slate-500 truncate">{l.profiles?.email}</p>
               </div>
               {canManage && (
-                <Button variant="ghost" size="icon" className="size-8 text-rose-500" onClick={() => remove(l.id)}><X className="size-4" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Remover" className="size-8 text-rose-500" onClick={() => remove(l.id)}><X className="size-4" /></Button>
               )}
             </div>
           ))}

@@ -806,7 +806,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
                           {products.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                      <Button type="button" size="icon" variant="ghost"
+                      <Button type="button" size="icon" variant="ghost" aria-label="Remover item"
                         onClick={() => setItems(items.filter((_, i) => i !== idx))}
                         disabled={items.length === 1}>
                         <X className="h-4 w-4" />

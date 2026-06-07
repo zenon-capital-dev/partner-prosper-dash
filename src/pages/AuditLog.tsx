@@ -325,7 +325,7 @@ export default function AuditLog() {
 
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" aria-label="Visualizar detalhes" className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
                           <Eye className="size-4" />
                         </Button>
                       </DialogTrigger>

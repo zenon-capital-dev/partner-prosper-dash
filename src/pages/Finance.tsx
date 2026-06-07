@@ -734,8 +734,8 @@ export default function Finance() {
                             {canManage && (
                               <td className="px-4 py-3 text-right">
                                 <div className="inline-flex gap-1">
-                                  <Button variant="ghost" size="icon" className="size-7" onClick={() => openEditExpense(e)}><Pencil className="size-3.5" /></Button>
-                                  <Button variant="ghost" size="icon" className="size-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50" onClick={() => deleteExpense(e)}><Trash2 className="size-3.5" /></Button>
+                                  <Button variant="ghost" size="icon" aria-label="Editar despesa" className="size-7" onClick={() => openEditExpense(e)}><Pencil className="size-3.5" /></Button>
+                                  <Button variant="ghost" size="icon" aria-label="Excluir despesa" className="size-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50" onClick={() => deleteExpense(e)}><Trash2 className="size-3.5" /></Button>
                                 </div>
                               </td>
                             )}
