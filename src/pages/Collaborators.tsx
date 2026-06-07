@@ -455,6 +455,7 @@ export default function Collaborators() {
                     <SortableTh label="Acesso" k="access" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="center" />
                     <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="center" />
                     <SortableTh label="Criado" k="created" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                    <th className="px-5 py-3 text-right">Comissões</th>
                     <th className="px-5 py-3 text-right">Ações</th>
                   </tr>
                 </thead>
