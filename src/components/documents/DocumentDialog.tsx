@@ -204,6 +204,41 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
 
+    // Notify recipient (best-effort)
+    try {
+      if (!editDoc && recipientType === "client" && selectedRecipientId) {
+        const { data: c } = await supabase.from("clients").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+        if (c?.user_id) {
+          await supabase.from("notifications").insert({
+            user_id: c.user_id,
+            title: file ? "Novo documento disponível" : "Novo documento solicitado",
+            message: file ? `${form.name} foi enviado pela equipe.` : `Envie o documento "${form.name}" pelo seu portal.`,
+            type: file ? "document_uploaded" : "document_requested",
+            link: "/portal-cliente/documentos",
+          });
+        }
+      } else if (!editDoc && recipientType === "provider" && selectedRecipientId) {
+        const { data: sp } = await supabase.from("service_providers").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+        if (sp?.user_id) {
+          await supabase.from("notifications").insert({
+            user_id: sp.user_id,
+            title: "Novo documento solicitado",
+            message: `Envie o documento "${form.name}" pelo seu painel.`,
+            type: "document_requested",
+            link: "/prestador",
+          });
+        }
+      } else if (!editDoc && recipientType === "collaborator" && selectedRecipientId) {
+        await supabase.from("notifications").insert({
+          user_id: selectedRecipientId,
+          title: "Novo documento solicitado",
+          message: `Envie o documento "${form.name}" pelo seu painel.`,
+          type: "document_requested",
+          link: "/colaborador",
+        });
+      }
+    } catch (_) { /* best-effort */ }
+
     toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : `Documento solicitado ao ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : 'prestador'}`));
     onSuccess?.();
     onOpenChange(false);
