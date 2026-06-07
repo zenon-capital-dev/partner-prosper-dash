@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
+  BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -15,6 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -24,8 +28,19 @@ const NAV = [
   { key: "clientes",   label: "Clientes",   icon: Users },
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "extrato",    label: "Extrato",    icon: FileText },
+  { key: "materiais",  label: "Materiais",  icon: BookOpen },
+  { key: "suporte",    label: "Suporte",    icon: LifeBuoy },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
 ];
+
+const MATERIAL_CATEGORIES: Record<string, string> = {
+  institucional: "Institucional",
+  vendas: "Argumentos de venda",
+  treinamento: "Treinamentos",
+  gatilhos: "Gatilhos mentais",
+  produtos: "Produtos",
+  outros: "Outros",
+};
 
 const CLIENT_TONE: Record<string, string> = {
   ativo: "bg-emerald-50 text-emerald-700 border-emerald-200",
