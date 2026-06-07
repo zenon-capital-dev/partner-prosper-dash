@@ -96,7 +96,8 @@ export default function Leads() {
           partners(full_name),
           profiles:responsible_id(full_name)
         `)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(5000);
       if (error) throw error;
       return data ?? [];
     },
