@@ -62,26 +62,23 @@ export default function ProviderPanel() {
     queryKey: ["provider-cp", providerId],
     enabled: !!providerId,
     queryFn: async () => {
-      // 1) Clients linked to this provider (client-level vínculo)
-      const { data: links } = await supabase
-        .from("client_providers")
-        .select("client_id")
-        .eq("service_provider_id", providerId!);
-      const linkedClientIds = (links ?? []).map((l: any) => l.client_id);
-
-      // 2) Demand-level secondary providers
+      // Só consideramos demandas em que o prestador foi atribuído explicitamente:
+      //  - service_provider_id (prestador principal da demanda)
+      //  - responsible_provider_id (responsável pela execução)
+      //  - client_product_providers (prestadores secundários da demanda)
+      // O vínculo a nível de cliente (client_providers) NÃO traz mais
+      // automaticamente todas as demandas daquele cliente — isso fazia o
+      // prestador ver demandas de outros prestadores que atendem o mesmo cliente.
       const { data: secLinks } = await supabase
         .from("client_product_providers")
         .select("client_product_id")
         .eq("service_provider_id", providerId!);
       const secCpIds = (secLinks ?? []).map((l: any) => l.client_product_id);
 
-      // 3) Build OR filter: direct provider, responsible provider, secondary, or client-linked
       const orParts: string[] = [
         `service_provider_id.eq.${providerId}`,
         `responsible_provider_id.eq.${providerId}`,
       ];
-      if (linkedClientIds.length > 0) orParts.push(`client_id.in.(${linkedClientIds.join(",")})`);
       if (secCpIds.length > 0) orParts.push(`id.in.(${secCpIds.join(",")})`);
 
       const { data } = await supabase
@@ -91,7 +88,6 @@ export default function ProviderPanel() {
         .or(orParts.join(","))
         .order("created_at", { ascending: false });
 
-      // Dedup by id (in case multiple filters match)
       const map = new Map<string, any>();
       (data ?? []).forEach((r: any) => map.set(r.id, r));
       return Array.from(map.values());
