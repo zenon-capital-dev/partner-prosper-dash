@@ -376,7 +376,7 @@ export default function Reports() {
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [sales]);
 
-  // Top 5 produtos
+  // Top 5 produtos por receita
   const topProducts = useMemo(() => {
     const map: Record<string, number> = {};
     sales.forEach((s: any) => {
@@ -385,6 +385,48 @@ export default function Reports() {
     });
     return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
   }, [sales]);
+
+  // Produtos mais vendidos (quantidade de vendas)
+  const topByQuantity = useMemo(() => {
+    const map: Record<string, number> = {};
+    sales.forEach((s: any) => {
+      const n = s.products?.name || "Outros";
+      map[n] = (map[n] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
+  }, [sales]);
+
+  // Produtos com maior adesão (clientes únicos)
+  const topByAdoption = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+    clientProducts.forEach((p: any) => {
+      const n = p.products?.name || "Outros";
+      const cid = p.client_id;
+      if (!cid) return;
+      (map[n] ||= new Set()).add(cid);
+    });
+    return Object.entries(map)
+      .map(([name, set]) => ({ name, value: set.size }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [clientProducts]);
+
+  // Produtos com maior conversão efetiva (concluído / total demandas)
+  const topByConversion = useMemo(() => {
+    const map: Record<string, { total: number; concl: number }> = {};
+    const concludedStatuses = new Set(["concluido", "concluída", "concluida", "finalizado", "entregue", "fechado"]);
+    clientProducts.forEach((p: any) => {
+      const n = p.products?.name || "Outros";
+      (map[n] ||= { total: 0, concl: 0 });
+      map[n].total += 1;
+      if (concludedStatuses.has(String(p.status ?? "").toLowerCase())) map[n].concl += 1;
+    });
+    return Object.entries(map)
+      .filter(([, v]) => v.total >= 1)
+      .map(([name, v]) => ({ name, value: v.total === 0 ? 0 : Math.round((v.concl / v.total) * 1000) / 10, concl: v.concl, total: v.total }))
+      .sort((a, b) => b.value - a.value || b.total - a.total)
+      .slice(0, 5);
+  }, [clientProducts]);
 
   // Demandas por status
   const demandsByStatus = useMemo(() => {
