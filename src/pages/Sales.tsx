@@ -21,7 +21,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 
