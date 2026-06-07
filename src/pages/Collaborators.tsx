@@ -504,6 +504,21 @@ export default function Collaborators() {
                           {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "—"}
                         </td>
                         <td className="px-5 py-3 text-right">
+                          {(() => {
+                            const t = (commissionTotals as any)[c.id] || { total: 0, pago: 0, pendente: 0 };
+                            return (
+                              <div className="inline-flex flex-col items-end gap-0.5">
+                                <span className="font-mono text-sm font-semibold text-slate-800 tabular-nums">{formatBRL(t.total)}</span>
+                                <span className="text-[10px] text-slate-500">
+                                  <span className="text-emerald-600 font-semibold">{formatBRL(t.pago)}</span>
+                                  <span className="mx-1">·</span>
+                                  <span className="text-amber-600 font-semibold">{formatBRL(t.pendente)}</span>
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-5 py-3 text-right">
                           {canManage ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
