@@ -61,7 +61,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
           *,
           products(name, description),
           service_providers:service_provider_id(id, name, specialty),
-          responsible:responsible_employee_id(id, full_name)
+          responsible:responsible_employee_id(id, full_name),
+          steps:client_product_steps(*)
         `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
@@ -79,7 +80,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         .from("client_product_status_reports")
         .select("client_product_id, status, notes, created_at")
         .in("client_product_id", cpIds)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(200);
       const map: Record<string, any> = {};
       (data ?? []).forEach((r: any) => {
         if (!map[r.client_product_id]) map[r.client_product_id] = r;
@@ -272,7 +274,10 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                       <ClipboardCheck className="size-3.5 text-emerald-600" />
                       <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Checklist de Entrega</h5>
                     </div>
-                    <ClientProductSteps clientProductId={cp.id} />
+                    <ClientProductSteps
+                      clientProductId={cp.id}
+                      initialSteps={(cp.steps ?? []).slice().sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))}
+                    />
                   </div>
 
                   <div className="p-5 bg-slate-50/40">

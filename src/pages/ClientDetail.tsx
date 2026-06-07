@@ -136,41 +136,47 @@ export default function ClientDetail() {
     enabled: !!id,
   });
 
-  const { data: clientProducts = [], isLoading: productsLoading } = useQuery({
+  const { data: clientProducts = [] } = useQuery({
     queryKey: ["client-products", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("client_products")
         .select("*, products(id, name, description), steps:client_product_steps(*)")
         .eq("client_id", id!);
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!id,
+    retry: 1,
   });
 
-  const { data: payments = [], isLoading: paymentsLoading } = useQuery({
+  const { data: payments = [] } = useQuery({
     queryKey: ["client-payments", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("payments")
         .select("*")
         .eq("client_id", id!)
         .order("due_date", { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!id,
+    retry: 1,
   });
 
-  const { data: documents = [], isLoading: docsLoading } = useQuery({
+  const { data: documents = [] } = useQuery({
     queryKey: ["client-documents", id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("documents")
         .select("*")
         .eq("client_id", id!);
+      if (error) throw error;
       return data ?? [];
     },
     enabled: !!id,
+    retry: 1,
   });
 
   const { data: companies = [] } = useQuery({
@@ -210,7 +216,7 @@ export default function ClientDetail() {
     qc.invalidateQueries({ queryKey: ["client", id] });
   };
 
-  const isLoading = clientLoading || productsLoading || paymentsLoading || docsLoading;
+  const isLoading = clientLoading;
 
   const stats = useMemo(() => {
     if (!client) return null;
