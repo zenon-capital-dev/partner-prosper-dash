@@ -337,6 +337,7 @@ export function ClientLinksManager({ clientId, kind }: Props) {
                     <Button
                       size="icon"
                       variant="ghost"
+                      aria-label="Definir como principal"
                       className="size-8"
                       onClick={() => handleSetPrimary(l.id)}
                       title="Definir como principal"
@@ -347,6 +348,7 @@ export function ClientLinksManager({ clientId, kind }: Props) {
                   <Button
                     size="icon"
                     variant="ghost"
+                    aria-label="Remover vínculo"
                     className="size-8 text-rose-600 hover:bg-rose-50"
                     onClick={() => handleRemove(l.id)}
                     title="Remover"

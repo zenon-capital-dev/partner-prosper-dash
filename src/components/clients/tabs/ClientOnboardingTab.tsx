@@ -182,7 +182,7 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
                     </>
                   )}
 
-                  <Button variant="ghost" size="icon" className="size-9 rounded-lg text-slate-400 hover:text-rose-600" onClick={async () => {
+                  <Button variant="ghost" size="icon" aria-label="Excluir documento" className="size-9 rounded-lg text-slate-400 hover:text-rose-600" onClick={async () => {
                     if (window.confirm("Excluir documento?")) {
                       const { error } = await supabase.from("onboarding_documents").delete().eq("id", doc.id);
                       if (error) return toast.error("Erro ao excluir: " + error.message);

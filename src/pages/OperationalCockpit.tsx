@@ -941,7 +941,7 @@ function CockpitRow({ item, onAction, selected, onToggleSelect, onUpdateDate, is
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-xl h-9 w-9">
+            <Button variant="ghost" size="icon" aria-label="Ações rápidas" className="rounded-xl h-9 w-9">
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>

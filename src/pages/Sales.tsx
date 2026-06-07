@@ -605,7 +605,7 @@ export default function Sales() {
                         {canManage ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="size-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100">
+                              <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100">
                                 <MoreHorizontal className="size-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -640,7 +640,7 @@ export default function Sales() {
                           </DropdownMenu>
                         ) : (
                           s.clients?.id && (
-                            <Button variant="ghost" size="icon" className="size-8 text-slate-400 hover:text-slate-900" onClick={() => navigate(`/clientes/${s.clients.id}`)}>
+                            <Button variant="ghost" size="icon" aria-label="Ver cliente" className="size-8 text-slate-400 hover:text-slate-900" onClick={() => navigate(`/clientes/${s.clients.id}`)}>
                               <Eye className="size-4" />
                             </Button>
                           )

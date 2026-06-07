@@ -628,11 +628,11 @@ export default function Partners() {
                               {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                             </button>
                           </div>
-                          <Button variant="outline" size="icon" onClick={generatePassword} title="Gerar senha forte" className="shrink-0">
+                          <Button variant="outline" size="icon" aria-label="Gerar senha forte" onClick={generatePassword} title="Gerar senha forte" className="shrink-0">
                             <Sparkles className="size-4 text-indigo-600" />
                           </Button>
                           {accessPwd && (
-                            <Button variant="outline" size="icon" title="Copiar senha" className="shrink-0" onClick={async () => {
+                            <Button variant="outline" size="icon" aria-label="Copiar senha" title="Copiar senha" className="shrink-0" onClick={async () => {
                               try { await navigator.clipboard.writeText(accessPwd); toast.success("Senha copiada"); } catch {}
                             }}>
                               <Copy className="size-4 text-slate-600" />

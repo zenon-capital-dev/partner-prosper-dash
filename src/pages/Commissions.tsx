@@ -962,7 +962,7 @@ export default function Commissions() {
                           </td>
                           {canManage && (
                             <td className="px-4 py-3 text-right">
-                              <Button variant="ghost" size="icon" className="size-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50" onClick={() => removeRule(r)}>
+                              <Button variant="ghost" size="icon" aria-label="Remover regra" className="size-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50" onClick={() => removeRule(r)}>
                                 <Trash2 className="size-3.5" />
                               </Button>
                             </td>

@@ -545,7 +545,7 @@ export default function Contracts() {
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Button size="icon" variant="ghost" className="size-8 text-slate-500 hover:text-indigo-700" onClick={() => viewFile(c.file_path)}><Eye className="size-4" /></Button>
+                                        <Button size="icon" variant="ghost" aria-label="Ver contrato" className="size-8 text-slate-500 hover:text-indigo-700" onClick={() => viewFile(c.file_path)}><Eye className="size-4" /></Button>
                                       </TooltipTrigger>
                                       <TooltipContent>Ver contrato</TooltipContent>
                                     </Tooltip>
@@ -553,7 +553,7 @@ export default function Contracts() {
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
-                                        <Button size="icon" variant="ghost" className="size-8 text-slate-500 hover:text-indigo-700" onClick={() => downloadFile(c.file_path, c.name)}><Download className="size-4" /></Button>
+                                        <Button size="icon" variant="ghost" aria-label="Baixar contrato" className="size-8 text-slate-500 hover:text-indigo-700" onClick={() => downloadFile(c.file_path, c.name)}><Download className="size-4" /></Button>
                                       </TooltipTrigger>
                                       <TooltipContent>Baixar arquivo</TooltipContent>
                                     </Tooltip>

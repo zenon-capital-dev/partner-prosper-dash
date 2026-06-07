@@ -624,7 +624,7 @@ function ItemRow({
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-7"><Edit3 className="size-3.5" /></Button>
+                <Button variant="ghost" size="icon" aria-label="Ações do compromisso" className="size-7"><Edit3 className="size-3.5" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(item)}><Edit3 className="size-3.5 mr-2" />Editar</DropdownMenuItem>

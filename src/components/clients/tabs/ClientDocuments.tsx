@@ -296,6 +296,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           )}
                           <Button
                             variant="ghost" size="icon"
+                            aria-label="Adicionar comentário"
                             onClick={() => handleAddNote(doc)}
                             className="size-8 text-muted-foreground hover:text-foreground"
                             title="Comentário"

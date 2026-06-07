@@ -133,10 +133,10 @@ export function CompanyContactsManager({ companyId }: Props) {
                 )}
               </div>
               <div className="flex items-center gap-0.5">
-                <Button size="icon" variant="ghost" className="size-6" onClick={() => openEdit(c)}>
+                <Button size="icon" variant="ghost" aria-label="Editar contato" className="size-6" onClick={() => openEdit(c)}>
                   <Pencil className="size-3" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-6 text-destructive" onClick={() => remove(c.id)}>
+                <Button size="icon" variant="ghost" aria-label="Remover contato" className="size-6 text-destructive" onClick={() => remove(c.id)}>
                   <Trash2 className="size-3" />
                 </Button>
               </div>

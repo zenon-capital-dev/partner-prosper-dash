@@ -205,7 +205,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="size-9 rounded-lg hover:bg-slate-100">
+                        <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-9 rounded-lg hover:bg-slate-100">
                           <MoreVertical className="size-4 text-slate-500" />
                         </Button>
                       </DropdownMenuTrigger>

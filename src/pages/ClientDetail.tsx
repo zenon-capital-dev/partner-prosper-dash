@@ -282,6 +282,7 @@ export default function ClientDetail() {
           <Button 
             variant="ghost" 
             size="icon" 
+            aria-label="Voltar para clientes"
             onClick={() => navigate("/clientes")}
             className="rounded-xl border border-border/40 hover:bg-muted size-9 shrink-0"
           >
@@ -492,10 +493,10 @@ export default function ClientDetail() {
                           <p className="font-bold text-sm truncate">{co.name}</p>
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button size="icon" variant="ghost" className="size-7" onClick={() => { setEditingCompany(co); setCompanyOpen(true); }}>
+                          <Button size="icon" variant="ghost" aria-label="Editar empresa" className="size-7" onClick={() => { setEditingCompany(co); setCompanyOpen(true); }}>
                             <Pencil className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={async () => {
+                          <Button size="icon" variant="ghost" aria-label="Remover empresa" className="size-7 text-destructive" onClick={async () => {
                             if (!(await confirmAction("Remover esta empresa?"))) return;
                             const { error } = await supabase.from("companies").delete().eq("id", co.id);
                             if (error) toast.error(error.message);
