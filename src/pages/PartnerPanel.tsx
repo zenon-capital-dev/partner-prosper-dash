@@ -852,3 +852,12 @@ export default function PartnerPanel() {
     </PanelShell>
   );
 }
+
+function Cf({ label, value, onChange, locked, type = "text" }: { label: string; value: string; onChange: (v: string) => void; locked?: boolean; type?: string }) {
+  return (
+    <div>
+      <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">{label}</Label>
+      <Input type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} disabled={locked} className="mt-1" />
+    </div>
+  );
+}
