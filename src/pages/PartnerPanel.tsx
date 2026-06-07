@@ -360,7 +360,7 @@ export default function PartnerPanel() {
                     <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
                       <Save className="size-4" /> {saveProfile.isPending ? "Salvando..." : "Salvar"}
                     </Button>
-                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm({ full_name: partner.full_name || "", email: partner.email || "", phone: partner.phone || "", whatsapp: partner.whatsapp || "", pix_key: partner.pix_key || "" }); }}>
+                    <Button variant="outline" onClick={() => { setEditing(false); if (partner) setForm(hydrate(partner)); }}>
                       Cancelar
                     </Button>
                   </>
