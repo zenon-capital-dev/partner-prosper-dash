@@ -864,6 +864,9 @@ function CockpitRow({ item, onAction, selected, onToggleSelect, onUpdateDate, is
 
   return (
     <div className="vx-card group flex flex-col md:flex-row items-center gap-4 p-4 transition-all hover:bg-slate-50 border-slate-100">
+      {item.type === 'demand' && onToggleSelect && (
+        <Checkbox checked={!!selected} onCheckedChange={() => onToggleSelect()} className="shrink-0" />
+      )}
       <div className={cn("size-12 rounded-2xl flex items-center justify-center shrink-0", config.color)}>
         <Icon className="size-6" />
       </div>
