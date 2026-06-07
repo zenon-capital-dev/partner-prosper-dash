@@ -316,10 +316,11 @@ export default function FinanceCenter() {
             onClick: () => setStatusAndTab("recebidos", "todos"),
           } as any,
           {
-            label: "Receita líquida",
+            label: "Saldo líquido (Zenon)",
             value: formatBRL(kpis.netRevenue),
             tone: "primary",
             onClick: () => setTab("relatorios"),
+            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)}`,
           } as any,
           {
             label: "A receber",
