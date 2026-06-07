@@ -181,11 +181,13 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   };
 
   const amount = Number(form.amount || 0);
-  const partnerCalc = form.partner_id ? (amount * Number(form.commission_percent || 0)) / 100 : 0;
+  const zenonCost = Number(form.zenon_cost || 0);
+  const partnerBase = Math.max(amount - zenonCost, 0);
+  const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
   const referrerCalc = form.referrer_id ? (amount * Number(form.referrer_percent || 0)) / 100 : 0;
   const collaboratorCalc = form.collaborator_id ? (amount * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
-  const liquido = amount - totalCommissions;
+  const liquido = amount - zenonCost - totalCommissions;
   const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
 
   const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
