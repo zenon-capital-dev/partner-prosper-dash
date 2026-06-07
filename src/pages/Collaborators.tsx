@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useCepLookup } from "@/hooks/useCepLookup";
+import { generateSecurePassword } from "@/lib/password";
 
 import {
   UserCircle, Search, Plus, Mail, Phone, Shield, Loader2, Copy, Users2, ShieldCheck,

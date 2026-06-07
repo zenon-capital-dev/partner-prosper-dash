@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { isValidCPFOrCNPJ, isValidPhoneBR } from "@/lib/validators";
+import { generateSecurePassword } from "@/lib/password";
 import {
   Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
   Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,

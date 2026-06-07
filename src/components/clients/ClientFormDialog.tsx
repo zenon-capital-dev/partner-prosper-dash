@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { onlyDigits, maskCPFCNPJ, maskPhoneBR, maskCEP } from "@/lib/masks";
 import { isValidCPFOrCNPJ, isValidPhoneBR, lookupCEP } from "@/lib/validators";
+import { generateSecurePassword } from "@/lib/password";
 
 interface Props {
   open: boolean;
