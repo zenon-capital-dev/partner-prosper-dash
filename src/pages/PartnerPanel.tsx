@@ -134,29 +134,38 @@ export default function PartnerPanel() {
 
   // ----- Edit profile -----
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ full_name: "", email: "", phone: "", whatsapp: "", pix_key: "" });
-  useEffect(() => {
-    if (partner) {
-      setForm({
-        full_name: partner.full_name || "",
-        email: partner.email || "",
-        phone: partner.phone || "",
-        whatsapp: partner.whatsapp || "",
-        pix_key: partner.pix_key || "",
-      });
-    }
-  }, [partner]);
+  const emptyForm = {
+    full_name: "", email: "", phone: "", whatsapp: "", document: "",
+    pix_key: "", bank_name: "", bank_agency: "", bank_account: "", bank_account_type: "",
+    address_zip: "", address_street: "", address_number: "", address_complement: "",
+    address_neighborhood: "", address_city: "", address_state: "",
+  };
+  const [form, setForm] = useState(emptyForm);
+  const hydrate = (p: any) => ({
+    full_name: p?.full_name || "",
+    email: p?.email || "",
+    phone: p?.phone || "",
+    whatsapp: p?.whatsapp || "",
+    document: p?.document || "",
+    pix_key: p?.pix_key || "",
+    bank_name: p?.bank_name || "",
+    bank_agency: p?.bank_agency || "",
+    bank_account: p?.bank_account || "",
+    bank_account_type: p?.bank_account_type || "",
+    address_zip: p?.address_zip || "",
+    address_street: p?.address_street || "",
+    address_number: p?.address_number || "",
+    address_complement: p?.address_complement || "",
+    address_neighborhood: p?.address_neighborhood || "",
+    address_city: p?.address_city || "",
+    address_state: p?.address_state || "",
+  });
+  useEffect(() => { if (partner) setForm(hydrate(partner)); }, [partner]);
 
   const saveProfile = useMutation({
     mutationFn: async () => {
       if (!partner?.id) throw new Error("Parceiro não encontrado");
-      const { error } = await supabase.from("partners").update({
-        full_name: form.full_name,
-        email: form.email,
-        phone: form.phone,
-        whatsapp: form.whatsapp,
-        pix_key: form.pix_key,
-      }).eq("id", partner.id);
+      const { error } = await supabase.from("partners").update(form as any).eq("id", partner.id);
       if (error) throw error;
     },
     onSuccess: () => {
