@@ -56,6 +56,9 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [mandatorySteps, setMandatorySteps] = useState<string[]>(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
   const [manualApproval, setManualApproval] = useState(false);
 
+  // Produtos contratados (apenas no cadastro novo)
+  const [selectedProducts, setSelectedProducts] = useState<Array<{ product_id: string; value: string; deadline: string }>>([]);
+
   useEffect(() => {
     if (client) setForm(client);
     else setForm({ status: "novo_cliente", source: "cadastro_manual" });
@@ -66,6 +69,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     setNewDocInput("");
     setManualApproval(false);
     setMandatorySteps(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
+    setSelectedProducts([]);
   }, [client, open]);
 
   const generatePassword = () => {
@@ -100,6 +104,12 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     queryKey: ["providers-select-active"],
     queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").eq("active", true).order("name")).data ?? [],
   });
+
+  const { data: productsList } = useQuery({
+    queryKey: ["products-select-active"],
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+  });
+
 
   const { data: docTemplates } = useQuery({
     queryKey: ["doc-templates-setting"],
@@ -235,6 +245,29 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
           .is("service_provider_id", null);
         if (providerUpErr) console.warn("Vínculo prestador-demandas:", providerUpErr);
       }
+
+      // Produtos contratados (cadastro novo)
+      if (!client?.id && clientId && selectedProducts.length > 0) {
+        const valid = selectedProducts.filter((p) => p.product_id);
+        if (valid.length > 0) {
+          const rows = valid.map((p) => ({
+            client_id: clientId!,
+            product_id: p.product_id,
+            value: p.value ? Number(p.value) : null,
+            custom_value: p.value ? Number(p.value) : null,
+            deadline: p.deadline || null,
+            status: "aguardando_inicio",
+            responsible_employee_id: form.collaborator_id || null,
+            service_provider_id: form.service_provider_id || null,
+          }));
+          const { error: prodErr } = await supabase.from("client_products").insert(rows);
+          if (prodErr) {
+            console.warn("Produtos do cliente:", prodErr);
+            toast.warning("Cliente criado, mas houve erro ao vincular produtos: " + prodErr.message);
+          }
+        }
+      }
+
 
       // Pendências de documentos (cadastro novo)
       if (!client?.id && clientId) {
@@ -488,6 +521,90 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Label>Observações internas</Label>
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
+
+          {/* PRODUTOS CONTRATADOS — só cadastro novo */}
+          {!client?.id && (
+            <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-indigo-300/60 bg-indigo-50/40">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="size-4 text-indigo-700" />
+                  <div>
+                    <p className="text-sm font-bold">Produtos contratados</p>
+                    <p className="text-[11px] text-muted-foreground">Crie as demandas iniciais já vinculadas a este cliente.</p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5 h-8 text-xs"
+                  onClick={() => setSelectedProducts((p) => [...p, { product_id: "", value: "", deadline: "" }])}
+                >
+                  <Plus className="size-3.5" /> Adicionar produto
+                </Button>
+              </div>
+
+              {selectedProducts.length === 0 && (
+                <p className="text-[12px] text-slate-500 italic">Nenhum produto adicionado. (Opcional — você pode contratar depois.)</p>
+              )}
+
+              {selectedProducts.map((row, idx) => (
+                <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-white rounded-lg p-2 border border-indigo-200/60">
+                  <div className="col-span-12 sm:col-span-5 space-y-1">
+                    <Label className="text-[11px]">Produto</Label>
+                    <Select
+                      value={row.product_id || undefined}
+                      onValueChange={(v) => {
+                        const prod = productsList?.find((p: any) => p.id === v);
+                        setSelectedProducts((arr) => arr.map((r, i) => i === idx ? {
+                          ...r,
+                          product_id: v,
+                          value: r.value || (prod?.base_price ? String(prod.base_price) : ""),
+                        } : r));
+                      }}
+                    >
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {productsList?.map((p: any) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-6 sm:col-span-3 space-y-1">
+                    <Label className="text-[11px]">Valor (R$)</Label>
+                    <Input
+                      className="h-9"
+                      type="number"
+                      step="0.01"
+                      value={row.value}
+                      onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, value: e.target.value } : r))}
+                    />
+                  </div>
+                  <div className="col-span-6 sm:col-span-3 space-y-1">
+                    <Label className="text-[11px]">Prazo</Label>
+                    <Input
+                      className="h-9"
+                      type="date"
+                      value={row.deadline}
+                      onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, deadline: e.target.value } : r))}
+                    />
+                  </div>
+                  <div className="col-span-12 sm:col-span-1 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 text-rose-600 hover:bg-rose-50"
+                      onClick={() => setSelectedProducts((arr) => arr.filter((_, i) => i !== idx))}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* PENDÊNCIAS DE DOCUMENTOS — só cadastro novo */}
           {!client?.id && (
