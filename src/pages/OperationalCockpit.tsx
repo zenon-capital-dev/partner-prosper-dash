@@ -619,6 +619,80 @@ export default function OperationalCockpit() {
         </Tabs>
       </div>
 
+      {/* BULK ACTIONS — DEMANDAS */}
+      {(() => {
+        const visibleDemands = filteredItems.filter(i => i.type === 'demand');
+        if (visibleDemands.length === 0) return null;
+        const allSelected = visibleDemands.every(d => selectedDemandIds.has(d.id));
+        const someSelected = selectedDemandIds.size > 0;
+        return (
+          <div className="vx-card p-3 flex flex-wrap items-center gap-3 border-indigo-200/60 bg-indigo-50/40">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(c) => {
+                  if (c) setSelectedDemandIds(new Set(visibleDemands.map(d => d.id)));
+                  else setSelectedDemandIds(new Set());
+                }}
+              />
+              <span className="text-xs font-bold text-slate-700">
+                {someSelected
+                  ? `${selectedDemandIds.size} demanda(s) selecionada(s)`
+                  : `Selecionar todas as ${visibleDemands.length} demandas visíveis`}
+              </span>
+            </div>
+            <div className="flex-1" />
+            <Popover open={bulkOpen} onOpenChange={setBulkOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="sm"
+                  className="rounded-xl gap-2 text-xs font-bold"
+                  disabled={!someSelected}
+                >
+                  <CalendarIcon className="size-3.5" />
+                  {bulkDate
+                    ? `Aplicar ${format(bulkDate, "dd/MM/yyyy")}`
+                    : "Definir data de atuação"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={bulkDate}
+                  onSelect={setBulkDate}
+                  initialFocus
+                />
+                <div className="p-3 border-t flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setBulkOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!bulkDate || updateDeadlineMutation.isPending}
+                    onClick={() => bulkDate && updateDeadlineMutation.mutate({
+                      ids: Array.from(selectedDemandIds),
+                      date: bulkDate
+                    })}
+                  >
+                    Replicar para {selectedDemandIds.size}
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            {someSelected && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="rounded-xl text-xs"
+                onClick={() => setSelectedDemandIds(new Set())}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+        );
+      })()}
+
       {/* MAIN LIST */}
       <div className="space-y-4">
         {filteredItems.length > 0 ? (
@@ -626,7 +700,11 @@ export default function OperationalCockpit() {
             <CockpitRow 
               key={`${item.type}-${item.id}`} 
               item={item} 
-              onAction={(action) => handleAction(action, item)} 
+              onAction={(action) => handleAction(action, item)}
+              selected={selectedDemandIds.has(item.id)}
+              onToggleSelect={() => toggleDemandSelect(item.id)}
+              onUpdateDate={(date) => updateDeadlineMutation.mutate({ ids: [item.id], date })}
+              isUpdatingDate={updateDeadlineMutation.isPending}
             />
           ))
         ) : (
