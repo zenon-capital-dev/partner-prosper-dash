@@ -769,15 +769,7 @@ function CollabCard({ c, canManage, isMe, onEdit, onToggleActive, onToggleAccess
 }
 
 function generateStrongPassword(): string {
-  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lower = "abcdefghijkmnpqrstuvwxyz";
-  const digits = "23456789";
-  const symbols = "!@#$%&*";
-  const all = upper + lower + digits + symbols;
-  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
-  let pw = pick(upper) + pick(lower) + pick(digits) + pick(symbols);
-  for (let i = 0; i < 8; i++) pw += pick(all);
-  return pw.split("").sort(() => Math.random() - 0.5).join("");
+  return generateSecurePassword(12);
 }
 
 function CreateCollaboratorDialog({

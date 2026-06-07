@@ -83,17 +83,7 @@ const relativeLastSeen = (d?: string | null) => {
   return `${Math.floor(diffMs / (365 * day))}a atrás`;
 };
 
-const generatePassword = () => {
-  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lower = "abcdefghijkmnopqrstuvwxyz";
-  const num = "23456789";
-  const sym = "!@#$%&*";
-  const all = upper + lower + num + sym;
-  const pick = (s: string) => s[Math.floor(Math.random() * s.length)];
-  let pwd = pick(upper) + pick(lower) + pick(num) + pick(sym);
-  for (let i = 0; i < 8; i++) pwd += pick(all);
-  return pwd.split("").sort(() => Math.random() - 0.5).join("");
-};
+const generatePassword = () => generateSecurePassword(12);
 
 type SortKey = "name" | "email" | "last_sign_in_at" | "created_at";
 type SortDir = "asc" | "desc";

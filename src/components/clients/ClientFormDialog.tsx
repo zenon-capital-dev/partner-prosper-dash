@@ -73,11 +73,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   }, [client, open]);
 
   const generatePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
-    let p = "";
-    for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
-    p += "!" + Math.floor(Math.random() * 90 + 10);
-    setAccessPwd(p);
+    setAccessPwd(generateSecurePassword(12));
     setShowPwd(true);
   };
 

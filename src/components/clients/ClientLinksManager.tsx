@@ -230,6 +230,13 @@ export function ClientLinksManager({ clientId, kind }: Props) {
   }
 
   async function handleSetPrimary(id: string) {
+    // Garante apenas UM principal por cliente: zera os outros antes de marcar o novo.
+    const { error: clearErr } = await supabase
+      .from(cfg.table as any)
+      .update({ is_primary: false })
+      .eq("client_id", clientId)
+      .neq("id", id);
+    if (clearErr) { toast.error(clearErr.message); return; }
     const { error } = await supabase.from(cfg.table as any).update({ is_primary: true }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("Principal atualizado");

@@ -30,3 +30,33 @@ export function passwordStrengthLabel(score: number): string {
   if (score === 3) return "Boa";
   return "Forte";
 }
+
+// Gerador criptograficamente seguro (usa crypto.getRandomValues, não Math.random).
+// Garante 1 maiúscula, 1 minúscula, 1 dígito e 1 símbolo.
+export function generateSecurePassword(length = 12): string {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnpqrstuvwxyz";
+  const digits = "23456789";
+  const symbols = "!@#$%&*";
+  const all = upper + lower + digits + symbols;
+
+  const randInt = (max: number) => {
+    // Rejection sampling para evitar viés modular.
+    const limit = Math.floor(0xffffffff / max) * max;
+    const buf = new Uint32Array(1);
+    while (true) {
+      crypto.getRandomValues(buf);
+      if (buf[0] < limit) return buf[0] % max;
+    }
+  };
+  const pick = (s: string) => s[randInt(s.length)];
+
+  const chars = [pick(upper), pick(lower), pick(digits), pick(symbols)];
+  for (let i = chars.length; i < Math.max(length, 8); i++) chars.push(pick(all));
+  // Fisher–Yates seguro.
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = randInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join("");
+}
