@@ -50,8 +50,6 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Financeiro", adminOnly: true, items: [
     { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
-    // { title: "Faturamento", url: "/financeiro", icon: Banknote },
-    { title: "Comissões", url: "/comissoes", icon: Wallet },
   ]},
   { label: "Sistema", items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
