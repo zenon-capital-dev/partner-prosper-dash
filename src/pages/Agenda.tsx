@@ -474,7 +474,7 @@ function EmptyHint({ text }: { text: string }) {
 }
 
 function ItemList({
-  items, onComplete, onReopen, onDelete, onEdit, onReschedule,
+  items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
 }: {
   items: AgendaItem[];
   onComplete: (id: string) => void;
@@ -482,22 +482,34 @@ function ItemList({
   onDelete: (id: string) => void;
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
+  onSetStatus?: (id: string, s: Status) => void;
 }) {
   return (
     <div className="space-y-2">
       {items.map((it) => (
-        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} />
+        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} />
       ))}
     </div>
   );
 }
 
 function ItemRow({
-  item, onComplete, onReopen, onDelete, onEdit, onReschedule,
+  item, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
 }: {
   item: AgendaItem;
   onComplete: (id: string) => void;
   onReopen?: (id: string) => void;
+  onDelete: (id: string) => void;
+  onEdit: (i: AgendaItem) => void;
+  onReschedule?: (id: string, d: Date) => void;
+  onSetStatus?: (id: string, s: Status) => void;
+}) {
+  const meta = KIND_META[item.kind] || KIND_META.tarefa;
+  const Icon = meta.icon;
+  const due = dueBadge(item);
+  const prio = PRIORITY_META[item.priority] || PRIORITY_META.normal;
+  const isDone = item.status_new === "concluida" || item.status_new === "cancelada";
+  const statusMeta = STATUS_META[item.status_new];
   onDelete: (id: string) => void;
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
