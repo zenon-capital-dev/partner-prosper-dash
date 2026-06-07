@@ -241,15 +241,27 @@ export default function DashboardAdmin() {
       .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
     const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
     const receivedTotal = payments.filter((p: any) => p.status === "pago").reduce((a, p: any) => a + Number(p.amount_paid || 0), 0);
-    
-    // Receita Bruta = total recebido (pago)
-    const grossRevenue = receivedTotal;
-    // Comissões já pagas (sai do caixa)
+
+    // Receita Bruta = total vendido no período selecionado
+    const grossRevenue = rangeRevenue;
+    // Comissões geradas para as vendas do período (qualquer status — é despesa real/projetada)
+    const periodSaleIds = new Set(filteredSales.map((s: any) => s.id));
+    const periodCommissions = commissions
+      .filter((c: any) => c.sale_id && periodSaleIds.has(c.sale_id))
+      .reduce((a, c: any) => a + Number(c.amount || 0), 0);
+    // Comissões já pagas (apenas para outras métricas)
     const commissionsPaid = commissions
       .filter((c: any) => ["pago", "paga"].includes(c.status) || ["pago", "paga"].includes(c.workflow_status))
       .reduce((a, c: any) => a + Number(c.amount || 0), 0);
-    // Receita Líquida = Bruto - comissões pagas
-    const netRevenue = grossRevenue - commissionsPaid;
+    // Impostos sobre a receita bruta (configurável em system_settings.tax_rate_percent)
+    const periodTaxes = grossRevenue * (Number(taxRate) || 0) / 100;
+    // Receita Líquida = Bruto - comissões do período - impostos
+    const netRevenue = grossRevenue - periodCommissions - periodTaxes;
+    // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
+    const estimatedRevenue = payments
+      .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
+      .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
+    const estimatedRevenueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status)).length;
     // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
     const estimatedRevenue = payments
       .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
