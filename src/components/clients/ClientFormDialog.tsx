@@ -107,7 +107,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   const { data: productsList } = useQuery({
     queryKey: ["products-select-active"],
-    queryFn: async () => (await supabase.from("products").select("id, name, price").eq("active", true).order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
   });
 
 
@@ -559,7 +559,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                         setSelectedProducts((arr) => arr.map((r, i) => i === idx ? {
                           ...r,
                           product_id: v,
-                          value: r.value || (prod?.price ? String(prod.price) : ""),
+                          value: r.value || (prod?.base_price ? String(prod.price) : ""),
                         } : r));
                       }}
                     >
