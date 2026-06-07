@@ -64,6 +64,9 @@ export default function ClientPanel() {
   const { data: demandas = [] } = useQuery({
     queryKey: ["client-demandas", clientId],
     enabled: !!clientId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 45_000,
     queryFn: async () => {
       const { data } = await supabase.from("client_products")
         .select("id, status, value, deadline, sla_due_date, created_at, custom_product_name, products(name, description)")
@@ -75,6 +78,9 @@ export default function ClientPanel() {
   const { data: docs = [] } = useQuery({
     queryKey: ["client-docs", clientId],
     enabled: !!clientId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 30_000,
     queryFn: async () => {
       // Read from both legacy (client_document_requests) and the main documents table
       // used by the admin "Solicitar Documento" flow.
@@ -110,6 +116,9 @@ export default function ClientPanel() {
   const { data: payments = [] } = useQuery({
     queryKey: ["client-payments", clientId],
     enabled: !!clientId,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("payments")
         .select("id, amount, status, due_date, paid_at, description, created_at")
@@ -117,6 +126,7 @@ export default function ClientPanel() {
       return data ?? [];
     },
   });
+
 
   const kpis = useMemo(() => {
     const active = (demandas as any[]).filter((d) => !["concluida","concluido","cancelada"].includes(d.status)).length;
