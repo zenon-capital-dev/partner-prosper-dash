@@ -531,10 +531,15 @@ export default function Clients() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {paginated.map((c: any) => (
-                <div
+                <a
                   key={c.id}
-                  onClick={() => navigate(`/clientes/${c.id}`)}
-                  className="group relative rounded-2xl border border-slate-200/70 bg-white p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md active:scale-[0.99] transition-all cursor-pointer overflow-hidden shadow-sm"
+                  href={`/clientes/${c.id}`}
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                    e.preventDefault();
+                    navigate(`/clientes/${c.id}`);
+                  }}
+                  className="group relative rounded-2xl border border-slate-200/70 bg-white p-4 sm:p-5 hover:border-indigo-300 hover:shadow-md active:scale-[0.99] transition-all cursor-pointer overflow-hidden shadow-sm block no-underline text-inherit"
                 >
                   <div
                     className={cn(
@@ -656,7 +661,7 @@ export default function Clients() {
                       )}>{c._health}</p>
                     </div>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
             <PaginationControl
@@ -699,9 +704,13 @@ export default function Clients() {
                             {initials(c.full_name)}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">
+                            <a
+                              href={`/clientes/${c.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="font-semibold text-slate-900 truncate group-hover:text-indigo-700 transition-colors no-underline hover:underline block"
+                            >
                               {c.full_name}
-                            </p>
+                            </a>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Building2 className="size-3 text-slate-400" />
                               <p className="text-xs text-slate-500 truncate">{c.company || "Pessoa física"}</p>
