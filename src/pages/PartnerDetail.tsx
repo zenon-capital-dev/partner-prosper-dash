@@ -65,7 +65,7 @@ export default function PartnerDetail() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" onClick={() => navigate("/parceiros")}>
+        <Button variant="outline" size="icon" aria-label="Voltar para parceiros" onClick={() => navigate("/parceiros")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>

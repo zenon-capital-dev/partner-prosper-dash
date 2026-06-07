@@ -168,7 +168,7 @@ export default function ProductDetail() {
       <div className="max-w-[1500px] mx-auto px-5 lg:px-8 py-6 space-y-5">
         {/* HEADER */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" onClick={() => navigate("/produtos")} className="border-slate-200/70">
+          <Button variant="outline" size="icon" aria-label="Voltar para produtos" onClick={() => navigate("/produtos")} className="border-slate-200/70">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <button onClick={() => navigate("/produtos")} className="text-[12px] text-slate-500 hover:text-slate-900">

@@ -86,7 +86,7 @@ export default function ProviderDetail() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" onClick={() => navigate("/prestadores")}>
+        <Button variant="outline" size="icon" aria-label="Voltar para prestadores" onClick={() => navigate("/prestadores")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
