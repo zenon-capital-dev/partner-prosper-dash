@@ -301,6 +301,26 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       </div>
                     </Field>
                   </div>
+
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+                    <Field label="🔒 Custo Zenon (interno — não visível ao parceiro)">
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-sm">R$</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="h-11 pl-10 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right"
+                          value={form.zenon_cost ?? ""}
+                          onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
+                          placeholder="0,00"
+                        />
+                      </div>
+                      <p className="text-[10.5px] text-amber-700 mt-1.5 leading-tight">
+                        Esse valor vai direto para o caixa da Zenon como lucro. O parceiro vê apenas o valor após dedução: <strong>{fmt(partnerBase)}</strong>. Comissão do parceiro é calculada sobre esse valor líquido.
+                      </p>
+                    </Field>
+                  </div>
                 </div>
               </Section>
 
