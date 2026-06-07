@@ -76,12 +76,36 @@ export default function ClientPanel() {
     queryKey: ["client-docs", clientId],
     enabled: !!clientId,
     queryFn: async () => {
-      const { data } = await supabase.from("client_document_requests")
-        .select("id, title, description, status, due_date, file_url, created_at, updated_at, reviewed_at")
-        .eq("client_id", clientId!).order("created_at", { ascending: false });
-      return data ?? [];
+      // Read from both legacy (client_document_requests) and the main documents table
+      // used by the admin "Solicitar Documento" flow.
+      const [{ data: cdr }, { data: docsTable }] = await Promise.all([
+        supabase.from("client_document_requests")
+          .select("id, title, description, status, due_date, file_url, created_at, updated_at, reviewed_at")
+          .eq("client_id", clientId!),
+        supabase.from("documents")
+          .select("id, name, description, status, due_date, file_path, created_at, updated_at, reviewed_at")
+          .eq("client_id", clientId!),
+      ]);
+      const normalized = [
+        ...((cdr ?? []) as any[]).map((d) => ({ ...d, _source: "cdr" })),
+        ...((docsTable ?? []) as any[]).map((d: any) => ({
+          id: d.id,
+          title: d.name,
+          description: d.description,
+          status: d.status,
+          due_date: d.due_date,
+          file_url: d.file_path,
+          created_at: d.created_at,
+          updated_at: d.updated_at,
+          reviewed_at: d.reviewed_at,
+          _source: "documents",
+        })),
+      ];
+      normalized.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      return normalized;
     },
   });
+
 
   const { data: payments = [] } = useQuery({
     queryKey: ["client-payments", clientId],
