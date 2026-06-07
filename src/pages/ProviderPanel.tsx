@@ -65,18 +65,18 @@ export default function ProviderPanel() {
     refetchOnMount: "always",
     refetchInterval: 60_000,
     queryFn: async () => {
-      // Só consideramos demandas em que o prestador foi atribuído explicitamente:
-      //  - service_provider_id (prestador principal da demanda)
-      //  - responsible_provider_id (responsável pela execução)
-      //  - client_product_providers (prestadores secundários da demanda)
-      // O vínculo a nível de cliente (client_providers) NÃO traz mais
-      // automaticamente todas as demandas daquele cliente — isso fazia o
-      // prestador ver demandas de outros prestadores que atendem o mesmo cliente.
-      const { data: secLinks } = await supabase
-        .from("client_product_providers")
-        .select("client_product_id")
-        .eq("service_provider_id", providerId!);
-      const secCpIds = (secLinks ?? []).map((l: any) => l.client_product_id);
+      // Demandas que ESTE prestador vê:
+      //  1) service_provider_id = ele
+      //  2) responsible_provider_id = ele
+      //  3) demanda em client_product_providers (secundário)
+      //  4) cliente vinculado a ele via client_providers E demanda SEM prestador atribuído
+      //     (assim demandas novas do cliente caem automaticamente no painel dele)
+      const [secLinksRes, clientLinksRes] = await Promise.all([
+        supabase.from("client_product_providers").select("client_product_id").eq("service_provider_id", providerId!),
+        supabase.from("client_providers").select("client_id").eq("service_provider_id", providerId!),
+      ]);
+      const secCpIds = (secLinksRes.data ?? []).map((l: any) => l.client_product_id);
+      const linkedClientIds = (clientLinksRes.data ?? []).map((l: any) => l.client_id);
 
       const orParts: string[] = [
         `service_provider_id.eq.${providerId}`,
@@ -84,15 +84,27 @@ export default function ProviderPanel() {
       ];
       if (secCpIds.length > 0) orParts.push(`id.in.(${secCpIds.join(",")})`);
 
-      const { data } = await supabase
+      const { data: explicit } = await supabase
         .from("client_products")
-        .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id,
+        .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id,
                  clients(id, full_name, email, phone), products(name, description)`)
         .or(orParts.join(","))
         .order("created_at", { ascending: false });
 
+      let fallback: any[] = [];
+      if (linkedClientIds.length > 0) {
+        const { data } = await supabase
+          .from("client_products")
+          .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id,
+                   clients(id, full_name, email, phone), products(name, description)`)
+          .in("client_id", linkedClientIds)
+          .is("service_provider_id", null)
+          .order("created_at", { ascending: false });
+        fallback = data ?? [];
+      }
+
       const map = new Map<string, any>();
-      (data ?? []).forEach((r: any) => map.set(r.id, r));
+      [...(explicit ?? []), ...fallback].forEach((r: any) => map.set(r.id, r));
       return Array.from(map.values());
     },
   });
