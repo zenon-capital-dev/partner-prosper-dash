@@ -829,7 +829,16 @@ function StatTile({ label, value, icon: Icon, tone, onClick, active }: any) {
   );
 }
 
-function CockpitRow({ item, onAction }: { item: CockpitItem, onAction: (action: string) => void }) {
+function CockpitRow({ item, onAction, selected, onToggleSelect, onUpdateDate, isUpdatingDate }: {
+  item: CockpitItem;
+  onAction: (action: string) => void;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+  onUpdateDate?: (date: Date) => void;
+  isUpdatingDate?: boolean;
+}) {
+  const [dateOpen, setDateOpen] = useState(false);
+  const [pickedDate, setPickedDate] = useState<Date | undefined>(item.date ? new Date(item.date) : undefined);
   const navigate = useNavigate();
   const typeConfig = {
     demand: { icon: Zap, label: 'Demanda', color: 'bg-indigo-500/10 text-indigo-500' },
