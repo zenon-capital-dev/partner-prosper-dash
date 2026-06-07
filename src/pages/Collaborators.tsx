@@ -27,7 +27,7 @@ import { PageHero } from "@/components/PageHero";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
-import { initials, formatPhone } from "@/lib/format";
+import { initials, formatPhone, formatBRL } from "@/lib/format";
 import { CredentialsManager } from "@/components/CredentialsManager";
 
 type Role = "admin" | "admin_secondary" | "colaborador";
@@ -116,6 +116,27 @@ export default function Collaborators() {
     },
   });
 
+  const { data: commissionTotals = {} } = useQuery({
+    queryKey: ["collab-commission-totals"],
+    queryFn: async (): Promise<Record<string, { total: number; pago: number; pendente: number }>> => {
+      const { data } = await supabase
+        .from("commission_splits")
+        .select("beneficiary_id, amount, status")
+        .eq("beneficiary_type", "collaborator");
+      const map: Record<string, { total: number; pago: number; pendente: number }> = {};
+      (data ?? []).forEach((s: any) => {
+        const id = s.beneficiary_id;
+        if (!id) return;
+        if (!map[id]) map[id] = { total: 0, pago: 0, pendente: 0 };
+        const amt = Number(s.amount || 0);
+        map[id].total += amt;
+        if (s.status === "pago") map[id].pago += amt;
+        else map[id].pendente += amt;
+      });
+      return map;
+    },
+  });
+
   const filtered = useMemo(() => {
     const q = norm(debouncedSearch);
     const qD = onlyDigits(debouncedSearch);
@@ -170,8 +191,12 @@ export default function Collaborators() {
     const active = rows.filter((r) => r.active).length;
     const withAccess = rows.filter((r) => r.has_system_access).length;
     const admins = rows.filter((r) => r.role === "admin" || r.role === "admin_secondary").length;
-    return { total, active, withAccess, admins };
-  }, [rows]);
+    const totals = Object.values(commissionTotals as Record<string, { total: number; pago: number; pendente: number }>);
+    const commTotal = totals.reduce((a, t) => a + t.total, 0);
+    const commPago = totals.reduce((a, t) => a + t.pago, 0);
+    const commPendente = totals.reduce((a, t) => a + t.pendente, 0);
+    return { total, active, withAccess, admins, commTotal, commPago, commPendente };
+  }, [rows, commissionTotals]);
 
   const adminCount = useMemo(
     () => rows.filter((r) => (r.role === "admin" || r.role === "admin_secondary") && r.active && r.has_system_access).length,
@@ -301,7 +326,7 @@ export default function Collaborators() {
           { label: "Total", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" /> },
           { label: "Ativos", value: kpis.active, tone: "success", icon: <UserCircle className="size-4" />, onClick: () => setStatusFilter(statusFilter === "ativos" ? "todos" : "ativos") },
           { label: "Com acesso", value: kpis.withAccess, tone: "info", icon: <KeyRound className="size-4" />, onClick: () => setAccessFilter(accessFilter === "com" ? "todos" : "com") },
-          { label: "Admins", value: kpis.admins, tone: "violet", icon: <ShieldCheck className="size-4" />, onClick: () => setRoleFilter(roleFilter === "admin" ? "todos" : "admin") },
+          { label: "Comissões (total)", value: formatBRL(kpis.commTotal), tone: "violet", icon: <ShieldCheck className="size-4" />, hint: `Pago ${formatBRL(kpis.commPago)} · Pendente ${formatBRL(kpis.commPendente)}` } as any,
         ]}
       />
 
@@ -430,6 +455,7 @@ export default function Collaborators() {
                     <SortableTh label="Acesso" k="access" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="center" />
                     <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="center" />
                     <SortableTh label="Criado" k="created" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                    <th className="px-5 py-3 text-right">Comissões</th>
                     <th className="px-5 py-3 text-right">Ações</th>
                   </tr>
                 </thead>
@@ -476,6 +502,21 @@ export default function Collaborators() {
                         </td>
                         <td className="px-5 py-3 text-right text-xs font-mono text-slate-500">
                           {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "—"}
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          {(() => {
+                            const t = (commissionTotals as any)[c.id] || { total: 0, pago: 0, pendente: 0 };
+                            return (
+                              <div className="inline-flex flex-col items-end gap-0.5">
+                                <span className="font-mono text-sm font-semibold text-slate-800 tabular-nums">{formatBRL(t.total)}</span>
+                                <span className="text-[10px] text-slate-500">
+                                  <span className="text-emerald-600 font-semibold">{formatBRL(t.pago)}</span>
+                                  <span className="mx-1">·</span>
+                                  <span className="text-amber-600 font-semibold">{formatBRL(t.pendente)}</span>
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-5 py-3 text-right">
                           {canManage ? (
