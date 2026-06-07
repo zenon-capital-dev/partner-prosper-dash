@@ -450,13 +450,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       <span>Valor de Venda</span>
                       <span className="text-slate-900 font-bold tabular-nums">{fmt(amount)}</span>
                     </div>
-                    
+
+                    {zenonCost > 0 && (
+                      <div className="flex justify-between text-xs text-amber-700 font-semibold">
+                        <span>🔒 Custo Zenon (lucro Zenon)</span>
+                        <span className="tabular-nums">-{fmt(zenonCost)}</span>
+                      </div>
+                    )}
+
                     {partnerCalc > 0 && (
                       <div className="flex justify-between text-xs text-rose-500/80 font-medium">
-                        <span>Repasse Parceiro ({form.commission_percent}%)</span>
+                        <span>Repasse Parceiro ({form.commission_percent}% sobre {fmt(partnerBase)})</span>
                         <span className="tabular-nums">-{fmt(partnerCalc)}</span>
                       </div>
                     )}
+                    
                     
                     {referrerCalc > 0 && (
                       <div className="flex justify-between text-xs text-rose-500/80 font-medium">
