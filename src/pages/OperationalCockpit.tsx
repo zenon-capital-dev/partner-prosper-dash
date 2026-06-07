@@ -885,6 +885,31 @@ function CockpitRow({ item, onAction, selected, onToggleSelect, onUpdateDate, is
               {format(new Date(item.date), "dd 'de' MMM", { locale: ptBR })}
             </span>
           )}
+          {item.type === 'demand' && onUpdateDate && (
+            <Popover open={dateOpen} onOpenChange={setDateOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-indigo-50"
+                  title="Alterar data de atuação"
+                >
+                  <Pencil className="size-3" /> editar data
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={pickedDate} onSelect={setPickedDate} initialFocus />
+                <div className="p-3 border-t flex justify-end gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => setDateOpen(false)}>Cancelar</Button>
+                  <Button
+                    size="sm"
+                    disabled={!pickedDate || isUpdatingDate}
+                    onClick={() => { if (pickedDate) { onUpdateDate(pickedDate); setDateOpen(false); } }}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
         <h3 className="text-base font-bold text-slate-900 mt-1 group-hover:text-primary transition-colors truncate">
           {item.title}
