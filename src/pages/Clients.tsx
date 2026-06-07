@@ -307,7 +307,7 @@ export default function Clients() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700 admin-shell">
+      <div className="min-h-dvh bg-slate-50/60 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 animate-in fade-in duration-700 admin-shell">
       <PageHero
         eyebrow="CRM"
         category="Base de Clientes"

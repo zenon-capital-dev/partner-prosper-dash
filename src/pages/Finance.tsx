@@ -488,7 +488,7 @@ export default function Finance() {
   if (tab === "commissions" && splitStatus !== "all") activeFilters.push({ label: `Status: ${SPLIT_STATUS[splitStatus]?.label}`, clear: () => setSplitStatus("all") });
 
   return (
-    <div className="min-h-screen bg-slate-50/60 font-sans">
+    <div className="min-h-dvh bg-slate-50/60 font-sans">
       <PageHero
         eyebrow="Tesouraria"
         category="Operações Financeiras"

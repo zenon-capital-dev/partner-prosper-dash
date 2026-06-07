@@ -25,7 +25,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+    <div className="min-h-dvh flex items-center justify-center bg-background p-6">
       <form onSubmit={submit} className="w-full max-w-md space-y-6 vx-card p-8">
         <div>
           <h1 className="font-display text-2xl font-bold">Definir nova senha</h1>

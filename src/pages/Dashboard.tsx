@@ -37,7 +37,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-dvh bg-background">
         <div className="relative">
           <div className="size-12 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
           <div className="absolute inset-0 size-12 rounded-full border border-primary/10 blur-sm" />
@@ -47,7 +47,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background bg-premium">
+    <div className="min-h-dvh bg-background bg-premium">
       <div className="px-6 lg:px-10 py-4 flex items-center justify-end border-b border-border/5 bg-background/50 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/50">
           {(["today", "7d", "30d", "month"] as RangeKey[]).map((k) => (

@@ -596,7 +596,7 @@ export default function Documents() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-dvh bg-slate-50/60 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <PageHero
         eyebrow="Documentos"
         category="Central de Arquivos"

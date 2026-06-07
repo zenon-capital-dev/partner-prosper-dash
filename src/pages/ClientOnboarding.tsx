@@ -50,7 +50,7 @@ export default function ClientOnboarding() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-dvh bg-slate-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="size-10 animate-spin mx-auto text-indigo-600" />
           <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Preparando sua experiência...</p>
@@ -69,7 +69,7 @@ export default function ClientOnboarding() {
   const pendingDocs = docs.filter((d: any) => !d.file_url).length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-dvh bg-[#F8FAFC] flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* NAVBAR */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-md bg-white/80">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">

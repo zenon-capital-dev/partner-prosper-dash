@@ -302,7 +302,7 @@ export default function Sales() {
   const hasActiveFilters = activeChips.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans admin-shell">
+    <div className="min-h-dvh bg-slate-50/60 text-slate-900 font-sans admin-shell">
       <PageHero
         eyebrow="Ledger"
         category="Sales Activity"

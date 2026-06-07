@@ -164,7 +164,7 @@ export default function ProductDetail() {
   if (!product) return <div className="p-12 text-center text-rose-600">Serviço não encontrado.</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50/60 font-sans admin-shell">
+    <div className="min-h-dvh bg-slate-50/60 font-sans admin-shell">
       <div className="max-w-[1500px] mx-auto px-5 lg:px-8 py-6 space-y-5">
         {/* HEADER */}
         <div className="flex items-center gap-3">

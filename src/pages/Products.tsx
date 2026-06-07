@@ -204,7 +204,7 @@ export default function Products() {
   const goToDetail = (id: string) => navigate(`/produtos/${id}`);
 
   return (
-    <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans admin-shell">
+    <div className="min-h-dvh bg-slate-50/60 text-slate-900 font-sans admin-shell">
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 py-6 space-y-5">
         {/* HEADER */}
         <header className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5 flex flex-wrap items-end justify-between gap-4">
