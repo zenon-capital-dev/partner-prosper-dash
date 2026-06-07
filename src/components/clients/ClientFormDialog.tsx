@@ -246,6 +246,29 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         if (providerUpErr) console.warn("Vínculo prestador-demandas:", providerUpErr);
       }
 
+      // Produtos contratados (cadastro novo)
+      if (!client?.id && clientId && selectedProducts.length > 0) {
+        const valid = selectedProducts.filter((p) => p.product_id);
+        if (valid.length > 0) {
+          const rows = valid.map((p) => ({
+            client_id: clientId!,
+            product_id: p.product_id,
+            value: p.value ? Number(p.value) : null,
+            custom_value: p.value ? Number(p.value) : null,
+            deadline: p.deadline || null,
+            status: "aguardando_inicio",
+            responsible_employee_id: form.collaborator_id || null,
+            service_provider_id: form.service_provider_id || null,
+          }));
+          const { error: prodErr } = await supabase.from("client_products").insert(rows);
+          if (prodErr) {
+            console.warn("Produtos do cliente:", prodErr);
+            toast.warning("Cliente criado, mas houve erro ao vincular produtos: " + prodErr.message);
+          }
+        }
+      }
+
+
       // Pendências de documentos (cadastro novo)
       if (!client?.id && clientId) {
         const allDocs = [...selectedTemplateDocs, ...customDocs];
