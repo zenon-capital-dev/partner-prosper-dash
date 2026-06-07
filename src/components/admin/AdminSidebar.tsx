@@ -42,8 +42,7 @@ const SECTIONS: NavSection[] = [
     { title: "Indicadores", url: "/indicadores", icon: Sparkles, staffOnly: true },
     { title: "Colaboradores", url: "/colaboradores", icon: UserCircle, adminOnly: true },
   ]},
-  { label: "Documentos & Contratos", staffOnly: true, items: [
-    { title: "Contratos", url: "/contratos", icon: FileSignature },
+  { label: "Documentos", staffOnly: true, items: [
     { title: "Arquivos", url: "/documentos", icon: FileText },
   ]},
   { label: "Financeiro", adminOnly: true, items: [
