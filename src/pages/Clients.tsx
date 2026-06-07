@@ -661,7 +661,7 @@ export default function Clients() {
                       )}>{c._health}</p>
                     </div>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
             <PaginationControl
