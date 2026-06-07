@@ -176,7 +176,61 @@ export default function PartnerPanel() {
     onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
   });
 
+  // ----- Materials (read-only for partner) -----
+  const { data: materials = [] } = useQuery({
+    queryKey: ["partner-materials", partner?.id],
+    enabled: !!partner?.id,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("partner_materials").select("*").eq("active", true).order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const downloadMaterial = async (m: any) => {
+    if (m.external_url) { window.open(m.external_url, "_blank", "noopener"); return; }
+    if (!m.file_path) return;
+    const { data, error } = await supabase.storage.from("partner-materials").createSignedUrl(m.file_path, 60);
+    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo"); return; }
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
+  // ----- Support tickets -----
+  const { data: tickets = [] } = useQuery({
+    queryKey: ["partner-tickets", partner?.id],
+    enabled: !!partner?.id,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("partner_support_tickets").select("*").eq("partner_id", partner!.id).order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [ticketForm, setTicketForm] = useState({ subject: "", message: "", priority: "normal" });
+  const submitTicket = useMutation({
+    mutationFn: async () => {
+      if (!partner?.id) throw new Error("Parceiro não encontrado");
+      if (!ticketForm.subject.trim() || !ticketForm.message.trim()) throw new Error("Preencha assunto e mensagem");
+      const { error } = await (supabase as any).from("partner_support_tickets").insert({
+        partner_id: partner.id,
+        user_id: user?.id,
+        subject: ticketForm.subject.trim(),
+        message: ticketForm.message.trim(),
+        priority: ticketForm.priority,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Chamado enviado. Nossa equipe responderá em breve.");
+      setTicketOpen(false);
+      setTicketForm({ subject: "", message: "", priority: "normal" });
+      qc.invalidateQueries({ queryKey: ["partner-tickets"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao enviar chamado"),
+  });
+
   const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");
+
 
   return (
     <PanelShell role="parceiro" nav={NAV} activeKey={activeKey} onNavigate={onNavigate} userName={partner?.full_name}>
