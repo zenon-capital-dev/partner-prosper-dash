@@ -6,21 +6,34 @@ import { Loader2, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function ClientProductSteps({ clientProductId, showDetails = false }: { clientProductId: string; showDetails?: boolean }) {
+export function ClientProductSteps({
+  clientProductId,
+  showDetails = false,
+  initialSteps,
+}: {
+  clientProductId: string;
+  showDetails?: boolean;
+  initialSteps?: any[];
+}) {
   const qc = useQueryClient();
   const [expanded, setExpanded] = useState(showDetails);
 
-  const { data: steps, isLoading } = useQuery({
+  const { data: fetchedSteps = [], isLoading } = useQuery({
     queryKey: ["product-steps", clientProductId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("client_product_steps")
         .select("*")
         .eq("client_product_id", clientProductId)
         .order("position", { ascending: true });
+      if (error) throw error;
       return data ?? [];
     },
+    enabled: !initialSteps,
+    retry: 1,
   });
+
+  const steps = initialSteps ?? fetchedSteps;
 
   const toggleStep = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
@@ -35,6 +48,7 @@ export function ClientProductSteps({ clientProductId, showDetails = false }: { c
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["product-steps", clientProductId] });
+      qc.invalidateQueries({ queryKey: ["client-products"] });
     },
     onError: (err: any) => toast.error(err.message),
   });
