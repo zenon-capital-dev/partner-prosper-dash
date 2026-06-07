@@ -539,9 +539,6 @@ export default function ClientDetail() {
             <ClientFinancial clientId={id!} />
           </TabsContent>
 
-          <TabsContent value="contratos" className="m-0">
-            <ClientContracts clientId={id!} />
-          </TabsContent>
 
           <TabsContent value="atividades" className="m-0">
             <ClientTimelineTab clientId={id!} />
