@@ -623,30 +623,32 @@ export default function Clients() {
                   </div>
 
                   {c._productNames.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4 pt-3 border-t border-slate-100">
-                      {c._productNames.slice(0, 3).map((p: string, i: number) => (
-                        <span key={i} className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold whitespace-nowrap">
-                          {p}
-                        </span>
-                      ))}
-                      {c._productNames.length > 3 && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-bold cursor-help">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex flex-wrap gap-1 mb-4 pt-3 border-t border-slate-100 cursor-help">
+                          {c._productNames.slice(0, 3).map((p: string, i: number) => (
+                            <span key={i} className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 text-[10px] font-bold whitespace-nowrap">
+                              {p}
+                            </span>
+                          ))}
+                          {c._productNames.length > 3 && (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">
                               +{c._productNames.length - 3}
                             </span>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <div className="flex flex-col gap-0.5">
-                              {c._productNames.slice(3).map((p: string, i: number) => (
-                                <span key={i} className="text-xs">• {p}</span>
-                              ))}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-slate-300 mb-1">Produtos ({c._productNames.length})</p>
+                        <div className="flex flex-col gap-0.5">
+                          {c._productNames.map((p: string, i: number) => (
+                            <span key={i} className="text-xs">• {p}</span>
+                          ))}
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
                   )}
+
 
                   <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
                     <div>
