@@ -341,6 +341,36 @@ export default function OperationalCockpit() {
 
   const [detailItem, setDetailItem] = useState<CockpitItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<CockpitItem | null>(null);
+  const [selectedDemandIds, setSelectedDemandIds] = useState<Set<string>>(new Set());
+  const [bulkDate, setBulkDate] = useState<Date | undefined>();
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const updateDeadlineMutation = useMutation({
+    mutationFn: async ({ ids, date }: { ids: string[]; date: Date }) => {
+      const iso = date.toISOString().slice(0, 10);
+      const { error } = await supabase
+        .from("client_products")
+        .update({ deadline: iso })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(`Data de atuação atualizada em ${vars.ids.length} demanda(s).`);
+      queryClient.invalidateQueries();
+      setSelectedDemandIds(new Set());
+      setBulkDate(undefined);
+      setBulkOpen(false);
+    },
+    onError: (e: any) => toast.error("Erro ao atualizar: " + e.message),
+  });
+
+  const toggleDemandSelect = (id: string) => {
+    setSelectedDemandIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
 
   const notifyMutation = useMutation({
     mutationFn: async ({ userId, title, message }: { userId: string, title: string, message: string }) => {
