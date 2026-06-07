@@ -132,6 +132,31 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       toast.error("Informe um valor maior que zero");
       return;
     }
+    if (amountNum > 1_000_000_000) {
+      toast.error("Valor acima do limite permitido");
+      return;
+    }
+    const zenonCostNum = Number(form.zenon_cost || 0);
+    if (!Number.isFinite(zenonCostNum) || zenonCostNum < 0) {
+      toast.error("Custo Zenon inválido");
+      return;
+    }
+    if (zenonCostNum > amountNum) {
+      toast.error("Custo Zenon não pode ser maior que o valor da venda");
+      return;
+    }
+    const pctFields = [
+      ["commission_percent", "Comissão parceiro"],
+      ["referrer_percent", "Comissão indicador"],
+      ["collaborator_percent", "Comissão colaborador"],
+    ] as const;
+    for (const [k, label] of pctFields) {
+      const v = Number((form as any)[k] || 0);
+      if (!Number.isFinite(v) || v < 0 || v > 100) {
+        toast.error(`${label}: percentual deve ser entre 0 e 100`);
+        return;
+      }
+    }
     const totalPctCheck =
       Number(form.commission_percent || 0) +
       Number(form.referrer_percent || 0) +
@@ -139,6 +164,13 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     if (totalPctCheck > 100) {
       toast.error("Soma das comissões não pode passar de 100%");
       return;
+    }
+    if (form.sale_date) {
+      const d = new Date(form.sale_date);
+      if (isNaN(d.getTime())) {
+        toast.error("Data da venda inválida");
+        return;
+      }
     }
     setSubmitting(true);
     try {
