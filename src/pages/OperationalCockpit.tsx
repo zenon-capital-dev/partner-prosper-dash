@@ -51,6 +51,7 @@ export default function OperationalCockpit() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "high" | "ok">("all");
 
   // --- Data Fetching ---
   
@@ -467,10 +468,15 @@ export default function OperationalCockpit() {
         item.subtitle.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesTab = activeTab === "all" || item.type === activeTab;
+
+      const matchesSeverity =
+        severityFilter === "all" ? true :
+        severityFilter === "ok" ? (item.severity !== "critical" && item.severity !== "high") :
+        item.severity === severityFilter;
       
-      return matchesSearch && matchesTab;
+      return matchesSearch && matchesTab && matchesSeverity;
     });
-  }, [allItems, searchTerm, activeTab]);
+  }, [allItems, searchTerm, activeTab, severityFilter]);
 
   const stats = {
     critical: allItems.filter(i => i.severity === 'critical').length,
@@ -522,27 +528,32 @@ export default function OperationalCockpit() {
           value={stats.total} 
           icon={Zap} 
           tone="primary" 
-          onClick={() => { setActiveTab("all"); setSearchTerm(""); }}
+          active={severityFilter === "all"}
+          onClick={() => { setSeverityFilter("all"); setActiveTab("all"); setSearchTerm(""); }}
         />
         <StatTile 
           label="Críticos" 
           value={stats.critical} 
           icon={ShieldAlert} 
           tone="danger" 
-          onClick={() => { setActiveTab("all"); setSearchTerm("crítico"); }}
+          active={severityFilter === "critical"}
+          onClick={() => { setSeverityFilter(severityFilter === "critical" ? "all" : "critical"); setActiveTab("all"); setSearchTerm(""); }}
         />
         <StatTile 
           label="Alta Prioridade" 
           value={stats.high} 
           icon={AlertCircle} 
           tone="warning" 
-          onClick={() => { setActiveTab("all"); setSearchTerm(""); }}
+          active={severityFilter === "high"}
+          onClick={() => { setSeverityFilter(severityFilter === "high" ? "all" : "high"); setActiveTab("all"); setSearchTerm(""); }}
         />
         <StatTile 
           label="Em Dia" 
           value={stats.total === 0 ? "100%" : `${Math.round(((stats.total - stats.critical - stats.high) / stats.total) * 100)}%`} 
           icon={CheckCircle2} 
           tone="success" 
+          active={severityFilter === "ok"}
+          onClick={() => { setSeverityFilter(severityFilter === "ok" ? "all" : "ok"); setActiveTab("all"); setSearchTerm(""); }}
         />
       </div>
 
@@ -672,12 +683,18 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatTile({ label, value, icon: Icon, tone, onClick }: any) {
+function StatTile({ label, value, icon: Icon, tone, onClick, active }: any) {
   const tones = {
     primary: "bg-primary/10 text-primary border-primary/20",
     success: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
     warning: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     danger: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+  };
+  const activeRings = {
+    primary: "ring-2 ring-primary ring-offset-2",
+    success: "ring-2 ring-emerald-500 ring-offset-2",
+    warning: "ring-2 ring-amber-500 ring-offset-2",
+    danger: "ring-2 ring-rose-500 ring-offset-2",
   };
 
   return (
@@ -685,7 +702,8 @@ function StatTile({ label, value, icon: Icon, tone, onClick }: any) {
       onClick={onClick}
       className={cn(
         "vx-card p-6 flex flex-col gap-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98]",
-        onClick ? "cursor-pointer" : "cursor-default"
+        onClick ? "cursor-pointer" : "cursor-default",
+        active && activeRings[tone as keyof typeof activeRings]
       )}
     >
       <div className={cn("size-10 rounded-xl flex items-center justify-center border", tones[tone as keyof typeof tones])}>
