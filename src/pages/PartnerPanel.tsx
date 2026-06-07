@@ -67,6 +67,9 @@ export default function PartnerPanel() {
   const { data: clients = [] } = useQuery({
     queryKey: ["partner-clients", partner?.id],
     enabled: !!partner?.id,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("clients").select("id, full_name, email, phone, status, created_at").eq("partner_id", partner!.id).order("created_at", { ascending: false });
       return data ?? [];
@@ -76,6 +79,9 @@ export default function PartnerPanel() {
   const { data: commissions = [] } = useQuery({
     queryKey: ["partner-commissions", partner?.id],
     enabled: !!partner?.id,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
