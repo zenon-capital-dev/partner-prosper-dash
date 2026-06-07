@@ -78,7 +78,7 @@ export default function RoleHome() {
 
   // No role assigned — do NOT default to /cliente (would show waiting screen).
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-background text-foreground">
+    <div className="min-h-dvh flex items-center justify-center p-8 bg-background text-foreground">
       <div className="max-w-md text-center space-y-4">
         <h1 className="text-2xl font-bold">Conta sem perfil atribuído</h1>
         <p className="text-muted-foreground">

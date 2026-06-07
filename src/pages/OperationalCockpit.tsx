@@ -521,7 +521,7 @@ export default function OperationalCockpit() {
 
   if (loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports) {
     return (
-      <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up">
+      <div className="page-shell bg-premium min-h-dvh space-y-8 animate-fade-up">
         <PageHeader title="Alertas" description="Carregando seus alertas prioritários..." />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -538,7 +538,7 @@ export default function OperationalCockpit() {
   }
 
   return (
-    <div className="page-shell bg-premium min-h-screen space-y-8 animate-fade-up pb-20">
+    <div className="page-shell bg-premium min-h-dvh space-y-8 animate-fade-up pb-20">
       <PageHeader 
         eyebrow="​"
         title="Alertas"

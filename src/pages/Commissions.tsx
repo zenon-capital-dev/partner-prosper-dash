@@ -654,7 +654,7 @@ export default function Commissions() {
   }, [rules, rulesSearch]);
 
   return (
-    <div className="min-h-screen bg-slate-50/60 font-sans">
+    <div className="min-h-dvh bg-slate-50/60 font-sans">
       <PageHero
         eyebrow="Financeiro"
         category="Comissionamento"

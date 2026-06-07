@@ -376,7 +376,7 @@ export default function DashboardAdmin() {
   }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday, taxRate]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground admin-shell overflow-x-hidden">
+    <div className="min-h-dvh bg-background text-foreground admin-shell overflow-x-hidden">
       <div className="w-full max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-10 pb-14 space-y-6 sm:space-y-8 animate-in fade-in duration-700">
 
         {/* ============ HEADER ============ */}

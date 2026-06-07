@@ -79,7 +79,7 @@ function AppLayoutInner() {
 
   return (
     <SidebarProvider style={{ "--sidebar-width": "17rem" } as React.CSSProperties}>
-      <div className="min-h-screen flex w-full bg-background selection:bg-primary/15 selection:text-primary relative">
+      <div className="min-h-dvh flex w-full bg-background selection:bg-primary/15 selection:text-primary relative">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 relative">
           <header className="glass-header h-14 flex items-center px-3 sm:px-6 gap-2 sm:gap-4 no-print shrink-0">

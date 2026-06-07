@@ -23,7 +23,7 @@ export function LoadingScreen({
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-background p-6 text-center">
       <div className="relative mb-6">
         <div className="size-12 rounded-full border-[3px] border-primary/20 border-t-primary animate-spin" />
         <div className="absolute inset-0 size-12 rounded-full border border-primary/10 blur-sm" />

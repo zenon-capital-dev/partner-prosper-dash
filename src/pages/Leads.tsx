@@ -200,7 +200,7 @@ export default function Leads() {
   const hasActiveFilters = !!debouncedSearch || rangeKey !== "TUDO" || !!statusFilter;
 
   return (
-    <div className="min-h-screen bg-slate-50/60 text-slate-900 font-sans animate-in fade-in duration-500 admin-shell">
+    <div className="min-h-dvh bg-slate-50/60 text-slate-900 font-sans animate-in fade-in duration-500 admin-shell">
       <PageHero
         eyebrow="CRM"
         category="Sales Pipeline"

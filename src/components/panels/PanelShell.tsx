@@ -73,10 +73,10 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
   const bottomItems = nav.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-slate-50/70 font-sans">
-      <div className="flex min-h-screen">
+    <div className="min-h-dvh bg-slate-50/70 font-sans">
+      <div className="flex min-h-dvh">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex w-[252px] shrink-0 flex-col bg-white border-r border-slate-200/70 sticky top-0 h-screen">
+        <aside className="hidden lg:flex w-[252px] shrink-0 flex-col bg-white border-r border-slate-200/70 sticky top-0 h-dvh">
           <SideNav />
         </aside>
 

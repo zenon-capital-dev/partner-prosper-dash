@@ -439,7 +439,7 @@ export default function Reports() {
   }, [clientProducts]);
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in bg-premium min-h-screen space-y-8">
+    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-fade-in bg-premium min-h-dvh space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">

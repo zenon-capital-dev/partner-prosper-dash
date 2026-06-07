@@ -88,7 +88,7 @@ function AdminShell() {
 
 
   return (
-    <div className="admin-shell min-h-screen flex w-full text-foreground">
+    <div className="admin-shell min-h-dvh flex w-full text-foreground">
         <div className="hidden md:block shrink-0 relative z-30">
           <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         </div>
