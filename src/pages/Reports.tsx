@@ -556,6 +556,53 @@ export default function Reports() {
         </div>
       </div>
 
+      {/* Análise de produtos: quantidade, adesão, conversão */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {[
+          { title: "Mais Vendidos", subtitle: "Quantidade de vendas no período", data: topByQuantity, fmt: (v: number) => `${v} venda${v === 1 ? "" : "s"}`, accent: "from-indigo-500 to-indigo-600", empty: "Sem vendas no período." },
+          { title: "Maior Adesão", subtitle: "Clientes únicos que aderiram", data: topByAdoption, fmt: (v: number) => `${v} cliente${v === 1 ? "" : "s"}`, accent: "from-emerald-500 to-emerald-600", empty: "Sem demandas no período." },
+          { title: "Maior Conversão", subtitle: "% de demandas concluídas", data: topByConversion, fmt: (v: number, extra?: any) => `${v.toFixed(1)}% (${extra?.concl ?? 0}/${extra?.total ?? 0})`, accent: "from-amber-500 to-amber-600", empty: "Sem demandas no período." },
+        ].map((card) => {
+          const max = card.data[0]?.value || 1;
+          return (
+            <div key={card.title} className="vx-card p-6 rounded-[24px] bg-white border border-slate-100">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-editorial text-lg font-bold">{card.title}</h3>
+                  <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+                </div>
+                <Award className="size-5 text-slate-300" />
+              </div>
+              <div className="space-y-3">
+                {card.data.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">{card.empty}</p>
+                ) : (
+                  card.data.map((p: any, i: number) => {
+                    const pct = max === 0 ? 0 : (p.value / max) * 100;
+                    return (
+                      <div key={p.name} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs font-semibold gap-2">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="size-5 rounded-md bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black shrink-0">{i + 1}</span>
+                            <span className="truncate">{p.name}</span>
+                          </span>
+                          <span className="tabular-nums whitespace-nowrap text-slate-700">{card.fmt(p.value, p)}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${card.accent}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+
+
 
       {/* FILTERS */}
       <div className="vx-card p-6 bg-white border border-slate-100 rounded-[32px] space-y-6">
