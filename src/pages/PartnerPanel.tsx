@@ -230,7 +230,97 @@ export default function PartnerPanel() {
     onError: (e: any) => toast.error(e.message || "Erro ao enviar chamado"),
   });
 
+  // ----- Contratos -----
+  const { data: contract } = useQuery({
+    queryKey: ["partner-contract", partner?.id],
+    enabled: !!partner?.id,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("partner_contracts").select("*").eq("partner_id", partner!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const emptyContract = {
+    person_type: "pf",
+    full_name: "", cpf: "", rg: "", rg_issuer: "", birth_date: "",
+    marital_status: "", nationality: "Brasileira", profession: "",
+    company_name: "", company_cnpj: "",
+    legal_representative_name: "", legal_representative_cpf: "", legal_representative_role: "",
+    email: "", phone: "", whatsapp: "",
+    address_zip: "", address_street: "", address_number: "", address_complement: "",
+    address_neighborhood: "", address_city: "", address_state: "",
+    bank_name: "", bank_agency: "", bank_account: "", bank_account_type: "corrente", pix_key: "",
+    notes: "",
+  };
+  const [contractForm, setContractForm] = useState<any>(emptyContract);
+  useEffect(() => {
+    if (contract) {
+      setContractForm({ ...emptyContract, ...contract, birth_date: contract.birth_date || "" });
+    } else if (partner) {
+      setContractForm((cf: any) => ({
+        ...cf,
+        full_name: partner.full_name || cf.full_name,
+        email: partner.email || cf.email,
+        phone: partner.phone || cf.phone,
+        whatsapp: partner.whatsapp || cf.whatsapp,
+        cpf: partner.document || cf.cpf,
+        address_zip: partner.address_zip || cf.address_zip,
+        address_street: partner.address_street || cf.address_street,
+        address_number: partner.address_number || cf.address_number,
+        address_complement: partner.address_complement || cf.address_complement,
+        address_neighborhood: partner.address_neighborhood || cf.address_neighborhood,
+        address_city: partner.address_city || cf.address_city,
+        address_state: partner.address_state || cf.address_state,
+        bank_name: partner.bank_name || cf.bank_name,
+        bank_agency: partner.bank_agency || cf.bank_agency,
+        bank_account: partner.bank_account || cf.bank_account,
+        bank_account_type: partner.bank_account_type || cf.bank_account_type,
+        pix_key: partner.pix_key || cf.pix_key,
+      }));
+    }
+  }, [contract, partner]);
+
+  const contractLocked = contract?.status === "assinado";
+
+  const saveContract = useMutation({
+    mutationFn: async (submit: boolean) => {
+      if (!partner?.id) throw new Error("Parceiro não encontrado");
+      const payload: any = {
+        ...contractForm,
+        partner_id: partner.id,
+        user_id: user?.id,
+        birth_date: contractForm.birth_date || null,
+      };
+      if (submit) {
+        payload.status = "enviado";
+        payload.form_submitted_at = new Date().toISOString();
+      }
+      if (contract?.id) {
+        const { error } = await (supabase as any).from("partner_contracts").update(payload).eq("id", contract.id);
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any).from("partner_contracts").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_d, submit) => {
+      toast.success(submit ? "Dados enviados para nossa equipe" : "Rascunho salvo");
+      qc.invalidateQueries({ queryKey: ["partner-contract"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
+  });
+
+  const downloadContractFile = async (path: string) => {
+    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo"); return; }
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
   const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");
+
+
 
 
   return (
