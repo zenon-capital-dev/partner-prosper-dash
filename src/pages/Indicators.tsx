@@ -481,7 +481,7 @@ export default function Indicators() {
                         {canManage ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
+                              <Button size="icon" variant="ghost" className="size-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openEdit(r)}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>
@@ -621,7 +621,7 @@ function ReferrerCard({ r, canManage, onEdit, onToggle, onDelete, onCredentials 
         {canManage && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
+              <Button size="icon" variant="ghost" className="size-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onEdit}><Pencil className="size-4 mr-2" /> Editar</DropdownMenuItem>

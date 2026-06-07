@@ -460,7 +460,7 @@ export default function Providers() {
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="size-8"><MoreHorizontal className="size-4" /></Button>
+                              <Button size="icon" variant="ghost" className="size-8" aria-label="Mais ações"><MoreHorizontal className="size-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => navigate(`/prestadores/${p.id}`)}><ArrowUpRight className="size-4 mr-2" /> Ver perfil</DropdownMenuItem>

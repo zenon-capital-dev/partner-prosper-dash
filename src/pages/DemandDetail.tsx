@@ -301,7 +301,7 @@ export default function DemandDetail() {
     <div className="page-shell space-y-8 animate-fade-up">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => navigate("/demandas")} className="rounded-xl border-border/40">
+          <Button variant="outline" size="icon" aria-label="Voltar para demandas" onClick={() => navigate("/demandas")} className="rounded-xl border-border/40">
             <ArrowLeft className="size-4" />
           </Button>
           <div>

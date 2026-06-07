@@ -682,9 +682,9 @@ function MonthCalendar({
       <div className="flex items-center justify-between p-3 border-b border-slate-200">
         <h3 className="text-sm font-bold text-slate-900 capitalize">{format(month, "MMMM yyyy", { locale: ptBR })}</h3>
         <div className="flex gap-1">
-          <Button variant="outline" size="icon" className="size-8" onClick={() => onMonthChange(addDays(startOfMonth(month), -1))}><ChevronLeft className="size-4" /></Button>
+          <Button variant="outline" size="icon" className="size-8" aria-label="Mês anterior" onClick={() => onMonthChange(addDays(startOfMonth(month), -1))}><ChevronLeft className="size-4" /></Button>
           <Button variant="outline" size="sm" className="h-8" onClick={() => onMonthChange(new Date())}>Hoje</Button>
-          <Button variant="outline" size="icon" className="size-8" onClick={() => onMonthChange(addDays(endOfMonth(month), 1))}><ChevronRight className="size-4" /></Button>
+          <Button variant="outline" size="icon" className="size-8" aria-label="Próximo mês" onClick={() => onMonthChange(addDays(endOfMonth(month), 1))}><ChevronRight className="size-4" /></Button>
         </div>
       </div>
       <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50/50">
