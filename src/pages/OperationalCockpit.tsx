@@ -51,6 +51,7 @@ export default function OperationalCockpit() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "high" | "ok">("all");
 
   // --- Data Fetching ---
   
