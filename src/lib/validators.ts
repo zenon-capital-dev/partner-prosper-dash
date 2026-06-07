@@ -49,6 +49,13 @@ export function isValidPhoneBR(value: string): boolean {
   return true;
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+export function isValidEmail(value: string): boolean {
+  if (!value) return false;
+  const v = value.trim();
+  return v.length <= 254 && EMAIL_RE.test(v);
+}
+
 export interface ViaCepResult {
   cep: string;
   logradouro: string;

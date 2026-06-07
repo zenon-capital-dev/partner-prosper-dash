@@ -264,7 +264,13 @@ export default function Tasks() {
   };
 
   const save = async () => {
-    if (!form.title.trim()) return toast.error("Título é obrigatório");
+    const title = (form.title ?? "").trim();
+    if (title.length < 3) return toast.error("Título deve ter pelo menos 3 caracteres");
+    if (title.length > 200) return toast.error("Título muito longo (máx. 200 caracteres)");
+    if (form.due_date) {
+      const d = new Date(form.due_date);
+      if (Number.isNaN(d.getTime())) return toast.error("Data de vencimento inválida");
+    }
     setSaving(true);
     try {
       const payload = buildPayload();
