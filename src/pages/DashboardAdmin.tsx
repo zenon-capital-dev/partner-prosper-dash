@@ -157,6 +157,18 @@ export default function DashboardAdmin() {
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
+  // Imposto configurável via system_settings (key=tax_rate_percent). Default 0.
+  const { data: taxRate = 0 } = useQuery({
+    queryKey: ["dash-tax-rate"],
+    queryFn: async () => {
+      const { data } = await supabase.from("system_settings").select("value").eq("key", "tax_rate_percent").maybeSingle();
+      const v: any = data?.value;
+      const n = Number(typeof v === "object" ? v?.value : v);
+      return Number.isFinite(n) ? n : 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
 
   
