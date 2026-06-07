@@ -375,26 +375,26 @@ export default function Agenda() {
         <TabsContent value="hoje" className="mt-4 space-y-6">
           {buckets.overdue.length > 0 && (
             <Section title="Atrasados" tone="rose" count={buckets.overdue.length}>
-              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />
+              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />
             </Section>
           )}
           <Section title="Hoje" tone="orange" count={buckets.today.length}>
             {buckets.today.length === 0
               ? <EmptyHint text="Nenhum item pra hoje. Aproveite ou crie um." />
-              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />}
+              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
           </Section>
         </TabsContent>
 
         <TabsContent value="atrasados" className="mt-4">
           {buckets.overdue.length === 0
             ? <EmptyHint text="Sem itens atrasados. Tudo em dia!" />
-            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />}
+            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
         </TabsContent>
 
         <TabsContent value="proximos" className="mt-4">
           {buckets.upcoming.length === 0
             ? <EmptyHint text="Nada agendado pra frente." />
-            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} />}
+            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
         </TabsContent>
 
         <TabsContent value="concluidos" className="mt-4">
