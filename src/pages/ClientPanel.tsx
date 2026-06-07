@@ -211,8 +211,8 @@ export default function ClientPanel() {
                   <div key={d.id} className="bg-white rounded-xl border border-slate-200/70 p-4 shadow-sm">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <Badge variant="outline" className={cn("text-[10px] border", STATUS_META[d.status]?.tone || "bg-slate-100")}>{STATUS_META[d.status]?.label || d.status}</Badge>
-                      <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(d.value)}</p>
                     </div>
+
                     <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{d.products?.name || d.custom_product_name || "—"}</p>
                     {d.products?.description && <p className="text-[12px] text-slate-500 mt-1 line-clamp-2">{d.products.description}</p>}
                     <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11.5px] text-slate-500">
