@@ -63,7 +63,6 @@ const adminSections: NavSection[] = [
     label: "Documentos",
     items: [
       { title: "Documentos", url: "/documentos", icon: FileText },
-      { title: "Contratos", url: "/contratos", icon: FileSignature },
     ],
   },
   {
@@ -122,7 +121,6 @@ const clientSections: NavSection[] = [
     label: "Arquivos",
     items: [
       { title: "Documentos", url: "/cliente/documentos", icon: FileCheck2 },
-      { title: "Contratos", url: "/cliente/contratos", icon: FileSignature },
       { title: "Biblioteca", url: "/portal-cliente?tab=docs", icon: FolderArchive },
     ],
   },
@@ -157,7 +155,6 @@ const prestadorSections: NavSection[] = [
     label: "Arquivos",
     items: [
       { title: "Documentos", url: "/prestador/documentos", icon: FileText },
-      { title: "Contratos", url: "/prestador/contratos", icon: FileSignature },
     ],
   },
   {
@@ -206,7 +203,6 @@ const partnerSections: NavSection[] = [
     items: [
       { title: "Indicados", url: "/parceiro/clientes", icon: Users },
       { title: "Demandas", url: "/parceiro/demandas", icon: ClipboardList },
-      { title: "Contratos", url: "/parceiro/contratos", icon: FileSignature },
     ],
   },
   {

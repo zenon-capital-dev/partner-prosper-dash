@@ -57,7 +57,7 @@ const TABS = [
   { id: "documentos", label: "Documentos", icon: FileText },
   { id: "entregas", label: "Entregas", icon: ClipboardList },
   { id: "financeiro", label: "Financeiro", icon: CreditCard },
-  { id: "contratos", label: "Contratos", icon: FileSignature },
+  
   { id: "relacionamento", label: "Relacionamento", icon: MessageSquare },
   { id: "atividades", label: "Atividades", icon: Calendar },
   { id: "historico", label: "Histórico", icon: History },
@@ -539,9 +539,6 @@ export default function ClientDetail() {
             <ClientFinancial clientId={id!} />
           </TabsContent>
 
-          <TabsContent value="contratos" className="m-0">
-            <ClientContracts clientId={id!} />
-          </TabsContent>
 
           <TabsContent value="atividades" className="m-0">
             <ClientTimelineTab clientId={id!} />

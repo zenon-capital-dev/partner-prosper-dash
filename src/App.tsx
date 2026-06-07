@@ -26,7 +26,7 @@ import Automations from "./pages/Automations";
 import ProviderDetail from "./pages/ProviderDetail";
 import PartnerDetail from "./pages/PartnerDetail";
 import AdminProfile from "./pages/AdminProfile";
-import Contracts from "./pages/Contracts";
+
 import Finance from "./pages/Finance";
 import UsersPage from "./pages/UsersPage";
 import Indicators from "./pages/Indicators";
@@ -115,7 +115,7 @@ const App = () => (
               <Route path="/propostas" element={<Proposals />} />
               <Route path="/comissoes" element={<Commissions />} />
               <Route path="/documentos" element={<Documents />} />
-              <Route path="/contratos" element={<Contracts />} />
+              
               <Route path="/financeiro" element={<Finance />} />
               <Route path="/financeiro/central" element={<FinanceCenter />} />
               <Route path="/relatorios" element={<Reports />} />
