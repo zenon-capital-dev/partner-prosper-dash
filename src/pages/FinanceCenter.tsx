@@ -344,6 +344,39 @@ export default function FinanceCenter() {
       />
 
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10">
+        <div className="rounded-lg border border-slate-200/70 bg-white shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-display text-base font-semibold text-slate-900">Saldo líquido — Zenon</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos comissões pagas a indicadores, parceiros/colaboradores e despesas variáveis.</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
+              <p className="font-mono text-2xl font-bold text-emerald-700 tabular-nums">{formatBRL(kpis.netRevenue)}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div className="rounded-md border border-slate-200/70 bg-slate-50 p-3">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Bruto recebido</p>
+              <p className="font-mono text-base font-semibold text-slate-900 mt-1 tabular-nums">{formatBRL(kpis.totalReceived)}</p>
+            </div>
+            <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Indicadores</p>
+              <p className="font-mono text-base font-semibold text-amber-800 mt-1 tabular-nums">{formatBRL(kpis.indicatorsPaid)}</p>
+            </div>
+            <div className="rounded-md border border-indigo-200/70 bg-indigo-50/60 p-3">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-indigo-700">− Comissões</p>
+              <p className="font-mono text-base font-semibold text-indigo-800 mt-1 tabular-nums">{formatBRL(kpis.commissionsOthersPaid)}</p>
+              <p className="text-[10px] text-indigo-600/80 mt-0.5">Parceiros, colaboradores e prestadores</p>
+            </div>
+            <div className="rounded-md border border-rose-200/70 bg-rose-50/60 p-3">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-700">− Variáveis</p>
+              <p className="font-mono text-base font-semibold text-rose-800 mt-1 tabular-nums">{formatBRL(kpis.variableExpenses)}</p>
+              <p className="text-[10px] text-rose-600/80 mt-0.5">Despesas operacionais</p>
+            </div>
+          </div>
+        </div>
+
         {alerts.length > 0 && (
           <div className="rounded-lg border border-amber-200/70 bg-amber-50 p-4">
             <div className="flex items-center justify-between gap-2 mb-2">
