@@ -528,27 +528,32 @@ export default function OperationalCockpit() {
           value={stats.total} 
           icon={Zap} 
           tone="primary" 
-          onClick={() => { setActiveTab("all"); setSearchTerm(""); }}
+          active={severityFilter === "all"}
+          onClick={() => { setSeverityFilter("all"); setActiveTab("all"); setSearchTerm(""); }}
         />
         <StatTile 
           label="Críticos" 
           value={stats.critical} 
           icon={ShieldAlert} 
           tone="danger" 
-          onClick={() => { setActiveTab("all"); setSearchTerm("crítico"); }}
+          active={severityFilter === "critical"}
+          onClick={() => { setSeverityFilter(severityFilter === "critical" ? "all" : "critical"); setActiveTab("all"); setSearchTerm(""); }}
         />
         <StatTile 
           label="Alta Prioridade" 
           value={stats.high} 
           icon={AlertCircle} 
           tone="warning" 
-          onClick={() => { setActiveTab("all"); setSearchTerm(""); }}
+          active={severityFilter === "high"}
+          onClick={() => { setSeverityFilter(severityFilter === "high" ? "all" : "high"); setActiveTab("all"); setSearchTerm(""); }}
         />
         <StatTile 
           label="Em Dia" 
           value={stats.total === 0 ? "100%" : `${Math.round(((stats.total - stats.critical - stats.high) / stats.total) * 100)}%`} 
           icon={CheckCircle2} 
           tone="success" 
+          active={severityFilter === "ok"}
+          onClick={() => { setSeverityFilter(severityFilter === "ok" ? "all" : "ok"); setActiveTab("all"); setSearchTerm(""); }}
         />
       </div>
 
