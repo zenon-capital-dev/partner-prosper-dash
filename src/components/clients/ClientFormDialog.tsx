@@ -69,6 +69,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
     setNewDocInput("");
     setManualApproval(false);
     setMandatorySteps(["confirm_data", "upload_docs", "sign_contracts", "initial_payment"]);
+    setSelectedProducts([]);
   }, [client, open]);
 
   const generatePassword = () => {
