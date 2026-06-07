@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
-  BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare,
+  BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare, FileSignature, Upload, FileCheck2,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -29,6 +29,7 @@ const NAV = [
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "extrato",    label: "Extrato",    icon: FileText },
   { key: "materiais",  label: "Materiais",  icon: BookOpen },
+  { key: "contratos",  label: "Contratos",  icon: FileSignature },
   { key: "suporte",    label: "Suporte",    icon: LifeBuoy },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
 ];
@@ -229,7 +230,98 @@ export default function PartnerPanel() {
     onError: (e: any) => toast.error(e.message || "Erro ao enviar chamado"),
   });
 
+  // ----- Contratos -----
+  const { data: contract } = useQuery({
+    queryKey: ["partner-contract", partner?.id],
+    enabled: !!partner?.id,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("partner_contracts").select("*").eq("partner_id", partner!.id).maybeSingle();
+      return data;
+    },
+  });
+
+  const emptyContract = {
+    person_type: "pf",
+    full_name: "", cpf: "", rg: "", rg_issuer: "", birth_date: "",
+    marital_status: "", nationality: "Brasileira", profession: "",
+    company_name: "", company_cnpj: "",
+    legal_representative_name: "", legal_representative_cpf: "", legal_representative_role: "",
+    email: "", phone: "", whatsapp: "",
+    address_zip: "", address_street: "", address_number: "", address_complement: "",
+    address_neighborhood: "", address_city: "", address_state: "",
+    bank_name: "", bank_agency: "", bank_account: "", bank_account_type: "corrente", pix_key: "",
+    notes: "",
+  };
+  const [contractForm, setContractForm] = useState<any>(emptyContract);
+  useEffect(() => {
+    if (contract) {
+      setContractForm({ ...emptyContract, ...contract, birth_date: contract.birth_date || "" });
+    } else if (partner) {
+      const p: any = partner;
+      setContractForm((cf: any) => ({
+        ...cf,
+        full_name: partner.full_name || cf.full_name,
+        email: partner.email || cf.email,
+        phone: partner.phone || cf.phone,
+        whatsapp: partner.whatsapp || cf.whatsapp,
+        cpf: partner.document || cf.cpf,
+        address_zip: p.address_zip || cf.address_zip,
+        address_street: p.address_street || cf.address_street,
+        address_number: p.address_number || cf.address_number,
+        address_complement: p.address_complement || cf.address_complement,
+        address_neighborhood: p.address_neighborhood || cf.address_neighborhood,
+        address_city: p.address_city || cf.address_city,
+        address_state: p.address_state || cf.address_state,
+        bank_name: partner.bank_name || cf.bank_name,
+        bank_agency: partner.bank_agency || cf.bank_agency,
+        bank_account: partner.bank_account || cf.bank_account,
+        bank_account_type: p.bank_account_type || cf.bank_account_type,
+        pix_key: partner.pix_key || cf.pix_key,
+      }));
+    }
+  }, [contract, partner]);
+
+  const contractLocked = contract?.status === "assinado";
+
+  const saveContract = useMutation({
+    mutationFn: async (submit: boolean) => {
+      if (!partner?.id) throw new Error("Parceiro não encontrado");
+      const payload: any = {
+        ...contractForm,
+        partner_id: partner.id,
+        user_id: user?.id,
+        birth_date: contractForm.birth_date || null,
+      };
+      if (submit) {
+        payload.status = "enviado";
+        payload.form_submitted_at = new Date().toISOString();
+      }
+      if (contract?.id) {
+        const { error } = await (supabase as any).from("partner_contracts").update(payload).eq("id", contract.id);
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any).from("partner_contracts").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_d, submit) => {
+      toast.success(submit ? "Dados enviados para nossa equipe" : "Rascunho salvo");
+      qc.invalidateQueries({ queryKey: ["partner-contract"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
+  });
+
+  const downloadContractFile = async (path: string) => {
+    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo"); return; }
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
   const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");
+
+
 
 
   return (
@@ -375,6 +467,156 @@ export default function PartnerPanel() {
                   })}
                 </ol>}
             </SectionCard>
+          </>
+        )}
+
+        {activeKey === "contratos" && (
+          <>
+            <PanelHero role="parceiro" eyebrow="Documentação" title="Contratos"
+              subtitle="Preencha seus dados para que possamos gerar o Contrato de Parceria e o NDA. Depois de assinados, eles ficam disponíveis aqui." />
+
+            {contract?.status && (
+              <div className="mb-4">
+                <Badge variant="outline" className={cn(
+                  "text-[11px]",
+                  contract.status === "rascunho" && "bg-slate-100 text-slate-700 border-slate-200",
+                  contract.status === "enviado" && "bg-amber-50 text-amber-700 border-amber-200",
+                  contract.status === "em_analise" && "bg-blue-50 text-blue-700 border-blue-200",
+                  contract.status === "assinado" && "bg-emerald-50 text-emerald-700 border-emerald-200",
+                )}>
+                  Status: {contract.status === "em_analise" ? "Em análise" : contract.status === "assinado" ? "Assinado" : contract.status === "enviado" ? "Enviado para análise" : "Rascunho"}
+                </Badge>
+                {contract.admin_notes && (
+                  <p className="mt-2 text-[12.5px] text-slate-700 p-3 bg-amber-50/60 border border-amber-100 rounded">
+                    <span className="font-semibold">Mensagem da equipe:</span> {contract.admin_notes}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <SectionCard title="Documentos assinados" icon={FileCheck2}>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <p className="text-[12px] font-bold text-slate-800 mb-2">Contrato de Parceria</p>
+                  {contract?.contract_signed_path ? (
+                    <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadContractFile(contract.contract_signed_path)}>
+                      <Download className="size-3.5" /> Baixar contrato assinado
+                    </Button>
+                  ) : <p className="text-[12px] text-slate-500">Aguardando envio pela nossa equipe.</p>}
+                  {contract?.contract_uploaded_at && (
+                    <p className="text-[10.5px] text-slate-400 mt-2">Disponível desde {formatDate(contract.contract_uploaded_at)}</p>
+                  )}
+                </div>
+                <div className="border border-slate-200 rounded-lg p-4 bg-white">
+                  <p className="text-[12px] font-bold text-slate-800 mb-2">NDA — Confidencialidade</p>
+                  {contract?.nda_signed_path ? (
+                    <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadContractFile(contract.nda_signed_path)}>
+                      <Download className="size-3.5" /> Baixar NDA assinado
+                    </Button>
+                  ) : <p className="text-[12px] text-slate-500">Aguardando envio pela nossa equipe.</p>}
+                  {contract?.nda_uploaded_at && (
+                    <p className="text-[10.5px] text-slate-400 mt-2">Disponível desde {formatDate(contract.nda_uploaded_at)}</p>
+                  )}
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Dados para gerar os contratos" icon={FileSignature}>
+              <p className="text-[12px] text-slate-500 mb-4">
+                Preencha com cuidado — esses dados vão direto para os contratos. Se mudar algo, salve e nos avise.
+                {contractLocked && <span className="block mt-1 text-emerald-700 font-semibold">Contrato já assinado. Os campos estão bloqueados.</span>}
+              </p>
+
+              <div className="mb-4">
+                <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Você assinará como</Label>
+                <Select value={contractForm.person_type} onValueChange={(v) => setContractForm({ ...contractForm, person_type: v })} disabled={contractLocked}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pf">Pessoa Física</SelectItem>
+                    <SelectItem value="pj">Pessoa Jurídica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {contractForm.person_type === "pf" ? (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Cf label="Nome completo" value={contractForm.full_name} onChange={(v) => setContractForm({ ...contractForm, full_name: v })} locked={contractLocked} />
+                  <Cf label="CPF" value={contractForm.cpf} onChange={(v) => setContractForm({ ...contractForm, cpf: v })} locked={contractLocked} />
+                  <Cf label="RG" value={contractForm.rg} onChange={(v) => setContractForm({ ...contractForm, rg: v })} locked={contractLocked} />
+                  <Cf label="Órgão emissor / UF" value={contractForm.rg_issuer} onChange={(v) => setContractForm({ ...contractForm, rg_issuer: v })} locked={contractLocked} />
+                  <Cf label="Data de nascimento" type="date" value={contractForm.birth_date} onChange={(v) => setContractForm({ ...contractForm, birth_date: v })} locked={contractLocked} />
+                  <Cf label="Nacionalidade" value={contractForm.nationality} onChange={(v) => setContractForm({ ...contractForm, nationality: v })} locked={contractLocked} />
+                  <Cf label="Estado civil" value={contractForm.marital_status} onChange={(v) => setContractForm({ ...contractForm, marital_status: v })} locked={contractLocked} />
+                  <Cf label="Profissão" value={contractForm.profession} onChange={(v) => setContractForm({ ...contractForm, profession: v })} locked={contractLocked} />
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <Cf label="Razão social" value={contractForm.company_name} onChange={(v) => setContractForm({ ...contractForm, company_name: v })} locked={contractLocked} />
+                  <Cf label="CNPJ" value={contractForm.company_cnpj} onChange={(v) => setContractForm({ ...contractForm, company_cnpj: v })} locked={contractLocked} />
+                  <Cf label="Nome do representante legal" value={contractForm.legal_representative_name} onChange={(v) => setContractForm({ ...contractForm, legal_representative_name: v })} locked={contractLocked} />
+                  <Cf label="CPF do representante" value={contractForm.legal_representative_cpf} onChange={(v) => setContractForm({ ...contractForm, legal_representative_cpf: v })} locked={contractLocked} />
+                  <Cf label="Cargo do representante" value={contractForm.legal_representative_role} onChange={(v) => setContractForm({ ...contractForm, legal_representative_role: v })} locked={contractLocked} />
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard title="Contato">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <Cf label="E-mail" value={contractForm.email} onChange={(v) => setContractForm({ ...contractForm, email: v })} locked={contractLocked} />
+                <Cf label="Telefone" value={contractForm.phone} onChange={(v) => setContractForm({ ...contractForm, phone: v })} locked={contractLocked} />
+                <Cf label="WhatsApp" value={contractForm.whatsapp} onChange={(v) => setContractForm({ ...contractForm, whatsapp: v })} locked={contractLocked} />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Endereço">
+              <div className="grid sm:grid-cols-6 gap-4">
+                <div className="sm:col-span-2"><Cf label="CEP" value={contractForm.address_zip} onChange={(v) => setContractForm({ ...contractForm, address_zip: v })} locked={contractLocked} /></div>
+                <div className="sm:col-span-3"><Cf label="Rua" value={contractForm.address_street} onChange={(v) => setContractForm({ ...contractForm, address_street: v })} locked={contractLocked} /></div>
+                <div className="sm:col-span-1"><Cf label="Número" value={contractForm.address_number} onChange={(v) => setContractForm({ ...contractForm, address_number: v })} locked={contractLocked} /></div>
+                <div className="sm:col-span-2"><Cf label="Complemento" value={contractForm.address_complement} onChange={(v) => setContractForm({ ...contractForm, address_complement: v })} locked={contractLocked} /></div>
+                <div className="sm:col-span-2"><Cf label="Bairro" value={contractForm.address_neighborhood} onChange={(v) => setContractForm({ ...contractForm, address_neighborhood: v })} locked={contractLocked} /></div>
+                <div className="sm:col-span-2"><Cf label="Cidade" value={contractForm.address_city} onChange={(v) => setContractForm({ ...contractForm, address_city: v })} locked={contractLocked} /></div>
+                <div className="sm:col-span-2"><Cf label="UF" value={contractForm.address_state} onChange={(v) => setContractForm({ ...contractForm, address_state: v })} locked={contractLocked} /></div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Dados bancários (para repasse de comissões)">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2"><Cf label="Chave PIX" value={contractForm.pix_key} onChange={(v) => setContractForm({ ...contractForm, pix_key: v })} locked={contractLocked} /></div>
+                <Cf label="Banco" value={contractForm.bank_name} onChange={(v) => setContractForm({ ...contractForm, bank_name: v })} locked={contractLocked} />
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Tipo de conta</Label>
+                  <Select value={contractForm.bank_account_type || "corrente"} onValueChange={(v) => setContractForm({ ...contractForm, bank_account_type: v })} disabled={contractLocked}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="corrente">Conta corrente</SelectItem>
+                      <SelectItem value="poupanca">Conta poupança</SelectItem>
+                      <SelectItem value="pagamento">Conta de pagamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Cf label="Agência" value={contractForm.bank_agency} onChange={(v) => setContractForm({ ...contractForm, bank_agency: v })} locked={contractLocked} />
+                <Cf label="Conta" value={contractForm.bank_account} onChange={(v) => setContractForm({ ...contractForm, bank_account: v })} locked={contractLocked} />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Observações (opcional)">
+              <Textarea value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} disabled={contractLocked} rows={3} placeholder="Algo que devemos saber ao gerar os contratos?" />
+            </SectionCard>
+
+            {!contractLocked && (
+              <SectionCard title="">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" onClick={() => saveContract.mutate(false)} disabled={saveContract.isPending} className="gap-2">
+                    <Save className="size-4" /> Salvar rascunho
+                  </Button>
+                  <Button onClick={() => saveContract.mutate(true)} disabled={saveContract.isPending} className="gap-2 bg-indigo-600 hover:bg-indigo-700">
+                    <Upload className="size-4" /> Enviar dados para análise
+                  </Button>
+                  <p className="text-[11.5px] text-slate-500 ml-2">Você pode editar e reenviar enquanto os contratos não forem assinados.</p>
+                </div>
+              </SectionCard>
+            )}
           </>
         )}
 
@@ -608,5 +850,14 @@ export default function PartnerPanel() {
         )}
       </PanelContainer>
     </PanelShell>
+  );
+}
+
+function Cf({ label, value, onChange, locked, type = "text" }: { label: string; value: string; onChange: (v: string) => void; locked?: boolean; type?: string }) {
+  return (
+    <div>
+      <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">{label}</Label>
+      <Input type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} disabled={locked} className="mt-1" />
+    </div>
   );
 }
