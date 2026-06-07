@@ -79,6 +79,9 @@ export default function PartnerPanel() {
   const { data: commissions = [] } = useQuery({
     queryKey: ["partner-commissions", partner?.id],
     enabled: !!partner?.id,
+    refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
