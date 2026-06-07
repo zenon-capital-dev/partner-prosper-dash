@@ -186,22 +186,78 @@ export default function Sales() {
     return acc;
   }, [filtered]);
 
-  const series30d = useMemo(() => {
-    const days: { label: string; v: number; key: string }[] = [];
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+  const chartSeries = useMemo(() => {
+    const today = nowBR();
+    let start: Date;
+    let end: Date = endOfDay(today);
+
+    if (usingManualRange) {
+      start = dateFrom ? new Date(`${dateFrom}T00:00:00`) : subDays(today, 29);
+      end = dateTo ? new Date(`${dateTo}T23:59:59`) : endOfDay(today);
+    } else if (rangeKey === "HOJE") {
+      start = startOfToday();
+    } else if (rangeKey === "7 DIAS") {
+      start = subDays(today, 6);
+    } else if (rangeKey === "MÊS") {
+      start = startOfMonth(today);
+    } else if (rangeKey === "TUDO") {
+      // fallback: últimos 90 dias para o gráfico não ficar gigante
+      const earliest = filtered.reduce((acc: Date | null, s: any) => {
+        const d = s.sale_date ? parseISO(s.sale_date) : null;
+        if (!d) return acc;
+        return !acc || d < acc ? d : acc;
+      }, null as Date | null);
+      start = earliest ?? subDays(today, 89);
+    } else {
+      start = subDays(today, 29);
+    }
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const totalDays = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / dayMs) + 1);
+    const days: { key: string; label: string; bruto: number; concluida: number; pendente: number; count: number }[] = [];
+    const base = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      days.push({ key, label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }), v: 0 });
+      days.push({
+        key,
+        label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", timeZone: "America/Sao_Paulo" }),
+        bruto: 0,
+        concluida: 0,
+        pendente: 0,
+        count: 0,
+      });
     }
     const idx = Object.fromEntries(days.map((d, i) => [d.key, i]));
     filtered.forEach((s: any) => {
       if (!s.sale_date) return;
       const key = String(s.sale_date).slice(0, 10);
-      if (idx[key] !== undefined) days[idx[key]].v += Number(s.amount || 0);
+      const i = idx[key];
+      if (i === undefined) return;
+      const v = Number(s.amount || 0);
+      days[i].bruto += v;
+      days[i].count += 1;
+      if (s.status === "concluida") days[i].concluida += v;
+      else if (s.status === "pendente" || s.status === "em_andamento") days[i].pendente += v;
     });
     return days;
-  }, [filtered]);
+  }, [filtered, rangeKey, usingManualRange, dateFrom, dateTo]);
+
+  const chartTotals = useMemo(() => {
+    const t = chartSeries.reduce(
+      (acc, d) => {
+        acc.bruto += d.bruto;
+        acc.concluida += d.concluida;
+        acc.count += d.count;
+        return acc;
+      },
+      { bruto: 0, concluida: 0, count: 0 }
+    );
+    const ticket = t.count > 0 ? t.bruto / t.count : 0;
+    return { ...t, ticket };
+  }, [chartSeries]);
+
+  const chartInterval = chartSeries.length > 60 ? Math.floor(chartSeries.length / 10) : chartSeries.length > 14 ? Math.floor(chartSeries.length / 8) : 0;
 
   const topPartners = useMemo(() => {
     const m = new Map<string, { name: string; total: number; deals: number }>();
