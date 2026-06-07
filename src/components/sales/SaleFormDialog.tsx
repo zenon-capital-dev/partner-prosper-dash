@@ -149,72 +149,25 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         referrer_id: form.referrer_id || null,
         collaborator_id: form.collaborator_id || null,
         amount: Number(form.amount),
+        zenon_cost: Number(form.zenon_cost || 0),
         commission_percent: Number(form.commission_percent || 0),
         referrer_percent: Number(form.referrer_percent || 0),
         collaborator_percent: Number(form.collaborator_percent || 0),
         status: form.status,
         sale_date: form.sale_date,
         notes: form.notes || null,
-      };
+      } as any;
 
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
         if (error) throw error;
         toast.success("Venda atualizada com sucesso");
       } else {
-        const { data: saleData, error } = await supabase.from("sales").insert({
+        const { error } = await supabase.from("sales").insert({
           ...payload,
           created_by: user?.id,
         }).select().single();
         if (error) throw error;
-        
-        // Manual commission generation to ensure visibility in Finance Center
-        const commissionsToInsert = [];
-        if (payload.partner_id && payload.commission_percent > 0) {
-          commissionsToInsert.push({
-            sale_id: saleData.id,
-            partner_id: payload.partner_id,
-            amount: (payload.amount * payload.commission_percent) / 100,
-            percent: payload.commission_percent,
-            status: "pendente",
-            client_id: payload.client_id,
-            product_id: payload.product_id,
-            notes: `Comissão parceiro via venda ${saleData.id}`,
-            commission_type: 'percentual'
-          });
-        }
-        if (payload.referrer_id && payload.referrer_percent > 0) {
-          commissionsToInsert.push({
-            sale_id: saleData.id,
-            referrer_id: payload.referrer_id,
-            amount: (payload.amount * payload.referrer_percent) / 100,
-            percent: payload.referrer_percent,
-            status: "pendente",
-            client_id: payload.client_id,
-            product_id: payload.product_id,
-            notes: `Comissão indicador via venda ${saleData.id}`,
-            commission_type: 'percentual'
-          });
-        }
-        if (payload.collaborator_id && payload.collaborator_percent > 0) {
-          commissionsToInsert.push({
-            sale_id: saleData.id,
-            collaborator_id: payload.collaborator_id,
-            amount: (payload.amount * payload.collaborator_percent) / 100,
-            percent: payload.collaborator_percent,
-            status: "pendente",
-            client_id: payload.client_id,
-            product_id: payload.product_id,
-            notes: `Comissão colaborador via venda ${saleData.id}`,
-            commission_type: 'percentual'
-          });
-        }
-
-        if (commissionsToInsert.length > 0) {
-          const { error: commError } = await supabase.from("commissions").insert(commissionsToInsert);
-          if (commError) console.error("Erro ao gerar comissões:", commError);
-        }
-
         toast.success("Venda registrada e comissões geradas");
       }
 
