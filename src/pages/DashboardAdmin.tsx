@@ -157,6 +157,18 @@ export default function DashboardAdmin() {
     queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
+  // Imposto configurável via system_settings (key=tax_rate_percent). Default 0.
+  const { data: taxRate = 0 } = useQuery({
+    queryKey: ["dash-tax-rate"],
+    queryFn: async () => {
+      const { data } = await supabase.from("system_settings").select("value").eq("key", "tax_rate_percent").maybeSingle();
+      const v: any = data?.value;
+      const n = Number(typeof v === "object" ? v?.value : v);
+      return Number.isFinite(n) ? n : 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
 
   
@@ -229,15 +241,22 @@ export default function DashboardAdmin() {
       .reduce((a, p: any) => a + (Number(p.amount || 0) - Number(p.amount_paid || 0)), 0);
     const overdueCount = payments.filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status) && p.due_date && p.due_date < todayISO).length;
     const receivedTotal = payments.filter((p: any) => p.status === "pago").reduce((a, p: any) => a + Number(p.amount_paid || 0), 0);
-    
-    // Receita Bruta = total recebido (pago)
-    const grossRevenue = receivedTotal;
-    // Comissões já pagas (sai do caixa)
+
+    // Receita Bruta = total vendido no período selecionado
+    const grossRevenue = rangeRevenue;
+    // Comissões geradas para as vendas do período (qualquer status — é despesa real/projetada)
+    const periodSaleIds = new Set(filteredSales.map((s: any) => s.id));
+    const periodCommissions = commissions
+      .filter((c: any) => c.sale_id && periodSaleIds.has(c.sale_id))
+      .reduce((a, c: any) => a + Number(c.amount || 0), 0);
+    // Comissões já pagas (apenas para outras métricas)
     const commissionsPaid = commissions
       .filter((c: any) => ["pago", "paga"].includes(c.status) || ["pago", "paga"].includes(c.workflow_status))
       .reduce((a, c: any) => a + Number(c.amount || 0), 0);
-    // Receita Líquida = Bruto - comissões pagas
-    const netRevenue = grossRevenue - commissionsPaid;
+    // Impostos sobre a receita bruta (configurável em system_settings.tax_rate_percent)
+    const periodTaxes = grossRevenue * (Number(taxRate) || 0) / 100;
+    // Receita Líquida = Bruto - comissões do período - impostos
+    const netRevenue = grossRevenue - periodCommissions - periodTaxes;
     // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
     const estimatedRevenue = payments
       .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
@@ -348,13 +367,13 @@ export default function DashboardAdmin() {
       openContracts, waitingSignatureContracts, pendingDocs, overdueTasks, todayTasks, openTasks,
       commissionsToPay, commissionsCount,
       receivable7d, receivable7dCount, overdueAmount, overdueCount, receivedTotal,
-      grossRevenue, netRevenue, commissionsPaid, estimatedRevenue, estimatedRevenueCount,
+      grossRevenue, netRevenue, commissionsPaid, periodCommissions, periodTaxes, taxRate: Number(taxRate) || 0, estimatedRevenue, estimatedRevenueCount,
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
       todayTasksList, todayDemandsList, todayDocsList, todayContractsList, todayPendingCount, todayAgendaList,
     };
-  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday]);
+  }, [clients, clientProducts, sales, leads, commissions, tasks, contracts, docRequests, payments, rangeKey, brasiliaToday, taxRate]);
 
   return (
     <div className="min-h-screen bg-background text-foreground admin-shell overflow-x-hidden">
@@ -504,7 +523,12 @@ export default function DashboardAdmin() {
                       <FooterStat label="Receita Bruta" value={formatBRL(stats.grossRevenue)} accent="emerald" />
                     </Link>
                     <Link to="/financeiro/central?tab=relatorios" className="block hover:bg-indigo-50/40 rounded-lg -m-1 p-1 transition-colors">
-                      <FooterStat label="Receita Líquida" value={formatBRL(stats.netRevenue)} />
+                      <FooterStat
+                        label="Receita Líquida"
+                        value={formatBRL(stats.netRevenue)}
+                        accent={stats.netRevenue < 0 ? "rose" : undefined}
+                        hint={`−${formatBRL(stats.periodCommissions)} com. · −${formatBRL(stats.periodTaxes)} imp.${stats.taxRate ? ` (${stats.taxRate}%)` : ""}`}
+                      />
                     </Link>
                     <Link to="/financeiro/central?tab=a_receber" className="block hover:bg-amber-50/40 rounded-lg -m-1 p-1 transition-colors">
                       <FooterStat label={`Estimativa (${stats.estimatedRevenueCount})`} value={formatBRL(stats.estimatedRevenue)} accent={stats.estimatedRevenue > 0 ? "rose" : undefined} />
@@ -866,12 +890,13 @@ function DeltaBadge({ value }: { value: number }) {
   );
 }
 
-function FooterStat({ label, value, accent }: { label: string; value: string; accent?: "emerald" | "rose" }) {
+function FooterStat({ label, value, accent, hint }: { label: string; value: string; accent?: "emerald" | "rose"; hint?: string }) {
   const color = accent === "emerald" ? "text-emerald-600" : accent === "rose" ? "text-rose-600" : "text-slate-900";
   return (
     <div>
       <p className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</p>
       <p className={cn("font-display text-[15px] font-bold tabular-nums mt-1 leading-none", color)}>{value}</p>
+      {hint && <p className="text-[10px] text-slate-500 mt-1 leading-tight tabular-nums">{hint}</p>}
     </div>
   );
 }
