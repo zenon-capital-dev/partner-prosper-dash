@@ -172,7 +172,8 @@ export default function DashboardAdmin() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
+  // Render progressively: only block on the essentials (clients + demands). Outras seções mostram skeleton individual.
+  const isGlobalLoading = isLoadingClients || isLoadingDemands;
 
   
 
