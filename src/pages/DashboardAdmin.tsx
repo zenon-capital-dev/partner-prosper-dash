@@ -157,7 +157,7 @@ export default function DashboardAdmin() {
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     staleTime: STALE,
-    queryFn: async () => (await supabase.from("activity_logs").select("*, profiles(full_name)").order("created_at", { ascending: false }).limit(8)).data ?? [],
+    queryFn: async () => (await supabase.from("activity_logs").select("id, action, entity_type, entity_id, created_at, user_id, metadata").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
   // Imposto configurável via system_settings (key=tax_rate_percent). Default 0.
@@ -172,7 +172,8 @@ export default function DashboardAdmin() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const isGlobalLoading = isLoadingClients || isLoadingDemands || isLoadingSales || isLoadingLeads || isLoadingCommissions || isLoadingTasks || isLoadingContracts || isLoadingDocs || isLoadingPayments || isLoadingActivity || isLoadingAgenda;
+  // Render progressively: only block on the essentials (clients + demands). Outras seções mostram skeleton individual.
+  const isGlobalLoading = isLoadingClients || isLoadingDemands;
 
   
 
