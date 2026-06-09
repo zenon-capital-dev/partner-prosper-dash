@@ -282,37 +282,49 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             </div>
 
             {amount > 0 && (
-              <div className="flex flex-wrap gap-3">
-                <div className="bg-white/5 backdrop-blur-md rounded-2xl px-5 py-3 ring-1 ring-white/10 flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Total Bruto</span>
-                  <span className="font-display text-2xl font-black tabular-nums">{fmt(amount)}</span>
+              <div className="flex flex-wrap gap-2">
+                <div className="bg-white/5 backdrop-blur-md rounded-xl px-4 py-2.5 ring-1 ring-white/10 flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Valor Bruto</span>
+                  <span className="font-display text-lg font-black tabular-nums">{fmt(amount)}</span>
                 </div>
-                <div className="bg-emerald-500/10 backdrop-blur-md rounded-2xl px-5 py-3 ring-1 ring-emerald-500/20 flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Líquido</span>
-                  <span className="font-display text-2xl font-black tabular-nums text-emerald-400">{fmt(liquido)}</span>
+                <div className="bg-amber-500/10 backdrop-blur-md rounded-xl px-4 py-2.5 ring-1 ring-amber-500/20 flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-amber-300 mb-0.5">(−) Impostos</span>
+                  <span className="font-display text-lg font-black tabular-nums text-amber-300">{fmt(zenonCost)}</span>
+                </div>
+                <div className="bg-emerald-500/10 backdrop-blur-md rounded-xl px-4 py-2.5 ring-1 ring-emerald-500/20 flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-0.5">= Líquido</span>
+                  <span className="font-display text-lg font-black tabular-nums text-emerald-400">{fmt(liquido)}</span>
                 </div>
               </div>
             )}
           </div>
 
-          {/* KPI Bar */}
+          {/* KPI Bar — sequência: Bruto → (-) Impostos → (-) Prestador → (-) Comissões → Líquido */}
           {amount > 0 && (
-            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Comissões</div>
-                <div className="text-sm font-bold">{fmt(totalCommissions)}</div>
+                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Bruto</div>
+                <div className="text-sm font-bold tabular-nums">{fmt(amount)}</div>
               </div>
-              <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Margem</div>
-                <div className={cn("text-sm font-bold", marginPct >= 0 ? "text-emerald-400" : "text-rose-400")}>{marginPct.toFixed(1)}%</div>
+              <div className="bg-amber-500/5 rounded-xl p-3 ring-1 ring-amber-500/10">
+                <div className="text-[9px] uppercase tracking-widest text-amber-300 font-bold mb-1">Impostos (Zenon)</div>
+                <div className="text-sm font-bold tabular-nums text-amber-200">−{fmt(zenonCost)}</div>
               </div>
-              <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Data</div>
-                <div className="text-sm font-bold">{form.sale_date}</div>
+              <div className="bg-orange-500/5 rounded-xl p-3 ring-1 ring-orange-500/10">
+                <div className="text-[9px] uppercase tracking-widest text-orange-300 font-bold mb-1">Prestador</div>
+                <div className="text-sm font-bold tabular-nums text-orange-200">−{fmt(providerCost)}</div>
               </div>
-              <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Status</div>
-                <div className="text-sm font-bold uppercase">{form.status?.replace("_", " ")}</div>
+              <div className="bg-rose-500/5 rounded-xl p-3 ring-1 ring-rose-500/10">
+                <div className="text-[9px] uppercase tracking-widest text-rose-300 font-bold mb-1">Parceiro</div>
+                <div className="text-sm font-bold tabular-nums text-rose-200">−{fmt(partnerCalc)}</div>
+              </div>
+              <div className="bg-rose-500/5 rounded-xl p-3 ring-1 ring-rose-500/10">
+                <div className="text-[9px] uppercase tracking-widest text-rose-300 font-bold mb-1">Indicador</div>
+                <div className="text-sm font-bold tabular-nums text-rose-200">−{fmt(referrerCalc)}</div>
+              </div>
+              <div className="bg-emerald-500/10 rounded-xl p-3 ring-1 ring-emerald-500/20">
+                <div className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold mb-1">Líquido ({marginPct.toFixed(1)}%)</div>
+                <div className={cn("text-sm font-bold tabular-nums", liquido >= 0 ? "text-emerald-300" : "text-rose-300")}>{fmt(liquido)}</div>
               </div>
             </div>
           )}

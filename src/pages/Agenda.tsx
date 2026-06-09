@@ -975,13 +975,7 @@ function CreateOrEditDialog({
               <Label className="text-xs font-bold mb-1.5 block">
                 Cliente {(kind === "ligacao" || kind === "pendencia_documento") && "*"}
               </Label>
-              <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {clients.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ClientCombobox value={clientId} onChange={setClientId} clients={clients} />
             </div>
             <div>
               <Label className="text-xs font-bold mb-1.5 block">Responsável</Label>
@@ -1045,5 +1039,58 @@ function CreateOrEditDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ClientCombobox({ value, onChange, clients }: { value: string; onChange: (v: string) => void; clients: any[] }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = clients.find((c: any) => c.id === value);
+  const filtered = query.trim()
+    ? clients.filter((c: any) => c.full_name?.toLowerCase().includes(query.toLowerCase()))
+    : clients;
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" className="h-9 w-full justify-between font-normal">
+          <span className="truncate">{value === "none" || !selected ? "Nenhum" : selected.full_name}</span>
+          <Search className="size-3.5 opacity-50 ml-2 shrink-0" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
+        <div className="p-2 border-b border-slate-100">
+          <Input
+            autoFocus
+            placeholder="Buscar cliente..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="h-8"
+          />
+        </div>
+        <div className="max-h-64 overflow-y-auto py-1">
+          <button
+            type="button"
+            onClick={() => { onChange("none"); setOpen(false); setQuery(""); }}
+            className={cn("w-full text-left px-3 py-1.5 text-sm hover:bg-slate-50 italic text-slate-500", value === "none" && "bg-indigo-50 text-indigo-700")}
+          >
+            Nenhum
+          </button>
+          {filtered.length === 0 ? (
+            <div className="px-3 py-4 text-xs text-slate-400 text-center">Nenhum cliente</div>
+          ) : (
+            filtered.map((c: any) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => { onChange(c.id); setOpen(false); setQuery(""); }}
+                className={cn("w-full text-left px-3 py-1.5 text-sm hover:bg-slate-50 truncate", value === c.id && "bg-indigo-50 text-indigo-700 font-semibold")}
+              >
+                {c.full_name}
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

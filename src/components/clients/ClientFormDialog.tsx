@@ -244,7 +244,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       }
 
       // Produtos contratados (cadastro novo)
-      if (!client?.id && clientId && selectedProducts.length > 0) {
+      if (clientId && selectedProducts.length > 0) {
         const valid = selectedProducts.filter((p) => p.product_id);
         if (valid.length > 0) {
           const rows = valid.map((p) => ({
@@ -519,15 +519,16 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
 
-          {/* PRODUTOS CONTRATADOS — só cadastro novo */}
-          {!client?.id && (
+          {/* PRODUTOS CONTRATADOS — disponível em novo cadastro e na edição */}
+          {(
+
             <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-indigo-300/60 bg-indigo-50/40">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="size-4 text-indigo-700" />
                   <div>
                     <p className="text-sm font-bold">Produtos contratados</p>
-                    <p className="text-[11px] text-muted-foreground">Crie as demandas iniciais já vinculadas a este cliente.</p>
+                    <p className="text-[11px] text-muted-foreground">{client?.id ? "Adicione novos produtos/demandas a este cliente." : "Crie as demandas iniciais já vinculadas a este cliente."}</p>
                   </div>
                 </div>
                 <Button
