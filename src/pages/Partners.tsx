@@ -584,6 +584,17 @@ export default function Partners() {
                 </div>
                 <Switch checked={!!form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
               </div>
+              <div className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50/60 px-4 py-3 mt-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-700">Exibir nome do produto ao parceiro</p>
+                  <p className="text-[11px] text-slate-500">
+                    {form.show_product_name
+                      ? "O parceiro verá o produto vendido nas comissões."
+                      : "O parceiro verá apenas \"Produto contratado\" (nome oculto)."}
+                  </p>
+                </div>
+                <Switch checked={!!form.show_product_name} onCheckedChange={(v) => setForm({ ...form, show_product_name: v })} />
+              </div>
               {editing && form.has_system_access && (
                 <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 mt-2 text-emerald-800 text-xs">
                   <ShieldCheck className="size-4" />
