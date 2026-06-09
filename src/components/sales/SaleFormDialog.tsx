@@ -527,65 +527,98 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
               {/* Resumo Dinâmico Flutuante */}
               {amount > 0 && (
-                <div className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-xl shadow-indigo-500/5 space-y-4">
+                <div className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-xl shadow-indigo-500/5 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[12px] font-black text-indigo-900 uppercase tracking-widest">Resumo Financeiro</h4>
+                    <h4 className="text-[11px] font-black text-indigo-900 uppercase tracking-widest">Resumo Financeiro</h4>
                     <Sparkles className="size-4 text-indigo-500" />
                   </div>
-                  
-                  <div className="space-y-2.5">
-                    <div className="flex justify-between text-xs text-slate-500 font-medium">
-                      <span>Valor de Venda</span>
-                      <span className="text-slate-900 font-bold tabular-nums">{fmt(amount)}</span>
+
+                  {/* 1. Valor de venda */}
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11.5px] font-semibold text-slate-600">Valor de Venda</span>
+                    <span className="text-[13px] font-bold tabular-nums font-mono text-slate-900">{fmt(amount)}</span>
+                  </div>
+
+                  {/* 2. Custos internos */}
+                  {totalCosts > 0 && (
+                    <div className="rounded-lg bg-amber-50/60 border border-amber-100 px-3 py-2.5 space-y-1.5">
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-amber-800">Custos Internos</p>
+                      {zenonCost > 0 && (
+                        <div className="flex items-center justify-between gap-3 text-[11px]">
+                          <span className="text-amber-700 font-medium">🔒 Custo Zenon</span>
+                          <span className="font-mono font-semibold text-amber-800 tabular-nums">−{fmt(zenonCost)}</span>
+                        </div>
+                      )}
+                      {providerCost > 0 && (
+                        <div className="flex items-center justify-between gap-3 text-[11px]">
+                          <span className="text-amber-700 font-medium">🛠 Custo Prestador</span>
+                          <span className="font-mono font-semibold text-amber-800 tabular-nums">−{fmt(providerCost)}</span>
+                        </div>
+                      )}
                     </div>
+                  )}
 
-                    {zenonCost > 0 && (
-                      <div className="flex justify-between text-xs text-amber-700 font-semibold">
-                        <span>🔒 Custo Zenon</span>
-                        <span className="tabular-nums">-{fmt(zenonCost)}</span>
-                      </div>
-                    )}
+                  {/* 3. Base após custos */}
+                  <div className="flex items-center justify-between gap-3 px-1">
+                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">Base após custos</span>
+                    <span className="text-[12px] font-bold tabular-nums font-mono text-slate-700">{fmt(commissionBase)}</span>
+                  </div>
 
-                    {providerCost > 0 && (
-                      <div className="flex justify-between text-xs text-amber-700 font-semibold">
-                        <span>🛠 Custo Prestador</span>
-                        <span className="tabular-nums">-{fmt(providerCost)}</span>
-                      </div>
-                    )}
-
-                    {partnerCalc > 0 && (
-                      <div className="flex justify-between text-xs text-rose-500/80 font-medium">
-                        <span>Repasse Parceiro ({form.commission_percent}% sobre {fmt(partnerBase)})</span>
-                        <span className="tabular-nums">-{fmt(partnerCalc)}</span>
-                      </div>
-                    )}
-                    
-                    
-                    {referrerCalc > 0 && (
-                      <div className="flex justify-between text-xs text-rose-500/80 font-medium">
-                        <span>Comissão Indicador ({form.referrer_percent}%)</span>
-                        <span className="tabular-nums">-{fmt(referrerCalc)}</span>
-                      </div>
-                    )}
-
-                    {collaboratorCalc > 0 && (
-                      <div className="flex justify-between text-xs text-rose-500/80 font-medium">
-                        <span>Comissão Colaborador ({form.collaborator_percent}%)</span>
-                        <span className="tabular-nums">-{fmt(collaboratorCalc)}</span>
-                      </div>
-                    )}
-
-                    <div className="pt-3 border-t border-slate-100 mt-2 flex justify-between items-end">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Resultado Líquido</span>
-                        <span className={cn("text-lg font-black tabular-nums", liquido < 0 ? "text-rose-600" : "text-emerald-600")}>
-                          {fmt(liquido)}
-                        </span>
-                      </div>
-                      <div className={cn("px-2 py-0.5 rounded text-[10px] font-black uppercase", liquido < 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
-                        {marginPct.toFixed(1)}% MARGEM
+                  {/* 4. Comissões — calculadas sobre a base após custos */}
+                  {(partnerCalc > 0 || referrerCalc > 0 || collaboratorCalc > 0) && (
+                    <div className="rounded-lg bg-rose-50/40 border border-rose-100 px-3 py-2.5 space-y-2">
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-rose-700">Comissões sobre base</p>
+                      {partnerCalc > 0 && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-rose-700 font-semibold">Parceiro</span>
+                            <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(partnerCalc)}</span>
+                          </div>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.commission_percent}% × {fmt(commissionBase)}</span>
+                        </div>
+                      )}
+                      {referrerCalc > 0 && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-rose-700 font-semibold">Indicador</span>
+                            <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(referrerCalc)}</span>
+                          </div>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(commissionBase)}</span>
+                        </div>
+                      )}
+                      {collaboratorCalc > 0 && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-rose-700 font-semibold">Colaborador</span>
+                            <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(collaboratorCalc)}</span>
+                          </div>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(commissionBase)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between gap-2 pt-1.5 mt-1 border-t border-rose-100 text-[10.5px]">
+                        <span className="font-bold text-rose-700 uppercase tracking-wider">Total comissões</span>
+                        <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(totalCommissions)}</span>
                       </div>
                     </div>
+                  )}
+
+                  {/* 5. Líquido */}
+                  <div className={cn(
+                    "rounded-lg px-3 py-3 flex items-center justify-between gap-3",
+                    liquido < 0 ? "bg-rose-50 border border-rose-200" : "bg-emerald-50 border border-emerald-200"
+                  )}>
+                    <div className="flex flex-col">
+                      <span className="text-[9.5px] font-bold uppercase tracking-widest text-slate-500">Resultado Líquido</span>
+                      <span className={cn("text-lg font-black tabular-nums font-mono leading-tight", liquido < 0 ? "text-rose-700" : "text-emerald-700")}>
+                        {fmt(liquido)}
+                      </span>
+                    </div>
+                    <span className={cn(
+                      "px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider whitespace-nowrap",
+                      liquido < 0 ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"
+                    )}>
+                      {marginPct.toFixed(1)}% margem
+                    </span>
                   </div>
                 </div>
               )}
