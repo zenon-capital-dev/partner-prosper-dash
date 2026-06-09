@@ -742,6 +742,7 @@ export default function Sales() {
                   <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
                   <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
                   <Th align="right">Líquido</Th>
+                  <Th align="right">Recebido / Restante</Th>
                   <Th align="right">Ações</Th>
                 </tr>
               </thead>
