@@ -539,8 +539,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
                     {zenonCost > 0 && (
                       <div className="flex justify-between text-xs text-amber-700 font-semibold">
-                        <span>🔒 Custo Zenon (lucro Zenon)</span>
+                        <span>🔒 Custo Zenon</span>
                         <span className="tabular-nums">-{fmt(zenonCost)}</span>
+                      </div>
+                    )}
+
+                    {providerCost > 0 && (
+                      <div className="flex justify-between text-xs text-amber-700 font-semibold">
+                        <span>🛠 Custo Prestador</span>
+                        <span className="tabular-nums">-{fmt(providerCost)}</span>
                       </div>
                     )}
 
@@ -569,12 +576,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     <div className="pt-3 border-t border-slate-100 mt-2 flex justify-between items-end">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Resultado Líquido</span>
-                        <span className={cn("text-lg font-black tabular-nums", totalPct > 100 ? "text-rose-600" : "text-emerald-600")}>
+                        <span className={cn("text-lg font-black tabular-nums", liquido < 0 ? "text-rose-600" : "text-emerald-600")}>
                           {fmt(liquido)}
                         </span>
                       </div>
-                      <div className={cn("px-2 py-0.5 rounded text-[10px] font-black uppercase", totalPct > 100 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
-                        {(100 - totalPct).toFixed(1)}% MARGEM
+                      <div className={cn("px-2 py-0.5 rounded text-[10px] font-black uppercase", liquido < 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
+                        {marginPct.toFixed(1)}% MARGEM
                       </div>
                     </div>
                   </div>
