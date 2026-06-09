@@ -884,6 +884,59 @@ export default function Sales() {
                         )}
                       </Td>
                       <Td align="right">
+                        {baseAmt > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => canManage && setReceivingSale(s)}
+                            className={cn(
+                              "inline-flex flex-col items-end gap-1 group/rec rounded-md px-1.5 py-1 -mr-1.5 transition-colors",
+                              canManage && "hover:bg-emerald-50/60 cursor-pointer"
+                            )}
+                            disabled={!canManage}
+                            title={canManage ? "Registrar recebimento" : undefined}
+                          >
+                            <div className="flex items-baseline gap-1.5">
+                              <span className={cn(
+                                "font-bold font-mono text-[12.5px] tabular-nums leading-none",
+                                fullyReceived ? "text-emerald-700" : received > 0 ? "text-emerald-600" : "text-slate-400"
+                              )}>
+                                {formatBRL(received)}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">/{formatBRL(baseAmt)}</span>
+                            </div>
+                            <div className="w-[110px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  fullyReceived ? "bg-emerald-500" : received > 0 ? "bg-emerald-400" : "bg-slate-300"
+                                )}
+                                style={{ width: `${receivedPct}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {fullyReceived ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-px rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9.5px] font-bold tabular-nums">
+                                  <CheckCircle2 className="size-2.5" /> Quitado
+                                </span>
+                              ) : remaining > 0 && received > 0 ? (
+                                <span className="inline-flex items-center px-1.5 py-px rounded bg-amber-50 text-amber-700 border border-amber-100 text-[9.5px] font-bold font-mono tabular-nums">
+                                  Falta {formatBRL(remaining)}
+                                </span>
+                              ) : received === 0 ? (
+                                <span className="inline-flex items-center px-1.5 py-px rounded bg-slate-50 text-slate-500 border border-slate-200 text-[9.5px] font-semibold uppercase tracking-wider">
+                                  A receber
+                                </span>
+                              ) : null}
+                              {rec && rec.count > 0 && (
+                                <span className="text-[9.5px] text-slate-400 font-mono">{rec.count}x</span>
+                              )}
+                            </div>
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">—</span>
+                        )}
+                      </Td>
+                      <Td align="right">
                         {canManage ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
