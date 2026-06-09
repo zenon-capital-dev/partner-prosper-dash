@@ -176,15 +176,18 @@ export default function Sales() {
   };
 
   const kpis = useMemo(() => {
-    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, liquido: 0 };
+    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0 };
     filtered.forEach((s: any) => {
       const v = Number(s.amount || 0);
       const z = Number(s.zenon_cost || 0);
+      const pc = Number(s.provider_cost || 0);
       const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
       acc.total += v;
       acc.zenon += z;
+      acc.provider += pc;
+      acc.custos += z + pc;
       acc.comissao += comm;
-      acc.liquido += v - z - comm;
+      acc.liquido += v - z - pc - comm;
       if (s.status === "concluida") acc.concluida += v;
       else if (s.status === "pendente") acc.pendente += v;
       else if (s.status === "em_andamento") acc.em_andamento += v;
