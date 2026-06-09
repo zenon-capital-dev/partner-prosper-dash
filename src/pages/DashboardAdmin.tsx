@@ -109,7 +109,7 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: false,
     queryFn: async () => {
-      let query = supabase.from("sales").select("id, sale_date, amount, client_id").order("sale_date", { ascending: false }).limit(2000);
+      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").order("sale_date", { ascending: false }).limit(2000);
 
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
@@ -283,6 +283,10 @@ export default function DashboardAdmin() {
 
     // Receita Bruta = total vendido no período selecionado
     const grossRevenue = rangeRevenue;
+    // Custos internos das vendas do período (Zenon + Prestador), excluindo canceladas
+    const periodSalesCosts = filteredSales
+      .filter((s: any) => s.status !== "cancelada")
+      .reduce((a, s: any) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
     // Comissões geradas para as vendas do período (qualquer status — é despesa real/projetada)
     const periodSaleIds = new Set(filteredSales.map((s: any) => s.id));
     const periodCommissions = commissions
@@ -294,8 +298,8 @@ export default function DashboardAdmin() {
       .reduce((a, c: any) => a + Number(c.amount || 0), 0);
     // Impostos sobre a receita bruta (configurável em system_settings.tax_rate_percent)
     const periodTaxes = grossRevenue * (Number(taxRate) || 0) / 100;
-    // Receita Líquida = Bruto - comissões do período - impostos
-    const netRevenue = grossRevenue - periodCommissions - periodTaxes;
+    // Receita Líquida = Bruto - custos venda - comissões do período - impostos
+    const netRevenue = grossRevenue - periodSalesCosts - periodCommissions - periodTaxes;
     // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
     const estimatedRevenue = payments
       .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
@@ -406,7 +410,7 @@ export default function DashboardAdmin() {
       openContracts, waitingSignatureContracts, pendingDocs, overdueTasks, todayTasks, openTasks,
       commissionsToPay, commissionsCount,
       receivable7d, receivable7dCount, overdueAmount, overdueCount, receivedTotal,
-      grossRevenue, netRevenue, commissionsPaid, periodCommissions, periodTaxes, taxRate: Number(taxRate) || 0, estimatedRevenue, estimatedRevenueCount,
+      grossRevenue, netRevenue, commissionsPaid, periodCommissions, periodTaxes, periodSalesCosts, taxRate: Number(taxRate) || 0, estimatedRevenue, estimatedRevenueCount,
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
@@ -568,7 +572,7 @@ export default function DashboardAdmin() {
                         label="Receita Líquida"
                         value={formatBRL(stats.netRevenue)}
                         accent={stats.netRevenue < 0 ? "rose" : undefined}
-                        hint={`−${formatBRL(stats.periodCommissions)} com. · −${formatBRL(stats.periodTaxes)} imp.${stats.taxRate ? ` (${stats.taxRate}%)` : ""}`}
+                        hint={`−${formatBRL(stats.periodSalesCosts)} custos · −${formatBRL(stats.periodCommissions)} com. · −${formatBRL(stats.periodTaxes)} imp.${stats.taxRate ? ` (${stats.taxRate}%)` : ""}`}
                       />
                     </Link>
                     <Link to="/financeiro/central?tab=a_receber" className="block hover:bg-amber-50/40 rounded-lg -m-1 p-1 transition-colors">

@@ -131,7 +131,7 @@ export default function Finance() {
     queryKey: ["finance-sales", from, to],
     queryFn: async () => {
       let q = supabase.from("sales")
-        .select("id, amount, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
+        .select("id, amount, zenon_cost, provider_cost, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
         .order("sale_date", { ascending: false });
       if (from) q = q.gte("sale_date", from);
       if (to) q = q.lte("sale_date", to);
@@ -192,6 +192,9 @@ export default function Finance() {
     const receivable = sales
       .filter((s: any) => s.status === "pendente")
       .reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
+    const salesCosts = sales
+      .filter((s: any) => s.status !== "cancelada")
+      .reduce((a: number, s: any) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
     const commissionsPaid = splits
       .filter((c: any) => c.status === "pago")
@@ -199,9 +202,9 @@ export default function Finance() {
     const commissionsPending = splits
       .filter((c: any) => c.status === "pendente")
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const profit = revenue - commissionsPaid - expensesTotal;
+    const profit = revenue - commissionsPaid - expensesTotal - salesCosts;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { revenue, receivable, expensesTotal, commissionsPaid, commissionsPending, profit, margin };
+    return { revenue, receivable, expensesTotal, commissionsPaid, commissionsPending, salesCosts, profit, margin };
   }, [sales, expenses, splits]);
 
   // Chart - buckets dependem do range
@@ -260,10 +263,12 @@ export default function Finance() {
     const months = eachMonthOfInterval({ start: subMonths(startOfMonth(end), reportMonths - 1), end });
     return months.map((m) => {
       const ms = format(m, "yyyy-MM");
-      const rev = sales.filter((s: any) => s.status === "concluida" && (s.sale_date || "").slice(0,7) === ms).reduce((a:number,s:any)=>a+Number(s.amount||0),0);
+      const monthSales = sales.filter((s: any) => (s.sale_date || "").slice(0,7) === ms);
+      const rev = monthSales.filter((s: any) => s.status === "concluida").reduce((a:number,s:any)=>a+Number(s.amount||0),0);
+      const sCosts = monthSales.filter((s: any) => s.status !== "cancelada").reduce((a:number,s:any)=>a+Number(s.zenon_cost||0)+Number(s.provider_cost||0),0);
       const exp = expenses.filter((e: any) => (e.expense_date || "").slice(0,7) === ms).reduce((a:number,e:any)=>a+Number(e.amount||0),0);
       const com = splits.filter((c: any) => c.status === "pago" && ((c.paid_at||"").slice(0,7) === ms)).reduce((a:number,c:any)=>a+Number(c.amount||0),0);
-      const profit = rev - com - exp;
+      const profit = rev - com - exp - sCosts;
       const margin = rev > 0 ? (profit / rev) * 100 : 0;
       return { month: format(m, "MMM/yy", { locale: ptBR }), revenue: rev, expenses: exp, commissions: com, profit, margin };
     });

@@ -1,0 +1,2 @@
+ALTER TABLE public.sales ADD COLUMN IF NOT EXISTS provider_cost numeric NOT NULL DEFAULT 0;
+COMMENT ON COLUMN public.sales.provider_cost IS 'Custo do prestador de serviço externo (interno, não visível ao parceiro). Deduzido no cálculo do líquido.';

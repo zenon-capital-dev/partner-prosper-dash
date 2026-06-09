@@ -136,6 +136,17 @@ export default function FinanceCenter() {
       ).data ?? [],
   });
 
+  const { data: salesCosts = [] } = useQuery({
+    queryKey: ["fin-sales-costs"],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("sales")
+          .select("id, zenon_cost, provider_cost, sale_date, status")
+          .limit(10000)
+      ).data ?? [],
+  });
+
   const { data: commissions = [], isLoading: loadingCom } = useQuery({
     queryKey: ["fin-commissions"],
     queryFn: async () => {
@@ -237,7 +248,17 @@ export default function FinanceCenter() {
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
     const variableExpenses = (expenses as any[]).reduce((a, e) => a + Number(e.amount || 0), 0);
-    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses;
+    // Custos internos de vendas (Zenon + Prestador). Considera apenas vendas não canceladas.
+    const salesCostsTotal = (salesCosts as any[])
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
+    const zenonCostTotal = (salesCosts as any[])
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.zenon_cost || 0), 0);
+    const providerCostTotal = (salesCosts as any[])
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.provider_cost || 0), 0);
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
     return {
       totalReceived,
       totalReceivable,
@@ -247,9 +268,12 @@ export default function FinanceCenter() {
       indicatorsPaid,
       commissionsOthersPaid,
       variableExpenses,
+      salesCostsTotal,
+      zenonCostTotal,
+      providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissions, expenses, today]);
+  }, [payments, commissions, expenses, salesCosts, today]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
@@ -322,7 +346,7 @@ export default function FinanceCenter() {
             value: formatBRL(kpis.netRevenue),
             tone: "primary",
             onClick: () => setTab("relatorios"),
-            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)}`,
+            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)}`,
           } as any,
           {
             label: "A receber",
@@ -350,17 +374,22 @@ export default function FinanceCenter() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-display text-base font-semibold text-slate-900">Saldo líquido — Zenon</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos comissões pagas a indicadores, parceiros/colaboradores e despesas variáveis.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos custos de venda (Zenon + Prestador), comissões pagas a indicadores/parceiros e despesas variáveis.</p>
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
-              <p className="font-mono text-2xl font-bold text-emerald-700 tabular-nums">{formatBRL(kpis.netRevenue)}</p>
+              <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
             <div className="rounded-md border border-slate-200/70 bg-slate-50 p-3">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Bruto recebido</p>
               <p className="font-mono text-base font-semibold text-slate-900 mt-1 tabular-nums">{formatBRL(kpis.totalReceived)}</p>
+            </div>
+            <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Custos venda</p>
+              <p className="font-mono text-base font-semibold text-amber-800 mt-1 tabular-nums">{formatBRL(kpis.salesCostsTotal)}</p>
+              <p className="text-[10px] text-amber-600/80 mt-0.5">Zenon {formatBRL(kpis.zenonCostTotal)} · Prestador {formatBRL(kpis.providerCostTotal)}</p>
             </div>
             <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Indicadores</p>

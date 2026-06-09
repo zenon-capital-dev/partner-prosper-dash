@@ -142,8 +142,13 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       toast.error("Custo Zenon inválido");
       return;
     }
-    if (zenonCostNum > amountNum) {
-      toast.error("Custo Zenon não pode ser maior que o valor da venda");
+    const providerCostNum = Number(form.provider_cost || 0);
+    if (!Number.isFinite(providerCostNum) || providerCostNum < 0) {
+      toast.error("Custo do prestador inválido");
+      return;
+    }
+    if (zenonCostNum + providerCostNum > amountNum) {
+      toast.error("Custos (Zenon + Prestador) não podem ser maiores que o valor da venda");
       return;
     }
     const pctFields = [
@@ -183,6 +188,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         collaborator_id: form.collaborator_id || null,
         amount: Number(form.amount),
         zenon_cost: Number(form.zenon_cost || 0),
+        provider_cost: Number(form.provider_cost || 0),
         commission_percent: Number(form.commission_percent || 0),
         referrer_percent: Number(form.referrer_percent || 0),
         collaborator_percent: Number(form.collaborator_percent || 0),
@@ -236,12 +242,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
   const amount = Number(form.amount || 0);
   const zenonCost = Number(form.zenon_cost || 0);
+  const providerCost = Number(form.provider_cost || 0);
   const partnerBase = Math.max(amount - zenonCost, 0);
   const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
   const referrerCalc = form.referrer_id ? (amount * Number(form.referrer_percent || 0)) / 100 : 0;
   const collaboratorCalc = form.collaborator_id ? (amount * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
-  const liquido = amount - zenonCost - totalCommissions;
+  const totalCosts = zenonCost + providerCost;
+  const liquido = amount - totalCosts - totalCommissions;
+  const marginPct = amount > 0 ? (liquido / amount) * 100 : 0;
   const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
 
   const fmt = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -293,7 +302,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
               </div>
               <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
                 <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Margem</div>
-                <div className="text-sm font-bold text-emerald-400">{(100 - totalPct).toFixed(1)}%</div>
+                <div className={cn("text-sm font-bold", marginPct >= 0 ? "text-emerald-400" : "text-rose-400")}>{marginPct.toFixed(1)}%</div>
               </div>
               <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
                 <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Data</div>
@@ -356,24 +365,47 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     </Field>
                   </div>
 
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-                    <Field label="🔒 Custo Zenon (interno — não visível ao parceiro)">
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-sm">R$</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          className="h-11 pl-10 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right"
-                          value={form.zenon_cost ?? ""}
-                          onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
-                          placeholder="0,00"
-                        />
+                  <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50/80 to-amber-50/40 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-[11px]">🔒</div>
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider leading-tight">Custos Internos</p>
+                        <p className="text-[10px] text-amber-700/80 leading-tight">Não visíveis ao parceiro — deduzidos do líquido</p>
                       </div>
-                      <p className="text-[10.5px] text-amber-700 mt-1.5 leading-tight">
-                        Esse valor vai direto para o caixa da Zenon como lucro. O parceiro vê apenas o valor após dedução: <strong>{fmt(partnerBase)}</strong>. Comissão do parceiro é calculada sobre esse valor líquido.
-                      </p>
-                    </Field>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Field label="Custo Zenon">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
+                            value={form.zenon_cost ?? ""}
+                            onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
+                            placeholder="0,00"
+                          />
+                        </div>
+                      </Field>
+                      <Field label="Custo Prestador de Serviço">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
+                            value={form.provider_cost ?? ""}
+                            onChange={(e) => setForm({ ...form, provider_cost: e.target.value })}
+                            placeholder="0,00"
+                          />
+                        </div>
+                      </Field>
+                    </div>
+                    <p className="text-[10.5px] text-amber-700/90 leading-snug">
+                      Base de cálculo da comissão do parceiro: <strong className="font-mono">{fmt(partnerBase)}</strong> (valor bruto − custo Zenon). Custos totais: <strong className="font-mono">{fmt(totalCosts)}</strong>.
+                    </p>
                   </div>
                 </div>
               </Section>
@@ -507,8 +539,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
                     {zenonCost > 0 && (
                       <div className="flex justify-between text-xs text-amber-700 font-semibold">
-                        <span>🔒 Custo Zenon (lucro Zenon)</span>
+                        <span>🔒 Custo Zenon</span>
                         <span className="tabular-nums">-{fmt(zenonCost)}</span>
+                      </div>
+                    )}
+
+                    {providerCost > 0 && (
+                      <div className="flex justify-between text-xs text-amber-700 font-semibold">
+                        <span>🛠 Custo Prestador</span>
+                        <span className="tabular-nums">-{fmt(providerCost)}</span>
                       </div>
                     )}
 
@@ -537,12 +576,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     <div className="pt-3 border-t border-slate-100 mt-2 flex justify-between items-end">
                       <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Resultado Líquido</span>
-                        <span className={cn("text-lg font-black tabular-nums", totalPct > 100 ? "text-rose-600" : "text-emerald-600")}>
+                        <span className={cn("text-lg font-black tabular-nums", liquido < 0 ? "text-rose-600" : "text-emerald-600")}>
                           {fmt(liquido)}
                         </span>
                       </div>
-                      <div className={cn("px-2 py-0.5 rounded text-[10px] font-black uppercase", totalPct > 100 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
-                        {(100 - totalPct).toFixed(1)}% MARGEM
+                      <div className={cn("px-2 py-0.5 rounded text-[10px] font-black uppercase", liquido < 0 ? "bg-rose-100 text-rose-600" : "bg-emerald-100 text-emerald-600")}>
+                        {marginPct.toFixed(1)}% MARGEM
                       </div>
                     </div>
                   </div>

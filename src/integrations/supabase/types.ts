@@ -4136,6 +4136,7 @@ export type Database = {
           partner_id: string | null
           payment_method: string | null
           product_id: string
+          provider_cost: number
           referrer_id: string | null
           referrer_percent: number | null
           sale_date: string
@@ -4158,6 +4159,7 @@ export type Database = {
           partner_id?: string | null
           payment_method?: string | null
           product_id: string
+          provider_cost?: number
           referrer_id?: string | null
           referrer_percent?: number | null
           sale_date?: string
@@ -4180,6 +4182,7 @@ export type Database = {
           partner_id?: string | null
           payment_method?: string | null
           product_id?: string
+          provider_cost?: number
           referrer_id?: string | null
           referrer_percent?: number | null
           sale_date?: string

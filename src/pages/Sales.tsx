@@ -10,7 +10,7 @@ import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
   CalendarRange, Sparkles, ArrowUp, ArrowDown, TrendingUp, BarChart3,
-  Users, Trophy, Inbox, Pencil
+  Users, Trophy, Inbox, Pencil, Wallet, Handshake
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
@@ -176,15 +176,18 @@ export default function Sales() {
   };
 
   const kpis = useMemo(() => {
-    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, liquido: 0 };
+    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0 };
     filtered.forEach((s: any) => {
       const v = Number(s.amount || 0);
       const z = Number(s.zenon_cost || 0);
+      const pc = Number(s.provider_cost || 0);
       const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
       acc.total += v;
       acc.zenon += z;
+      acc.provider += pc;
+      acc.custos += z + pc;
       acc.comissao += comm;
-      acc.liquido += v - z - comm;
+      acc.liquido += v - z - pc - comm;
       if (s.status === "concluida") acc.concluida += v;
       else if (s.status === "pendente") acc.pendente += v;
       else if (s.status === "em_andamento") acc.em_andamento += v;
@@ -411,8 +414,9 @@ export default function Sales() {
         kpis={[
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" /> },
           { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined },
+          { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined },
+          { label: "Comissões", value: formatBRL(kpis.comissao), tone: "info", icon: <Handshake className="size-4" /> },
           { label: "Concluídas", value: formatBRL(kpis.concluida), tone: "success", icon: <CheckCircle2 className="size-4" /> },
-          { label: "Em Andamento", value: formatBRL(kpis.em_andamento), tone: "info", icon: <PlayCircle className="size-4" /> },
           { label: "Pendentes", value: formatBRL(kpis.pendente), tone: "warning", icon: <Clock3 className="size-4" /> },
           { label: "Total Registros", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" /> },
         ]}
@@ -673,7 +677,9 @@ export default function Sales() {
                   const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
                   const baseAmt = Number(s.amount || 0);
                   const zenonCost = Number(s.zenon_cost || 0);
-                  const liquido = baseAmt - zenonCost - commissionVal;
+                  const providerCost = Number(s.provider_cost || 0);
+                  const totalCustos = zenonCost + providerCost;
+                  const liquido = baseAmt - totalCustos - commissionVal;
                   const liquidoPct = baseAmt > 0 ? (liquido / baseAmt) * 100 : 0;
                   const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
                   const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
@@ -759,6 +765,14 @@ export default function Sales() {
                                   className="inline-flex items-center px-1.5 py-px rounded bg-amber-50 text-amber-700 border border-amber-100 text-[9.5px] font-semibold font-mono tabular-nums"
                                 >
                                   −Z
+                                </span>
+                              )}
+                              {providerCost > 0 && (
+                                <span
+                                  title={`Custo Prestador ${formatBRL(providerCost)}`}
+                                  className="inline-flex items-center px-1.5 py-px rounded bg-orange-50 text-orange-700 border border-orange-100 text-[9.5px] font-semibold font-mono tabular-nums"
+                                >
+                                  −P
                                 </span>
                               )}
                             </div>
