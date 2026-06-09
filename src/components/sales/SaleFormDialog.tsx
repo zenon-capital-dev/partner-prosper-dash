@@ -243,12 +243,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const amount = Number(form.amount || 0);
   const zenonCost = Number(form.zenon_cost || 0);
   const providerCost = Number(form.provider_cost || 0);
-  const partnerBase = Math.max(amount - zenonCost, 0);
-  const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
-  const referrerCalc = form.referrer_id ? (amount * Number(form.referrer_percent || 0)) / 100 : 0;
-  const collaboratorCalc = form.collaborator_id ? (amount * Number(form.collaborator_percent || 0)) / 100 : 0;
-  const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
   const totalCosts = zenonCost + providerCost;
+  // Base após custos internos — é sobre ela que TODAS as comissões incidem.
+  const commissionBase = Math.max(amount - totalCosts, 0);
+  const partnerBase = commissionBase;
+  const partnerCalc = form.partner_id ? (commissionBase * Number(form.commission_percent || 0)) / 100 : 0;
+  const referrerCalc = form.referrer_id ? (commissionBase * Number(form.referrer_percent || 0)) / 100 : 0;
+  const collaboratorCalc = form.collaborator_id ? (commissionBase * Number(form.collaborator_percent || 0)) / 100 : 0;
+  const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
   const liquido = amount - totalCosts - totalCommissions;
   const marginPct = amount > 0 ? (liquido / amount) * 100 : 0;
   const totalPct = amount > 0 ? (totalCommissions / amount) * 100 : 0;
