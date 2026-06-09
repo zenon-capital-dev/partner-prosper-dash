@@ -374,17 +374,22 @@ export default function FinanceCenter() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-display text-base font-semibold text-slate-900">Saldo líquido — Zenon</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos comissões pagas a indicadores, parceiros/colaboradores e despesas variáveis.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos custos de venda (Zenon + Prestador), comissões pagas a indicadores/parceiros e despesas variáveis.</p>
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
-              <p className="font-mono text-2xl font-bold text-emerald-700 tabular-nums">{formatBRL(kpis.netRevenue)}</p>
+              <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
             <div className="rounded-md border border-slate-200/70 bg-slate-50 p-3">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Bruto recebido</p>
               <p className="font-mono text-base font-semibold text-slate-900 mt-1 tabular-nums">{formatBRL(kpis.totalReceived)}</p>
+            </div>
+            <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Custos venda</p>
+              <p className="font-mono text-base font-semibold text-amber-800 mt-1 tabular-nums">{formatBRL(kpis.salesCostsTotal)}</p>
+              <p className="text-[10px] text-amber-600/80 mt-0.5">Zenon {formatBRL(kpis.zenonCostTotal)} · Prestador {formatBRL(kpis.providerCostTotal)}</p>
             </div>
             <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Indicadores</p>
