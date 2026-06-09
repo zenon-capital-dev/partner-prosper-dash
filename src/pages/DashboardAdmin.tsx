@@ -208,12 +208,12 @@ export default function DashboardAdmin() {
   });
 
   // Render progressively: only block on the essentials (clients + demands). Outras seções mostram skeleton individual.
-  const isGlobalLoading = isLoadingClients || isLoadingDemands;
+  const isGlobalLoading = isLoadingDashboard;
 
   
 
 
-  const stats = useMemo(() => {
+  const computedStats = useMemo(() => {
     const toISO = toLocalISO;
     let rangeStart = new Date(brasiliaToday);
     const rangeEnd = new Date(brasiliaToday);
