@@ -669,6 +669,9 @@ export default function Sales() {
                   const splits = splitsBySale.get(s.id) ?? [];
                   const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
                   const baseAmt = Number(s.amount || 0);
+                  const zenonCost = Number(s.zenon_cost || 0);
+                  const liquido = baseAmt - zenonCost - commissionVal;
+                  const liquidoPct = baseAmt > 0 ? (liquido / baseAmt) * 100 : 0;
                   const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
                   const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
                   return (
@@ -704,12 +707,58 @@ export default function Sales() {
                       <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>
                       <Td align="right">
                         {commissionVal > 0 ? (
-                          <div>
-                            <p className="font-semibold text-emerald-700 font-mono text-[12px]">{formatBRL(commissionVal)}</p>
-                            <p className="text-[10px] text-slate-500 font-mono">
-                              {commissionPct.toFixed(1)}% · {splits.length} {splits.length === 1 ? "benef." : "benefs."}
-                              {paidCount > 0 && <span className="text-emerald-600"> · {paidCount} pago{paidCount > 1 ? "s" : ""}</span>}
-                            </p>
+                          <div className="inline-flex flex-col items-end gap-0.5">
+                            <span className="font-bold font-mono text-[12.5px] text-emerald-700 tabular-nums leading-none">
+                              {formatBRL(commissionVal)}
+                            </span>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="inline-flex items-center px-1.5 py-px rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9.5px] font-bold font-mono tabular-nums tracking-tight">
+                                {commissionPct.toFixed(1)}%
+                              </span>
+                              <span className="inline-flex items-center px-1.5 py-px rounded bg-slate-50 text-slate-600 border border-slate-200 text-[9.5px] font-semibold tabular-nums">
+                                {splits.length}
+                              </span>
+                              {paidCount > 0 && (
+                                <span
+                                  title={`${paidCount} pago${paidCount > 1 ? "s" : ""}`}
+                                  className="inline-flex items-center px-1.5 py-px rounded bg-emerald-600 text-white text-[9.5px] font-bold tabular-nums"
+                                >
+                                  ✓ {paidCount}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">—</span>
+                        )}
+                      </Td>
+                      <Td align="right">
+                        {baseAmt > 0 ? (
+                          <div className="inline-flex flex-col items-end gap-0.5">
+                            <span className={cn(
+                              "font-bold font-mono text-[12.5px] tabular-nums leading-none",
+                              liquido > 0 ? "text-indigo-700" : liquido < 0 ? "text-rose-600" : "text-slate-500"
+                            )}>
+                              {formatBRL(liquido)}
+                            </span>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className={cn(
+                                "inline-flex items-center px-1.5 py-px rounded border text-[9.5px] font-bold font-mono tabular-nums tracking-tight",
+                                liquidoPct >= 50 ? "bg-indigo-50 text-indigo-700 border-indigo-100" :
+                                liquidoPct >= 0 ? "bg-slate-50 text-slate-600 border-slate-200" :
+                                "bg-rose-50 text-rose-700 border-rose-100"
+                              )}>
+                                {liquidoPct.toFixed(1)}%
+                              </span>
+                              {zenonCost > 0 && (
+                                <span
+                                  title={`Custo Zenon ${formatBRL(zenonCost)}`}
+                                  className="inline-flex items-center px-1.5 py-px rounded bg-amber-50 text-amber-700 border border-amber-100 text-[9.5px] font-semibold font-mono tabular-nums"
+                                >
+                                  −Z
+                                </span>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-[11px] text-slate-400">—</span>
