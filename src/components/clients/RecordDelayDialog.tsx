@@ -53,6 +53,10 @@ export function RecordDelayDialog({ open, onOpenChange, demandId }: RecordDelayD
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["demand-detail", demandId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-demands"] });
+      queryClient.invalidateQueries({ queryKey: ["cockpit-demands"] });
+      queryClient.invalidateQueries({ queryKey: ["client-products"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
       toast.success("Motivo de atraso registrado com sucesso");
       onOpenChange(false);
       setCategory("");
