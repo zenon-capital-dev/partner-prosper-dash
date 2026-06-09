@@ -406,7 +406,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       </Field>
                     </div>
                     <p className="text-[10.5px] text-amber-700/90 leading-snug">
-                      Base de cálculo da comissão do parceiro: <strong className="font-mono">{fmt(partnerBase)}</strong> (valor bruto − custo Zenon). Custos totais: <strong className="font-mono">{fmt(totalCosts)}</strong>.
+                      Base de cálculo das comissões: <strong className="font-mono">{fmt(commissionBase)}</strong> (valor bruto − todos os custos internos). Custos totais: <strong className="font-mono">{fmt(totalCosts)}</strong>.
                     </p>
                   </div>
                 </div>
