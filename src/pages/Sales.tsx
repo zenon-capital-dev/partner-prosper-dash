@@ -45,6 +45,8 @@ export default function Sales() {
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
+  const [productFilter, setProductFilter] = useState("todos");
+  const [clientFilter, setClientFilter] = useState("todos");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
