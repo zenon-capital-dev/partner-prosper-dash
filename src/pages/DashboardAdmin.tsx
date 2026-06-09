@@ -135,7 +135,7 @@ export default function DashboardAdmin() {
   const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({
     queryKey: ["dash-doc-requests"],
     staleTime: STALE,
-    queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("documents").select("id, status, created_at, name, client_id, due_date").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
 
   const { data: agendaInteractions = [], isLoading: isLoadingAgenda } = useQuery({
@@ -151,13 +151,13 @@ export default function DashboardAdmin() {
   const { data: payments = [], isLoading: isLoadingPayments } = useQuery({
     queryKey: ["dash-payments"],
     staleTime: STALE,
-    queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date").limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("payments").select("id, status, amount, amount_paid, due_date").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? []
   });
 
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["dash-activity"],
     staleTime: STALE,
-    queryFn: async () => (await supabase.from("activity_logs").select("id, action, entity_type, entity_id, created_at, user_id, metadata").order("created_at", { ascending: false }).limit(8)).data ?? [],
+    queryFn: async () => (await supabase.from("activity_logs").select("id, action, entity_type, entity_id, created_at, user_id, new_data").order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
 
   // Imposto configurável via system_settings (key=tax_rate_percent). Default 0.
