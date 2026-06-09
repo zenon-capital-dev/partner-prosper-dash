@@ -29,31 +29,44 @@ export function ClientProductSteps({
       if (error) throw error;
       return data ?? [];
     },
-    enabled: !initialSteps,
+    initialData: initialSteps,
+    staleTime: 30_000,
     retry: 1,
   });
 
-  const steps = initialSteps ?? fetchedSteps;
+  const steps = fetchedSteps;
 
   const toggleStep = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
       const { error } = await supabase
         .from("client_product_steps")
-        .update({ 
-          completed, 
-          completed_at: completed ? new Date().toISOString() : null 
+        .update({
+          completed,
+          completed_at: completed ? new Date().toISOString() : null,
         })
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["product-steps", clientProductId] });
-      qc.invalidateQueries({ queryKey: ["client-products"] });
+    onMutate: async ({ id, completed }) => {
+      await qc.cancelQueries({ queryKey: ["product-steps", clientProductId] });
+      const prev = qc.getQueryData<any[]>(["product-steps", clientProductId]);
+      qc.setQueryData<any[]>(["product-steps", clientProductId], (old = []) =>
+        (old ?? []).map((s) =>
+          s.id === id
+            ? { ...s, completed, completed_at: completed ? new Date().toISOString() : null }
+            : s
+        )
+      );
+      return { prev };
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["product-steps", clientProductId], ctx.prev);
+      toast.error(err.message);
+    },
+    // Sem invalidar a query pesada de client-products (que recarrega tudo e pisca a lista).
   });
 
-  if (isLoading) return <Loader2 className="size-4 animate-spin text-slate-400 mx-auto" />;
+  if (isLoading && !steps?.length) return <Loader2 className="size-4 animate-spin text-slate-400 mx-auto" />;
   if (!steps?.length) return null;
 
   const completedCount = steps.filter(s => s.completed).length;
