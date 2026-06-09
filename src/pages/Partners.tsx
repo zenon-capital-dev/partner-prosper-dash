@@ -238,6 +238,7 @@ export default function Partners() {
       notes: form.notes || null,
       active: form.active ?? true,
       has_system_access: form.has_system_access ?? false,
+      show_product_name: !!form.show_product_name,
     };
     const { data: partner, error } = editing
       ? await supabase.from("partners").update(payload as any).eq("id", editing.id).select().single()
