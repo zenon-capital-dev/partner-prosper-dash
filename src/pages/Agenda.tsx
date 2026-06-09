@@ -975,13 +975,7 @@ function CreateOrEditDialog({
               <Label className="text-xs font-bold mb-1.5 block">
                 Cliente {(kind === "ligacao" || kind === "pendencia_documento") && "*"}
               </Label>
-              <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Selecionar" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {clients.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ClientCombobox value={clientId} onChange={setClientId} clients={clients} />
             </div>
             <div>
               <Label className="text-xs font-bold mb-1.5 block">Responsável</Label>
