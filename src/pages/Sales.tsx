@@ -377,13 +377,21 @@ export default function Sales() {
     URL.revokeObjectURL(url);
   };
 
-  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setDateFrom(""); setDateTo(""); };
+  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setProductFilter("todos"); setClientFilter("todos"); setDateFrom(""); setDateTo(""); };
   const activeChips: { label: string; clear: () => void }[] = [];
   if (search) activeChips.push({ label: `Busca: ${search}`, clear: () => setSearch("") });
   if (status !== "todos") activeChips.push({ label: `Status: ${status}`, clear: () => setStatus("todos") });
   if (partnerFilter !== "todos") {
     const name = partnerFilter === "sem" ? "Sem parceiro" : (partnersList.find((p: any) => p.id === partnerFilter)?.full_name ?? "Parceiro");
     activeChips.push({ label: `Parceiro: ${name}`, clear: () => setPartnerFilter("todos") });
+  }
+  if (productFilter !== "todos") {
+    const name = productsList.find((p: any) => p.id === productFilter)?.name ?? "Produto";
+    activeChips.push({ label: `Produto: ${name}`, clear: () => setProductFilter("todos") });
+  }
+  if (clientFilter !== "todos") {
+    const c: any = clientsList.find((c: any) => c.id === clientFilter);
+    activeChips.push({ label: `Cliente: ${c?.full_name ?? "Cliente"}`, clear: () => setClientFilter("todos") });
   }
   if (dateFrom) activeChips.push({ label: `De: ${dateFrom}`, clear: () => setDateFrom("") });
   if (dateTo) activeChips.push({ label: `Até: ${dateTo}`, clear: () => setDateTo("") });
