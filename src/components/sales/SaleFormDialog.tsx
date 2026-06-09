@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
@@ -51,6 +51,7 @@ function Field({ label, required, children, className }: { label: string; requir
 
 export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }: Props) {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()) });
 
@@ -202,6 +203,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         if (error) throw error;
         toast.success("Venda registrada e comissões geradas");
       }
+
+      // Invalida todos os caches que dependem de vendas/demandas para refletir imediatamente em qualquer tela.
+      const targetClientId = form.client_id || clientId;
+      await Promise.all([
+        qc.refetchQueries({ queryKey: ["sales-rich-v2"] }),
+        qc.refetchQueries({ queryKey: ["sales-commission-splits"] }),
+        targetClientId ? qc.refetchQueries({ queryKey: ["client-products", targetClientId] }) : Promise.resolve(),
+        targetClientId ? qc.refetchQueries({ queryKey: ["client-sales", targetClientId] }) : Promise.resolve(),
+        targetClientId ? qc.refetchQueries({ queryKey: ["client-payments", targetClientId] }) : Promise.resolve(),
+      ]);
+      qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      qc.invalidateQueries({ queryKey: ["commissions"] });
+      qc.invalidateQueries({ queryKey: ["payments"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
 
       onCreated?.();
       onOpenChange(false);
