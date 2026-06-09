@@ -365,24 +365,47 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     </Field>
                   </div>
 
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-                    <Field label="🔒 Custo Zenon (interno — não visível ao parceiro)">
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-sm">R$</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          className="h-11 pl-10 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right"
-                          value={form.zenon_cost ?? ""}
-                          onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
-                          placeholder="0,00"
-                        />
+                  <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50/80 to-amber-50/40 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="size-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-[11px]">🔒</div>
+                      <div className="flex-1">
+                        <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider leading-tight">Custos Internos</p>
+                        <p className="text-[10px] text-amber-700/80 leading-tight">Não visíveis ao parceiro — deduzidos do líquido</p>
                       </div>
-                      <p className="text-[10.5px] text-amber-700 mt-1.5 leading-tight">
-                        Esse valor vai direto para o caixa da Zenon como lucro. O parceiro vê apenas o valor após dedução: <strong>{fmt(partnerBase)}</strong>. Comissão do parceiro é calculada sobre esse valor líquido.
-                      </p>
-                    </Field>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <Field label="Custo Zenon">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
+                            value={form.zenon_cost ?? ""}
+                            onChange={(e) => setForm({ ...form, zenon_cost: e.target.value })}
+                            placeholder="0,00"
+                          />
+                        </div>
+                      </Field>
+                      <Field label="Custo Prestador de Serviço">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
+                            value={form.provider_cost ?? ""}
+                            onChange={(e) => setForm({ ...form, provider_cost: e.target.value })}
+                            placeholder="0,00"
+                          />
+                        </div>
+                      </Field>
+                    </div>
+                    <p className="text-[10.5px] text-amber-700/90 leading-snug">
+                      Base de cálculo da comissão do parceiro: <strong className="font-mono">{fmt(partnerBase)}</strong> (valor bruto − custo Zenon). Custos totais: <strong className="font-mono">{fmt(totalCosts)}</strong>.
+                    </p>
                   </div>
                 </div>
               </Section>
