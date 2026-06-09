@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Plus, Search, Trash2, Users, MoreHorizontal, Filter, Calendar, Building2,
-  CreditCard, User, Mail, Phone,
+  CreditCard, User, Mail, Phone, CalendarClock,
   ChevronDown, ChevronUp, Activity, AlertTriangle, TrendingUp,
   Eye, FileText, Pencil, Archive, ArchiveRestore, X, ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
@@ -587,6 +587,11 @@ export default function Clients() {
                           <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=documentos`)}>
                             <FileText className="size-3.5 mr-2" /> Documentos
                           </DropdownMenuItem>
+                          {canWrite && (
+                            <DropdownMenuItem onClick={() => navigate(`/agenda?new=1&client=${c.id}`)}>
+                              <CalendarClock className="size-3.5 mr-2" /> Nova tarefa
+                            </DropdownMenuItem>
+                          )}
                           {canWrite && <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleArchive(c)}>
@@ -789,6 +794,7 @@ export default function Clients() {
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}`)}><Eye className="size-3.5 mr-2" /> Ver perfil</DropdownMenuItem>
                             {canWrite && <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="size-3.5 mr-2" /> Editar cadastro</DropdownMenuItem>}
                             <DropdownMenuItem onClick={() => navigate(`/clientes/${c.id}?tab=financeiro`)}><CreditCard className="size-3.5 mr-2" /> Financeiro</DropdownMenuItem>
+                            {canWrite && <DropdownMenuItem onClick={() => navigate(`/agenda?new=1&client=${c.id}`)}><CalendarClock className="size-3.5 mr-2" /> Nova tarefa</DropdownMenuItem>}
                             {canWrite && <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleArchive(c)}>
