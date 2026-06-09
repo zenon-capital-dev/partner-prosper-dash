@@ -302,7 +302,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
               </div>
               <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
                 <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Margem</div>
-                <div className="text-sm font-bold text-emerald-400">{(100 - totalPct).toFixed(1)}%</div>
+                <div className={cn("text-sm font-bold", marginPct >= 0 ? "text-emerald-400" : "text-rose-400")}>{marginPct.toFixed(1)}%</div>
               </div>
               <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
                 <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Data</div>
