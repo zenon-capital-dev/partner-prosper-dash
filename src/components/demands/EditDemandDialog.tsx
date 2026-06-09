@@ -68,6 +68,10 @@ export function EditDemandDialog({ open, onOpenChange, demand }: Props) {
       toast.success("Demanda atualizada");
       qc.invalidateQueries({ queryKey: ["demand-detail", demand.id] });
       qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      qc.invalidateQueries({ queryKey: ["cockpit-demands"] });
+      qc.invalidateQueries({ queryKey: ["product-demands"] });
+      qc.invalidateQueries({ queryKey: ["client-products"] });
+      qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e.message || "Erro ao atualizar"),

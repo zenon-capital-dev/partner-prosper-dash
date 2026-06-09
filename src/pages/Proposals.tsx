@@ -560,8 +560,11 @@ async function convertToSale(p: any, qc: any) {
 
     toast.success("Proposta convertida em venda!");
     qc.invalidateQueries({ queryKey: ["proposals"] });
-    qc.invalidateQueries({ queryKey: ["sales"] });
-    qc.invalidateQueries({ queryKey: ["client_products"] });
+    qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
+    qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
+    qc.invalidateQueries({ queryKey: ["client-products"] });
+    qc.invalidateQueries({ queryKey: ["admin-demands"] });
+    qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
   } catch (e: any) {
     toast.error(e.message || "Erro ao converter proposta");
   }

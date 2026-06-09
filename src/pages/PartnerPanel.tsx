@@ -171,6 +171,7 @@ export default function PartnerPanel() {
     },
     onSuccess: () => {
       toast.success("Dados de contato atualizados");
+      qc.invalidateQueries({ queryKey: ["partner-self", user?.id] });
       qc.invalidateQueries({ queryKey: ["partner-self"] });
       setEditing(false);
     },
@@ -225,6 +226,7 @@ export default function PartnerPanel() {
       toast.success("Chamado enviado. Nossa equipe responderá em breve.");
       setTicketOpen(false);
       setTicketForm({ subject: "", message: "", priority: "normal" });
+      qc.invalidateQueries({ queryKey: ["partner-tickets", partner?.id] });
       qc.invalidateQueries({ queryKey: ["partner-tickets"] });
     },
     onError: (e: any) => toast.error(e.message || "Erro ao enviar chamado"),
@@ -308,6 +310,7 @@ export default function PartnerPanel() {
     },
     onSuccess: (_d, submit) => {
       toast.success(submit ? "Dados enviados para nossa equipe" : "Rascunho salvo");
+      qc.invalidateQueries({ queryKey: ["partner-contract", partner?.id] });
       qc.invalidateQueries({ queryKey: ["partner-contract"] });
     },
     onError: (e: any) => toast.error(e.message || "Erro ao salvar"),

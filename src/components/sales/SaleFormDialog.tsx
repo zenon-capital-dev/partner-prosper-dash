@@ -209,15 +209,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       await Promise.all([
         qc.refetchQueries({ queryKey: ["sales-rich-v2"] }),
         qc.refetchQueries({ queryKey: ["sales-commission-splits"] }),
+        // Sempre invalida client-products globalmente (prefix match cobre todos clientes), além de refazer o do cliente alvo.
+        qc.invalidateQueries({ queryKey: ["client-products"] }),
+        qc.invalidateQueries({ queryKey: ["client-sales"] }),
+        qc.invalidateQueries({ queryKey: ["client-payments"] }),
         targetClientId ? qc.refetchQueries({ queryKey: ["client-products", targetClientId] }) : Promise.resolve(),
         targetClientId ? qc.refetchQueries({ queryKey: ["client-sales", targetClientId] }) : Promise.resolve(),
         targetClientId ? qc.refetchQueries({ queryKey: ["client-payments", targetClientId] }) : Promise.resolve(),
       ]);
       qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      qc.invalidateQueries({ queryKey: ["cockpit-demands"] });
       qc.invalidateQueries({ queryKey: ["commissions"] });
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
 
       onCreated?.();
       onOpenChange(false);

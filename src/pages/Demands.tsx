@@ -269,6 +269,10 @@ export default function Demands() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      qc.invalidateQueries({ queryKey: ["cockpit-demands"] });
+      qc.invalidateQueries({ queryKey: ["client-products"] });
+      qc.invalidateQueries({ queryKey: ["demand-detail"] });
+      qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
       toast.success("Status atualizado com sucesso");
     },
     onError: (error: any) => {

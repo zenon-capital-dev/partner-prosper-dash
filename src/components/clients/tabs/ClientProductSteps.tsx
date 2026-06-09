@@ -63,7 +63,10 @@ export function ClientProductSteps({
       if (ctx?.prev) qc.setQueryData(["product-steps", clientProductId], ctx.prev);
       toast.error(err.message);
     },
-    // Sem invalidar a query pesada de client-products (que recarrega tudo e pisca a lista).
+    // Reconcilia com o servidor sem invalidar a query pesada de client-products (que recarrega o card todo).
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["product-steps", clientProductId] });
+    },
   });
 
   if (isLoading && !steps?.length) return <Loader2 className="size-4 animate-spin text-slate-400 mx-auto" />;
