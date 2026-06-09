@@ -244,7 +244,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
       }
 
       // Produtos contratados (cadastro novo)
-      if (!client?.id && clientId && selectedProducts.length > 0) {
+      if (clientId && selectedProducts.length > 0) {
         const valid = selectedProducts.filter((p) => p.product_id);
         if (valid.length > 0) {
           const rows = valid.map((p) => ({
@@ -528,7 +528,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                   <Sparkles className="size-4 text-indigo-700" />
                   <div>
                     <p className="text-sm font-bold">Produtos contratados</p>
-                    <p className="text-[11px] text-muted-foreground">Crie as demandas iniciais já vinculadas a este cliente.</p>
+                    <p className="text-[11px] text-muted-foreground">{client?.id ? "Adicione novos produtos/demandas a este cliente." : "Crie as demandas iniciais já vinculadas a este cliente."}</p>
                   </div>
                 </div>
                 <Button
