@@ -420,7 +420,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       </Field>
                     </div>
                     <p className="text-[10.5px] text-amber-700/90 leading-snug">
-                      Base de cálculo das comissões: <strong className="font-mono">{fmt(commissionBase)}</strong> (valor bruto − todos os custos internos). Custos totais: <strong className="font-mono">{fmt(totalCosts)}</strong>.
+                      Ordem de dedução: <strong>Bruto</strong> − custos (<strong className="font-mono">{fmt(totalCosts)}</strong>) − Indicador/Imposto − Parceiro − Colaborador. Cada nível incide sobre o que sobrou do nível anterior.
                     </p>
                   </div>
                 </div>
