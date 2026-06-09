@@ -519,8 +519,9 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
 
-          {/* PRODUTOS CONTRATADOS — só cadastro novo */}
-          {!client?.id && (
+          {/* PRODUTOS CONTRATADOS — disponível em novo cadastro e na edição */}
+          {(
+
             <div className="sm:col-span-2 space-y-3 p-4 rounded-xl border-2 border-dashed border-indigo-300/60 bg-indigo-50/40">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
