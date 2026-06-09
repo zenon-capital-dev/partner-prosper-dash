@@ -51,6 +51,7 @@ function Field({ label, required, children, className }: { label: string; requir
 
 export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }: Props) {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()) });
 
