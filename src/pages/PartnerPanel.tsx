@@ -49,8 +49,6 @@ const CLIENT_TONE: Record<string, string> = {
   inativo: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
-const SHOW_PRODUCT_KEY = "partner_show_product_name";
-
 export default function PartnerPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
@@ -58,14 +56,6 @@ export default function PartnerPanel() {
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/parceiro" : `/parceiro/${k}`);
-
-  const [showProductName, setShowProductName] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(SHOW_PRODUCT_KEY) === "1";
-  });
-  useEffect(() => {
-    localStorage.setItem(SHOW_PRODUCT_KEY, showProductName ? "1" : "0");
-  }, [showProductName]);
 
   const { data: partner } = useQuery({
     queryKey: ["partner-self", user?.id],
