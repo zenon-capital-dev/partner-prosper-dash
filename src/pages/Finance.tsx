@@ -131,7 +131,7 @@ export default function Finance() {
     queryKey: ["finance-sales", from, to],
     queryFn: async () => {
       let q = supabase.from("sales")
-        .select("id, amount, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
+        .select("id, amount, zenon_cost, provider_cost, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
         .order("sale_date", { ascending: false });
       if (from) q = q.gte("sale_date", from);
       if (to) q = q.lte("sale_date", to);
