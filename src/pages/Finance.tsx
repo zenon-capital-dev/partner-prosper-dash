@@ -263,10 +263,12 @@ export default function Finance() {
     const months = eachMonthOfInterval({ start: subMonths(startOfMonth(end), reportMonths - 1), end });
     return months.map((m) => {
       const ms = format(m, "yyyy-MM");
-      const rev = sales.filter((s: any) => s.status === "concluida" && (s.sale_date || "").slice(0,7) === ms).reduce((a:number,s:any)=>a+Number(s.amount||0),0);
+      const monthSales = sales.filter((s: any) => (s.sale_date || "").slice(0,7) === ms);
+      const rev = monthSales.filter((s: any) => s.status === "concluida").reduce((a:number,s:any)=>a+Number(s.amount||0),0);
+      const sCosts = monthSales.filter((s: any) => s.status !== "cancelada").reduce((a:number,s:any)=>a+Number(s.zenon_cost||0)+Number(s.provider_cost||0),0);
       const exp = expenses.filter((e: any) => (e.expense_date || "").slice(0,7) === ms).reduce((a:number,e:any)=>a+Number(e.amount||0),0);
       const com = splits.filter((c: any) => c.status === "pago" && ((c.paid_at||"").slice(0,7) === ms)).reduce((a:number,c:any)=>a+Number(c.amount||0),0);
-      const profit = rev - com - exp;
+      const profit = rev - com - exp - sCosts;
       const margin = rev > 0 ? (profit / rev) * 100 : 0;
       return { month: format(m, "MMM/yy", { locale: ptBR }), revenue: rev, expenses: exp, commissions: com, profit, margin };
     });
