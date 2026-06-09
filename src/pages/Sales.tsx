@@ -10,11 +10,12 @@ import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
   CalendarRange, Sparkles, ArrowUp, ArrowDown, TrendingUp, BarChart3,
-  Users, Trophy, Inbox, Pencil, Wallet, Handshake
+  Users, Trophy, Inbox, Pencil, Wallet, Handshake, HandCoins
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
