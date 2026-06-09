@@ -736,9 +736,34 @@ export default function Sales() {
 
       {/* Table */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 mb-10">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            {sorted.length} {sorted.length === 1 ? "venda" : "vendas"}
+          </p>
+          <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Tamanho</span>
+            {(["compact", "normal", "spacious"] as const).map((d) => (
+              <button
+                key={d}
+                onClick={() => changeDensity(d)}
+                className={cn(
+                  "px-2.5 py-1 text-[10.5px] font-semibold rounded transition-colors",
+                  density === d ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                )}
+                title={d === "compact" ? "Compacto" : d === "normal" ? "Normal" : "Confortável"}
+              >
+                {d === "compact" ? "S" : d === "normal" ? "M" : "L"}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px] min-w-[1100px]">
+          <div className={cn(
+            "overflow-x-auto",
+            density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
+            density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
+          )}>
+            <table className={cn("w-full min-w-[1100px]", density === "normal" && "text-[13px]")}>
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
                   <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
