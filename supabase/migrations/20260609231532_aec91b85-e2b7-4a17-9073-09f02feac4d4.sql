@@ -1,0 +1,1 @@
+ALTER TABLE public.partners ADD COLUMN IF NOT EXISTS show_product_name boolean NOT NULL DEFAULT false;
