@@ -204,6 +204,21 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         toast.success("Venda registrada e comissões geradas");
       }
 
+      // Invalida todos os caches que dependem de vendas/demandas para refletir imediatamente em qualquer tela.
+      const targetClientId = form.client_id || clientId;
+      await Promise.all([
+        qc.refetchQueries({ queryKey: ["sales-rich-v2"] }),
+        qc.refetchQueries({ queryKey: ["sales-commission-splits"] }),
+        targetClientId ? qc.refetchQueries({ queryKey: ["client-products", targetClientId] }) : Promise.resolve(),
+        targetClientId ? qc.refetchQueries({ queryKey: ["client-sales", targetClientId] }) : Promise.resolve(),
+        targetClientId ? qc.refetchQueries({ queryKey: ["client-payments", targetClientId] }) : Promise.resolve(),
+      ]);
+      qc.invalidateQueries({ queryKey: ["admin-demands"] });
+      qc.invalidateQueries({ queryKey: ["commissions"] });
+      qc.invalidateQueries({ queryKey: ["payments"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
       onCreated?.();
       onOpenChange(false);
     } catch (err: any) {
