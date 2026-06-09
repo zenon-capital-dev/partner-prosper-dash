@@ -310,6 +310,7 @@ export default function PartnerPanel() {
     },
     onSuccess: (_d, submit) => {
       toast.success(submit ? "Dados enviados para nossa equipe" : "Rascunho salvo");
+      qc.invalidateQueries({ queryKey: ["partner-contract", partner?.id] });
       qc.invalidateQueries({ queryKey: ["partner-contract"] });
     },
     onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
