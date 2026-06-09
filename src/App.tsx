@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, keepPreviousData } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -72,10 +72,15 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      // Refaz ao voltar pra aba — garante dados frescos sem o usuário precisar dar F5.
-      refetchOnWindowFocus: true,
-      // 30s: equilíbrio entre não martelar a API e manter dados frescos após mutações em outras telas.
-      staleTime: 30_000,
+      // Não refaz toda hora que troca de aba — evita travar o app a cada foco.
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      // 5min frescos + 10min em cache: trocar entre páginas vira instantâneo.
+      staleTime: 5 * 60_000,
+      gcTime: 10 * 60_000,
+      // Mantém os dados antigos visíveis durante refetch — sem flash de "carregando".
+      placeholderData: keepPreviousData,
     },
   },
 });
