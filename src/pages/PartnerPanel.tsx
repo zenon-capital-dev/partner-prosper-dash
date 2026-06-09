@@ -826,10 +826,14 @@ export default function PartnerPanel() {
             <SectionCard title="Preferências" icon={Eye}>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[13px] font-medium text-slate-900">Mostrar nome do produto nas comissões</p>
-                  <p className="text-[11.5px] text-slate-500">Quando desativado, listas e extrato mostram apenas o cliente e o valor.</p>
+                  <p className="text-[13px] font-medium text-slate-900">Nome do produto nas comissões</p>
+                  <p className="text-[11.5px] text-slate-500">
+                    {showProductName
+                      ? "Visível — o administrador habilitou a exibição do produto vendido."
+                      : "Oculto — definido pelo administrador. Solicite a liberação se necessário."}
+                  </p>
                 </div>
-                <Switch checked={showProductName} onCheckedChange={setShowProductName} />
+                <Switch checked={showProductName} disabled />
               </div>
             </SectionCard>
 
