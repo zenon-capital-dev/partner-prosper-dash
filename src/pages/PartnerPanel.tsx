@@ -226,6 +226,7 @@ export default function PartnerPanel() {
       toast.success("Chamado enviado. Nossa equipe responderá em breve.");
       setTicketOpen(false);
       setTicketForm({ subject: "", message: "", priority: "normal" });
+      qc.invalidateQueries({ queryKey: ["partner-tickets", partner?.id] });
       qc.invalidateQueries({ queryKey: ["partner-tickets"] });
     },
     onError: (e: any) => toast.error(e.message || "Erro ao enviar chamado"),
