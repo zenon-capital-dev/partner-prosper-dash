@@ -757,7 +757,7 @@ export default function Sales() {
                   ))
                 ) : sorted.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-16 text-center">
+                    <td colSpan={10} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-2 text-slate-400">
                         <Inbox className="size-8" />
                         <p className="text-sm font-medium">
