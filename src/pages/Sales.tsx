@@ -628,7 +628,7 @@ export default function Sales() {
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 mb-10">
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-[13px] min-w-[960px]">
+            <table className="w-full text-[13px] min-w-[1100px]">
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
                   <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
