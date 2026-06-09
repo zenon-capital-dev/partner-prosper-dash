@@ -171,6 +171,7 @@ export default function PartnerPanel() {
     },
     onSuccess: () => {
       toast.success("Dados de contato atualizados");
+      qc.invalidateQueries({ queryKey: ["partner-self", user?.id] });
       qc.invalidateQueries({ queryKey: ["partner-self"] });
       setEditing(false);
     },
