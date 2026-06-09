@@ -89,6 +89,7 @@ const App = () => (
       <ThemeColorManager />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastro" element={<Navigate to="/auth" replace />} />
@@ -154,6 +155,7 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
       </TooltipProvider>
