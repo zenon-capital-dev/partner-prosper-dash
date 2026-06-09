@@ -10,11 +10,12 @@ import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
   CalendarRange, Sparkles, ArrowUp, ArrowDown, TrendingUp, BarChart3,
-  Users, Trophy, Inbox, Pencil, Wallet, Handshake
+  Users, Trophy, Inbox, Pencil, Wallet, Handshake, HandCoins
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -41,6 +42,7 @@ export default function Sales() {
   const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
   const [editingSale, setEditingSale] = useState<any>(null);
+  const [receivingSale, setReceivingSale] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
@@ -101,6 +103,33 @@ export default function Sales() {
       return (data as any[]) ?? [];
     },
   });
+
+  const { data: allReceipts = [] } = useQuery({
+    queryKey: ["sales-receipts-by-sale"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("payments")
+        .select("sale_id, amount, amount_paid, paid_at, status")
+        .not("sale_id", "is", null);
+      return (data as any[]) ?? [];
+    },
+  });
+
+  const receiptsBySale = useMemo(() => {
+    const m = new Map<string, { received: number; lastPaidAt: string | null; count: number }>();
+    allReceipts.forEach((r: any) => {
+      if (!r.sale_id) return;
+      const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
+      const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+      if (val <= 0) return;
+      const cur = m.get(r.sale_id) ?? { received: 0, lastPaidAt: null, count: 0 };
+      cur.received += val;
+      cur.count += 1;
+      if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
+      m.set(r.sale_id, cur);
+    });
+    return m;
+  }, [allReceipts]);
 
   const splitsBySale = useMemo(() => {
     const m = new Map<string, any[]>();
@@ -190,25 +219,44 @@ export default function Sales() {
   };
 
   const kpis = useMemo(() => {
-    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0 };
+    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0, recebido: 0, aReceber: 0 };
     filtered.forEach((s: any) => {
       const v = Number(s.amount || 0);
       const z = Number(s.zenon_cost || 0);
       const pc = Number(s.provider_cost || 0);
       const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+      const rec = receiptsBySale.get(s.id)?.received ?? 0;
       acc.total += v;
       acc.zenon += z;
       acc.provider += pc;
       acc.custos += z + pc;
       acc.comissao += comm;
       acc.liquido += v - z - pc - comm;
+      if (s.status !== "cancelada") {
+        acc.recebido += Math.min(rec, v);
+        acc.aReceber += Math.max(v - rec, 0);
+      }
       if (s.status === "concluida") acc.concluida += v;
       else if (s.status === "pendente") acc.pendente += v;
       else if (s.status === "em_andamento") acc.em_andamento += v;
       else if (s.status === "cancelada") acc.cancelada += v;
     });
     return acc;
-  }, [filtered, splitsBySale]);
+  }, [filtered, splitsBySale, receiptsBySale]);
+
+  // Recebido somente NO MÊS atual (independente do filtro)
+  const recebidoNoMes = useMemo(() => {
+    const today = nowBR();
+    const monthStart = startOfMonth(today);
+    return allReceipts.reduce((sum: number, r: any) => {
+      if (!r.paid_at) return sum;
+      const d = new Date(r.paid_at);
+      if (d < monthStart || d > endOfDay(today)) return sum;
+      const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
+      const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+      return sum + (val > 0 ? val : 0);
+    }, 0);
+  }, [allReceipts]);
 
   const chartSeries = useMemo(() => {
     const today = nowBR();
@@ -435,11 +483,11 @@ export default function Sales() {
         }
         kpis={[
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" /> },
+          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: kpis.total > 0 ? `${kpis.total > 0 ? ((recebidoNoMes / kpis.total) * 100).toFixed(1) : 0}% do bruto` : undefined },
+          { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined },
           { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined },
           { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined },
           { label: "Comissões", value: formatBRL(kpis.comissao), tone: "info", icon: <Handshake className="size-4" /> },
-          { label: "Concluídas", value: formatBRL(kpis.concluida), tone: "success", icon: <CheckCircle2 className="size-4" /> },
-          { label: "Pendentes", value: formatBRL(kpis.pendente), tone: "warning", icon: <Clock3 className="size-4" /> },
           { label: "Total Registros", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" /> },
         ]}
       />
@@ -694,6 +742,7 @@ export default function Sales() {
                   <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
                   <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
                   <Th align="right">Líquido</Th>
+                  <Th align="right">Recebido / Restante</Th>
                   <Th align="right">Ações</Th>
                 </tr>
               </thead>
@@ -701,14 +750,14 @@ export default function Sales() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      {Array.from({ length: 9 }).map((__, j) => (
+                      {Array.from({ length: 10 }).map((__, j) => (
                         <td key={j} className="px-5 py-4"><div className="h-3 bg-slate-100 rounded w-3/4" /></td>
                       ))}
                     </tr>
                   ))
                 ) : sorted.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-16 text-center">
+                    <td colSpan={10} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-2 text-slate-400">
                         <Inbox className="size-8" />
                         <p className="text-sm font-medium">
@@ -731,6 +780,11 @@ export default function Sales() {
                   const liquidoPct = baseAmt > 0 ? (liquido / baseAmt) * 100 : 0;
                   const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
                   const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
+                  const rec = receiptsBySale.get(s.id);
+                  const received = rec?.received ?? 0;
+                  const remaining = Math.max(baseAmt - received, 0);
+                  const receivedPct = baseAmt > 0 ? Math.min(100, (received / baseAmt) * 100) : 0;
+                  const fullyReceived = baseAmt > 0 && remaining < 0.01;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
                       <Td><StatusPill status={s.status} /></Td>
@@ -830,6 +884,59 @@ export default function Sales() {
                         )}
                       </Td>
                       <Td align="right">
+                        {baseAmt > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => canManage && setReceivingSale(s)}
+                            className={cn(
+                              "inline-flex flex-col items-end gap-1 group/rec rounded-md px-1.5 py-1 -mr-1.5 transition-colors",
+                              canManage && "hover:bg-emerald-50/60 cursor-pointer"
+                            )}
+                            disabled={!canManage}
+                            title={canManage ? "Registrar recebimento" : undefined}
+                          >
+                            <div className="flex items-baseline gap-1.5">
+                              <span className={cn(
+                                "font-bold font-mono text-[12.5px] tabular-nums leading-none",
+                                fullyReceived ? "text-emerald-700" : received > 0 ? "text-emerald-600" : "text-slate-400"
+                              )}>
+                                {formatBRL(received)}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">/{formatBRL(baseAmt)}</span>
+                            </div>
+                            <div className="w-[110px] h-1 rounded-full bg-slate-100 overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  fullyReceived ? "bg-emerald-500" : received > 0 ? "bg-emerald-400" : "bg-slate-300"
+                                )}
+                                style={{ width: `${receivedPct}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {fullyReceived ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-px rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9.5px] font-bold tabular-nums">
+                                  <CheckCircle2 className="size-2.5" /> Quitado
+                                </span>
+                              ) : remaining > 0 && received > 0 ? (
+                                <span className="inline-flex items-center px-1.5 py-px rounded bg-amber-50 text-amber-700 border border-amber-100 text-[9.5px] font-bold font-mono tabular-nums">
+                                  Falta {formatBRL(remaining)}
+                                </span>
+                              ) : received === 0 ? (
+                                <span className="inline-flex items-center px-1.5 py-px rounded bg-slate-50 text-slate-500 border border-slate-200 text-[9.5px] font-semibold uppercase tracking-wider">
+                                  A receber
+                                </span>
+                              ) : null}
+                              {rec && rec.count > 0 && (
+                                <span className="text-[9.5px] text-slate-400 font-mono">{rec.count}x</span>
+                              )}
+                            </div>
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">—</span>
+                        )}
+                      </Td>
+                      <Td align="right">
                         {canManage ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -846,6 +953,9 @@ export default function Sales() {
                                <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => editOne(s)}>
                                 <Pencil className="size-3.5 mr-2 text-indigo-600" /> Editar Venda
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setReceivingSale(s)}>
+                                <HandCoins className="size-3.5 mr-2 text-emerald-600" /> Registrar Recebimento
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
@@ -891,6 +1001,13 @@ export default function Sales() {
         }} 
         onCreated={invalidateRelated}
         sale={editingSale}
+      />
+
+      <ReceivePaymentDialog
+        open={!!receivingSale}
+        onOpenChange={(v) => { if (!v) setReceivingSale(null); }}
+        sale={receivingSale}
+        onSaved={invalidateRelated}
       />
     </div>
   );
