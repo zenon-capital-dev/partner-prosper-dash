@@ -142,8 +142,13 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       toast.error("Custo Zenon inválido");
       return;
     }
-    if (zenonCostNum > amountNum) {
-      toast.error("Custo Zenon não pode ser maior que o valor da venda");
+    const providerCostNum = Number(form.provider_cost || 0);
+    if (!Number.isFinite(providerCostNum) || providerCostNum < 0) {
+      toast.error("Custo do prestador inválido");
+      return;
+    }
+    if (zenonCostNum + providerCostNum > amountNum) {
+      toast.error("Custos (Zenon + Prestador) não podem ser maiores que o valor da venda");
       return;
     }
     const pctFields = [
@@ -183,6 +188,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         collaborator_id: form.collaborator_id || null,
         amount: Number(form.amount),
         zenon_cost: Number(form.zenon_cost || 0),
+        provider_cost: Number(form.provider_cost || 0),
         commission_percent: Number(form.commission_percent || 0),
         referrer_percent: Number(form.referrer_percent || 0),
         collaborator_percent: Number(form.collaborator_percent || 0),
