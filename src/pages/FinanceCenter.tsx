@@ -136,6 +136,17 @@ export default function FinanceCenter() {
       ).data ?? [],
   });
 
+  const { data: salesCosts = [] } = useQuery({
+    queryKey: ["fin-sales-costs"],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("sales")
+          .select("id, zenon_cost, provider_cost, sale_date, status")
+          .limit(10000)
+      ).data ?? [],
+  });
+
   const { data: commissions = [], isLoading: loadingCom } = useQuery({
     queryKey: ["fin-commissions"],
     queryFn: async () => {
