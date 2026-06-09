@@ -766,6 +766,14 @@ export default function Sales() {
                                   −Z
                                 </span>
                               )}
+                              {providerCost > 0 && (
+                                <span
+                                  title={`Custo Prestador ${formatBRL(providerCost)}`}
+                                  className="inline-flex items-center px-1.5 py-px rounded bg-orange-50 text-orange-700 border border-orange-100 text-[9.5px] font-semibold font-mono tabular-nums"
+                                >
+                                  −P
+                                </span>
+                              )}
                             </div>
                           </div>
                         ) : (
