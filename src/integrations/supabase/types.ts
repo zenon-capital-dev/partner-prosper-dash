@@ -3180,6 +3180,7 @@ export type Database = {
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string | null
           pix_key: string | null
+          show_product_name: boolean
           updated_at: string
           user_id: string | null
           whatsapp: string | null
@@ -3204,6 +3205,7 @@ export type Database = {
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
+          show_product_name?: boolean
           updated_at?: string
           user_id?: string | null
           whatsapp?: string | null
@@ -3228,6 +3230,7 @@ export type Database = {
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string | null
           pix_key?: string | null
+          show_product_name?: boolean
           updated_at?: string
           user_id?: string | null
           whatsapp?: string | null

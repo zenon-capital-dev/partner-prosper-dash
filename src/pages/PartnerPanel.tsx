@@ -49,8 +49,6 @@ const CLIENT_TONE: Record<string, string> = {
   inativo: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
-const SHOW_PRODUCT_KEY = "partner_show_product_name";
-
 export default function PartnerPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
@@ -58,14 +56,6 @@ export default function PartnerPanel() {
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/parceiro" : `/parceiro/${k}`);
-
-  const [showProductName, setShowProductName] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(SHOW_PRODUCT_KEY) === "1";
-  });
-  useEffect(() => {
-    localStorage.setItem(SHOW_PRODUCT_KEY, showProductName ? "1" : "0");
-  }, [showProductName]);
 
   const { data: partner } = useQuery({
     queryKey: ["partner-self", user?.id],
@@ -79,6 +69,8 @@ export default function PartnerPanel() {
       return data;
     },
   });
+
+  const showProductName: boolean = !!(partner as any)?.show_product_name;
 
   const { data: clients = [] } = useQuery({
     queryKey: ["partner-clients", partner?.id],
@@ -409,15 +401,10 @@ export default function PartnerPanel() {
               { label: "Mês atual", value: formatBRL(kpis.monthPaid) },
             ]} />
             <div className="flex items-center justify-end gap-2 mb-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowProductName((v) => !v)}
-                className="gap-2 text-[12px]"
-              >
-                {showProductName ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                {showProductName ? "Ocultar nome do produto" : "Mostrar nome do produto"}
-              </Button>
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 px-2 py-1 rounded-md border border-slate-200 bg-white">
+                {showProductName ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {showProductName ? "Nome do produto visível" : "Nome do produto oculto (definido pelo admin)"}
+              </span>
             </div>
             <SectionCard title="">
               {commissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
@@ -839,10 +826,14 @@ export default function PartnerPanel() {
             <SectionCard title="Preferências" icon={Eye}>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[13px] font-medium text-slate-900">Mostrar nome do produto nas comissões</p>
-                  <p className="text-[11.5px] text-slate-500">Quando desativado, listas e extrato mostram apenas o cliente e o valor.</p>
+                  <p className="text-[13px] font-medium text-slate-900">Nome do produto nas comissões</p>
+                  <p className="text-[11.5px] text-slate-500">
+                    {showProductName
+                      ? "Visível — o administrador habilitou a exibição do produto vendido."
+                      : "Oculto — definido pelo administrador. Solicite a liberação se necessário."}
+                  </p>
                 </div>
-                <Switch checked={showProductName} onCheckedChange={setShowProductName} />
+                <Switch checked={showProductName} disabled />
               </div>
             </SectionCard>
 
