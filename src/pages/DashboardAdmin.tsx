@@ -109,7 +109,7 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: false,
     queryFn: async () => {
-      let query = supabase.from("sales").select("id, sale_date, amount, client_id").order("sale_date", { ascending: false }).limit(2000);
+      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").order("sale_date", { ascending: false }).limit(2000);
 
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
