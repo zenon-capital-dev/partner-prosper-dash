@@ -42,6 +42,7 @@ export default function Sales() {
   const canManage = isAdmin || isAdminSecondary;
   const [open, setOpen] = useState(false);
   const [editingSale, setEditingSale] = useState<any>(null);
+  const [receivingSale, setReceivingSale] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
