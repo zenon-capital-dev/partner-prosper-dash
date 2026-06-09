@@ -104,6 +104,33 @@ export default function Sales() {
     },
   });
 
+  const { data: allReceipts = [] } = useQuery({
+    queryKey: ["sales-receipts-by-sale"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("payments")
+        .select("sale_id, amount, amount_paid, paid_at, status")
+        .not("sale_id", "is", null);
+      return (data as any[]) ?? [];
+    },
+  });
+
+  const receiptsBySale = useMemo(() => {
+    const m = new Map<string, { received: number; lastPaidAt: string | null; count: number }>();
+    allReceipts.forEach((r: any) => {
+      if (!r.sale_id) return;
+      const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
+      const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+      if (val <= 0) return;
+      const cur = m.get(r.sale_id) ?? { received: 0, lastPaidAt: null, count: 0 };
+      cur.received += val;
+      cur.count += 1;
+      if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
+      m.set(r.sale_id, cur);
+    });
+    return m;
+  }, [allReceipts]);
+
   const splitsBySale = useMemo(() => {
     const m = new Map<string, any[]>();
     allSplits.forEach((s: any) => {
