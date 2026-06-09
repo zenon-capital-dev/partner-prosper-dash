@@ -456,6 +456,7 @@ export default function Leads() {
           lead={followUpLead}
           onSaved={() => {
             qc.invalidateQueries({ queryKey: ["leads"] });
+            qc.invalidateQueries({ queryKey: ["tasks-central"] });
             qc.invalidateQueries({ queryKey: ["tasks"] });
           }}
         />
@@ -463,7 +464,13 @@ export default function Leads() {
           open={convertOpen}
           onOpenChange={setConvertOpen}
           lead={convertLead}
-          onConverted={() => qc.invalidateQueries({ queryKey: ["leads"] })}
+          onConverted={() => {
+            qc.invalidateQueries({ queryKey: ["leads"] });
+            qc.invalidateQueries({ queryKey: ["clients-min"] });
+            qc.invalidateQueries({ queryKey: ["clients-select"] });
+            qc.invalidateQueries({ queryKey: ["clients-list"] });
+            qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
+          }}
         />
       </div>
     </div>
