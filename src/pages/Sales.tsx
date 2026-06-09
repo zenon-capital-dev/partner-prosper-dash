@@ -53,6 +53,13 @@ export default function Sales() {
   const [dateTo, setDateTo] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [density, setDensity] = useState<"compact" | "normal" | "spacious">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("sales-density") as any)) || "normal"
+  );
+  const changeDensity = (d: "compact" | "normal" | "spacious") => {
+    setDensity(d);
+    try { localStorage.setItem("sales-density", d); } catch {}
+  };
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
