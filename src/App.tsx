@@ -8,58 +8,60 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import AppLayout from "@/components/AppLayout";
 import { ThemeColorManager } from "@/components/ThemeColorManager";
 import AdminLayout from "@/components/admin/AdminLayout";
-import Auth from "./pages/Auth";
+import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/DashboardAdmin";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
-import Partners from "./pages/Partners";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Sales from "./pages/Sales";
-import Commissions from "./pages/Commissions";
-import Documents from "./pages/Documents";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
-import Automations from "./pages/Automations";
-import ProviderDetail from "./pages/ProviderDetail";
-import PartnerDetail from "./pages/PartnerDetail";
-import AdminProfile from "./pages/AdminProfile";
-
-import Finance from "./pages/Finance";
-import UsersPage from "./pages/UsersPage";
-import Indicators from "./pages/Indicators";
-import Leads from "./pages/Leads";
-import PartnerPanel from "./pages/PartnerPanel";
-import PartnerMaterialsAdmin from "./pages/PartnerMaterialsAdmin";
-import PartnerContractsAdmin from "./pages/PartnerContractsAdmin";
-import PartnerSupportAdmin from "./pages/PartnerSupportAdmin";
-import ClientPanel from "./pages/ClientPanel";
-import ClientOnboarding from "./pages/ClientOnboarding";
-import Collaborators from "./pages/Collaborators";
-import Providers from "./pages/Providers";
-import Tasks from "./pages/Tasks";
-import AuditLog from "./pages/AuditLog";
-import CollaboratorPanel from "./pages/CollaboratorPanel";
-import ProviderPanel from "./pages/ProviderPanel";
-import ReferrerPanel from "./pages/ReferrerPanel";
-import NotFound from "./pages/NotFound.tsx";
-import RoleHome from "./components/RoleHome";
-import MessageTemplates from "./pages/MessageTemplates";
-import ProviderReports from "./pages/ProviderReports";
-import ProviderPerformance from "./pages/ProviderPerformance";
-import Demands from "./pages/Demands";
-import DemandDetail from "./pages/DemandDetail";
-import SLAPages from "./pages/SLAPages";
-import OperationalCockpit from "./pages/OperationalCockpit";
-import Proposals from "./pages/Proposals";
-import FinanceCenter from "./pages/FinanceCenter";
-import Atuacoes from "./pages/Atuacoes";
-import Agenda from "./pages/Agenda";
-import Support from "./pages/Support";
 import { ConfirmRoot } from "@/lib/confirm";
 import { useBodyScrollCleanup } from "@/hooks/use-body-scroll-cleanup";
+
+const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Dashboard = lazy(() => import("./pages/DashboardAdmin"));
+const Clients = lazy(() => import("./pages/Clients"));
+const ClientDetail = lazy(() => import("./pages/ClientDetail"));
+const Partners = lazy(() => import("./pages/Partners"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const Sales = lazy(() => import("./pages/Sales"));
+const Documents = lazy(() => import("./pages/Documents"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Automations = lazy(() => import("./pages/Automations"));
+const ProviderDetail = lazy(() => import("./pages/ProviderDetail"));
+const PartnerDetail = lazy(() => import("./pages/PartnerDetail"));
+const AdminProfile = lazy(() => import("./pages/AdminProfile"));
+const Finance = lazy(() => import("./pages/Finance"));
+const UsersPage = lazy(() => import("./pages/UsersPage"));
+const Indicators = lazy(() => import("./pages/Indicators"));
+const Leads = lazy(() => import("./pages/Leads"));
+const PartnerPanel = lazy(() => import("./pages/PartnerPanel"));
+const PartnerMaterialsAdmin = lazy(() => import("./pages/PartnerMaterialsAdmin"));
+const PartnerContractsAdmin = lazy(() => import("./pages/PartnerContractsAdmin"));
+const PartnerSupportAdmin = lazy(() => import("./pages/PartnerSupportAdmin"));
+const ClientPanel = lazy(() => import("./pages/ClientPanel"));
+const ClientOnboarding = lazy(() => import("./pages/ClientOnboarding"));
+const Collaborators = lazy(() => import("./pages/Collaborators"));
+const Providers = lazy(() => import("./pages/Providers"));
+const AuditLog = lazy(() => import("./pages/AuditLog"));
+const CollaboratorPanel = lazy(() => import("./pages/CollaboratorPanel"));
+const ProviderPanel = lazy(() => import("./pages/ProviderPanel"));
+const ReferrerPanel = lazy(() => import("./pages/ReferrerPanel"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const RoleHome = lazy(() => import("./components/RoleHome"));
+const MessageTemplates = lazy(() => import("./pages/MessageTemplates"));
+const ProviderReports = lazy(() => import("./pages/ProviderReports"));
+const ProviderPerformance = lazy(() => import("./pages/ProviderPerformance"));
+const Demands = lazy(() => import("./pages/Demands"));
+const DemandDetail = lazy(() => import("./pages/DemandDetail"));
+const SLAPages = lazy(() => import("./pages/SLAPages"));
+const OperationalCockpit = lazy(() => import("./pages/OperationalCockpit"));
+const Proposals = lazy(() => import("./pages/Proposals"));
+const FinanceCenter = lazy(() => import("./pages/FinanceCenter"));
+const Agenda = lazy(() => import("./pages/Agenda"));
+const Support = lazy(() => import("./pages/Support"));
+
+function RouteFallback() {
+  return <div className="min-h-dvh bg-background" />;
+}
 
 function GlobalEffects() {
   useBodyScrollCleanup();
@@ -87,6 +89,7 @@ const App = () => (
       <ThemeColorManager />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastro" element={<Navigate to="/auth" replace />} />
@@ -152,6 +155,7 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
       </TooltipProvider>

@@ -4768,6 +4768,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_dashboard_snapshot: {
+        Args: { p_range_key?: string }
+        Returns: Json
+      }
       admin_delete_client_cascade: {
         Args: { _client_id: string }
         Returns: undefined
