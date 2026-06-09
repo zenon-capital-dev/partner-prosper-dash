@@ -10,7 +10,7 @@ import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
   CalendarRange, Sparkles, ArrowUp, ArrowDown, TrendingUp, BarChart3,
-  Users, Trophy, Inbox, Pencil
+  Users, Trophy, Inbox, Pencil, Wallet, Handshake
 } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
