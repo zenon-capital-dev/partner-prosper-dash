@@ -401,15 +401,10 @@ export default function PartnerPanel() {
               { label: "Mês atual", value: formatBRL(kpis.monthPaid) },
             ]} />
             <div className="flex items-center justify-end gap-2 mb-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowProductName((v) => !v)}
-                className="gap-2 text-[12px]"
-              >
-                {showProductName ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                {showProductName ? "Ocultar nome do produto" : "Mostrar nome do produto"}
-              </Button>
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 px-2 py-1 rounded-md border border-slate-200 bg-white">
+                {showProductName ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {showProductName ? "Nome do produto visível" : "Nome do produto oculto (definido pelo admin)"}
+              </span>
             </div>
             <SectionCard title="">
               {commissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
