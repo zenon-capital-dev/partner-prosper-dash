@@ -382,8 +382,10 @@ export default function OperationalCockpit() {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
       toast.success("Notificação enviada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", vars.userId] });
     },
     onError: (error: any) => {
       toast.error("Erro ao enviar notificação: " + error.message);
