@@ -244,12 +244,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const zenonCost = Number(form.zenon_cost || 0);
   const providerCost = Number(form.provider_cost || 0);
   const totalCosts = zenonCost + providerCost;
-  // Base após custos internos — é sobre ela que TODAS as comissões incidem.
+  // Cascata: Bruto − Custos = base. Indicador/Imposto sai primeiro;
+  // depois Parceiro incide sobre o que sobrou; por fim Colaborador.
   const commissionBase = Math.max(amount - totalCosts, 0);
-  const partnerBase = commissionBase;
-  const partnerCalc = form.partner_id ? (commissionBase * Number(form.commission_percent || 0)) / 100 : 0;
   const referrerCalc = form.referrer_id ? (commissionBase * Number(form.referrer_percent || 0)) / 100 : 0;
-  const collaboratorCalc = form.collaborator_id ? (commissionBase * Number(form.collaborator_percent || 0)) / 100 : 0;
+  const partnerBase = Math.max(commissionBase - referrerCalc, 0);
+  const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
+  const collaboratorBase = Math.max(partnerBase - partnerCalc, 0);
+  const collaboratorCalc = form.collaborator_id ? (collaboratorBase * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
   const liquido = amount - totalCosts - totalCommissions;
   const marginPct = amount > 0 ? (liquido / amount) * 100 : 0;
@@ -418,7 +420,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       </Field>
                     </div>
                     <p className="text-[10.5px] text-amber-700/90 leading-snug">
-                      Base de cálculo das comissões: <strong className="font-mono">{fmt(commissionBase)}</strong> (valor bruto − todos os custos internos). Custos totais: <strong className="font-mono">{fmt(totalCosts)}</strong>.
+                      Ordem de dedução: <strong>Bruto</strong> − custos (<strong className="font-mono">{fmt(totalCosts)}</strong>) − Indicador/Imposto − Parceiro − Colaborador. Cada nível incide sobre o que sobrou do nível anterior.
                     </p>
                   </div>
                 </div>
@@ -576,26 +578,26 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     <span className="text-[12px] font-bold tabular-nums font-mono text-slate-700">{fmt(commissionBase)}</span>
                   </div>
 
-                  {/* 4. Comissões — calculadas sobre a base após custos */}
+                  {/* 4. Comissões em cascata: Indicador → Parceiro → Colaborador */}
                   {(partnerCalc > 0 || referrerCalc > 0 || collaboratorCalc > 0) && (
                     <div className="rounded-lg bg-rose-50/40 border border-rose-100 px-3 py-2.5 space-y-2">
-                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-rose-700">Comissões sobre base</p>
+                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-rose-700">Comissões em cascata</p>
+                      {referrerCalc > 0 && (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between gap-2 text-[11px]">
+                            <span className="text-rose-700 font-semibold">Indicador / Imposto</span>
+                            <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(referrerCalc)}</span>
+                          </div>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(commissionBase)}</span>
+                        </div>
+                      )}
                       {partnerCalc > 0 && (
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center justify-between gap-2 text-[11px]">
                             <span className="text-rose-700 font-semibold">Parceiro</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(partnerCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.commission_percent}% × {fmt(commissionBase)}</span>
-                        </div>
-                      )}
-                      {referrerCalc > 0 && (
-                        <div className="flex flex-col gap-0.5">
-                          <div className="flex items-center justify-between gap-2 text-[11px]">
-                            <span className="text-rose-700 font-semibold">Indicador</span>
-                            <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(referrerCalc)}</span>
-                          </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.referrer_percent}% × {fmt(commissionBase)}</span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.commission_percent}% × {fmt(partnerBase)} <span className="opacity-60">(após indicador)</span></span>
                         </div>
                       )}
                       {collaboratorCalc > 0 && (
@@ -604,7 +606,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                             <span className="text-rose-700 font-semibold">Colaborador</span>
                             <span className="font-mono font-bold text-rose-700 tabular-nums">−{fmt(collaboratorCalc)}</span>
                           </div>
-                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(commissionBase)}</span>
+                          <span className="text-[9.5px] text-rose-500/80 font-mono">{form.collaborator_percent}% × {fmt(collaboratorBase)} <span className="opacity-60">(após parceiro)</span></span>
                         </div>
                       )}
                       <div className="flex items-center justify-between gap-2 pt-1.5 mt-1 border-t border-rose-100 text-[10.5px]">

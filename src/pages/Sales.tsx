@@ -53,6 +53,13 @@ export default function Sales() {
   const [dateTo, setDateTo] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [density, setDensity] = useState<"compact" | "normal" | "spacious">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("sales-density") as any)) || "normal"
+  );
+  const changeDensity = (d: "compact" | "normal" | "spacious") => {
+    setDensity(d);
+    try { localStorage.setItem("sales-density", d); } catch {}
+  };
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -116,14 +123,17 @@ export default function Sales() {
   });
 
   const receiptsBySale = useMemo(() => {
-    const m = new Map<string, { received: number; lastPaidAt: string | null; count: number }>();
+    const m = new Map<string, { received: number; receivedThisMonth: number; lastPaidAt: string | null; count: number }>();
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     allReceipts.forEach((r: any) => {
       if (!r.sale_id) return;
       const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
       const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
       if (val <= 0) return;
-      const cur = m.get(r.sale_id) ?? { received: 0, lastPaidAt: null, count: 0 };
+      const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
       cur.received += val;
+      if (r.paid_at && String(r.paid_at).startsWith(ym)) cur.receivedThisMonth += val;
       cur.count += 1;
       if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
       m.set(r.sale_id, cur);
@@ -729,9 +739,34 @@ export default function Sales() {
 
       {/* Table */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 mb-10">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            {sorted.length} {sorted.length === 1 ? "venda" : "vendas"}
+          </p>
+          <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Tamanho</span>
+            {(["compact", "normal", "spacious"] as const).map((d) => (
+              <button
+                key={d}
+                onClick={() => changeDensity(d)}
+                className={cn(
+                  "px-2.5 py-1 text-[10.5px] font-semibold rounded transition-colors",
+                  density === d ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                )}
+                title={d === "compact" ? "Compacto" : d === "normal" ? "Normal" : "Confortável"}
+              >
+                {d === "compact" ? "S" : d === "normal" ? "M" : "L"}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px] min-w-[1100px]">
+          <div className={cn(
+            "overflow-x-auto",
+            density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
+            density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
+          )}>
+            <table className={cn("w-full min-w-[1100px]", density === "normal" && "text-[13px]")}>
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
                   <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
@@ -929,6 +964,14 @@ export default function Sales() {
                               ) : null}
                               {rec && rec.count > 0 && (
                                 <span className="text-[9.5px] text-slate-400 font-mono">{rec.count}x</span>
+                              )}
+                              {rec && rec.receivedThisMonth > 0 && (
+                                <span
+                                  title="Recebido no mês corrente"
+                                  className="inline-flex items-center px-1.5 py-px rounded bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9.5px] font-bold font-mono tabular-nums"
+                                >
+                                  mês {formatBRL(rec.receivedThisMonth)}
+                                </span>
                               )}
                             </div>
                           </button>
