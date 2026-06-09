@@ -965,6 +965,14 @@ export default function Sales() {
                               {rec && rec.count > 0 && (
                                 <span className="text-[9.5px] text-slate-400 font-mono">{rec.count}x</span>
                               )}
+                              {rec && rec.receivedThisMonth > 0 && (
+                                <span
+                                  title="Recebido no mês corrente"
+                                  className="inline-flex items-center px-1.5 py-px rounded bg-indigo-50 text-indigo-700 border border-indigo-100 text-[9.5px] font-bold font-mono tabular-nums"
+                                >
+                                  mês {formatBRL(rec.receivedThisMonth)}
+                                </span>
+                              )}
                             </div>
                           </button>
                         ) : (
