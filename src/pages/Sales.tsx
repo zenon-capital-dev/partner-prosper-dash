@@ -283,12 +283,17 @@ export default function Sales() {
     ];
   }, [kpis]);
 
-  const invalidateRelated = () => {
-    qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
-    qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
+  const invalidateRelated = async () => {
+    await Promise.all([
+      qc.refetchQueries({ queryKey: ["sales-rich-v2"], type: "active" }),
+      qc.refetchQueries({ queryKey: ["sales-commission-splits"], type: "active" }),
+    ]);
     qc.invalidateQueries({ queryKey: ["commissions"] });
     qc.invalidateQueries({ queryKey: ["payments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    qc.invalidateQueries({ queryKey: ["client-sales"] });
+    qc.invalidateQueries({ queryKey: ["client-payments"] });
   };
 
   const updateStatus = async (s: any, next: Exclude<StatusKey, "todos">) => {
