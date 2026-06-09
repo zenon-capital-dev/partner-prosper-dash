@@ -45,6 +45,8 @@ export default function Sales() {
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
+  const [productFilter, setProductFilter] = useState("todos");
+  const [clientFilter, setClientFilter] = useState("todos");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
@@ -78,6 +80,16 @@ export default function Sales() {
   const { data: partnersList = [] } = useQuery({
     queryKey: ["partners-filter-sales"],
     queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name")).data ?? [],
+  });
+
+  const { data: productsList = [] } = useQuery({
+    queryKey: ["products-filter-sales"],
+    queryFn: async () => (await supabase.from("products").select("id, name").order("name")).data ?? [],
+  });
+
+  const { data: clientsList = [] } = useQuery({
+    queryKey: ["clients-filter-sales"],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name, company").order("full_name")).data ?? [],
   });
 
   const { data: allSplits = [] } = useQuery({
@@ -132,6 +144,8 @@ export default function Sales() {
       if (status !== "todos" && s.status !== status) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
+      if (productFilter !== "todos" && s.product_id !== productFilter) return false;
+      if (clientFilter !== "todos" && s.client_id !== clientFilter) return false;
       if (q) {
         const hay = norm(
           `${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.clients?.email ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`
@@ -142,7 +156,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, partnerFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
+  }, [sales, status, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -363,13 +377,21 @@ export default function Sales() {
     URL.revokeObjectURL(url);
   };
 
-  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setDateFrom(""); setDateTo(""); };
+  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setProductFilter("todos"); setClientFilter("todos"); setDateFrom(""); setDateTo(""); };
   const activeChips: { label: string; clear: () => void }[] = [];
   if (search) activeChips.push({ label: `Busca: ${search}`, clear: () => setSearch("") });
   if (status !== "todos") activeChips.push({ label: `Status: ${status}`, clear: () => setStatus("todos") });
   if (partnerFilter !== "todos") {
     const name = partnerFilter === "sem" ? "Sem parceiro" : (partnersList.find((p: any) => p.id === partnerFilter)?.full_name ?? "Parceiro");
     activeChips.push({ label: `Parceiro: ${name}`, clear: () => setPartnerFilter("todos") });
+  }
+  if (productFilter !== "todos") {
+    const name = productsList.find((p: any) => p.id === productFilter)?.name ?? "Produto";
+    activeChips.push({ label: `Produto: ${name}`, clear: () => setProductFilter("todos") });
+  }
+  if (clientFilter !== "todos") {
+    const c: any = clientsList.find((c: any) => c.id === clientFilter);
+    activeChips.push({ label: `Cliente: ${c?.full_name ?? "Cliente"}`, clear: () => setClientFilter("todos") });
   }
   if (dateFrom) activeChips.push({ label: `De: ${dateFrom}`, clear: () => setDateFrom("") });
   if (dateTo) activeChips.push({ label: `Até: ${dateTo}`, clear: () => setDateTo("") });
@@ -591,6 +613,32 @@ export default function Sales() {
               <SelectItem value="sem">Sem parceiro (Direto)</SelectItem>
               {partnersList.map((p: any) => (
                 <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={productFilter} onValueChange={setProductFilter}>
+            <SelectTrigger className="h-10 w-[170px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue placeholder="Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos produtos</SelectItem>
+              {productsList.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="h-10 w-[190px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue placeholder="Cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos clientes</SelectItem>
+              {clientsList.map((c: any) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.full_name}{c.company ? ` · ${c.company}` : ""}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
