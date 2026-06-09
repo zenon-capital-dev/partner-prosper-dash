@@ -248,7 +248,17 @@ export default function FinanceCenter() {
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
     const variableExpenses = (expenses as any[]).reduce((a, e) => a + Number(e.amount || 0), 0);
-    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses;
+    // Custos internos de vendas (Zenon + Prestador). Considera apenas vendas não canceladas.
+    const salesCostsTotal = (salesCosts as any[])
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
+    const zenonCostTotal = (salesCosts as any[])
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.zenon_cost || 0), 0);
+    const providerCostTotal = (salesCosts as any[])
+      .filter((s) => s.status !== "cancelada")
+      .reduce((a, s) => a + Number(s.provider_cost || 0), 0);
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
     return {
       totalReceived,
       totalReceivable,
@@ -258,9 +268,12 @@ export default function FinanceCenter() {
       indicatorsPaid,
       commissionsOthersPaid,
       variableExpenses,
+      salesCostsTotal,
+      zenonCostTotal,
+      providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissions, expenses, today]);
+  }, [payments, commissions, expenses, salesCosts, today]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
