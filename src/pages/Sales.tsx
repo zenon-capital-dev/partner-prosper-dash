@@ -750,7 +750,7 @@ export default function Sales() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      {Array.from({ length: 9 }).map((__, j) => (
+                      {Array.from({ length: 10 }).map((__, j) => (
                         <td key={j} className="px-5 py-4"><div className="h-3 bg-slate-100 rounded w-3/4" /></td>
                       ))}
                     </tr>
