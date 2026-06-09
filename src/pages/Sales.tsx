@@ -617,6 +617,32 @@ export default function Sales() {
             </SelectContent>
           </Select>
 
+          <Select value={productFilter} onValueChange={setProductFilter}>
+            <SelectTrigger className="h-10 w-[170px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue placeholder="Produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos produtos</SelectItem>
+              {productsList.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="h-10 w-[190px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue placeholder="Cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos clientes</SelectItem>
+              {clientsList.map((c: any) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.full_name}{c.company ? ` · ${c.company}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-md px-2.5 h-10">
             <CalendarRange className="size-3.5 text-slate-400" />
             <input type="date" value={dateFrom} onChange={(e) => {
