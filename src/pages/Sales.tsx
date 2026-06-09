@@ -219,25 +219,44 @@ export default function Sales() {
   };
 
   const kpis = useMemo(() => {
-    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0 };
+    const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0, recebido: 0, aReceber: 0 };
     filtered.forEach((s: any) => {
       const v = Number(s.amount || 0);
       const z = Number(s.zenon_cost || 0);
       const pc = Number(s.provider_cost || 0);
       const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+      const rec = receiptsBySale.get(s.id)?.received ?? 0;
       acc.total += v;
       acc.zenon += z;
       acc.provider += pc;
       acc.custos += z + pc;
       acc.comissao += comm;
       acc.liquido += v - z - pc - comm;
+      if (s.status !== "cancelada") {
+        acc.recebido += Math.min(rec, v);
+        acc.aReceber += Math.max(v - rec, 0);
+      }
       if (s.status === "concluida") acc.concluida += v;
       else if (s.status === "pendente") acc.pendente += v;
       else if (s.status === "em_andamento") acc.em_andamento += v;
       else if (s.status === "cancelada") acc.cancelada += v;
     });
     return acc;
-  }, [filtered, splitsBySale]);
+  }, [filtered, splitsBySale, receiptsBySale]);
+
+  // Recebido somente NO MÊS atual (independente do filtro)
+  const recebidoNoMes = useMemo(() => {
+    const today = nowBR();
+    const monthStart = startOfMonth(today);
+    return allReceipts.reduce((sum: number, r: any) => {
+      if (!r.paid_at) return sum;
+      const d = new Date(r.paid_at);
+      if (d < monthStart || d > endOfDay(today)) return sum;
+      const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
+      const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+      return sum + (val > 0 ? val : 0);
+    }, 0);
+  }, [allReceipts]);
 
   const chartSeries = useMemo(() => {
     const today = nowBR();
