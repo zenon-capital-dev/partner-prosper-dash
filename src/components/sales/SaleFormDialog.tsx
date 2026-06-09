@@ -244,12 +244,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const zenonCost = Number(form.zenon_cost || 0);
   const providerCost = Number(form.provider_cost || 0);
   const totalCosts = zenonCost + providerCost;
-  // Base após custos internos — é sobre ela que TODAS as comissões incidem.
+  // Cascata: Bruto − Custos = base. Indicador/Imposto sai primeiro;
+  // depois Parceiro incide sobre o que sobrou; por fim Colaborador.
   const commissionBase = Math.max(amount - totalCosts, 0);
-  const partnerBase = commissionBase;
-  const partnerCalc = form.partner_id ? (commissionBase * Number(form.commission_percent || 0)) / 100 : 0;
   const referrerCalc = form.referrer_id ? (commissionBase * Number(form.referrer_percent || 0)) / 100 : 0;
-  const collaboratorCalc = form.collaborator_id ? (commissionBase * Number(form.collaborator_percent || 0)) / 100 : 0;
+  const partnerBase = Math.max(commissionBase - referrerCalc, 0);
+  const partnerCalc = form.partner_id ? (partnerBase * Number(form.commission_percent || 0)) / 100 : 0;
+  const collaboratorBase = Math.max(partnerBase - partnerCalc, 0);
+  const collaboratorCalc = form.collaborator_id ? (collaboratorBase * Number(form.collaborator_percent || 0)) / 100 : 0;
   const totalCommissions = partnerCalc + referrerCalc + collaboratorCalc;
   const liquido = amount - totalCosts - totalCommissions;
   const marginPct = amount > 0 ? (liquido / amount) * 100 : 0;
