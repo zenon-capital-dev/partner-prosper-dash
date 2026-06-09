@@ -676,7 +676,9 @@ export default function Sales() {
                   const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
                   const baseAmt = Number(s.amount || 0);
                   const zenonCost = Number(s.zenon_cost || 0);
-                  const liquido = baseAmt - zenonCost - commissionVal;
+                  const providerCost = Number(s.provider_cost || 0);
+                  const totalCustos = zenonCost + providerCost;
+                  const liquido = baseAmt - totalCustos - commissionVal;
                   const liquidoPct = baseAmt > 0 ? (liquido / baseAmt) * 100 : 0;
                   const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
                   const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
