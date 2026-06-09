@@ -954,6 +954,9 @@ export default function Sales() {
                               <DropdownMenuItem onClick={() => editOne(s)}>
                                 <Pencil className="size-3.5 mr-2 text-indigo-600" /> Editar Venda
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setReceivingSale(s)}>
+                                <HandCoins className="size-3.5 mr-2 text-emerald-600" /> Registrar Recebimento
+                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
                                 <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar concluída
