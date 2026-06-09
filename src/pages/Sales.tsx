@@ -297,8 +297,11 @@ export default function Sales() {
     qc.invalidateQueries({ queryKey: ["payments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
     qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
+    qc.invalidateQueries({ queryKey: ["admin-demands"] });
     qc.invalidateQueries({ queryKey: ["client-sales"] });
     qc.invalidateQueries({ queryKey: ["client-payments"] });
+    qc.invalidateQueries({ queryKey: ["client-products"] });
   };
 
   const updateStatus = async (s: any, next: Exclude<StatusKey, "todos">) => {
