@@ -72,8 +72,10 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      // Refaz ao voltar pra aba — garante dados frescos sem o usuário precisar dar F5.
+      refetchOnWindowFocus: true,
+      // 30s: equilíbrio entre não martelar a API e manter dados frescos após mutações em outras telas.
+      staleTime: 30_000,
     },
   },
 });
