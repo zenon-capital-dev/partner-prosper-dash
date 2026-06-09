@@ -101,11 +101,13 @@ export default function DashboardAdmin() {
   const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
     queryKey: ["dash-demands"],
     staleTime: STALE,
+    enabled: false,
     queryFn: async () => (await supabase.from("client_products").select("id, status, client_id, custom_product_name, deadline, sla_due_date, end_date, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
   const { data: sales = [], isLoading: isLoadingSales } = useQuery({
     queryKey: ["dash-sales", rangeKey],
     staleTime: STALE,
+    enabled: false,
     queryFn: async () => {
       let query = supabase.from("sales").select("id, sale_date, amount, client_id").order("sale_date", { ascending: false }).limit(2000);
 
@@ -128,11 +130,13 @@ export default function DashboardAdmin() {
   const { data: leads = [], isLoading: isLoadingLeads } = useQuery({
     queryKey: ["dash-leads"],
     staleTime: STALE,
+    enabled: false,
     queryFn: async () => (await supabase.from("leads").select("id, status, estimated_value, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
   const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({
     queryKey: ["dash-commissions"],
     staleTime: STALE,
+    enabled: false,
     queryFn: async () => {
       const [splits, comms] = await Promise.all([
         supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(2000),
@@ -150,6 +154,7 @@ export default function DashboardAdmin() {
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
     queryKey: ["dash-tasks"],
     staleTime: STALE,
+    enabled: false,
     queryFn: async () => (await supabase.from("tasks").select("id, title, status, status_new, due_date, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
   const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({
