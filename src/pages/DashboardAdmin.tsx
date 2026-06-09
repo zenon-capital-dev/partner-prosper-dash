@@ -68,9 +68,34 @@ export default function DashboardAdmin() {
 
   const STALE = 60_000; // 1 min — evita refetch agressivo ao trocar de aba/foco
 
+  const { data: dashboardStats, isLoading: isLoadingDashboard } = useQuery({
+    queryKey: ["admin-dashboard-snapshot", rangeKey],
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("admin_dashboard_snapshot", { p_range_key: rangeKey });
+      if (error) throw error;
+      const raw = data ?? {};
+      return {
+        ...raw,
+        chartData: raw.chartData ?? [],
+        demandsByStatus: (raw.demandsByStatus ?? []).filter(Boolean),
+        leadsByStage: raw.leadsByStage ?? [],
+        recentSales: raw.recentSales ?? [],
+        topClients: raw.topClients ?? [],
+        todayTasksList: raw.todayTasksList ?? [],
+        todayDemandsList: raw.todayDemandsList ?? [],
+        todayDocsList: raw.todayDocsList ?? [],
+        todayContractsList: raw.todayContractsList ?? [],
+        todayAgendaList: raw.todayAgendaList ?? [],
+        activityLogs: raw.activityLogs ?? [],
+      };
+    },
+  });
+
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ["dash-clients"],
     staleTime: STALE,
+    enabled: false,
     queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
   });
   const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
