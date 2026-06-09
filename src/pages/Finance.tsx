@@ -192,6 +192,9 @@ export default function Finance() {
     const receivable = sales
       .filter((s: any) => s.status === "pendente")
       .reduce((a: number, s: any) => a + Number(s.amount || 0), 0);
+    const salesCosts = sales
+      .filter((s: any) => s.status !== "cancelada")
+      .reduce((a: number, s: any) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
     const expensesTotal = expenses.reduce((a: number, e: any) => a + Number(e.amount || 0), 0);
     const commissionsPaid = splits
       .filter((c: any) => c.status === "pago")
@@ -199,9 +202,9 @@ export default function Finance() {
     const commissionsPending = splits
       .filter((c: any) => c.status === "pendente")
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const profit = revenue - commissionsPaid - expensesTotal;
+    const profit = revenue - commissionsPaid - expensesTotal - salesCosts;
     const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-    return { revenue, receivable, expensesTotal, commissionsPaid, commissionsPending, profit, margin };
+    return { revenue, receivable, expensesTotal, commissionsPaid, commissionsPending, salesCosts, profit, margin };
   }, [sales, expenses, splits]);
 
   // Chart - buckets dependem do range
