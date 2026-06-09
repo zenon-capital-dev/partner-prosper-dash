@@ -123,14 +123,17 @@ export default function Sales() {
   });
 
   const receiptsBySale = useMemo(() => {
-    const m = new Map<string, { received: number; lastPaidAt: string | null; count: number }>();
+    const m = new Map<string, { received: number; receivedThisMonth: number; lastPaidAt: string | null; count: number }>();
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     allReceipts.forEach((r: any) => {
       if (!r.sale_id) return;
       const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
       const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
       if (val <= 0) return;
-      const cur = m.get(r.sale_id) ?? { received: 0, lastPaidAt: null, count: 0 };
+      const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
       cur.received += val;
+      if (r.paid_at && String(r.paid_at).startsWith(ym)) cur.receivedThisMonth += val;
       cur.count += 1;
       if (r.paid_at && (!cur.lastPaidAt || r.paid_at > cur.lastPaidAt)) cur.lastPaidAt = r.paid_at;
       m.set(r.sale_id, cur);
