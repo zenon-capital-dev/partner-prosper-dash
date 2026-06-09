@@ -71,6 +71,8 @@ export default function Sales() {
       }
       return data ?? [];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: partnersList = [] } = useQuery({
