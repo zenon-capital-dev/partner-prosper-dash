@@ -70,6 +70,8 @@ export default function PartnerPanel() {
     },
   });
 
+  const showProductName: boolean = !!(partner as any)?.show_product_name;
+
   const { data: clients = [] } = useQuery({
     queryKey: ["partner-clients", partner?.id],
     enabled: !!partner?.id,
