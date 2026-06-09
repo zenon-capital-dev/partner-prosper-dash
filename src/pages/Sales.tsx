@@ -1002,6 +1002,13 @@ export default function Sales() {
         onCreated={invalidateRelated}
         sale={editingSale}
       />
+
+      <ReceivePaymentDialog
+        open={!!receivingSale}
+        onOpenChange={(v) => { if (!v) setReceivingSale(null); }}
+        sale={receivingSale}
+        onSaved={invalidateRelated}
+      />
     </div>
   );
 }
