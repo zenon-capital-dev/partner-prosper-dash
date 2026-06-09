@@ -410,7 +410,7 @@ export default function DashboardAdmin() {
       openContracts, waitingSignatureContracts, pendingDocs, overdueTasks, todayTasks, openTasks,
       commissionsToPay, commissionsCount,
       receivable7d, receivable7dCount, overdueAmount, overdueCount, receivedTotal,
-      grossRevenue, netRevenue, commissionsPaid, periodCommissions, periodTaxes, taxRate: Number(taxRate) || 0, estimatedRevenue, estimatedRevenueCount,
+      grossRevenue, netRevenue, commissionsPaid, periodCommissions, periodTaxes, periodSalesCosts, taxRate: Number(taxRate) || 0, estimatedRevenue, estimatedRevenueCount,
       chartData, demandsByStatus, leadsByStage,
       recentSales: recentSalesEnriched, topClients, maxTopClient, healthScore,
       salesCount: filteredSales.length,
