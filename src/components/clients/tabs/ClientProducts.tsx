@@ -376,7 +376,75 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         />
       )}
 
-      <AddProductDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} />
+      <SaleFormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        clientId={clientId}
+        onCreated={() => {
+          qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+          qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+        }}
+      />
+
+      {/* Edição rápida — Parceiro */}
+      <Dialog open={!!partnerTarget} onOpenChange={(v) => !v && setPartnerTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Trocar parceiro vendedor</DialogTitle></DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-xs">Parceiro</Label>
+            <Select
+              value={partnerTarget?.current || "__none__"}
+              onValueChange={async (v) => {
+                if (!partnerTarget) return;
+                const newId = v === "__none__" ? null : v;
+                const { error } = await supabase.from("sales").update({ partner_id: newId }).eq("id", partnerTarget.id);
+                if (error) { toast.error(error.message); return; }
+                toast.success("Parceiro atualizado");
+                qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+                qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+                qc.invalidateQueries({ queryKey: ["admin-demands"] });
+                setPartnerTarget(null);
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Direto / sem parceiro</SelectItem>
+                {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edição rápida — Indicador */}
+      <Dialog open={!!referrerTarget} onOpenChange={(v) => !v && setReferrerTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Trocar indicador</DialogTitle></DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-xs">Indicador</Label>
+            <Select
+              value={referrerTarget?.current || "__none__"}
+              onValueChange={async (v) => {
+                if (!referrerTarget) return;
+                const newId = v === "__none__" ? null : v;
+                const { error } = await supabase.from("sales").update({ referrer_id: newId }).eq("id", referrerTarget.id);
+                if (error) { toast.error(error.message); return; }
+                toast.success("Indicador atualizado");
+                qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+                qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+                qc.invalidateQueries({ queryKey: ["admin-demands"] });
+                setReferrerTarget(null);
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem indicação</SelectItem>
+                {referrers.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!deadlineTarget} onOpenChange={(v) => !v && setDeadlineTarget(null)}>
         <DialogContent className="max-w-sm">
