@@ -277,24 +277,45 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                 </div>
 
                 {/* DATA GRID */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-100">
-                  <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
-                  <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
-                  <DataField
-                    label="Prazo Final"
-                    value={cp.deadline ? formatDate(cp.deadline) : "Definir"}
-                    icon={Clock}
-                    tone={isOverdue ? "danger" : cp.deadline ? "default" : "muted"}
-                    onClick={() => openDeadline(cp)}
-                  />
-                  <DataField
-                    label="Prestador"
-                    value={cp.service_providers?.name || "Não delegado"}
-                    icon={User}
-                    tone={cp.service_providers ? "primary" : "muted"}
-                    onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
-                  />
-                </div>
+                {(() => {
+                  const sale = (linksBySale as any)[cp.product_id] || null;
+                  const partnerName = sale?.partner?.full_name || null;
+                  const referrerName = sale?.referrer?.full_name || null;
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-slate-100">
+                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
+                      <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
+                      <DataField
+                        label="Prazo Final"
+                        value={cp.deadline ? formatDate(cp.deadline) : "Definir"}
+                        icon={Clock}
+                        tone={isOverdue ? "danger" : cp.deadline ? "default" : "muted"}
+                        onClick={() => openDeadline(cp)}
+                      />
+                      <DataField
+                        label="Prestador"
+                        value={cp.service_providers?.name || "Não delegado"}
+                        icon={User}
+                        tone={cp.service_providers ? "primary" : "muted"}
+                        onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
+                      />
+                      <DataField
+                        label="Parceiro"
+                        value={partnerName || "Direto"}
+                        icon={Handshake}
+                        tone={partnerName ? "primary" : "muted"}
+                        onClick={sale ? () => setPartnerTarget({ id: sale.id, current: sale.partner_id }) : undefined}
+                      />
+                      <DataField
+                        label="Indicador"
+                        value={referrerName || "Sem indicação"}
+                        icon={UserPlus}
+                        tone={referrerName ? "primary" : "muted"}
+                        onClick={sale ? () => setReferrerTarget({ id: sale.id, current: sale.referrer_id }) : undefined}
+                      />
+                    </div>
+                  );
+                })()}
 
                 {/* CHECKLIST + REPORT */}
                 <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
