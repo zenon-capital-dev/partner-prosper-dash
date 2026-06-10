@@ -874,7 +874,7 @@ export default function Sales() {
                   const fullyReceived = baseAmt > 0 && remaining < 0.01;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
-                      <Td><StatusPill status={s.status} /></Td>
+                      {visibleCols.status && <Td><StatusPill status={s.status} /></Td>}
                       <Td>
                         <div className="min-w-0">
                           <button
