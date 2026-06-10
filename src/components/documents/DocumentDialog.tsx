@@ -12,6 +12,7 @@ import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCir
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 
 interface Props {
   open: boolean;
@@ -147,10 +148,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     const file = fileRef.current?.files?.[0];
     if (file) {
+      try { assertUploadFile(file); } catch (e: any) { toast.error(uploadErrorMessage(e)); setSubmitting(false); return; }
       const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
-      const path = `${folder}/${Date.now()}-${file.name}`;
+      const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-      if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
+      if (upErr) { toast.error(uploadErrorMessage(upErr)); setSubmitting(false); return; }
 
       if (editDoc?.id && editDoc.file_path) {
         const { count } = await supabase
