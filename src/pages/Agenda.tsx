@@ -268,14 +268,22 @@ export default function Agenda() {
 
   const rescheduleMut = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
-      const { error } = await supabase.from("tasks").update({ due_date: date.toISOString() }).eq("id", id);
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ due_date: date.toISOString() })
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Você não tem permissão para reagendar este item.");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agenda"] });
       toast.success("Reagendado");
     },
+    onError: (e: any) => toast.error(e?.message || "Erro ao reagendar"),
   });
+
 
   const setStatusMut = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: Status }) => {
