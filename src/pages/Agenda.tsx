@@ -694,10 +694,16 @@ function ItemRow({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(item)}><Edit3 className="size-3.5 mr-2" />Editar</DropdownMenuItem>
                 {onRequestReschedule && (
-                  <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setTimeout(() => onRequestReschedule(item), 50);
+                    }}
+                  >
                     <CalendarDays className="size-3.5 mr-2" />Reagendar
                   </DropdownMenuItem>
                 )}
+
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-rose-600">
