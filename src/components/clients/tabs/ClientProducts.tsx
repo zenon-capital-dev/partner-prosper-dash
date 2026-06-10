@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import {
   Package, User, UserCog, ClipboardCheck,
-  Plus, Calendar, DollarSign, Activity,
+  Plus, Calendar, DollarSign, Activity, Handshake, UserPlus,
   MoreVertical, ExternalLink, Trash2, Clock, CheckCircle2,
   PauseCircle, PlayCircle, XCircle, FileText, MessageSquare,
 } from "lucide-react";
@@ -12,7 +12,10 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
-import { AddProductDialog } from "@/components/clients/AddProductDialog";
+import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { ClientProductSteps } from "./ClientProductSteps";
 import { confirmAction } from "@/lib/confirm";
 import {
