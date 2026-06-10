@@ -124,6 +124,10 @@ export default function Agenda() {
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<AgendaItem | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [rescheduling, setRescheduling] = useState<AgendaItem | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
+  const [rescheduleTime, setRescheduleTime] = useState<string>("09:00");
+
 
   const presetClientId = searchParams.get("client");
 
