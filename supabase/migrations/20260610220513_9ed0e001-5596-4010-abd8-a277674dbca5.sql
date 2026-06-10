@@ -1,0 +1,2 @@
+ALTER TABLE public.payments DROP CONSTRAINT IF EXISTS payments_sale_id_fkey;
+ALTER TABLE public.payments ADD CONSTRAINT payments_sale_id_fkey FOREIGN KEY (sale_id) REFERENCES public.sales(id) ON DELETE CASCADE;
