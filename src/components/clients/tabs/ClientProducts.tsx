@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import {
   Package, User, UserCog, ClipboardCheck,
-  Plus, Calendar, DollarSign, Activity,
+  Plus, Calendar, DollarSign, Activity, Handshake, UserPlus,
   MoreVertical, ExternalLink, Trash2, Clock, CheckCircle2,
   PauseCircle, PlayCircle, XCircle, FileText, MessageSquare,
 } from "lucide-react";
@@ -12,7 +12,10 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
-import { AddProductDialog } from "@/components/clients/AddProductDialog";
+import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { ClientProductSteps } from "./ClientProductSteps";
 import { confirmAction } from "@/lib/confirm";
 import {
@@ -51,6 +54,32 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   const [addOpen, setAddOpen] = useState(false);
   const [deadlineTarget, setDeadlineTarget] = useState<{ id: string; current: string | null } | null>(null);
   const [deadlineValue, setDeadlineValue] = useState("");
+  const [partnerTarget, setPartnerTarget] = useState<{ id: string; current: string | null } | null>(null);
+  const [referrerTarget, setReferrerTarget] = useState<{ id: string; current: string | null } | null>(null);
+
+  // Lista de parceiros / indicadores ativos para edição rápida
+  const { data: partners = [] } = useQuery({
+    queryKey: ["client-products-partners-select"],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
+  const { data: referrers = [] } = useQuery({
+    queryKey: ["client-products-referrers-select"],
+    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
+
+  // Vínculos parceiro / indicador via tabela sales (1:1 com client_products via product+client)
+  const { data: linksBySale = {} } = useQuery({
+    queryKey: ["client-sales-links", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sales")
+        .select("id, product_id, partner_id, referrer_id, partner:partners(id, full_name), referrer:referrers(id, full_name)")
+        .eq("client_id", clientId);
+      const map: Record<string, any> = {};
+      (data ?? []).forEach((s: any) => { map[s.product_id] = s; });
+      return map;
+    },
+  });
 
   const { data: clientProducts = [], isLoading } = useQuery({
     queryKey: ["client-products", clientId],
@@ -248,24 +277,45 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                 </div>
 
                 {/* DATA GRID */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-100">
-                  <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
-                  <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
-                  <DataField
-                    label="Prazo Final"
-                    value={cp.deadline ? formatDate(cp.deadline) : "Definir"}
-                    icon={Clock}
-                    tone={isOverdue ? "danger" : cp.deadline ? "default" : "muted"}
-                    onClick={() => openDeadline(cp)}
-                  />
-                  <DataField
-                    label="Prestador"
-                    value={cp.service_providers?.name || "Não delegado"}
-                    icon={User}
-                    tone={cp.service_providers ? "primary" : "muted"}
-                    onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
-                  />
-                </div>
+                {(() => {
+                  const sale = (linksBySale as any)[cp.product_id] || null;
+                  const partnerName = sale?.partner?.full_name || null;
+                  const referrerName = sale?.referrer?.full_name || null;
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-slate-100">
+                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
+                      <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
+                      <DataField
+                        label="Prazo Final"
+                        value={cp.deadline ? formatDate(cp.deadline) : "Definir"}
+                        icon={Clock}
+                        tone={isOverdue ? "danger" : cp.deadline ? "default" : "muted"}
+                        onClick={() => openDeadline(cp)}
+                      />
+                      <DataField
+                        label="Prestador"
+                        value={cp.service_providers?.name || "Não delegado"}
+                        icon={User}
+                        tone={cp.service_providers ? "primary" : "muted"}
+                        onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
+                      />
+                      <DataField
+                        label="Parceiro"
+                        value={partnerName || "Direto"}
+                        icon={Handshake}
+                        tone={partnerName ? "primary" : "muted"}
+                        onClick={sale ? () => setPartnerTarget({ id: sale.id, current: sale.partner_id }) : undefined}
+                      />
+                      <DataField
+                        label="Indicador"
+                        value={referrerName || "Sem indicação"}
+                        icon={UserPlus}
+                        tone={referrerName ? "primary" : "muted"}
+                        onClick={sale ? () => setReferrerTarget({ id: sale.id, current: sale.referrer_id }) : undefined}
+                      />
+                    </div>
+                  );
+                })()}
 
                 {/* CHECKLIST + REPORT */}
                 <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
@@ -326,7 +376,75 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         />
       )}
 
-      <AddProductDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} />
+      <SaleFormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        clientId={clientId}
+        onCreated={() => {
+          qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+          qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+        }}
+      />
+
+      {/* Edição rápida — Parceiro */}
+      <Dialog open={!!partnerTarget} onOpenChange={(v) => !v && setPartnerTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Trocar parceiro vendedor</DialogTitle></DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-xs">Parceiro</Label>
+            <Select
+              value={partnerTarget?.current || "__none__"}
+              onValueChange={async (v) => {
+                if (!partnerTarget) return;
+                const newId = v === "__none__" ? null : v;
+                const { error } = await supabase.from("sales").update({ partner_id: newId }).eq("id", partnerTarget.id);
+                if (error) { toast.error(error.message); return; }
+                toast.success("Parceiro atualizado");
+                qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+                qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+                qc.invalidateQueries({ queryKey: ["admin-demands"] });
+                setPartnerTarget(null);
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Direto / sem parceiro</SelectItem>
+                {partners.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edição rápida — Indicador */}
+      <Dialog open={!!referrerTarget} onOpenChange={(v) => !v && setReferrerTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Trocar indicador</DialogTitle></DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-xs">Indicador</Label>
+            <Select
+              value={referrerTarget?.current || "__none__"}
+              onValueChange={async (v) => {
+                if (!referrerTarget) return;
+                const newId = v === "__none__" ? null : v;
+                const { error } = await supabase.from("sales").update({ referrer_id: newId }).eq("id", referrerTarget.id);
+                if (error) { toast.error(error.message); return; }
+                toast.success("Indicador atualizado");
+                qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+                qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+                qc.invalidateQueries({ queryKey: ["admin-demands"] });
+                setReferrerTarget(null);
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem indicação</SelectItem>
+                {referrers.map((r: any) => <SelectItem key={r.id} value={r.id}>{r.full_name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!deadlineTarget} onOpenChange={(v) => !v && setDeadlineTarget(null)}>
         <DialogContent className="max-w-sm">
