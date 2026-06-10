@@ -480,7 +480,7 @@ function EmptyHint({ text }: { text: string }) {
 }
 
 function ItemList({
-  items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
+  items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus, onRequestReschedule,
 }: {
   items: AgendaItem[];
   onComplete: (id: string) => void;
@@ -489,18 +489,19 @@ function ItemList({
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
   onSetStatus?: (id: string, s: Status) => void;
+  onRequestReschedule?: (item: AgendaItem) => void;
 }) {
   return (
     <div className="space-y-2">
       {items.map((it) => (
-        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} />
+        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} onRequestReschedule={onRequestReschedule} />
       ))}
     </div>
   );
 }
 
 function ItemRow({
-  item, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
+  item, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus, onRequestReschedule,
 }: {
   item: AgendaItem;
   onComplete: (id: string) => void;
@@ -509,6 +510,7 @@ function ItemRow({
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
   onSetStatus?: (id: string, s: Status) => void;
+  onRequestReschedule?: (item: AgendaItem) => void;
 }) {
   const meta = KIND_META[item.kind] || KIND_META.tarefa;
   const Icon = meta.icon;
