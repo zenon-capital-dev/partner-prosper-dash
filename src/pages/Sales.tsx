@@ -100,7 +100,7 @@ export default function Sales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("*, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+        .select("id, client_id, product_id, partner_id, referrer_id, service_provider_id, amount, tax_amount, net_amount, commission_amount, commission_percent, collaborator_amount, collaborator_percent, provider_amount, provider_percent, provider_cost_amount, status, sale_date, paid_at, notes, created_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
         .order("sale_date", { ascending: false });
       if (error) {
         console.error("[Sales] query error:", error);
@@ -109,8 +109,7 @@ export default function Sales() {
       }
       return data ?? [];
     },
-    staleTime: 0,
-    refetchOnMount: "always",
+    staleTime: 90_000,
   });
 
   const { data: partnersList = [] } = useQuery({
@@ -133,7 +132,8 @@ export default function Sales() {
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
-        .select("sale_id, amount, percent, beneficiary_type, status");
+        .select("sale_id, amount, percent, beneficiary_type, status")
+        .limit(2000);
       return (data as any[]) ?? [];
     },
   });
@@ -144,7 +144,8 @@ export default function Sales() {
       const { data } = await supabase
         .from("payments")
         .select("sale_id, amount, amount_paid, paid_at, status")
-        .not("sale_id", "is", null);
+        .not("sale_id", "is", null)
+        .limit(2000);
       return (data as any[]) ?? [];
     },
   });
@@ -391,10 +392,8 @@ export default function Sales() {
   }, [kpis]);
 
   const invalidateRelated = async () => {
-    await Promise.all([
-      qc.refetchQueries({ queryKey: ["sales-rich-v2"], type: "active" }),
-      qc.refetchQueries({ queryKey: ["sales-commission-splits"], type: "active" }),
-    ]);
+    qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
+    qc.invalidateQueries({ queryKey: ["sales-commission-splits"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });
     qc.invalidateQueries({ queryKey: ["payments"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });

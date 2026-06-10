@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Upload, Calendar as CalendarIcon, Package, DollarSign } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 
 interface Props {
   open: boolean;
@@ -117,10 +118,11 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     const file = fileRef.current?.files?.[0];
     if (file) {
+      try { assertUploadFile(file); } catch (e: any) { toast.error(uploadErrorMessage(e)); setSubmitting(false); return; }
       const targetId = selectedClientId && selectedClientId !== "none" ? selectedClientId : (form.partner_id && form.partner_id !== "none" ? form.partner_id : (form.provider_id && form.provider_id !== "none" ? form.provider_id : "general"));
-      const path = `${targetId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const path = `${targetId}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("contracts").upload(path, file);
-      if (upErr) { toast.error(upErr.message); setSubmitting(false); return; }
+      if (upErr) { toast.error(uploadErrorMessage(upErr)); setSubmitting(false); return; }
       file_path = path;
     }
 

@@ -11,6 +11,7 @@ import { MessageSquare, PackageCheck, History, Send, Upload, Download, Loader2 }
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 
 interface Props {
   clientProductId: string;
@@ -80,11 +81,12 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
 
   async function uploadDelivery(file: File) {
     setUploading(true);
-    const path = `${clientProductId}/${Date.now()}_${file.name.replace(/[^a-z0-9.\-_]/gi, "_")}`;
+    try { assertUploadFile(file); } catch (e: any) { setUploading(false); return toast.error(uploadErrorMessage(e)); }
+    const path = `${clientProductId}/${Date.now()}_${sanitizeStorageFileName(file.name)}`;
     const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
     if (upErr) {
       setUploading(false);
-      return toast.error("Falha no upload", { description: upErr.message });
+      return toast.error("Falha no upload", { description: uploadErrorMessage(upErr) });
     }
     const { error } = await supabase.from("demand_deliveries").insert({
       client_product_id: clientProductId,

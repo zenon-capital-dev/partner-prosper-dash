@@ -25,7 +25,7 @@ export function NotificationBell() {
       return data ?? [];
     },
     enabled: !!user,
-    refetchInterval: 30000,
+    staleTime: 60_000,
   });
 
   useEffect(() => {

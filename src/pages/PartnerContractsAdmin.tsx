@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { FileSignature, Upload, Download, FileCheck2, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 
 const STATUS_TONE: Record<string, string> = {
   rascunho: "bg-slate-100 text-slate-700 border-slate-200",
@@ -48,7 +49,8 @@ export default function PartnerContractsAdmin() {
 
   const uploadSigned = async (row: any, kind: "contract" | "nda", file: File) => {
     try {
-      const path = `${row.partner_id}/${kind}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      assertUploadFile(file);
+      const path = `${row.partner_id}/${kind}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("partner-contracts").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const patch: any = kind === "contract"
@@ -59,7 +61,7 @@ export default function PartnerContractsAdmin() {
       toast.success("Arquivo enviado");
       qc.invalidateQueries({ queryKey: ["admin-partner-contracts"] });
     } catch (e: any) {
-      toast.error(e.message || "Erro no upload");
+      toast.error(uploadErrorMessage(e) || "Erro no upload");
     }
   };
 

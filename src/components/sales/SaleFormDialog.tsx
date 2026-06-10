@@ -220,14 +220,14 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       // Invalida todos os caches que dependem de vendas/demandas para refletir imediatamente em qualquer tela.
       const targetClientId = form.client_id || clientId;
       await Promise.all([
-        qc.refetchQueries({ queryKey: ["sales-rich-v2"] }),
-        qc.refetchQueries({ queryKey: ["sales-commission-splits"] }),
+        qc.invalidateQueries({ queryKey: ["sales-rich-v2"] }),
+        qc.invalidateQueries({ queryKey: ["sales-commission-splits"] }),
         // Sempre invalida client-products globalmente (prefix match cobre todos clientes), além de refazer o do cliente alvo.
         qc.invalidateQueries({ queryKey: ["client-products"] }),
         qc.invalidateQueries({ queryKey: ["client-sales"] }),
         qc.invalidateQueries({ queryKey: ["client-payments"] }),
-        targetClientId ? qc.refetchQueries({ queryKey: ["client-products", targetClientId] }) : Promise.resolve(),
-        targetClientId ? qc.refetchQueries({ queryKey: ["client-sales", targetClientId] }) : Promise.resolve(),
+        targetClientId ? qc.invalidateQueries({ queryKey: ["client-products", targetClientId] }) : Promise.resolve(),
+        targetClientId ? qc.invalidateQueries({ queryKey: ["client-sales", targetClientId] }) : Promise.resolve(),
         targetClientId ? qc.refetchQueries({ queryKey: ["client-payments", targetClientId] }) : Promise.resolve(),
       ]);
       qc.invalidateQueries({ queryKey: ["admin-demands"] });

@@ -79,7 +79,9 @@ export default function Clients() {
       const { data, error } = await supabase
         .from("clients")
         .select(`
-          *,
+          id, full_name, company, email, phone, document, status, source, birth_date,
+          address_street, address_number, address_complement, address_neighborhood, address_zip_code,
+          city, state, notes, tags, partner_id, referrer_id, collaborator_id, service_provider_id, created_at,
           partners(id, full_name),
           client_products(id, value, status, product_id, products(id, name)),
           payments(id, amount, amount_paid, status, due_date)
@@ -88,6 +90,7 @@ export default function Clients() {
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: 2 * 60_000,
   });
 
   const { data: products = [] } = useQuery({

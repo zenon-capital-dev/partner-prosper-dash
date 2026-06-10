@@ -7,6 +7,7 @@ import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, 
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { assertUploadFile, uploadErrorMessage } from "@/lib/uploads";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -106,6 +107,7 @@ export function ClientDocumentsTab({
   async function handleUpload(req: DocRequest, file: File) {
     try {
       setUploadingId(req.id);
+      assertUploadFile(file);
       const ext = file.name.split(".").pop() ?? "bin";
       const path = `${clientId}/${req.id}/${Date.now()}.${ext}`;
 
@@ -121,7 +123,7 @@ export function ClientDocumentsTab({
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
     } catch (e: any) {
-      toast.error(e.message ?? "Falha ao enviar documento");
+      toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
     } finally {
       setUploadingId(null);
       setConfirmReq(null);

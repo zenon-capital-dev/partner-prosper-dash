@@ -64,23 +64,18 @@ export default function ClientPanel() {
   const { data: demandas = [] } = useQuery({
     queryKey: ["client-demandas", clientId],
     enabled: !!clientId,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 45_000,
     queryFn: async () => {
       const { data } = await supabase.from("client_products")
         .select("id, status, value, deadline, sla_due_date, created_at, custom_product_name, products(name, description)")
         .eq("client_id", clientId!).order("created_at", { ascending: false });
       return data ?? [];
     },
+    staleTime: 2 * 60_000,
   });
 
   const { data: docs = [] } = useQuery({
     queryKey: ["client-docs", clientId],
     enabled: !!clientId,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 30_000,
     queryFn: async () => {
       // Read from both legacy (client_document_requests) and the main documents table
       // used by the admin "Solicitar Documento" flow.
@@ -110,21 +105,20 @@ export default function ClientPanel() {
       normalized.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
       return normalized;
     },
+    staleTime: 2 * 60_000,
   });
 
 
   const { data: payments = [] } = useQuery({
     queryKey: ["client-payments", clientId],
     enabled: !!clientId,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("payments")
         .select("id, amount, status, due_date, paid_at, description, created_at")
         .eq("client_id", clientId!).order("due_date", { ascending: false });
       return data ?? [];
     },
+    staleTime: 2 * 60_000,
   });
 
 

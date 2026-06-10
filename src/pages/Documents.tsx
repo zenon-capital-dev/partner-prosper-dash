@@ -169,7 +169,8 @@ export default function Documents() {
               service_providers:service_provider_id(id, name)
             )
           `)
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false })
+          .limit(500),
         supabase
           .from("document_requests")
           .select(`
@@ -184,7 +185,8 @@ export default function Documents() {
               service_providers:service_provider_id(id, name)
             )
           `)
-          .order("requested_at", { ascending: false }),
+          .order("requested_at", { ascending: false })
+          .limit(500),
         supabase
           .from("demand_deliveries")
           .select(`
@@ -199,7 +201,8 @@ export default function Documents() {
               service_providers:service_provider_id(id, name)
             )
           `)
-          .order("created_at", { ascending: false }),
+          .order("created_at", { ascending: false })
+          .limit(500),
       ]);
       if (docsRes.error) throw docsRes.error;
 
@@ -279,6 +282,7 @@ export default function Documents() {
       merged.sort((a: any, b: any) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
       return merged;
     },
+    staleTime: 2 * 60_000,
   });
 
   const userIds = useMemo(() => {

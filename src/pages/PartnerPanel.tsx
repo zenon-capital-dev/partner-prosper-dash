@@ -75,21 +75,16 @@ export default function PartnerPanel() {
   const { data: clients = [] } = useQuery({
     queryKey: ["partner-clients", partner?.id],
     enabled: !!partner?.id,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("clients").select("id, full_name, email, phone, status, created_at").eq("partner_id", partner!.id).order("created_at", { ascending: false });
       return data ?? [];
     },
+    staleTime: 2 * 60_000,
   });
 
   const { data: commissions = [] } = useQuery({
     queryKey: ["partner-commissions", partner?.id],
     enabled: !!partner?.id,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 60_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
@@ -103,6 +98,7 @@ export default function PartnerPanel() {
         products: c.sales?.products,
       }));
     },
+    staleTime: 2 * 60_000,
   });
 
   const kpis = useMemo(() => {
@@ -228,7 +224,6 @@ export default function PartnerPanel() {
   const { data: contract } = useQuery({
     queryKey: ["partner-contract", partner?.id],
     enabled: !!partner?.id,
-    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from("partner_contracts").select("*").eq("partner_id", partner!.id).maybeSingle();
