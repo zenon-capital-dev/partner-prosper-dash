@@ -268,14 +268,22 @@ export default function Agenda() {
 
   const rescheduleMut = useMutation({
     mutationFn: async ({ id, date }: { id: string; date: Date }) => {
-      const { error } = await supabase.from("tasks").update({ due_date: date.toISOString() }).eq("id", id);
+      const { data, error } = await supabase
+        .from("tasks")
+        .update({ due_date: date.toISOString() })
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Você não tem permissão para reagendar este item.");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agenda"] });
       toast.success("Reagendado");
     },
+    onError: (e: any) => toast.error(e?.message || "Erro ao reagendar"),
   });
+
 
   const setStatusMut = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: Status }) => {
@@ -604,10 +612,16 @@ function ItemRow({
             <AlertTriangle className="size-3.5 mr-2 text-rose-600" /> Bloqueada
           </DropdownMenuItem>
           {onRequestReschedule && (
-            <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                setTimeout(() => onRequestReschedule(item), 50);
+              }}
+            >
               <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
             </DropdownMenuItem>
           )}
+
 
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onEdit(item)}>
@@ -680,10 +694,16 @@ function ItemRow({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(item)}><Edit3 className="size-3.5 mr-2" />Editar</DropdownMenuItem>
                 {onRequestReschedule && (
-                  <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setTimeout(() => onRequestReschedule(item), 50);
+                    }}
+                  >
                     <CalendarDays className="size-3.5 mr-2" />Reagendar
                   </DropdownMenuItem>
                 )}
+
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-rose-600">
