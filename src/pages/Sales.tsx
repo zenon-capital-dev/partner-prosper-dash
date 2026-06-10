@@ -911,7 +911,9 @@ export default function Sales() {
                       {visibleCols.date && <Td className="text-slate-600 text-xs font-mono">{s.sale_date ? formatBRDate(parseISO(s.sale_date)) : "—"}</Td>}
                       {visibleCols.amount && <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>}
 
+                      {visibleCols.commission && (
                       <Td align="right">
+
                         {commissionVal > 0 ? (
                           <div className="inline-flex flex-col items-end gap-0.5">
                             <span className="font-bold font-mono text-[12.5px] text-emerald-700 tabular-nums leading-none">
