@@ -633,18 +633,12 @@ function ItemRow({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(item)}><Edit3 className="size-3.5 mr-2" />Editar</DropdownMenuItem>
-                {onReschedule && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <CalendarDays className="size-3.5 mr-2" />Reagendar
-                      </DropdownMenuItem>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar mode="single" onSelect={(d) => d && onReschedule(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                {onRequestReschedule && (
+                  <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+                    <CalendarDays className="size-3.5 mr-2" />Reagendar
+                  </DropdownMenuItem>
                 )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-rose-600">
                   <Trash2 className="size-3.5 mr-2" />Excluir
