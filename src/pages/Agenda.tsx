@@ -827,7 +827,7 @@ function Kanban({ items, onUpdate, onItemClick }: { items: AgendaItem[]; onUpdat
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       {cols.map((c) => (
         <div key={c.key} className="rounded-xl border border-slate-200 bg-slate-50/40 p-2">
           <div className="flex items-center justify-between px-2 py-1.5 mb-2">
