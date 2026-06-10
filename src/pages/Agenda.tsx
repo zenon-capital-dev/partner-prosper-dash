@@ -747,7 +747,45 @@ function MonthCalendar({
               !inMonth && "bg-slate-50/40 text-slate-300",
               isToday(d) && "bg-orange-50/50",
             )}>
-              <div className={cn("font-bold mb-1", isToday(d) && "text-orange-700")}>{format(d, "d")}</div>
+              {dayItems.length > 0 ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        "font-bold mb-1 hover:bg-indigo-50 hover:text-indigo-700 rounded px-1 -mx-0.5 transition-colors cursor-pointer",
+                        isToday(d) && "text-orange-700"
+                      )}
+                      title={`Ver ${dayItems.length} ${dayItems.length === 1 ? "item" : "itens"} do dia`}
+                    >
+                      {format(d, "d")}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-3" align="start">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                      {format(d, "dd 'de' MMMM", { locale: ptBR })} · {dayItems.length} {dayItems.length === 1 ? "item" : "itens"}
+                    </p>
+                    <div className="space-y-1 max-h-80 overflow-y-auto">
+                      {dayItems.map((it) => {
+                        const m = KIND_META[it.kind] || KIND_META.tarefa;
+                        return (
+                          <button
+                            key={it.id}
+                            onClick={() => onItemClick(it)}
+                            className={cn("w-full text-left rounded px-2 py-1.5 text-[11px] font-semibold border hover:shadow-sm transition-all", m.color)}
+                          >
+                            <div className="font-mono text-[10px] opacity-70">{format(parseISO(it.due_date!), "HH:mm")}</div>
+                            <div className="truncate">{it.title}</div>
+                            {it.client && <div className="text-[9.5px] opacity-60 truncate">{it.client.full_name}</div>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <div className={cn("font-bold mb-1", isToday(d) && "text-orange-700")}>{format(d, "d")}</div>
+              )}
               <div className="space-y-1">
                 {dayItems.slice(0, 3).map((it) => {
                   const meta = KIND_META[it.kind] || KIND_META.tarefa;
@@ -798,6 +836,7 @@ function MonthCalendar({
               </div>
             </div>
           );
+
         })}
       </div>
     </div>
