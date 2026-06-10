@@ -940,7 +940,10 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400">—</span>
                         )}
                       </Td>
+                      )}
+                      {visibleCols.liquido && (
                       <Td align="right">
+
                         {baseAmt > 0 ? (
                           <div className="inline-flex flex-col items-end gap-0.5">
                             <span className={cn(
