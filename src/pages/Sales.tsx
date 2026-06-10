@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useLayoutEffect } from "react";
 import { subDays, startOfMonth, startOfToday, endOfDay, parseISO } from "date-fns";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -850,13 +850,9 @@ export default function Sales() {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
-          <div className={cn(
-            "overflow-x-auto",
-            density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
-            density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
-          )}>
+        <SalesTableScroll density={density}>
             <table className={cn("w-full min-w-[700px]", density === "normal" && "text-[13px]")}>
+
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
                   {visibleCols.status && <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
@@ -1141,8 +1137,8 @@ export default function Sales() {
                 })}
               </tbody>
             </table>
-          </div>
-        </div>
+        </SalesTableScroll>
+
       </div>
 
       <SaleFormDialog 
@@ -1223,5 +1219,51 @@ function Td({ children, align = "left", className }: { children: React.ReactNode
     )}>
       {children}
     </td>
+  );
+}
+
+function SalesTableScroll({ density, children }: { density: "compact" | "normal" | "spacious"; children: React.ReactNode }) {
+  const topRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = bottomRef.current;
+    if (!el) return;
+    const update = () => {
+      const inner = el.firstElementChild as HTMLElement | null;
+      setWidth(inner ? inner.scrollWidth : el.scrollWidth);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild as Element);
+    return () => ro.disconnect();
+  }, [children]);
+
+  const syncFromTop = () => {
+    if (topRef.current && bottomRef.current) bottomRef.current.scrollLeft = topRef.current.scrollLeft;
+  };
+  const syncFromBottom = () => {
+    if (topRef.current && bottomRef.current) topRef.current.scrollLeft = bottomRef.current.scrollLeft;
+  };
+
+  return (
+    <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+      <div ref={topRef} onScroll={syncFromTop} className="overflow-x-auto overflow-y-hidden border-b border-slate-200/70 bg-slate-50/40">
+        <div style={{ width, height: 1 }} />
+      </div>
+      <div
+        ref={bottomRef}
+        onScroll={syncFromBottom}
+        className={cn(
+          "overflow-x-auto",
+          density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
+          density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
+        )}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
