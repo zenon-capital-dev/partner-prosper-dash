@@ -260,11 +260,13 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
             product_id: p.product_id,
             value: p.value ? Number(p.value) : null,
             custom_value: p.value ? Number(p.value) : null,
+            start_date: p.start_date || null,
             deadline: p.deadline || null,
             status: "aguardando_inicio",
-            responsible_employee_id: form.collaborator_id || null,
-            service_provider_id: form.service_provider_id || null,
+            responsible_employee_id: p.collaborator_id || form.collaborator_id || null,
+            service_provider_id: p.provider_id || form.service_provider_id || null,
           }));
+
           const { error: prodErr } = await supabase.from("client_products").insert(rows);
           if (prodErr) {
             console.warn("Produtos do cliente:", prodErr);
