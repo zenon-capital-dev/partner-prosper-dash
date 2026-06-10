@@ -447,7 +447,12 @@ export default function Sales() {
 
   const removeOne = async (s: any) => {
     if (!canManage) return;
-    const hasReceipts = (receiptsBySale.get(s.id)?.count ?? 0) > 0;
+    const { count: linkedPaymentsCount, error: linkedPaymentsError } = await supabase
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("sale_id", s.id);
+    if (linkedPaymentsError) { toast.error(linkedPaymentsError.message); return; }
+    const hasReceipts = (linkedPaymentsCount ?? receiptsBySale.get(s.id)?.count ?? 0) > 0;
     if (hasReceipts) {
       if (await confirmAction("Esta venda tem recebimentos vinculados. Para preservar o histórico, ela será cancelada em vez de excluída. Continuar?")) {
         await cancelSale(s, { skipConfirm: true });
