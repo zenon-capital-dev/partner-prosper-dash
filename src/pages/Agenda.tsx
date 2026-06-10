@@ -612,10 +612,16 @@ function ItemRow({
             <AlertTriangle className="size-3.5 mr-2 text-rose-600" /> Bloqueada
           </DropdownMenuItem>
           {onRequestReschedule && (
-            <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                setTimeout(() => onRequestReschedule(item), 50);
+              }}
+            >
               <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
             </DropdownMenuItem>
           )}
+
 
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onEdit(item)}>
