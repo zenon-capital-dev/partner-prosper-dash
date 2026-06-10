@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, UserRound, Loader2 } from "lucide-react";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
-import { useQueryClient } from "@tanstack/react-query";
+
 
 
 interface Props {
