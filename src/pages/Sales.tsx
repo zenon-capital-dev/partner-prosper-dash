@@ -100,7 +100,7 @@ export default function Sales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("id, client_id, product_id, partner_id, referrer_id, service_provider_id, amount, tax_amount, net_amount, commission_amount, commission_percent, collaborator_amount, collaborator_percent, provider_amount, provider_percent, provider_cost_amount, status, sale_date, paid_at, notes, created_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
         .order("sale_date", { ascending: false });
       if (error) {
         console.error("[Sales] query error:", error);
@@ -408,13 +408,35 @@ export default function Sales() {
   const updateStatus = async (s: any, next: Exclude<StatusKey, "todos">) => {
     if (!canManage) return;
     if (s.status === next) { toast.info("Status já está aplicado"); return; }
-    if (s.status === "concluida" && next === "cancelada") {
-      if (!(await confirmAction("Cancelar uma venda já concluída pode afetar comissões. Continuar?"))) return;
+    if (next === "cancelada") {
+      await cancelSale(s);
+      return;
     }
-    if (next === "cancelada" && !(await confirmAction("Marcar venda como cancelada?"))) return;
     const { error } = await supabase.from("sales").update({ status: next }).eq("id", s.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status atualizado");
+    invalidateRelated();
+  };
+
+  const cancelSale = async (s: any, opts?: { skipConfirm?: boolean }) => {
+    if (!canManage) return;
+    const message = s.status === "concluida"
+      ? "Cancelar uma venda já concluída pode afetar comissões e recebimentos. Continuar?"
+      : "Marcar venda como cancelada?";
+    if (!opts?.skipConfirm && !(await confirmAction(message))) return;
+
+    const { error } = await supabase.from("sales").update({ status: "cancelada" }).eq("id", s.id);
+    if (error) { toast.error(error.message); return; }
+
+    const [paymentsResult, splitsResult, commissionsResult] = await Promise.all([
+      supabase.from("payments").update({ status: "cancelado" }).eq("sale_id", s.id).neq("status", "pago"),
+      supabase.from("commission_splits").update({ status: "cancelado" }).eq("sale_id", s.id).neq("status", "pago"),
+      supabase.from("commissions").update({ status: "cancelado", workflow_status: "cancelada", paid_at: null, approval_date: null }).eq("sale_id", s.id).neq("status", "pago"),
+    ]);
+
+    const relatedError = paymentsResult.error || splitsResult.error || commissionsResult.error;
+    if (relatedError) toast.warning(`Venda cancelada, mas houve erro ao atualizar vínculos: ${relatedError.message}`);
+    else toast.success("Venda cancelada");
     invalidateRelated();
   };
 
@@ -425,10 +447,28 @@ export default function Sales() {
 
   const removeOne = async (s: any) => {
     if (!canManage) return;
+    const { count: linkedPaymentsCount, error: linkedPaymentsError } = await supabase
+      .from("payments")
+      .select("id", { count: "exact", head: true })
+      .eq("sale_id", s.id);
+    if (linkedPaymentsError) { toast.error(linkedPaymentsError.message); return; }
+    const hasReceipts = (linkedPaymentsCount ?? receiptsBySale.get(s.id)?.count ?? 0) > 0;
+    if (hasReceipts) {
+      if (await confirmAction("Esta venda tem recebimentos vinculados. Para preservar o histórico, ela será cancelada em vez de excluída. Continuar?")) {
+        await cancelSale(s, { skipConfirm: true });
+      }
+      return;
+    }
     if (!(await confirmAction(`Excluir venda de ${formatBRL(s.amount)}? Esta ação não pode ser desfeita.`))) return;
     const { error } = await supabase.from("sales").delete().eq("id", s.id);
-    if (error) toast.error(error.message);
-    else { toast.success("Venda excluída"); invalidateRelated(); }
+    if (error) {
+      const isLinkedDataError = error.code === "23503" || /violates foreign key constraint/i.test(error.message);
+      if (isLinkedDataError && await confirmAction("Não foi possível excluir porque há dados vinculados. Deseja cancelar a venda em vez disso?")) {
+        await cancelSale(s, { skipConfirm: true });
+        return;
+      }
+      toast.error(error.message);
+    } else { toast.success("Venda excluída"); invalidateRelated(); }
   };
 
   const exportCSV = () => {
