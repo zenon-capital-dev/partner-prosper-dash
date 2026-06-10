@@ -5,7 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, UserRound, Loader2 } from "lucide-react";
-import { AddProductDialog } from "@/components/clients/AddProductDialog";
+import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface Props {
   open: boolean;
