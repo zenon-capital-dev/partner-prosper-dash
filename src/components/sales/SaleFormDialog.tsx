@@ -94,6 +94,11 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       return data ?? [];
     },
   });
+  const { data: providers } = useQuery({
+    queryKey: ["providers-select-sales"],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").order("name")).data ?? [],
+  });
+
 
   // Auto-fill from selected client
   useQuery({
