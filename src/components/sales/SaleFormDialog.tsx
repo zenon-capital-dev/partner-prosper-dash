@@ -191,6 +191,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         partner_id: form.partner_id || null,
         referrer_id: form.referrer_id || null,
         collaborator_id: form.collaborator_id || null,
+        service_provider_id: form.service_provider_id || null,
         amount: Number(form.amount),
         zenon_cost: Number(form.zenon_cost || 0),
         provider_cost: Number(form.provider_cost || 0),
@@ -201,6 +202,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         sale_date: form.sale_date,
         notes: form.notes || null,
       } as any;
+
 
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
