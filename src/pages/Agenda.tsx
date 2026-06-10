@@ -381,32 +381,32 @@ export default function Agenda() {
         <TabsContent value="hoje" className="mt-4 space-y-6">
           {buckets.overdue.length > 0 && (
             <Section title="Atrasados" tone="rose" count={buckets.overdue.length}>
-              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />
+              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />
             </Section>
           )}
           <Section title="Hoje" tone="orange" count={buckets.today.length}>
             {buckets.today.length === 0
               ? <EmptyHint text="Nenhum item pra hoje. Aproveite ou crie um." />
-              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
+              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />}
           </Section>
         </TabsContent>
 
         <TabsContent value="atrasados" className="mt-4">
           {buckets.overdue.length === 0
             ? <EmptyHint text="Sem itens atrasados. Tudo em dia!" />
-            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
+            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />}
         </TabsContent>
 
         <TabsContent value="proximos" className="mt-4">
           {buckets.upcoming.length === 0
             ? <EmptyHint text="Nada agendado pra frente." />
-            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
+            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />}
         </TabsContent>
 
         <TabsContent value="concluidos" className="mt-4">
           {buckets.done.length === 0
             ? <EmptyHint text="Nada concluído ainda." />
-            : <ItemList items={buckets.done} onComplete={() => {}} onReopen={(id) => reopenMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} />}
+            : <ItemList items={buckets.done} onComplete={() => {}} onReopen={(id) => reopenMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onRequestReschedule={openReschedule} />}
         </TabsContent>
 
         <TabsContent value="calendario" className="mt-4">
@@ -440,9 +440,47 @@ export default function Agenda() {
         />
       )}
 
+      {/* Reschedule Dialog */}
+      <Dialog open={!!rescheduling} onOpenChange={(v) => { if (!v) setRescheduling(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><CalendarDays className="size-4 text-indigo-600" /> Adiar / Reagendar</DialogTitle>
+            <DialogDescription className="truncate">{rescheduling?.title}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-2">
+              <Calendar mode="single" selected={rescheduleDate} onSelect={setRescheduleDate} initialFocus className="p-2 pointer-events-auto mx-auto" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-bold">Hora</Label>
+              <Input type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} className="h-9 w-32" />
+              <div className="flex gap-1 ml-auto">
+                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setRescheduleDate(addDays(new Date(), 1)); }}>Amanhã</Button>
+                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setRescheduleDate(addDays(new Date(), 7)); }}>+ 7d</Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduling(null)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!rescheduling || !rescheduleDate) { toast.error("Escolha uma data"); return; }
+                const [h, m] = (rescheduleTime || "09:00").split(":").map(Number);
+                const d = new Date(rescheduleDate);
+                d.setHours(h || 9, m || 0, 0, 0);
+                rescheduleMut.mutate({ id: rescheduling.id, date: d });
+                setRescheduling(null);
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
+
 
 function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: number; icon: any; tone: string }) {
   return (
