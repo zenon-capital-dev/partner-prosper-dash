@@ -60,6 +60,33 @@ export default function Sales() {
     setDensity(d);
     try { localStorage.setItem("sales-density", d); } catch {}
   };
+  type ColKey = "status" | "client" | "product" | "partner" | "date" | "amount" | "commission" | "liquido" | "recebido";
+  const ALL_COLS: { key: ColKey; label: string }[] = [
+    { key: "status", label: "Status" },
+    { key: "client", label: "Cliente" },
+    { key: "product", label: "Produto" },
+    { key: "partner", label: "Parceiro" },
+    { key: "date", label: "Data" },
+    { key: "amount", label: "Valor" },
+    { key: "commission", label: "Comissão" },
+    { key: "liquido", label: "Líquido" },
+    { key: "recebido", label: "Recebido/Restante" },
+  ];
+  const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
+    try {
+      const saved = typeof window !== "undefined" && localStorage.getItem("sales-visible-cols");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { status: true, client: true, product: true, partner: true, date: true, amount: true, commission: true, liquido: true, recebido: true };
+  });
+  const toggleCol = (k: ColKey) => {
+    setVisibleCols((v) => {
+      const next = { ...v, [k]: !v[k] };
+      try { localStorage.setItem("sales-visible-cols", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
