@@ -875,17 +875,20 @@ export default function Sales() {
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
                       {visibleCols.status && <Td><StatusPill status={s.status} /></Td>}
-                      <Td>
-                        <div className="min-w-0">
-                          <button
-                            className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left"
-                            onClick={() => s.clients?.id && navigate(`/clientes/${s.clients.id}`)}
-                          >
-                            {s.clients?.full_name ?? "—"}
-                          </button>
-                          <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
-                        </div>
-                      </Td>
+                      {visibleCols.client && (
+                        <Td>
+                          <div className="min-w-0">
+                            <button
+                              className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left"
+                              onClick={() => s.clients?.id && navigate(`/clientes/${s.clients.id}`)}
+                            >
+                              {s.clients?.full_name ?? "—"}
+                            </button>
+                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                          </div>
+                        </Td>
+                      )}
+
                       <Td>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-700">{s.products?.name ?? "—"}</span>
