@@ -98,9 +98,9 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
 
       toast.success(isFull ? "Venda quitada integralmente!" : "Recebimento registrado");
       await Promise.all([
-        qc.refetchQueries({ queryKey: ["sale-receipts", sale.id] }),
-        qc.refetchQueries({ queryKey: ["sales-receipts-by-sale"] }),
-        qc.refetchQueries({ queryKey: ["sales-rich-v2"] }),
+        qc.invalidateQueries({ queryKey: ["sale-receipts", sale.id] }),
+        qc.invalidateQueries({ queryKey: ["sales-receipts-by-sale"] }),
+        qc.invalidateQueries({ queryKey: ["sales-rich-v2"] }),
       ]);
       qc.invalidateQueries({ queryKey: ["payments"] });
       qc.invalidateQueries({ queryKey: ["client-payments"] });
