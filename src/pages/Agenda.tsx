@@ -551,21 +551,18 @@ function ItemRow({
           <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "aguardando_terceiros")}>
             <Clock className="size-3.5 mr-2 text-amber-600" /> Aguardando terceiros
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "sem_atuacao")}>
+            <Clock className="size-3.5 mr-2 text-zinc-500" /> Sem atuação
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "bloqueada")}>
             <AlertTriangle className="size-3.5 mr-2 text-rose-600" /> Bloqueada
           </DropdownMenuItem>
-          {onReschedule && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
-                </DropdownMenuItem>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" onSelect={(d) => d && onReschedule(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
+          {onRequestReschedule && (
+            <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+              <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
+            </DropdownMenuItem>
           )}
+
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onEdit(item)}>
             <Edit3 className="size-3.5 mr-2" /> Detalhar / editar
