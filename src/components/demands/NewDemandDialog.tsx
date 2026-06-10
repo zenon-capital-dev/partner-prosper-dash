@@ -51,13 +51,14 @@ export function NewDemandDialog({ open, onOpenChange }: Props) {
 
   if (selectedClientId) {
     return (
-      <AddProductDialog
+      <SaleFormDialog
         open={open}
         onOpenChange={handleClose}
         clientId={selectedClientId}
       />
     );
   }
+
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
