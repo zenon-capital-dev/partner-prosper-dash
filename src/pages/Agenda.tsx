@@ -299,6 +299,14 @@ export default function Agenda() {
     }
   };
 
+  const openReschedule = (item: AgendaItem) => {
+    const base = item.due_date ? parseISO(item.due_date) : new Date();
+    setRescheduleDate(base);
+    setRescheduleTime(format(base, "HH:mm"));
+    setRescheduling(item);
+  };
+
+
   const stats = {
     today: buckets.today.length,
     overdue: buckets.overdue.length,
