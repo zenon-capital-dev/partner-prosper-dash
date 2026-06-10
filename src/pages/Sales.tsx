@@ -850,13 +850,9 @@ export default function Sales() {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
-          <div className={cn(
-            "overflow-x-auto",
-            density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
-            density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
-          )}>
+        <SalesTableScroll density={density}>
             <table className={cn("w-full min-w-[700px]", density === "normal" && "text-[13px]")}>
+
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
                   {visibleCols.status && <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
