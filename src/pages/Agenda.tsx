@@ -809,8 +809,10 @@ function Kanban({ items, onUpdate, onItemClick }: { items: AgendaItem[]; onUpdat
     { key: "a_fazer", label: "A fazer" },
     { key: "em_andamento", label: "Em andamento" },
     { key: "aguardando_terceiros", label: "Aguardando" },
+    { key: "sem_atuacao", label: "Sem atuação" },
     { key: "concluida", label: "Concluídas" },
   ];
+
   const grouped: Record<string, AgendaItem[]> = {};
   cols.forEach((c) => (grouped[c.key] = []));
   items.forEach((i) => { if (grouped[i.status_new]) grouped[i.status_new].push(i); });
