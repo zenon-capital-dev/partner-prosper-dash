@@ -54,6 +54,32 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   const [addOpen, setAddOpen] = useState(false);
   const [deadlineTarget, setDeadlineTarget] = useState<{ id: string; current: string | null } | null>(null);
   const [deadlineValue, setDeadlineValue] = useState("");
+  const [partnerTarget, setPartnerTarget] = useState<{ id: string; current: string | null } | null>(null);
+  const [referrerTarget, setReferrerTarget] = useState<{ id: string; current: string | null } | null>(null);
+
+  // Lista de parceiros / indicadores ativos para edição rápida
+  const { data: partners = [] } = useQuery({
+    queryKey: ["client-products-partners-select"],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
+  const { data: referrers = [] } = useQuery({
+    queryKey: ["client-products-referrers-select"],
+    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+  });
+
+  // Vínculos parceiro / indicador via tabela sales (1:1 com client_products via product+client)
+  const { data: linksBySale = {} } = useQuery({
+    queryKey: ["client-sales-links", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("sales")
+        .select("id, product_id, partner_id, referrer_id, partner:partners(id, full_name), referrer:referrers(id, full_name)")
+        .eq("client_id", clientId);
+      const map: Record<string, any> = {};
+      (data ?? []).forEach((s: any) => { map[s.product_id] = s; });
+      return map;
+    },
+  });
 
   const { data: clientProducts = [], isLoading } = useQuery({
     queryKey: ["client-products", clientId],
