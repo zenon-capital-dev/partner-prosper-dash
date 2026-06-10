@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 
 type Kind = "tarefa" | "reuniao" | "ligacao" | "pendencia_documento" | "lembrete" | "follow_up";
-type Status = "a_fazer" | "em_andamento" | "aguardando_terceiros" | "bloqueada" | "concluida" | "cancelada";
+type Status = "a_fazer" | "em_andamento" | "aguardando_terceiros" | "sem_atuacao" | "bloqueada" | "concluida" | "cancelada";
 
 const KIND_META: Record<Kind, { label: string; icon: any; color: string; ring: string; dot: string }> = {
   tarefa:              { label: "Tarefa",     icon: CheckCircle2, color: "bg-slate-100 text-slate-700 border-slate-200",     ring: "ring-slate-200",   dot: "bg-slate-500" },
@@ -53,10 +53,12 @@ const STATUS_META: Record<Status, { label: string; color: string }> = {
   a_fazer:              { label: "A fazer",       color: "bg-slate-100 text-slate-700 border-slate-200" },
   em_andamento:         { label: "Em andamento",  color: "bg-blue-50 text-blue-700 border-blue-200" },
   aguardando_terceiros: { label: "Aguardando",    color: "bg-amber-50 text-amber-700 border-amber-200" },
+  sem_atuacao:          { label: "Sem atuação",   color: "bg-zinc-100 text-zinc-600 border-zinc-200" },
   bloqueada:            { label: "Bloqueada",     color: "bg-rose-50 text-rose-700 border-rose-200" },
   concluida:            { label: "Concluída",     color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   cancelada:            { label: "Cancelada",     color: "bg-slate-100 text-slate-500 border-slate-200" },
 };
+
 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   baixa:   { label: "Baixa",   color: "bg-slate-50 text-slate-600 border-slate-200" },
