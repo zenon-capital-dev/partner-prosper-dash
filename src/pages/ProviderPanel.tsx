@@ -61,9 +61,6 @@ export default function ProviderPanel() {
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["provider-cp", providerId],
     enabled: !!providerId,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 60_000,
     queryFn: async () => {
       // Demandas que ESTE prestador vê:
       //  1) service_provider_id = ele
@@ -107,6 +104,7 @@ export default function ProviderPanel() {
       [...(explicit ?? []), ...fallback].forEach((r: any) => map.set(r.id, r));
       return Array.from(map.values());
     },
+    staleTime: 2 * 60_000,
   });
 
 
@@ -124,9 +122,6 @@ export default function ProviderPanel() {
   const { data: documents = [] } = useQuery({
     queryKey: ["provider-docs", providerId, cpIds.join(",")],
     enabled: !!providerId,
-    refetchOnWindowFocus: true,
-    refetchOnMount: "always",
-    refetchInterval: 60_000,
     queryFn: async () => {
       const filters: string[] = [];
       if (providerId) filters.push(`provider_id.eq.${providerId}`);
@@ -160,6 +155,7 @@ export default function ProviderPanel() {
       }));
       return [...reqs, ...docs];
     },
+    staleTime: 2 * 60_000,
   });
 
   const { data: commissions = [] } = useQuery({
