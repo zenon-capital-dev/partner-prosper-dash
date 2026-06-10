@@ -544,7 +544,8 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
                   size="sm"
                   variant="outline"
                   className="gap-1.5 h-8 text-xs"
-                  onClick={() => setSelectedProducts((p) => [...p, { product_id: "", value: "", deadline: "" }])}
+                  onClick={() => setSelectedProducts((p) => [...p, { product_id: "", value: "", start_date: "", deadline: "", provider_id: "", collaborator_id: "" }])}
+
                 >
                   <Plus className="size-3.5" /> Adicionar produto
                 </Button>
