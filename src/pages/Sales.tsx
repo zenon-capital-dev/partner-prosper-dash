@@ -1047,6 +1047,8 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400">—</span>
                         )}
                       </Td>
+                      )}
+
                       <Td align="right">
                         {canManage ? (
                           <DropdownMenu>
