@@ -3101,6 +3101,188 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_contracts: {
+        Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          admin_notes: string | null
+          bank_account: string | null
+          bank_account_type: string | null
+          bank_agency: string | null
+          bank_name: string | null
+          birth_date: string | null
+          company_cnpj: string | null
+          company_name: string | null
+          contract_signed_path: string | null
+          contract_uploaded_at: string | null
+          cpf: string | null
+          created_at: string
+          email: string | null
+          form_submitted_at: string | null
+          full_name: string | null
+          id: string
+          legal_representative_cpf: string | null
+          legal_representative_name: string | null
+          legal_representative_role: string | null
+          marital_status: string | null
+          nationality: string | null
+          nda_signed_path: string | null
+          nda_uploaded_at: string | null
+          notes: string | null
+          partner_id: string
+          person_type: string
+          phone: string | null
+          pix_key: string | null
+          profession: string | null
+          rg: string | null
+          rg_issuer: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          admin_notes?: string | null
+          bank_account?: string | null
+          bank_account_type?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          birth_date?: string | null
+          company_cnpj?: string | null
+          company_name?: string | null
+          contract_signed_path?: string | null
+          contract_uploaded_at?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          form_submitted_at?: string | null
+          full_name?: string | null
+          id?: string
+          legal_representative_cpf?: string | null
+          legal_representative_name?: string | null
+          legal_representative_role?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          nda_signed_path?: string | null
+          nda_uploaded_at?: string | null
+          notes?: string | null
+          partner_id: string
+          person_type?: string
+          phone?: string | null
+          pix_key?: string | null
+          profession?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          admin_notes?: string | null
+          bank_account?: string | null
+          bank_account_type?: string | null
+          bank_agency?: string | null
+          bank_name?: string | null
+          birth_date?: string | null
+          company_cnpj?: string | null
+          company_name?: string | null
+          contract_signed_path?: string | null
+          contract_uploaded_at?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          form_submitted_at?: string | null
+          full_name?: string | null
+          id?: string
+          legal_representative_cpf?: string | null
+          legal_representative_name?: string | null
+          legal_representative_role?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          nda_signed_path?: string | null
+          nda_uploaded_at?: string | null
+          notes?: string | null
+          partner_id?: string
+          person_type?: string
+          phone?: string | null
+          pix_key?: string | null
+          profession?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_contracts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_materials: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          external_url: string | null
+          file_path: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partner_products: {
         Row: {
           active: boolean
