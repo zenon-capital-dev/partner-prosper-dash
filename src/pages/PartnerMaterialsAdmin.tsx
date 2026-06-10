@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, FileText, Link as LinkIcon, Upload, BookOpen } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 
 const CATEGORIES = [
   { value: "institucional", label: "Institucional" },
@@ -79,8 +80,8 @@ export default function PartnerMaterialsAdmin() {
       let file_path = editing?.file_path || null;
 
       if (file) {
-        const ext = file.name.split(".").pop();
-        const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        assertUploadFile(file);
+        const path = `${Date.now()}-${Math.random().toString(36).slice(2)}-${sanitizeStorageFileName(file.name)}`;
         const { error: upErr } = await supabase.storage.from("partner-materials").upload(path, file);
         if (upErr) throw upErr;
         file_path = path;
@@ -110,7 +111,7 @@ export default function PartnerMaterialsAdmin() {
       setOpen(false);
       reset();
     },
-    onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
+    onError: (e: any) => toast.error(uploadErrorMessage(e) || "Erro ao salvar"),
   });
 
   const del = useMutation({
