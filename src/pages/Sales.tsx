@@ -1137,8 +1137,8 @@ export default function Sales() {
                 })}
               </tbody>
             </table>
-          </div>
-        </div>
+        </SalesTableScroll>
+
       </div>
 
       <SaleFormDialog 
