@@ -58,7 +58,15 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const [manualApproval, setManualApproval] = useState(false);
 
   // Produtos contratados (apenas no cadastro novo)
-  const [selectedProducts, setSelectedProducts] = useState<Array<{ product_id: string; value: string; deadline: string }>>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Array<{
+    product_id: string;
+    value: string;
+    start_date: string;
+    deadline: string;
+    provider_id: string;
+    collaborator_id: string;
+  }>>([]);
+
 
   useEffect(() => {
     if (client) setForm(client);
