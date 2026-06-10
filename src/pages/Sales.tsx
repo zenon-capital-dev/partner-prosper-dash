@@ -60,6 +60,33 @@ export default function Sales() {
     setDensity(d);
     try { localStorage.setItem("sales-density", d); } catch {}
   };
+  type ColKey = "status" | "client" | "product" | "partner" | "date" | "amount" | "commission" | "liquido" | "recebido";
+  const ALL_COLS: { key: ColKey; label: string }[] = [
+    { key: "status", label: "Status" },
+    { key: "client", label: "Cliente" },
+    { key: "product", label: "Produto" },
+    { key: "partner", label: "Parceiro" },
+    { key: "date", label: "Data" },
+    { key: "amount", label: "Valor" },
+    { key: "commission", label: "Comissão" },
+    { key: "liquido", label: "Líquido" },
+    { key: "recebido", label: "Recebido/Restante" },
+  ];
+  const [visibleCols, setVisibleCols] = useState<Record<ColKey, boolean>>(() => {
+    try {
+      const saved = typeof window !== "undefined" && localStorage.getItem("sales-visible-cols");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { status: true, client: true, product: true, partner: true, date: true, amount: true, commission: true, liquido: true, recebido: true };
+  });
+  const toggleCol = (k: ColKey) => {
+    setVisibleCols((v) => {
+      const next = { ...v, [k]: !v[k] };
+      try { localStorage.setItem("sales-visible-cols", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -739,48 +766,73 @@ export default function Sales() {
 
       {/* Table */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 mb-10">
-        <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 px-1">
           <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             {sorted.length} {sorted.length === 1 ? "venda" : "vendas"}
           </p>
-          <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Tamanho</span>
-            {(["compact", "normal", "spacious"] as const).map((d) => (
-              <button
-                key={d}
-                onClick={() => changeDensity(d)}
-                className={cn(
-                  "px-2.5 py-1 text-[10.5px] font-semibold rounded transition-colors",
-                  density === d ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
-                )}
-                title={d === "compact" ? "Compacto" : d === "normal" ? "Normal" : "Confortável"}
-              >
-                {d === "compact" ? "S" : d === "normal" ? "M" : "L"}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                  <Eye className="size-3.5" />
+                  Colunas <span className="text-slate-400 font-mono">({Object.values(visibleCols).filter(Boolean).length}/{ALL_COLS.length})</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {ALL_COLS.map((c) => (
+                  <DropdownMenuItem key={c.key} onSelect={(e) => { e.preventDefault(); toggleCol(c.key); }} className="cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={visibleCols[c.key]}
+                      readOnly
+                      className="mr-2 size-3.5 accent-indigo-600 pointer-events-none"
+                    />
+                    {c.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Tamanho</span>
+              {(["compact", "normal", "spacious"] as const).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => changeDensity(d)}
+                  className={cn(
+                    "px-2.5 py-1 text-[10.5px] font-semibold rounded transition-colors",
+                    density === d ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                  )}
+                  title={d === "compact" ? "Compacto" : d === "normal" ? "Normal" : "Confortável"}
+                >
+                  {d === "compact" ? "S" : d === "normal" ? "M" : "L"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
           <div className={cn(
             "overflow-x-auto",
             density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
             density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
           )}>
-            <table className={cn("w-full min-w-[1100px]", density === "normal" && "text-[13px]")}>
+            <table className={cn("w-full min-w-[700px]", density === "normal" && "text-[13px]")}>
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
-                  <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Parceiro" k="partner" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
-                  <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
-                  <Th align="right">Líquido</Th>
-                  <Th align="right">Recebido / Restante</Th>
+                  {visibleCols.status && <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.client && <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.product && <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.partner && <SortableTh label="Parceiro" k="partner" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.date && <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.amount && <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
+                  {visibleCols.commission && <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
+                  {visibleCols.liquido && <Th align="right">Líquido</Th>}
+                  {visibleCols.recebido && <Th align="right">Recebido / Restante</Th>}
                   <Th align="right">Ações</Th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
@@ -822,36 +874,46 @@ export default function Sales() {
                   const fullyReceived = baseAmt > 0 && remaining < 0.01;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
-                      <Td><StatusPill status={s.status} /></Td>
-                      <Td>
-                        <div className="min-w-0">
-                          <button
-                            className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left"
-                            onClick={() => s.clients?.id && navigate(`/clientes/${s.clients.id}`)}
-                          >
-                            {s.clients?.full_name ?? "—"}
-                          </button>
-                          <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
-                        </div>
-                      </Td>
-                      <Td>
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-700">{s.products?.name ?? "—"}</span>
-                        </div>
-                      </Td>
-                      <Td>
-                        {s.partners?.full_name ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
-                            <span className="size-1.5 rounded-full bg-indigo-500" />
-                            {s.partners.full_name}
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Direto</span>
-                        )}
-                      </Td>
-                      <Td className="text-slate-600 text-xs font-mono">{s.sale_date ? formatBRDate(parseISO(s.sale_date)) : "—"}</Td>
-                      <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>
+                      {visibleCols.status && <Td><StatusPill status={s.status} /></Td>}
+                      {visibleCols.client && (
+                        <Td>
+                          <div className="min-w-0">
+                            <button
+                              className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left"
+                              onClick={() => s.clients?.id && navigate(`/clientes/${s.clients.id}`)}
+                            >
+                              {s.clients?.full_name ?? "—"}
+                            </button>
+                            <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
+                          </div>
+                        </Td>
+                      )}
+
+                      {visibleCols.product && (
+                        <Td>
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-700">{s.products?.name ?? "—"}</span>
+                          </div>
+                        </Td>
+                      )}
+                      {visibleCols.partner && (
+                        <Td>
+                          {s.partners?.full_name ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
+                              <span className="size-1.5 rounded-full bg-indigo-500" />
+                              {s.partners.full_name}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">Direto</span>
+                          )}
+                        </Td>
+                      )}
+                      {visibleCols.date && <Td className="text-slate-600 text-xs font-mono">{s.sale_date ? formatBRDate(parseISO(s.sale_date)) : "—"}</Td>}
+                      {visibleCols.amount && <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>}
+
+                      {visibleCols.commission && (
                       <Td align="right">
+
                         {commissionVal > 0 ? (
                           <div className="inline-flex flex-col items-end gap-0.5">
                             <span className="font-bold font-mono text-[12.5px] text-emerald-700 tabular-nums leading-none">
@@ -878,7 +940,10 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400">—</span>
                         )}
                       </Td>
+                      )}
+                      {visibleCols.liquido && (
                       <Td align="right">
+
                         {baseAmt > 0 ? (
                           <div className="inline-flex flex-col items-end gap-0.5">
                             <span className={cn(
@@ -918,7 +983,10 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400">—</span>
                         )}
                       </Td>
+                      )}
+                      {visibleCols.recebido && (
                       <Td align="right">
+
                         {baseAmt > 0 ? (
                           <button
                             type="button"
@@ -979,6 +1047,8 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400">—</span>
                         )}
                       </Td>
+                      )}
+
                       <Td align="right">
                         {canManage ? (
                           <DropdownMenu>

@@ -94,6 +94,11 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       return data ?? [];
     },
   });
+  const { data: providers } = useQuery({
+    queryKey: ["providers-select-sales"],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").order("name")).data ?? [],
+  });
+
 
   // Auto-fill from selected client
   useQuery({
@@ -186,6 +191,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         partner_id: form.partner_id || null,
         referrer_id: form.referrer_id || null,
         collaborator_id: form.collaborator_id || null,
+        service_provider_id: form.service_provider_id || null,
         amount: Number(form.amount),
         zenon_cost: Number(form.zenon_cost || 0),
         provider_cost: Number(form.provider_cost || 0),
@@ -196,6 +202,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         sale_date: form.sale_date,
         notes: form.notes || null,
       } as any;
+
 
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
@@ -385,12 +392,30 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     <div className="flex items-center gap-2">
                       <div className="size-6 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center text-[11px]">🔒</div>
                       <div className="flex-1">
-                        <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider leading-tight">Custos Internos</p>
+                        <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider leading-tight">Custos Internos & Prestador</p>
                         <p className="text-[10px] text-amber-700/80 leading-tight">Não visíveis ao parceiro — deduzidos do líquido</p>
                       </div>
                     </div>
+                    <Field label="Prestador (repasse)">
+                      <Select
+                        value={form.service_provider_id ?? "none"}
+                        onValueChange={(v) => setForm({ ...form, service_provider_id: v === "none" ? null : v })}
+                      >
+                        <SelectTrigger className="h-11 bg-white border-amber-200 shadow-sm rounded-lg">
+                          <SelectValue placeholder="Nenhum prestador" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          <SelectItem value="none">Nenhum prestador</SelectItem>
+                          {providers?.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name}{p.specialty ? ` · ${p.specialty}` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <Field label="Custo Zenon">
+                      <Field label="Custo Zenon (impostos)">
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
                           <Input
@@ -404,7 +429,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                           />
                         </div>
                       </Field>
-                      <Field label="Custo Prestador de Serviço">
+                      <Field label="Valor fixo do repasse ao Prestador">
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
                           <Input
@@ -423,6 +448,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       Ordem de dedução: <strong>Bruto</strong> − custos (<strong className="font-mono">{fmt(totalCosts)}</strong>) − Indicador/Imposto − Parceiro − Colaborador. Cada nível incide sobre o que sobrou do nível anterior.
                     </p>
                   </div>
+
                 </div>
               </Section>
 

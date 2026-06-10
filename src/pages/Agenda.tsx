@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 
 type Kind = "tarefa" | "reuniao" | "ligacao" | "pendencia_documento" | "lembrete" | "follow_up";
-type Status = "a_fazer" | "em_andamento" | "aguardando_terceiros" | "bloqueada" | "concluida" | "cancelada";
+type Status = "a_fazer" | "em_andamento" | "aguardando_terceiros" | "sem_atuacao" | "bloqueada" | "concluida" | "cancelada";
 
 const KIND_META: Record<Kind, { label: string; icon: any; color: string; ring: string; dot: string }> = {
   tarefa:              { label: "Tarefa",     icon: CheckCircle2, color: "bg-slate-100 text-slate-700 border-slate-200",     ring: "ring-slate-200",   dot: "bg-slate-500" },
@@ -53,10 +53,12 @@ const STATUS_META: Record<Status, { label: string; color: string }> = {
   a_fazer:              { label: "A fazer",       color: "bg-slate-100 text-slate-700 border-slate-200" },
   em_andamento:         { label: "Em andamento",  color: "bg-blue-50 text-blue-700 border-blue-200" },
   aguardando_terceiros: { label: "Aguardando",    color: "bg-amber-50 text-amber-700 border-amber-200" },
+  sem_atuacao:          { label: "Sem atuação",   color: "bg-zinc-100 text-zinc-600 border-zinc-200" },
   bloqueada:            { label: "Bloqueada",     color: "bg-rose-50 text-rose-700 border-rose-200" },
   concluida:            { label: "Concluída",     color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   cancelada:            { label: "Cancelada",     color: "bg-slate-100 text-slate-500 border-slate-200" },
 };
+
 
 const PRIORITY_META: Record<string, { label: string; color: string }> = {
   baixa:   { label: "Baixa",   color: "bg-slate-50 text-slate-600 border-slate-200" },
@@ -122,6 +124,10 @@ export default function Agenda() {
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<AgendaItem | null>(null);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [rescheduling, setRescheduling] = useState<AgendaItem | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<Date | undefined>(undefined);
+  const [rescheduleTime, setRescheduleTime] = useState<string>("09:00");
+
 
   const presetClientId = searchParams.get("client");
 
@@ -293,6 +299,14 @@ export default function Agenda() {
     }
   };
 
+  const openReschedule = (item: AgendaItem) => {
+    const base = item.due_date ? parseISO(item.due_date) : new Date();
+    setRescheduleDate(base);
+    setRescheduleTime(format(base, "HH:mm"));
+    setRescheduling(item);
+  };
+
+
   const stats = {
     today: buckets.today.length,
     overdue: buckets.overdue.length,
@@ -375,32 +389,32 @@ export default function Agenda() {
         <TabsContent value="hoje" className="mt-4 space-y-6">
           {buckets.overdue.length > 0 && (
             <Section title="Atrasados" tone="rose" count={buckets.overdue.length}>
-              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />
+              <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />
             </Section>
           )}
           <Section title="Hoje" tone="orange" count={buckets.today.length}>
             {buckets.today.length === 0
               ? <EmptyHint text="Nenhum item pra hoje. Aproveite ou crie um." />
-              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
+              : <ItemList items={buckets.today} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />}
           </Section>
         </TabsContent>
 
         <TabsContent value="atrasados" className="mt-4">
           {buckets.overdue.length === 0
             ? <EmptyHint text="Sem itens atrasados. Tudo em dia!" />
-            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
+            : <ItemList items={buckets.overdue} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />}
         </TabsContent>
 
         <TabsContent value="proximos" className="mt-4">
           {buckets.upcoming.length === 0
             ? <EmptyHint text="Nada agendado pra frente." />
-            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} />}
+            : <ItemList items={buckets.upcoming} onComplete={(id) => completeMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onReschedule={(id, d) => rescheduleMut.mutate({ id, date: d })} onSetStatus={(id, s) => setStatusMut.mutate({ id, status: s })} onRequestReschedule={openReschedule} />}
         </TabsContent>
 
         <TabsContent value="concluidos" className="mt-4">
           {buckets.done.length === 0
             ? <EmptyHint text="Nada concluído ainda." />
-            : <ItemList items={buckets.done} onComplete={() => {}} onReopen={(id) => reopenMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} />}
+            : <ItemList items={buckets.done} onComplete={() => {}} onReopen={(id) => reopenMut.mutate(id)} onDelete={handleDelete} onEdit={setEditing} onRequestReschedule={openReschedule} />}
         </TabsContent>
 
         <TabsContent value="calendario" className="mt-4">
@@ -434,9 +448,47 @@ export default function Agenda() {
         />
       )}
 
+      {/* Reschedule Dialog */}
+      <Dialog open={!!rescheduling} onOpenChange={(v) => { if (!v) setRescheduling(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><CalendarDays className="size-4 text-indigo-600" /> Adiar / Reagendar</DialogTitle>
+            <DialogDescription className="truncate">{rescheduling?.title}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-2">
+              <Calendar mode="single" selected={rescheduleDate} onSelect={setRescheduleDate} initialFocus className="p-2 pointer-events-auto mx-auto" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-bold">Hora</Label>
+              <Input type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} className="h-9 w-32" />
+              <div className="flex gap-1 ml-auto">
+                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setRescheduleDate(addDays(new Date(), 1)); }}>Amanhã</Button>
+                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setRescheduleDate(addDays(new Date(), 7)); }}>+ 7d</Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduling(null)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!rescheduling || !rescheduleDate) { toast.error("Escolha uma data"); return; }
+                const [h, m] = (rescheduleTime || "09:00").split(":").map(Number);
+                const d = new Date(rescheduleDate);
+                d.setHours(h || 9, m || 0, 0, 0);
+                rescheduleMut.mutate({ id: rescheduling.id, date: d });
+                setRescheduling(null);
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >Confirmar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
+
 
 function KpiCard({ label, value, icon: Icon, tone }: { label: string; value: number; icon: any; tone: string }) {
   return (
@@ -474,7 +526,7 @@ function EmptyHint({ text }: { text: string }) {
 }
 
 function ItemList({
-  items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
+  items, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus, onRequestReschedule,
 }: {
   items: AgendaItem[];
   onComplete: (id: string) => void;
@@ -483,18 +535,19 @@ function ItemList({
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
   onSetStatus?: (id: string, s: Status) => void;
+  onRequestReschedule?: (item: AgendaItem) => void;
 }) {
   return (
     <div className="space-y-2">
       {items.map((it) => (
-        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} />
+        <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} onRequestReschedule={onRequestReschedule} />
       ))}
     </div>
   );
 }
 
 function ItemRow({
-  item, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus,
+  item, onComplete, onReopen, onDelete, onEdit, onReschedule, onSetStatus, onRequestReschedule,
 }: {
   item: AgendaItem;
   onComplete: (id: string) => void;
@@ -503,6 +556,7 @@ function ItemRow({
   onEdit: (i: AgendaItem) => void;
   onReschedule?: (id: string, d: Date) => void;
   onSetStatus?: (id: string, s: Status) => void;
+  onRequestReschedule?: (item: AgendaItem) => void;
 }) {
   const meta = KIND_META[item.kind] || KIND_META.tarefa;
   const Icon = meta.icon;
@@ -543,21 +597,18 @@ function ItemRow({
           <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "aguardando_terceiros")}>
             <Clock className="size-3.5 mr-2 text-amber-600" /> Aguardando terceiros
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "sem_atuacao")}>
+            <Clock className="size-3.5 mr-2 text-zinc-500" /> Sem atuação
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onSetStatus?.(item.id, "bloqueada")}>
             <AlertTriangle className="size-3.5 mr-2 text-rose-600" /> Bloqueada
           </DropdownMenuItem>
-          {onReschedule && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
-                </DropdownMenuItem>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" onSelect={(d) => d && onReschedule(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
+          {onRequestReschedule && (
+            <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+              <CalendarDays className="size-3.5 mr-2 text-indigo-600" /> Adiar / Reagendar
+            </DropdownMenuItem>
           )}
+
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => onEdit(item)}>
             <Edit3 className="size-3.5 mr-2" /> Detalhar / editar
@@ -628,18 +679,12 @@ function ItemRow({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(item)}><Edit3 className="size-3.5 mr-2" />Editar</DropdownMenuItem>
-                {onReschedule && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <CalendarDays className="size-3.5 mr-2" />Reagendar
-                      </DropdownMenuItem>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <Calendar mode="single" onSelect={(d) => d && onReschedule(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                {onRequestReschedule && (
+                  <DropdownMenuItem onClick={() => onRequestReschedule(item)}>
+                    <CalendarDays className="size-3.5 mr-2" />Reagendar
+                  </DropdownMenuItem>
                 )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onDelete(item.id)} className="text-rose-600">
                   <Trash2 className="size-3.5 mr-2" />Excluir
@@ -717,8 +762,39 @@ function MonthCalendar({
                   );
                 })}
                 {dayItems.length > 3 && (
-                  <div className="text-[10px] font-bold text-slate-500 px-1">+{dayItems.length - 3} mais</div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded px-1 py-0.5 w-full text-left"
+                      >
+                        +{dayItems.length - 3} mais
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-3" align="start">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                        {format(d, "dd 'de' MMMM", { locale: ptBR })} · {dayItems.length} itens
+                      </p>
+                      <div className="space-y-1 max-h-80 overflow-y-auto">
+                        {dayItems.map((it) => {
+                          const m = KIND_META[it.kind] || KIND_META.tarefa;
+                          return (
+                            <button
+                              key={it.id}
+                              onClick={() => onItemClick(it)}
+                              className={cn("w-full text-left rounded px-2 py-1.5 text-[11px] font-semibold border hover:shadow-sm transition-all", m.color)}
+                            >
+                              <div className="font-mono text-[10px] opacity-70">{format(parseISO(it.due_date!), "HH:mm")}</div>
+                              <div className="truncate">{it.title}</div>
+                              {it.client && <div className="text-[9.5px] opacity-60 truncate">{it.client.full_name}</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
+
               </div>
             </div>
           );
@@ -733,8 +809,10 @@ function Kanban({ items, onUpdate, onItemClick }: { items: AgendaItem[]; onUpdat
     { key: "a_fazer", label: "A fazer" },
     { key: "em_andamento", label: "Em andamento" },
     { key: "aguardando_terceiros", label: "Aguardando" },
+    { key: "sem_atuacao", label: "Sem atuação" },
     { key: "concluida", label: "Concluídas" },
   ];
+
   const grouped: Record<string, AgendaItem[]> = {};
   cols.forEach((c) => (grouped[c.key] = []));
   items.forEach((i) => { if (grouped[i.status_new]) grouped[i.status_new].push(i); });
@@ -749,7 +827,7 @@ function Kanban({ items, onUpdate, onItemClick }: { items: AgendaItem[]; onUpdat
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       {cols.map((c) => (
         <div key={c.key} className="rounded-xl border border-slate-200 bg-slate-50/40 p-2">
           <div className="flex items-center justify-between px-2 py-1.5 mb-2">
