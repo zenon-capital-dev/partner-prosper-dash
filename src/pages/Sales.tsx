@@ -817,21 +817,22 @@ export default function Sales() {
             density === "compact" && "[&_td]:!py-1.5 [&_td]:!px-3 [&_th]:!py-1.5 [&_th]:!px-3 text-[11.5px]",
             density === "spacious" && "[&_td]:!py-5 [&_th]:!py-4 text-[14px]"
           )}>
-            <table className={cn("w-full min-w-[1100px]", density === "normal" && "text-[13px]")}>
+            <table className={cn("w-full min-w-[700px]", density === "normal" && "text-[13px]")}>
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
-                  <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Parceiro" k="partner" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />
-                  <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
-                  <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />
-                  <Th align="right">Líquido</Th>
-                  <Th align="right">Recebido / Restante</Th>
+                  {visibleCols.status && <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.client && <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.product && <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.partner && <SortableTh label="Parceiro" k="partner" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.date && <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
+                  {visibleCols.amount && <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
+                  {visibleCols.commission && <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
+                  {visibleCols.liquido && <Th align="right">Líquido</Th>}
+                  {visibleCols.recebido && <Th align="right">Recebido / Restante</Th>}
                   <Th align="right">Ações</Th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
