@@ -4143,6 +4143,7 @@ export type Database = {
           referrer_id: string | null
           referrer_percent: number | null
           sale_date: string
+          service_provider_id: string | null
           status: Database["public"]["Enums"]["sale_status"]
           updated_at: string
           zenon_cost: number
@@ -4166,6 +4167,7 @@ export type Database = {
           referrer_id?: string | null
           referrer_percent?: number | null
           sale_date?: string
+          service_provider_id?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
           zenon_cost?: number
@@ -4189,6 +4191,7 @@ export type Database = {
           referrer_id?: string | null
           referrer_percent?: number | null
           sale_date?: string
+          service_provider_id?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
           updated_at?: string
           zenon_cost?: number
@@ -4234,6 +4237,13 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "referrers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -4985,6 +4995,7 @@ export type Database = {
         | "bloqueada"
         | "concluida"
         | "cancelada"
+        | "sem_atuacao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5246,6 +5257,7 @@ export const Constants = {
         "bloqueada",
         "concluida",
         "cancelada",
+        "sem_atuacao",
       ],
     },
   },
