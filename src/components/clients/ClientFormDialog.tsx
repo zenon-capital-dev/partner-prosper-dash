@@ -556,61 +556,108 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               )}
 
               {selectedProducts.map((row, idx) => (
-                <div key={idx} className="grid grid-cols-12 gap-2 items-end bg-white rounded-lg p-2 border border-indigo-200/60">
-                  <div className="col-span-12 sm:col-span-5 space-y-1">
-                    <Label className="text-[11px]">Produto</Label>
-                    <Select
-                      value={row.product_id || undefined}
-                      onValueChange={(v) => {
-                        const prod = productsList?.find((p: any) => p.id === v);
-                        setSelectedProducts((arr) => arr.map((r, i) => i === idx ? {
-                          ...r,
-                          product_id: v,
-                          value: r.value || (prod?.base_price ? String(prod.base_price) : ""),
-                        } : r));
-                      }}
-                    >
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                      <SelectContent>
-                        {productsList?.map((p: any) => (
-                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-6 sm:col-span-3 space-y-1">
-                    <Label className="text-[11px]">Valor (R$)</Label>
-                    <Input
-                      className="h-9"
-                      type="number"
-                      step="0.01"
-                      value={row.value}
-                      onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, value: e.target.value } : r))}
-                    />
-                  </div>
-                  <div className="col-span-6 sm:col-span-3 space-y-1">
-                    <Label className="text-[11px]">Prazo</Label>
-                    <Input
-                      className="h-9"
-                      type="date"
-                      value={row.deadline}
-                      onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, deadline: e.target.value } : r))}
-                    />
-                  </div>
-                  <div className="col-span-12 sm:col-span-1 flex justify-end">
+                <div key={idx} className="space-y-2 bg-white rounded-lg p-3 border border-indigo-200/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Demanda #{idx + 1}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       aria-label="Remover produto"
-                      className="size-9 text-rose-600 hover:bg-rose-50"
+                      className="size-7 text-rose-600 hover:bg-rose-50"
                       onClick={() => setSelectedProducts((arr) => arr.filter((_, i) => i !== idx))}
                     >
-                      <X className="size-4" />
+                      <X className="size-3.5" />
                     </Button>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-12 sm:col-span-6 space-y-1">
+                      <Label className="text-[11px]">Produto</Label>
+                      <Select
+                        value={row.product_id || undefined}
+                        onValueChange={(v) => {
+                          const prod = productsList?.find((p: any) => p.id === v);
+                          setSelectedProducts((arr) => arr.map((r, i) => i === idx ? {
+                            ...r,
+                            product_id: v,
+                            value: r.value || (prod?.base_price ? String(prod.base_price) : ""),
+                          } : r));
+                        }}
+                      >
+                        <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>
+                          {productsList?.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-6 sm:col-span-3 space-y-1">
+                      <Label className="text-[11px]">Valor (R$)</Label>
+                      <Input
+                        className="h-9"
+                        type="number"
+                        step="0.01"
+                        value={row.value}
+                        onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, value: e.target.value } : r))}
+                      />
+                    </div>
+                    <div className="col-span-6 sm:col-span-3 space-y-1">
+                      <Label className="text-[11px]">Início</Label>
+                      <Input
+                        className="h-9"
+                        type="date"
+                        value={row.start_date}
+                        onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, start_date: e.target.value } : r))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-12 sm:col-span-4 space-y-1">
+                      <Label className="text-[11px]">Prazo</Label>
+                      <Input
+                        className="h-9"
+                        type="date"
+                        value={row.deadline}
+                        onChange={(e) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, deadline: e.target.value } : r))}
+                      />
+                    </div>
+                    <div className="col-span-12 sm:col-span-4 space-y-1">
+                      <Label className="text-[11px]">Prestador</Label>
+                      <Select
+                        value={row.provider_id || "none"}
+                        onValueChange={(v) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, provider_id: v === "none" ? "" : v } : r))}
+                      >
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Sem prestador</SelectItem>
+                          {providers?.map((p: any) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}{p.specialty ? ` · ${p.specialty}` : ""}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-12 sm:col-span-4 space-y-1">
+                      <Label className="text-[11px]">Colaborador responsável</Label>
+                      <Select
+                        value={row.collaborator_id || "none"}
+                        onValueChange={(v) => setSelectedProducts((arr) => arr.map((r, i) => i === idx ? { ...r, collaborator_id: v === "none" ? "" : v } : r))}
+                      >
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum</SelectItem>
+                          {collaborators?.map((c: any) => (
+                            <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               ))}
+
             </div>
           )}
 
