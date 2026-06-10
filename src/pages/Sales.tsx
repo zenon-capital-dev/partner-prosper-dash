@@ -132,7 +132,8 @@ export default function Sales() {
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
-        .select("sale_id, amount, percent, beneficiary_type, status");
+        .select("sale_id, amount, percent, beneficiary_type, status")
+        .limit(2000);
       return (data as any[]) ?? [];
     },
   });
@@ -143,7 +144,8 @@ export default function Sales() {
       const { data } = await supabase
         .from("payments")
         .select("sale_id, amount, amount_paid, paid_at, status")
-        .not("sale_id", "is", null);
+        .not("sale_id", "is", null)
+        .limit(2000);
       return (data as any[]) ?? [];
     },
   });
