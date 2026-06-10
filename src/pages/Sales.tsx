@@ -983,7 +983,10 @@ export default function Sales() {
                           <span className="text-[11px] text-slate-400">—</span>
                         )}
                       </Td>
+                      )}
+                      {visibleCols.recebido && (
                       <Td align="right">
+
                         {baseAmt > 0 ? (
                           <button
                             type="button"
