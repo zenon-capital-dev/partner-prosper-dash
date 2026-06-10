@@ -889,23 +889,28 @@ export default function Sales() {
                         </Td>
                       )}
 
-                      <Td>
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-700">{s.products?.name ?? "—"}</span>
-                        </div>
-                      </Td>
-                      <Td>
-                        {s.partners?.full_name ? (
-                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
-                            <span className="size-1.5 rounded-full bg-indigo-500" />
-                            {s.partners.full_name}
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 italic">Direto</span>
-                        )}
-                      </Td>
-                      <Td className="text-slate-600 text-xs font-mono">{s.sale_date ? formatBRDate(parseISO(s.sale_date)) : "—"}</Td>
-                      <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>
+                      {visibleCols.product && (
+                        <Td>
+                          <div className="flex items-center gap-2">
+                            <span className="text-slate-700">{s.products?.name ?? "—"}</span>
+                          </div>
+                        </Td>
+                      )}
+                      {visibleCols.partner && (
+                        <Td>
+                          {s.partners?.full_name ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 text-[11px] font-semibold border border-indigo-100">
+                              <span className="size-1.5 rounded-full bg-indigo-500" />
+                              {s.partners.full_name}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">Direto</span>
+                          )}
+                        </Td>
+                      )}
+                      {visibleCols.date && <Td className="text-slate-600 text-xs font-mono">{s.sale_date ? formatBRDate(parseISO(s.sale_date)) : "—"}</Td>}
+                      {visibleCols.amount && <Td align="right"><span className="font-semibold text-slate-900 font-mono">{formatBRL(s.amount)}</span></Td>}
+
                       <Td align="right">
                         {commissionVal > 0 ? (
                           <div className="inline-flex flex-col items-end gap-0.5">
