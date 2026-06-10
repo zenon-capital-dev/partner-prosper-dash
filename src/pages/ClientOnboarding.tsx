@@ -35,7 +35,7 @@ export default function ClientOnboarding() {
       if (!client) return { profile, client: null, prods: [], docs: [], payments: [], contracts: [] };
       const [prods, docs, payments, contracts] = await Promise.all([
         supabase.from("client_products").select("*, products(name)").eq("client_id", client.id),
-        supabase.from("onboarding_documents").select("*").eq("client_id", user!.id).order("created_at", { ascending: true }),
+        supabase.from("onboarding_documents").select("*").eq("client_id", client.id).order("created_at", { ascending: true }),
         supabase.from("payments").select("*").eq("client_id", client.id).order("due_date", { ascending: true }),
         supabase.from("contracts").select("*").eq("client_id", client.id).order("created_at", { ascending: true }),
       ]);
