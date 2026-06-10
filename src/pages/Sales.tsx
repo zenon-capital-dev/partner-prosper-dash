@@ -766,27 +766,51 @@ export default function Sales() {
 
       {/* Table */}
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 mb-10">
-        <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 px-1">
           <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             {sorted.length} {sorted.length === 1 ? "venda" : "vendas"}
           </p>
-          <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Tamanho</span>
-            {(["compact", "normal", "spacious"] as const).map((d) => (
-              <button
-                key={d}
-                onClick={() => changeDensity(d)}
-                className={cn(
-                  "px-2.5 py-1 text-[10.5px] font-semibold rounded transition-colors",
-                  density === d ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
-                )}
-                title={d === "compact" ? "Compacto" : d === "normal" ? "Normal" : "Confortável"}
-              >
-                {d === "compact" ? "S" : d === "normal" ? "M" : "L"}
-              </button>
-            ))}
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                  <Eye className="size-3.5" />
+                  Colunas <span className="text-slate-400 font-mono">({Object.values(visibleCols).filter(Boolean).length}/{ALL_COLS.length})</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {ALL_COLS.map((c) => (
+                  <DropdownMenuItem key={c.key} onSelect={(e) => { e.preventDefault(); toggleCol(c.key); }} className="cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={visibleCols[c.key]}
+                      readOnly
+                      className="mr-2 size-3.5 accent-indigo-600 pointer-events-none"
+                    />
+                    {c.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Tamanho</span>
+              {(["compact", "normal", "spacious"] as const).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => changeDensity(d)}
+                  className={cn(
+                    "px-2.5 py-1 text-[10.5px] font-semibold rounded transition-colors",
+                    density === d ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                  )}
+                  title={d === "compact" ? "Compacto" : d === "normal" ? "Normal" : "Confortável"}
+                >
+                  {d === "compact" ? "S" : d === "normal" ? "M" : "L"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
           <div className={cn(
             "overflow-x-auto",
