@@ -15,9 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Building2, Palette, Shield, Bell, FileText, Users, Package,
-  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2, Palette as PaletteIcon
+  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2, Palette as PaletteIcon,
+  Database, Download
 } from "lucide-react";
 import { ThemeCustomizer } from "@/components/ThemeCustomizer";
+import { exportFullBackup } from "@/lib/full-backup";
+
 
 type ListItem = { id: string; label: string };
 
