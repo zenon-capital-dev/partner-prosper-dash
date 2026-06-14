@@ -15,9 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Building2, Palette, Shield, Bell, FileText, Users, Package,
-  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2, Palette as PaletteIcon
+  Tag, ListChecks, Wallet, Zap, ArrowRight, Plus, Trash2, Palette as PaletteIcon,
+  Database, Download
 } from "lucide-react";
 import { ThemeCustomizer } from "@/components/ThemeCustomizer";
+import { exportFullBackup } from "@/lib/full-backup";
+
 
 type ListItem = { id: string; label: string };
 
@@ -229,7 +232,11 @@ export default function Settings() {
               <TabsTrigger value="appearance" className="rounded-lg h-9 gap-2">
                 <Palette className="size-4" /> Aparência
               </TabsTrigger>
+              <TabsTrigger value="backup" className="rounded-lg h-9 gap-2">
+                <Database className="size-4" /> Backup
+              </TabsTrigger>
             </>
+
           )}
         </TabsList>
 
@@ -546,6 +553,41 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="backup" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="size-5 text-indigo-600" /> Backup completo da plataforma
+                  </CardTitle>
+                  <CardDescription>
+                    Gera uma planilha Excel (.xlsx) com <strong>todas as informações</strong> do sistema:
+                    usuários, clientes, vendas, produtos, prestadores, colaboradores, comissões,
+                    pagamentos, documentos, contratos, tarefas, leads e tudo mais. Os dados são lidos
+                    ao vivo do banco — toda exportação contém as informações <strong>do momento do clique</strong>.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    A geração pode demorar de 30 segundos a alguns minutos, dependendo do volume.
+                    Mantenha a aba aberta até o download iniciar. Cada tabela vira uma planilha (aba)
+                    do arquivo, mais uma aba <code>_resumo</code> com a contagem de registros.
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => exportFullBackup()}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2"
+                  >
+                    <Download className="size-4" /> Exportar backup completo (.xlsx)
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Recomendação: gere e arquive este backup <strong>diariamente</strong> ou antes de
+                    qualquer mudança grande. Guarde em local seguro (Google Drive, Dropbox, HD externo).
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
           </>
         )}
       </Tabs>
