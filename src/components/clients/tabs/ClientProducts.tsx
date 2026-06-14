@@ -298,7 +298,9 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                   const partnerName = sale?.partner?.full_name || null;
                   const referrerName = sale?.referrer?.full_name || null;
                   return (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-slate-100">
+                    <div className="overflow-x-auto bg-slate-100">
+                      <div className="grid grid-flow-col auto-cols-[minmax(170px,1fr)] gap-px min-w-full">
+
                       <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} tone="primary" onClick={cp.sale_id ? () => openEditSale(cp.sale_id) : undefined} />
                       <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
                       <DataField
