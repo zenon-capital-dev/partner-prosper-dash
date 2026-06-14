@@ -239,12 +239,15 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                       <UserCog className="size-3.5" /> {cp.service_providers ? "Trocar" : "Delegar"}
                     </Button>
                     <Button
+                      asChild
                       variant="outline" size="sm"
                       className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
-                      onClick={() => navigate(`/demandas/${cp.id}`)}
                     >
-                      <ExternalLink className="size-3.5" /> Abrir
+                      <Link to={`/demandas/${cp.id}`}>
+                        <ExternalLink className="size-3.5" /> Abrir
+                      </Link>
                     </Button>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-9 rounded-lg hover:bg-slate-100">
