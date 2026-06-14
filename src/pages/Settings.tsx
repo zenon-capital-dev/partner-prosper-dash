@@ -232,7 +232,11 @@ export default function Settings() {
               <TabsTrigger value="appearance" className="rounded-lg h-9 gap-2">
                 <Palette className="size-4" /> Aparência
               </TabsTrigger>
+              <TabsTrigger value="backup" className="rounded-lg h-9 gap-2">
+                <Database className="size-4" /> Backup
+              </TabsTrigger>
             </>
+
           )}
         </TabsList>
 
