@@ -45,26 +45,36 @@ const onlyDigits = (s: string | null | undefined) => (s || "").replace(/\D+/g, "
 export default function Clients() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canWrite = isAdmin || isAdminSecondary;
-  const [search, setSearch] = useState("");
+  const FK = "clients:filters:v1";
+  const saved = (() => {
+    try { return JSON.parse(sessionStorage.getItem(FK) || "{}"); } catch { return {}; }
+  })();
+  const [search, setSearch] = useState<string>(saved.search ?? "");
   const debouncedSearch = useDebounce(search, 400);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [view, setView] = useState<"grid" | "table">("grid");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState<boolean>(saved.showFilters ?? false);
+  const [view, setView] = useState<"grid" | "table">(saved.view ?? "grid");
+  const [currentPage, setCurrentPage] = useState<number>(saved.currentPage ?? 1);
   const itemsPerPage = 12;
 
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [productFilter, setProductFilter] = useState<string>("all");
-  const [partnerFilter, setPartnerFilter] = useState<string>("all");
-  const [providerFilter, setProviderFilter] = useState<string>("all");
-  const [cityFilter, setCityFilter] = useState<string>("all");
-  const [paymentFilter, setPaymentFilter] = useState<string>("all");
-  const [riskFilter, setRiskFilter] = useState<string>("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [statusFilter, setStatusFilter] = useState<string>(saved.statusFilter ?? "all");
+  const [productFilter, setProductFilter] = useState<string>(saved.productFilter ?? "all");
+  const [partnerFilter, setPartnerFilter] = useState<string>(saved.partnerFilter ?? "all");
+  const [providerFilter, setProviderFilter] = useState<string>(saved.providerFilter ?? "all");
+  const [cityFilter, setCityFilter] = useState<string>(saved.cityFilter ?? "all");
+  const [paymentFilter, setPaymentFilter] = useState<string>(saved.paymentFilter ?? "all");
+  const [riskFilter, setRiskFilter] = useState<string>(saved.riskFilter ?? "all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    if (!saved.dateRange) return undefined;
+    return {
+      from: saved.dateRange.from ? new Date(saved.dateRange.from) : undefined,
+      to: saved.dateRange.to ? new Date(saved.dateRange.to) : undefined,
+    } as DateRange;
+  });
 
-  const [sortKey, setSortKey] = useState<SortKey>("created");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [sortKey, setSortKey] = useState<SortKey>(saved.sortKey ?? "created");
+  const [sortDir, setSortDir] = useState<SortDir>(saved.sortDir ?? "desc");
 
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -72,6 +82,18 @@ export default function Clients() {
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, dateRange, view]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(FK, JSON.stringify({
+        search, showFilters, view, currentPage,
+        statusFilter, productFilter, partnerFilter, providerFilter,
+        cityFilter, paymentFilter, riskFilter, sortKey, sortDir,
+        dateRange: dateRange ? { from: dateRange.from, to: dateRange.to } : undefined,
+      }));
+    } catch {}
+  }, [search, showFilters, view, currentPage, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, sortKey, sortDir, dateRange]);
+
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients-admin-list"],
