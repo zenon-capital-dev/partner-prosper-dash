@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Package, User, UserCog, ClipboardCheck,
   Plus, Calendar, DollarSign, Activity, Handshake, UserPlus,
@@ -207,8 +207,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
               <div key={cp.id} className="bg-white border border-slate-200/70 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
                 {/* HEADER */}
                 <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-4">
-                  <button
-                    onClick={() => navigate(`/demandas/${cp.id}`)}
+                  <Link
+                    to={`/demandas/${cp.id}`}
                     className="flex items-start gap-4 min-w-0 flex-1 text-left group"
                   >
                     <div className="size-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
@@ -227,7 +227,8 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         {cp.products?.description || "Acompanhamento técnico e gestão estratégica."}
                       </p>
                     </div>
-                  </button>
+                  </Link>
+
 
                   <div className="flex items-center gap-2 shrink-0">
                     <Button
@@ -238,12 +239,15 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                       <UserCog className="size-3.5" /> {cp.service_providers ? "Trocar" : "Delegar"}
                     </Button>
                     <Button
+                      asChild
                       variant="outline" size="sm"
                       className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
-                      onClick={() => navigate(`/demandas/${cp.id}`)}
                     >
-                      <ExternalLink className="size-3.5" /> Abrir
+                      <Link to={`/demandas/${cp.id}`}>
+                        <ExternalLink className="size-3.5" /> Abrir
+                      </Link>
                     </Button>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-9 rounded-lg hover:bg-slate-100">
