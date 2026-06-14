@@ -56,6 +56,14 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   const [deadlineValue, setDeadlineValue] = useState("");
   const [partnerTarget, setPartnerTarget] = useState<{ id: string; current: string | null } | null>(null);
   const [referrerTarget, setReferrerTarget] = useState<{ id: string; current: string | null } | null>(null);
+  const [editSale, setEditSale] = useState<any>(null);
+
+  const openEditSale = async (saleId: string) => {
+    const { data, error } = await supabase.from("sales").select("*").eq("id", saleId).maybeSingle();
+    if (error || !data) { toast.error(error?.message || "Venda não encontrada"); return; }
+    setEditSale(data);
+  };
+
 
   // Lista de parceiros / indicadores ativos para edição rápida
   const { data: partners = [] } = useQuery({
@@ -87,17 +95,19 @@ export function ClientProducts({ clientId }: { clientId: string }) {
       const { data } = await supabase
         .from("client_products")
         .select(`
-          *,
+          id, status, value, deadline, start_date, end_date, created_at,
+          product_id, service_provider_id, responsible_employee_id,
+          custom_product_name, sale_id, client_id,
           products(name, description),
-          service_providers:service_provider_id(id, name, specialty),
-          responsible:responsible_employee_id(id, full_name),
-          steps:client_product_steps(*)
+          service_providers:service_provider_id(id, name, specialty)
         `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
+    staleTime: 60_000,
   });
+
 
   const cpIds = clientProducts.map((c: any) => c.id);
 
@@ -261,9 +271,15 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         <DropdownMenuItem onClick={() => openDeadline(cp)} className="gap-2 cursor-pointer text-[13px]">
                           <Calendar className="size-3.5" /> Definir prazo
                         </DropdownMenuItem>
+                        {cp.sale_id && (
+                          <DropdownMenuItem onClick={() => openEditSale(cp.sale_id)} className="gap-2 cursor-pointer text-[13px]">
+                            <DollarSign className="size-3.5" /> Editar financeiro / venda
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => navigate(`/demandas/${cp.id}`)} className="gap-2 cursor-pointer text-[13px]">
                           <FileText className="size-3.5" /> Ver detalhes
                         </DropdownMenuItem>
+
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="gap-2 text-rose-600 focus:text-rose-700 cursor-pointer text-[13px]"
@@ -283,7 +299,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                   const referrerName = sale?.referrer?.full_name || null;
                   return (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-slate-100">
-                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} />
+                      <DataField label="Investimento" value={formatBRL(cp.value)} icon={DollarSign} tone="primary" onClick={cp.sale_id ? () => openEditSale(cp.sale_id) : undefined} />
                       <DataField label="Início" value={cp.start_date ? formatDate(cp.start_date) : formatDate(cp.created_at)} icon={Calendar} />
                       <DataField
                         label="Prazo Final"
@@ -385,6 +401,19 @@ export function ClientProducts({ clientId }: { clientId: string }) {
           qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
         }}
       />
+
+      <SaleFormDialog
+        open={!!editSale}
+        onOpenChange={(v) => !v && setEditSale(null)}
+        sale={editSale}
+        clientId={clientId}
+        onCreated={() => {
+          qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+          qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+          setEditSale(null);
+        }}
+      />
+
 
       {/* Edição rápida — Parceiro */}
       <Dialog open={!!partnerTarget} onOpenChange={(v) => !v && setPartnerTarget(null)}>
