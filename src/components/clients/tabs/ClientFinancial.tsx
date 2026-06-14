@@ -146,7 +146,7 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
       </div>
 
       <div className="cp-panel overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]">
           <thead>
             <tr className="border-b border-border/40 bg-muted/30">
               <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Parcela / Referência</th>
