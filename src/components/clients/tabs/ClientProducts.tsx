@@ -87,17 +87,19 @@ export function ClientProducts({ clientId }: { clientId: string }) {
       const { data } = await supabase
         .from("client_products")
         .select(`
-          *,
+          id, status, value, deadline, start_date, end_date, created_at,
+          product_id, service_provider_id, responsible_employee_id,
+          custom_product_name, sale_id, client_id,
           products(name, description),
-          service_providers:service_provider_id(id, name, specialty),
-          responsible:responsible_employee_id(id, full_name),
-          steps:client_product_steps(*)
+          service_providers:service_provider_id(id, name, specialty)
         `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
+    staleTime: 60_000,
   });
+
 
   const cpIds = clientProducts.map((c: any) => c.id);
 
