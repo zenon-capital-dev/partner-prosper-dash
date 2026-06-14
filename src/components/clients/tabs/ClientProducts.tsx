@@ -331,7 +331,9 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         tone={referrerName ? "primary" : "muted"}
                         onClick={sale ? () => setReferrerTarget({ id: sale.id, current: sale.referrer_id }) : undefined}
                       />
+                      </div>
                     </div>
+
                   );
                 })()}
 
