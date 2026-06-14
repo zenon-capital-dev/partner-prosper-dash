@@ -30,20 +30,36 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (!user?.id) return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    const channelName = `notifications-rt-${user.id}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => qc.invalidateQueries({ queryKey: ["notifications"] }),
-      )
-      .subscribe();
+    const connect = () => {
+      if (channel || document.hidden) return;
+      const channelName = `notifications-rt-${user.id}-${Date.now()}`;
+      channel = supabase
+        .channel(channelName)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+          () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+        )
+        .subscribe();
+    };
+    const disconnect = () => {
+      if (channel) { supabase.removeChannel(channel); channel = null; }
+    };
+    const onVisibility = () => {
+      if (document.hidden) disconnect();
+      else { connect(); qc.invalidateQueries({ queryKey: ["notifications"] }); }
+    };
+
+    connect();
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", onVisibility);
+      disconnect();
     };
   }, [user?.id, qc]);
+
 
   const unread = (notes ?? []).filter((n: any) => !n.read).length;
 
