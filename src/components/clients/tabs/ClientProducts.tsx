@@ -402,6 +402,19 @@ export function ClientProducts({ clientId }: { clientId: string }) {
         }}
       />
 
+      <SaleFormDialog
+        open={!!editSale}
+        onOpenChange={(v) => !v && setEditSale(null)}
+        sale={editSale}
+        clientId={clientId}
+        onCreated={() => {
+          qc.invalidateQueries({ queryKey: ["client-products", clientId] });
+          qc.invalidateQueries({ queryKey: ["client-sales-links", clientId] });
+          setEditSale(null);
+        }}
+      />
+
+
       {/* Edição rápida — Parceiro */}
       <Dialog open={!!partnerTarget} onOpenChange={(v) => !v && setPartnerTarget(null)}>
         <DialogContent className="max-w-sm">
