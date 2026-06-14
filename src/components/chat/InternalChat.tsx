@@ -27,7 +27,8 @@ export function InternalChat() {
         .limit(100);
       return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user && open,
+    staleTime: 30_000,
   });
 
   const senderIds = Array.from(new Set((messages ?? []).map((m: any) => m.sender_id)));
@@ -38,14 +39,15 @@ export function InternalChat() {
       const { data } = await supabase.from("profiles").select("id, full_name, avatar_url").in("id", senderIds);
       return data ?? [];
     },
-    enabled: senderIds.length > 0,
+    enabled: open && senderIds.length > 0,
+    staleTime: 5 * 60_000,
   });
 
-  // Realtime
+  // Realtime — só assina enquanto o chat estiver aberto (economiza WebSocket por aba)
   useEffect(() => {
-    if (!user) return;
+    if (!user || !open) return;
     const ch = supabase
-      .channel("chat-general-rt")
+      .channel(`chat-general-rt-${user.id}-${Date.now()}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages", filter: "recipient_id=is.null" },
@@ -55,7 +57,8 @@ export function InternalChat() {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [user, qc]);
+  }, [user, qc, open]);
+
 
   // Auto-scroll
   useEffect(() => {
