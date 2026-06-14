@@ -56,6 +56,14 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   const [deadlineValue, setDeadlineValue] = useState("");
   const [partnerTarget, setPartnerTarget] = useState<{ id: string; current: string | null } | null>(null);
   const [referrerTarget, setReferrerTarget] = useState<{ id: string; current: string | null } | null>(null);
+  const [editSale, setEditSale] = useState<any>(null);
+
+  const openEditSale = async (saleId: string) => {
+    const { data, error } = await supabase.from("sales").select("*").eq("id", saleId).maybeSingle();
+    if (error || !data) { toast.error(error?.message || "Venda não encontrada"); return; }
+    setEditSale(data);
+  };
+
 
   // Lista de parceiros / indicadores ativos para edição rápida
   const { data: partners = [] } = useQuery({
