@@ -762,7 +762,7 @@ export default function Demands() {
              const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
              
              return (
-               <div key={d.id} className="vx-card p-6 hover:border-primary/30 transition-all cursor-pointer group flex flex-col h-full" onClick={() => navigate(`/demandas/${d.id}`)}>
+               <a key={d.id} href={`/demandas/${d.id}`} className="vx-card p-6 hover:border-primary/30 transition-all cursor-pointer group flex flex-col h-full block no-underline text-inherit" onClick={(e) => { if (e.metaKey || e.ctrlKey || e.button === 1) return; e.preventDefault(); navigate(`/demandas/${d.id}`); }}>
                  <div className="flex items-start justify-between mb-4">
                     <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
                        <Package className="size-5" />
@@ -801,7 +801,8 @@ export default function Demands() {
                        </div>
                     </div>
                  </div>
-               </div>
+               </a>
+
              );
           })}
         </div>
