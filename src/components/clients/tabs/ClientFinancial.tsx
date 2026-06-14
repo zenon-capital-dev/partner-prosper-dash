@@ -124,7 +124,8 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
+
         )}
       </div>
 
