@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { ClientProductSteps } from "./ClientProductSteps";
+import { DemandNotes } from "@/components/demands/DemandNotes";
 import { confirmAction } from "@/lib/confirm";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
