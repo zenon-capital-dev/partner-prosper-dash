@@ -115,11 +115,11 @@ export default function Dashboard() {
 
         {/* Secondary KPI Strip (Mini) */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
-          <MiniKPICard label="CONTRATOS ABERTOS" value={stats?.contracts.open || 0} color="blue" />
+          <MiniKPICard label="VENDAS REGISTRADAS" value={stats?.sales?.count || 0} color="emerald" />
+          <MiniKPICard label="VOL. VENDAS (BRUTO)" value={formatBRL(stats?.sales?.gross || 0)} color="blue" />
           <MiniKPICard label="DOCS PENDENTES" value={stats?.documents.pending || 0} color="amber" />
           <MiniKPICard label="TAREFAS EM ATRASO" value={stats?.tasks.overdue || 0} color="rose" />
-          <MiniKPICard label="COMISSÕES PAGAR" value={formatBRL(stats?.commissions.pending || 0)} color="emerald" />
-          <MiniKPICard label="TOTAL CLIENTES" value={stats?.clients.total || 0} color="slate" />
+          <MiniKPICard label="COMISSÕES PAGAR" value={formatBRL(stats?.commissions.pending || 0)} color="slate" />
         </div>
 
         {/* Charts Section */}
