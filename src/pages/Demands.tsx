@@ -5,7 +5,7 @@ import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/hooks/use-debounce";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { 
   ClipboardList, Search, Filter, ArrowUpRight, 
   Clock, AlertCircle, CheckCircle2, User, 
@@ -715,14 +715,20 @@ export default function Demands() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-border/50 animate-in fade-in zoom-in-95">
-                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}`)} className="gap-2 cursor-pointer font-medium py-2">
-                            <ArrowUpRight className="size-4 text-primary" /> Abrir Detalhes
+                          <DropdownMenuItem asChild className="gap-2 cursor-pointer font-medium py-2">
+                            <Link to={`/demandas/${d.id}`}>
+                              <ArrowUpRight className="size-4 text-primary" /> Abrir Detalhes
+                            </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}?action=edit`)} className="gap-2 cursor-pointer font-medium py-2">
-                            <ClipboardList className="size-4 text-blue-500" /> Editar / Status
+                          <DropdownMenuItem asChild className="gap-2 cursor-pointer font-medium py-2">
+                            <Link to={`/demandas/${d.id}?action=edit`}>
+                              <ClipboardList className="size-4 text-blue-500" /> Editar / Status
+                            </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/demandas/${d.id}?action=delegate`)} className="gap-2 cursor-pointer font-medium py-2">
-                            <UserRound className="size-4 text-emerald-500" /> Delegar Prestador
+                          <DropdownMenuItem asChild className="gap-2 cursor-pointer font-medium py-2">
+                            <Link to={`/demandas/${d.id}?action=delegate`}>
+                              <UserRound className="size-4 text-emerald-500" /> Delegar Prestador
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={async () => {

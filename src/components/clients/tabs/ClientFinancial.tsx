@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink } from "lucide-react";
+import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink, Pencil } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
   const [marking, setMarking] = useState<string | null>(null);
   const [saleOpen, setSaleOpen] = useState(false);
+  const [editingSale, setEditingSale] = useState<any>(null);
 
   const markPaid = async (paymentId: string, amount: number) => {
     const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
@@ -65,7 +66,8 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <SaleFormDialog open={saleOpen} onOpenChange={setSaleOpen} clientId={clientId} onCreated={() => { qc.invalidateQueries({ queryKey: ["client-sales", clientId] }); qc.invalidateQueries({ queryKey: ["client-payments", clientId] }); }} />
+      <SaleFormDialog open={saleOpen} onOpenChange={(v) => { setSaleOpen(v); if (!v) setEditingSale(null); }} clientId={clientId} sale={editingSale} onCreated={() => { qc.invalidateQueries({ queryKey: ["client-sales", clientId] }); qc.invalidateQueries({ queryKey: ["client-payments", clientId] }); }} />
+
 
       {/* Vendas do cliente */}
       <div className="cp-panel overflow-hidden">
@@ -77,7 +79,7 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
               <p className="text-[11px] text-muted-foreground">{sales.length} venda(s) · Total {formatBRL(salesTotal)}</p>
             </div>
           </div>
-          <Button size="sm" onClick={() => setSaleOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button size="sm" onClick={() => { setEditingSale(null); setSaleOpen(true); }} className="bg-indigo-600 hover:bg-indigo-700">
             <Plus className="size-4 mr-1.5" /> Nova venda
           </Button>
         </div>
@@ -117,9 +119,16 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
                     )}>{s.status}</span>
                   </td>
                   <td className="px-6 py-3 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => navigate(`/vendas?search=${encodeURIComponent(s.id)}`)}>
-                      <ExternalLink className="size-3.5" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button size="sm" variant="ghost" title="Editar venda" onClick={() => { setEditingSale(s); setSaleOpen(true); }}>
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button asChild size="sm" variant="ghost" title="Abrir na página de Vendas (clique-direito → nova aba)">
+                        <Link to={`/vendas?search=${encodeURIComponent(s.id)}`}>
+                          <ExternalLink className="size-3.5" />
+                        </Link>
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
