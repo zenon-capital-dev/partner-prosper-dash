@@ -24,6 +24,7 @@ export function useDashboardStats() {
         supabase.from("commissions").select("amount, status"),
         supabase.from("tasks").select("id, status, status_new, due_date"),
         supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(5),
+        supabase.from("sales").select("amount, status, sale_date, paid_at, zenon_cost, provider_cost"),
       ]);
 
       const [
