@@ -18,8 +18,9 @@ import { confirmAction } from "@/lib/confirm";
 import {
   Banknote, TrendingUp, AlertTriangle, Wallet, Receipt, BarChart3,
   Search, RefreshCw, CheckCircle2, AlertCircle, X, Download, ArrowUp, ArrowDown, ArrowUpDown,
-  Filter, FileX,
+  Filter, FileX, CalendarRange,
 } from "lucide-react";
+import { RevenueMap } from "@/components/finance/RevenueMap";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -308,6 +309,7 @@ export default function FinanceCenter() {
 
   const TABS = [
     { id: "fluxo", label: "Fluxo de caixa", icon: TrendingUp },
+    { id: "mapa", label: "Mapa de receitas", icon: CalendarRange },
     { id: "receitas", label: "Receitas", icon: Banknote, count: counts.receitas },
     { id: "recebidos", label: "Recebidos", icon: CheckCircle2, count: counts.recebidos },
     { id: "a_receber", label: "A receber", icon: Receipt, count: counts.a_receber },
@@ -457,6 +459,9 @@ export default function FinanceCenter() {
 
           <TabsContent value="fluxo" className="mt-6">
             <CashFlow payments={payments} commissions={commissions} />
+          </TabsContent>
+          <TabsContent value="mapa" className="mt-6">
+            <RevenueMap payments={payments} />
           </TabsContent>
           <TabsContent value="receitas" className="mt-6">
             <PaymentsTable
