@@ -385,6 +385,11 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                     )}
                   </div>
                 </div>
+
+                {/* NOTAS / HISTÓRICO DA DEMANDA */}
+                <div className="border-t border-slate-100">
+                  <DemandNotes clientProductId={cp.id} clientId={clientId} />
+                </div>
               </div>
             );
           })}
