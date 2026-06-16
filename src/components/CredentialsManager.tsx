@@ -39,6 +39,26 @@ export function CredentialsManager({
 
   const hasUser = !!userId;
 
+  // FunctionsHttpError vem com o body real em `error.context` (Response).
+  // O Supabase só repassa "Edge Function returned a non-2xx status code" no error.message,
+  // por isso precisamos ler manualmente o JSON da resposta para mostrar o erro real ao usuário.
+  const extractError = async (error: any, data: any): Promise<string | null> => {
+    if (!error && !(data as any)?.error) return null;
+    if ((data as any)?.error) return String((data as any).error);
+    try {
+      const ctx = error?.context;
+      if (ctx && typeof ctx.json === "function") {
+        const body = await ctx.json();
+        if (body?.error) return String(body.error);
+      } else if (ctx && typeof ctx.text === "function") {
+        const txt = await ctx.text();
+        try { const j = JSON.parse(txt); if (j?.error) return String(j.error); } catch { /* */ }
+        if (txt) return txt;
+      }
+    } catch { /* */ }
+    return error?.message || "Erro desconhecido";
+  };
+
   const saveEmail = async () => {
     if (!userId) return toast.error("Este " + entityLabel + " ainda não possui usuário vinculado.");
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("E-mail inválido");
@@ -47,9 +67,8 @@ export function CredentialsManager({
       body: { action: "update_profile", user_id: userId, profile: { email } },
     });
     setSavingEmail(false);
-    if (error || (data as any)?.error) {
-      return toast.error((data as any)?.error || error?.message || "Falha ao atualizar e-mail");
-    }
+    const errMsg = await extractError(error, data);
+    if (errMsg) return toast.error(errMsg);
     toast.success("E-mail atualizado. O " + entityLabel + " poderá logar com o novo e-mail.");
     onUpdated?.();
   };
@@ -64,9 +83,8 @@ export function CredentialsManager({
       body: { action: "set_password", user_id: userId, password },
     });
     setSavingPw(false);
-    if (error || (data as any)?.error) {
-      return toast.error((data as any)?.error || error?.message || "Falha ao atualizar senha");
-    }
+    const errMsg = await extractError(error, data);
+    if (errMsg) return toast.error(errMsg);
     toast.success("Senha atualizada. O " + entityLabel + " já pode logar com a nova senha.");
     setPassword("");
     setConfirm("");

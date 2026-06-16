@@ -24,6 +24,7 @@ export function useDashboardStats() {
         supabase.from("commissions").select("amount, status"),
         supabase.from("tasks").select("id, status, status_new, due_date"),
         supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(5),
+        supabase.from("sales").select("amount, status, sale_date, paid_at, zenon_cost, provider_cost"),
       ]);
 
       const [
@@ -39,6 +40,7 @@ export function useDashboardStats() {
         commissionsData,
         tasksData,
         recentActivitiesData,
+        salesData,
       ] = results as any[];
 
       const contracts = contractsData.data || [];
@@ -48,14 +50,26 @@ export function useDashboardStats() {
       const commissions = commissionsData.data || [];
       const tasks = tasksData.data || [];
       const recentActivities = recentActivitiesData.data || [];
+      const sales = salesData?.data || [];
 
-      const revenueReceived = payments
+      // Receita: usa SALES como fonte de verdade (cada venda registrada conta), com
+      // fallback para payments quando a venda já gerou parcelas pagas.
+      const salesActive = sales.filter((s: any) => s.status !== "cancelada");
+      const salesGross = salesActive.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+      const salesReceived = sales
+        .filter((s: any) => s.status === "concluida" || s.status === "paga")
+        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+
+      const paymentsReceived = payments
         .filter((p: any) => p.status === "pago")
         .reduce((sum: number, p: any) => sum + Number(p.amount_paid || 0), 0);
-      const revenuePending = payments
+      const paymentsPending = payments
         .filter((p: any) => p.status === "pendente" || p.status === "atrasado" || p.status === "parcialmente_pago")
         .reduce((sum: number, p: any) => sum + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
-      const revenueTotal = revenueReceived + revenuePending;
+
+      const revenueReceived = Math.max(salesReceived, paymentsReceived);
+      const revenueTotal = Math.max(salesGross, paymentsReceived + paymentsPending);
+      const revenuePending = Math.max(0, revenueTotal - revenueReceived);
 
       const commsPaid = commissions
         .filter((c: any) => c.status === "paga" || c.status === "paid")
@@ -99,6 +113,11 @@ export function useDashboardStats() {
           total: revenueTotal,
           received: revenueReceived,
           pending: revenuePending,
+        },
+        sales: {
+          count: salesActive.length,
+          gross: salesGross,
+          received: salesReceived,
         },
         commissions: {
           pending: commsPending,

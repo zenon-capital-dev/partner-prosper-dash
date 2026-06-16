@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { ClientProductSteps } from "./ClientProductSteps";
+import { DemandNotes } from "@/components/demands/DemandNotes";
 import { confirmAction } from "@/lib/confirm";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -383,6 +384,11 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* NOTAS / HISTÓRICO DA DEMANDA */}
+                <div className="border-t border-slate-100">
+                  <DemandNotes clientProductId={cp.id} clientId={clientId} />
                 </div>
               </div>
             );

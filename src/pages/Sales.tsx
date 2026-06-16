@@ -559,7 +559,7 @@ export default function Sales() {
         }
         kpis={[
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" /> },
-          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: kpis.total > 0 ? `${kpis.total > 0 ? ((recebidoNoMes / kpis.total) * 100).toFixed(1) : 0}% do bruto` : undefined },
+          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: "Entradas confirmadas neste mês" },
           { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined },
           { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined },
           { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined },
