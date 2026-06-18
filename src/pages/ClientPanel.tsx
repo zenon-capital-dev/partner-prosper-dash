@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
   Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
+  MessageCircle, Mail, Clock, ArrowUpRight, ShieldCheck,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useSystemSettings, buildMailtoLink, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -78,10 +80,14 @@ const paymentStatusMeta = (payment: any) => {
 
 export default function ClientPanel() {
   const { user, signOut } = useAuth() as any;
+  const settings = useSystemSettings();
   const navigate = useNavigate();
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/portal-cliente" : `/portal-cliente/${k}`);
+  const supportMessage = `Olá! Preciso de suporte com ${settings.company_name}.`;
+  const whatsappLink = buildWhatsAppLink(settings.support_whatsapp, supportMessage);
+  const mailLink = buildMailtoLink(settings.support_email, `Suporte - ${settings.company_name}`);
 
   const { data: client } = useQuery({
     queryKey: ["client-self", user?.id],
@@ -349,14 +355,91 @@ export default function ClientPanel() {
 
         {activeKey === "suporte" && (
           <>
-            <PanelHero role="cliente" eyebrow="Atendimento" title="Suporte" subtitle="Estamos aqui para ajudar." />
-            <SectionCard title="Fale conosco" icon={HelpCircle}>
-              <p className="text-[13px] text-slate-600">Em caso de dúvidas sobre seu serviço, documentos ou pagamentos, entre em contato com nossa equipe.</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Button onClick={() => window.open("mailto:contato@empresa.com", "_blank")} className="bg-sky-600 hover:bg-sky-700">Enviar e-mail</Button>
-                <Button variant="outline" onClick={() => navigate("/cliente/suporte")}>Central de ajuda</Button>
-              </div>
-            </SectionCard>
+            <PanelHero
+              role="cliente"
+              eyebrow="Atendimento"
+              title="Suporte"
+              subtitle="Fale com a equipe pelo canal oficial de atendimento."
+              actions={(
+                <Button asChild className="bg-white text-sky-700 hover:bg-sky-50 border border-white/30 shadow-sm">
+                  <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                    WhatsApp <ArrowUpRight className="size-4 ml-1.5" />
+                  </a>
+                </Button>
+              )}
+            />
+
+            <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-5">
+              <SectionCard title="Canais de atendimento" subtitle="Escolha como quer falar conosco" icon={HelpCircle}>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <a
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group rounded-xl border border-slate-200/70 bg-slate-50/60 p-4 transition hover:border-sky-200 hover:bg-sky-50/60"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="size-10 rounded-lg bg-sky-50 border border-sky-100 text-sky-700 flex items-center justify-center shrink-0 group-hover:bg-white">
+                        <MessageCircle className="size-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">WhatsApp</p>
+                        <p className="mt-1 text-xs text-slate-500 leading-relaxed">Atendimento direto para dúvidas sobre serviços, documentos e pagamentos.</p>
+                        <p className="mt-3 font-mono text-xs font-semibold text-sky-700">+{settings.support_whatsapp}</p>
+                      </div>
+                    </div>
+                  </a>
+
+                  <a
+                    href={mailLink}
+                    className="group rounded-xl border border-slate-200/70 bg-slate-50/60 p-4 transition hover:border-indigo-200 hover:bg-indigo-50/50"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="size-10 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 group-hover:bg-white">
+                        <Mail className="size-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-900">E-mail</p>
+                        <p className="mt-1 text-xs text-slate-500 leading-relaxed">Use para enviar informações, comprovantes ou detalhes mais completos.</p>
+                        <p className="mt-3 text-xs font-semibold text-indigo-700 truncate">{settings.support_email}</p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Button asChild className="bg-sky-600 hover:bg-sky-700">
+                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer">Iniciar conversa</a>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <a href={mailLink}>Enviar e-mail</a>
+                  </Button>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Informações" icon={Clock}>
+                <div className="space-y-4 text-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="size-9 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+                      <Clock className="size-4" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Resposta rápida</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Retorno em horário comercial.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="size-9 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+                      <ShieldCheck className="size-4" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-900">Canal oficial</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Atendimento validado pela equipe {settings.company_name}.</p>
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+            </div>
           </>
         )}
 

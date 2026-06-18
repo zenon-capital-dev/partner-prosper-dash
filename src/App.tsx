@@ -59,7 +59,6 @@ const OperationalCockpit = lazy(() => import("./pages/OperationalCockpit"));
 const Proposals = lazy(() => import("./pages/Proposals"));
 const FinanceCenter = lazy(() => import("./pages/FinanceCenter"));
 const Agenda = lazy(() => import("./pages/Agenda"));
-const Support = lazy(() => import("./pages/Support"));
 
 function RouteFallback() {
   return <div className="min-h-dvh bg-background" />;
@@ -151,7 +150,6 @@ const App = () => (
 
             <Route element={<AppLayout />}>
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
-              <Route path="/cliente/suporte" element={<Support />} />
             </Route>
 
             <Route element={<PanelLayout />}>
@@ -160,6 +158,7 @@ const App = () => (
               <Route path="/portal-cliente" element={<ClientPanel />} />
               <Route path="/portal-cliente/:tab" element={<ClientPanel />} />
               <Route path="/cliente" element={<Navigate to="/portal-cliente" replace />} />
+              <Route path="/cliente/suporte" element={<Navigate to="/portal-cliente/suporte" replace />} />
               <Route path="/cliente/:tab" element={<Navigate to="/portal-cliente" replace />} />
               <Route path="/colaborador" element={<CollaboratorPanel />} />
               <Route path="/colaborador/:tab" element={<CollaboratorPanel />} />
