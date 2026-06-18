@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
-  AlertCircle, Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
+  Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
