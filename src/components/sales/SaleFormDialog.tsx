@@ -212,13 +212,43 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         if (error) throw error;
         toast.success("Venda atualizada com sucesso");
       } else {
-        const { error } = await supabase.from("sales").insert({
+        const { data: newSale, error } = await supabase.from("sales").insert({
           ...payload,
           created_by: user?.id,
         }).select().single();
         if (error) throw error;
-        toast.success("Venda registrada e comissões geradas");
+
+        // Gera as parcelas (faturas) para o cliente acompanhar/pagar
+        const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
+        const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
+        const totalCents = Math.round(Number(form.amount) * 100);
+        const baseCents = Math.floor(totalCents / n);
+        const remainder = totalCents - baseCents * n;
+        const addMonths = (iso: string, m: number) => {
+          const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
+          const dt = new Date(Date.UTC(y, mo - 1 + m, d));
+          return dt.toISOString().slice(0, 10);
+        };
+        const rows = Array.from({ length: n }, (_, i) => ({
+          sale_id: newSale.id,
+          client_id: newSale.client_id,
+          product_id: newSale.product_id,
+          amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
+          due_date: addMonths(baseDate, i),
+          status: "pendente" as any,
+          installments_count: n,
+          installment_number: i + 1,
+          description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
+        }));
+        const { error: payErr } = await supabase.from("payments").insert(rows);
+        if (payErr) {
+          console.warn("Falha ao gerar parcelas:", payErr);
+          toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
+        } else {
+          toast.success(`Venda registrada e ${n} ${n > 1 ? "parcelas geradas" : "fatura gerada"}`);
+        }
       }
+
 
       // Invalida todos os caches que dependem de vendas/demandas para refletir imediatamente em qualquer tela.
       const targetClientId = form.client_id || clientId;
