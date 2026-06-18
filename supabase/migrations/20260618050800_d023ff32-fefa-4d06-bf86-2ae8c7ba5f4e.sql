@@ -1,0 +1,1 @@
+ALTER TABLE public.payments ALTER COLUMN sale_id DROP NOT NULL;
