@@ -242,7 +242,7 @@ export default function ProviderDetail() {
         </TabsContent>
 
         <TabsContent value="acesso" className="mt-4">
-          <CredentialsManager userId={provider.user_id} currentEmail={provider.email} entityLabel="prestador" />
+          <CredentialsManager userId={provider.user_id} currentEmail={provider.email} entityLabel="prestador" entityType="prestador" entityId={provider.id} entityName={provider.name ?? provider.full_name} />
         </TabsContent>
       </Tabs>
     </div>
