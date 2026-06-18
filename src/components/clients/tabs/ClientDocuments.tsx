@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus, FileText, Check, X, Clock, Trash2, Eye,
+  Plus, FileText, Check, X, Clock, Trash2, Eye, Pencil,
   Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2
 } from "lucide-react";
+
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -296,6 +297,14 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           )}
                           <Button
                             variant="ghost" size="icon"
+                            onClick={() => { setSelectedDoc(doc); setDefaultProductId(doc.product_id ?? null); setOpen(true); }}
+                            className="size-8 text-muted-foreground hover:text-indigo-600"
+                            title="Editar solicitação"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon"
                             aria-label="Adicionar comentário"
                             onClick={() => handleAddNote(doc)}
                             className="size-8 text-muted-foreground hover:text-foreground"
@@ -303,6 +312,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           >
                             <MessageSquare className="size-4" />
                           </Button>
+
                           <Button
                             variant="ghost" size="icon"
                             onClick={() => deleteDoc(doc.id)}
