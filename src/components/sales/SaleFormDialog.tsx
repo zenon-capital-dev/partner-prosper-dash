@@ -586,6 +586,32 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                 </div>
               </Section>
 
+              {!form.id && (
+                <Section icon={Calendar} title="Parcelas / Faturas" hint="Geradas automaticamente para o cliente pagar">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Nº de parcelas">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={60}
+                        className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
+                        value={form.installments_count ?? 1}
+                        onChange={(e) => setForm({ ...form, installments_count: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="1º vencimento">
+                      <Input
+                        type="date"
+                        className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
+                        value={form.first_due_date ?? form.sale_date}
+                        onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2">As demais parcelas vencem mensalmente a partir do 1º vencimento. O cliente verá as faturas pendentes no portal.</p>
+                </Section>
+              )}
+
               <Section icon={FileText} title="Documentação">
                 <Field label="Notas e Observações Internas">
                   <Textarea 
@@ -597,6 +623,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                   />
                 </Field>
               </Section>
+
 
               {/* Resumo Dinâmico Flutuante */}
               {amount > 0 && (
