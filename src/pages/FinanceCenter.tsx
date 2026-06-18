@@ -126,6 +126,7 @@ export default function FinanceCenter() {
   const qc = useQueryClient();
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
+  const [newPaymentOpen, setNewPaymentOpen] = useState(false);
 
   const { data: payments = [], isLoading: loadingPay } = useQuery({
     queryKey: ["fin-payments"],
@@ -325,6 +326,11 @@ export default function FinanceCenter() {
 
   return (
     <div className="min-h-dvh bg-slate-50/60 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      <PaymentFormDialog
+        open={newPaymentOpen}
+        onOpenChange={setNewPaymentOpen}
+        onCreated={() => qc.invalidateQueries({ queryKey: ["fin-payments"] })}
+      />
       <PageHero
         eyebrow="Financeiro"
         category="Operações"
