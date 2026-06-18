@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
   Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
+  MessageCircle, Mail, Clock, ArrowUpRight, ShieldCheck,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useSystemSettings, buildMailtoLink, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
