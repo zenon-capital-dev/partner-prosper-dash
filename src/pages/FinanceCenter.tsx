@@ -386,12 +386,12 @@ export default function FinanceCenter() {
 
       <div className="max-w-[1600px] mx-auto px-5 lg:px-8 space-y-6 pb-10">
         <div className="rounded-lg border border-slate-200/70 bg-white shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+            <div className="min-w-0">
               <h3 className="font-display text-base font-semibold text-slate-900">Saldo líquido — Zenon</h3>
               <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos custos de venda (Zenon + Prestador), comissões pagas a indicadores/parceiros e despesas variáveis.</p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right shrink-0">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
               <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
             </div>
