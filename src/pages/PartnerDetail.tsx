@@ -193,7 +193,7 @@ export default function PartnerDetail() {
         </TabsContent>
 
         <TabsContent value="acesso" className="mt-4">
-          <CredentialsManager userId={partner.user_id} currentEmail={partner.email} entityLabel="parceiro" />
+          <CredentialsManager userId={partner.user_id} currentEmail={partner.email} entityLabel="parceiro" entityType="parceiro" entityId={partner.id} entityName={partner.full_name} />
         </TabsContent>
       </Tabs>
     </div>
