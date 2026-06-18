@@ -80,10 +80,14 @@ const paymentStatusMeta = (payment: any) => {
 
 export default function ClientPanel() {
   const { user, signOut } = useAuth() as any;
+  const settings = useSystemSettings();
   const navigate = useNavigate();
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/portal-cliente" : `/portal-cliente/${k}`);
+  const supportMessage = `Olá! Preciso de suporte com ${settings.company_name}.`;
+  const whatsappLink = buildWhatsAppLink(settings.support_whatsapp, supportMessage);
+  const mailLink = buildMailtoLink(settings.support_email, `Suporte - ${settings.company_name}`);
 
   const { data: client } = useQuery({
     queryKey: ["client-self", user?.id],
