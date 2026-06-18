@@ -53,20 +53,23 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()) });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()) });
 
   useEffect(() => {
     if (open) {
       if (sale) {
         setForm({
           ...sale,
-          sale_date: sale.sale_date || ymdBR(nowBR())
+          sale_date: sale.sale_date || ymdBR(nowBR()),
+          installments_count: 1,
+          first_due_date: sale.sale_date || ymdBR(nowBR()),
         });
       } else {
-        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId });
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()) });
       }
     }
   }, [open, clientId, sale]);
+
 
   const { data: clients } = useQuery({
     queryKey: ["clients-select"],
@@ -209,13 +212,43 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         if (error) throw error;
         toast.success("Venda atualizada com sucesso");
       } else {
-        const { error } = await supabase.from("sales").insert({
+        const { data: newSale, error } = await supabase.from("sales").insert({
           ...payload,
           created_by: user?.id,
         }).select().single();
         if (error) throw error;
-        toast.success("Venda registrada e comissões geradas");
+
+        // Gera as parcelas (faturas) para o cliente acompanhar/pagar
+        const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
+        const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
+        const totalCents = Math.round(Number(form.amount) * 100);
+        const baseCents = Math.floor(totalCents / n);
+        const remainder = totalCents - baseCents * n;
+        const addMonths = (iso: string, m: number) => {
+          const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
+          const dt = new Date(Date.UTC(y, mo - 1 + m, d));
+          return dt.toISOString().slice(0, 10);
+        };
+        const rows = Array.from({ length: n }, (_, i) => ({
+          sale_id: newSale.id,
+          client_id: newSale.client_id,
+          product_id: newSale.product_id,
+          amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
+          due_date: addMonths(baseDate, i),
+          status: "pendente" as any,
+          installments_count: n,
+          installment_number: i + 1,
+          description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
+        }));
+        const { error: payErr } = await supabase.from("payments").insert(rows);
+        if (payErr) {
+          console.warn("Falha ao gerar parcelas:", payErr);
+          toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
+        } else {
+          toast.success(`Venda registrada e ${n} ${n > 1 ? "parcelas geradas" : "fatura gerada"}`);
+        }
       }
+
 
       // Invalida todos os caches que dependem de vendas/demandas para refletir imediatamente em qualquer tela.
       const targetClientId = form.client_id || clientId;
@@ -553,6 +586,32 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                 </div>
               </Section>
 
+              {!form.id && (
+                <Section icon={Calendar} title="Parcelas / Faturas" hint="Geradas automaticamente para o cliente pagar">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Nº de parcelas">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={60}
+                        className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
+                        value={form.installments_count ?? 1}
+                        onChange={(e) => setForm({ ...form, installments_count: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="1º vencimento">
+                      <Input
+                        type="date"
+                        className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
+                        value={form.first_due_date ?? form.sale_date}
+                        onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2">As demais parcelas vencem mensalmente a partir do 1º vencimento. O cliente verá as faturas pendentes no portal.</p>
+                </Section>
+              )}
+
               <Section icon={FileText} title="Documentação">
                 <Field label="Notas e Observações Internas">
                   <Textarea 
@@ -564,6 +623,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                   />
                 </Field>
               </Section>
+
 
               {/* Resumo Dinâmico Flutuante */}
               {amount > 0 && (
