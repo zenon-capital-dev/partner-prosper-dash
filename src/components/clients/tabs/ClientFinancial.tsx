@@ -149,10 +149,11 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
           <h3 className="text-lg font-bold tracking-tight">Fluxo de Pagamentos</h3>
           <p className="text-xs text-muted-foreground">Controle de parcelas e faturas</p>
         </div>
-        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate(`/financeiro?clientId=${clientId}&new=1`)}>
+        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setEditingSale(null); setSaleOpen(true); }}>
           <DollarSign className="size-4 mr-2" /> Lançar Pagamento
         </Button>
       </div>
+
 
       <div className="cp-panel overflow-hidden">
         <div className="overflow-x-auto"><table className="w-full text-sm min-w-[760px]">
