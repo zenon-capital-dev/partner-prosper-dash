@@ -571,7 +571,11 @@ export default function Indicators() {
               userId={credRow.user_id}
               currentEmail={credRow.email}
               entityLabel="indicador"
+              entityType="indicador"
+              entityId={credRow.id}
+              entityName={credRow.full_name}
             />
+
           )}
         </DialogContent>
       </Dialog>

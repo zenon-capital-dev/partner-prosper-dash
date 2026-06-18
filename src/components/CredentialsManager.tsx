@@ -10,11 +10,19 @@ import { toast } from "sonner";
 import { validatePassword } from "@/lib/password";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
+type EntityType = "cliente" | "parceiro" | "prestador" | "indicador" | "colaborador";
+
 interface Props {
   userId?: string | null;
   currentEmail?: string | null;
   /** Entity label, e.g. "parceiro", "cliente", "prestador" */
   entityLabel?: string;
+  /** Entity type used to wire the new user back to the record (clients/partners/...) */
+  entityType?: EntityType;
+  /** Row id of the entity (client.id, partner.id, etc.) used to link the new user */
+  entityId?: string | null;
+  /** Optional display name used when creating the access */
+  entityName?: string | null;
   /** Render as a Card section (for tabs) or inline trigger button */
   variant?: "card" | "button";
   buttonLabel?: string;
@@ -25,6 +33,9 @@ export function CredentialsManager({
   userId,
   currentEmail,
   entityLabel = "usuário",
+  entityType,
+  entityId,
+  entityName,
   variant = "card",
   buttonLabel = "Alterar acesso",
   onUpdated,
@@ -35,7 +46,9 @@ export function CredentialsManager({
   const [show, setShow] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+
 
   const hasUser = !!userId;
 
@@ -91,9 +104,51 @@ export function CredentialsManager({
     onUpdated?.();
   };
 
+  const canCreate = !hasUser && !!entityType && (entityType === "colaborador" || !!entityId);
+
+  const createAccess = async () => {
+    if (!canCreate) return;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("E-mail inválido");
+    const check = validatePassword(password);
+    if (!check.ok) return toast.error(check.errors[0]);
+    if (password !== confirm) return toast.error("As senhas não conferem");
+    const roleMap: Record<EntityType, string> = {
+      cliente: "cliente",
+      parceiro: "parceiro",
+      prestador: "prestador",
+      indicador: "indicador",
+      colaborador: "colaborador",
+    };
+    const linkKey: Partial<Record<EntityType, string>> = {
+      cliente: "link_client_id",
+      parceiro: "link_partner_id",
+      prestador: "link_service_provider_id",
+      indicador: "link_referrer_id",
+    };
+    const body: Record<string, any> = {
+      email,
+      password,
+      role: roleMap[entityType!],
+      full_name: entityName ?? email,
+      send_invite: false,
+    };
+    const key = linkKey[entityType!];
+    if (key && entityId) body[key] = entityId;
+
+    setCreating(true);
+    const { data, error } = await supabase.functions.invoke("invite-user", { body });
+    setCreating(false);
+    const errMsg = await extractError(error, data);
+    if (errMsg) return toast.error(errMsg);
+    try { await navigator.clipboard.writeText(`Email: ${email}\nSenha: ${password}`); } catch {}
+    toast.success(`Acesso criado para ${email}`, { description: "Credenciais copiadas para a área de transferência.", duration: 15000 });
+    setPassword(""); setConfirm("");
+    onUpdated?.();
+  };
+
   const body = (
     <div className="space-y-6">
-      {!hasUser && (
+      {!hasUser && !canCreate && (
         <Alert variant="destructive">
           <ShieldAlert className="size-4" />
           <AlertDescription>
@@ -101,6 +156,38 @@ export function CredentialsManager({
           </AlertDescription>
         </Alert>
       )}
+
+      {canCreate && (
+        <div className="space-y-3 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/[0.03]">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <KeyRound className="size-4 text-primary" /> Criar acesso para este {entityLabel}
+          </div>
+          <p className="text-xs text-muted-foreground">Este {entityLabel} ainda não possui login. Defina e-mail e senha para gerar o acesso ao painel.</p>
+          <div className="space-y-2">
+            <Label className="text-xs">E-mail de login</Label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@empresa.com" />
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Senha</Label>
+              <Input type={show ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mín. 8, 1 letra e 1 número" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Confirmar senha</Label>
+              <Input type={show ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repita a senha" />
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <button type="button" onClick={() => setShow((s) => !s)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+              {show ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />} {show ? "Ocultar" : "Mostrar"} senha
+            </button>
+            <Button onClick={createAccess} disabled={creating || !email || !password || !confirm}>
+              {creating ? "Criando..." : "Criar acesso"}
+            </Button>
+          </div>
+        </div>
+      )}
+
 
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-sm font-semibold">

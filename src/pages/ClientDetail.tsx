@@ -601,7 +601,7 @@ export default function ClientDetail() {
           </TabsContent>
 
           <TabsContent value="acesso" className="m-0">
-            <CredentialsManager userId={client.user_id} currentEmail={client.email} entityLabel="cliente" />
+            <CredentialsManager userId={client.user_id} currentEmail={client.email} entityLabel="cliente" entityType="cliente" entityId={client.id} entityName={client.full_name} onUpdated={() => qc.invalidateQueries({ queryKey: ["client", id] })} />
           </TabsContent>
         </div>
       </Tabs>
