@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
-  AlertCircle, Calendar, HelpCircle,
+  AlertCircle, Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -41,6 +41,39 @@ const DOC_TONE: Record<string, string> = {
   em_analise: "bg-indigo-50 text-indigo-700 border-indigo-200",
   aprovado: "bg-emerald-50 text-emerald-700 border-emerald-200",
   reprovado: "bg-rose-50 text-rose-700 border-rose-200",
+};
+
+const OPEN_PAYMENT_STATUSES = ["pendente", "em_aberto", "parcial", "parcialmente_pago", "atrasado", "vencido"];
+
+const splitPaymentDescription = (description?: string | null) => {
+  if (!description) return { title: "Pendência de pagamento", note: "" };
+  const [title, ...rest] = description.split(" — ");
+  return { title: title?.trim() || "Pendência de pagamento", note: rest.join(" — ").trim() };
+};
+
+const isPaymentOverdue = (payment: any) => {
+  if (!OPEN_PAYMENT_STATUSES.includes(payment.status) || !payment.due_date) return false;
+  const [y, m, d] = String(payment.due_date).slice(0, 10).split("-").map(Number);
+  const due = new Date(y, (m || 1) - 1, d || 1);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due.getTime() < today.getTime();
+};
+
+const paymentStatusMeta = (payment: any) => {
+  if (payment.status === "pago" || payment.status === "paga") {
+    return { label: "Pago", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", iconTone: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+  }
+  if (payment.status === "cancelado") {
+    return { label: "Cancelado", tone: "bg-slate-100 text-slate-600 border-slate-200", iconTone: "bg-slate-50 text-slate-600 border-slate-200" };
+  }
+  if (isPaymentOverdue(payment)) {
+    return { label: "Vencido", tone: "bg-rose-50 text-rose-700 border-rose-200", iconTone: "bg-rose-50 text-rose-700 border-rose-100" };
+  }
+  if (payment.status === "parcial" || payment.status === "parcialmente_pago") {
+    return { label: "Parcial", tone: "bg-amber-50 text-amber-700 border-amber-200", iconTone: "bg-amber-50 text-amber-700 border-amber-100" };
+  }
+  return { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", iconTone: "bg-sky-50 text-sky-700 border-sky-100" };
 };
 
 export default function ClientPanel() {
