@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import AppLayout from "@/components/AppLayout";
+import PanelLayout from "@/components/PanelLayout";
 import { ThemeColorManager } from "@/components/ThemeColorManager";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { lazy, Suspense } from "react";
