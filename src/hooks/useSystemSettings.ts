@@ -33,8 +33,9 @@ export function useSystemSettings() {
   return data ?? DEFAULTS;
 }
 
-export function buildWhatsAppLink(phone: string, message?: string) {
-  const clean = phone.replace(/\D/g, "");
+export function buildWhatsAppLink(phone: string | undefined | null, message?: string) {
+  const clean = (phone ?? "").replace(/\D/g, "");
+  if (!clean) return "#";
   return `https://wa.me/${clean}${message ? `?text=${encodeURIComponent(message)}` : ""}`;
 }
 
