@@ -145,10 +145,12 @@ const App = () => (
             </Route>
             <Route element={<AppLayout />}>
               <Route path="/" element={<RoleHome />} />
-              <Route path="/parceiro" element={<PartnerPanel />} />
-              <Route path="/parceiro/:tab" element={<PartnerPanel />} />
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/cliente/suporte" element={<Support />} />
+            </Route>
+            <Route element={<PanelLayout />}>
+              <Route path="/parceiro" element={<PartnerPanel />} />
+              <Route path="/parceiro/:tab" element={<PartnerPanel />} />
               <Route path="/portal-cliente" element={<ClientPanel />} />
               <Route path="/portal-cliente/:tab" element={<ClientPanel />} />
               <Route path="/cliente" element={<Navigate to="/portal-cliente" replace />} />
