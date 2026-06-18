@@ -13,6 +13,7 @@ import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 import { ConfirmRoot } from "@/lib/confirm";
 import { useBodyScrollCleanup } from "@/hooks/use-body-scroll-cleanup";
+import { RouteGuard } from "@/components/RouteGuard";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
