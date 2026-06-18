@@ -75,15 +75,15 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
 
       {/* Vendas do cliente */}
       <div className="cp-panel overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-gradient-to-r from-indigo-50/40 to-transparent">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center"><ShoppingBag className="size-4" /></div>
-            <div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-border/40 bg-gradient-to-r from-indigo-50/40 to-transparent">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0"><ShoppingBag className="size-4" /></div>
+            <div className="min-w-0">
               <h3 className="text-sm font-bold">Vendas registradas</h3>
-              <p className="text-[11px] text-muted-foreground">{sales.length} venda(s) · Total {formatBRL(salesTotal)}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{sales.length} venda(s) · Total {formatBRL(salesTotal)}</p>
             </div>
           </div>
-          <Button size="sm" onClick={() => { setEditingSale(null); setSaleOpen(true); }} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button size="sm" onClick={() => { setEditingSale(null); setSaleOpen(true); }} className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto">
             <Plus className="size-4 mr-1.5" /> Nova venda
           </Button>
         </div>
