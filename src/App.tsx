@@ -144,11 +144,14 @@ const App = () => (
               <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
             </Route>
+            {/* RoleHome roda fora de qualquer layout para não dar flash da sidebar admin
+                em quem é cliente/parceiro/etc. antes de o redirect levar pro painel certo. */}
+            <Route path="/" element={<RoleHome />} />
             <Route element={<AppLayout />}>
-              <Route path="/" element={<RoleHome />} />
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/cliente/suporte" element={<Support />} />
             </Route>
+
             <Route element={<PanelLayout />}>
               <Route path="/parceiro" element={<PartnerPanel />} />
               <Route path="/parceiro/:tab" element={<PartnerPanel />} />
