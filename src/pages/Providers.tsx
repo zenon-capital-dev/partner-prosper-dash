@@ -508,7 +508,11 @@ export default function Providers() {
               userId={credRow.user_id}
               currentEmail={credRow.email}
               entityLabel="prestador"
+              entityType="prestador"
+              entityId={credRow.id}
+              entityName={credRow.name ?? credRow.full_name}
             />
+
           )}
         </DialogContent>
       </Dialog>
