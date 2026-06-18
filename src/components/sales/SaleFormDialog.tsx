@@ -301,83 +301,50 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-slate-200 shadow-2xl gap-0 bg-white flex flex-col max-h-[95vh] sm:max-h-[90vh]">
-        {/* Header Ultra Premium */}
-        <DialogHeader className="px-6 sm:px-10 pt-8 pb-10 bg-gradient-to-br from-[#1e293b] via-[#334155] to-[#1e293b] text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <CircleDollarSign className="size-32 rotate-12" />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="size-14 rounded-2xl bg-indigo-500/20 backdrop-blur-xl ring-1 ring-white/30 flex items-center justify-center text-white shadow-2xl">
-                <CircleDollarSign className="size-7" strokeWidth={2.5} />
+      <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-2xl border-slate-200 shadow-xl gap-0 bg-white flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+        {/* Header claro, padrão admin */}
+        <DialogHeader className="px-6 sm:px-8 pt-6 pb-5 bg-white border-b border-slate-200/70">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="size-10 rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 flex items-center justify-center shrink-0">
+                <CircleDollarSign className="size-5" strokeWidth={2.4} />
               </div>
               <div className="flex-1 min-w-0">
-                <DialogTitle className="font-display text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight">
+                <DialogTitle className="font-display text-xl sm:text-2xl font-bold text-slate-900 leading-tight tracking-tight">
                   {form.id ? "Editar Venda" : "Nova Venda"}
                 </DialogTitle>
-                <DialogDescription className="text-xs font-medium text-slate-300 uppercase tracking-[0.2em] mt-1">
-                  Gestão de Receita & Comissionamento
+                <DialogDescription className="text-[11px] font-medium text-slate-500 uppercase tracking-[0.18em] mt-0.5">
+                  Receita & comissionamento
                 </DialogDescription>
               </div>
             </div>
 
             {amount > 0 && (
-              <div className="flex flex-wrap gap-2">
-                <div className="bg-white/5 backdrop-blur-md rounded-xl px-4 py-2.5 ring-1 ring-white/10 flex flex-col">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Valor Bruto</span>
-                  <span className="font-display text-lg font-black tabular-nums">{fmt(amount)}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="bg-slate-50 border border-slate-200/70 rounded-lg px-3 py-1.5 flex flex-col items-end">
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">Bruto</span>
+                  <span className="font-mono text-sm font-bold tabular-nums text-slate-900">{fmt(amount)}</span>
                 </div>
-                <div className="bg-amber-500/10 backdrop-blur-md rounded-xl px-4 py-2.5 ring-1 ring-amber-500/20 flex flex-col">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-amber-300 mb-0.5">(−) Impostos</span>
-                  <span className="font-display text-lg font-black tabular-nums text-amber-300">{fmt(zenonCost)}</span>
-                </div>
-                <div className="bg-emerald-500/10 backdrop-blur-md rounded-xl px-4 py-2.5 ring-1 ring-emerald-500/20 flex flex-col">
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400 mb-0.5">= Líquido</span>
-                  <span className="font-display text-lg font-black tabular-nums text-emerald-400">{fmt(liquido)}</span>
+                <div className={cn(
+                  "rounded-lg px-3 py-1.5 flex flex-col items-end border",
+                  liquido < 0 ? "bg-rose-50 border-rose-200" : "bg-emerald-50 border-emerald-200"
+                )}>
+                  <span className={cn("text-[9px] font-semibold uppercase tracking-wider", liquido < 0 ? "text-rose-600" : "text-emerald-700")}>Líquido</span>
+                  <span className={cn("font-mono text-sm font-bold tabular-nums", liquido < 0 ? "text-rose-700" : "text-emerald-700")}>{fmt(liquido)}</span>
                 </div>
               </div>
             )}
           </div>
-
-          {/* KPI Bar — sequência: Bruto → (-) Impostos → (-) Prestador → (-) Comissões → Líquido */}
-          {amount > 0 && (
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div className="bg-white/5 rounded-xl p-3 ring-1 ring-white/5">
-                <div className="text-[9px] uppercase tracking-widest text-slate-400 font-bold mb-1">Bruto</div>
-                <div className="text-sm font-bold tabular-nums">{fmt(amount)}</div>
-              </div>
-              <div className="bg-amber-500/5 rounded-xl p-3 ring-1 ring-amber-500/10">
-                <div className="text-[9px] uppercase tracking-widest text-amber-300 font-bold mb-1">Impostos (Zenon)</div>
-                <div className="text-sm font-bold tabular-nums text-amber-200">−{fmt(zenonCost)}</div>
-              </div>
-              <div className="bg-orange-500/5 rounded-xl p-3 ring-1 ring-orange-500/10">
-                <div className="text-[9px] uppercase tracking-widest text-orange-300 font-bold mb-1">Prestador</div>
-                <div className="text-sm font-bold tabular-nums text-orange-200">−{fmt(providerCost)}</div>
-              </div>
-              <div className="bg-rose-500/5 rounded-xl p-3 ring-1 ring-rose-500/10">
-                <div className="text-[9px] uppercase tracking-widest text-rose-300 font-bold mb-1">Parceiro</div>
-                <div className="text-sm font-bold tabular-nums text-rose-200">−{fmt(partnerCalc)}</div>
-              </div>
-              <div className="bg-rose-500/5 rounded-xl p-3 ring-1 ring-rose-500/10">
-                <div className="text-[9px] uppercase tracking-widest text-rose-300 font-bold mb-1">Indicador</div>
-                <div className="text-sm font-bold tabular-nums text-rose-200">−{fmt(referrerCalc)}</div>
-              </div>
-              <div className="bg-emerald-500/10 rounded-xl p-3 ring-1 ring-emerald-500/20">
-                <div className="text-[9px] uppercase tracking-widest text-emerald-400 font-bold mb-1">Líquido ({marginPct.toFixed(1)}%)</div>
-                <div className={cn("text-sm font-bold tabular-nums", liquido >= 0 ? "text-emerald-300" : "text-rose-300")}>{fmt(liquido)}</div>
-              </div>
-            </div>
-          )}
         </DialogHeader>
 
         {/* Body com Scroll Suave */}
-        <div className="px-6 sm:px-10 py-8 flex-1 overflow-y-auto bg-slate-50/50 space-y-8 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="px-6 sm:px-8 py-6 flex-1 overflow-y-auto bg-slate-50/60 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
+
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Coluna Principal */}
-            <div className="lg:col-span-7 space-y-8">
+            <div className="lg:col-span-7 space-y-6">
+
               
               <Section icon={Users} title="Dados do Negócio" hint="Identificação principal da transação">
                 <div className="grid grid-cols-1 gap-5">
@@ -563,7 +530,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             </div>
 
             {/* Sidebar de Informações Adicionais */}
-            <div className="lg:col-span-5 space-y-8">
+            <div className="lg:col-span-5 space-y-6">
+
+
               
               <Section icon={Calendar} title="Agendamento & Status">
                 <div className="space-y-5">
@@ -727,23 +696,24 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 sm:px-10 py-6 bg-white border-t border-slate-100 flex items-center justify-between gap-4">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting} className="rounded-xl px-6 h-12 font-bold text-slate-500 hover:bg-slate-50 transition-all">
+        <DialogFooter className="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/70 flex items-center justify-between gap-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting} className="rounded-lg px-5 h-10 font-semibold text-slate-600 hover:bg-slate-100">
             Cancelar
           </Button>
-          <Button 
-            onClick={submit} 
-            disabled={submitting} 
-            className="rounded-xl px-10 h-12 font-bold bg-[#1e293b] hover:bg-black text-white shadow-xl shadow-slate-200 transition-all active:scale-[0.98] flex items-center gap-2"
+          <Button
+            onClick={submit}
+            disabled={submitting}
+            className="rounded-lg px-6 h-10 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-2"
           >
             {submitting ? "Processando..." : (
               <>
-                Confirmar Registro
                 <CircleDollarSign className="size-4" />
+                {form.id ? "Salvar alterações" : "Registrar venda"}
               </>
             )}
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
