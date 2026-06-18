@@ -297,6 +297,14 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           )}
                           <Button
                             variant="ghost" size="icon"
+                            onClick={() => { setSelectedDoc(doc); setDefaultProductId(doc.product_id ?? null); setOpen(true); }}
+                            className="size-8 text-muted-foreground hover:text-indigo-600"
+                            title="Editar solicitação"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon"
                             aria-label="Adicionar comentário"
                             onClick={() => handleAddNote(doc)}
                             className="size-8 text-muted-foreground hover:text-foreground"
@@ -304,6 +312,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                           >
                             <MessageSquare className="size-4" />
                           </Button>
+
                           <Button
                             variant="ghost" size="icon"
                             onClick={() => deleteDoc(doc.id)}
