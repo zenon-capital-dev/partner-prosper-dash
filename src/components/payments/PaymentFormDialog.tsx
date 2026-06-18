@@ -78,6 +78,7 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
   const perInstallment = installments > 0 ? totalNum / installments : 0;
 
   const submit = async () => {
+    if (!clientId) return toast.error("Selecione um cliente");
     if (totalNum <= 0) return toast.error("Informe um valor válido");
     if (!firstDueDate) return toast.error("Informe a data de vencimento");
     if (installments < 1 || installments > 60) return toast.error("Parcelas entre 1 e 60");
@@ -132,6 +133,22 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {!lockedClientId && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">Cliente</Label>
+              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                <SelectTrigger><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {clients.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.full_name}{c.email ? ` · ${c.email}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Valor total (R$)</Label>
