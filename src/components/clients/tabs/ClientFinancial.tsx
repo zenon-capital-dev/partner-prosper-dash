@@ -38,7 +38,8 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
         .from("payments")
         .select(`
           *,
-          client_product:client_products(products(name))
+          client_product:client_products(products(name), custom_product_name),
+          product:products(name)
         `)
         .eq("client_id", clientId)
         .order("due_date", { ascending: true });
