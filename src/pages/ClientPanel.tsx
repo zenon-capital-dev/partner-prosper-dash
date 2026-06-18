@@ -147,7 +147,12 @@ export default function ClientPanel() {
     enabled: !!clientId,
     queryFn: async () => {
       const { data } = await supabase.from("payments")
-        .select("id, amount, status, due_date, paid_at, description, created_at")
+        .select(`
+          id, amount, amount_paid, status, due_date, paid_at, description, notes,
+          installment_number, installments_count, created_at, client_id, client_product_id, product_id,
+          client_product:client_products(custom_product_name, products(name)),
+          product:products(name)
+        `)
         .eq("client_id", clientId!).order("due_date", { ascending: false });
       return data ?? [];
     },
