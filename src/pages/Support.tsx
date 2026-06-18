@@ -1,4 +1,4 @@
-import { MessageCircle, Clock, CheckCircle2 } from "lucide-react";
+import { MessageCircle, Clock, ShieldCheck, Phone, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSystemSettings, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 
@@ -10,50 +10,69 @@ export default function Support() {
   );
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-6 animate-fade-in">
-      <div className="vx-card max-w-xl w-full p-10 text-center shadow-xl bg-white border border-slate-200/70">
-        <div className="size-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 mx-auto flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30">
-          <MessageCircle className="size-10 text-white" strokeWidth={2.2} />
+    <div className="p-6 lg:p-8 animate-fade-in">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-slate-900">
+            Suporte
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Fale com nossa equipe pelo canal oficial de atendimento.
+          </p>
         </div>
 
-        <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 mb-2">
-          Atendimento via WhatsApp
-        </h1>
-        <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-          Nosso canal exclusivo de suporte é o WhatsApp. Clique no botão abaixo para falar direto com nossa equipe.
-        </p>
-
-        <Button
-          asChild
-          size="lg"
-          className="w-full h-12 text-base font-bold bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg shadow-emerald-500/30"
-        >
-          <a href={waLink} target="_blank" rel="noopener noreferrer">
-            <MessageCircle className="size-5 mr-2" />
-            Iniciar conversa no WhatsApp
-          </a>
-        </Button>
-
-        <div className="grid grid-cols-2 gap-3 mt-8 text-left">
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200/70">
-            <Clock className="size-4 text-emerald-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs font-bold text-slate-900">Resposta rápida</p>
-              <p className="text-[11px] text-muted-foreground">Em horário comercial</p>
+        {/* Main card */}
+        <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm overflow-hidden">
+          <div className="p-6 lg:p-8 flex items-start gap-5 border-b border-slate-100">
+            <div className="size-11 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+              <MessageCircle className="size-5 text-indigo-600" strokeWidth={2.2} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-slate-900">
+                Atendimento via WhatsApp
+              </h2>
+              <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                Nosso canal exclusivo de suporte. Clique para conversar diretamente com nossa equipe.
+              </p>
+              <Button
+                asChild
+                className="mt-4 h-10 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-sm"
+              >
+                <a href={waLink} target="_blank" rel="noopener noreferrer">
+                  Iniciar conversa
+                  <ArrowUpRight className="size-4 ml-1.5" />
+                </a>
+              </Button>
             </div>
           </div>
-          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200/70">
-            <CheckCircle2 className="size-4 text-emerald-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="text-xs font-bold text-slate-900">Atendimento humano</p>
-              <p className="text-[11px] text-muted-foreground">Direto com nossa equipe</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+            <div className="p-5 flex items-start gap-3">
+              <Clock className="size-4 text-slate-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-900">Resposta rápida</p>
+                <p className="text-xs text-slate-500 mt-0.5">Em horário comercial</p>
+              </div>
+            </div>
+            <div className="p-5 flex items-start gap-3">
+              <ShieldCheck className="size-4 text-slate-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-900">Atendimento humano</p>
+                <p className="text-xs text-slate-500 mt-0.5">Direto com nossa equipe</p>
+              </div>
+            </div>
+            <div className="p-5 flex items-start gap-3">
+              <Phone className="size-4 text-slate-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-semibold text-slate-900">Telefone</p>
+                <p className="text-xs text-slate-500 mt-0.5 font-mono">
+                  +{settings.support_whatsapp}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-
-        <p className="mt-6 text-[11px] text-muted-foreground">
-          Telefone: <span className="font-mono font-semibold">+{settings.support_whatsapp}</span>
-        </p>
       </div>
     </div>
   );
