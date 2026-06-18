@@ -683,7 +683,11 @@ export default function Partners() {
               userId={credRow.user_id}
               currentEmail={credRow.email}
               entityLabel="parceiro"
+              entityType="parceiro"
+              entityId={credRow.id}
+              entityName={credRow.full_name}
             />
+
           )}
         </DialogContent>
       </Dialog>
