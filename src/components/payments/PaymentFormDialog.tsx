@@ -14,7 +14,8 @@ import { formatBRL } from "@/lib/format";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  clientId: string;
+  /** Quando informado, o dialog fica travado a esse cliente. Quando omitido, o usuário escolhe. */
+  clientId?: string;
   onCreated?: () => void;
 }
 
@@ -24,13 +25,16 @@ function addMonths(iso: string, months: number) {
   return d.toISOString().slice(0, 10);
 }
 
-export function PaymentFormDialog({ open, onOpenChange, clientId, onCreated }: Props) {
+export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId, onCreated }: Props) {
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [amount, setAmount] = useState("");
   const [installments, setInstallments] = useState(1);
   const [firstDueDate, setFirstDueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [productId, setProductId] = useState<string>("none");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const clientId = lockedClientId ?? selectedClientId;
 
   useEffect(() => {
     if (open) {
@@ -39,8 +43,22 @@ export function PaymentFormDialog({ open, onOpenChange, clientId, onCreated }: P
       setFirstDueDate(new Date().toISOString().slice(0, 10));
       setProductId("none");
       setDescription("");
+      setSelectedClientId("");
     }
   }, [open]);
+
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients-for-payment-picker"],
+    enabled: open && !lockedClientId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("id, full_name, email")
+        .order("full_name", { ascending: true })
+        .limit(500);
+      return data ?? [];
+    },
+  });
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["client-products-for-payment", clientId],
@@ -49,11 +67,12 @@ export function PaymentFormDialog({ open, onOpenChange, clientId, onCreated }: P
       const { data } = await supabase
         .from("client_products")
         .select("id, custom_product_name, product_id, products(name)")
-        .eq("client_id", clientId)
+        .eq("client_id", clientId!)
         .order("created_at", { ascending: false });
       return data ?? [];
     },
   });
+
 
   const totalNum = Number(amount.replace(",", ".")) || 0;
   const perInstallment = installments > 0 ? totalNum / installments : 0;
