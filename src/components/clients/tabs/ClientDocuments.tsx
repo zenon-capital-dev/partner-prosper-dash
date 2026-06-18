@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus, FileText, Check, X, Clock, Trash2, Eye,
+  Plus, FileText, Check, X, Clock, Trash2, Eye, Pencil,
   Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2
 } from "lucide-react";
+
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
