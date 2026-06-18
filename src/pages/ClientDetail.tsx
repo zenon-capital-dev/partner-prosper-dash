@@ -443,7 +443,7 @@ export default function ClientDetail() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5 sm:space-y-6">
-        <div className="-mx-3 sm:mx-0 overflow-x-auto pb-1 scrollbar-hide flex">
+        <div className="-mx-3 sm:mx-0 overflow-x-auto pb-2 flex tabs-scrollbar">
           <TabsList className="bg-transparent border-b border-border/60 justify-start rounded-none h-11 sm:h-12 p-0 gap-5 sm:gap-8 px-3 sm:px-0 flex-nowrap w-max min-w-full">
             {TABS.map(tab => (
               <TabsTrigger 

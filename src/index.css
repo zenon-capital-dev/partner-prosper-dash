@@ -389,10 +389,22 @@
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+    padding-bottom: 6px;
   }
   .admin-shell [role="tablist"]::-webkit-scrollbar {
-    display: none;
+    height: 6px;
+  }
+  .admin-shell [role="tablist"]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .admin-shell [role="tablist"]::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  .admin-shell [role="tablist"]::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.4);
   }
   .admin-shell [role="tab"] {
     flex: 0 0 auto;
