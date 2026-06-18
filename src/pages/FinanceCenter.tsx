@@ -21,6 +21,8 @@ import {
   Filter, FileX, CalendarRange,
 } from "lucide-react";
 import { RevenueMap } from "@/components/finance/RevenueMap";
+import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
+import { Plus } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -331,9 +333,14 @@ export default function FinanceCenter() {
         icon={<Banknote className="h-5 w-5" />}
         actions={
           canManage && (
-            <Button onClick={processAlerts} className="bg-indigo-600 hover:bg-indigo-700 text-white">
-              <RefreshCw className="h-4 w-4 mr-2" /> Atualizar alertas
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Plus className="h-4 w-4 mr-2" /> Lançar pendência
+              </Button>
+              <Button onClick={processAlerts} variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" /> Atualizar alertas
+              </Button>
+            </div>
           )
         }
         kpis={[
