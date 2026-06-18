@@ -122,8 +122,7 @@ export default function ClientPanel() {
     refetchOnMount: "always",
   });
 
-    staleTime: 2 * 60_000,
-  });
+
 
 
   const kpis = useMemo(() => {
