@@ -419,13 +419,10 @@
     .admin-shell .vx-table-cell {
       @apply px-3 py-3;
     }
-    /* Targeted grid fixes for mobile to prevent overflow */
-    .admin-shell .grid:not(.grid-flow-col) {
-      grid-template-columns: minmax(0, 1fr) !important;
-    }
-    .admin-shell .sm\:grid-cols-3,
-    .admin-shell .sm\:grid-cols-2 {
-      grid-template-columns: minmax(0, 1fr) !important;
+    /* Apenas grids SEM colunas explícitas colapsam para 1 coluna em mobile.
+       Grids com grid-cols-1/2/3/4 etc. definidos no JSX são respeitados. */
+    .admin-shell .grid:not(.grid-flow-col):not([class*="grid-cols-"]) {
+      grid-template-columns: minmax(0, 1fr);
     }
     /* Prevent container leakage */
     .admin-shell .max-w-\[1500px\],
