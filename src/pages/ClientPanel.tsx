@@ -118,6 +118,10 @@ export default function ClientPanel() {
         .eq("client_id", clientId!).order("due_date", { ascending: false });
       return data ?? [];
     },
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+
     staleTime: 2 * 60_000,
   });
 
