@@ -696,23 +696,24 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 sm:px-10 py-6 bg-white border-t border-slate-100 flex items-center justify-between gap-4">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting} className="rounded-xl px-6 h-12 font-bold text-slate-500 hover:bg-slate-50 transition-all">
+        <DialogFooter className="px-6 sm:px-8 py-4 bg-white border-t border-slate-200/70 flex items-center justify-between gap-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting} className="rounded-lg px-5 h-10 font-semibold text-slate-600 hover:bg-slate-100">
             Cancelar
           </Button>
-          <Button 
-            onClick={submit} 
-            disabled={submitting} 
-            className="rounded-xl px-10 h-12 font-bold bg-[#1e293b] hover:bg-black text-white shadow-xl shadow-slate-200 transition-all active:scale-[0.98] flex items-center gap-2"
+          <Button
+            onClick={submit}
+            disabled={submitting}
+            className="rounded-lg px-6 h-10 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm flex items-center gap-2"
           >
             {submitting ? "Processando..." : (
               <>
-                Confirmar Registro
                 <CircleDollarSign className="size-4" />
+                {form.id ? "Salvar alterações" : "Registrar venda"}
               </>
             )}
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
