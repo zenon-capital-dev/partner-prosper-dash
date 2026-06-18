@@ -530,7 +530,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             </div>
 
             {/* Sidebar de Informações Adicionais */}
-            <div className="lg:col-span-5 space-y-8">
+            <div className="lg:col-span-5 space-y-6">
+
+
               
               <Section icon={Calendar} title="Agendamento & Status">
                 <div className="space-y-5">
