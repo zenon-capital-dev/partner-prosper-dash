@@ -13,6 +13,7 @@ import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 import { ConfirmRoot } from "@/lib/confirm";
 import { useBodyScrollCleanup } from "@/hooks/use-body-scroll-cleanup";
+import { RouteGuard } from "@/components/RouteGuard";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -144,11 +145,15 @@ const App = () => (
               <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
             </Route>
+            {/* RoleHome roda fora de qualquer layout para não dar flash da sidebar admin
+                em quem é cliente/parceiro/etc. antes de o redirect levar pro painel certo. */}
+            <Route path="/" element={<RouteGuard><RoleHome /></RouteGuard>} />
+
             <Route element={<AppLayout />}>
-              <Route path="/" element={<RoleHome />} />
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
               <Route path="/cliente/suporte" element={<Support />} />
             </Route>
+
             <Route element={<PanelLayout />}>
               <Route path="/parceiro" element={<PartnerPanel />} />
               <Route path="/parceiro/:tab" element={<PartnerPanel />} />

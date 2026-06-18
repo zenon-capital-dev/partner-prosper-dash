@@ -118,8 +118,11 @@ export default function ClientPanel() {
         .eq("client_id", clientId!).order("due_date", { ascending: false });
       return data ?? [];
     },
-    staleTime: 2 * 60_000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
+
+
 
 
   const kpis = useMemo(() => {
@@ -258,7 +261,17 @@ export default function ClientPanel() {
               {payments.length === 0 ? <EmptyState icon={Wallet} title="Sem faturas" /> :
                 <ul className="divide-y divide-slate-100 -mx-1">
                   {(payments as any[]).map((p) => {
-                    const overdue = p.status !== "pago" && p.due_date && new Date(p.due_date) < new Date();
+                    // Compara dia a dia (não hora) e considera vencido só se a data já passou.
+                    // Vencimento de hoje = pendente, não "vencido".
+                    let overdue = false;
+                    if (p.status !== "pago" && p.due_date) {
+                      const [y, m, d] = String(p.due_date).slice(0, 10).split("-").map(Number);
+                      const due = new Date(y, (m || 1) - 1, d || 1);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      overdue = due.getTime() < today.getTime();
+                    }
+
                     return (
                       <li key={p.id} className="flex items-center gap-3 px-3 py-3">
                         <div className={cn("size-10 rounded-md flex items-center justify-center shrink-0", p.status === "pago" ? "bg-emerald-50 text-emerald-700" : overdue ? "bg-rose-50 text-rose-700" : "bg-sky-50 text-sky-700")}>
