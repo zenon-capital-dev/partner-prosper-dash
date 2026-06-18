@@ -442,10 +442,6 @@ export default function ClientPanel() {
             </div>
           </>
         )}
-              </div>
-            </SectionCard>
-          </>
-        )}
 
         {activeKey === "perfil" && (
           <>
