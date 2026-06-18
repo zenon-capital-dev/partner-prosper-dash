@@ -341,9 +341,10 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         <div className="px-6 sm:px-8 py-6 flex-1 overflow-y-auto bg-slate-50/60 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
 
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Coluna Principal */}
-            <div className="lg:col-span-7 space-y-8">
+            <div className="lg:col-span-7 space-y-6">
+
               
               <Section icon={Users} title="Dados do Negócio" hint="Identificação principal da transação">
                 <div className="grid grid-cols-1 gap-5">
