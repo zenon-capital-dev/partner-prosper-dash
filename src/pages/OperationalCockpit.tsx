@@ -64,6 +64,7 @@ export default function OperationalCockpit() {
     queryKey: ["cockpit-demands"],
     queryFn: async () => {
       const today = new Date();
+      const in30 = addDays(today, 30).toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from("client_products")
         .select(`
@@ -71,7 +72,10 @@ export default function OperationalCockpit() {
           client:clients(id, full_name, user_id),
           product:products(name)
         `)
-        .not("status", "in", '("concluido", "cancelado")');
+        .not("status", "in", '("concluido", "cancelado")')
+        .or(`deadline.lte.${in30},sla_due_date.lte.${in30},end_date.lte.${in30}`)
+        .order("deadline", { ascending: true, nullsFirst: false })
+        .limit(150);
       
       if (error) throw error;
       
@@ -103,7 +107,9 @@ export default function OperationalCockpit() {
         .from("clients")
         .select("id, full_name, updated_at, status, user_id")
         .lt("updated_at", sevenDaysAgo)
-        .eq("status", "ativo");
+        .eq("status", "ativo")
+        .order("updated_at", { ascending: true })
+        .limit(100);
       
       if (error) throw error;
       
@@ -130,13 +136,14 @@ export default function OperationalCockpit() {
           id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["solicitado", "enviado", "em_analise", "reprovado", "pendente_correcao", "vencido"]);
+        .in("status", ["solicitado", "enviado", "em_analise", "reprovado", "pendente_correcao", "vencido"])
+        .not("client_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(150);
       
       if (error) throw error;
       
-      return (data as any[])
-        .filter(d => d.client_id) // skip orphans
-        .map(d => ({
+      return (data as any[]).map(d => ({
         id: d.id,
         type: 'document',
         title: d.name || "Documento",
@@ -160,7 +167,9 @@ export default function OperationalCockpit() {
           client:clients(id, full_name)
         `)
         .neq("status", "pago")
-        .lte("due_date", new Date().toISOString());
+        .lte("due_date", new Date().toISOString())
+        .order("due_date", { ascending: true })
+        .limit(150);
       
       if (error) throw error;
       
@@ -189,7 +198,9 @@ export default function OperationalCockpit() {
           collaborator:profiles!collaborator_id(id, full_name),
           referrer:referrers(id, full_name)
         `)
-        .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"]);
+        .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"])
+        .order("created_at", { ascending: false })
+        .limit(150);
       
       if (error) throw error;
       
@@ -216,13 +227,14 @@ export default function OperationalCockpit() {
           id, status, name, created_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["rascunho", "criado", "enviado", "aguardando_assinatura", "pendente_correcao"]);
+        .in("status", ["rascunho", "criado", "enviado", "aguardando_assinatura", "pendente_correcao"])
+        .not("client_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(100);
       
       if (error) throw error;
       
-      return (data as any[])
-        .filter(c => c.client_id)
-        .map(c => ({
+      return (data as any[]).map(c => ({
           id: c.id,
           type: 'contract',
           title: c.name || "Contrato",
@@ -243,14 +255,16 @@ export default function OperationalCockpit() {
       const in3days = addDays(now, 3).toISOString();
       const { data, error } = await supabase
         .from("tasks")
-        .select("*")
+        .select("id, title, description, status, priority, due_date")
         .neq("status", "concluido")
         .not("due_date", "is", null)
-        .lte("due_date", in3days);
+        .lte("due_date", in3days)
+        .order("due_date", { ascending: true })
+        .limit(150);
       
       if (error) throw error;
       
-      return data
+      return (data as any[])
         .filter(t => {
           const overdue = isBefore(new Date(t.due_date), startOfDay(now));
           const highPriority = t.priority === 'alta' || t.priority === 'urgente';
@@ -279,13 +293,14 @@ export default function OperationalCockpit() {
           id, status, request_title, requested_at, client_id,
           client:clients(id, full_name)
         `)
-        .in("status", ["pendente", "enviado", "em_analise"]);
+        .in("status", ["pendente", "enviado", "em_analise"])
+        .not("client_id", "is", null)
+        .order("requested_at", { ascending: false })
+        .limit(100);
       
       if (error) throw error;
       
-      return (data as any[])
-        .filter(r => r.client_id)
-        .map(r => ({
+      return (data as any[]).map(r => ({
           id: r.id,
           type: 'request',
           title: r.request_title || "Solicitação de Documento",
@@ -303,27 +318,29 @@ export default function OperationalCockpit() {
     queryKey: ["cockpit-reports"],
     queryFn: async () => {
       const threeDaysAgo = subDays(new Date(), 3).toISOString();
-      const { data, error } = await supabase
-        .from("client_products")
-        .select(`
-          id, status, 
-          client:clients(full_name),
-          product:products(name),
-          provider:service_providers(id, name, user_id)
-        `)
-        .eq("status", "em_andamento")
-        .not("service_provider_id", "is", null);
+      const [{ data, error }, { data: recentReports }] = await Promise.all([
+        supabase
+          .from("client_products")
+          .select(`
+            id, status, 
+            client:clients(full_name),
+            product:products(name),
+            provider:service_providers(id, name, user_id)
+          `)
+          .eq("status", "em_andamento")
+          .not("service_provider_id", "is", null)
+          .limit(150),
+        supabase
+          .from("client_product_status_reports")
+          .select("client_product_id")
+          .gte("created_at", threeDaysAgo),
+      ]);
       
       if (error) throw error;
-      
-      const { data: recentReports } = await supabase
-        .from("client_product_status_reports")
-        .select("client_product_id, created_at")
-        .gte("created_at", threeDaysAgo);
 
-      const itemsWithRecentReports = new Set(recentReports?.map(r => r.client_product_id) || []);
+      const itemsWithRecentReports = new Set((recentReports ?? []).map(r => r.client_product_id));
       
-      return data
+      return (data ?? [])
         .filter(d => !itemsWithRecentReports.has(d.id))
         .map(d => ({
           id: d.id,
