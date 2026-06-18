@@ -10,11 +10,19 @@ import { toast } from "sonner";
 import { validatePassword } from "@/lib/password";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
+type EntityType = "cliente" | "parceiro" | "prestador" | "indicador" | "colaborador";
+
 interface Props {
   userId?: string | null;
   currentEmail?: string | null;
   /** Entity label, e.g. "parceiro", "cliente", "prestador" */
   entityLabel?: string;
+  /** Entity type used to wire the new user back to the record (clients/partners/...) */
+  entityType?: EntityType;
+  /** Row id of the entity (client.id, partner.id, etc.) used to link the new user */
+  entityId?: string | null;
+  /** Optional display name used when creating the access */
+  entityName?: string | null;
   /** Render as a Card section (for tabs) or inline trigger button */
   variant?: "card" | "button";
   buttonLabel?: string;
@@ -25,6 +33,9 @@ export function CredentialsManager({
   userId,
   currentEmail,
   entityLabel = "usuário",
+  entityType,
+  entityId,
+  entityName,
   variant = "card",
   buttonLabel = "Alterar acesso",
   onUpdated,
@@ -35,7 +46,9 @@ export function CredentialsManager({
   const [show, setShow] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPw, setSavingPw] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+
 
   const hasUser = !!userId;
 
