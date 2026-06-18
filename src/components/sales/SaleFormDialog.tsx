@@ -53,20 +53,23 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()) });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()) });
 
   useEffect(() => {
     if (open) {
       if (sale) {
         setForm({
           ...sale,
-          sale_date: sale.sale_date || ymdBR(nowBR())
+          sale_date: sale.sale_date || ymdBR(nowBR()),
+          installments_count: 1,
+          first_due_date: sale.sale_date || ymdBR(nowBR()),
         });
       } else {
-        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId });
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()) });
       }
     }
   }, [open, clientId, sale]);
+
 
   const { data: clients } = useQuery({
     queryKey: ["clients-select"],
