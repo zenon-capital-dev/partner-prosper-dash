@@ -148,16 +148,16 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
         <FinancialCard label="Saldo Devedor" value={totals.pending} icon={AlertCircle} color="amber" />
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
           <h3 className="text-lg font-bold tracking-tight">Fluxo de Pagamentos</h3>
           <p className="text-xs text-muted-foreground">Controle de parcelas, faturas e pendências do cliente</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => { setEditingSale(null); setSaleOpen(true); }}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => { setEditingSale(null); setSaleOpen(true); }}>
             <ShoppingBag className="size-4 mr-2" /> Lançar venda
           </Button>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setPaymentOpen(true)}>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto" onClick={() => setPaymentOpen(true)}>
             <DollarSign className="size-4 mr-2" /> Lançar Pendência
           </Button>
         </div>
