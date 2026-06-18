@@ -93,7 +93,7 @@ export function PageHero({
 
         {actions && (
           <div className="w-full 2xl:w-auto min-w-0 2xl:shrink-0">
-            <div className="flex flex-wrap items-center gap-2 [&>*]:shrink-0 [&>button]:h-10 [&>a]:h-10">
+            <div className="flex flex-wrap items-center gap-2 [&>button]:h-10 [&>a]:h-10 [&>button]:flex-1 sm:[&>button]:flex-none [&>a]:flex-1 sm:[&>a]:flex-none">
               {actions}
             </div>
           </div>
