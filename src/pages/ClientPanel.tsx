@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
-  AlertCircle, Calendar, HelpCircle,
+  Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -41,6 +41,39 @@ const DOC_TONE: Record<string, string> = {
   em_analise: "bg-indigo-50 text-indigo-700 border-indigo-200",
   aprovado: "bg-emerald-50 text-emerald-700 border-emerald-200",
   reprovado: "bg-rose-50 text-rose-700 border-rose-200",
+};
+
+const OPEN_PAYMENT_STATUSES = ["pendente", "em_aberto", "parcial", "parcialmente_pago", "atrasado", "vencido"];
+
+const splitPaymentDescription = (description?: string | null) => {
+  if (!description) return { title: "Pendência de pagamento", note: "" };
+  const [title, ...rest] = description.split(" — ");
+  return { title: title?.trim() || "Pendência de pagamento", note: rest.join(" — ").trim() };
+};
+
+const isPaymentOverdue = (payment: any) => {
+  if (!OPEN_PAYMENT_STATUSES.includes(payment.status) || !payment.due_date) return false;
+  const [y, m, d] = String(payment.due_date).slice(0, 10).split("-").map(Number);
+  const due = new Date(y, (m || 1) - 1, d || 1);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return due.getTime() < today.getTime();
+};
+
+const paymentStatusMeta = (payment: any) => {
+  if (payment.status === "pago" || payment.status === "paga") {
+    return { label: "Pago", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", iconTone: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+  }
+  if (payment.status === "cancelado") {
+    return { label: "Cancelado", tone: "bg-slate-100 text-slate-600 border-slate-200", iconTone: "bg-slate-50 text-slate-600 border-slate-200" };
+  }
+  if (isPaymentOverdue(payment)) {
+    return { label: "Vencido", tone: "bg-rose-50 text-rose-700 border-rose-200", iconTone: "bg-rose-50 text-rose-700 border-rose-100" };
+  }
+  if (payment.status === "parcial" || payment.status === "parcialmente_pago") {
+    return { label: "Parcial", tone: "bg-amber-50 text-amber-700 border-amber-200", iconTone: "bg-amber-50 text-amber-700 border-amber-100" };
+  }
+  return { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200", iconTone: "bg-sky-50 text-sky-700 border-sky-100" };
 };
 
 export default function ClientPanel() {
@@ -114,7 +147,12 @@ export default function ClientPanel() {
     enabled: !!clientId,
     queryFn: async () => {
       const { data } = await supabase.from("payments")
-        .select("id, amount, status, due_date, paid_at, description, created_at")
+        .select(`
+          id, amount, amount_paid, status, due_date, paid_at, description, notes,
+          installment_number, installments_count, created_at, client_id, client_product_id, product_id,
+          client_product:client_products(custom_product_name, products(name)),
+          product:products(name)
+        `)
         .eq("client_id", clientId!).order("due_date", { ascending: false });
       return data ?? [];
     },
@@ -254,34 +292,52 @@ export default function ClientPanel() {
           <>
             <PanelHero role="cliente" eyebrow="Financeiro" title="Pagamentos" subtitle={`${payments.length} faturas`} stats={[
               { label: "Faturas", value: payments.length },
-              { label: "Pendentes", value: (payments as any[]).filter((p) => p.status !== "pago").length },
-              { label: "Pagas", value: (payments as any[]).filter((p) => p.status === "pago").length },
+              { label: "Em aberto", value: formatBRL((payments as any[]).filter((p) => OPEN_PAYMENT_STATUSES.includes(p.status)).reduce((sum, p) => sum + Math.max(Number(p.amount || 0) - Number(p.amount_paid || 0), 0), 0)) },
+              { label: "Vencidas", value: (payments as any[]).filter(isPaymentOverdue).length },
+              { label: "Pagas", value: (payments as any[]).filter((p) => p.status === "pago" || p.status === "paga").length },
             ]} />
-            <SectionCard title="">
+            <SectionCard title="" padding="none">
               {payments.length === 0 ? <EmptyState icon={Wallet} title="Sem faturas" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
+                <ul className="divide-y divide-slate-100">
                   {(payments as any[]).map((p) => {
-                    // Compara dia a dia (não hora) e considera vencido só se a data já passou.
-                    // Vencimento de hoje = pendente, não "vencido".
-                    let overdue = false;
-                    if (p.status !== "pago" && p.due_date) {
-                      const [y, m, d] = String(p.due_date).slice(0, 10).split("-").map(Number);
-                      const due = new Date(y, (m || 1) - 1, d || 1);
-                      const today = new Date();
-                      today.setHours(0, 0, 0, 0);
-                      overdue = due.getTime() < today.getTime();
-                    }
+                    const status = paymentStatusMeta(p);
+                    const desc = splitPaymentDescription(p.description);
+                    const productName = p.client_product?.products?.name || p.client_product?.custom_product_name || p.product?.name || "Pendência avulsa";
+                    const outstanding = Math.max(Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
+                    const installment = p.installments_count > 1 ? `${p.installment_number || 1}/${p.installments_count}` : "Única";
 
                     return (
-                      <li key={p.id} className="flex items-center gap-3 px-3 py-3">
-                        <div className={cn("size-10 rounded-md flex items-center justify-center shrink-0", p.status === "pago" ? "bg-emerald-50 text-emerald-700" : overdue ? "bg-rose-50 text-rose-700" : "bg-sky-50 text-sky-700")}>
-                          {p.status === "pago" ? <CheckCircle2 className="size-5" /> : <AlertCircle className="size-5" />}
+                      <li key={p.id} className="px-4 sm:px-5 py-4 hover:bg-slate-50/70 transition-colors">
+                        <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className={cn("size-11 rounded-lg border flex items-center justify-center shrink-0", status.iconTone)}>
+                              {p.status === "pago" || p.status === "paga" ? <CheckCircle2 className="size-5" /> : <Receipt className="size-5" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-[14px] font-semibold text-slate-900 leading-tight">{desc.title}</p>
+                                <Badge variant="outline" className={cn("text-[10px] border shrink-0", status.tone)}>{status.label}</Badge>
+                              </div>
+                              <div className="mt-2 grid sm:grid-cols-2 xl:grid-cols-4 gap-2 text-[12px] text-slate-600">
+                                <span className="inline-flex items-center gap-1.5 min-w-0"><Package className="size-3.5 text-slate-400 shrink-0" /><span className="truncate">{productName}</span></span>
+                                <span className="inline-flex items-center gap-1.5"><Calendar className="size-3.5 text-slate-400" />{p.paid_at ? `Pago em ${formatDate(p.paid_at)}` : `Vence em ${formatDate(p.due_date)}`}</span>
+                                <span className="inline-flex items-center gap-1.5"><Wallet className="size-3.5 text-slate-400" />Parcela {installment}</span>
+                                <span className="font-mono tabular-nums text-slate-900 sm:text-right xl:text-left">{formatBRL(p.amount)}</span>
+                              </div>
+                              {(desc.note || p.notes || Number(p.amount_paid || 0) > 0) && (
+                                <div className="mt-3 rounded-lg border border-slate-200/70 bg-slate-50/70 px-3 py-2 text-[12px] text-slate-600 space-y-1">
+                                  {desc.note && <p><FileTextIcon className="size-3.5 inline mr-1.5 text-slate-400" />{desc.note}</p>}
+                                  {p.notes && <p>{p.notes}</p>}
+                                  {Number(p.amount_paid || 0) > 0 && <p className="font-mono text-emerald-700">Pago: {formatBRL(p.amount_paid)} · Saldo: {formatBRL(outstanding)}</p>}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="lg:text-right shrink-0 lg:min-w-[150px]">
+                            <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Valor da pendência</p>
+                            <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-slate-900">{formatBRL(outstanding || Number(p.amount || 0))}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[13.5px] font-medium text-slate-900 truncate">{p.description || "Fatura"}</p>
-                          <p className="text-[11.5px] text-slate-500 truncate">{p.paid_at ? `Pago em ${formatDate(p.paid_at)}` : `Vence em ${formatDate(p.due_date)}`}</p>
-                        </div>
-                        <Badge variant="outline" className={cn("text-[10px] border capitalize shrink-0", p.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : overdue ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{overdue ? "vencido" : p.status}</Badge>
                       </li>
                     );
                   })}
