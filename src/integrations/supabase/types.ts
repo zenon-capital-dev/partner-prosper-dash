@@ -3444,7 +3444,7 @@ export type Database = {
           referrer_id: string | null
           refund_amount: number | null
           refunded_at: string | null
-          sale_id: string
+          sale_id: string | null
           status: Database["public"]["Enums"]["payment_status"]
           updated_at: string | null
         }
@@ -3472,7 +3472,7 @@ export type Database = {
           referrer_id?: string | null
           refund_amount?: number | null
           refunded_at?: string | null
-          sale_id: string
+          sale_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string | null
         }
@@ -3500,7 +3500,7 @@ export type Database = {
           referrer_id?: string | null
           refund_amount?: number | null
           refunded_at?: string | null
-          sale_id?: string
+          sale_id?: string | null
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string | null
         }

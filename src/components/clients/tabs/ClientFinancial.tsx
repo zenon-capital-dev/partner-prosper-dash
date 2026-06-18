@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { cn } from "@/lib/utils";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
+import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
 
 export function ClientFinancial({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
   const [marking, setMarking] = useState<string | null>(null);
   const [saleOpen, setSaleOpen] = useState(false);
   const [editingSale, setEditingSale] = useState<any>(null);
+  const [paymentOpen, setPaymentOpen] = useState(false);
+
 
   const markPaid = async (paymentId: string, amount: number) => {
     const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
@@ -67,6 +70,7 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-6 animate-fade-up">
       <SaleFormDialog open={saleOpen} onOpenChange={(v) => { setSaleOpen(v); if (!v) setEditingSale(null); }} clientId={clientId} sale={editingSale} onCreated={() => { qc.invalidateQueries({ queryKey: ["client-sales", clientId] }); qc.invalidateQueries({ queryKey: ["client-payments", clientId] }); }} />
+      <PaymentFormDialog open={paymentOpen} onOpenChange={setPaymentOpen} clientId={clientId} onCreated={() => { qc.invalidateQueries({ queryKey: ["client-payments", clientId] }); }} />
 
 
       {/* Vendas do cliente */}
@@ -144,14 +148,19 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
         <FinancialCard label="Saldo Devedor" value={totals.pending} icon={AlertCircle} color="amber" />
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-lg font-bold tracking-tight">Fluxo de Pagamentos</h3>
-          <p className="text-xs text-muted-foreground">Controle de parcelas e faturas</p>
+          <p className="text-xs text-muted-foreground">Controle de parcelas, faturas e pendências do cliente</p>
         </div>
-        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => { setEditingSale(null); setSaleOpen(true); }}>
-          <DollarSign className="size-4 mr-2" /> Lançar Pagamento
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => { setEditingSale(null); setSaleOpen(true); }}>
+            <ShoppingBag className="size-4 mr-2" /> Lançar venda
+          </Button>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" onClick={() => setPaymentOpen(true)}>
+            <DollarSign className="size-4 mr-2" /> Lançar Pendência
+          </Button>
+        </div>
       </div>
 
 
