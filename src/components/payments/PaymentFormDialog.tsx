@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Wallet, Calendar, Repeat } from "lucide-react";
+import { Wallet, Calendar, Repeat, Tag, FileText } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 
 interface Props {
@@ -30,7 +30,12 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
   const [amount, setAmount] = useState("");
   const [installments, setInstallments] = useState(1);
   const [firstDueDate, setFirstDueDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [productId, setProductId] = useState<string>("none");
+  // Seleção combinada de produto/serviço:
+  //   "none"                  → pendência avulsa
+  //   "cp:<client_product_id>" → serviço já contratado pelo cliente
+  //   "prod:<product_id>"      → produto do catálogo (cria vínculo apenas no campo product_id)
+  const [productSel, setProductSel] = useState<string>("none");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -41,7 +46,8 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
       setAmount("");
       setInstallments(1);
       setFirstDueDate(new Date().toISOString().slice(0, 10));
-      setProductId("none");
+      setProductSel("none");
+      setTitle("");
       setDescription("");
       setSelectedClientId("");
     }
@@ -73,6 +79,18 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
     },
   });
 
+  const { data: catalogProducts = [] } = useQuery({
+    queryKey: ["catalog-products-for-payment"],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name")
+        .order("name", { ascending: true })
+        .limit(500);
+      return data ?? [];
+    },
+  });
 
   const totalNum = Number(amount.replace(",", ".")) || 0;
   const perInstallment = installments > 0 ? totalNum / installments : 0;
@@ -87,7 +105,25 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
     try {
       const totalCents = Math.round(totalNum * 100);
       const baseCents = Math.floor(totalCents / installments);
-      const cp = productId !== "none" ? clientProducts.find((p: any) => p.id === productId) : null;
+
+      // Resolve seleção de produto
+      let clientProductId: string | null = null;
+      let productId: string | null = null;
+      if (productSel.startsWith("cp:")) {
+        const cp = clientProducts.find((p: any) => p.id === productSel.slice(3));
+        clientProductId = cp?.id ?? null;
+        productId = cp?.product_id ?? null;
+      } else if (productSel.startsWith("prod:")) {
+        productId = productSel.slice(5);
+      }
+
+      // Monta descrição final: combina título + observação se ambos preenchidos;
+      // senão usa só o que foi informado; se nada foi preenchido, fica NULL.
+      const trimmedTitle = title.trim();
+      const trimmedDesc = description.trim();
+      const finalDescription =
+        trimmedTitle && trimmedDesc ? `${trimmedTitle} — ${trimmedDesc}`
+        : trimmedTitle || trimmedDesc || null;
 
       const rows = Array.from({ length: installments }).map((_, i) => {
         const cents = i === installments - 1 ? totalCents - baseCents * (installments - 1) : baseCents;
@@ -98,9 +134,9 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
           status: "pendente" as const,
           installment_number: i + 1,
           installments_count: installments,
-          description: description || (cp ? `Pagamento ${cp.products?.name || cp.custom_product_name || ""}`.trim() : "Pendência avulsa"),
-          client_product_id: cp?.id ?? null,
-          product_id: cp?.product_id ?? null,
+          description: finalDescription,
+          client_product_id: clientProductId,
+          product_id: productId,
         };
       });
 
@@ -119,7 +155,7 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <div className="size-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
@@ -187,25 +223,56 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Vincular ao serviço (opcional)</Label>
-            <Select value={productId} onValueChange={setProductId}>
+            <Label className="text-xs font-semibold flex items-center gap-1.5">
+              <Tag className="size-3.5" /> Produto / Serviço (opcional)
+            </Label>
+            <Select value={productSel} onValueChange={setProductSel}>
               <SelectTrigger><SelectValue placeholder="Pendência avulsa" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-72">
                 <SelectItem value="none">— Pendência avulsa —</SelectItem>
-                {clientProducts.map((cp: any) => (
-                  <SelectItem key={cp.id} value={cp.id}>
-                    {cp.products?.name || cp.custom_product_name || "Serviço"}
-                  </SelectItem>
-                ))}
+
+                {clientProducts.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] uppercase tracking-wider">Serviços contratados</SelectLabel>
+                    {clientProducts.map((cp: any) => (
+                      <SelectItem key={`cp-${cp.id}`} value={`cp:${cp.id}`}>
+                        {cp.products?.name || cp.custom_product_name || "Serviço"}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
+
+                {catalogProducts.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel className="text-[10px] uppercase tracking-wider">Catálogo de produtos</SelectLabel>
+                    {catalogProducts.map((p: any) => (
+                      <SelectItem key={`prod-${p.id}`} value={`prod:${p.id}`}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                )}
               </SelectContent>
             </Select>
+            <p className="text-[10.5px] text-muted-foreground">Vincula a parcela a um produto/serviço. Em branco = cobrança avulsa.</p>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Descrição (opcional)</Label>
+            <Label className="text-xs font-semibold flex items-center gap-1.5">
+              <FileText className="size-3.5" /> Legenda / Título (opcional)
+            </Label>
+            <Input
+              placeholder="Ex: Entrada do projeto, Mensalidade junho, Taxa de cadastro…"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Observação (opcional)</Label>
             <Textarea
-              rows={2}
-              placeholder="Ex: Entrada do projeto, taxa de cadastro, mensalidade…"
+              rows={3}
+              placeholder="Detalhes da cobrança, condições, instruções de pagamento… Em branco, nada aparece."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />

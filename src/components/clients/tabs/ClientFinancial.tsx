@@ -38,7 +38,8 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
         .from("payments")
         .select(`
           *,
-          client_product:client_products(products(name))
+          client_product:client_products(products(name), custom_product_name),
+          product:products(name)
         `)
         .eq("client_id", clientId)
         .order("due_date", { ascending: true });
@@ -180,12 +181,29 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
               <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Carregando...</td></tr>
             ) : payments?.length === 0 ? (
               <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Nenhum lançamento financeiro.</td></tr>
-            ) : payments?.map((payment: any, idx: number) => (
+            ) : payments?.map((payment: any, idx: number) => {
+              const productName =
+                payment.client_product?.products?.name ||
+                payment.client_product?.custom_product_name ||
+                payment.product?.name ||
+                null;
+              return (
               <tr key={payment.id} className="hover:bg-muted/20 transition-colors group">
                 <td className="px-6 py-4">
-                  <div>
-                    <p className="font-bold text-foreground">Parcela {payment.installment_number || idx + 1}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{payment.client_product?.products?.name || "Geral"}</p>
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-foreground">
+                      Parcela {payment.installment_number || idx + 1}
+                      {payment.installments_count > 1 && <span className="text-muted-foreground font-normal"> / {payment.installments_count}</span>}
+                    </p>
+                    {payment.description && (
+                      <p className="text-[12px] text-foreground/80 leading-snug">{payment.description}</p>
+                    )}
+                    {productName && (
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{productName}</p>
+                    )}
+                    {!payment.description && !productName && (
+                      <p className="text-[10px] text-muted-foreground/70 uppercase tracking-wider italic">Pendência avulsa</p>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-xs font-mono">
@@ -210,7 +228,8 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
                   )}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table></div>
 
