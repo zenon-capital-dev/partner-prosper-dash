@@ -14,6 +14,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { cn } from "@/lib/utils";
 import ClientPanel from "./ClientPanel";
 import PartnerPanel from "./PartnerPanel";
+import { GoalsPanel } from "@/components/dashboard/GoalsPanel";
 
 type RangeKey = "today" | "7d" | "30d" | "month";
 
