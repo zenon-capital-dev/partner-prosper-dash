@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useLayoutEffect } from "react";
 import { subDays, startOfMonth, startOfToday, endOfDay, parseISO } from "date-fns";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
@@ -89,7 +89,6 @@ export default function Sales() {
   };
 
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -103,7 +102,7 @@ export default function Sales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
         .order("sale_date", { ascending: false });
       if (error) {
         console.error("[Sales] query error:", error);
