@@ -117,13 +117,31 @@ export default function Dashboard() {
 
         {/* Secondary KPI Strip (Mini) */}
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-          <MiniKPICard label="MRR ATIVO" value={formatBRL(stats?.sales?.mrrActive || 0)} color="emerald" />
-          <MiniKPICard label="RECEITA NA CABEÇA (MÊS)" value={formatBRL(stats?.sales?.monthRevenueOneOff || 0)} color="blue" />
+          <MiniKPICard
+            label="MRR ATIVO"
+            value={formatBRL(stats?.sales?.mrrActive || 0)}
+            color="emerald"
+            hint="Receita Recorrente Mensal — soma de todas as vendas do tipo MRR ainda dentro da vigência."
+          />
+          <MiniKPICard
+            label="RECEITA PONTUAL (MÊS)"
+            value={formatBRL(stats?.sales?.monthRevenueOneOff || 0)}
+            color="blue"
+            hint="Receita avulsa (na cabeça) — vendas pontuais finalizadas neste mês."
+          />
           <MiniKPICard label="VENDAS FINALIZADAS" value={stats?.sales?.count || 0} color="emerald" />
           <MiniKPICard label="DOCS PENDENTES" value={stats?.documents.pending || 0} color="amber" />
           <MiniKPICard label="TAREFAS EM ATRASO" value={stats?.tasks.overdue || 0} color="rose" />
-          <MiniKPICard label="COMISSÕES PAGAR" value={formatBRL(stats?.commissions.pending || 0)} color="slate" />
+          <button
+            onClick={() => navigate("/financeiro/caixinhas")}
+            className="vx-card p-6 flex flex-col justify-between transition-all duration-500 cursor-pointer group hover:translate-y-[-2px] text-left text-indigo-700 border-indigo-200/40 bg-indigo-50/40 hover:bg-indigo-50/80"
+            title="Caixinhas & Projetos — acompanhar metas internas (Zenon, escritório, funcionários...)"
+          >
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 mb-1.5">Caixinhas & Projetos</p>
+            <p className="text-xs font-bold tracking-tight">Ver progresso →</p>
+          </button>
         </div>
+
 
         <GoalsPanel />
 
