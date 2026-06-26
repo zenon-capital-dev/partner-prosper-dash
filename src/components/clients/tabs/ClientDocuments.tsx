@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus, FileText, Check, X, Clock, Trash2, Eye, Pencil,
-  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail
+  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail,
+  MessageCircle, ChevronDown
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem
+} from "@/components/ui/dropdown-menu";
 
 import { formatDate } from "@/lib/format";
 import { nowBR } from "@/lib/datetime";
@@ -239,16 +243,31 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                   <Badge variant="outline" className="ml-2 text-[10px]">{group.items.length} doc(s)</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-8 gap-1.5"
-                    title="Anexar arquivo recebido por email/WhatsApp em nome do cliente"
-                    disabled={uploading}
-                    onClick={() => triggerAdminUpload({ productId: group.productId, source: "admin" })}
-                  >
-                    <Upload className="size-3.5" /> Anexar em nome do cliente
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 gap-1.5"
+                        title="Anexar arquivo recebido em nome do cliente"
+                        disabled={uploading}
+                      >
+                        <Upload className="size-3.5" /> Anexar em nome do cliente
+                        <ChevronDown className="size-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "email" })}>
+                        <Mail className="size-3.5 mr-2" /> Recebido por Email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "whatsapp" })}>
+                        <MessageCircle className="size-3.5 mr-2" /> Recebido por WhatsApp
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => triggerAdminUpload({ productId: group.productId, source: "admin" })}>
+                        <Upload className="size-3.5 mr-2" /> Upload manual
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     size="sm"
                     variant="outline"
@@ -324,15 +343,30 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
 
                         <div className="flex items-center gap-1 shrink-0 flex-wrap">
                           {!doc.file_path && (
-                            <Button
-                              variant="ghost" size="sm"
-                              onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "admin" })}
-                              className="text-indigo-600 hover:bg-indigo-50 h-8 gap-1.5"
-                              title="Anexar arquivo recebido por email/WhatsApp"
-                              disabled={uploading}
-                            >
-                              <Upload className="size-3.5" /> Anexar pelo admin
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost" size="sm"
+                                  className="text-indigo-600 hover:bg-indigo-50 h-8 gap-1.5"
+                                  title="Anexar arquivo recebido em nome do cliente"
+                                  disabled={uploading}
+                                >
+                                  <Upload className="size-3.5" /> Anexar pelo admin
+                                  <ChevronDown className="size-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "email" })}>
+                                  <Mail className="size-3.5 mr-2" /> Recebido por Email
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "whatsapp" })}>
+                                  <MessageCircle className="size-3.5 mr-2" /> Recebido por WhatsApp
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "admin" })}>
+                                  <Upload className="size-3.5 mr-2" /> Upload manual
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           )}
                           {doc.source && doc.source !== "client" && (
                             <Badge variant="outline" className="h-6 text-[9px] uppercase tracking-widest bg-indigo-50 border-indigo-200 text-indigo-700">

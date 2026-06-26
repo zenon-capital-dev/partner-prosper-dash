@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import ClientPanel from "./ClientPanel";
 import PartnerPanel from "./PartnerPanel";
 import { GoalsPanel } from "@/components/dashboard/GoalsPanel";
+import { JourneyMiniWidget } from "@/components/dashboard/JourneyMiniWidget";
 
 type RangeKey = "today" | "7d" | "30d" | "month";
 
@@ -124,6 +125,8 @@ export default function Dashboard() {
         </div>
 
         <GoalsPanel />
+
+        <JourneyMiniWidget />
 
         {/* Charts Section */}
         <div className="grid grid-cols-12 gap-8">
