@@ -28,6 +28,7 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "CRM & Vendas", items: [
     { title: "Clientes", url: "/clientes", icon: Users, staffOnly: true },
+    { title: "Esteira de atendimento", url: "/esteira", icon: Activity, staffOnly: true },
     { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
     // { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
