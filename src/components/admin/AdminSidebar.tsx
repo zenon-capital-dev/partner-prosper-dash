@@ -67,7 +67,7 @@ interface Props { collapsed: boolean; onToggle: () => void; onNavigate?: () => v
 export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, isAdmin, isAdminSecondary, isColaborador, isVendedor } = useAuth();
+  const { user, signOut, isAdmin, isAdminSecondary, isColaborador, isVendedor, isSuperAdmin } = useAuth();
   const isFullAdmin = isAdmin || isAdminSecondary;
   const isStaff = isFullAdmin || isColaborador || isVendedor;
   const [, setCmdOpen] = useState(false);
