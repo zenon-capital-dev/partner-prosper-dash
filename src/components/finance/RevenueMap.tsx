@@ -68,7 +68,7 @@ export function RevenueMap({ payments }: { payments: Payment[] }) {
   const { months, totalsByMonth, byClient, grand } = useMemo(() => {
     const today = todayYM();
     const all: string[] = [];
-    const totals = new Map<string, { total: number; received: number; open: number; overdue: number; count: number }>();
+    const totals = new Map<string, { total: number; received: number; open: number; overdue: number; count: number; mrr: number; oneOff: number }>();
     const clientMap = new Map<string, { id: string; name: string; perMonth: Map<string, number>; total: number }>();
     let minKey: string | null = null;
     let maxKey: string | null = null;
@@ -82,9 +82,11 @@ export function RevenueMap({ payments }: { payments: Payment[] }) {
       const amount = Number(p.amount || 0);
       const paid = Number(p.amount_paid || 0);
       const isOverdue = isOpen(p.status) && key < today;
-      const cur = totals.get(key) ?? { total: 0, received: 0, open: 0, overdue: 0, count: 0 };
+      const cur = totals.get(key) ?? { total: 0, received: 0, open: 0, overdue: 0, count: 0, mrr: 0, oneOff: 0 };
       cur.total += amount;
       cur.count += 1;
+      if (p.is_recurring) cur.mrr += amount;
+      else cur.oneOff += amount;
       if (isPaid(p.status)) cur.received += paid > 0 ? paid : amount;
       else {
         cur.open += Math.max(amount - paid, 0);
