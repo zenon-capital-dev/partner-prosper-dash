@@ -45,6 +45,7 @@ export default function ResourcePools() {
       return data ?? [];
     },
     enabled: isAdmin,
+    staleTime: 60_000,
   });
 
   const { data: movements = [] } = useQuery({
@@ -73,6 +74,7 @@ export default function ResourcePools() {
     setOpenPool(false);
     setPoolForm({ name: "", pool_type: "geral", target_amount: "", description: "", color: "#6366F1" });
     qc.invalidateQueries({ queryKey: ["resource_pools"] });
+    qc.invalidateQueries({ queryKey: ["resource-pools-for-sale"] });
   }
 
   async function deletePool(id: string) {
@@ -106,8 +108,15 @@ export default function ResourcePools() {
       <PageHero
         icon={<Wallet className="size-5" />}
         title="Caixinhas & Projetos"
-        description="Cofrinhos virtuais para metas internas (Zenon, escritório, funcionários) e projetos. Lance valores manualmente ou vincule uma venda a um projeto — quando o pagamento for confirmado, a caixinha é creditada automaticamente."
+        description="Cofrinhos virtuais para metas internas e projetos. Vincule a caixinha diretamente na venda; quando o pagamento for confirmado, ela é creditada automaticamente."
       />
+
+      <Card className="p-4 bg-indigo-50/70 border-indigo-100 text-indigo-950">
+        <div className="text-sm font-bold">Como funciona a ligação 100%</div>
+        <p className="text-xs leading-relaxed mt-1 text-indigo-800">
+          1) Crie a caixinha abaixo. 2) Na venda, escolha <strong>Caixinha do Recurso</strong>. 3) Ao registrar o recebimento da parcela, o sistema lança a entrada no histórico desta caixinha automaticamente.
+        </p>
+      </Card>
 
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -131,6 +140,7 @@ export default function ResourcePools() {
                   if (error) { toast.error(error.message); return; }
                   toast.success(`Caixinha "${preset.name}" criada`);
                   qc.invalidateQueries({ queryKey: ["resource_pools"] });
+                  qc.invalidateQueries({ queryKey: ["resource-pools-for-sale"] });
                 }}
               >
                 <Plus className="size-3.5 mr-1" />{preset.name}{exists ? " ✓" : ""}
@@ -182,6 +192,14 @@ export default function ResourcePools() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {pools.map((p: any) => {
             const pct = p.target_amount > 0 ? Math.min(100, (Number(p.current_balance) / Number(p.target_amount)) * 100) : 0;
+            const balance = Number(p.current_balance || 0);
+            const target = Number(p.target_amount || 0);
+            const status = target > 0 && balance >= target ? "Meta atingida" : balance > 0 ? "Em captação" : "Não iniciado";
+            const statusTone = status === "Meta atingida"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : status === "Em captação"
+                ? "bg-sky-50 text-sky-700 border-sky-200"
+                : "bg-slate-50 text-slate-600 border-slate-200";
             return (
               <Card key={p.id} className="p-4 bg-white border-slate-200/70 overflow-hidden">
                 <div className="flex items-start gap-3">
@@ -192,6 +210,7 @@ export default function ResourcePools() {
                       {POOL_TYPES.find((t) => t.v === p.pool_type)?.l ?? p.pool_type}
                     </div>
                   </div>
+                  <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${statusTone}`}>{status}</span>
                   <Button size="icon" variant="ghost" onClick={() => deletePool(p.id)}>
                     <Trash2 className="size-4 text-rose-600" />
                   </Button>
@@ -204,7 +223,7 @@ export default function ResourcePools() {
                 </div>
                 {p.target_amount > 0 && <Progress value={pct} className="mt-2 h-2" />}
                 {p.description && <p className="text-xs text-slate-600 mt-2 line-clamp-2">{p.description}</p>}
-                <div className="flex gap-2 mt-3">
+                <div className="flex flex-col sm:flex-row gap-2 mt-3">
                   <Button size="sm" variant="outline" className="flex-1" onClick={() => { setOpenMov(p.id); setMovForm({ movement_type: "entrada", amount: "", description: "" }); }}>
                     <ArrowUpRight className="size-3.5 mr-1" />Movimento
                   </Button>
