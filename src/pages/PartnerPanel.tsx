@@ -6,8 +6,10 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
   BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare, FileSignature, Upload, FileCheck2,
+  CalendarClock,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
+import Agenda from "@/pages/Agenda";
 import { PanelHero } from "@/components/panels/PanelHero";
 import { PanelContainer } from "@/components/panels/PanelContainer";
 import { SectionCard, EmptyState } from "@/components/panels/SectionCard";
@@ -26,6 +28,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "clientes",   label: "Clientes",   icon: Users },
+  { key: "agenda",     label: "Agenda",     icon: CalendarClock },
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "extrato",    label: "Extrato",    icon: FileText },
   { key: "materiais",  label: "Materiais",  icon: BookOpen },
