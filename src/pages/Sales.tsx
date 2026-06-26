@@ -46,6 +46,7 @@ export default function Sales() {
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
+  const [revenueFilter, setRevenueFilter] = useState<"todos" | "avulso" | "recorrente">("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
   const [productFilter, setProductFilter] = useState("todos");
   const [clientFilter, setClientFilter] = useState("todos");
