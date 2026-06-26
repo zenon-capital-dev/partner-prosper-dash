@@ -164,7 +164,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     refresh();
   };
 
-
+  const grouped = useMemo(() => {
     const groups = new Map<string, { name: string; productId: string | null; items: any[] }>();
     // Inicializa um bucket por produto contratado para que o admin veja produtos sem documentos ainda
     for (const cp of clientProducts) {
