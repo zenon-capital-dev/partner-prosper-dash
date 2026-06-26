@@ -855,6 +855,7 @@ export default function Sales() {
 
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
+                  <Th align="left">Ações</Th>
                   {visibleCols.status && <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
                   {visibleCols.client && <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
                   {visibleCols.product && <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
@@ -864,7 +865,6 @@ export default function Sales() {
                   {visibleCols.commission && <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
                   {visibleCols.liquido && <Th align="right">Líquido</Th>}
                   {visibleCols.recebido && <Th align="right">Recebido / Restante</Th>}
-                  <Th align="right">Ações</Th>
                 </tr>
               </thead>
 
@@ -909,6 +909,54 @@ export default function Sales() {
                   const fullyReceived = baseAmt > 0 && remaining < 0.01;
                   return (
                     <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
+                      <Td>
+                        {canManage ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                              {s.clients?.id && (
+                                <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients.id}`)}>
+                                  <Eye className="size-3.5 mr-2" /> Ver Cliente
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => editOne(s)}>
+                                <Pencil className="size-3.5 mr-2 text-indigo-600" /> Editar Venda
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setReceivingSale(s)}>
+                                <HandCoins className="size-3.5 mr-2 text-emerald-600" /> Registrar Recebimento
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
+                                <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar finalizada
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled={s.status === "em_andamento"} onClick={() => updateStatus(s, "em_andamento")}>
+                                <PlayCircle className="size-3.5 mr-2 text-sky-600" /> Em andamento
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled={s.status === "pendente"} onClick={() => updateStatus(s, "pendente")}>
+                                <Clock3 className="size-3.5 mr-2 text-amber-600" /> Pendente
+                              </DropdownMenuItem>
+                              <DropdownMenuItem disabled={s.status === "cancelada"} onClick={() => updateStatus(s, "cancelada")}>
+                                <XCircle className="size-3.5 mr-2 text-rose-600" /> Cancelar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => removeOne(s)} className="text-rose-600 focus:text-rose-700">
+                                <Trash2 className="size-3.5 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          s.clients?.id && (
+                            <Button variant="ghost" size="icon" aria-label="Ver cliente" className="size-8 text-slate-400 hover:text-slate-900" onClick={() => navigate(`/clientes/${s.clients.id}`)}>
+                              <Eye className="size-4" />
+                            </Button>
+                          )
+                        )}
+                      </Td>
                       {visibleCols.status && <Td><StatusPill status={s.status} /></Td>}
                       {visibleCols.client && (
                         <Td>
@@ -1084,54 +1132,6 @@ export default function Sales() {
                       </Td>
                       )}
 
-                      <Td align="right">
-                        {canManage ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" aria-label="Mais ações" className="size-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {s.clients?.id && (
-                                <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients.id}`)}>
-                                  <Eye className="size-3.5 mr-2" /> Ver Cliente
-                                </DropdownMenuItem>
-                              )}
-                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => editOne(s)}>
-                                <Pencil className="size-3.5 mr-2 text-indigo-600" /> Editar Venda
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setReceivingSale(s)}>
-                                <HandCoins className="size-3.5 mr-2 text-emerald-600" /> Registrar Recebimento
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem disabled={s.status === "concluida"} onClick={() => updateStatus(s, "concluida")}>
-                                <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" /> Marcar concluída
-                              </DropdownMenuItem>
-                              <DropdownMenuItem disabled={s.status === "em_andamento"} onClick={() => updateStatus(s, "em_andamento")}>
-                                <PlayCircle className="size-3.5 mr-2 text-sky-600" /> Em andamento
-                              </DropdownMenuItem>
-                              <DropdownMenuItem disabled={s.status === "pendente"} onClick={() => updateStatus(s, "pendente")}>
-                                <Clock3 className="size-3.5 mr-2 text-amber-600" /> Pendente
-                              </DropdownMenuItem>
-                              <DropdownMenuItem disabled={s.status === "cancelada"} onClick={() => updateStatus(s, "cancelada")}>
-                                <XCircle className="size-3.5 mr-2 text-rose-600" /> Cancelar
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => removeOne(s)} className="text-rose-600 focus:text-rose-700">
-                                <Trash2 className="size-3.5 mr-2" /> Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
-                          s.clients?.id && (
-                            <Button variant="ghost" size="icon" aria-label="Ver cliente" className="size-8 text-slate-400 hover:text-slate-900" onClick={() => navigate(`/clientes/${s.clients.id}`)}>
-                              <Eye className="size-4" />
-                            </Button>
-                          )
-                        )}
-                      </Td>
                     </tr>
                   );
                 })}

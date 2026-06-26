@@ -4552,6 +4552,7 @@ export type Database = {
           id: string
           name: string
           pool_type: string
+          project_id: string | null
           target_amount: number | null
           updated_at: string
         }
@@ -4566,6 +4567,7 @@ export type Database = {
           id?: string
           name: string
           pool_type?: string
+          project_id?: string | null
           target_amount?: number | null
           updated_at?: string
         }
@@ -4580,15 +4582,25 @@ export type Database = {
           id?: string
           name?: string
           pool_type?: string
+          project_id?: string | null
           target_amount?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "resource_pools_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales: {
         Row: {
           amount: number
           client_id: string
+          closed_at: string | null
           collaborator_id: string | null
           collaborator_percent: number | null
           commission_percent: number | null
@@ -4602,8 +4614,11 @@ export type Database = {
           payment_method: string | null
           product_id: string
           provider_cost: number
+          recurrence_months: number | null
+          recurrence_start: string | null
           referrer_id: string | null
           referrer_percent: number | null
+          revenue_type: string
           sale_date: string
           service_provider_id: string | null
           status: Database["public"]["Enums"]["sale_status"]
@@ -4613,6 +4628,7 @@ export type Database = {
         Insert: {
           amount?: number
           client_id: string
+          closed_at?: string | null
           collaborator_id?: string | null
           collaborator_percent?: number | null
           commission_percent?: number | null
@@ -4626,8 +4642,11 @@ export type Database = {
           payment_method?: string | null
           product_id: string
           provider_cost?: number
+          recurrence_months?: number | null
+          recurrence_start?: string | null
           referrer_id?: string | null
           referrer_percent?: number | null
+          revenue_type?: string
           sale_date?: string
           service_provider_id?: string | null
           status?: Database["public"]["Enums"]["sale_status"]
@@ -4637,6 +4656,7 @@ export type Database = {
         Update: {
           amount?: number
           client_id?: string
+          closed_at?: string | null
           collaborator_id?: string | null
           collaborator_percent?: number | null
           commission_percent?: number | null
@@ -4650,8 +4670,11 @@ export type Database = {
           payment_method?: string | null
           product_id?: string
           provider_cost?: number
+          recurrence_months?: number | null
+          recurrence_start?: string | null
           referrer_id?: string | null
           referrer_percent?: number | null
+          revenue_type?: string
           sale_date?: string
           service_provider_id?: string | null
           status?: Database["public"]["Enums"]["sale_status"]

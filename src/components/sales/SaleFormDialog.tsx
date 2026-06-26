@@ -53,7 +53,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()) });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12 });
 
   useEffect(() => {
     if (open) {
@@ -62,10 +62,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
           ...sale,
           sale_date: sale.sale_date || ymdBR(nowBR()),
           installments_count: 1,
-          first_due_date: sale.sale_date || ymdBR(nowBR()),
+          first_due_date: sale.recurrence_start || sale.sale_date || ymdBR(nowBR()),
+          revenue_type: sale.revenue_type || "avulso",
+          recurrence_months: sale.recurrence_months || 12,
         });
       } else {
-        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()) });
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12 });
       }
     }
   }, [open, clientId, sale]);
@@ -188,6 +190,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     }
     setSubmitting(true);
     try {
+      const isRecurring = form.revenue_type === "recorrente";
+      const recurrenceStart = form.first_due_date || form.sale_date || ymdBR(nowBR());
       const payload = {
         client_id: form.client_id,
         product_id: form.product_id,
@@ -204,6 +208,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         status: form.status,
         sale_date: form.sale_date,
         notes: form.notes || null,
+        revenue_type: isRecurring ? "recorrente" : "avulso",
+        recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
+        recurrence_start: isRecurring ? recurrenceStart : null,
       } as any;
 
 
@@ -219,33 +226,50 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         if (error) throw error;
 
         // Gera as parcelas (faturas) para o cliente acompanhar/pagar
-        const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
-        const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
-        const totalCents = Math.round(Number(form.amount) * 100);
-        const baseCents = Math.floor(totalCents / n);
-        const remainder = totalCents - baseCents * n;
         const addMonths = (iso: string, m: number) => {
           const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
           const dt = new Date(Date.UTC(y, mo - 1 + m, d));
           return dt.toISOString().slice(0, 10);
         };
-        const rows = Array.from({ length: n }, (_, i) => ({
-          sale_id: newSale.id,
-          client_id: newSale.client_id,
-          product_id: newSale.product_id,
-          amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
-          due_date: addMonths(baseDate, i),
-          status: "pendente" as any,
-          installments_count: n,
-          installment_number: i + 1,
-          description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
-        }));
+        let rows: any[] = [];
+        if (isRecurring) {
+          const months = payload.recurrence_months as number;
+          const monthly = Number(form.amount);
+          rows = Array.from({ length: months }, (_, i) => ({
+            sale_id: newSale.id,
+            client_id: newSale.client_id,
+            product_id: newSale.product_id,
+            amount: monthly,
+            due_date: addMonths(recurrenceStart, i),
+            status: "pendente" as any,
+            installments_count: months,
+            installment_number: i + 1,
+            description: `Mensalidade ${i + 1}/${months}`,
+          }));
+        } else {
+          const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
+          const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
+          const totalCents = Math.round(Number(form.amount) * 100);
+          const baseCents = Math.floor(totalCents / n);
+          const remainder = totalCents - baseCents * n;
+          rows = Array.from({ length: n }, (_, i) => ({
+            sale_id: newSale.id,
+            client_id: newSale.client_id,
+            product_id: newSale.product_id,
+            amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
+            due_date: addMonths(baseDate, i),
+            status: "pendente" as any,
+            installments_count: n,
+            installment_number: i + 1,
+            description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
+          }));
+        }
         const { error: payErr } = await supabase.from("payments").insert(rows);
         if (payErr) {
           console.warn("Falha ao gerar parcelas:", payErr);
           toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
         } else {
-          toast.success(`Venda registrada e ${n} ${n > 1 ? "parcelas geradas" : "fatura gerada"}`);
+          toast.success(`Venda registrada e ${rows.length} ${rows.length > 1 ? (isRecurring ? "mensalidades geradas" : "parcelas geradas") : "fatura gerada"}`);
         }
       }
 
@@ -547,7 +571,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       <SelectContent className="rounded-xl">
                         <SelectItem value="pendente" className="text-amber-600 font-semibold">Pendente</SelectItem>
                         <SelectItem value="em_andamento" className="text-blue-600 font-semibold">Em andamento</SelectItem>
-                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Concluída</SelectItem>
+                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Finalizada</SelectItem>
                         <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
@@ -556,28 +580,81 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
               </Section>
 
               {!form.id && (
-                <Section icon={Calendar} title="Parcelas / Faturas" hint="Geradas automaticamente para o cliente pagar">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Nº de parcelas">
-                      <Input
-                        type="number"
-                        min={1}
-                        max={60}
-                        className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
-                        value={form.installments_count ?? 1}
-                        onChange={(e) => setForm({ ...form, installments_count: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="1º vencimento">
-                      <Input
-                        type="date"
-                        className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
-                        value={form.first_due_date ?? form.sale_date}
-                        onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                      />
-                    </Field>
+                <Section icon={Calendar} title="Tipo de Receita" hint="Define como o faturamento entra no cronograma">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, revenue_type: "avulso" })}
+                      className={cn(
+                        "rounded-xl border p-3 text-left transition",
+                        form.revenue_type !== "recorrente"
+                          ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      )}
+                    >
+                      <p className="text-[12px] font-bold text-slate-900">Avulso (na cabeça)</p>
+                      <p className="text-[10.5px] text-slate-500 mt-0.5">Receita única — parcelável.</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, revenue_type: "recorrente" })}
+                      className={cn(
+                        "rounded-xl border p-3 text-left transition",
+                        form.revenue_type === "recorrente"
+                          ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      )}
+                    >
+                      <p className="text-[12px] font-bold text-slate-900">Recorrente (mensal)</p>
+                      <p className="text-[10.5px] text-slate-500 mt-0.5">Mensalidade fixa por N meses.</p>
+                    </button>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-2">As demais parcelas vencem mensalmente a partir do 1º vencimento. O cliente verá as faturas pendentes no portal.</p>
+
+                  {form.revenue_type === "recorrente" ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Meses de recorrência">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={120}
+                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
+                          value={form.recurrence_months ?? 12}
+                          onChange={(e) => setForm({ ...form, recurrence_months: e.target.value })}
+                        />
+                      </Field>
+                      <Field label="Início da cobrança">
+                        <Input
+                          type="date"
+                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
+                          value={form.first_due_date ?? form.sale_date}
+                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                        />
+                      </Field>
+                      <p className="col-span-2 text-[11px] text-slate-500">Valor informado = mensalidade. O cronograma criará uma fatura por mês durante o período.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Nº de parcelas">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={60}
+                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
+                          value={form.installments_count ?? 1}
+                          onChange={(e) => setForm({ ...form, installments_count: e.target.value })}
+                        />
+                      </Field>
+                      <Field label="1º vencimento">
+                        <Input
+                          type="date"
+                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
+                          value={form.first_due_date ?? form.sale_date}
+                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                        />
+                      </Field>
+                      <p className="col-span-2 text-[11px] text-slate-500">As demais parcelas vencem mensalmente a partir do 1º vencimento. O cliente verá as faturas no portal.</p>
+                    </div>
+                  )}
                 </Section>
               )}
 
