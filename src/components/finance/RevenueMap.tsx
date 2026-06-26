@@ -223,26 +223,33 @@ export function RevenueMap({ payments }: { payments: Payment[] }) {
         <div className="overflow-x-auto">
           <div className="flex gap-2 p-4 min-w-max">
             {months.map((k) => {
-              const t = totalsByMonth.get(k) ?? { total: 0, received: 0, open: 0, overdue: 0, count: 0 };
+              const t = totalsByMonth.get(k) ?? { total: 0, received: 0, open: 0, overdue: 0, count: 0, mrr: 0, oneOff: 0 };
               const { y, m } = parseYM(k);
               const isCurrent = k === today;
-              const isPast = k < today;
               const heightPct = (t.total / maxMonthly) * 100;
+              const mrrPct = t.total > 0 ? (t.mrr / t.total) * 100 : 0;
+              const oneOffPct = t.total > 0 ? (t.oneOff / t.total) * 100 : 0;
               return (
                 <div key={k} className={cn("flex-shrink-0 w-[88px] rounded-lg border p-2 transition-colors",
                   isCurrent ? "border-indigo-300 bg-indigo-50/50" : "border-slate-200 bg-slate-50/30 hover:bg-slate-50")}>
                   <div className={cn("text-[10px] font-bold uppercase tracking-wider mb-1", isCurrent ? "text-indigo-700" : "text-slate-500")}>
                     {MONTH_LABELS[m]}/{String(y).slice(2)}
                   </div>
-                  <div className="h-12 flex items-end mb-1">
-                    <div className={cn("w-full rounded-sm transition-all", t.overdue > 0 ? "bg-rose-400" : isPast ? "bg-emerald-400" : "bg-indigo-400")}
-                         style={{ height: `${Math.max(heightPct, t.total > 0 ? 6 : 0)}%` }} />
+                  <div className="h-12 flex items-end mb-1" title={`MRR ${formatBRL(t.mrr)} • Avulso ${formatBRL(t.oneOff)}`}>
+                    <div className="w-full flex flex-col justify-end rounded-sm overflow-hidden" style={{ height: `${Math.max(heightPct, t.total > 0 ? 6 : 0)}%` }}>
+                      {t.oneOff > 0 && <div className="bg-emerald-400" style={{ height: `${oneOffPct}%` }} />}
+                      {t.mrr > 0 && <div className="bg-indigo-500" style={{ height: `${mrrPct}%` }} />}
+                    </div>
                   </div>
                   <div className="text-[11px] font-bold tabular-nums text-slate-900 truncate">{t.total > 0 ? formatBRL(t.total) : "—"}</div>
                   <div className="text-[9px] text-slate-500 tabular-nums">{t.count} lanç.</div>
                 </div>
               );
             })}
+          </div>
+          <div className="flex gap-3 px-4 pb-3 text-[10px] text-slate-600">
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-indigo-500" /> Recorrente (MRR)</span>
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-emerald-400" /> Avulso (na cabeça)</span>
           </div>
         </div>
       </div>
