@@ -52,7 +52,7 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Financeiro", adminOnly: true, items: [
     { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
-    { title: "Caixinhas", url: "/financeiro/caixinhas", icon: Wallet },
+    { title: "Caixinhas & Projetos", url: "/financeiro/caixinhas", icon: Wallet },
   ]},
   { label: "Sistema", items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
