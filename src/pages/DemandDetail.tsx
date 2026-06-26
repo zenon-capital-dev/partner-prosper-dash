@@ -801,6 +801,11 @@ export default function DemandDetail() {
         currentProviderId={(demand as any).service_provider_id}
         productName={(demand as any).products?.name || (demand as any).custom_product_name}
       />
+      <DemandShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        clientProductId={demand.id}
+      />
       <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
         <DialogContent>
           <DialogHeader>
