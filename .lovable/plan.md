@@ -1,89 +1,55 @@
-# Plano de entrega — 5 tópicos
 
-Vou implementar os 5 itens em sequência, cada um isolado num commit lógico. Abaixo o que entra em cada um. **Ignorando envio de e-mail**, conforme combinado.
+## Tópicos 07–10 — Plano de entrega
 
----
+### 07 — Agenda no painel do Parceiro
+- Reaproveitar o componente `Agenda.tsx` (já usado no admin).
+- Criar rota `/parceiro/agenda` em `App.tsx` dentro do `PartnerPanel`.
+- Adicionar item "Agenda" na sidebar do parceiro (`PartnerSidebar.tsx`).
+- Ajustar a página Agenda para filtrar tasks/eventos do parceiro logado quando ele não for admin (`partner_id` vinculado ao user via tabela `partners.user_id` → clientes desse parceiro).
+- Permitir ao parceiro criar tarefa apenas para clientes da carteira dele.
 
-## 01 — Painel de Metas Comerciais (esteira → números)
+### 08 — Integração de acessos (cliente ⇄ parceiro ⇄ prestador)
+Objetivo: cada ator vê em um lugar só as demandas onde está envolvido, com comunicação cruzada.
+- Criar componente `SharedDemandView.tsx` reutilizável que mostra: status, documentos, conversas, próximos passos, prestadores envolvidos (anônimo para outros prestadores conforme tópico 04).
+- Padronizar o cabeçalho da demanda nos três painéis (admin, parceiro, prestador, cliente) com os mesmos campos.
+- Adicionar no painel do parceiro a aba "Demandas dos meus clientes" usando o mesmo componente.
+- Adicionar no painel do cliente badge "tem prestador trabalhando" quando houver `demand_shares` com status `aceitou`.
+- Notificações cruzadas: ao prestador aceitar/atualizar status, notificar cliente + parceiro.
 
-**O que faz:** painel novo em `/admin/metas-comerciais` (e card no dashboard) que pega a esteira de atendimento (leads → propostas → vendas → clientes ativos) e converte em números vs meta.
+### 09 — Prestador solicita documentos / informação ao cliente
+Banco:
+- Reusar `documents` (já tem `provider_id`) — permitir prestador inserir `document` com `client_id` + `client_product_id` direto, sem aprovação prévia. Atualizar policy de INSERT.
+- Criar tabela `demand_requests` (tipo "chamado/solicitação" entre prestador/parceiro/cliente):
+  - `id, client_product_id, requested_by (uuid), requested_role (text), target_role (text: cliente|prestador|parceiro|admin), kind (documento|informacao|duvida), title, description, status (aberta|respondida|resolvida|cancelada), response, responded_by, responded_at, created_at, updated_at`.
+  - RLS: envolvidos na demanda (cliente dono, prestador via `demand_shares` ou `client_products.service_provider_id`, parceiro via `clients.partner_id`, admin) podem ler/escrever.
+  - Trigger gera notificação para o `target_role`.
+- UI:
+  - Componente `DemandRequestsPanel.tsx` (lista + criar + responder) reutilizável.
+  - Integrar na aba demanda do prestador (`/prestador`), do cliente (`/portal-cliente`) e do parceiro.
 
-**Tabela nova:** `sales_goals` (período mensal, tipo: leads/propostas/vendas/receita, valor_meta, responsável opcional).
+### 10 — Esteira de atendimento (pipeline)
+Banco:
+- Reusar `product_steps` (estrutura já existe) mas adicionar tabela `client_journey_stages` para a esteira global do cliente (não por produto):
+  - `id, name, position, color, is_terminal, description, created_at`.
+- Adicionar `clients.journey_stage_id` (FK opcional) e `clients.journey_updated_at`.
+- Trigger: ao mover de stage, gravar em `client_timeline`.
+- Seed inicial: Captação → Diagnóstico → Proposta → Onboarding → Em atendimento → Entrega → Pós-venda.
 
-**Cálculo (realizado):**
-- Leads → `COUNT(leads)` no período
-- Propostas → `COUNT(proposals)` 
-- Vendas → `COUNT(sales)` + `SUM(sales.amount)`
-- Conversão % entre cada etapa
+UI:
+- Nova página `src/pages/ClientJourney.tsx` no admin (rota `/esteira`), em formato Kanban com colunas = stages, cards = clientes (arrastar para mover).
+- Configurar stages em `Settings` (nova aba "Esteira").
+- Mostrar stage atual no header do `ClientDetail.tsx` e no portal do cliente (barra de progresso).
 
-**UI:** cards com barra de progresso (realizado/meta), gauge de conversão por etapa, filtro de mês/responsável. Tema admin claro (Linear/Attio).
+### Ordem de execução
+1. Migração: `demand_requests`, `client_journey_stages`, `clients.journey_stage_id`, policies, triggers, seed.
+2. Hooks/queries.
+3. Componentes (`DemandRequestsPanel`, `ClientJourney`, `SharedDemandView`).
+4. Rotas + sidebars (parceiro agenda, esteira admin).
+5. Integração em painéis cliente/parceiro/prestador.
 
----
+### Observações
+- Aceitação: parceiro **comercial full na carteira** = parceiro com flag `is_full_carteira` em `partners`. Vou adicionar o campo e usá-lo para liberar criar/editar tasks da agenda.
+- Email continua fora do escopo, conforme combinado.
+- Sem alterar visual; manter tema claro premium do admin.
 
-## 02 — Caixinhas de Recursos (metas Zenon / Escritório / Funcionários)
-
-**O que faz:** "caixinhas" = cofres virtuais com saldo acumulado por finalidade, alimentados por % de receita ou aporte manual.
-
-**Tabela nova:** `resource_pools` (nome, tipo, meta_valor, saldo_atual, regra_alimentacao_json) + `resource_pool_movements` (pool_id, tipo: entrada/saida, valor, descrição, referência).
-
-**UI:** página `/admin/caixinhas` com grid de caixinhas (saldo / meta / %), botão "Lançar movimento", histórico por caixinha. Aporte manual nesta entrega; automação por % de receita fica de gancho preparado (`regra_alimentacao_json`) sem job automático ainda.
-
----
-
-## 03 — Upload de documentos pelo admin no acesso do cliente
-
-**O que faz:** hoje só o cliente envia. Vou liberar o admin/colaborador a **fazer upload em nome do cliente** dentro da ficha do cliente (`ClientDocumentsTab` / `ClientFichaTabs`) e também na ficha da demanda.
-
-**Mudanças:**
-- Botão "Anexar documento recebido (e-mail/WhatsApp)" na aba Documentos do cliente e na demanda.
-- Campo `source` em `documents` (`client_upload` | `admin_upload` | `email` | `whatsapp`) para rastrear origem.
-- Policy: admin e colaborador responsável podem inserir; cliente continua vendo normal.
-
-Sem mexer em integração de e-mail.
-
----
-
-## 04 — Demandas compartilhadas com prestadores (anônimo entre eles)
-
-**O que faz:** numa demanda (ex.: crédito), o admin convida N prestadores. Cada prestador vê os documentos e dados da demanda, **mas não vê a lista de outros prestadores convidados**.
-
-**Tabela nova:** `demand_shares` (client_product_id, provider_id, invited_by, status: convidado/visualizou/aceitou/recusou, can_download bool).
-
-**RLS chave:**
-- Prestador SELECT em `demand_shares` apenas onde `provider_id = auth.uid()` → ele só enxerga a própria linha, nunca os concorrentes.
-- Prestador SELECT em `documents` da demanda via função `security definer` que confere se existe share dele para aquele `client_product_id`.
-- Admin enxerga tudo.
-
-**UI:**
-- Na demanda: botão "Compartilhar com prestadores" → multi-select de prestadores → cria N shares.
-- Painel do prestador: nova aba "Demandas abertas" mostrando shares dele, sem contagem ou nome de outros convidados.
-
----
-
-## 05 — Super-admin (acesso exclusivo do dono)
-
-**O que faz:** novo papel `super_admin` no enum `app_role`, acima de `admin`. Apenas o super_admin pode:
-- Criar/remover outros admins e colaboradores
-- Acessar `/admin/usuarios` para gerenciar papéis
-- Ver auditoria global
-
-Admin comum perde a capacidade de promover gente a admin (continua operando o resto). O usuário atual (você) é promovido a `super_admin` via migração inicial usando o `auth.uid()` do e-mail informado.
-
-**Pergunta antes de migrar:** preciso do **e-mail da sua conta** para marcar como `super_admin` na migração. Sem isso eu deixo a migração pronta e você me passa o e-mail no próximo turno.
-
----
-
-## Ordem de execução
-
-1. Migrações SQL (todas as tabelas + enum + policies) em uma leva
-2. Item 05 (super_admin) — base de permissões
-3. Item 03 (upload admin) — pequeno, libera valor rápido
-4. Item 04 (demandas compartilhadas) — backend + UI
-5. Item 01 (metas comerciais) — UI nova
-6. Item 02 (caixinhas) — UI nova
-
-## Confirmações que preciso antes de codar
-
-1. **E-mail da sua conta** para virar `super_admin` (item 05).
-2. **Item 02 — caixinhas**: por enquanto só aporte manual, tudo bem? (automação por % de receita fica como próxima fase)
-3. **Item 01 — metas**: meta é por **mês** e por **tipo** (leads/propostas/vendas/receita), correto? Ou quer meta por **vendedor** também já nesta entrega?
+Confirma para eu começar pela migração?
