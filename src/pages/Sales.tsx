@@ -989,6 +989,11 @@ export default function Sales() {
                         <Td>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-700">{s.products?.name ?? "—"}</span>
+                            {s.revenue_type === "recorrente" ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">MRR{s.recurrence_months ? ` ${s.recurrence_months}m` : ""}</span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Avulso</span>
+                            )}
                           </div>
                         </Td>
                       )}
