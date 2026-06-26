@@ -372,6 +372,17 @@ export default function ProviderPanel() {
           clientName={reportTarget.clientName}
         />
       )}
+
+      <Dialog open={!!requestsTarget} onOpenChange={(o) => !o && setRequestsTarget(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Solicitações · {requestsTarget?.clientName ?? ""}</DialogTitle>
+          </DialogHeader>
+          {requestsTarget && (
+            <DemandRequestsPanel clientProductId={requestsTarget.id} currentRole="prestador" />
+          )}
+        </DialogContent>
+      </Dialog>
     </PanelShell>
   );
 }
