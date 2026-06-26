@@ -328,6 +328,17 @@ export default function DemandDetail() {
               <UserCircle className="size-4" /> Delegar Prestador
             </Button>
 
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl gap-2 border-violet-100 text-violet-700 hover:bg-violet-50"
+              onClick={() => setShareOpen(true)}
+              title="Compartilhar com vários prestadores (anônimo entre eles)"
+            >
+              <Share2 className="size-4" /> Compartilhar
+            </Button>
+
+
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="btn-premium h-11 rounded-xl gap-2 px-6">
