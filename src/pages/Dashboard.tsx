@@ -362,7 +362,7 @@ function KPICard({ label, value, delta, trend, icon, color }: any) {
 }
 
 
-function MiniKPICard({ label, value, color }: any) {
+function MiniKPICard({ label, value, color, hint }: any) {
   const colorMap: any = {
     blue: "text-info border-info/10 bg-info/5 hover:bg-info/10",
     emerald: "text-success border-success/10 bg-success/5 hover:bg-success/10",
@@ -371,12 +371,17 @@ function MiniKPICard({ label, value, color }: any) {
     slate: "text-muted-foreground border-border/10 bg-muted/5 hover:bg-muted/10",
   };
   return (
-    <div className={cn("vx-card p-6 flex flex-col justify-between transition-all duration-500 cursor-default group hover:translate-y-[-2px]", colorMap[color] || colorMap.slate)}>
+    <div
+      className={cn("vx-card p-6 flex flex-col justify-between transition-all duration-500 cursor-default group hover:translate-y-[-2px]", colorMap[color] || colorMap.slate)}
+      title={hint}
+    >
       <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40 mb-1.5">{label}</p>
       <p className="text-xl font-bold tracking-tight tabular-nums">{value}</p>
+      {hint && <p className="text-[9.5px] opacity-60 mt-1 leading-tight font-medium">{hint.split(" — ")[0]}</p>}
     </div>
   );
 }
+
 
 
 function SourceItem({ label, value, color }: { label: string; value: number; color: string }) {
