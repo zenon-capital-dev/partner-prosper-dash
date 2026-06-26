@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean; staffOnly?: boolean };
+type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean; staffOnly?: boolean; superAdminOnly?: boolean };
 type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean; staffOnly?: boolean };
 
 const SECTIONS: NavSection[] = [
@@ -31,6 +31,7 @@ const SECTIONS: NavSection[] = [
     { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
     // { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
+    { title: "Metas Comerciais", url: "/metas-comerciais", icon: Target, staffOnly: true },
   ]},
   { label: "Catálogo", staffOnly: true, items: [
     { title: "Serviços", url: "/produtos", icon: Package },
@@ -50,11 +51,12 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Financeiro", adminOnly: true, items: [
     { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
+    { title: "Caixinhas", url: "/financeiro/caixinhas", icon: Wallet },
   ]},
   { label: "Sistema", items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
     { title: "Auditoria", url: "/auditoria", icon: History, adminOnly: true },
-    { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true },
+    { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true, superAdminOnly: true },
     // { title: "Automações", url: "/automacoes", icon: Zap, adminOnly: true },
     { title: "Configurações", url: "/configuracoes", icon: Settings, adminOnly: true },
   ]},
@@ -65,7 +67,7 @@ interface Props { collapsed: boolean; onToggle: () => void; onNavigate?: () => v
 export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, isAdmin, isAdminSecondary, isColaborador, isVendedor } = useAuth();
+  const { user, signOut, isAdmin, isAdminSecondary, isColaborador, isVendedor, isSuperAdmin } = useAuth();
   const isFullAdmin = isAdmin || isAdminSecondary;
   const isStaff = isFullAdmin || isColaborador || isVendedor;
   const [, setCmdOpen] = useState(false);
@@ -83,9 +85,13 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
   const isActive = (path: string) =>
     path === "/admin" ? pathname === "/admin" : pathname === path || pathname.startsWith(path + "/");
 
+  const passItem = (i: NavItem) =>
+    (isFullAdmin || (!i.adminOnly && (isStaff || !i.staffOnly))) &&
+    (!i.superAdminOnly || isSuperAdmin);
+
   const sections = SECTIONS
     .filter((s) => isFullAdmin || (!s.adminOnly && (isStaff || !s.staffOnly)))
-    .map((s) => ({ ...s, items: s.items.filter((i) => isFullAdmin || (!i.adminOnly && (isStaff || !i.staffOnly))) }))
+    .map((s) => ({ ...s, items: s.items.filter(passItem) }))
     .filter((s) => s.items.length > 0);
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Admin";

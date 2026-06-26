@@ -12,8 +12,9 @@ import {
   Calendar, ShieldAlert, Paperclip, ArrowRight,
   PauseCircle, PlayCircle, AlertTriangle, FileCheck,
   Zap, FilePlus, Download, Info, ClipboardList, Plus,
-  Pencil, Copy, Trash2, XCircle, UserCircle
+  Pencil, Copy, Trash2, XCircle, UserCircle, Share2
 } from "lucide-react";
+import { DemandShareDialog } from "@/components/demands/DemandShareDialog";
 import { EditDemandDialog } from "@/components/demands/EditDemandDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,7 @@ export default function DemandDetail() {
   const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
   const [delegateOpen, setDelegateOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
@@ -325,6 +327,17 @@ export default function DemandDetail() {
             >
               <UserCircle className="size-4" /> Delegar Prestador
             </Button>
+
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl gap-2 border-violet-100 text-violet-700 hover:bg-violet-50"
+              onClick={() => setShareOpen(true)}
+              title="Compartilhar com vários prestadores (anônimo entre eles)"
+            >
+              <Share2 className="size-4" /> Compartilhar
+            </Button>
+
+
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -787,6 +800,11 @@ export default function DemandDetail() {
         clientProductId={demand.id}
         currentProviderId={(demand as any).service_provider_id}
         productName={(demand as any).products?.name || (demand as any).custom_product_name}
+      />
+      <DemandShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        clientProductId={demand.id}
       />
       <Dialog open={notesOpen} onOpenChange={setNotesOpen}>
         <DialogContent>

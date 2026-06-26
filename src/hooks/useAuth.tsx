@@ -3,13 +3,14 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 
-type AppRole = "admin" | "admin_secondary" | "colaborador" | "vendedor" | "parceiro" | "prestador" | "cliente" | "lead" | "indicador";
+type AppRole = "super_admin" | "admin" | "admin_secondary" | "colaborador" | "vendedor" | "parceiro" | "prestador" | "cliente" | "lead" | "indicador";
 
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   roles: AppRole[];
   loading: boolean;
+  isSuperAdmin: boolean;
   isAdmin: boolean;
   isAdminSecondary: boolean;
   isColaborador: boolean;
@@ -145,7 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         roles,
         loading,
-        isAdmin: roles.includes("admin"),
+        isSuperAdmin: roles.includes("super_admin"),
+        isAdmin: roles.includes("admin") || roles.includes("super_admin"),
         isAdminSecondary: roles.includes("admin_secondary"),
         isColaborador: roles.includes("colaborador"),
         isVendedor: roles.includes("vendedor"),

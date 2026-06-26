@@ -1,19 +1,22 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus, FileText, Check, X, Clock, Trash2, Eye, Pencil,
-  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2
+  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail
 } from "lucide-react";
 
 import { formatDate } from "@/lib/format";
+import { nowBR } from "@/lib/datetime";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { logTimeline } from "@/lib/timeline";
 import { confirmAction } from "@/lib/confirm";
+import { sanitizeStorageFileName, assertUploadFile, uploadErrorMessage } from "@/lib/uploads";
+import { useAuth } from "@/hooks/useAuth";
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   solicitado: { label: "Solicitado", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
@@ -27,9 +30,13 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
 
 export function ClientDocuments({ clientId }: { clientId: string; user_id?: string }) {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [defaultProductId, setDefaultProductId] = useState<string | null>(null);
+  const adminFileRef = useRef<HTMLInputElement>(null);
+  const [pendingUpload, setPendingUpload] = useState<{ doc?: any; productId?: string | null; source: "email" | "whatsapp" | "admin" } | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["client-docs-admin", clientId],
@@ -107,6 +114,56 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     refresh();
   };
 
+  const triggerAdminUpload = (opts: { doc?: any; productId?: string | null; source: "email" | "whatsapp" | "admin" }) => {
+    setPendingUpload(opts);
+    setTimeout(() => adminFileRef.current?.click(), 0);
+  };
+
+  const handleAdminFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !pendingUpload) return;
+    try {
+      assertUploadFile(file);
+    } catch (err: any) {
+      toast.error(uploadErrorMessage(err));
+      return;
+    }
+    setUploading(true);
+    const path = `${clientId}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
+    if (upErr) { toast.error(uploadErrorMessage(upErr)); setUploading(false); return; }
+
+    const baseFields = {
+      file_path: path,
+      file_size: file.size,
+      mime_type: file.type,
+      uploaded_at: nowBR().toISOString(),
+      uploaded_by: user?.id ?? null,
+      source: pendingUpload.source,
+      status: "em_analise" as const,
+    };
+
+    if (pendingUpload.doc?.id) {
+      const { error } = await supabase.from("documents").update(baseFields as any).eq("id", pendingUpload.doc.id);
+      if (error) { toast.error(error.message); setUploading(false); return; }
+    } else {
+      const { error } = await supabase.from("documents").insert({
+        client_id: clientId,
+        product_id: pendingUpload.productId ?? null,
+        name: file.name,
+        description: `Anexado pelo admin (${pendingUpload.source})`,
+        is_required: false,
+        ...baseFields,
+      } as any);
+      if (error) { toast.error(error.message); setUploading(false); return; }
+    }
+    toast.success("Documento anexado");
+    setUploading(false);
+    setPendingUpload(null);
+    refresh();
+  };
+
   const grouped = useMemo(() => {
     const groups = new Map<string, { name: string; productId: string | null; items: any[] }>();
     // Inicializa um bucket por produto contratado para que o admin veja produtos sem documentos ainda
@@ -181,18 +238,30 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                   </div>
                   <Badge variant="outline" className="ml-2 text-[10px]">{group.items.length} doc(s)</Badge>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1.5"
-                  onClick={() => {
-                    setSelectedDoc(null);
-                    setDefaultProductId(group.productId);
-                    setOpen(true);
-                  }}
-                >
-                  <Plus className="size-3.5" /> Solicitar
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5"
+                    title="Anexar arquivo recebido por email/WhatsApp em nome do cliente"
+                    disabled={uploading}
+                    onClick={() => triggerAdminUpload({ productId: group.productId, source: "admin" })}
+                  >
+                    <Upload className="size-3.5" /> Anexar em nome do cliente
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5"
+                    onClick={() => {
+                      setSelectedDoc(null);
+                      setDefaultProductId(group.productId);
+                      setOpen(true);
+                    }}
+                  >
+                    <Plus className="size-3.5" /> Solicitar
+                  </Button>
+                </div>
               </header>
 
               {group.items.length === 0 ? (
@@ -254,6 +323,22 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                         </div>
 
                         <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                          {!doc.file_path && (
+                            <Button
+                              variant="ghost" size="sm"
+                              onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "admin" })}
+                              className="text-indigo-600 hover:bg-indigo-50 h-8 gap-1.5"
+                              title="Anexar arquivo recebido por email/WhatsApp"
+                              disabled={uploading}
+                            >
+                              <Upload className="size-3.5" /> Anexar pelo admin
+                            </Button>
+                          )}
+                          {doc.source && doc.source !== "client" && (
+                            <Badge variant="outline" className="h-6 text-[9px] uppercase tracking-widest bg-indigo-50 border-indigo-200 text-indigo-700">
+                              <Mail className="size-3 mr-1" /> {doc.source}
+                            </Badge>
+                          )}
                           {doc.file_path && (
                             <Button variant="ghost" size="sm" onClick={() => viewFile(doc.file_path)} className="h-8 gap-1.5">
                               <Eye className="size-3.5" /> Ver
@@ -339,6 +424,12 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         document={selectedDoc}
         defaultProductId={defaultProductId}
         onSuccess={refresh}
+      />
+      <input
+        ref={adminFileRef}
+        type="file"
+        className="hidden"
+        onChange={handleAdminFileSelected}
       />
     </div>
   );
