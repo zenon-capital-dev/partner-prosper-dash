@@ -53,7 +53,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()) });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12 });
 
   useEffect(() => {
     if (open) {
@@ -62,10 +62,12 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
           ...sale,
           sale_date: sale.sale_date || ymdBR(nowBR()),
           installments_count: 1,
-          first_due_date: sale.sale_date || ymdBR(nowBR()),
+          first_due_date: sale.recurrence_start || sale.sale_date || ymdBR(nowBR()),
+          revenue_type: sale.revenue_type || "avulso",
+          recurrence_months: sale.recurrence_months || 12,
         });
       } else {
-        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()) });
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12 });
       }
     }
   }, [open, clientId, sale]);
@@ -188,6 +190,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     }
     setSubmitting(true);
     try {
+      const isRecurring = form.revenue_type === "recorrente";
+      const recurrenceStart = form.first_due_date || form.sale_date || ymdBR(nowBR());
       const payload = {
         client_id: form.client_id,
         product_id: form.product_id,
@@ -204,6 +208,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         status: form.status,
         sale_date: form.sale_date,
         notes: form.notes || null,
+        revenue_type: isRecurring ? "recorrente" : "avulso",
+        recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
+        recurrence_start: isRecurring ? recurrenceStart : null,
       } as any;
 
 
@@ -219,33 +226,50 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         if (error) throw error;
 
         // Gera as parcelas (faturas) para o cliente acompanhar/pagar
-        const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
-        const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
-        const totalCents = Math.round(Number(form.amount) * 100);
-        const baseCents = Math.floor(totalCents / n);
-        const remainder = totalCents - baseCents * n;
         const addMonths = (iso: string, m: number) => {
           const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
           const dt = new Date(Date.UTC(y, mo - 1 + m, d));
           return dt.toISOString().slice(0, 10);
         };
-        const rows = Array.from({ length: n }, (_, i) => ({
-          sale_id: newSale.id,
-          client_id: newSale.client_id,
-          product_id: newSale.product_id,
-          amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
-          due_date: addMonths(baseDate, i),
-          status: "pendente" as any,
-          installments_count: n,
-          installment_number: i + 1,
-          description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
-        }));
+        let rows: any[] = [];
+        if (isRecurring) {
+          const months = payload.recurrence_months as number;
+          const monthly = Number(form.amount);
+          rows = Array.from({ length: months }, (_, i) => ({
+            sale_id: newSale.id,
+            client_id: newSale.client_id,
+            product_id: newSale.product_id,
+            amount: monthly,
+            due_date: addMonths(recurrenceStart, i),
+            status: "pendente" as any,
+            installments_count: months,
+            installment_number: i + 1,
+            description: `Mensalidade ${i + 1}/${months}`,
+          }));
+        } else {
+          const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
+          const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
+          const totalCents = Math.round(Number(form.amount) * 100);
+          const baseCents = Math.floor(totalCents / n);
+          const remainder = totalCents - baseCents * n;
+          rows = Array.from({ length: n }, (_, i) => ({
+            sale_id: newSale.id,
+            client_id: newSale.client_id,
+            product_id: newSale.product_id,
+            amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
+            due_date: addMonths(baseDate, i),
+            status: "pendente" as any,
+            installments_count: n,
+            installment_number: i + 1,
+            description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
+          }));
+        }
         const { error: payErr } = await supabase.from("payments").insert(rows);
         if (payErr) {
           console.warn("Falha ao gerar parcelas:", payErr);
           toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
         } else {
-          toast.success(`Venda registrada e ${n} ${n > 1 ? "parcelas geradas" : "fatura gerada"}`);
+          toast.success(`Venda registrada e ${rows.length} ${rows.length > 1 ? (isRecurring ? "mensalidades geradas" : "parcelas geradas") : "fatura gerada"}`);
         }
       }
 
