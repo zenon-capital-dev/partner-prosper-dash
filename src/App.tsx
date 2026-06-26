@@ -58,6 +58,8 @@ const SLAPages = lazy(() => import("./pages/SLAPages"));
 const OperationalCockpit = lazy(() => import("./pages/OperationalCockpit"));
 const Proposals = lazy(() => import("./pages/Proposals"));
 const FinanceCenter = lazy(() => import("./pages/FinanceCenter"));
+const ResourcePools = lazy(() => import("./pages/ResourcePools"));
+const SalesGoals = lazy(() => import("./pages/SalesGoals"));
 const Agenda = lazy(() => import("./pages/Agenda"));
 
 function RouteFallback() {
