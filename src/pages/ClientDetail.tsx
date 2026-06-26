@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/PageHeader";
+import { ClientJourneyBadge } from "@/components/clients/ClientJourneyBadge";
 
 const TABS = [
   { id: "visao-geral", label: "Visão Geral", icon: Info },
@@ -320,6 +321,7 @@ export default function ClientDetail() {
                   <ShieldAlert className="size-4 shrink-0 text-slate-400" />
                   <span className="font-mono text-xs text-slate-600">{formatDoc(client.document)}</span>
                 </div>
+                <ClientJourneyBadge clientId={client.id} stageId={(client as any).journey_stage_id} />
               </div>
             </div>
           </div>

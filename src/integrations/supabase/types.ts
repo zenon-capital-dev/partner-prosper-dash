@@ -391,6 +391,42 @@ export type Database = {
           },
         ]
       }
+      client_journey_stages: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_terminal: boolean
+          name: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_terminal?: boolean
+          name: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_terminal?: boolean
+          name?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_partners: {
         Row: {
           added_by: string | null
@@ -1192,6 +1228,8 @@ export type Database = {
           id: string
           indicator_id: string | null
           internal_notes: string | null
+          journey_stage_id: string | null
+          journey_updated_at: string | null
           mandatory_steps: Json
           manual_approval_required: boolean
           notes: string | null
@@ -1251,6 +1289,8 @@ export type Database = {
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
+          journey_stage_id?: string | null
+          journey_updated_at?: string | null
           mandatory_steps?: Json
           manual_approval_required?: boolean
           notes?: string | null
@@ -1310,6 +1350,8 @@ export type Database = {
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
+          journey_stage_id?: string | null
+          journey_updated_at?: string | null
           mandatory_steps?: Json
           manual_approval_required?: boolean
           notes?: string | null
@@ -1340,6 +1382,13 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_journey_stage_id_fkey"
+            columns: ["journey_stage_id"]
+            isOneToOne: false
+            referencedRelation: "client_journey_stages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_partner_id_fkey"
             columns: ["partner_id"]
@@ -2176,6 +2225,82 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demand_requests: {
+        Row: {
+          client_id: string | null
+          client_product_id: string
+          created_at: string
+          description: string | null
+          id: string
+          kind: string
+          requested_by: string | null
+          requested_role: string
+          responded_at: string | null
+          responded_by: string | null
+          response: string | null
+          status: string
+          target_role: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_product_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind: string
+          requested_by?: string | null
+          requested_role: string
+          responded_at?: string | null
+          responded_by?: string | null
+          response?: string | null
+          status?: string
+          target_role: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_product_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          requested_by?: string | null
+          requested_role?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          response?: string | null
+          status?: string
+          target_role?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demand_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "demand_requests_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
             referencedColumns: ["id"]
           },
         ]
@@ -3415,6 +3540,7 @@ export type Database = {
           full_name: string
           has_system_access: boolean | null
           id: string
+          is_full_carteira: boolean
           notes: string | null
           partner_category:
             | Database["public"]["Enums"]["partner_type_enum"]
@@ -3440,6 +3566,7 @@ export type Database = {
           full_name: string
           has_system_access?: boolean | null
           id?: string
+          is_full_carteira?: boolean
           notes?: string | null
           partner_category?:
             | Database["public"]["Enums"]["partner_type_enum"]
@@ -3465,6 +3592,7 @@ export type Database = {
           full_name?: string
           has_system_access?: boolean | null
           id?: string
+          is_full_carteira?: boolean
           notes?: string | null
           partner_category?:
             | Database["public"]["Enums"]["partner_type_enum"]
@@ -5246,6 +5374,10 @@ export type Database = {
       }
       notify_tasks_due_today: { Args: never; Returns: undefined }
       provider_has_demand_access: {
+        Args: { _client_product_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_involved_in_demand: {
         Args: { _client_product_id: string; _user_id: string }
         Returns: boolean
       }

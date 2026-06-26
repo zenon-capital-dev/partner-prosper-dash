@@ -15,6 +15,7 @@ import {
   Pencil, Copy, Trash2, XCircle, UserCircle, Share2
 } from "lucide-react";
 import { DemandShareDialog } from "@/components/demands/DemandShareDialog";
+import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { EditDemandDialog } from "@/components/demands/EditDemandDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -476,10 +477,19 @@ export default function DemandDetail() {
                   <TabsTrigger value="comments" className="tab-trigger">
                      <MessageSquare className="size-4 mr-2" /> Comentários
                   </TabsTrigger>
+                  <TabsTrigger value="solicitacoes" className="tab-trigger">
+                     <MessageSquare className="size-4 mr-2" /> Solicitações
+                  </TabsTrigger>
                   <TabsTrigger value="history" className="tab-trigger">
                      <History className="size-4 mr-2" /> Histórico
                   </TabsTrigger>
                </TabsList>
+
+               <TabsContent value="solicitacoes" className="animate-fade-up">
+                  <div className="vx-card p-6 bg-card">
+                    <DemandRequestsPanel clientProductId={demand.id} currentRole="admin" />
+                  </div>
+               </TabsContent>
 
                <TabsContent value="resumo" className="animate-fade-up">
                   <div className="vx-card p-8 bg-card">

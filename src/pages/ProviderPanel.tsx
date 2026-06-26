@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  LayoutDashboard, Briefcase, ClipboardCheck, FileText, UserCog, Inbox, Clock, Wallet,
+  LayoutDashboard, Briefcase, ClipboardCheck, FileText, UserCog, Inbox, Clock, Wallet, MessageSquare,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -12,9 +12,11 @@ import { PanelContainer } from "@/components/panels/PanelContainer";
 import { SectionCard, EmptyState } from "@/components/panels/SectionCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
+import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -42,6 +44,7 @@ export default function ProviderPanel() {
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/prestador" : `/prestador/${k}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
+  const [requestsTarget, setRequestsTarget] = useState<{ id: string; clientName?: string } | null>(null);
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
@@ -256,9 +259,14 @@ export default function ProviderPanel() {
                     </div>
                     <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{cp.clients?.full_name || "—"}</p>
                     <p className="text-[12px] text-slate-500 mt-0.5 truncate">{cp.products?.name || "—"}</p>
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11.5px] text-slate-500">
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
                       <span>Início: {formatDate(cp.created_at)}</span>
-                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700 h-8 text-[11px]" onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+                      <div className="flex gap-1.5">
+                        <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
+                          <MessageSquare className="size-3 mr-1" /> Solicitar
+                        </Button>
+                        <Button size="sm" className="bg-teal-600 hover:bg-teal-700 h-8 text-[11px]" onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar status</Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -364,6 +372,17 @@ export default function ProviderPanel() {
           clientName={reportTarget.clientName}
         />
       )}
+
+      <Dialog open={!!requestsTarget} onOpenChange={(o) => !o && setRequestsTarget(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Solicitações · {requestsTarget?.clientName ?? ""}</DialogTitle>
+          </DialogHeader>
+          {requestsTarget && (
+            <DemandRequestsPanel clientProductId={requestsTarget.id} currentRole="prestador" />
+          )}
+        </DialogContent>
+      </Dialog>
     </PanelShell>
   );
 }
