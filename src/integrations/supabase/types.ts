@@ -1228,6 +1228,7 @@ export type Database = {
           id: string
           indicator_id: string | null
           internal_notes: string | null
+          is_closed: boolean
           journey_stage_id: string | null
           journey_updated_at: string | null
           mandatory_steps: Json
@@ -1289,6 +1290,7 @@ export type Database = {
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
+          is_closed?: boolean
           journey_stage_id?: string | null
           journey_updated_at?: string | null
           mandatory_steps?: Json
@@ -1350,6 +1352,7 @@ export type Database = {
           id?: string
           indicator_id?: string | null
           internal_notes?: string | null
+          is_closed?: boolean
           journey_stage_id?: string | null
           journey_updated_at?: string | null
           mandatory_steps?: Json
