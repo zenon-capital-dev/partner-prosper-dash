@@ -571,7 +571,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       <SelectContent className="rounded-xl">
                         <SelectItem value="pendente" className="text-amber-600 font-semibold">Pendente</SelectItem>
                         <SelectItem value="em_andamento" className="text-blue-600 font-semibold">Em andamento</SelectItem>
-                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Concluída</SelectItem>
+                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Finalizada</SelectItem>
                         <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
