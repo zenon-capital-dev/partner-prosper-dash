@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
@@ -30,10 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(true);
+
+  const setAuthLoading = (value: boolean) => {
+    loadingRef.current = value;
+    setLoading(value);
+  };
 
   const fetchRoles = async (userId: string, attempt = 0): Promise<void> => {
     if (!userId) {
-      setLoading(false);
+      setAuthLoading(false);
       return;
     }
 
@@ -56,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Final failure: keep roles empty so guards can react safely
       setRoles([]);
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
@@ -64,6 +70,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
     let initialized = false;
     let currentUserId: string | null = null;
+    let fetchedRolesForUserId: string | null = null;
+    let rolesFetchInFlight: Promise<void> | null = null;
+
+    const loadRolesOnce = async (userId: string) => {
+      if (fetchedRolesForUserId === userId) {
+        setAuthLoading(false);
+        return;
+      }
+
+      if (!rolesFetchInFlight) {
+        setAuthLoading(true);
+        setRoles([]);
+        rolesFetchInFlight = fetchRoles(userId)
+          .then(() => {
+            fetchedRolesForUserId = userId;
+          })
+          .finally(() => {
+            rolesFetchInFlight = null;
+          });
+      }
+
+      await rolesFetchInFlight;
+    };
 
     const handleSession = async (sess: Session | null, event?: string) => {
       if (!mounted) return;
@@ -88,15 +117,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Sempre marcar loading + limpar roles antigos antes de buscar.
           // Sem isso, após SIGNED_IN o RoleHome renderiza com roles=[] e
           // mostra "Conta sem perfil atribuído" durante o fetch.
-          setLoading(true);
-          setRoles([]);
-          await fetchRoles(sess.user.id);
+          await loadRolesOnce(sess.user.id);
         } else {
-          setLoading(false);
+          setAuthLoading(false);
         }
       } else {
         setRoles([]);
-        setLoading(false);
+        fetchedRolesForUserId = null;
+        setAuthLoading(false);
       }
 
       initialized = true;
@@ -107,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: sess }, error }) => {
       if (error) {
         console.error("Get session error:", error);
-        if (mounted) setLoading(false);
+        if (mounted) setAuthLoading(false);
       } else {
         handleSession(sess);
       }
@@ -121,9 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 3. Safety fallback: force loading false after 10s
     const fallbackTimer = setTimeout(() => {
-      if (mounted && loading) {
+      if (mounted && loadingRef.current) {
         console.warn("Auth loading fallback triggered");
-        setLoading(false);
+        setAuthLoading(false);
       }
     }, 10000);
 

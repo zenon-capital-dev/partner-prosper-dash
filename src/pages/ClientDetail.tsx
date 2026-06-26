@@ -142,13 +142,14 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_products")
-        .select("*, products(id, name, description), steps:client_product_steps(*)")
+        .select("id, value, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name), steps:client_product_steps(id, client_product_id, label, completed, sla_due_date)")
         .eq("client_id", id!);
       if (error) throw error;
       return data ?? [];
     },
     enabled: !!id,
     retry: 1,
+    staleTime: 60_000,
   });
 
   const { data: payments = [] } = useQuery({
@@ -156,7 +157,7 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("*")
+        .select("id, amount, amount_paid, status, due_date, client_id")
         .eq("client_id", id!)
         .order("due_date", { ascending: false });
       if (error) throw error;
@@ -164,6 +165,7 @@ export default function ClientDetail() {
     },
     enabled: !!id,
     retry: 1,
+    staleTime: 60_000,
   });
 
   const { data: documents = [] } = useQuery({
@@ -171,13 +173,14 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
-        .select("*")
+        .select("id, status, client_id")
         .eq("client_id", id!);
       if (error) throw error;
       return data ?? [];
     },
     enabled: !!id,
     retry: 1,
+    staleTime: 60_000,
   });
 
   const { data: companies = [] } = useQuery({
@@ -462,23 +465,25 @@ export default function ClientDetail() {
 
         <div className="min-h-[500px] animate-in fade-in slide-in-from-bottom-2 duration-300">
           <TabsContent value="onboarding" className="m-0">
-            <ClientOnboardingTab clientId={id!} />
+            {activeTab === "onboarding" && <ClientOnboardingTab clientId={id!} />}
           </TabsContent>
 
           <TabsContent value="visao-geral" className="m-0 focus-visible:ring-0">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <IntelligentSummary clientId={id!} />
-                <ClientOverview client={client} stats={{ totalRevenue: stats.totalRevenue }} />
+            {activeTab === "visao-geral" && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <IntelligentSummary clientId={id!} />
+                  <ClientOverview client={client} stats={{ totalRevenue: stats.totalRevenue }} />
+                </div>
+                <div className="space-y-6">
+                  <RelationshipSummary client={client} />
+                </div>
               </div>
-              <div className="space-y-6">
-                <RelationshipSummary client={client} />
-              </div>
-            </div>
+            )}
           </TabsContent>
 
           <TabsContent value="empresas" className="m-0">
-            <div className="cp-panel p-6 space-y-4">
+            {activeTab === "empresas" && <div className="cp-panel p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <Building2 className="size-4 text-primary" /> Empresas vinculadas
@@ -524,37 +529,37 @@ export default function ClientDetail() {
                   ))}
                 </div>
               )}
-            </div>
+            </div>}
           </TabsContent>
 
           <TabsContent value="vinculos" className="m-0">
-            <ClientLinksPanel clientId={id!} />
+            {activeTab === "vinculos" && <ClientLinksPanel clientId={id!} />}
           </TabsContent>
 
           <TabsContent value="produtos" className="m-0">
-            <ClientProducts clientId={id!} />
+            {activeTab === "produtos" && <ClientProducts clientId={id!} />}
           </TabsContent>
 
 
           <TabsContent value="documentos" className="m-0">
-            <ClientDocuments clientId={id!} user_id={client.user_id} />
+            {activeTab === "documentos" && <ClientDocuments clientId={id!} user_id={client.user_id} />}
           </TabsContent>
 
           <TabsContent value="entregas" className="m-0">
-            <ClientTasks clientId={id!} />
+            {activeTab === "entregas" && <ClientTasks clientId={id!} />}
           </TabsContent>
 
           <TabsContent value="financeiro" className="m-0">
-            <ClientFinancial clientId={id!} />
+            {activeTab === "financeiro" && <ClientFinancial clientId={id!} />}
           </TabsContent>
 
 
           <TabsContent value="atividades" className="m-0">
-            <ClientTimelineTab clientId={id!} />
+            {activeTab === "atividades" && <ClientTimelineTab clientId={id!} />}
           </TabsContent>
 
           <TabsContent value="relacionamento" className="m-0">
-            <div className="cp-panel p-6 space-y-4">
+            {activeTab === "relacionamento" && <div className="cp-panel p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <MessageSquare className="size-4 text-indigo-500" /> Registro de Interações
@@ -583,11 +588,11 @@ export default function ClientDetail() {
                   ))}
                 </div>
               )}
-            </div>
+            </div>}
           </TabsContent>
 
           <TabsContent value="historico" className="m-0">
-            <ClientHistory clientId={id!} />
+            {activeTab === "historico" && <ClientHistory clientId={id!} />}
           </TabsContent>
 
           <TabsContent value="observacoes" className="m-0">
