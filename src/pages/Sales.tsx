@@ -730,6 +730,17 @@ export default function Sales() {
             </SelectContent>
           </Select>
 
+          <Select value={revenueFilter} onValueChange={(v) => setRevenueFilter(v as any)}>
+            <SelectTrigger className="h-10 w-[150px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos tipos</SelectItem>
+              <SelectItem value="avulso">Avulsa (na cabeça)</SelectItem>
+              <SelectItem value="recorrente">Recorrente (MRR)</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Select value={partnerFilter} onValueChange={setPartnerFilter}>
             <SelectTrigger className="h-10 w-[170px] rounded-md bg-white border-slate-200 text-xs font-medium">
               <SelectValue placeholder="Parceiro" />
