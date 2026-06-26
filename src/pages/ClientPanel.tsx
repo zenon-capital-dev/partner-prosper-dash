@@ -256,9 +256,10 @@ export default function ClientPanel() {
 
                     <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{d.products?.name || d.custom_product_name || "—"}</p>
                     {d.products?.description && <p className="text-[12px] text-slate-500 mt-1 line-clamp-2">{d.products.description}</p>}
-                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11.5px] text-slate-500">
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11.5px] text-slate-500 gap-2 flex-wrap">
                       <span><Calendar className="size-3 inline mr-1" />Início: {formatDate(d.created_at)}</span>
                       {d.sla_due_date && <span className={cn(new Date(d.sla_due_date) < new Date() ? "text-rose-600" : "text-slate-600")}>Prazo: {formatDate(d.sla_due_date)}</span>}
+                      <Link to={`/demandas/${d.id}`} className="text-indigo-600 hover:underline font-medium ml-auto">Abrir →</Link>
                     </div>
                   </div>
                 ))}
