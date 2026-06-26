@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { initials } from "@/lib/format";
 
-type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean; staffOnly?: boolean };
+type NavItem = { title: string; url: string; icon: any; badge?: string; adminOnly?: boolean; staffOnly?: boolean; superAdminOnly?: boolean };
 type NavSection = { label: string; items: NavItem[]; adminOnly?: boolean; staffOnly?: boolean };
 
 const SECTIONS: NavSection[] = [
