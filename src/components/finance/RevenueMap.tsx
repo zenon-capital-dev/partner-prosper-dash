@@ -14,6 +14,7 @@ type Payment = {
   amount_paid?: number | null;
   status?: string | null;
   paid_at?: string | null;
+  is_recurring?: boolean | null;
   clients?: { id: string; full_name?: string; company?: string } | null;
   products?: { name?: string } | null;
   client_products?: { custom_product_name?: string } | null;
