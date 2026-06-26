@@ -4616,6 +4616,7 @@ export type Database = {
           partner_id: string | null
           payment_method: string | null
           product_id: string
+          project_id: string | null
           provider_cost: number
           recurrence_months: number | null
           recurrence_start: string | null
@@ -4644,6 +4645,7 @@ export type Database = {
           partner_id?: string | null
           payment_method?: string | null
           product_id: string
+          project_id?: string | null
           provider_cost?: number
           recurrence_months?: number | null
           recurrence_start?: string | null
@@ -4672,6 +4674,7 @@ export type Database = {
           partner_id?: string | null
           payment_method?: string | null
           product_id?: string
+          project_id?: string | null
           provider_cost?: number
           recurrence_months?: number | null
           recurrence_start?: string | null
@@ -4719,6 +4722,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "sales_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "sales_referrer_id_fkey"
