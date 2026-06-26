@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useLayoutEffect } from "react";
 import { subDays, startOfMonth, startOfToday, endOfDay, parseISO } from "date-fns";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
@@ -94,6 +94,8 @@ export default function Sales() {
 
   useEffect(() => {
     if (searchParams.get("new") === "1") setOpen(true);
+    const urlSearch = searchParams.get("search");
+    if (urlSearch) setSearch(urlSearch);
   }, [searchParams]);
 
   const { data: sales = [], isLoading } = useQuery({
@@ -217,7 +219,7 @@ export default function Sales() {
       if (clientFilter !== "todos" && s.client_id !== clientFilter) return false;
       if (q) {
         const hay = norm(
-          `${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.clients?.email ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`
+          `${s.id ?? ""} ${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.clients?.email ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`
         );
         const docHay = onlyDigits(s.clients?.document ?? "");
         const matches = hay.includes(q) || (qDigits && docHay.includes(qDigits));
@@ -932,8 +934,10 @@ export default function Sales() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start">
                               {s.clients?.id && (
-                                <DropdownMenuItem onClick={() => navigate(`/clientes/${s.clients.id}`)}>
-                                  <Eye className="size-3.5 mr-2" /> Ver Cliente
+                                <DropdownMenuItem asChild>
+                                  <Link to={`/clientes/${s.clients.id}`}>
+                                    <Eye className="size-3.5 mr-2" /> Ver Cliente
+                                  </Link>
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuSeparator />
@@ -964,8 +968,8 @@ export default function Sales() {
                           </DropdownMenu>
                         ) : (
                           s.clients?.id && (
-                            <Button variant="ghost" size="icon" aria-label="Ver cliente" className="size-8 text-slate-400 hover:text-slate-900" onClick={() => navigate(`/clientes/${s.clients.id}`)}>
-                              <Eye className="size-4" />
+                            <Button asChild variant="ghost" size="icon" aria-label="Ver cliente" className="size-8 text-slate-400 hover:text-slate-900">
+                              <Link to={`/clientes/${s.clients.id}`}><Eye className="size-4" /></Link>
                             </Button>
                           )
                         )}
@@ -974,12 +978,12 @@ export default function Sales() {
                       {visibleCols.client && (
                         <Td>
                           <div className="min-w-0">
-                            <button
-                              className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left"
-                              onClick={() => s.clients?.id && navigate(`/clientes/${s.clients.id}`)}
+                            <Link
+                              className="font-semibold text-slate-900 truncate hover:text-indigo-700 transition-colors text-left block"
+                              to={s.clients?.id ? `/clientes/${s.clients.id}` : "#"}
                             >
                               {s.clients?.full_name ?? "—"}
-                            </button>
+                            </Link>
                             <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{s.clients?.company || "Conta Pessoal"}</p>
                           </div>
                         </Td>
