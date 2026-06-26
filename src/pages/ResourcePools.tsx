@@ -109,7 +109,34 @@ export default function ResourcePools() {
         description="Cofres virtuais para metas internas: Zenon, escritório, funcionários e outras."
       />
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { name: "Zenon", pool_type: "zenon", color: "#6366F1" },
+            { name: "Escritório", pool_type: "escritorio", color: "#0EA5E9" },
+            { name: "Funcionários", pool_type: "funcionarios", color: "#10B981" },
+          ].map((preset) => {
+            const exists = pools.some((p: any) => p.pool_type === preset.pool_type);
+            return (
+              <Button
+                key={preset.pool_type}
+                size="sm"
+                variant="outline"
+                disabled={exists}
+                onClick={async () => {
+                  const { error } = await (supabase as any).from("resource_pools").insert({
+                    name: preset.name, pool_type: preset.pool_type, color: preset.color, target_amount: 0,
+                  });
+                  if (error) { toast.error(error.message); return; }
+                  toast.success(`Caixinha "${preset.name}" criada`);
+                  qc.invalidateQueries({ queryKey: ["resource_pools"] });
+                }}
+              >
+                <Plus className="size-3.5 mr-1" />{preset.name}{exists ? " ✓" : ""}
+              </Button>
+            );
+          })}
+        </div>
         <Dialog open={openPool} onOpenChange={setOpenPool}>
           <DialogTrigger asChild>
             <Button><Plus className="size-4 mr-2" />Nova caixinha</Button>
