@@ -114,7 +114,57 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     refresh();
   };
 
-  const grouped = useMemo(() => {
+  const triggerAdminUpload = (opts: { doc?: any; productId?: string | null; source: "email" | "whatsapp" | "admin" }) => {
+    setPendingUpload(opts);
+    setTimeout(() => adminFileRef.current?.click(), 0);
+  };
+
+  const handleAdminFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !pendingUpload) return;
+    try {
+      assertUploadFile(file);
+    } catch (err: any) {
+      toast.error(uploadErrorMessage(err));
+      return;
+    }
+    setUploading(true);
+    const path = `${clientId}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
+    if (upErr) { toast.error(uploadErrorMessage(upErr)); setUploading(false); return; }
+
+    const baseFields = {
+      file_path: path,
+      file_size: file.size,
+      mime_type: file.type,
+      uploaded_at: nowBR().toISOString(),
+      uploaded_by: user?.id ?? null,
+      source: pendingUpload.source,
+      status: "em_analise" as const,
+    };
+
+    if (pendingUpload.doc?.id) {
+      const { error } = await supabase.from("documents").update(baseFields as any).eq("id", pendingUpload.doc.id);
+      if (error) { toast.error(error.message); setUploading(false); return; }
+    } else {
+      const { error } = await supabase.from("documents").insert({
+        client_id: clientId,
+        product_id: pendingUpload.productId ?? null,
+        name: file.name,
+        description: `Anexado pelo admin (${pendingUpload.source})`,
+        is_required: false,
+        ...baseFields,
+      } as any);
+      if (error) { toast.error(error.message); setUploading(false); return; }
+    }
+    toast.success("Documento anexado");
+    setUploading(false);
+    setPendingUpload(null);
+    refresh();
+  };
+
+
     const groups = new Map<string, { name: string; productId: string | null; items: any[] }>();
     // Inicializa um bucket por produto contratado para que o admin veja produtos sem documentos ainda
     for (const cp of clientProducts) {
