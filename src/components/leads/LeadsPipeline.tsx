@@ -111,6 +111,15 @@ export function LeadsPipeline({ leads, onEdit, onConvert }: Props) {
   const moveLead = async (id: string, status: string) => {
     const lead = leads.find((l) => l.id === id);
     if (!lead || lead.status === status) return;
+
+    // Auto-conversão: ao marcar "Fechado", abre o diálogo de conversão em cliente
+    // (em vez de só mudar o status). Evita retrabalho de cadastro duplo.
+    if (status === "Fechado" && !lead.converted_to_client_id) {
+      toast.info("Lead fechado! Convertendo em cliente...");
+      onConvert(lead);
+      return;
+    }
+
     const prev = lead.status;
     qc.setQueryData(["leads"], (old: any[] | undefined) =>
       old?.map((l) => (l.id === id ? { ...l, status } : l)),
