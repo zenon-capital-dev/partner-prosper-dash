@@ -60,6 +60,7 @@ const Proposals = lazy(() => import("./pages/Proposals"));
 const FinanceCenter = lazy(() => import("./pages/FinanceCenter"));
 const ResourcePools = lazy(() => import("./pages/ResourcePools"));
 const SalesGoals = lazy(() => import("./pages/SalesGoals"));
+const ClientJourney = lazy(() => import("./pages/ClientJourney"));
 const Agenda = lazy(() => import("./pages/Agenda"));
 
 function RouteFallback() {
@@ -139,6 +140,7 @@ const App = () => (
               <Route path="/financeiro/central" element={<FinanceCenter />} />
               <Route path="/financeiro/caixinhas" element={<ResourcePools />} />
               <Route path="/metas-comerciais" element={<SalesGoals />} />
+              <Route path="/esteira" element={<ClientJourney />} />
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/auditoria" element={<AuditLog />} />
               <Route path="/sla" element={<SLAPages />} />
