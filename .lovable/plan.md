@@ -1,33 +1,77 @@
-## Objetivo
-Deixar óbvio para qualquer usuário (e para o consultor) que as funcionalidades já existem: **receita recorrente vs pontual** e **caixinhas de recursos/projetos**. Sem recriar nada, só reorganizar rótulos, destaques e navegação.
+## Auditoria + finalização dos 15 pontos
 
-## O que vamos fazer
+A maior parte (1–5, 7, 9–15) já foi entregue em sprints anteriores. Este plano: (a) audita o que está vivo, (b) fecha os 3 gaps reais que sobraram, (c) faz checagem 100% antes de devolver.
 
-### 1. Receita / Tipo de receita (vendas e dashboard)
-- **Vendas / VendaFormDialog**: trazer a seção "Tipo de Receita" para o topo do formulário, logo após o cliente e o produto, com rótulos mais didáticos:
-  - "Avulso (na cabeça)" → "Pontual / Avulso"
-  - "Recorrente (mensal)" → "MRR — Recorrência mensal"
-  - Quando selecionar MRR, destacar o campo "Meses de vigência" com explicação em texto: "Período de vigência: o cliente será cobrado automaticamente por X meses."
-- **Lista de Vendas**: mover a coluna/badges Tipo para a esquerda, junto ao status, e usar cores mais distintas (azul para MRR, cinza para Avulso).
-- **Dashboard**: alterar labels dos minikpis para:
-  - "MRR ATIVO" → "MRR Ativo (receita recorrente)"
-  - "RECEITA NA CABEÇA (MÊS)" → "Receita Pontual (mês)"
-  - Adicionar tooltip curto explicando cada um.
-- **Finance Center / Mapa de Receitas**: adicionar legenda explicando "Recorrente = MRR ativo / Avulso = receita pontual".
+### Status atual de cada ponto
 
-### 2. Caixinhas de Recursos / Projetos
-- **Sidebar**: renomear menu "Caixinhas" para "Caixinhas & Projetos" e movê-lo para a seção Financeiro, mas com ícone/coloração diferenciada para não parecer submenu escondido.
-- **Página ResourcePools**: no topo, adicionar um header explicativo: "Acompanhe o quanto já arrecadou para cada projeto. Valores podem ser lançados manualmente ou creditados automaticamente quando uma venda vinculada é paga."
-- **Cards das caixinhas**: deixar a barra de progresso maior e sempre visível, mostrar o status ("Em captação / Meta atingida / Iniciado") como badge colorido e incluir botão "+ Lançar valor" sempre visível.
-- **SaleFormDialog**: deixar o campo "Projeto (Caixinha)" como Section própria, com ícone de cofrinho, e explicar: "Se vincular a uma caixinha, o valor líquido creditará automaticamente o projeto quando a venda for finalizada e paga."
-- **Dashboard**: adicionar um card "Caixinha com maior progresso" ou link rápido para `/financeiro/caixinhas` dentro do GoalsPanel ou ao lado do MRR.
+| # | Tema | Estado | Ação |
+|---|------|--------|------|
+| 01 | Painel de metas comercial | ✅ Pronto (`/sales-goals` + `GoalsPanel` no Dashboard) | Verificar |
+| 02 | Caixinhas Zenon/Escritório/Funcionários | ✅ Pronto (`/caixinhas` + presets) | Verificar |
+| 03 | Upload de doc no acesso do cliente (Email/WhatsApp) | ✅ Pronto (`source` em `ClientDocuments`) | Verificar |
+| 04 | Compartilhar demanda anônima com prestadores | ✅ Pronto (`demand_shares` + `DemandShareDialog`) | Verificar |
+| 05 | Acesso só-meu (super admin) | ✅ Pronto (role `super_admin` + guard em `/usuarios`) | Verificar |
+| **06** | **Notificações por e-mail** | ❌ **GAP — só notifica in-app hoje** | **Implementar** |
+| 07 | Agenda no parceiro comercial | ✅ Pronto (`PartnerPanel` aba Agenda) | Verificar |
+| **08** | **Acessos não se conversam (prestador/parceiro/cliente)** | ⚠️ **Parcial — falta hub unificado de demanda** | **Implementar** |
+| 09 | Prestador solicita doc/info ao cliente sem aprovação | ✅ Pronto (`RequestDocumentDialog` + `demand_requests`) | Verificar |
+| 10 | Esteira de atendimento | ✅ Pronto (`/esteira` Kanban + conversão lead→cliente) | Verificar |
+| 11 | Receita mensal vs na cabeça + vigência | ✅ Pronto (`revenue_type`, parcelas MRR, mapa empilhado) | Verificar |
+| 12 | Ações à esquerda do status em Vendas | ✅ Pronto | Verificar |
+| 13 | Painel de metas no Dash + status "Fechado" | ✅ Pronto (`GoalsPanel` + `is_closed` automático) | Verificar |
+| 14 | Venda só conta quando finalizada | ✅ Pronto (`closed_at` + trigger) | Verificar |
+| 15 | Caixinha de projetos com valor arrecadado | ✅ Pronto (`project_id` em vendas + trigger de crédito) | Verificar |
 
-## O que NÃO vamos fazer
-- Não criar tabelas novas.
-- Não alterar lógica de geração de parcelas ou trigger de crédito automático.
-- Não mudar cores fora do sistema de tokens (mantemos primary, indigo, emerald, slate).
+### Gaps a fechar nesta entrega
 
-## Critério de pronto
-- Usuário abre o formulário de venda e vê imediatamente a escolha "Pontual vs Recorrente" com campo de vigência.
-- Usuário abre o dashboard e entende o que é MRR e o que é receita pontual.
-- Usuário abre o sidebar e encontra "Caixinhas & Projetos" sem procurar.
+**Gap 1 — Ponto 06: notificações por e-mail**
+- Recomendar **Lovable Emails** (built-in) ou usar conector **Resend** (workspace já pode estar conectado).
+- Criar edge function `send-email-notification` que dispara quando uma `notifications` é inserida (trigger `pg_net` → função).
+- Tabela `email_preferences` por usuário com toggle por tipo (demand_request, document, contract, sale, lead, commission, task).
+- Tela em **Configurações → Notificações** para o usuário ligar/desligar canais.
+- Template HTML base com logo/título/CTA → link interno.
+
+**Gap 2 — Ponto 08: hub unificado de demanda**
+- Criar componente `DemandHub` reutilizável que aparece em 3 painéis (cliente, parceiro, prestador) mostrando **a mesma timeline** da demanda: comentários (`demand_comments`), pedidos (`demand_requests`), docs (`documents`), status reports.
+- No painel do cliente: aba "Minhas Demandas" → ao abrir, ver tudo num feed só, com identidade dos participantes mascarada conforme `demand_shares` (prestadores anônimos entre si).
+- Reaproveita as tabelas que já existem; é um agregador de UI, não schema novo.
+
+**Gap 3 — Verificação 100%**
+- Rodar `supabase--linter` para erros de segurança/schema.
+- Smoke test via Playwright headless: login admin, abrir `/dashboard`, `/esteira`, `/caixinhas`, `/sales-goals`, `/financeiro` (Mapa), `/vendas` com filtro MRR, criar uma venda recorrente com projeto vinculado, e capturar screenshots.
+- Checar TS via `tsgo` automático no build.
+- Listar warnings residuais conhecidos (Supabase: HIBP/OTP) que dependem de toggle do usuário.
+
+### Detalhes técnicos (Gap 1 — e-mail)
+
+```text
+notifications INSERT
+   └─ trigger pg_net → POST edge fn /send-email-notification
+                              ├─ checa email_preferences[user_id][type]
+                              ├─ busca auth.users.email
+                              └─ Resend gateway: from=Zenon <no-reply@…>, html template
+```
+
+Tabelas:
+- `email_preferences(user_id PK, demand_request bool, document bool, contract bool, sale bool, lead bool, commission bool, task bool, marketing bool default false)` — defaults `true` exceto marketing.
+
+Edge function: `supabase/functions/send-email-notification/index.ts` usando o conector Resend (gateway Lovable).
+
+### Detalhes técnicos (Gap 2 — hub)
+
+- `src/components/demands/DemandHub.tsx`: props `{ clientProductId, viewerRole }`.
+- Tabs internas: **Conversa** (comments+requests intercalados por data), **Documentos**, **Status**, **Participantes** (mascarado se viewerRole=prestador e share anônimo).
+- Embutir em: `ClientPanel` (já tem demandas), `PartnerPanel`, `ProviderPanel` aba "Atuação", `ClientDetail` (admin vê tudo cru).
+
+### Saída esperada
+
+- 2 migrações novas (email_preferences + trigger pg_net opcional).
+- 1 edge function nova.
+- 1 componente novo + 4 integrações.
+- Screenshots de smoke test anexados na resposta.
+- Lista final do que ficou 100% e do que depende de ação do usuário (ex: conectar Resend, ativar HIBP).
+
+### Confirmações necessárias antes de implementar
+
+1. **E-mail (ponto 06):** posso usar **Resend** via conector Lovable? (alternativa: Lovable Emails built-in). Se sim, o domínio `from` será `onboarding@resend.dev` até você verificar domínio próprio.
+2. **Hub de demanda (ponto 08):** ok manter as 3 abas existentes e só adicionar o `DemandHub` como aba "Visão unificada", ou prefere substituir as abas atuais pelo hub?
