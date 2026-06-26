@@ -173,14 +173,14 @@ export function ClientProducts({ clientId }: { clientId: string }) {
 
   return (
     <div className="space-y-5 animate-fade-up">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-bold text-slate-900">Ecossistema de Soluções</h3>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500/70 mt-0.5">
             {clientProducts.length} serviço(s) ativo(s)
           </p>
         </div>
-        <Button onClick={() => setAddOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 h-10 px-4 rounded-lg">
+        <Button onClick={() => setAddOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 h-10 px-4 rounded-lg w-full sm:w-auto">
           <Plus className="size-4" /> Adicionar Produto
         </Button>
       </div>
@@ -207,7 +207,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
             return (
               <div key={cp.id} className="bg-white border border-slate-200/70 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
                 {/* HEADER */}
-                <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-4">
+                <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <Link
                     to={`/demandas/${cp.id}`}
                     className="flex items-start gap-4 min-w-0 flex-1 text-left group"
@@ -231,10 +231,10 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                   </Link>
 
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap w-full sm:w-auto">
                     <Button
                       variant="outline" size="sm"
-                      className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+                      className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 flex-1 sm:flex-none"
                       onClick={() => setDelegateTarget({ id: cp.id, providerId: cp.service_provider_id, productName: cp.products?.name })}
                     >
                       <UserCog className="size-3.5" /> {cp.service_providers ? "Trocar" : "Delegar"}
@@ -242,7 +242,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                     <Button
                       asChild
                       variant="outline" size="sm"
-                      className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+                      className="h-9 rounded-lg gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50 flex-1 sm:flex-none"
                     >
                       <Link to={`/demandas/${cp.id}`}>
                         <ExternalLink className="size-3.5" /> Abrir
@@ -344,7 +344,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
 
                 {/* CHECKLIST + REPORT */}
                 <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr]">
-                  <div className="p-5 border-r border-slate-100">
+                  <div className="p-4 sm:p-5 lg:border-r border-slate-100">
                     <div className="flex items-center gap-2 mb-3">
                       <ClipboardCheck className="size-3.5 text-emerald-600" />
                       <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Checklist de Entrega</h5>
@@ -355,7 +355,7 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                     />
                   </div>
 
-                  <div className="p-5 bg-slate-50/40">
+                  <div className="p-4 sm:p-5 bg-slate-50/40">
                     <div className="flex items-center gap-2 mb-3">
                       <MessageSquare className="size-3.5 text-indigo-600" />
                       <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Último Reporte Técnico</h5>

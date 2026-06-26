@@ -4622,6 +4622,7 @@ export type Database = {
           recurrence_start: string | null
           referrer_id: string | null
           referrer_percent: number | null
+          resource_pool_id: string | null
           revenue_type: string
           sale_date: string
           service_provider_id: string | null
@@ -4651,6 +4652,7 @@ export type Database = {
           recurrence_start?: string | null
           referrer_id?: string | null
           referrer_percent?: number | null
+          resource_pool_id?: string | null
           revenue_type?: string
           sale_date?: string
           service_provider_id?: string | null
@@ -4680,6 +4682,7 @@ export type Database = {
           recurrence_start?: string | null
           referrer_id?: string | null
           referrer_percent?: number | null
+          resource_pool_id?: string | null
           revenue_type?: string
           sale_date?: string
           service_provider_id?: string | null
@@ -4735,6 +4738,13 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "referrers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_resource_pool_id_fkey"
+            columns: ["resource_pool_id"]
+            isOneToOne: false
+            referencedRelation: "resource_pools"
             referencedColumns: ["id"]
           },
           {

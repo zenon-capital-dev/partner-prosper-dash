@@ -53,12 +53,16 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12, project_id: null });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12, project_id: null, resource_pool_id: null });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["projects-for-sale"],
+  const { data: resourcePools = [] } = useQuery({
+    queryKey: ["resource-pools-for-sale"],
     queryFn: async () => {
-      const { data } = await (supabase as any).from("projects").select("id, name").order("name");
+      const { data } = await (supabase as any)
+        .from("resource_pools")
+        .select("id, name, pool_type, current_balance, target_amount")
+        .eq("active", true)
+        .order("name");
       return data ?? [];
     },
     staleTime: 5 * 60_000,
@@ -75,9 +79,10 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
           revenue_type: sale.revenue_type || "avulso",
           recurrence_months: sale.recurrence_months || 12,
           project_id: sale.project_id ?? null,
+          resource_pool_id: sale.resource_pool_id ?? null,
         });
       } else {
-        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12, project_id: null });
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12, project_id: null, resource_pool_id: null });
       }
     }
   }, [open, clientId, sale]);
@@ -222,6 +227,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
         project_id: form.project_id || null,
+        resource_pool_id: form.resource_pool_id || null,
       } as any;
 
 
@@ -671,22 +677,22 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                 </div>
               </Section>
 
-              <Section icon={Wallet} title="Projeto / Caixinha" hint="Vincule a uma caixinha — o valor líquido credita o projeto automaticamente quando a venda for finalizada e paga">
-                <Field label="Projeto (Caixinha)">
-                  <Select value={form.project_id || "none"} onValueChange={(v) => setForm({ ...form, project_id: v === "none" ? null : v })}>
+              <Section icon={Wallet} title="Caixinha do Recurso" hint="Vincule a venda diretamente ao destino do dinheiro">
+                <Field label="Caixinha / Destino">
+                  <Select value={form.resource_pool_id || "none"} onValueChange={(v) => setForm({ ...form, resource_pool_id: v === "none" ? null : v })}>
                     <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
-                      <SelectValue placeholder="Nenhum projeto" />
+                      <SelectValue placeholder="Nenhuma caixinha" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sem projeto</SelectItem>
-                      {projects.map((p: any) => (
+                      <SelectItem value="none">Sem caixinha</SelectItem>
+                      {resourcePools.map((p: any) => (
                         <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </Field>
                 <p className="text-[10.5px] text-slate-500 leading-snug">
-                  Cofrinho virtual: ao receber o pagamento, o líquido é creditado na caixinha do projeto escolhido. Gerencie em <strong>Financeiro › Caixinhas &amp; Projetos</strong>.
+                  Cofrinho virtual: ao receber o pagamento, o valor é creditado automaticamente na caixinha escolhida. Gerencie em <strong>Financeiro › Caixinhas &amp; Projetos</strong>.
                 </p>
               </Section>
 

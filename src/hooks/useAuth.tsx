@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
@@ -30,11 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(true);
 
-  const fetchRoles = async (userId: string, attempt = 0): Promise<void> => {
+  const setAuthLoading = (value: boolean) => {
+    loadingRef.current = value;
+    setLoading(value);
+  };
+
+  const fetchRoles = async (userId: string, attempt = 0): Promise<AppRole[]> => {
     if (!userId) {
-      setLoading(false);
-      return;
+      return [];
     }
 
     try {
@@ -46,17 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       const roleList = ((data ?? []).map((r) => r.role as unknown as AppRole));
       if (import.meta.env.DEV) console.log("[auth] roles loaded:", roleList);
-      setRoles(roleList);
+      return roleList;
     } catch (error) {
       console.error("[auth] error fetching roles (attempt " + attempt + "):", error);
       if (attempt < 2) {
         await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
         return fetchRoles(userId, attempt + 1);
       }
-      // Final failure: keep roles empty so guards can react safely
-      setRoles([]);
-    } finally {
-      setLoading(false);
+      // Final failure: keep roles empty so guards can react safely.
+      return [];
     }
   };
 
@@ -64,6 +67,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
     let initialized = false;
     let currentUserId: string | null = null;
+    let fetchedRolesForUserId: string | null = null;
+    let rolesFetchInFlight: { userId: string; promise: Promise<AppRole[]> } | null = null;
+
+    const loadRolesOnce = async (userId: string) => {
+      if (fetchedRolesForUserId === userId) {
+        setAuthLoading(false);
+        return;
+      }
+
+      if (!rolesFetchInFlight || rolesFetchInFlight.userId !== userId) {
+        setAuthLoading(true);
+        setRoles([]);
+        const promise = fetchRoles(userId);
+        rolesFetchInFlight = { userId, promise };
+      }
+
+      const roleList = await rolesFetchInFlight.promise;
+      if (mounted && currentUserId === userId) {
+        setRoles(roleList);
+        fetchedRolesForUserId = userId;
+        setAuthLoading(false);
+      }
+      if (rolesFetchInFlight?.userId === userId) rolesFetchInFlight = null;
+    };
 
     const handleSession = async (sess: Session | null, event?: string) => {
       if (!mounted) return;
@@ -88,15 +115,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Sempre marcar loading + limpar roles antigos antes de buscar.
           // Sem isso, após SIGNED_IN o RoleHome renderiza com roles=[] e
           // mostra "Conta sem perfil atribuído" durante o fetch.
-          setLoading(true);
-          setRoles([]);
-          await fetchRoles(sess.user.id);
+          await loadRolesOnce(sess.user.id);
         } else {
-          setLoading(false);
+          setAuthLoading(false);
         }
       } else {
         setRoles([]);
-        setLoading(false);
+        fetchedRolesForUserId = null;
+        setAuthLoading(false);
       }
 
       initialized = true;
@@ -107,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: sess }, error }) => {
       if (error) {
         console.error("Get session error:", error);
-        if (mounted) setLoading(false);
+        if (mounted) setAuthLoading(false);
       } else {
         handleSession(sess);
       }
@@ -121,9 +147,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // 3. Safety fallback: force loading false after 10s
     const fallbackTimer = setTimeout(() => {
-      if (mounted && loading) {
+      if (mounted && loadingRef.current) {
         console.warn("Auth loading fallback triggered");
-        setLoading(false);
+        setAuthLoading(false);
       }
     }, 10000);
 

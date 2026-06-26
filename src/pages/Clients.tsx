@@ -95,7 +95,7 @@ export default function Clients() {
   }, [search, showFilters, view, currentPage, statusFilter, productFilter, partnerFilter, providerFilter, cityFilter, paymentFilter, riskFilter, sortKey, sortDir, dateRange]);
 
 
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
     queryKey: ["clients-admin-list"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -104,9 +104,7 @@ export default function Clients() {
           id, full_name, company, email, phone, document, status, source, birth_date,
           address_street, address_number, address_complement, address_neighborhood, address_zip_code,
           city, state, notes, tags, partner_id, referrer_id, collaborator_id, service_provider_id, created_at,
-          partners(id, full_name),
-          client_products(id, value, status, product_id, products(id, name)),
-          payments(id, amount, amount_paid, status, due_date)
+          partners(id, full_name)
         `)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -114,6 +112,34 @@ export default function Clients() {
     },
     staleTime: 2 * 60_000,
   });
+
+  const { data: clientProductsSummary = [], isLoading: isLoadingClientProducts } = useQuery({
+    queryKey: ["clients-admin-products-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_products")
+        .select("id, client_id, value, status, product_id, products(id, name)")
+        .limit(5000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 2 * 60_000,
+  });
+
+  const { data: paymentsSummary = [], isLoading: isLoadingPayments } = useQuery({
+    queryKey: ["clients-admin-payments-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("id, client_id, amount, amount_paid, status, due_date")
+        .limit(5000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 2 * 60_000,
+  });
+
+  const isLoading = isLoadingClients || isLoadingClientProducts || isLoadingPayments;
 
   const { data: products = [] } = useQuery({
     queryKey: ["products-minimal"],
@@ -146,13 +172,32 @@ export default function Clients() {
 
   const enriched = useMemo(() => {
     const today = startOfToday();
+    const productsByClient = new Map<string, any[]>();
+    const paymentsByClient = new Map<string, any[]>();
+
+    for (const p of clientProductsSummary as any[]) {
+      if (!p.client_id) continue;
+      const arr = productsByClient.get(p.client_id) ?? [];
+      arr.push(p);
+      productsByClient.set(p.client_id, arr);
+    }
+
+    for (const p of paymentsSummary as any[]) {
+      if (!p.client_id) continue;
+      const arr = paymentsByClient.get(p.client_id) ?? [];
+      arr.push(p);
+      paymentsByClient.set(p.client_id, arr);
+    }
+
     return clients.map((c: any) => {
-      const totalContracted = c.client_products?.reduce((acc: number, p: any) => acc + Number(p.value || 0), 0) || 0;
-      const totalPaid = c.payments?.filter((p: any) => p.status === "pago")
+      const clientProducts = productsByClient.get(c.id) ?? [];
+      const payments = paymentsByClient.get(c.id) ?? [];
+      const totalContracted = clientProducts.reduce((acc: number, p: any) => acc + Number(p.value || 0), 0) || 0;
+      const totalPaid = payments.filter((p: any) => p.status === "pago")
         .reduce((acc: number, p: any) => acc + Number(p.amount_paid || p.amount || 0), 0) || 0;
       const totalPending = Math.max(0, totalContracted - totalPaid);
-      const productNames = c.client_products?.map((p: any) => p.products?.name).filter(Boolean) || [];
-      const overdue = c.payments?.filter((p: any) => {
+      const productNames = clientProducts.map((p: any) => p.products?.name).filter(Boolean) || [];
+      const overdue = payments.filter((p: any) => {
         if (p.status === "pago" || !p.due_date) return false;
         try {
           return startOfDay(parseISO(String(p.due_date))) < today;
@@ -173,6 +218,8 @@ export default function Clients() {
 
       return {
         ...c,
+        client_products: clientProducts,
+        payments,
         _totalContracted: totalContracted,
         _totalPaid: totalPaid,
         _totalPending: totalPending,
@@ -183,7 +230,7 @@ export default function Clients() {
         _tags: tags,
       };
     });
-  }, [clients]);
+  }, [clients, clientProductsSummary, paymentsSummary]);
 
   const filtered = useMemo(() => {
     const qRaw = debouncedSearch.trim().toLowerCase();
