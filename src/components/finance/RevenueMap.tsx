@@ -247,10 +247,11 @@ export function RevenueMap({ payments }: { payments: Payment[] }) {
               );
             })}
           </div>
-          <div className="flex gap-3 px-4 pb-3 text-[10px] text-slate-600">
-            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-indigo-500" /> Recorrente (MRR)</span>
-            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-emerald-400" /> Avulso (na cabeça)</span>
+          <div className="flex flex-wrap gap-3 px-4 pb-3 text-[10px] text-slate-600">
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-indigo-500" /> <strong>Recorrente (MRR)</strong> — mensalidades ativas</span>
+            <span className="flex items-center gap-1"><span className="size-2.5 rounded-sm bg-emerald-400" /> <strong>Avulso</strong> — receita pontual (na cabeça)</span>
           </div>
+
         </div>
       </div>
 

@@ -105,9 +105,10 @@ export default function ResourcePools() {
     <div className="space-y-6 p-4 md:p-6">
       <PageHero
         icon={<Wallet className="size-5" />}
-        title="Caixinhas de Recursos"
-        description="Cofres virtuais para metas internas: Zenon, escritório, funcionários e outras."
+        title="Caixinhas & Projetos"
+        description="Cofrinhos virtuais para metas internas (Zenon, escritório, funcionários) e projetos. Lance valores manualmente ou vincule uma venda a um projeto — quando o pagamento for confirmado, a caixinha é creditada automaticamente."
       />
+
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2">

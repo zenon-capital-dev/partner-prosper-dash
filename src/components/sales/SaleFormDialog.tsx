@@ -567,84 +567,47 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             {/* Sidebar de Informações Adicionais */}
             <div className="lg:col-span-5 space-y-6">
 
-
-              
-              <Section icon={Calendar} title="Agendamento & Status">
-                <div className="space-y-5">
-                  <Field label="Data da Venda">
-                    <Input type="date" className="h-11 bg-white border-slate-200 shadow-sm rounded-xl" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} />
-                  </Field>
-                  <Field label="Status Atual">
-                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                      <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="pendente" className="text-amber-600 font-semibold">Pendente</SelectItem>
-                        <SelectItem value="em_andamento" className="text-blue-600 font-semibold">Em andamento</SelectItem>
-                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Finalizada</SelectItem>
-                        <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </div>
-              </Section>
-
-              <Section icon={Wallet} title="Projeto (Caixinha)" hint="Opcional — pagamentos desta venda creditam a caixinha do projeto">
-                <Field label="Projeto">
-                  <Select value={form.project_id || "none"} onValueChange={(v) => setForm({ ...form, project_id: v === "none" ? null : v })}>
-                    <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
-                      <SelectValue placeholder="Nenhum projeto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem projeto</SelectItem>
-                      {projects.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </Section>
-
               {!form.id && (
-                <Section icon={Calendar} title="Tipo de Receita" hint="Define como o faturamento entra no cronograma">
+                <Section icon={Calendar} title="Tipo de Receita — escolha primeiro" hint="Define como o faturamento entra no cronograma (MRR x Pontual)">
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, revenue_type: "avulso" })}
                       className={cn(
-                        "rounded-xl border p-3 text-left transition",
+                        "rounded-xl border-2 p-3 text-left transition",
                         form.revenue_type !== "recorrente"
-                          ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100"
+                          ? "border-slate-400 bg-slate-50 ring-2 ring-slate-200"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       )}
                     >
-                      <p className="text-[12px] font-bold text-slate-900">Avulso (na cabeça)</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-0.5">Pontual</p>
+                      <p className="text-[12.5px] font-bold text-slate-900">Avulso / Na cabeça</p>
                       <p className="text-[10.5px] text-slate-500 mt-0.5">Receita única — parcelável.</p>
                     </button>
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, revenue_type: "recorrente" })}
                       className={cn(
-                        "rounded-xl border p-3 text-left transition",
+                        "rounded-xl border-2 p-3 text-left transition",
                         form.revenue_type === "recorrente"
                           ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       )}
                     >
-                      <p className="text-[12px] font-bold text-slate-900">Recorrente (mensal)</p>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-indigo-600 mb-0.5">MRR</p>
+                      <p className="text-[12.5px] font-bold text-slate-900">Recorrência mensal</p>
                       <p className="text-[10.5px] text-slate-500 mt-0.5">Mensalidade fixa por N meses.</p>
                     </button>
                   </div>
 
                   {form.revenue_type === "recorrente" ? (
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Meses de recorrência">
+                      <Field label="Período de vigência (meses)">
                         <Input
                           type="number"
                           min={1}
                           max={120}
-                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
+                          className="h-11 bg-white border-indigo-300 shadow-sm rounded-xl font-mono"
                           value={form.recurrence_months ?? 12}
                           onChange={(e) => setForm({ ...form, recurrence_months: e.target.value })}
                         />
@@ -657,7 +620,9 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                           onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
                         />
                       </Field>
-                      <p className="col-span-2 text-[11px] text-slate-500">Valor informado = mensalidade. O cronograma criará uma fatura por mês durante o período.</p>
+                      <p className="col-span-2 text-[11px] text-indigo-700 bg-indigo-50/60 rounded-lg px-2.5 py-2 border border-indigo-100">
+                        <strong>Vigência:</strong> o cliente será cobrado automaticamente por <strong>{form.recurrence_months ?? 12} meses</strong>. O valor informado é a <strong>mensalidade</strong>; uma fatura por mês é criada no cronograma.
+                      </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4">
@@ -684,6 +649,47 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                   )}
                 </Section>
               )}
+
+              <Section icon={Calendar} title="Agendamento & Status">
+                <div className="space-y-5">
+                  <Field label="Data da Venda">
+                    <Input type="date" className="h-11 bg-white border-slate-200 shadow-sm rounded-xl" value={form.sale_date} onChange={(e) => setForm({ ...form, sale_date: e.target.value })} />
+                  </Field>
+                  <Field label="Status Atual">
+                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                      <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="pendente" className="text-amber-600 font-semibold">Pendente</SelectItem>
+                        <SelectItem value="em_andamento" className="text-blue-600 font-semibold">Em andamento</SelectItem>
+                        <SelectItem value="concluida" className="text-emerald-600 font-semibold">Finalizada</SelectItem>
+                        <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+              </Section>
+
+              <Section icon={Wallet} title="Projeto / Caixinha" hint="Vincule a uma caixinha — o valor líquido credita o projeto automaticamente quando a venda for finalizada e paga">
+                <Field label="Projeto (Caixinha)">
+                  <Select value={form.project_id || "none"} onValueChange={(v) => setForm({ ...form, project_id: v === "none" ? null : v })}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
+                      <SelectValue placeholder="Nenhum projeto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem projeto</SelectItem>
+                      {projects.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <p className="text-[10.5px] text-slate-500 leading-snug">
+                  Cofrinho virtual: ao receber o pagamento, o líquido é creditado na caixinha do projeto escolhido. Gerencie em <strong>Financeiro › Caixinhas &amp; Projetos</strong>.
+                </p>
+              </Section>
+
 
               <Section icon={FileText} title="Documentação">
                 <Field label="Notas e Observações Internas">
