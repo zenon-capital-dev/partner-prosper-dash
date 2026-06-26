@@ -1,24 +1,27 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import { Plus, GripVertical, Settings, ArrowRight } from "lucide-react";
+import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink } from "lucide-react";
 import { initials } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
-interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; }
+interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
 
 export default function ClientJourney() {
   const qc = useQueryClient();
   const [editorOpen, setEditorOpen] = useState(false);
   const [newStage, setNewStage] = useState({ name: "", color: "#6366f1", description: "" });
+  const [search, setSearch] = useState("");
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<string | null>(null);
 
   const { data: stages = [] } = useQuery<Stage[]>({
     queryKey: ["journey-stages"],
@@ -38,31 +41,53 @@ export default function ClientJourney() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, full_name, status, journey_stage_id")
+        .select("id, full_name, status, journey_stage_id, company")
         .order("full_name");
       if (error) throw error;
       return (data ?? []) as Client[];
     },
   });
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return clients;
+    return clients.filter((c) =>
+      (c.full_name || "").toLowerCase().includes(q) ||
+      (c.company || "").toLowerCase().includes(q),
+    );
+  }, [clients, search]);
+
   const byStage = useMemo(() => {
     const map = new Map<string, Client[]>();
     stages.forEach((s) => map.set(s.id, []));
     const unassigned: Client[] = [];
-    clients.forEach((c) => {
+    filtered.forEach((c) => {
       if (c.journey_stage_id && map.has(c.journey_stage_id)) map.get(c.journey_stage_id)!.push(c);
       else unassigned.push(c);
     });
     return { map, unassigned };
-  }, [stages, clients]);
+  }, [stages, filtered]);
 
-  const moveClient = async (clientId: string, stageId: string) => {
+  const moveClient = useCallback(async (clientId: string, stageId: string | null) => {
+    // optimista
+    qc.setQueryData<Client[]>(["journey-clients"], (old) =>
+      old?.map((c) => (c.id === clientId ? { ...c, journey_stage_id: stageId } : c)),
+    );
     const { error } = await supabase.from("clients").update({ journey_stage_id: stageId } as any).eq("id", clientId);
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Cliente movido");
+    if (error) {
+      toast.error(error.message);
       qc.invalidateQueries({ queryKey: ["journey-clients"] });
+    } else {
+      const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
+      toast.success(`Movido para "${stageName}"`);
     }
+  }, [qc, stages]);
+
+  const nextStageOf = (current: string | null) => {
+    if (!current) return stages[0]?.id ?? null;
+    const idx = stages.findIndex((s) => s.id === current);
+    if (idx < 0 || idx >= stages.length - 1) return null;
+    return stages[idx + 1].id;
   };
 
   const addStage = async () => {
@@ -87,46 +112,95 @@ export default function ClientJourney() {
     else qc.invalidateQueries({ queryKey: ["journey-stages"] });
   };
 
+  const handleDrop = (stageId: string | null) => {
+    if (dragId) moveClient(dragId, stageId);
+    setDragId(null);
+    setDragOver(null);
+  };
+
+  const totalShown = filtered.length;
+  const totalAll = clients.length;
+
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-4 sm:p-6 max-w-[1600px] mx-auto">
       <PageHeader
         title="Esteira de atendimento"
-        description="Acompanhe em qual estágio cada cliente está, do primeiro contato à entrega."
+        description="Arraste o cliente entre as colunas ou clique em ✓ para avançar ao próximo estágio."
         actions={
-          <Button variant="outline" size="sm" onClick={() => setEditorOpen(true)}>
-            <Settings className="size-4 mr-1" /> Configurar estágios
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar cliente..."
+                className="pl-8 h-9 text-sm bg-white"
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setEditorOpen(true)}>
+              <Settings className="size-4 mr-1" /> Configurar
+            </Button>
+          </div>
         }
       />
 
-      <div className="flex gap-3 overflow-x-auto pb-4 mt-4">
+      <p className="text-xs text-slate-500 mt-2 mb-4">
+        Mostrando <span className="font-semibold text-slate-700">{totalShown}</span> de {totalAll} cliente{totalAll !== 1 ? "s" : ""}.
+      </p>
+
+      <div className="flex gap-3 overflow-x-auto pb-4">
         {byStage.unassigned.length > 0 && (
-          <div className="min-w-[260px] w-[260px] bg-slate-50 border border-slate-200 rounded-lg p-3">
-            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">Sem estágio · {byStage.unassigned.length}</p>
-            <div className="space-y-2">
-              {byStage.unassigned.slice(0, 50).map((c) => (
-                <ClientCard key={c.id} client={c} stages={stages} onMove={moveClient} />
-              ))}
-            </div>
-          </div>
+          <Column
+            title="Sem estágio"
+            color="#94a3b8"
+            count={byStage.unassigned.length}
+            isOver={dragOver === "__unassigned__"}
+            onDragOver={(e) => { e.preventDefault(); setDragOver("__unassigned__"); }}
+            onDragLeave={() => setDragOver(null)}
+            onDrop={() => handleDrop(null)}
+          >
+            {byStage.unassigned.map((c) => (
+              <ClientCard
+                key={c.id}
+                client={c}
+                stages={stages}
+                nextStageId={nextStageOf(null)}
+                onMove={moveClient}
+                onDragStart={() => setDragId(c.id)}
+                onDragEnd={() => { setDragId(null); setDragOver(null); }}
+              />
+            ))}
+          </Column>
         )}
         {stages.map((stage) => {
           const list = byStage.map.get(stage.id) ?? [];
           return (
-            <div key={stage.id} className="min-w-[280px] w-[280px] bg-white border border-slate-200 rounded-lg shadow-sm">
-              <div className="p-3 border-b border-slate-200 flex items-center gap-2" style={{ borderTopColor: stage.color, borderTopWidth: 3 }}>
-                <span className="size-2.5 rounded-full" style={{ background: stage.color }} />
-                <p className="text-sm font-semibold text-slate-900 flex-1">{stage.name}</p>
-                <Badge variant="outline" className="bg-slate-50 text-slate-700 text-[10px]">{list.length}</Badge>
-              </div>
-              <div className="p-2 space-y-2 max-h-[70vh] overflow-y-auto">
-                {list.length === 0 ? (
-                  <p className="text-[11px] text-slate-400 text-center py-4">Nenhum cliente</p>
-                ) : (
-                  list.map((c) => <ClientCard key={c.id} client={c} stages={stages} onMove={moveClient} />)
-                )}
-              </div>
-            </div>
+            <Column
+              key={stage.id}
+              title={stage.name}
+              color={stage.color}
+              count={list.length}
+              isOver={dragOver === stage.id}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(stage.id); }}
+              onDragLeave={() => setDragOver(null)}
+              onDrop={() => handleDrop(stage.id)}
+            >
+              {list.length === 0 ? (
+                <p className="text-[11px] text-slate-400 text-center py-6">Solte um cliente aqui</p>
+              ) : (
+                list.map((c) => (
+                  <ClientCard
+                    key={c.id}
+                    client={c}
+                    stages={stages}
+                    nextStageId={nextStageOf(stage.id)}
+                    onMove={moveClient}
+                    onDragStart={() => setDragId(c.id)}
+                    onDragEnd={() => { setDragId(null); setDragOver(null); }}
+                  />
+                ))
+              )}
+            </Column>
           );
         })}
       </div>
@@ -164,30 +238,101 @@ export default function ClientJourney() {
   );
 }
 
-function ClientCard({ client, stages, onMove }: { client: Client; stages: Stage[]; onMove: (cid: string, sid: string) => void }) {
-  const [open, setOpen] = useState(false);
+function Column({
+  title, color, count, children, isOver, onDragOver, onDragLeave, onDrop,
+}: {
+  title: string; color: string; count: number; children: React.ReactNode;
+  isOver: boolean;
+  onDragOver: React.DragEventHandler;
+  onDragLeave: React.DragEventHandler;
+  onDrop: React.DragEventHandler;
+}) {
   return (
-    <div className="p-2.5 bg-white border border-slate-200 rounded-md hover:shadow-md transition group">
+    <div
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className={cn(
+        "min-w-[280px] w-[280px] bg-white border rounded-lg shadow-sm transition-colors flex flex-col",
+        isOver ? "border-indigo-400 bg-indigo-50/40 ring-2 ring-indigo-200" : "border-slate-200",
+      )}
+    >
+      <div
+        className="p-3 border-b border-slate-200 flex items-center gap-2"
+        style={{ borderTopColor: color, borderTopWidth: 3 }}
+      >
+        <span className="size-2.5 rounded-full" style={{ background: color }} />
+        <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{title}</p>
+        <Badge variant="outline" className="bg-slate-50 text-slate-700 text-[10px]">{count}</Badge>
+      </div>
+      <div className="p-2 space-y-2 max-h-[70vh] overflow-y-auto flex-1">{children}</div>
+    </div>
+  );
+}
+
+function ClientCard({
+  client, stages, nextStageId, onMove, onDragStart, onDragEnd,
+}: {
+  client: Client;
+  stages: Stage[];
+  nextStageId: string | null;
+  onMove: (cid: string, sid: string | null) => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}) {
+  const nextName = stages.find((s) => s.id === nextStageId)?.name;
+  return (
+    <div
+      draggable
+      onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; onDragStart(); }}
+      onDragEnd={onDragEnd}
+      className="p-2.5 bg-white border border-slate-200 rounded-md hover:border-indigo-300 hover:shadow-sm transition cursor-grab active:cursor-grabbing"
+    >
       <div className="flex items-center gap-2">
-        <div className="size-7 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-semibold">
+        <div className="size-7 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-[10px] font-semibold shrink-0">
           {initials(client.full_name)}
         </div>
-        <Link to={`/clientes/${client.id}`} className="text-[13px] font-medium text-slate-900 hover:text-indigo-700 truncate flex-1">
-          {client.full_name}
+        <div className="flex-1 min-w-0">
+          <Link
+            to={`/clientes/${client.id}`}
+            className="block text-[13px] font-medium text-slate-900 hover:text-indigo-700 truncate"
+          >
+            {client.full_name}
+          </Link>
+          {client.company && (
+            <p className="text-[10px] text-slate-500 truncate">{client.company}</p>
+          )}
+        </div>
+        <Link
+          to={`/clientes/${client.id}`}
+          className="text-slate-400 hover:text-indigo-600 shrink-0"
+          title="Abrir cliente"
+        >
+          <ExternalLink className="size-3.5" />
         </Link>
       </div>
-      <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+      <div className="mt-2 flex items-center gap-1.5">
         <select
-          className="text-[11px] border border-slate-200 rounded px-1.5 py-1 flex-1 bg-white"
+          className="text-[11px] border border-slate-200 rounded px-1.5 py-1 flex-1 bg-white hover:border-slate-300"
           value={client.journey_stage_id ?? ""}
-          onChange={(e) => e.target.value && onMove(client.id, e.target.value)}
+          onChange={(e) => onMove(client.id, e.target.value || null)}
+          title="Mover para outro estágio"
         >
-          <option value="">Mover para...</option>
+          <option value="">— sem estágio —</option>
           {stages.map((s) => (
-            <option key={s.id} value={s.id} disabled={s.id === client.journey_stage_id}>{s.name}</option>
+            <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>
-        <ArrowRight className="size-3 text-slate-400" />
+        {nextStageId && (
+          <button
+            type="button"
+            onClick={() => onMove(client.id, nextStageId)}
+            className="inline-flex items-center gap-0.5 px-1.5 h-[26px] rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-semibold border border-emerald-200 shrink-0"
+            title={`Avançar para "${nextName}"`}
+          >
+            <ChevronRight className="size-3" />
+          </button>
+        )}
       </div>
     </div>
   );
