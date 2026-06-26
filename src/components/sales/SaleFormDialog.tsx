@@ -221,6 +221,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         revenue_type: isRecurring ? "recorrente" : "avulso",
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
+        project_id: form.project_id || null,
       } as any;
 
 
