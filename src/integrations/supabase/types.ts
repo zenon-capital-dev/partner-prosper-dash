@@ -2180,6 +2180,63 @@ export type Database = {
           },
         ]
       }
+      demand_shares: {
+        Row: {
+          can_download: boolean
+          client_product_id: string
+          created_at: string
+          id: string
+          invited_by: string | null
+          message: string | null
+          provider_id: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          can_download?: boolean
+          client_product_id: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          message?: string | null
+          provider_id: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          can_download?: boolean
+          client_product_id?: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          message?: string | null
+          provider_id?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_shares_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demand_shares_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_history: {
         Row: {
           created_at: string | null
@@ -2393,6 +2450,7 @@ export type Database = {
           requested_by: string | null
           reviewed_at: string | null
           sale_id: string | null
+          source: string
           status: Database["public"]["Enums"]["document_status_new"]
           updated_at: string
           uploaded_at: string | null
@@ -2422,6 +2480,7 @@ export type Database = {
           requested_by?: string | null
           reviewed_at?: string | null
           sale_id?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["document_status_new"]
           updated_at?: string
           uploaded_at?: string | null
@@ -2451,6 +2510,7 @@ export type Database = {
           requested_by?: string | null
           reviewed_at?: string | null
           sale_id?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["document_status_new"]
           updated_at?: string
           uploaded_at?: string | null
@@ -4305,6 +4365,98 @@ export type Database = {
         }
         Relationships: []
       }
+      resource_pool_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          movement_type: string
+          occurred_at: string
+          pool_id: string
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          movement_type: string
+          occurred_at?: string
+          pool_id: string
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          movement_type?: string
+          occurred_at?: string
+          pool_id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_pool_movements_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "resource_pools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resource_pools: {
+        Row: {
+          active: boolean
+          color: string | null
+          created_at: string
+          created_by: string | null
+          current_balance: number
+          description: string | null
+          funding_rule: Json | null
+          id: string
+          name: string
+          pool_type: string
+          target_amount: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          description?: string | null
+          funding_rule?: Json | null
+          id?: string
+          name: string
+          pool_type?: string
+          target_amount?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_balance?: number
+          description?: string | null
+          funding_rule?: Json | null
+          id?: string
+          name?: string
+          pool_type?: string
+          target_amount?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           amount: number
@@ -4426,6 +4578,50 @@ export type Database = {
             columns: ["service_provider_id"]
             isOneToOne: false
             referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_goals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          goal_type: string
+          id: string
+          notes: string | null
+          period_month: string
+          responsible_id: string | null
+          target_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          goal_type: string
+          id?: string
+          notes?: string | null
+          period_month: string
+          responsible_id?: string | null
+          target_value?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          goal_type?: string
+          id?: string
+          notes?: string | null
+          period_month?: string
+          responsible_id?: string | null
+          target_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_goals_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
@@ -5018,6 +5214,7 @@ export type Database = {
         Args: { _provider_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id?: string }; Returns: boolean }
       log_action: {
         Args: {
           p_action: string
@@ -5048,6 +5245,10 @@ export type Database = {
         Returns: undefined
       }
       notify_tasks_due_today: { Args: never; Returns: undefined }
+      provider_has_demand_access: {
+        Args: { _client_product_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
@@ -5060,6 +5261,7 @@ export type Database = {
         | "admin_secondary"
         | "lead"
         | "indicador"
+        | "super_admin"
       beneficiary_type:
         | "partner"
         | "referrer"
@@ -5315,6 +5517,7 @@ export const Constants = {
         "admin_secondary",
         "lead",
         "indicador",
+        "super_admin",
       ],
       beneficiary_type: [
         "partner",
