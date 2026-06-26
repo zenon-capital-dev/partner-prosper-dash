@@ -51,11 +51,12 @@ const SECTIONS: NavSection[] = [
   ]},
   { label: "Financeiro", adminOnly: true, items: [
     { title: "Central Financeira", url: "/financeiro/central", icon: BarChart3 },
+    { title: "Caixinhas", url: "/financeiro/caixinhas", icon: Wallet },
   ]},
   { label: "Sistema", items: [
     { title: "Relatórios", url: "/relatorios", icon: BarChart3, staffOnly: true },
     { title: "Auditoria", url: "/auditoria", icon: History, adminOnly: true },
-    { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true },
+    { title: "Usuários", url: "/usuarios", icon: UserCog, adminOnly: true, superAdminOnly: true },
     // { title: "Automações", url: "/automacoes", icon: Zap, adminOnly: true },
     { title: "Configurações", url: "/configuracoes", icon: Settings, adminOnly: true },
   ]},
