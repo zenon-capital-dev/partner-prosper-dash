@@ -20,7 +20,7 @@ interface Props {
   notifCount?: number;
 }
 
-export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSubtitle, children, notifCount }: Props) {
+export function PanelShell({ role, nav, activeKey, userName, userSubtitle, children, notifCount }: Props) {
   const theme = ROLE_THEME[role];
   const { user, signOut } = useAuth() as any;
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -76,9 +76,6 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
       </button>
     </nav>
   );
-
-  // bottom-nav: pick first 5
-  const bottomItems = nav.slice(0, 5);
 
   return (
     <div className="min-h-dvh bg-slate-50/70 font-sans">
