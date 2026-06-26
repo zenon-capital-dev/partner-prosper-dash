@@ -210,6 +210,7 @@ export default function Sales() {
       if (!saleDate) return false;
       if (saleDate < start || saleDate > end) return false;
       if (status !== "todos" && s.status !== status) return false;
+      if (revenueFilter !== "todos" && (s.revenue_type || "avulso") !== revenueFilter) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
       if (productFilter !== "todos" && s.product_id !== productFilter) return false;
