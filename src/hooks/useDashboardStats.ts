@@ -113,7 +113,7 @@ export function useDashboardStats() {
           pending: revenuePending,
         },
         sales: {
-          count: salesActive.length,
+          count: salesFinalized.length,
           gross: salesGross,
           received: salesReceived,
         },
