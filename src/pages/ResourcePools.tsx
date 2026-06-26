@@ -23,6 +23,7 @@ const POOL_TYPES = [
   { v: "zenon", l: "Zenon" },
   { v: "escritorio", l: "Escritório" },
   { v: "funcionarios", l: "Funcionários" },
+  { v: "projeto", l: "Projeto" },
   { v: "geral", l: "Geral" },
 ];
 const fmtMoney = (n: number) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
