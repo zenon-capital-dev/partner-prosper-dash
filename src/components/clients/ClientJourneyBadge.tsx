@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity } from "lucide-react";
+import { Activity, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -21,6 +21,18 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
       return data ?? [];
     },
     staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: client } = useQuery({
+    queryKey: ["client-closed-flag", clientId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("is_closed" as any)
+        .eq("id", clientId)
+        .maybeSingle();
+      return data as any;
+    },
   });
 
   const current = stages.find((s: any) => s.id === stageId);
@@ -48,6 +60,11 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}
       </select>
+      {client?.is_closed && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5">
+          <CheckCircle2 className="size-3" /> Fechado
+        </span>
+      )}
     </div>
   );
 }

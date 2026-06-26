@@ -55,8 +55,32 @@ export function useDashboardStats() {
       // Receita só é considerada quando a venda é FINALIZADA (status=concluida).
       // A data que importa é closed_at (data da finalização), nunca sale_date.
       const salesFinalized = sales.filter((s: any) => s.status === "concluida" || s.status === "paga");
-      const salesGross = salesFinalized.reduce((sum: number, s: any) => sum + Number(s.amount || 0) * (s.revenue_type === "recorrente" ? Number(s.recurrence_months || 1) : 1), 0);
-      const salesReceived = salesFinalized.reduce((sum: number, s: any) => sum + Number(s.amount || 0) * (s.revenue_type === "recorrente" ? Number(s.recurrence_months || 1) : 1), 0);
+      const valueOf = (s: any) => Number(s.amount || 0) * (s.revenue_type === "recorrente" ? Number(s.recurrence_months || 1) : 1);
+      const salesGross = salesFinalized.reduce((sum: number, s: any) => sum + valueOf(s), 0);
+      const salesReceived = salesGross;
+
+      // MRR ativo: vendas recorrentes finalizadas que ainda estão dentro da janela de meses
+      const ymNow = new Date();
+      const mrrActive = salesFinalized
+        .filter((s: any) => s.revenue_type === "recorrente")
+        .filter((s: any) => {
+          const start = s.closed_at ? new Date(s.closed_at) : null;
+          if (!start) return false;
+          const months = Number(s.recurrence_months || 1);
+          const end = new Date(start);
+          end.setMonth(end.getMonth() + months);
+          return start <= ymNow && ymNow <= end;
+        })
+        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+
+      // Receita na cabeça (avulso) no mês corrente
+      const monthRevenueOneOff = salesFinalized
+        .filter((s: any) => s.revenue_type !== "recorrente")
+        .filter((s: any) => {
+          const d = s.closed_at ? new Date(s.closed_at) : null;
+          return d && d >= startOfMonth(ymNow);
+        })
+        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
 
       const paymentsReceived = payments
         .filter((p: any) => p.status === "pago")
@@ -116,6 +140,8 @@ export function useDashboardStats() {
           count: salesFinalized.length,
           gross: salesGross,
           received: salesReceived,
+          mrrActive,
+          monthRevenueOneOff,
         },
         commissions: {
           pending: commsPending,
