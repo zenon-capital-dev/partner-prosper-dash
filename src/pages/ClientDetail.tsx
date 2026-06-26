@@ -142,7 +142,7 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_products")
-        .select("id, value, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name), steps:client_product_steps(id, client_product_id, label, completed, sla_due_date)")
+        .select("id, value, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name), steps:client_product_steps(id, client_product_id, label, completed)")
         .eq("client_id", id!);
       if (error) throw error;
       return data ?? [];
