@@ -24,7 +24,7 @@ export function useDashboardStats() {
         supabase.from("commissions").select("amount, status"),
         supabase.from("tasks").select("id, status, status_new, due_date"),
         supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(5),
-        supabase.from("sales").select("amount, status, sale_date, paid_at, zenon_cost, provider_cost"),
+        supabase.from("sales").select("amount, status, sale_date, closed_at, paid_at, zenon_cost, provider_cost, revenue_type, recurrence_months"),
       ]);
 
       const [
@@ -52,13 +52,11 @@ export function useDashboardStats() {
       const recentActivities = recentActivitiesData.data || [];
       const sales = salesData?.data || [];
 
-      // Receita: usa SALES como fonte de verdade (cada venda registrada conta), com
-      // fallback para payments quando a venda já gerou parcelas pagas.
-      const salesActive = sales.filter((s: any) => s.status !== "cancelada");
-      const salesGross = salesActive.reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
-      const salesReceived = sales
-        .filter((s: any) => s.status === "concluida" || s.status === "paga")
-        .reduce((sum: number, s: any) => sum + Number(s.amount || 0), 0);
+      // Receita só é considerada quando a venda é FINALIZADA (status=concluida).
+      // A data que importa é closed_at (data da finalização), nunca sale_date.
+      const salesFinalized = sales.filter((s: any) => s.status === "concluida" || s.status === "paga");
+      const salesGross = salesFinalized.reduce((sum: number, s: any) => sum + Number(s.amount || 0) * (s.revenue_type === "recorrente" ? Number(s.recurrence_months || 1) : 1), 0);
+      const salesReceived = salesFinalized.reduce((sum: number, s: any) => sum + Number(s.amount || 0) * (s.revenue_type === "recorrente" ? Number(s.recurrence_months || 1) : 1), 0);
 
       const paymentsReceived = payments
         .filter((p: any) => p.status === "pago")
