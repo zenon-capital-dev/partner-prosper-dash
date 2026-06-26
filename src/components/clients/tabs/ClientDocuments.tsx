@@ -425,6 +425,12 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         defaultProductId={defaultProductId}
         onSuccess={refresh}
       />
+      <input
+        ref={adminFileRef}
+        type="file"
+        className="hidden"
+        onChange={handleAdminFileSelected}
+      />
     </div>
   );
 }
