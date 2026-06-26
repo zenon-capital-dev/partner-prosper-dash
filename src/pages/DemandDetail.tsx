@@ -53,6 +53,7 @@ export default function DemandDetail() {
   const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
   const [delegateOpen, setDelegateOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
