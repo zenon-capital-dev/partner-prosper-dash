@@ -31,6 +31,7 @@ const SECTIONS: NavSection[] = [
     { title: "Leads", url: "/leads", icon: UserPlus, staffOnly: true },
     // { title: "Propostas", url: "/propostas", icon: FileText, staffOnly: true },
     { title: "Vendas", url: "/vendas", icon: CircleDollarSign, staffOnly: true },
+    { title: "Metas Comerciais", url: "/metas-comerciais", icon: Target, staffOnly: true },
   ]},
   { label: "Catálogo", staffOnly: true, items: [
     { title: "Serviços", url: "/produtos", icon: Package },
