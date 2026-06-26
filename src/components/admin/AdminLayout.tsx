@@ -106,7 +106,7 @@ function AdminShell() {
 
         <div className="flex-1 flex flex-col min-w-0 relative">
           <AdminHeader onSearchClick={handleSearchClick} onMenuClick={() => setMobileMenuOpen(true)} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden admin-content-scroll relative">
+          <main className="flex-1 overflow-y-auto overflow-x-auto admin-content-scroll relative">
             <Outlet />
           </main>
         </div>

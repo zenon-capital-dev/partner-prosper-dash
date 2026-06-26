@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,14 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
   const theme = ROLE_THEME[role];
   const { user, signOut } = useAuth() as any;
   const [sheetOpen, setSheetOpen] = useState(false);
-  const navigate = useNavigate();
+  const basePathByRole: Record<PanelRole, string> = {
+    cliente: "/portal-cliente",
+    parceiro: "/parceiro",
+    prestador: "/prestador",
+    indicador: "/indicador",
+    colaborador: "/colaborador",
+  };
+  const navHref = (key: string) => key === "dashboard" ? basePathByRole[role] : `${basePathByRole[role]}/${key}`;
 
   const displayName = userName || user?.user_metadata?.full_name || user?.email || theme.label;
   const subtitle = userSubtitle || user?.email || "";
@@ -40,9 +47,10 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
         const active = n.key === activeKey;
         const Icon = n.icon;
         return (
-          <button
+          <Link
             key={n.key}
-            onClick={() => { onNavigate(n.key); onPick?.(); }}
+            to={navHref(n.key)}
+            onClick={() => { onPick?.(); }}
             className={cn(
               "relative w-full flex items-center gap-2.5 px-3 py-2.5 rounded-md text-[13.5px] font-medium transition",
               active
@@ -56,7 +64,7 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
             {n.badge ? (
               <span className={cn("text-[10px] font-semibold px-1.5 rounded-full", theme.accentSoft, theme.accentText)}>{n.badge}</span>
             ) : null}
-          </button>
+          </Link>
         );
       })}
       <button
@@ -103,7 +111,6 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
               </Link>
               <div className="flex-1" />
               <button
-                onClick={() => navigate("#")}
                 className="relative h-9 w-9 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition"
                 aria-label="Notificações"
               >
@@ -128,23 +135,23 @@ export function PanelShell({ role, nav, activeKey, onNavigate, userName, userSub
 
       {/* Mobile bottom nav */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/70 pb-[max(env(safe-area-inset-bottom),0px)]">
-        <div className="grid grid-cols-5 h-16">
-          {bottomItems.map((n) => {
+        <div className="h-16 flex overflow-x-auto scrollbar-thin px-1">
+          {nav.map((n) => {
             const active = n.key === activeKey;
             const Icon = n.icon;
             return (
-              <button
+              <Link
                 key={n.key}
-                onClick={() => onNavigate(n.key)}
+                to={navHref(n.key)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition relative",
+                  "min-w-[74px] flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition relative",
                   active ? theme.accentText : "text-slate-500"
                 )}
               >
                 {active && <span className={cn("absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-b-full", theme.accentBg)} />}
                 <Icon className={cn("size-[20px] mb-0.5", active && "scale-110")} />
                 <span className="truncate max-w-[64px]">{n.shortLabel || n.label}</span>
-              </button>
+              </Link>
             );
           })}
         </div>
