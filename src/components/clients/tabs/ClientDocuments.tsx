@@ -8,13 +8,14 @@ import {
   Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail
 } from "lucide-react";
 
-import { formatDate, nowBR } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { nowBR } from "@/lib/datetime";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { logTimeline } from "@/lib/timeline";
 import { confirmAction } from "@/lib/confirm";
-import { sanitizeStorageFileName, assertUploadFile, uploadErrorMessage } from "@/lib/upload";
+import { sanitizeStorageFileName, assertUploadFile, uploadErrorMessage } from "@/lib/uploads";
 import { useAuth } from "@/hooks/useAuth";
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
