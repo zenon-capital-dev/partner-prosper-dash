@@ -36,7 +36,7 @@ export function RequestDocumentDialog({ open, onOpenChange, clientId, clientProd
       title: title.trim(),
       description: description.trim() || null,
       due_date: dueDate || null,
-      status: "pendente",
+      status: "enviado",
     });
     setSaving(false);
     if (error) return toast.error(error.message);
