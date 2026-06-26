@@ -30,9 +30,13 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
 
 export function ClientDocuments({ clientId }: { clientId: string; user_id?: string }) {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [defaultProductId, setDefaultProductId] = useState<string | null>(null);
+  const adminFileRef = useRef<HTMLInputElement>(null);
+  const [pendingUpload, setPendingUpload] = useState<{ doc?: any; productId?: string | null; source: "email" | "whatsapp" | "admin" } | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["client-docs-admin", clientId],
