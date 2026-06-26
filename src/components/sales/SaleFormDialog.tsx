@@ -590,6 +590,22 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                 </div>
               </Section>
 
+              <Section icon={Wallet} title="Projeto (Caixinha)" hint="Opcional — pagamentos desta venda creditam a caixinha do projeto">
+                <Field label="Projeto">
+                  <Select value={form.project_id || "none"} onValueChange={(v) => setForm({ ...form, project_id: v === "none" ? null : v })}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
+                      <SelectValue placeholder="Nenhum projeto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem projeto</SelectItem>
+                      {projects.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </Section>
+
               {!form.id && (
                 <Section icon={Calendar} title="Tipo de Receita" hint="Define como o faturamento entra no cronograma">
                   <div className="grid grid-cols-2 gap-2">
