@@ -5,8 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus, FileText, Check, X, Clock, Trash2, Eye, Pencil,
-  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail
+  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail,
+  MessageCircle, ChevronDown
 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem
+} from "@/components/ui/dropdown-menu";
 
 import { formatDate } from "@/lib/format";
 import { nowBR } from "@/lib/datetime";
