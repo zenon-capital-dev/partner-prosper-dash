@@ -596,7 +596,7 @@ export default function ClientDetail() {
           </TabsContent>
 
           <TabsContent value="observacoes" className="m-0">
-            <div className="cp-panel p-6 space-y-4">
+            {activeTab === "observacoes" && <div className="cp-panel p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold">Observações Internas</h3>
                 <Button onClick={openNotesEditor} variant="outline" size="sm">Editar Notas</Button>
@@ -604,11 +604,11 @@ export default function ClientDetail() {
               <div className="p-4 rounded-xl bg-muted/20 border border-border/40 min-h-[200px] text-sm leading-relaxed text-muted-foreground">
                 {client.internal_notes || "Nenhuma observação interna registrada para este cliente."}
               </div>
-            </div>
+            </div>}
           </TabsContent>
 
           <TabsContent value="acesso" className="m-0">
-            <CredentialsManager userId={client.user_id} currentEmail={client.email} entityLabel="cliente" entityType="cliente" entityId={client.id} entityName={client.full_name} onUpdated={() => qc.invalidateQueries({ queryKey: ["client", id] })} />
+            {activeTab === "acesso" && <CredentialsManager userId={client.user_id} currentEmail={client.email} entityLabel="cliente" entityType="cliente" entityId={client.id} entityName={client.full_name} onUpdated={() => qc.invalidateQueries({ queryKey: ["client", id] })} />}
           </TabsContent>
         </div>
       </Tabs>

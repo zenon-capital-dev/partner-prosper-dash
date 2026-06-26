@@ -231,24 +231,24 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         <div className="space-y-6">
           {grouped.map((group) => (
             <section key={group.name} className="cp-panel overflow-hidden">
-              <header className="px-5 py-4 border-b border-border/40 flex items-center justify-between bg-muted/30">
-                <div className="flex items-center gap-3">
+              <header className="px-4 sm:px-5 py-4 border-b border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/30">
+                <div className="flex items-center gap-3 min-w-0">
                   <div className="size-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
                     <Package className="size-5" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Produto</p>
-                    <h4 className="font-bold text-foreground">{group.name}</h4>
+                    <h4 className="font-bold text-foreground truncate">{group.name}</h4>
                   </div>
                   <Badge variant="outline" className="ml-2 text-[10px]">{group.items.length} doc(s)</Badge>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 gap-1.5"
+                        className="h-8 gap-1.5 w-full sm:w-auto"
                         title="Anexar arquivo recebido em nome do cliente"
                         disabled={uploading}
                       >
@@ -271,7 +271,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 gap-1.5"
+                    className="h-8 gap-1.5 w-full sm:w-auto"
                     onClick={() => {
                       setSelectedDoc(null);
                       setDefaultProductId(group.productId);

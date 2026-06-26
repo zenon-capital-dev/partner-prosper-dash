@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ClipboardList, Plus, Clock, CheckCircle2, User } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -30,12 +30,12 @@ export function ClientTasks({ clientId }: { clientId: string }) {
 
   return (
     <div className="space-y-6 animate-fade-up">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold tracking-tight">Tarefas e Pendências</h3>
           <p className="text-xs text-muted-foreground">Acompanhamento de obrigações e prazos</p>
         </div>
-        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate(`/tarefas?clientId=${clientId}&new=1`)}>
+        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto" onClick={() => navigate(`/tarefas?clientId=${clientId}&new=1`)}>
           <Plus className="size-4 mr-2" /> Criar Tarefa
         </Button>
       </div>
@@ -46,8 +46,8 @@ export function ClientTasks({ clientId }: { clientId: string }) {
         ) : tasks?.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">Nenhuma tarefa registrada.</div>
         ) : tasks?.map((task: any) => (
-          <div key={task.id} className="cp-panel p-5 flex items-center justify-between group hover:border-indigo-500/30 transition-all">
-            <div className="flex items-center gap-4">
+          <div key={task.id} className="cp-panel p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:border-indigo-500/30 transition-all">
+            <div className="flex items-start sm:items-center gap-4 min-w-0">
               <div className={cn("size-10 rounded-xl flex items-center justify-center", 
                 task.status === "concluida" || task.status === "completed" 
                   ? "bg-emerald-50 text-emerald-600"
@@ -55,9 +55,9 @@ export function ClientTasks({ clientId }: { clientId: string }) {
               )}>
                 {task.status === "concluida" || task.status === "completed" ? <CheckCircle2 className="size-5" /> : <ClipboardList className="size-5" />}
               </div>
-              <div>
-                <h4 className={cn("font-bold text-foreground", (task.status === "concluida" || task.status === "completed") && "line-through opacity-40")}>{task.title}</h4>
-                <div className="flex items-center gap-3 mt-1">
+              <div className="min-w-0">
+                <h4 className={cn("font-bold text-foreground truncate", (task.status === "concluida" || task.status === "completed") && "line-through opacity-40")}>{task.title}</h4>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                     <Clock className="size-3" />
                     {task.due_date ? formatDate(task.due_date) : "Sem prazo"}
@@ -71,11 +71,11 @@ export function ClientTasks({ clientId }: { clientId: string }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
               <PriorityBadge priority={task.priority} />
               <div className="h-6 w-px bg-border/40" />
-              <Button variant="ghost" size="sm" className="text-xs font-bold" onClick={() => navigate(`/tarefas?focus=${task.id}`)}>
-                Detalhes
+              <Button asChild variant="ghost" size="sm" className="text-xs font-bold">
+                <Link to={`/tarefas?focus=${task.id}`}>Detalhes</Link>
               </Button>
             </div>
           </div>

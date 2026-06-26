@@ -37,10 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(value);
   };
 
-  const fetchRoles = async (userId: string, attempt = 0): Promise<void> => {
+  const fetchRoles = async (userId: string, attempt = 0): Promise<AppRole[]> => {
     if (!userId) {
-      setAuthLoading(false);
-      return;
+      return [];
     }
 
     try {
@@ -52,17 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       const roleList = ((data ?? []).map((r) => r.role as unknown as AppRole));
       if (import.meta.env.DEV) console.log("[auth] roles loaded:", roleList);
-      setRoles(roleList);
+      return roleList;
     } catch (error) {
       console.error("[auth] error fetching roles (attempt " + attempt + "):", error);
       if (attempt < 2) {
         await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
         return fetchRoles(userId, attempt + 1);
       }
-      // Final failure: keep roles empty so guards can react safely
-      setRoles([]);
-    } finally {
-      setAuthLoading(false);
+      // Final failure: keep roles empty so guards can react safely.
+      return [];
     }
   };
 
@@ -71,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let initialized = false;
     let currentUserId: string | null = null;
     let fetchedRolesForUserId: string | null = null;
-    let rolesFetchInFlight: Promise<void> | null = null;
+    let rolesFetchInFlight: { userId: string; promise: Promise<AppRole[]> } | null = null;
 
     const loadRolesOnce = async (userId: string) => {
       if (fetchedRolesForUserId === userId) {
@@ -79,19 +76,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (!rolesFetchInFlight) {
+      if (!rolesFetchInFlight || rolesFetchInFlight.userId !== userId) {
         setAuthLoading(true);
         setRoles([]);
-        rolesFetchInFlight = fetchRoles(userId)
-          .then(() => {
-            fetchedRolesForUserId = userId;
-          })
-          .finally(() => {
-            rolesFetchInFlight = null;
-          });
+        const promise = fetchRoles(userId);
+        rolesFetchInFlight = { userId, promise };
       }
 
-      await rolesFetchInFlight;
+      const roleList = await rolesFetchInFlight.promise;
+      if (mounted && currentUserId === userId) {
+        setRoles(roleList);
+        fetchedRolesForUserId = userId;
+        setAuthLoading(false);
+      }
+      if (rolesFetchInFlight?.userId === userId) rolesFetchInFlight = null;
     };
 
     const handleSession = async (sess: Session | null, event?: string) => {
