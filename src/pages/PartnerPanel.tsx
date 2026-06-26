@@ -390,6 +390,14 @@ export default function PartnerPanel() {
           </>
         )}
 
+        {activeKey === "agenda" && (
+          <div className="-mx-4 sm:-mx-6">
+            <Agenda />
+          </div>
+        )}
+
+
+
         {activeKey === "comissoes" && (
           <>
             <PanelHero role="parceiro" eyebrow="Financeiro" title="Comissões" subtitle="Histórico completo das suas comissões." stats={[
