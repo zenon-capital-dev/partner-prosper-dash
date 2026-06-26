@@ -855,6 +855,7 @@ export default function Sales() {
 
               <thead>
                 <tr className="border-b border-slate-200/70 bg-slate-50/60">
+                  <Th align="left">Ações</Th>
                   {visibleCols.status && <SortableTh label="Status" k="status" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
                   {visibleCols.client && <SortableTh label="Cliente" k="client" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
                   {visibleCols.product && <SortableTh label="Produto" k="product" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
@@ -864,7 +865,6 @@ export default function Sales() {
                   {visibleCols.commission && <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
                   {visibleCols.liquido && <Th align="right">Líquido</Th>}
                   {visibleCols.recebido && <Th align="right">Recebido / Restante</Th>}
-                  <Th align="right">Ações</Th>
                 </tr>
               </thead>
 
