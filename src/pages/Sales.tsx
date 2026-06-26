@@ -225,7 +225,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
+  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
