@@ -122,6 +122,8 @@ export default function Dashboard() {
           <MiniKPICard label="COMISSÕES PAGAR" value={formatBRL(stats?.commissions.pending || 0)} color="slate" />
         </div>
 
+        <GoalsPanel />
+
         {/* Charts Section */}
         <div className="grid grid-cols-12 gap-8">
           <div className="col-span-12 lg:col-span-8 cp-panel p-6">
