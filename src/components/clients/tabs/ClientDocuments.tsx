@@ -323,6 +323,22 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                         </div>
 
                         <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                          {!doc.file_path && (
+                            <Button
+                              variant="ghost" size="sm"
+                              onClick={() => triggerAdminUpload({ doc, productId: doc.product_id, source: "admin" })}
+                              className="text-indigo-600 hover:bg-indigo-50 h-8 gap-1.5"
+                              title="Anexar arquivo recebido por email/WhatsApp"
+                              disabled={uploading}
+                            >
+                              <Upload className="size-3.5" /> Anexar pelo admin
+                            </Button>
+                          )}
+                          {doc.source && doc.source !== "client" && (
+                            <Badge variant="outline" className="h-6 text-[9px] uppercase tracking-widest bg-indigo-50 border-indigo-200 text-indigo-700">
+                              <Mail className="size-3 mr-1" /> {doc.source}
+                            </Badge>
+                          )}
                           {doc.file_path && (
                             <Button variant="ghost" size="sm" onClick={() => viewFile(doc.file_path)} className="h-8 gap-1.5">
                               <Eye className="size-3.5" /> Ver
