@@ -1,19 +1,21 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Plus, FileText, Check, X, Clock, Trash2, Eye, Pencil,
-  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2
+  Package, RefreshCw, MessageSquare, AlertCircle, Loader2, CheckCircle2, Upload, Mail
 } from "lucide-react";
 
-import { formatDate } from "@/lib/format";
+import { formatDate, nowBR } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { logTimeline } from "@/lib/timeline";
 import { confirmAction } from "@/lib/confirm";
+import { sanitizeStorageFileName, assertUploadFile, uploadErrorMessage } from "@/lib/upload";
+import { useAuth } from "@/hooks/useAuth";
 
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   solicitado: { label: "Solicitado", tone: "bg-amber-50 text-amber-700 border-amber-200", icon: Clock },
