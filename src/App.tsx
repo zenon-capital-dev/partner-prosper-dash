@@ -137,6 +137,8 @@ const App = () => (
               
               <Route path="/financeiro" element={<Finance />} />
               <Route path="/financeiro/central" element={<FinanceCenter />} />
+              <Route path="/financeiro/caixinhas" element={<ResourcePools />} />
+              <Route path="/metas-comerciais" element={<SalesGoals />} />
               <Route path="/relatorios" element={<Reports />} />
               <Route path="/auditoria" element={<AuditLog />} />
               <Route path="/sla" element={<SLAPages />} />
