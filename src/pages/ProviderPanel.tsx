@@ -262,6 +262,7 @@ export default function ProviderPanel() {
                     <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
                       <span>Início: {formatDate(cp.created_at)}</span>
                       <div className="flex gap-1.5">
+                        <Link to={`/demandas/${cp.id}`} className="inline-flex items-center h-8 px-2 rounded border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-50">Abrir</Link>
                         <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: cp.id, clientName: cp.clients?.full_name })}>
                           <MessageSquare className="size-3 mr-1" /> Solicitar
                         </Button>
