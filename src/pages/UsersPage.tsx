@@ -134,8 +134,18 @@ interface UserRow {
 
 export default function UsersPage() {
   const qc = useQueryClient();
-  const { isAdmin, isAdminSecondary, user: currentUser } = useAuth();
-  const canManage = isAdmin || isAdminSecondary;
+  const { isAdmin, isAdminSecondary, isSuperAdmin, user: currentUser } = useAuth();
+  const canManage = isSuperAdmin;
+  if (!isSuperAdmin) {
+    return (
+      <div className="p-10 max-w-xl mx-auto text-center space-y-2">
+        <h2 className="text-xl font-bold text-slate-900">Acesso restrito</h2>
+        <p className="text-sm text-slate-600">
+          A gestão de usuários e acessos da plataforma é exclusiva do super-administrador.
+        </p>
+      </div>
+    );
+  }
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
