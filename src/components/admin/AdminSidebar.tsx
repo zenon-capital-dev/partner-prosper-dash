@@ -85,9 +85,13 @@ export function AdminSidebar({ collapsed, onToggle, onNavigate, className }: Pro
   const isActive = (path: string) =>
     path === "/admin" ? pathname === "/admin" : pathname === path || pathname.startsWith(path + "/");
 
+  const passItem = (i: NavItem) =>
+    (isFullAdmin || (!i.adminOnly && (isStaff || !i.staffOnly))) &&
+    (!i.superAdminOnly || isSuperAdmin);
+
   const sections = SECTIONS
     .filter((s) => isFullAdmin || (!s.adminOnly && (isStaff || !s.staffOnly)))
-    .map((s) => ({ ...s, items: s.items.filter((i) => isFullAdmin || (!i.adminOnly && (isStaff || !i.staffOnly))) }))
+    .map((s) => ({ ...s, items: s.items.filter(passItem) }))
     .filter((s) => s.items.length > 0);
 
   const displayName = user?.user_metadata?.full_name || user?.email || "Admin";
