@@ -53,7 +53,16 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   const { user } = useAuth();
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12 });
+  const [form, setForm] = useState<any>({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12, project_id: null });
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects-for-sale"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("projects").select("id, name").order("name");
+      return data ?? [];
+    },
+    staleTime: 5 * 60_000,
+  });
 
   useEffect(() => {
     if (open) {
@@ -65,9 +74,10 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
           first_due_date: sale.recurrence_start || sale.sale_date || ymdBR(nowBR()),
           revenue_type: sale.revenue_type || "avulso",
           recurrence_months: sale.recurrence_months || 12,
+          project_id: sale.project_id ?? null,
         });
       } else {
-        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12 });
+        setForm({ status: "pendente", commission_percent: 10, sale_date: ymdBR(nowBR()), client_id: clientId, installments_count: 1, first_due_date: ymdBR(nowBR()), revenue_type: "avulso", recurrence_months: 12, project_id: null });
       }
     }
   }, [open, clientId, sale]);
@@ -211,6 +221,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         revenue_type: isRecurring ? "recorrente" : "avulso",
         recurrence_months: isRecurring ? Math.max(1, Math.min(120, parseInt(form.recurrence_months || 12, 10) || 12)) : null,
         recurrence_start: isRecurring ? recurrenceStart : null,
+        project_id: form.project_id || null,
       } as any;
 
 
@@ -577,6 +588,22 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                     </Select>
                   </Field>
                 </div>
+              </Section>
+
+              <Section icon={Wallet} title="Projeto (Caixinha)" hint="Opcional — pagamentos desta venda creditam a caixinha do projeto">
+                <Field label="Projeto">
+                  <Select value={form.project_id || "none"} onValueChange={(v) => setForm({ ...form, project_id: v === "none" ? null : v })}>
+                    <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
+                      <SelectValue placeholder="Nenhum projeto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem projeto</SelectItem>
+                      {projects.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
               </Section>
 
               {!form.id && (

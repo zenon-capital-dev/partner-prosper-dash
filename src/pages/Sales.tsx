@@ -46,6 +46,7 @@ export default function Sales() {
   const [search, setSearch] = useState("");
   const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
   const [status, setStatus] = useState<StatusKey>("todos");
+  const [revenueFilter, setRevenueFilter] = useState<"todos" | "avulso" | "recorrente">("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
   const [productFilter, setProductFilter] = useState("todos");
   const [clientFilter, setClientFilter] = useState("todos");
@@ -100,7 +101,7 @@ export default function Sales() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("sales")
-        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
+        .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
         .order("sale_date", { ascending: false });
       if (error) {
         console.error("[Sales] query error:", error);
@@ -209,6 +210,7 @@ export default function Sales() {
       if (!saleDate) return false;
       if (saleDate < start || saleDate > end) return false;
       if (status !== "todos" && s.status !== status) return false;
+      if (revenueFilter !== "todos" && (s.revenue_type || "avulso") !== revenueFilter) return false;
       if (partnerFilter === "sem" && s.partner_id) return false;
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
       if (productFilter !== "todos" && s.product_id !== productFilter) return false;
@@ -223,7 +225,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
+  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -728,6 +730,17 @@ export default function Sales() {
             </SelectContent>
           </Select>
 
+          <Select value={revenueFilter} onValueChange={(v) => setRevenueFilter(v as any)}>
+            <SelectTrigger className="h-10 w-[150px] rounded-md bg-white border-slate-200 text-xs font-medium">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos tipos</SelectItem>
+              <SelectItem value="avulso">Avulsa (na cabeça)</SelectItem>
+              <SelectItem value="recorrente">Recorrente (MRR)</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Select value={partnerFilter} onValueChange={setPartnerFilter}>
             <SelectTrigger className="h-10 w-[170px] rounded-md bg-white border-slate-200 text-xs font-medium">
               <SelectValue placeholder="Parceiro" />
@@ -976,6 +989,11 @@ export default function Sales() {
                         <Td>
                           <div className="flex items-center gap-2">
                             <span className="text-slate-700">{s.products?.name ?? "—"}</span>
+                            {s.revenue_type === "recorrente" ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">MRR{s.recurrence_months ? ` ${s.recurrence_months}m` : ""}</span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">Avulso</span>
+                            )}
                           </div>
                         </Td>
                       )}
