@@ -1,70 +1,103 @@
+# Plano de Ajustes — Pontos 01 a 15
 
-# Plano — Tópicos 11 a 15
+Diagnóstico em sete grupos. Cada grupo lista o que já existe, o que falta e a ação concreta.
 
-## 11 · Faturamento recorrente vs avulso (na cabeça)
+---
 
-**Banco — migração:**
-- `sales`: adicionar `revenue_type` (`avulso` | `recorrente`, default `avulso`), `recurrence_months` (int, nulo p/ avulso), `recurrence_start` (date, default = data de finalização).
+## A — Painel de Metas, Esteira e Status "Fechado" (01, 10, 13)
 
-**Formulário de venda (`SaleFormDialog`):**
-- Toggle "Tipo de receita": Avulso (na cabeça) / Recorrente (mensal).
-- Se recorrente: campos "Quantos meses" (ex.: 12 p/ concierge) e "Início da cobrança".
-- Gerador de `payments` passa a criar N parcelas mensais para recorrentes (uma por mês do período), em vez do parcelamento atual.
+**Estado atual**
+- `GoalsPanel` já existe (`src/components/dashboard/GoalsPanel.tsx`) e está montado no `Dashboard.tsx`, mas pode não estar aparecendo por filtro de período / role. Tabela `sales_goals` existe.
+- Esteira de atendimento (`/esteira`, `ClientJourney.tsx`, tabela `client_journey_stages`) já criada, mas não está vinculada visualmente ao card do cliente nem ao dashboard.
+- Status do cliente não tem o estágio "Fechado" explícito separando MRR vs avulso.
 
-**Cronograma de faturamento (`FinanceCenter` → "Mapa de receitas"):**
-- Cada mês mostra três linhas: **Recorrente do mês**, **Avulso (na cabeça)**, **Total previsto**.
-- Card de KPI separado: "MRR previsto" vs "Receita avulsa do mês".
+**Ações**
+1. Garantir que `GoalsPanel` renderiza no Dashboard para admin/super_admin, com fallback (empty state + CTA "Criar meta") quando não há metas no mês.
+2. Adicionar mini-widget "Esteira" no Dashboard mostrando contagem por estágio (link para `/esteira`).
+3. Adicionar coluna `is_closed` (boolean) em `clients` + badge "Fechado" no `ClientJourneyBadge` quando o cliente tem ao menos uma venda finalizada.
 
-## 12 · Vendas — coluna Ações à esquerda do Status
+---
 
-- Em `src/pages/Sales.tsx` reordenar colunas da tabela: ... Cliente · Produto · Valor · **Ações** · **Status** · Data.
-- Mesma reordenação na versão mobile (cards).
+## B — Receita recorrente vs avulsa e data de fechamento (11, 14)
 
-## 13 · Dashboard de metas + página geral + status "fechado"
+**Estado atual**
+- Migration já aplicada: `sales.revenue_type`, `recurrence_months`, `recurrence_start`, `closed_at` + trigger.
+- `SaleFormDialog` já gera mensalidades recorrentes.
+- `useDashboardStats` já usa `closed_at` para faturamento.
 
-**Página geral de metas (`/metas-comerciais`):**
-- Reformular para alimentar metas de **cada mês**: seletor de mês + grid editável com linhas para cada tipo:
-  - Faturamento total, MRR (recorrente), Receita avulsa (na cabeça)
-  - Captação de clientes (mês / semana / dia — derivado automaticamente do mensal)
-  - Atendimentos realizados
-  - Clientes fechados
-- Mostra previsto × realizado e % atingido.
+**Ações (refinos pendentes)**
+1. Em `Sales.tsx`: adicionar filtro/abas "Recorrente | Avulso | Todas" e coluna visível "Tipo" + "Início recorrência".
+2. KPIs do Dashboard: separar três cards — *Faturamento total*, *MRR ativo* (soma de recorrentes finalizadas com `recurrence_start <= hoje <= recurrence_start + recurrence_months`), *Receita na cabeça* (avulsas finalizadas no mês).
+3. `FinanceCenter > Mapa de receitas`: empilhar duas séries (recorrente vs avulsa) no heatmap.
 
-**Widget no dashboard (`Dashboard`):**
-- Novo card "Metas do mês" com mini barras dos principais indicadores e link "Ver todas".
+---
 
-**Status do cliente:**
-- Adicionar opção "Fechado" no select de status do cliente (enum já tem `finalizado`; basta expor com rótulo "Fechado" e considerar em filtros e KPIs).
+## C — Caixinhas de Recursos e Projetos (02, 15)
 
-## 14 · Venda só conta quando finalizada
+**Estado atual**
+- `ResourcePools.tsx` + tabelas `resource_pools` / `resource_pool_movements` já existem com tipo "Projeto".
 
-- Realizado das metas e KPIs financeiros passam a usar apenas `sales.status = 'finalizada'` filtrando por `closed_at` (nova coluna preenchida no momento em que o status vira finalizada — via trigger).
-- `created_at` / `sale_date` deixam de ser usados em dashboard, mapa de receitas, metas e gráfico de faturamento.
-- "Mapa de receitas" passa a alocar a venda no mês de `closed_at` (avulso) ou a distribuir nos meses de recorrência a partir de `recurrence_start`.
+**Ações**
+1. Em `Projects.tsx`: ao abrir um projeto, mostrar caixinha vinculada (saldo, movimentações) e botão "Criar caixinha" se não houver.
+2. Adicionar presets rápidos no cabeçalho do `ResourcePools`: "Zenon", "Escritório", "Funcionários" (cria pool com tipo correto em 1 clique).
+3. Lançar venda finalizada de um projeto credita automaticamente a caixinha do projeto (trigger DB: ao inserir `payments` com `sale.project_id` setado e `paid_at` não nulo, insere `resource_pool_movements` tipo `entrada`).
 
-## 15 · Caixinha de Projetos
+---
 
-**Banco:**
-- `resource_pools`: adicionar `project_id` (FK opcional p/ `projects`) e novo `pool_type = 'projeto'`.
-- (Alternativa cogitada e descartada: criar tabela nova — reaproveitar `resource_pools` mantém saldo e movimentações já prontos.)
+## D — Documentos, upload pelo admin e compartilhamento (03, 04, 09)
 
-**UI (`ResourcePools`):**
-- Filtro/visão "Por projeto" agrupando as caixinhas vinculadas a projetos.
-- Ao criar caixinha tipo "projeto", selecionar o projeto associado (ex.: Escritório, Aluguel, Colaborador).
-- Card de cada projeto mostra: meta, arrecadado até agora, % batido, botões de entrada/saída.
+**Estado atual**
+- `documents.source` já existe (email/whatsapp/upload).
+- `demand_shares` + `DemandShareDialog` criados.
+- `demand_requests` + `DemandRequestsPanel` criados (prestador → cliente).
 
-**Página de Projetos:**
-- Bloco "Caixinha do projeto" na ficha do projeto, exibindo saldo e últimos movimentos da pool linkada.
+**Ações pendentes**
+1. Em `ClientDocuments.tsx`: botão "Anexar em nome do cliente" abrindo `DocumentDialog` com seletor de origem (Email / WhatsApp / Upload manual) e campo "Recebido em".
+2. Validar que `DemandShareDialog` está acessível na aba Demandas do cliente (botão "Compartilhar" no card da demanda) e que o link público abre sem revelar outros prestadores (rota `/share/:token` sem listar destinatários).
+3. Em `ProviderPanel.tsx`: garantir que `RequestDocumentDialog` envia direto ao cliente sem aprovação intermediária (status inicial = `enviado`, não `pendente_aprovacao`).
+
+---
+
+## E — Acessos, agenda do parceiro e condução do cliente (05, 07, 08)
+
+**Estado atual**
+- Role `super_admin` criada.
+- `PartnerPanel` tem aba Agenda integrada.
+
+**Ações pendentes**
+1. Revisar `PartnerPanel` Agenda: confirmar que usa o mesmo componente `Agenda.tsx` com filtro `responsible_partner_id = auth.uid()`.
+2. "Condução do cliente": adicionar barra superior persistente em `ClientDetail.tsx` mostrando estágio atual da esteira + próximo passo sugerido + botão "Avançar estágio".
+3. Limitar `/admin/usuarios` a `super_admin` (já feito) e adicionar aviso no topo da página.
+
+---
+
+## F — Notificações por e-mail (06)
+
+**Ação**
+1. Em `Settings.tsx` aba "Notificações", expor switches por evento (novo lead, doc recebido, pagamento, demanda atrasada) gravando em `system_settings`.
+2. Verificar edge function `process-alerts` — confirmar envio via Resend e logar último disparo.
+
+---
+
+## G — Layout da aba Vendas (12)
+
+**Estado**: já movemos "Ações" para a esquerda de "Status".
+
+**Ação**: confirmar visualmente após deploy e ajustar largura das colunas se necessário (sem nova lógica).
+
+---
+
+## Ordem de execução sugerida
+
+1. **Sprint 1 (rápidas)**: G (confirmar), F (toggles), A.1/A.2 (widgets dashboard), D.1 (upload em nome do cliente).
+2. **Sprint 2 (médias)**: B.1/B.2/B.3 (refino recorrente), E.2 (barra de condução), A.3 (status Fechado).
+3. **Sprint 3 (estruturais)**: C.1/C.2/C.3 (caixinhas ↔ projetos com trigger), D.2/D.3 (compartilhamento anônimo + prestador→cliente sem aprovação), E.1 (validar agenda parceiro).
 
 ## Detalhes técnicos
 
-- Migração única cobrindo `sales` (3 colunas + trigger `closed_at`), `resource_pools` (`project_id`) e índice em `sales(closed_at, revenue_type)`.
-- `SaleFormDialog`: refator do gerador de `payments` para suportar dois modos (parcelado avulso × mensal recorrente).
-- Hook `useDashboardStats`: trocar base de cálculo para `closed_at`.
-- Tipos do select de status do cliente: mapa `finalizado → "Fechado"` na camada de apresentação.
-- Sem mudança em RLS — todas as tabelas afetadas já têm policies cobrindo os novos campos.
+- Migrations novas: `clients.is_closed`, trigger `payments → resource_pool_movements`, índices em `sales(closed_at, revenue_type)`.
+- Componentes novos: `JourneyMiniWidget.tsx`, `ClientJourneyBar.tsx`, `NotificationToggles.tsx`.
+- Sem mudanças de tema: manter painel admin claro (Linear/Attio).
+- Backup (`full-backup.ts`): adicionar novas colunas automaticamente (já usa `select *`).
 
-## Fora de escopo
-
-- Disparo de e-mail ou cobrança automática das parcelas recorrentes (usuário pediu para ignorar e-mail).
-- Conciliação bancária / integração com gateway.
+Confirma para eu iniciar pela Sprint 1?
