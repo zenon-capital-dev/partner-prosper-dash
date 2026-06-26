@@ -1,55 +1,70 @@
 
-## Tópicos 07–10 — Plano de entrega
+# Plano — Tópicos 11 a 15
 
-### 07 — Agenda no painel do Parceiro
-- Reaproveitar o componente `Agenda.tsx` (já usado no admin).
-- Criar rota `/parceiro/agenda` em `App.tsx` dentro do `PartnerPanel`.
-- Adicionar item "Agenda" na sidebar do parceiro (`PartnerSidebar.tsx`).
-- Ajustar a página Agenda para filtrar tasks/eventos do parceiro logado quando ele não for admin (`partner_id` vinculado ao user via tabela `partners.user_id` → clientes desse parceiro).
-- Permitir ao parceiro criar tarefa apenas para clientes da carteira dele.
+## 11 · Faturamento recorrente vs avulso (na cabeça)
 
-### 08 — Integração de acessos (cliente ⇄ parceiro ⇄ prestador)
-Objetivo: cada ator vê em um lugar só as demandas onde está envolvido, com comunicação cruzada.
-- Criar componente `SharedDemandView.tsx` reutilizável que mostra: status, documentos, conversas, próximos passos, prestadores envolvidos (anônimo para outros prestadores conforme tópico 04).
-- Padronizar o cabeçalho da demanda nos três painéis (admin, parceiro, prestador, cliente) com os mesmos campos.
-- Adicionar no painel do parceiro a aba "Demandas dos meus clientes" usando o mesmo componente.
-- Adicionar no painel do cliente badge "tem prestador trabalhando" quando houver `demand_shares` com status `aceitou`.
-- Notificações cruzadas: ao prestador aceitar/atualizar status, notificar cliente + parceiro.
+**Banco — migração:**
+- `sales`: adicionar `revenue_type` (`avulso` | `recorrente`, default `avulso`), `recurrence_months` (int, nulo p/ avulso), `recurrence_start` (date, default = data de finalização).
 
-### 09 — Prestador solicita documentos / informação ao cliente
-Banco:
-- Reusar `documents` (já tem `provider_id`) — permitir prestador inserir `document` com `client_id` + `client_product_id` direto, sem aprovação prévia. Atualizar policy de INSERT.
-- Criar tabela `demand_requests` (tipo "chamado/solicitação" entre prestador/parceiro/cliente):
-  - `id, client_product_id, requested_by (uuid), requested_role (text), target_role (text: cliente|prestador|parceiro|admin), kind (documento|informacao|duvida), title, description, status (aberta|respondida|resolvida|cancelada), response, responded_by, responded_at, created_at, updated_at`.
-  - RLS: envolvidos na demanda (cliente dono, prestador via `demand_shares` ou `client_products.service_provider_id`, parceiro via `clients.partner_id`, admin) podem ler/escrever.
-  - Trigger gera notificação para o `target_role`.
-- UI:
-  - Componente `DemandRequestsPanel.tsx` (lista + criar + responder) reutilizável.
-  - Integrar na aba demanda do prestador (`/prestador`), do cliente (`/portal-cliente`) e do parceiro.
+**Formulário de venda (`SaleFormDialog`):**
+- Toggle "Tipo de receita": Avulso (na cabeça) / Recorrente (mensal).
+- Se recorrente: campos "Quantos meses" (ex.: 12 p/ concierge) e "Início da cobrança".
+- Gerador de `payments` passa a criar N parcelas mensais para recorrentes (uma por mês do período), em vez do parcelamento atual.
 
-### 10 — Esteira de atendimento (pipeline)
-Banco:
-- Reusar `product_steps` (estrutura já existe) mas adicionar tabela `client_journey_stages` para a esteira global do cliente (não por produto):
-  - `id, name, position, color, is_terminal, description, created_at`.
-- Adicionar `clients.journey_stage_id` (FK opcional) e `clients.journey_updated_at`.
-- Trigger: ao mover de stage, gravar em `client_timeline`.
-- Seed inicial: Captação → Diagnóstico → Proposta → Onboarding → Em atendimento → Entrega → Pós-venda.
+**Cronograma de faturamento (`FinanceCenter` → "Mapa de receitas"):**
+- Cada mês mostra três linhas: **Recorrente do mês**, **Avulso (na cabeça)**, **Total previsto**.
+- Card de KPI separado: "MRR previsto" vs "Receita avulsa do mês".
 
-UI:
-- Nova página `src/pages/ClientJourney.tsx` no admin (rota `/esteira`), em formato Kanban com colunas = stages, cards = clientes (arrastar para mover).
-- Configurar stages em `Settings` (nova aba "Esteira").
-- Mostrar stage atual no header do `ClientDetail.tsx` e no portal do cliente (barra de progresso).
+## 12 · Vendas — coluna Ações à esquerda do Status
 
-### Ordem de execução
-1. Migração: `demand_requests`, `client_journey_stages`, `clients.journey_stage_id`, policies, triggers, seed.
-2. Hooks/queries.
-3. Componentes (`DemandRequestsPanel`, `ClientJourney`, `SharedDemandView`).
-4. Rotas + sidebars (parceiro agenda, esteira admin).
-5. Integração em painéis cliente/parceiro/prestador.
+- Em `src/pages/Sales.tsx` reordenar colunas da tabela: ... Cliente · Produto · Valor · **Ações** · **Status** · Data.
+- Mesma reordenação na versão mobile (cards).
 
-### Observações
-- Aceitação: parceiro **comercial full na carteira** = parceiro com flag `is_full_carteira` em `partners`. Vou adicionar o campo e usá-lo para liberar criar/editar tasks da agenda.
-- Email continua fora do escopo, conforme combinado.
-- Sem alterar visual; manter tema claro premium do admin.
+## 13 · Dashboard de metas + página geral + status "fechado"
 
-Confirma para eu começar pela migração?
+**Página geral de metas (`/metas-comerciais`):**
+- Reformular para alimentar metas de **cada mês**: seletor de mês + grid editável com linhas para cada tipo:
+  - Faturamento total, MRR (recorrente), Receita avulsa (na cabeça)
+  - Captação de clientes (mês / semana / dia — derivado automaticamente do mensal)
+  - Atendimentos realizados
+  - Clientes fechados
+- Mostra previsto × realizado e % atingido.
+
+**Widget no dashboard (`Dashboard`):**
+- Novo card "Metas do mês" com mini barras dos principais indicadores e link "Ver todas".
+
+**Status do cliente:**
+- Adicionar opção "Fechado" no select de status do cliente (enum já tem `finalizado`; basta expor com rótulo "Fechado" e considerar em filtros e KPIs).
+
+## 14 · Venda só conta quando finalizada
+
+- Realizado das metas e KPIs financeiros passam a usar apenas `sales.status = 'finalizada'` filtrando por `closed_at` (nova coluna preenchida no momento em que o status vira finalizada — via trigger).
+- `created_at` / `sale_date` deixam de ser usados em dashboard, mapa de receitas, metas e gráfico de faturamento.
+- "Mapa de receitas" passa a alocar a venda no mês de `closed_at` (avulso) ou a distribuir nos meses de recorrência a partir de `recurrence_start`.
+
+## 15 · Caixinha de Projetos
+
+**Banco:**
+- `resource_pools`: adicionar `project_id` (FK opcional p/ `projects`) e novo `pool_type = 'projeto'`.
+- (Alternativa cogitada e descartada: criar tabela nova — reaproveitar `resource_pools` mantém saldo e movimentações já prontos.)
+
+**UI (`ResourcePools`):**
+- Filtro/visão "Por projeto" agrupando as caixinhas vinculadas a projetos.
+- Ao criar caixinha tipo "projeto", selecionar o projeto associado (ex.: Escritório, Aluguel, Colaborador).
+- Card de cada projeto mostra: meta, arrecadado até agora, % batido, botões de entrada/saída.
+
+**Página de Projetos:**
+- Bloco "Caixinha do projeto" na ficha do projeto, exibindo saldo e últimos movimentos da pool linkada.
+
+## Detalhes técnicos
+
+- Migração única cobrindo `sales` (3 colunas + trigger `closed_at`), `resource_pools` (`project_id`) e índice em `sales(closed_at, revenue_type)`.
+- `SaleFormDialog`: refator do gerador de `payments` para suportar dois modos (parcelado avulso × mensal recorrente).
+- Hook `useDashboardStats`: trocar base de cálculo para `closed_at`.
+- Tipos do select de status do cliente: mapa `finalizado → "Fechado"` na camada de apresentação.
+- Sem mudança em RLS — todas as tabelas afetadas já têm policies cobrindo os novos campos.
+
+## Fora de escopo
+
+- Disparo de e-mail ou cobrança automática das parcelas recorrentes (usuário pediu para ignorar e-mail).
+- Conciliação bancária / integração com gateway.
