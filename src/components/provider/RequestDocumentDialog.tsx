@@ -29,6 +29,7 @@ export function RequestDocumentDialog({ open, onOpenChange, clientId, clientProd
   const save = async () => {
     if (!title.trim()) return toast.error("Informe o título do documento");
     setSaving(true);
+    // Sem aprovação intermediária: status inicial "enviado" — vai direto para o cliente
     const { error } = await supabase.from("client_document_requests").insert({
       client_id: clientId,
       client_product_id: clientProductId || null,
