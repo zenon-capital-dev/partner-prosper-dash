@@ -238,18 +238,30 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
                   </div>
                   <Badge variant="outline" className="ml-2 text-[10px]">{group.items.length} doc(s)</Badge>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1.5"
-                  onClick={() => {
-                    setSelectedDoc(null);
-                    setDefaultProductId(group.productId);
-                    setOpen(true);
-                  }}
-                >
-                  <Plus className="size-3.5" /> Solicitar
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5"
+                    title="Anexar arquivo recebido por email/WhatsApp em nome do cliente"
+                    disabled={uploading}
+                    onClick={() => triggerAdminUpload({ productId: group.productId, source: "admin" })}
+                  >
+                    <Upload className="size-3.5" /> Anexar em nome do cliente
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1.5"
+                    onClick={() => {
+                      setSelectedDoc(null);
+                      setDefaultProductId(group.productId);
+                      setOpen(true);
+                    }}
+                  >
+                    <Plus className="size-3.5" /> Solicitar
+                  </Button>
+                </div>
               </header>
 
               {group.items.length === 0 ? (
