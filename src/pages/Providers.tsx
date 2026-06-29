@@ -93,7 +93,6 @@ export default function Providers() {
       const { data, error } = await supabase
         .from("client_products")
         .select("service_provider_id, responsible_provider_id, client_id, status, value")
-        .not("service_provider_id", "is", null)
         .limit(1000);
       if (error) throw error;
       return data ?? [];
@@ -157,7 +156,7 @@ export default function Providers() {
     const s = new Set<string>();
     enriched.forEach((p: any) => p.specialty && s.add(p.specialty));
     return Array.from(s).sort();
-  }, [enriched, providerDemandRows]);
+  }, [enriched]);
 
   const filtered = useMemo(() => {
     const q = norm(debouncedSearch);
@@ -217,11 +216,10 @@ export default function Providers() {
       total: enriched.length,
       active: enriched.filter((p: any) => p.active).length,
       demands: enriched.reduce((s: number, p: any) => s + p._activeCount, 0),
-      clients: new Set(enriched.flatMap((p: any) =>
-        (providerDemandRows as any[]).map((cp: any) => cp.client_id).filter(Boolean))).size,
+      clients: new Set((providerDemandRows as any[]).map((cp: any) => cp.client_id).filter(Boolean)).size,
       avgTicket: withRevenue.length ? totalRevenue / withRevenue.length : 0,
     };
-  }, [enriched]);
+  }, [enriched, providerDemandRows]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");

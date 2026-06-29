@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 ;
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -128,7 +128,7 @@ export default function AuditLog() {
     });
   }, [logs, search, entityFilter, actionFilter]);
 
-  useMemo(() => {
+  useEffect(() => {
     setPage(1);
   }, [search, entityFilter, actionFilter]);
 
