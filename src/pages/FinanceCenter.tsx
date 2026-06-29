@@ -138,6 +138,7 @@ export default function FinanceCenter() {
           .order("due_date", { ascending: false })
           .limit(300)
       ).data ?? [],
+    staleTime: 60_000,
   });
 
   const { data: salesCosts = [] } = useQuery({
@@ -149,9 +150,10 @@ export default function FinanceCenter() {
           .select("id, zenon_cost, provider_cost, sale_date, status")
           .limit(500)
       ).data ?? [],
+    staleTime: 60_000,
   });
 
-  const loadCommissionDetails = ["fluxo", "comissoes", "relatorios"].includes(tab);
+  const loadCommissionDetails = ["comissoes", "relatorios"].includes(tab);
 
   const { data: commissionSummary = [] } = useQuery({
     queryKey: ["fin-commission-summary"],
@@ -159,10 +161,11 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("commission_splits")
-          .select("id, amount, status, beneficiary_type")
+          .select("id, amount, status, beneficiary_type, paid_at, created_at")
           .order("created_at", { ascending: false })
           .limit(300)
       ).data ?? [],
+    staleTime: 60_000,
   });
 
   const { data: commissions = [], isLoading: loadingCom } = useQuery({
@@ -222,6 +225,7 @@ export default function FinanceCenter() {
         };
       });
     },
+    staleTime: 60_000,
   });
 
   const { data: alerts = [] } = useQuery({
@@ -235,15 +239,18 @@ export default function FinanceCenter() {
           .order("created_at", { ascending: false })
           .limit(50)
       ).data ?? [],
+    staleTime: 60_000,
   });
 
   const { data: expenses = [] } = useQuery({
     queryKey: ["fin-expenses"],
     queryFn: async () =>
       (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(300)).data ?? [],
+    staleTime: 60_000,
   });
 
   const today = todayIsoStr();
+  const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
 
   const kpis = useMemo(() => {
     const totalReceived = payments
@@ -255,7 +262,6 @@ export default function FinanceCenter() {
     const totalOverdue = payments
       .filter((p: any) => isOpen(p.status) && p.due_date && p.due_date < today)
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
-    const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
     const commissionsPending = commissionRows
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
@@ -293,7 +299,7 @@ export default function FinanceCenter() {
       providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissions, commissionSummary, expenses, salesCosts, today, loadCommissionDetails]);
+  }, [payments, commissionRows, expenses, salesCosts, today]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
@@ -303,7 +309,6 @@ export default function FinanceCenter() {
         ["vencido", "atrasado"].includes(p.status) ||
         (isOpen(p.status) && p.due_date && p.due_date < today)
     ).length;
-    const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
     const comissoesPend = commissionRows.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status)).length;
     return {
       fluxo: 0,
@@ -315,7 +320,7 @@ export default function FinanceCenter() {
       por_cliente: 0,
       relatorios: 0,
     };
-  }, [payments, commissions, commissionSummary, today, loadCommissionDetails]);
+  }, [payments, commissionRows, today]);
 
   const processAlerts = async () => {
     const { data, error } = await supabase.functions.invoke("process-alerts");
@@ -488,7 +493,7 @@ export default function FinanceCenter() {
           </div>
 
           <TabsContent value="fluxo" className="mt-6">
-            <CashFlow payments={payments} commissions={commissions} />
+            <CashFlow payments={payments} commissions={commissionRows} />
           </TabsContent>
           <TabsContent value="mapa" className="mt-6">
             <RevenueMap payments={payments} />
@@ -541,7 +546,7 @@ export default function FinanceCenter() {
             <ByClient payments={payments} canManage={canManage} />
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
-            <Reports payments={payments} commissions={commissions} />
+            <Reports payments={payments} commissions={commissionRows} />
           </TabsContent>
         </Tabs>
       </div>
