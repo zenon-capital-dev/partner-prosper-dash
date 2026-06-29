@@ -342,7 +342,8 @@ export default function OperationalCockpit() {
         supabase
           .from("client_product_status_reports")
           .select("client_product_id")
-          .gte("created_at", threeDaysAgo),
+          .gte("created_at", threeDaysAgo)
+          .limit(100),
       ]);
       
       if (error) throw error;
@@ -547,7 +548,11 @@ export default function OperationalCockpit() {
     total: allItems.length
   };
 
-  if (loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports) {
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const paginatedItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const isAnyLoading = loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports;
+
+  if (isAnyLoading && allItems.length === 0) {
     return (
       <div className="page-shell bg-premium min-h-dvh space-y-8 animate-fade-up">
         <PageHeader title="Alertas" description="Carregando seus alertas prioritários..." />
@@ -649,7 +654,7 @@ export default function OperationalCockpit() {
 
       {/* BULK ACTIONS — DEMANDAS */}
       {(() => {
-        const visibleDemands = filteredItems.filter(i => i.type === 'demand');
+        const visibleDemands = paginatedItems.filter(i => i.type === 'demand');
         if (visibleDemands.length === 0) return null;
         const allSelected = visibleDemands.every(d => selectedDemandIds.has(d.id));
         const someSelected = selectedDemandIds.size > 0;
@@ -723,8 +728,11 @@ export default function OperationalCockpit() {
 
       {/* MAIN LIST */}
       <div className="space-y-4">
-        {filteredItems.length > 0 ? (
-          filteredItems.map((item) => (
+        {isAnyLoading && (
+          <div className="text-xs font-semibold text-muted-foreground">Atualizando alertas em segundo plano...</div>
+        )}
+        {paginatedItems.length > 0 ? (
+          paginatedItems.map((item) => (
             <CockpitRow 
               key={`${item.type}-${item.id}`} 
               item={item} 
@@ -750,6 +758,16 @@ export default function OperationalCockpit() {
           </div>
         )}
       </div>
+
+      {filteredItems.length > PAGE_SIZE && (
+        <PaginationControl
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          totalItems={filteredItems.length}
+          pageSize={PAGE_SIZE}
+        />
+      )}
 
       {/* DETAILS SHEET */}
       <Sheet open={!!detailItem} onOpenChange={(o) => !o && setDetailItem(null)}>
