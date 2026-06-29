@@ -11,6 +11,9 @@ import { FileSignature, Upload, Download, FileCheck2, Inbox } from "lucide-react
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
+const PAGE_SIZE = 10;
 
 const STATUS_TONE: Record<string, string> = {
   rascunho: "bg-slate-100 text-slate-700 border-slate-200",
@@ -25,6 +28,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default function PartnerContractsAdmin() {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<any | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-partner-contracts"],
@@ -32,11 +36,15 @@ export default function PartnerContractsAdmin() {
       const { data, error } = await (supabase as any)
         .from("partner_contracts")
         .select("*, partners(id, full_name, email)")
-        .order("updated_at", { ascending: false });
+        .order("updated_at", { ascending: false })
+        .limit(300);
       if (error) throw error;
       return data || [];
     },
   });
+
+  const totalPages = Math.max(1, Math.ceil((rows as any[]).length / PAGE_SIZE));
+  const paginatedRows = (rows as any[]).slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status, admin_notes }: any) => {
@@ -106,7 +114,7 @@ export default function PartnerContractsAdmin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((r: any) => (
+                    {paginatedRows.map((r: any) => (
                       <tr key={r.id} className="border-t border-slate-100 hover:bg-slate-50/40">
                         <td className="px-4 py-3">
                           <p className="font-semibold text-slate-900">{r.partners?.full_name || r.full_name || "—"}</p>
@@ -140,6 +148,7 @@ export default function PartnerContractsAdmin() {
                 </table>
               </div>
             )}
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={(rows as any[]).length} itemsPerPage={PAGE_SIZE} />
           </CardContent>
         </Card>
       </div>

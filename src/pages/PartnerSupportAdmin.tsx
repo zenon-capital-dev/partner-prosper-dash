@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,9 @@ import { toast } from "sonner";
 import { LifeBuoy, MessageSquare, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
+const PAGE_SIZE = 10;
 
 type Ticket = {
   id: string;
@@ -27,18 +30,23 @@ export default function PartnerSupportAdmin() {
   const [active, setActive] = useState<Ticket | null>(null);
   const [response, setResponse] = useState("");
   const [filter, setFilter] = useState<"all" | "aberto" | "respondido" | "fechado">("aberto");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => { setCurrentPage(1); }, [filter]);
 
   const { data: tickets = [], isLoading } = useQuery({
     queryKey: ["partner-support-admin"],
     queryFn: async () => {
       const { data, error } = await (supabase as any).from("partner_support_tickets")
-        .select("*, partners(full_name, email)").order("created_at", { ascending: false });
+        .select("*, partners(full_name, email)").order("created_at", { ascending: false }).limit(300);
       if (error) throw error;
       return data || [];
     },
   });
 
   const filtered = (tickets as any[]).filter((t) => filter === "all" || t.status === filter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const respond = useMutation({
     mutationFn: async (close: boolean) => {
@@ -88,7 +96,7 @@ export default function PartnerSupportAdmin() {
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {filtered.map((t: any) => (
+            {paginated.map((t: any) => (
               <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => { setActive(t); setResponse(t.admin_response || ""); }}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -106,6 +114,7 @@ export default function PartnerSupportAdmin() {
             ))}
           </ul>
         )}
+        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
       <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); } }}>

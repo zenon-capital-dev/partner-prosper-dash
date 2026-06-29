@@ -1,5 +1,5 @@
 import { formatBR as format, nowBR, toBR, formatBRDate, formatBRDateTime } from "@/lib/datetime";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -35,6 +35,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { confirmAction } from "@/lib/confirm";
 import { TaskDetailsExtras } from "@/components/tasks/TaskDetailsExtras";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 const STATUSES = [
   { value: "a_fazer", label: "A fazer", color: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:border-slate-500/20" },
@@ -51,6 +52,8 @@ const PRIORITIES = [
   { value: "alta", label: "Alta", color: "bg-amber-50 text-amber-600 border-amber-200" },
   { value: "urgente", label: "Urgente", color: "bg-destructive/10 text-destructive border-destructive/20" },
 ] as const;
+
+const PAGE_SIZE = 10;
 
 const ENTITY_TYPES = [
   { value: "none", label: "Nenhum", icon: ClipboardList },
@@ -110,6 +113,11 @@ export default function Tasks() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [view, rangeKey, search, statusFilter, priorityFilter]);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks-central"],
@@ -126,10 +134,11 @@ export default function Tasks() {
           payment:payments(id, amount, status),
           contract:contracts(id, name)
         `)
-        .order("due_date", { ascending: true, nullsFirst: false });
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .limit(500);
       if (error) {
         // fallback se join falhar (FK ausente etc.)
-        const r = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
+        const r = await supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(500);
         return r.data ?? [];
       }
       return data ?? [];
@@ -138,32 +147,32 @@ export default function Tasks() {
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["tasks-profiles"],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name").order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("profiles").select("id, full_name").order("full_name").limit(200)).data ?? [],
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ["tasks-clients"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(200)).data ?? [],
   });
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["tasks-client-products"],
-    queryFn: async () => (await supabase.from("client_products").select("id, custom_product_name, products(name), clients(full_name)").limit(500)).data ?? [],
+    queryFn: async () => (await supabase.from("client_products").select("id, custom_product_name, products(name), clients(full_name)").limit(200)).data ?? [],
   });
   const { data: serviceProviders = [] } = useQuery({
     queryKey: ["tasks-providers"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name").order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name").order("name").limit(200)).data ?? [],
   });
   const { data: partners = [] } = useQuery({
     queryKey: ["tasks-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(200)).data ?? [],
   });
   const { data: payments = [] } = useQuery({
     queryKey: ["tasks-payments"],
-    queryFn: async () => (await supabase.from("payments").select("id, amount, status").limit(300)).data ?? [],
+    queryFn: async () => (await supabase.from("payments").select("id, amount, status").limit(200)).data ?? [],
   });
   const { data: contracts = [] } = useQuery({
     queryKey: ["tasks-contracts"],
-    queryFn: async () => (await supabase.from("contracts").select("id, name").limit(300)).data ?? [],
+    queryFn: async () => (await supabase.from("contracts").select("id, name").limit(200)).data ?? [],
   });
 
 
@@ -198,6 +207,12 @@ export default function Tasks() {
       return true;
     });
   }, [tasks, statusFilter, priorityFilter, search, rangeKey]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginatedFiltered = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, currentPage]);
 
   const stats = useMemo(() => ({
     total: tasks.length,
@@ -525,14 +540,19 @@ export default function Tasks() {
                   </>
                 )}
               </div>
-            ) : filtered.map((t: any) => <TaskRow key={t.id} task={t} />)}
+            ) : (
+              <>
+                {paginatedFiltered.map((t: any) => <TaskRow key={t.id} task={t} />)}
+                <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} className="mt-4 rounded-xl border" />
+              </>
+            )}
           </TabsContent>
 
 
           <TabsContent value="kanban" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {STATUSES.map(col => {
-                const colTasks = filtered.filter((t: any) => t.status_new === col.value);
+                const colTasks = paginatedFiltered.filter((t: any) => t.status_new === col.value);
                 return (
                   <div key={col.value} className="vx-card border p-3 space-y-3 min-h-[200px] bg-muted/20">
                     <div className="flex items-center justify-between">
@@ -567,6 +587,7 @@ export default function Tasks() {
                 );
               })}
             </div>
+            <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} className="mt-4 rounded-xl border" />
           </TabsContent>
 
           <TabsContent value="calendario" className="mt-4">
