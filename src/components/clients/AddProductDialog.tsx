@@ -155,32 +155,36 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
 
   const { data: products = [] } = useQuery({
     queryKey: ["all-products"],
+    enabled: open,
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, name, base_price").order("name");
+      const { data } = await supabase.from("products").select("id, name, base_price").order("name").limit(300);
       return data ?? [];
     },
   });
 
   const { data: partners = [] } = useQuery({
     queryKey: ["all-partners"],
+    enabled: open,
     queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id, full_name, commission_percent").eq("active", true).order("full_name");
+      const { data } = await supabase.from("partners").select("id, full_name, commission_percent").eq("active", true).order("full_name").limit(300);
       return data ?? [];
     },
   });
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["all-referrers"],
+    enabled: open,
     queryFn: async () => {
-      const { data } = await supabase.from("referrers").select("id, full_name, commission_percent").eq("active", true).order("full_name");
+      const { data } = await supabase.from("referrers").select("id, full_name, commission_percent").eq("active", true).order("full_name").limit(300);
       return data ?? [];
     },
   });
 
   const { data: providers = [] } = useQuery({
     queryKey: ["all-providers"],
+    enabled: open,
     queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name, specialty").order("name");
+      const { data } = await supabase.from("service_providers").select("id, name, specialty").order("name").limit(300);
       return data ?? [];
     },
   });
