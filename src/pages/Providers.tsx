@@ -80,7 +80,7 @@ export default function Providers() {
         .from("service_providers")
         .select("id, name, email, phone, specialty, document_number, active, user_id, internal_rating, created_at")
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(300);
       if (error) throw error;
       return data ?? [];
     },
@@ -93,7 +93,7 @@ export default function Providers() {
       const { data, error } = await supabase
         .from("client_products")
         .select("service_provider_id, responsible_provider_id, client_id, status, value")
-        .limit(1000);
+        .limit(300);
       if (error) throw error;
       return data ?? [];
     },
@@ -107,7 +107,7 @@ export default function Providers() {
         .from("contracts")
         .select("provider_id")
         .not("provider_id", "is", null)
-        .limit(1000);
+        .limit(300);
       if (error) throw error;
       return data ?? [];
     },

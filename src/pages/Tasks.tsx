@@ -135,10 +135,10 @@ export default function Tasks() {
           contract:contracts(id, name)
         `)
         .order("due_date", { ascending: true, nullsFirst: false })
-        .limit(500);
+        .limit(120);
       if (error) {
         // fallback se join falhar (FK ausente etc.)
-        const r = await supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(500);
+        const r = await supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(120);
         return r.data ?? [];
       }
       return data ?? [];

@@ -110,7 +110,8 @@ export default function Sales() {
       const { data, error } = await supabase
         .from("sales")
         .select("id, client_id, product_id, partner_id, referrer_id, collaborator_id, service_provider_id, resource_pool_id, amount, commission_percent, referrer_percent, collaborator_percent, zenon_cost, provider_cost, status, sale_date, paid_at, notes, created_at, revenue_type, recurrence_months, closed_at, clients(id, full_name, email, document, company), products(name), partners(full_name, pix_key), referrers(full_name)")
-        .order("sale_date", { ascending: false });
+        .order("sale_date", { ascending: false })
+        .limit(250);
       if (error) {
         console.error("[Sales] query error:", error);
         toast.error("Erro ao carregar vendas: " + error.message);
@@ -142,7 +143,7 @@ export default function Sales() {
       const { data } = await supabase
         .from("commission_splits")
         .select("sale_id, amount, percent, beneficiary_type, status")
-        .limit(2000);
+        .limit(600);
       return (data as any[]) ?? [];
     },
   });
@@ -154,7 +155,7 @@ export default function Sales() {
         .from("payments")
         .select("sale_id, amount, amount_paid, paid_at, status")
         .not("sale_id", "is", null)
-        .limit(2000);
+        .limit(600);
       return (data as any[]) ?? [];
     },
   });

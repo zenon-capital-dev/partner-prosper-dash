@@ -97,7 +97,7 @@ export default function Leads() {
           profiles:responsible_id(full_name)
         `)
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(250);
       if (error) throw error;
       return data ?? [];
     },

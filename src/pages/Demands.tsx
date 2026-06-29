@@ -143,7 +143,7 @@ export default function Demands() {
           documents:documents(id, status)
         `)
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(150);
       const demandIds = (data ?? []).map((d: any) => d.id);
       const { data: reports = [] } = demandIds.length
         ? await supabase
@@ -151,7 +151,7 @@ export default function Demands() {
           .select("id, client_product_id, notes, created_at")
           .in("client_product_id", demandIds)
           .order("created_at", { ascending: false })
-          .limit(1000)
+          .limit(150)
         : { data: [] } as any;
       if (error) throw error;
       
