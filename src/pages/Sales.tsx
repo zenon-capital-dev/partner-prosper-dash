@@ -124,17 +124,17 @@ export default function Sales() {
 
   const { data: partnersList = [] } = useQuery({
     queryKey: ["partners-filter-sales"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(300)).data ?? [],
   });
 
   const { data: productsList = [] } = useQuery({
     queryKey: ["products-filter-sales"],
-    queryFn: async () => (await supabase.from("products").select("id, name").order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name").order("name").limit(300)).data ?? [],
   });
 
   const { data: clientsList = [] } = useQuery({
     queryKey: ["clients-filter-sales"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name, company").order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name, company").order("full_name").limit(300)).data ?? [],
   });
 
   const { data: allSplits = [] } = useQuery({
