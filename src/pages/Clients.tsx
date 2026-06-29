@@ -41,6 +41,7 @@ type SortKey = "name" | "revenue" | "created" | "health";
 type SortDir = "asc" | "desc";
 
 const onlyDigits = (s: string | null | undefined) => (s || "").replace(/\D+/g, "");
+const ilikeTerm = (s: string) => s.replace(/[%,]/g, " ").trim();
 
 export default function Clients() {
   const { isAdmin, isAdminSecondary } = useAuth();
@@ -96,30 +97,49 @@ export default function Clients() {
 
 
   const { data: clients = [], isLoading: isLoadingClients } = useQuery({
-    queryKey: ["clients-admin-list"],
+    queryKey: ["clients-admin-list", debouncedSearch, statusFilter, partnerFilter, providerFilter, dateRange?.from?.toISOString(), dateRange?.to?.toISOString()],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("clients")
         .select(`
           id, full_name, company, email, phone, document, status, source, birth_date,
           address_street, address_number, address_complement, address_neighborhood, address_zip_code,
           city, state, notes, tags, partner_id, referrer_id, collaborator_id, service_provider_id, created_at,
           partners(id, full_name)
-        `)
-        .order("created_at", { ascending: false });
+        `);
+
+      const qRaw = ilikeTerm(debouncedSearch);
+      const qDigits = onlyDigits(debouncedSearch);
+      if (qRaw) {
+        const term = `%${qRaw}%`;
+        const parts = [`full_name.ilike.${term}`, `company.ilike.${term}`, `email.ilike.${term}`, `phone.ilike.${term}`];
+        if (qDigits) parts.push(`document.ilike.%${qDigits}%`);
+        query = query.or(parts.join(","));
+      }
+      if (statusFilter !== "all") query = query.eq("status", statusFilter as any);
+      if (partnerFilter !== "all") query = query.eq("partner_id", partnerFilter);
+      if (providerFilter !== "all") query = query.eq("service_provider_id", providerFilter);
+      if (dateRange?.from) query = query.gte("created_at", startOfDay(dateRange.from).toISOString());
+      if (dateRange?.to) query = query.lte("created_at", endOfDay(dateRange.to).toISOString());
+
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(300);
       if (error) throw error;
       return data ?? [];
     },
     staleTime: 2 * 60_000,
   });
 
+  const clientIds = useMemo(() => clients.map((c: any) => c.id).filter(Boolean), [clients]);
+
   const { data: clientProductsSummary = [], isLoading: isLoadingClientProducts } = useQuery({
-    queryKey: ["clients-admin-products-summary"],
+    queryKey: ["clients-admin-products-summary", clientIds.join(",")],
+    enabled: clientIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_products")
         .select("id, client_id, value, status, product_id, products(id, name)")
-        .limit(2000);
+        .in("client_id", clientIds)
+        .limit(Math.min(1000, Math.max(100, clientIds.length * 12)));
       if (error) throw error;
       return data ?? [];
     },
@@ -127,12 +147,14 @@ export default function Clients() {
   });
 
   const { data: paymentsSummary = [], isLoading: isLoadingPayments } = useQuery({
-    queryKey: ["clients-admin-payments-summary"],
+    queryKey: ["clients-admin-payments-summary", clientIds.join(",")],
+    enabled: clientIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
         .select("id, client_id, amount, amount_paid, status, due_date")
-        .limit(2000);
+        .in("client_id", clientIds)
+        .limit(Math.min(1000, Math.max(100, clientIds.length * 12)));
       if (error) throw error;
       return data ?? [];
     },
