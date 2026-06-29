@@ -42,10 +42,12 @@ export default function ClientJourney() {
       const { data, error } = await supabase
         .from("clients")
         .select("id, full_name, status, journey_stage_id, company")
-        .order("full_name");
+        .order("full_name")
+        .limit(500);
       if (error) throw error;
       return (data ?? []) as Client[];
     },
+    staleTime: 60_000,
   });
 
   const filtered = useMemo(() => {

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Star, Activity, CheckCircle2, AlertTriangle, Clock, FileCheck, MessageSquare, TrendingUp } from "lucide-react";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 ;
 import { ptBR } from "date-fns/locale";
 
@@ -35,6 +36,8 @@ interface Metrics {
   lastReport: string | null;
 }
 
+const PAGE_SIZE = 10;
+
 const ACTIVE_STATUSES = ["em_execucao", "em_andamento", "em_analise", "aguardando_inicio", "aguardando_documentos", "pendente_cliente", "pendente_prestador", "aguardando_aprovacao"];
 const COMPLETED_STATUSES = ["concluido", "concluida"];
 
@@ -45,22 +48,23 @@ export default function ProviderPerformance() {
   const [editing, setEditing] = useState<Provider | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [ratingDraft, setRatingDraft] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadData = async () => {
     setLoading(true);
-    const { data: provs } = await supabase.from("service_providers").select("*").order("name");
+    const { data: provs } = await supabase.from("service_providers").select("*").order("name").limit(500);
     const list = (provs || []) as Provider[];
     setProviders(list);
 
     const { data: cps } = await supabase
       .from("client_products")
-      .select("id, status, service_provider_id, responsible_provider_id, created_at, end_date, deadline");
+      .select("id, status, service_provider_id, responsible_provider_id, created_at, end_date, deadline").limit(1000);
     const { data: reports } = await supabase
       .from("client_product_status_reports")
-      .select("service_provider_id, reported_by, created_at");
+      .select("service_provider_id, reported_by, created_at").limit(1000);
     const { data: docs } = await supabase
       .from("documents")
-      .select("approved_by, reviewed_at, status");
+      .select("approved_by, reviewed_at, status").limit(1000);
 
     const map: Record<string, Metrics> = {};
     list.forEach((p) => {
@@ -128,6 +132,9 @@ export default function ProviderPerformance() {
       onTimeRate: m.reduce((s, x) => s + x.onTimeRate, 0) / m.length,
     };
   }, [metricsMap]);
+
+  const totalPages = Math.max(1, Math.ceil(providers.length / PAGE_SIZE));
+  const paginatedProviders = providers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const openEdit = (p: Provider) => {
     setEditing(p);
@@ -210,7 +217,7 @@ export default function ProviderPerformance() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {providers.map((p) => {
+                {paginatedProviders.map((p) => {
                   const m = metricsMap[p.id];
                   return (
                     <TableRow key={p.id}>
@@ -257,6 +264,7 @@ export default function ProviderPerformance() {
               </TableBody>
             </Table>
           )}
+          <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={providers.length} itemsPerPage={PAGE_SIZE} />
         </CardContent>
       </Card>
 

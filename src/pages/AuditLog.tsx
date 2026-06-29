@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 ;
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -40,12 +40,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
+const PAGE_SIZE = 10;
 
 export default function AuditLog() {
   const [search, setSearch] = useState("");
   const [entityFilter, setEntityFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState("all");
   const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [page, setPage] = useState(1);
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["audit-logs"],
@@ -57,7 +61,7 @@ export default function AuditLog() {
           profiles(full_name, email)
         `)
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(300);
       return data ?? [];
     },
   });
@@ -123,6 +127,17 @@ export default function AuditLog() {
       return true;
     });
   }, [logs, search, entityFilter, actionFilter]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, entityFilter, actionFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageLogs = useMemo(
+    () => filteredLogs.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredLogs, currentPage]
+  );
 
   const formatValue = (val: any) => {
     if (val === null || val === undefined) return <span className="text-muted-foreground italic">null</span>;
@@ -283,7 +298,7 @@ export default function AuditLog() {
               </Button>
             </div>
           ) : (
-            filteredLogs.map((log: any) => (
+            pageLogs.map((log: any) => (
               <div key={log.id} className="flex items-start gap-4 p-5 hover:bg-muted/10 transition-colors group">
                 <div className="mt-1 size-10 rounded-xl bg-muted border border-border/50 flex items-center justify-center shrink-0 group-hover:bg-background group-hover:border-primary/30 transition-all">
                   <Database className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -415,6 +430,7 @@ export default function AuditLog() {
             ))
           )}
         </div>
+        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={filteredLogs.length} itemsPerPage={PAGE_SIZE} />
       </div>
     </div>
   );

@@ -36,9 +36,11 @@ import { cn } from "@/lib/utils";
 import { initials } from "@/lib/format";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type Kind = "tarefa" | "reuniao" | "ligacao" | "pendencia_documento" | "lembrete" | "follow_up";
 type Status = "a_fazer" | "em_andamento" | "aguardando_terceiros" | "sem_atuacao" | "bloqueada" | "concluida" | "cancelada";
+const PAGE_SIZE = 10;
 
 const KIND_META: Record<Kind, { label: string; icon: any; color: string; ring: string; dot: string }> = {
   tarefa:              { label: "Tarefa",     icon: CheckCircle2, color: "bg-slate-100 text-slate-700 border-slate-200",     ring: "ring-slate-200",   dot: "bg-slate-500" },
@@ -173,7 +175,7 @@ export default function Agenda() {
           client:clients(id, full_name)
         `)
         .order("due_date", { ascending: true, nullsFirst: false })
-        .limit(500);
+        .limit(300);
       if (filterKind !== "all") q = q.eq("kind", filterKind as any);
       if (filterMine && user?.id) q = q.eq("assigned_to", user.id);
       if (filterClient !== "all") q = q.eq("client_id", filterClient);
@@ -545,11 +547,24 @@ function ItemList({
   onSetStatus?: (id: string, s: Status) => void;
   onRequestReschedule?: (item: AgendaItem) => void;
 }) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = useMemo(
+    () => items.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [items, currentPage]
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [items]);
+
   return (
     <div className="space-y-2">
-      {items.map((it) => (
+      {pageItems.map((it) => (
         <ItemRow key={it.id} item={it} onComplete={onComplete} onReopen={onReopen} onDelete={onDelete} onEdit={onEdit} onReschedule={onReschedule} onSetStatus={onSetStatus} onRequestReschedule={onRequestReschedule} />
       ))}
+      <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={items.length} itemsPerPage={PAGE_SIZE} />
     </div>
   );
 }

@@ -153,7 +153,7 @@ export default function UsersPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive" | "with_access" | "no_access">("all");
   const [sort, setSort] = useState<{k: SortKey; d: SortDir}>({ k: "created_at", d: "desc" });
   const [page, setPage] = useState(1);
-  const perPage = 20;
+  const perPage = 10;
 
   const [openCreate, setOpenCreate] = useState(false);
   const [createdInfo, setCreatedInfo] = useState<{ email: string; password?: string } | null>(null);

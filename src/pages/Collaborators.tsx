@@ -123,7 +123,8 @@ export default function Collaborators() {
       const { data } = await supabase
         .from("commission_splits")
         .select("beneficiary_id, amount, status")
-        .eq("beneficiary_type", "collaborator");
+        .eq("beneficiary_type", "collaborator")
+        .limit(1000);
       const map: Record<string, { total: number; pago: number; pendente: number }> = {};
       (data ?? []).forEach((s: any) => {
         const id = s.beneficiary_id;
@@ -136,6 +137,7 @@ export default function Collaborators() {
       });
       return map;
     },
+    staleTime: 60_000,
   });
 
   const filtered = useMemo(() => {

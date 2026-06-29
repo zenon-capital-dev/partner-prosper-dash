@@ -46,7 +46,7 @@ const OPEN_STATUSES = new Set([
   "Negociação", "Contrato enviado",
 ]);
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 10;
 type SortKey = "name" | "status" | "source" | "created";
 type SortDir = "asc" | "desc";
 
@@ -97,7 +97,7 @@ export default function Leads() {
           profiles:responsible_id(full_name)
         `)
         .order("created_at", { ascending: false })
-        .limit(5000);
+        .limit(1000);
       if (error) throw error;
       return data ?? [];
     },

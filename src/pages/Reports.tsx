@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { nowBR, formatBR, toBR, isTodayBR } from "@/lib/datetime";
@@ -13,6 +13,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { exportToPDF, exportToExcel } from "@/lib/exports";
 import { FileDown, FileSpreadsheet, TrendingUp, Users, DollarSign, Award, Clock, FileText, CheckCircle2, Search as SearchIcon, Activity, Target, AlertTriangle, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type ReportType = 
   | "clients_status" 
@@ -28,6 +29,9 @@ type ReportType =
   | "delinquency"
   | "pending_docs"
   | "avg_completion_time";
+
+const REPORT_QUERY_LIMIT = 1000;
+const DETAIL_PAGE_SIZE = 10;
 
 const REPORT_LABELS: Record<ReportType, string> = {
   clients_status: "Clientes por Status",
@@ -59,23 +63,35 @@ export default function Reports() {
   const [filterPartner, setFilterPartner] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterClient, setFilterClient] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [from, to, reportType, filterProduct, filterProvider, filterPartner, filterStatus, filterClient]);
+
+  const needsSales = ["revenue_period", "revenue_product", "best_selling", "clients_product"].includes(reportType);
+  const needsDemands = ["demands_status", "delayed_demands", "provider_performance", "avg_completion_time"].includes(reportType);
+  const needsCommissions = reportType === "commissions_partner";
+  const needsClients = ["clients_status", "clients_partner", "clients_product"].includes(reportType);
+  const needsDocs = reportType === "pending_docs";
+  const needsPayments = reportType === "delinquency";
 
   // Reference data for filters
   const { data: products = [] } = useQuery({
     queryKey: ["reports-filter-products"],
-    queryFn: async () => (await supabase.from("products").select("id, name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name").order("name").limit(500)).data ?? [],
   });
   const { data: providers = [] } = useQuery({
     queryKey: ["reports-filter-providers"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name")).data ?? [],
+    queryFn: async () => (await supabase.from("service_providers").select("id, name").order("name").limit(500)).data ?? [],
   });
   const { data: partners = [] } = useQuery({
     queryKey: ["reports-filter-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(500)).data ?? [],
   });
   const { data: clientsList = [] } = useQuery({
     queryKey: ["reports-filter-clients"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(500)).data ?? [],
   });
 
   // Base Data Fetching
@@ -89,8 +105,10 @@ export default function Reports() {
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
       if (filterClient !== "all") q = q.eq("client_id", filterClient);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q).data ?? [];
-    }
+      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+    },
+    enabled: needsSales,
+    staleTime: 60_000,
   });
 
   const { data: clientProducts = [] } = useQuery({
@@ -102,8 +120,10 @@ export default function Reports() {
       if (filterProduct !== "all") q = q.eq("product_id", filterProduct);
       if (filterProvider !== "all") q = q.eq("service_provider_id", filterProvider);
       if (filterStatus !== "all") q = q.eq("status", filterStatus);
-      return (await q).data ?? [];
-    }
+      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+    },
+    enabled: needsDemands,
+    staleTime: 60_000,
   });
 
   const { data: commissions = [] } = useQuery({
@@ -114,8 +134,10 @@ export default function Reports() {
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q).data ?? [];
-    }
+      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+    },
+    enabled: needsCommissions,
+    staleTime: 60_000,
   });
 
   const { data: clientsData = [] } = useQuery({
@@ -126,8 +148,10 @@ export default function Reports() {
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterPartner !== "all") q = q.eq("partner_id", filterPartner);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q).data ?? [];
-    }
+      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+    },
+    enabled: needsClients,
+    staleTime: 60_000,
   });
 
   const { data: docs = [] } = useQuery({
@@ -138,8 +162,10 @@ export default function Reports() {
         .gte("created_at", from).lte("created_at", to + "T23:59:59");
       if (filterClient !== "all") q = q.eq("client_id", filterClient);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q).data ?? [];
-    }
+      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+    },
+    enabled: needsDocs,
+    staleTime: 60_000,
   });
 
   const { data: payments = [] } = useQuery({
@@ -149,8 +175,10 @@ export default function Reports() {
         .select("*, clients(full_name), products(name)")
         .gte("due_date", from).lte("due_date", to);
       if (filterStatus !== "all") q = q.eq("status", filterStatus as any);
-      return (await q).data ?? [];
-    }
+      return (await q.limit(REPORT_QUERY_LIMIT)).data ?? [];
+    },
+    enabled: needsPayments,
+    staleTime: 60_000,
   });
 
   // Analytics & Report Configuration
@@ -345,6 +373,10 @@ export default function Reports() {
       filename: `Relatorio-${reportType}-${from}.xlsx`,
     });
   };
+
+  const detailRows = (reportConfig?.rows ?? []) as any[];
+  const totalDetailPages = Math.max(1, Math.ceil(detailRows.length / DETAIL_PAGE_SIZE));
+  const paginatedDetailRows = detailRows.slice((currentPage - 1) * DETAIL_PAGE_SIZE, currentPage * DETAIL_PAGE_SIZE);
 
   const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -714,7 +746,7 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {reportConfig?.rows.map((r: any, i) => (
+              {paginatedDetailRows.map((r: any, i) => (
                 <tr key={i} className="group border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                   {reportConfig?.columns.map(c => (
                     <td key={c.dataKey} className="py-4 text-sm text-slate-600">
@@ -732,6 +764,7 @@ export default function Reports() {
             </div>
           )}
         </div>
+        <PaginationControl currentPage={currentPage} totalPages={totalDetailPages} onPageChange={setCurrentPage} totalItems={detailRows.length} itemsPerPage={DETAIL_PAGE_SIZE} className="mt-4 rounded-2xl border border-slate-100" />
       </div>
     </div>
   );

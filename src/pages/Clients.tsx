@@ -56,7 +56,7 @@ export default function Clients() {
   const [showFilters, setShowFilters] = useState<boolean>(saved.showFilters ?? false);
   const [view, setView] = useState<"grid" | "table">(saved.view ?? "grid");
   const [currentPage, setCurrentPage] = useState<number>(saved.currentPage ?? 1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 10;
 
   const [statusFilter, setStatusFilter] = useState<string>(saved.statusFilter ?? "all");
   const [productFilter, setProductFilter] = useState<string>(saved.productFilter ?? "all");
@@ -119,7 +119,7 @@ export default function Clients() {
       const { data, error } = await supabase
         .from("client_products")
         .select("id, client_id, value, status, product_id, products(id, name)")
-        .limit(5000);
+        .limit(2000);
       if (error) throw error;
       return data ?? [];
     },
@@ -132,14 +132,14 @@ export default function Clients() {
       const { data, error } = await supabase
         .from("payments")
         .select("id, client_id, amount, amount_paid, status, due_date")
-        .limit(5000);
+        .limit(2000);
       if (error) throw error;
       return data ?? [];
     },
     staleTime: 2 * 60_000,
   });
 
-  const isLoading = isLoadingClients || isLoadingClientProducts || isLoadingPayments;
+  const isLoading = isLoadingClients;
 
   const { data: products = [] } = useQuery({
     queryKey: ["products-minimal"],

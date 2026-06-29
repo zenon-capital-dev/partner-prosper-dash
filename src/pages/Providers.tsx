@@ -78,39 +78,79 @@ export default function Providers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_providers")
-        .select(`
-          *,
-          client_products!client_products_service_provider_id_fkey(id, status, value, clients(id, full_name)),
-          contracts(id, status)
-        `)
-        .order("created_at", { ascending: false });
+        .select("id, name, email, phone, specialty, document_number, active, user_id, internal_rating, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1000);
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: 120_000,
   });
 
-  const enriched = useMemo(() => providers.map((p: any) => {
-    const cps = p.client_products ?? [];
-    const clientsSet = new Set<string>();
-    let active = 0, done = 0, revenue = 0;
-    cps.forEach((cp: any) => {
-      const st = norm(cp.status);
-      if (cp.clients?.id) clientsSet.add(cp.clients.id);
-      revenue += Number(cp.value || 0);
-      if (DONE_STATUSES.has(st)) done++;
-      else if (CANCELLED_STATUSES.has(st)) { /* skip */ }
-      else if (IN_PROGRESS_STATUSES.has(st) || !st) active++;
+  const { data: providerDemandRows = [] } = useQuery({
+    queryKey: ["providers-demand-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_products")
+        .select("service_provider_id, responsible_provider_id, client_id, status, value")
+        .limit(1000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 120_000,
+  });
+
+  const { data: providerContractRows = [] } = useQuery({
+    queryKey: ["providers-contract-summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contracts")
+        .select("provider_id")
+        .not("provider_id", "is", null)
+        .limit(1000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 120_000,
+  });
+
+  const enriched = useMemo(() => {
+    const demandMap = new Map<string, any[]>();
+    (providerDemandRows as any[]).forEach((cp: any) => {
+      [cp.service_provider_id, cp.responsible_provider_id].filter(Boolean).forEach((pid: string) => {
+        const arr = demandMap.get(pid) ?? [];
+        arr.push(cp);
+        demandMap.set(pid, arr);
+      });
     });
-    return {
-      ...p,
-      _activeCount: active,
-      _doneCount: done,
-      _clientsCount: clientsSet.size,
-      _revenue: revenue,
-      _contractsCount: p.contracts?.length ?? 0,
-      _hasAccess: !!p.user_id,
-    };
-  }), [providers]);
+    const contractMap = new Map<string, number>();
+    (providerContractRows as any[]).forEach((c: any) => {
+      if (c.provider_id) contractMap.set(c.provider_id, (contractMap.get(c.provider_id) ?? 0) + 1);
+    });
+
+    return providers.map((p: any) => {
+      const cps = demandMap.get(p.id) ?? [];
+      const clientsSet = new Set<string>();
+      let active = 0, done = 0, revenue = 0;
+      cps.forEach((cp: any) => {
+        const st = norm(cp.status);
+        if (cp.client_id) clientsSet.add(cp.client_id);
+        revenue += Number(cp.value || 0);
+        if (DONE_STATUSES.has(st)) done++;
+        else if (CANCELLED_STATUSES.has(st)) { /* skip */ }
+        else if (IN_PROGRESS_STATUSES.has(st) || !st) active++;
+      });
+      return {
+        ...p,
+        _activeCount: active,
+        _doneCount: done,
+        _clientsCount: clientsSet.size,
+        _revenue: revenue,
+        _contractsCount: contractMap.get(p.id) ?? 0,
+        _hasAccess: !!p.user_id,
+      };
+    });
+  }, [providers, providerDemandRows, providerContractRows]);
 
   const specialties = useMemo(() => {
     const s = new Set<string>();
@@ -176,11 +216,10 @@ export default function Providers() {
       total: enriched.length,
       active: enriched.filter((p: any) => p.active).length,
       demands: enriched.reduce((s: number, p: any) => s + p._activeCount, 0),
-      clients: new Set(enriched.flatMap((p: any) =>
-        (p.client_products ?? []).map((cp: any) => cp.clients?.id).filter(Boolean))).size,
+      clients: new Set((providerDemandRows as any[]).map((cp: any) => cp.client_id).filter(Boolean)).size,
       avgTicket: withRevenue.length ? totalRevenue / withRevenue.length : 0,
     };
-  }, [enriched]);
+  }, [enriched, providerDemandRows]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");

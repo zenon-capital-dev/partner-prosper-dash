@@ -13,7 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, FileText, Link as LinkIcon, Upload, BookOpen } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
+
+const PAGE_SIZE = 10;
 
 const CATEGORIES = [
   { value: "institucional", label: "Institucional" },
@@ -44,15 +47,19 @@ export default function PartnerMaterialsAdmin() {
   const [form, setForm] = useState({
     title: "", description: "", category: "institucional", external_url: "", active: true,
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["partner-materials-admin"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("partner_materials").select("*").order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("partner_materials").select("*").order("created_at", { ascending: false }).limit(300);
       if (error) throw error;
       return (data || []) as Material[];
     },
   });
+
+  const totalPages = Math.max(1, Math.ceil(materials.length / PAGE_SIZE));
+  const paginatedMaterials = materials.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const reset = () => {
     setForm({ title: "", description: "", category: "institucional", external_url: "", active: true });
@@ -150,7 +157,7 @@ export default function PartnerMaterialsAdmin() {
             <p className="text-sm text-slate-500">Nenhum material cadastrado ainda.</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm">
             <thead className="bg-slate-50/60 border-b border-slate-200/70">
               <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                 <th className="px-4 py-3">Título</th>
@@ -162,7 +169,7 @@ export default function PartnerMaterialsAdmin() {
               </tr>
             </thead>
             <tbody>
-              {materials.map((m) => (
+              {paginatedMaterials.map((m) => (
                 <tr key={m.id} className="border-b border-slate-100 hover:bg-slate-50/40">
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-900">{m.title}</p>
@@ -188,8 +195,9 @@ export default function PartnerMaterialsAdmin() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
+        <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={materials.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>

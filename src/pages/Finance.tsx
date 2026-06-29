@@ -105,7 +105,7 @@ export default function Finance() {
   const [salesPage, setSalesPage] = useState(1);
   const [expPage, setExpPage] = useState(1);
   const [splitPage, setSplitPage] = useState(1);
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE = 10;
 
   // expense dialog
   const [expDialogOpen, setExpDialogOpen] = useState(false);
@@ -132,7 +132,8 @@ export default function Finance() {
     queryFn: async () => {
       let q = supabase.from("sales")
         .select("id, amount, zenon_cost, provider_cost, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
-        .order("sale_date", { ascending: false });
+        .order("sale_date", { ascending: false })
+        .limit(1000);
       if (from) q = q.gte("sale_date", from);
       if (to) q = q.lte("sale_date", to);
       const { data, error } = await q;
@@ -144,7 +145,7 @@ export default function Finance() {
   const { data: expenses = [], isLoading: lExp } = useQuery({
     queryKey: ["finance-expenses", from, to],
     queryFn: async () => {
-      let q = supabase.from("expenses").select("*").order("expense_date", { ascending: false });
+      let q = supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(1000);
       if (from) q = q.gte("expense_date", from);
       if (to) q = q.lte("expense_date", to);
       const { data, error } = await q;
@@ -166,7 +167,8 @@ export default function Finance() {
           referrers:referrer_id(full_name),
           collaborator:profiles!collaborator_id(full_name)
         `)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(1000);
       
       if (error) {
         console.error("Erro ao buscar comissões:", error);

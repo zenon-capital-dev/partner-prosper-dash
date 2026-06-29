@@ -334,7 +334,7 @@ export default function Contracts() {
     setPage(1);
   };
 
-  const pageSize = 25;
+  const pageSize = 10;
   const totalPages = Math.max(1, Math.ceil(sortedContracts.length / pageSize));
   const pageRows = sortedContracts.slice((page - 1) * pageSize, page * pageSize);
 

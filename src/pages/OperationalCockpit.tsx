@@ -35,9 +35,13 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
+const PAGE_SIZE = 10;
+const ALERT_FETCH_LIMIT = 10;
 
 interface CockpitItem {
   id: string;
@@ -56,6 +60,11 @@ export default function OperationalCockpit() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "high" | "ok">("all");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, activeTab, severityFilter]);
 
   // --- Data Fetching ---
   
@@ -75,7 +84,7 @@ export default function OperationalCockpit() {
         .not("status", "in", '("concluido", "cancelado")')
         .or(`deadline.lte.${in30},sla_due_date.lte.${in30},end_date.lte.${in30}`)
         .order("deadline", { ascending: true, nullsFirst: false })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -109,7 +118,7 @@ export default function OperationalCockpit() {
         .lt("updated_at", sevenDaysAgo)
         .eq("status", "ativo")
         .order("updated_at", { ascending: true })
-        .limit(100);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -139,7 +148,7 @@ export default function OperationalCockpit() {
         .in("status", ["solicitado", "enviado", "em_analise", "reprovado", "pendente_correcao", "vencido"])
         .not("client_id", "is", null)
         .order("created_at", { ascending: false })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -169,7 +178,7 @@ export default function OperationalCockpit() {
         .neq("status", "pago")
         .lte("due_date", new Date().toISOString())
         .order("due_date", { ascending: true })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -200,7 +209,7 @@ export default function OperationalCockpit() {
         `)
         .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"])
         .order("created_at", { ascending: false })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -230,7 +239,7 @@ export default function OperationalCockpit() {
         .in("status", ["rascunho", "criado", "enviado", "aguardando_assinatura", "pendente_correcao"])
         .not("client_id", "is", null)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -260,7 +269,7 @@ export default function OperationalCockpit() {
         .not("due_date", "is", null)
         .lte("due_date", in3days)
         .order("due_date", { ascending: true })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -296,7 +305,7 @@ export default function OperationalCockpit() {
         .in("status", ["pendente", "enviado", "em_analise"])
         .not("client_id", "is", null)
         .order("requested_at", { ascending: false })
-        .limit(100);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -329,11 +338,12 @@ export default function OperationalCockpit() {
           `)
           .eq("status", "em_andamento")
           .not("service_provider_id", "is", null)
-          .limit(150),
+          .limit(ALERT_FETCH_LIMIT),
         supabase
           .from("client_product_status_reports")
           .select("client_product_id")
-          .gte("created_at", threeDaysAgo),
+          .gte("created_at", threeDaysAgo)
+          .limit(100),
       ]);
       
       if (error) throw error;
@@ -538,7 +548,11 @@ export default function OperationalCockpit() {
     total: allItems.length
   };
 
-  if (loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports) {
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const paginatedItems = filteredItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const isAnyLoading = loadingDemands || loadingClients || loadingDocs || loadingPayments || loadingComs || loadingContracts || loadingTasks || loadingRequests || loadingReports;
+
+  if (isAnyLoading && allItems.length === 0) {
     return (
       <div className="page-shell bg-premium min-h-dvh space-y-8 animate-fade-up">
         <PageHeader title="Alertas" description="Carregando seus alertas prioritários..." />
@@ -640,7 +654,7 @@ export default function OperationalCockpit() {
 
       {/* BULK ACTIONS — DEMANDAS */}
       {(() => {
-        const visibleDemands = filteredItems.filter(i => i.type === 'demand');
+        const visibleDemands = paginatedItems.filter(i => i.type === 'demand');
         if (visibleDemands.length === 0) return null;
         const allSelected = visibleDemands.every(d => selectedDemandIds.has(d.id));
         const someSelected = selectedDemandIds.size > 0;
@@ -714,8 +728,11 @@ export default function OperationalCockpit() {
 
       {/* MAIN LIST */}
       <div className="space-y-4">
-        {filteredItems.length > 0 ? (
-          filteredItems.map((item) => (
+        {isAnyLoading && (
+          <div className="text-xs font-semibold text-muted-foreground">Atualizando alertas em segundo plano...</div>
+        )}
+        {paginatedItems.length > 0 ? (
+          paginatedItems.map((item) => (
             <CockpitRow 
               key={`${item.type}-${item.id}`} 
               item={item} 
@@ -741,6 +758,16 @@ export default function OperationalCockpit() {
           </div>
         )}
       </div>
+
+      {filteredItems.length > PAGE_SIZE && (
+        <PaginationControl
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          totalItems={filteredItems.length}
+          itemsPerPage={PAGE_SIZE}
+        />
+      )}
 
       {/* DETAILS SHEET */}
       <Sheet open={!!detailItem} onOpenChange={(o) => !o && setDetailItem(null)}>
