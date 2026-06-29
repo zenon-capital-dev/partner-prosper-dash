@@ -25,10 +25,12 @@ import { cn } from "@/lib/utils";
 import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status";
 type SortDir = "asc" | "desc";
+const PAGE_SIZE = 10;
 
 const norm = (s: any) =>
   String(s ?? "")
@@ -54,6 +56,7 @@ export default function Sales() {
   const [dateTo, setDateTo] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [page, setPage] = useState(1);
   const [density, setDensity] = useState<"compact" | "normal" | "spacious">(
     () => (typeof window !== "undefined" && (localStorage.getItem("sales-density") as any)) || "normal"
   );
@@ -96,6 +99,10 @@ export default function Sales() {
     const urlSearch = searchParams.get("search");
     if (urlSearch) setSearch(urlSearch);
   }, [searchParams]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, rangeKey, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, sortKey, sortDir]);
 
   const { data: sales = [], isLoading } = useQuery({
     queryKey: ["sales-rich-v2"],
@@ -258,6 +265,13 @@ export default function Sales() {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortKey(key); setSortDir(key === "sale_date" || key === "amount" || key === "commission" ? "desc" : "asc"); }
   };
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = useMemo(
+    () => sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [sorted, currentPage]
+  );
 
   const kpis = useMemo(() => {
     const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0, recebido: 0, aReceber: 0 };
@@ -905,7 +919,7 @@ export default function Sales() {
                       </div>
                     </td>
                   </tr>
-                ) : sorted.map((s: any) => {
+                ) : pageRows.map((s: any) => {
                   const splits = splitsBySale.get(s.id) ?? [];
                   const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
                   const baseAmt = Number(s.amount || 0);
@@ -1159,6 +1173,14 @@ export default function Sales() {
               </tbody>
             </table>
         </SalesTableScroll>
+
+        <PaginationControl
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          totalItems={sorted.length}
+          itemsPerPage={PAGE_SIZE}
+        />
 
       </div>
 

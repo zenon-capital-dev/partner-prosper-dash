@@ -223,7 +223,7 @@ export default function Demands() {
     });
   }, [demands, search, statusFilter, priorityFilter, productFilter, providerFilter, partnerFilter, deadlineFilter, rangeKey]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
@@ -763,7 +763,7 @@ export default function Demands() {
 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filtered.map((d: any) => {
+          {paginated.map((d: any) => {
              const priority = PRIORITY_META[d.priority as Priority] || PRIORITY_META.normal;
              const pendingDocs = d.documents?.filter((doc: any) => doc.status === 'solicitado').length || 0;
              

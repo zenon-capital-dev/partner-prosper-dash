@@ -59,7 +59,7 @@ export default function Partners() {
   const [sortBy, setSortBy] = useState<SortKey>("commissions");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 10;
 
   const [createAccess, setCreateAccess] = useState(false);
   const [accessPwd, setAccessPwd] = useState("");

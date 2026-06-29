@@ -25,6 +25,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type Product = {
   id: string;
@@ -42,6 +43,7 @@ type Product = {
 
 type SortKey = "name" | "price" | "commission" | "partners" | "sales" | "revenue" | "status";
 type SortDir = "asc" | "desc";
+const PAGE_SIZE = 10;
 
 const norm = (s: any) =>
   String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -59,6 +61,7 @@ export default function Products() {
   const [view, setView] = useState<"grid" | "table">("grid");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [productOpen, setProductOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -138,6 +141,17 @@ export default function Products() {
     });
     return arr;
   }, [filtered, sortKey, sortDir, usageStats]);
+
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, billingFilter, partnerFilter, view, sortKey, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedTable.length / PAGE_SIZE));
+  const page = Math.min(currentPage, totalPages);
+  const paginatedProducts = useMemo(
+    () => sortedTable.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [sortedTable, page]
+  );
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -357,7 +371,7 @@ export default function Products() {
           </div>
         ) : view === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filtered.map((p) => {
+            {paginatedProducts.map((p) => {
               const u = (usageStats as any)[p.id] || { sales: 0, revenue: 0, partners: 0 };
               return (
                 <div
@@ -470,7 +484,7 @@ export default function Products() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {sortedTable.map((p) => {
+                  {paginatedProducts.map((p) => {
                     const u = (usageStats as any)[p.id] || { sales: 0, revenue: 0, partners: 0 };
                     return (
                       <tr key={p.id} onClick={() => goToDetail(p.id)} className="hover:bg-slate-50/60 transition-colors cursor-pointer">
@@ -537,6 +551,7 @@ export default function Products() {
             </div>
           </div>
         )}
+        <PaginationControl currentPage={page} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={sortedTable.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
       <ProductFormDialog
