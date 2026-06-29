@@ -69,11 +69,13 @@ export function ClientProducts({ clientId }: { clientId: string }) {
   // Lista de parceiros / indicadores ativos para edição rápida
   const { data: partners = [] } = useQuery({
     queryKey: ["client-products-partners-select"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name").limit(300)).data ?? [],
+    staleTime: 60_000,
   });
   const { data: referrers = [] } = useQuery({
     queryKey: ["client-products-referrers-select"],
-    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name").limit(300)).data ?? [],
+    staleTime: 60_000,
   });
 
   // Vínculos parceiro / indicador via tabela sales (1:1 com client_products via product+client)
