@@ -58,7 +58,9 @@ export default function OperationalCockpit() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  // Começa em uma categoria leve. O modo "Todos" ainda existe, mas não dispara
+  // 9 consultas pesadas logo ao abrir a página de Alertas.
+  const [activeTab, setActiveTab] = useState("demand");
   const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "high" | "ok">("all");
   const [page, setPage] = useState(1);
 
@@ -69,8 +71,11 @@ export default function OperationalCockpit() {
   // --- Data Fetching ---
   
   // 1. Demandas vencendo hoje/atrasadas
+  const shouldFetch = (type: string) => activeTab === "all" || activeTab === type;
+
   const { data: demands = [], isLoading: loadingDemands } = useQuery({
     queryKey: ["cockpit-demands"],
+    enabled: shouldFetch("demand"),
     queryFn: async () => {
       const today = new Date();
       const in30 = addDays(today, 30).toISOString().slice(0, 10);
@@ -110,6 +115,7 @@ export default function OperationalCockpit() {
   // 2. Clientes sem atualização recente (7 dias)
   const { data: stagnantClients = [], isLoading: loadingClients } = useQuery({
     queryKey: ["cockpit-stagnant-clients"],
+    enabled: shouldFetch("client"),
     queryFn: async () => {
       const sevenDaysAgo = subDays(new Date(), 7).toISOString();
       const { data, error } = await supabase
@@ -138,6 +144,7 @@ export default function OperationalCockpit() {
   // 3. Documentos aguardando análise/reprovados
   const { data: docs = [], isLoading: loadingDocs } = useQuery({
     queryKey: ["cockpit-docs"],
+    enabled: shouldFetch("document"),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("documents")
@@ -168,6 +175,7 @@ export default function OperationalCockpit() {
   // 4. Pagamentos vencidos
   const { data: latePayments = [], isLoading: loadingPayments } = useQuery({
     queryKey: ["cockpit-payments"],
+    enabled: shouldFetch("payment"),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
@@ -198,6 +206,7 @@ export default function OperationalCockpit() {
   // 5. Comissões aguardando liberação
   const { data: commissions = [], isLoading: loadingComs } = useQuery({
     queryKey: ["cockpit-commissions"],
+    enabled: shouldFetch("commission"),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("commissions")
@@ -229,6 +238,7 @@ export default function OperationalCockpit() {
   // 6. Contratos pendentes
   const { data: contracts = [], isLoading: loadingContracts } = useQuery({
     queryKey: ["cockpit-contracts"],
+    enabled: shouldFetch("contract"),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contracts")
@@ -259,6 +269,7 @@ export default function OperationalCockpit() {
   // 7. Tarefas urgentes (vencidas ou alta/urgente vencendo em 3 dias)
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ["cockpit-tasks"],
+    enabled: shouldFetch("task"),
     queryFn: async () => {
       const now = new Date();
       const in3days = addDays(now, 3).toISOString();
@@ -295,6 +306,7 @@ export default function OperationalCockpit() {
   // 8. Solicitações de documento abertas
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
     queryKey: ["cockpit-requests"],
+    enabled: shouldFetch("request"),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("document_requests")
@@ -325,6 +337,7 @@ export default function OperationalCockpit() {
   // 9. Prestadores sem reporte (3 dias)
   const { data: reportAlerts = [], isLoading: loadingReports } = useQuery({
     queryKey: ["cockpit-reports"],
+    enabled: shouldFetch("report"),
     queryFn: async () => {
       const threeDaysAgo = subDays(new Date(), 3).toISOString();
       const [{ data, error }, { data: recentReports }] = await Promise.all([
