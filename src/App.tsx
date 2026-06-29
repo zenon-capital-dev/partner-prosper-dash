@@ -111,7 +111,6 @@ const App = () => (
               <Route path="/demandas" element={<Demands />} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/atuacoes" element={<Navigate to="/agenda?kind=ligacao" replace />} />
-              <Route path="/demandas/:id" element={<DemandDetail />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="/parceiros" element={<Partners />} />
@@ -157,6 +156,8 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/cliente/onboarding" element={<ClientOnboarding />} />
             </Route>
+
+            <Route path="/demandas/:id" element={<RouteGuard><DemandDetail /></RouteGuard>} />
 
             <Route element={<PanelLayout />}>
               <Route path="/parceiro" element={<PartnerPanel />} />
