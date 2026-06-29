@@ -133,7 +133,7 @@ export default function Finance() {
       let q = supabase.from("sales")
         .select("id, amount, zenon_cost, provider_cost, status, sale_date, paid_at, payment_method, clients(full_name), products(name)")
         .order("sale_date", { ascending: false })
-        .limit(1000);
+        .limit(300);
       if (from) q = q.gte("sale_date", from);
       if (to) q = q.lte("sale_date", to);
       const { data, error } = await q;
@@ -145,7 +145,7 @@ export default function Finance() {
   const { data: expenses = [], isLoading: lExp } = useQuery({
     queryKey: ["finance-expenses", from, to],
     queryFn: async () => {
-      let q = supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(1000);
+      let q = supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(300);
       if (from) q = q.gte("expense_date", from);
       if (to) q = q.lte("expense_date", to);
       const { data, error } = await q;
@@ -168,7 +168,7 @@ export default function Finance() {
           collaborator:profiles!collaborator_id(full_name)
         `)
         .order("created_at", { ascending: false })
-        .limit(1000);
+        .limit(300);
       
       if (error) {
         console.error("Erro ao buscar comissões:", error);

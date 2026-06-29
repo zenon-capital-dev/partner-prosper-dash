@@ -57,7 +57,7 @@ export default function SLAPages() {
         `)
         .neq("status", "concluido")
         .order("sla_due_date", { ascending: true })
-        .limit(1000);
+        .limit(300);
 
       if (error) throw error;
 
