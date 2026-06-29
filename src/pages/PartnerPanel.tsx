@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
   BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare, FileSignature, Upload, FileCheck2,
-  Briefcase, ClipboardList,
+  Briefcase,
   CalendarClock,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
@@ -151,7 +151,7 @@ export default function PartnerPanel() {
           .limit(300),
         supabase
           .from("client_document_requests")
-          .select("id, client_id, product_id, title, status, file_url, created_at, updated_at, client_product_id, due_date, description, rejection_reason, reviewed_at, priority, clients(full_name), products(name)")
+          .select("id, client_id, title, status, file_url, created_at, updated_at, client_product_id, due_date, description, reviewed_at, priority, clients(full_name)")
           .in("client_id", clientIds)
           .order("created_at", { ascending: false })
           .limit(300),
@@ -177,10 +177,10 @@ export default function PartnerPanel() {
         client_name: clientNameFor(d), product_name: productNameFor(d), source: "documents",
       }));
       const cdr = (cdrRes.data ?? []).map((d: any) => ({
-        id: d.id, client_id: d.client_id, product_id: d.product_id || serviceById.get(d.client_product_id)?.product_id || null, name: d.title,
+        id: d.id, client_id: d.client_id, product_id: serviceById.get(d.client_product_id)?.product_id || null, name: d.title,
         status: d.status, created_at: d.created_at, updated_at: d.updated_at, client_product_id: d.client_product_id, due_date: d.due_date,
         description: d.description, file_path: null, file_url: d.file_url, uploaded_at: d.updated_at,
-        rejection_reason: d.rejection_reason, reviewed_at: d.reviewed_at, priority: d.priority,
+        rejection_reason: null, reviewed_at: d.reviewed_at, priority: d.priority,
         client_name: clientNameFor(d), product_name: productNameFor(d), source: "client_document_requests",
       }));
       const reqs = (reqRes.data ?? []).map((r: any) => ({
