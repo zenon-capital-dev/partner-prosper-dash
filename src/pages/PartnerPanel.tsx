@@ -1,11 +1,12 @@
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Users, Wallet, FileText, UserCog, Inbox, Clock, Eye, EyeOff, Save,
   BookOpen, LifeBuoy, Download, ExternalLink, Plus, MessageSquare, FileSignature, Upload, FileCheck2,
+  Briefcase, ClipboardList,
   CalendarClock,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
@@ -24,10 +25,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
+import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
   { key: "clientes",   label: "Clientes",   icon: Users },
+  { key: "servicos",   label: "Serviços",   icon: Briefcase },
+  { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
   { key: "agenda",     label: "Agenda",     icon: CalendarClock },
   { key: "comissoes",  label: "Comissões",  icon: Wallet, shortLabel: "Comissões" },
   { key: "extrato",    label: "Extrato",    icon: FileText },
@@ -52,6 +57,17 @@ const CLIENT_TONE: Record<string, string> = {
   inativo: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
+const SERVICE_TONE: Record<string, { label: string; tone: string }> = {
+  aguardando_inicio: { label: "Aguardando", tone: "bg-slate-100 text-slate-700 border-slate-200" },
+  em_andamento: { label: "Em andamento", tone: "bg-violet-50 text-violet-700 border-violet-200" },
+  em_execucao: { label: "Em execução", tone: "bg-violet-50 text-violet-700 border-violet-200" },
+  pausado: { label: "Pausado", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  concluido: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  concluida: { label: "Concluído", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  cancelado: { label: "Cancelado", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+  cancelada: { label: "Cancelado", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+};
+
 export default function PartnerPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
@@ -59,6 +75,7 @@ export default function PartnerPanel() {
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/parceiro" : `/parceiro/${k}`);
+  const [requestsTarget, setRequestsTarget] = useState<{ id: string; clientName?: string } | null>(null);
 
   const { data: partner } = useQuery({
     queryKey: ["partner-self", user?.id],
@@ -79,8 +96,101 @@ export default function PartnerPanel() {
     queryKey: ["partner-clients", partner?.id],
     enabled: !!partner?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, full_name, email, phone, status, created_at").eq("partner_id", partner!.id).order("created_at", { ascending: false });
+      const [{ data: primary }, { data: linked }] = await Promise.all([
+        supabase
+          .from("clients")
+          .select("id, full_name, email, phone, status, created_at, partner_id")
+          .eq("partner_id", partner!.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("client_partners")
+          .select("client_id, clients(id, full_name, email, phone, status, created_at, partner_id)")
+          .eq("partner_id", partner!.id),
+      ]);
+
+      const map = new Map<string, any>();
+      (primary ?? []).forEach((c: any) => map.set(c.id, { ...c, partner_link_type: "principal" }));
+      (linked ?? []).forEach((row: any) => {
+        const c = Array.isArray(row.clients) ? row.clients[0] : row.clients;
+        if (c?.id) map.set(c.id, { ...c, partner_link_type: c.partner_id === partner!.id ? "principal" : "vinculado" });
+      });
+      return Array.from(map.values()).sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    },
+    staleTime: 2 * 60_000,
+  });
+
+  const clientIds = useMemo(() => (clients as any[]).map((c) => c.id).filter(Boolean), [clients]);
+
+  const { data: services = [] } = useQuery({
+    queryKey: ["partner-services", partner?.id, clientIds.join(",")],
+    enabled: !!partner?.id && clientIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("client_products")
+        .select("id, product_id, client_id, status, value, deadline, sla_due_date, created_at, updated_at, custom_product_name, notes, clients(id, full_name, email, phone), products(id, name, description)")
+        .in("client_id", clientIds)
+        .order("created_at", { ascending: false })
+        .limit(300);
       return data ?? [];
+    },
+    staleTime: 2 * 60_000,
+  });
+
+  const serviceIds = useMemo(() => (services as any[]).map((s) => s.id).filter(Boolean), [services]);
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ["partner-docs", partner?.id, clientIds.join(","), serviceIds.join(",")],
+    enabled: !!partner?.id && clientIds.length > 0,
+    queryFn: async () => {
+      const [docsRes, cdrRes, reqRes] = await Promise.all([
+        supabase
+          .from("documents")
+          .select("id, client_id, product_id, name, status, created_at, updated_at, client_product_id, due_date, description, file_path, uploaded_at, rejection_reason, priority, clients(full_name), products(name)")
+          .in("client_id", clientIds)
+          .order("created_at", { ascending: false })
+          .limit(300),
+        supabase
+          .from("client_document_requests")
+          .select("id, client_id, product_id, title, status, file_url, created_at, updated_at, client_product_id, due_date, description, rejection_reason, reviewed_at, priority, clients(full_name), products(name)")
+          .in("client_id", clientIds)
+          .order("created_at", { ascending: false })
+          .limit(300),
+        serviceIds.length > 0
+          ? supabase
+              .from("document_requests")
+              .select("id, client_id, product_id, request_title, status, file_url, requested_at, updated_at, client_product_id, deadline, description, rejection_reason, submission_date, priority, clients(full_name), products(name)")
+              .in("client_product_id", serviceIds)
+              .order("requested_at", { ascending: false })
+              .limit(300)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const serviceById = new Map((services as any[]).map((s) => [s.id, s]));
+      const productNameFor = (row: any) => row.products?.name || serviceById.get(row.client_product_id)?.products?.name || serviceById.get(row.client_product_id)?.custom_product_name || null;
+      const clientNameFor = (row: any) => row.clients?.full_name || serviceById.get(row.client_product_id)?.clients?.full_name || null;
+
+      const docs = (docsRes.data ?? []).map((d: any) => ({
+        id: d.id, client_id: d.client_id, product_id: d.product_id, name: d.name, status: d.status, created_at: d.created_at,
+        updated_at: d.updated_at, client_product_id: d.client_product_id, due_date: d.due_date,
+        description: d.description, file_path: d.file_path, file_url: d.file_path, uploaded_at: d.uploaded_at,
+        rejection_reason: d.rejection_reason, reviewed_at: d.reviewed_at, priority: d.priority,
+        client_name: clientNameFor(d), product_name: productNameFor(d), source: "documents",
+      }));
+      const cdr = (cdrRes.data ?? []).map((d: any) => ({
+        id: d.id, client_id: d.client_id, product_id: d.product_id || serviceById.get(d.client_product_id)?.product_id || null, name: d.title,
+        status: d.status, created_at: d.created_at, updated_at: d.updated_at, client_product_id: d.client_product_id, due_date: d.due_date,
+        description: d.description, file_path: null, file_url: d.file_url, uploaded_at: d.updated_at,
+        rejection_reason: d.rejection_reason, reviewed_at: d.reviewed_at, priority: d.priority,
+        client_name: clientNameFor(d), product_name: productNameFor(d), source: "client_document_requests",
+      }));
+      const reqs = (reqRes.data ?? []).map((r: any) => ({
+        id: r.id, client_id: r.client_id, product_id: r.product_id || serviceById.get(r.client_product_id)?.product_id || null, name: r.request_title,
+        status: r.status, created_at: r.requested_at, updated_at: r.updated_at, client_product_id: r.client_product_id, due_date: r.deadline,
+        description: r.description, file_path: null, file_url: r.file_url, uploaded_at: r.submission_date,
+        rejection_reason: r.rejection_reason, reviewed_at: null, priority: r.priority,
+        client_name: clientNameFor(r), product_name: productNameFor(r), source: "document_requests",
+      }));
+      return [...reqs, ...cdr, ...docs].sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
     },
     staleTime: 2 * 60_000,
   });
@@ -119,8 +229,10 @@ export default function PartnerPanel() {
       totalPaid, totalPending, monthPaid,
       clients: (clients as any[]).length,
       activeClients: (clients as any[]).filter((c) => c.status === "ativo").length,
+      services: (services as any[]).length,
+      pendingDocs: (documents as any[]).filter((d) => ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(d.status)).length,
     };
-  }, [commissions, clients]);
+  }, [commissions, clients, services, documents]);
 
   const firstName = (partner?.full_name || user?.user_metadata?.full_name || user?.email || "Parceiro").split(" ")[0];
 
@@ -332,6 +444,7 @@ export default function PartnerPanel() {
                 { label: "Comissões pagas", value: formatBRL(kpis.totalPaid) },
                 { label: "A receber", value: formatBRL(kpis.totalPending) },
                 { label: "Clientes ativos", value: kpis.activeClients },
+                { label: "Serviços", value: kpis.services },
               ]}
             />
             <div className="grid lg:grid-cols-3 gap-5">
@@ -345,7 +458,10 @@ export default function PartnerPanel() {
                           <p className="text-[13px] font-medium text-slate-900 truncate">{c.full_name}</p>
                           <p className="text-[11px] text-slate-500 truncate">desde {formatDate(c.created_at)}</p>
                         </div>
-                        <Badge variant="outline" className={cn("text-[10px] border capitalize", CLIENT_TONE[c.status] || "bg-slate-100")}>{c.status}</Badge>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                         {c.partner_link_type === "vinculado" && <Badge variant="outline" className="text-[10px] border-indigo-200 text-indigo-700 bg-indigo-50">vinculado</Badge>}
+                         <Badge variant="outline" className={cn("text-[10px] border capitalize", CLIENT_TONE[c.status] || "bg-slate-100")}>{c.status}</Badge>
+                       </div>
                       </li>
                     ))}
                   </ul>}
@@ -382,11 +498,70 @@ export default function PartnerPanel() {
                         <p className="text-[13.5px] font-medium text-slate-900 truncate">{c.full_name}</p>
                         <p className="text-[11.5px] text-slate-500 truncate">{c.email || c.phone || ""}</p>
                       </div>
-                      <Badge variant="outline" className={cn("text-[10px] border capitalize", CLIENT_TONE[c.status] || "bg-slate-100")}>{c.status}</Badge>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {c.partner_link_type === "vinculado" && <Badge variant="outline" className="text-[10px] border-indigo-200 text-indigo-700 bg-indigo-50">vinculado</Badge>}
+                        <Badge variant="outline" className={cn("text-[10px] border capitalize", CLIENT_TONE[c.status] || "bg-slate-100")}>{c.status}</Badge>
+                      </div>
                     </li>
                   ))}
                 </ul>}
             </SectionCard>
+          </>
+        )}
+
+        {activeKey === "servicos" && (
+          <>
+            <PanelHero role="parceiro" eyebrow="Operação" title="Serviços dos clientes" subtitle={`${services.length} serviço(s) em acompanhamento na sua carteira.`} stats={[
+              { label: "Ativos", value: (services as any[]).filter((s) => !["concluido", "concluida", "cancelado", "cancelada"].includes(s.status)).length },
+              { label: "Concluídos", value: (services as any[]).filter((s) => ["concluido", "concluida"].includes(s.status)).length },
+              { label: "Valor total", value: formatBRL((services as any[]).reduce((sum, s) => sum + Number(s.value || 0), 0)) },
+              { label: "Docs pendentes", value: kpis.pendingDocs },
+            ]} />
+            {services.length === 0 ? <SectionCard title=""><EmptyState icon={Briefcase} title="Nenhum serviço vinculado" description="Quando seus clientes tiverem serviços/demandas, eles aparecerão aqui." /></SectionCard> :
+              <div className="grid sm:grid-cols-2 gap-3">
+                {(services as any[]).map((service) => {
+                  const meta = SERVICE_TONE[service.status] || { label: service.status || "—", tone: "bg-slate-100 text-slate-700 border-slate-200" };
+                  const productName = service.products?.name || service.custom_product_name || "Serviço";
+                  return (
+                    <div key={service.id} className="bg-white rounded-xl border border-slate-200/70 p-4 shadow-sm hover:shadow-md hover:border-violet-200 transition">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <Badge variant="outline" className={cn("text-[10px] border", meta.tone)}>{meta.label}</Badge>
+                        <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(service.value)}</p>
+                      </div>
+                      <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{service.clients?.full_name || "—"}</p>
+                      <p className="text-[12px] text-slate-500 mt-0.5 truncate">{productName}</p>
+                      {service.notes && <p className="text-[11.5px] text-slate-500 mt-2 line-clamp-2">{service.notes}</p>}
+                      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
+                        <span>Início: {formatDate(service.created_at)}{service.sla_due_date || service.deadline ? ` · prazo ${formatDate(service.sla_due_date || service.deadline)}` : ""}</span>
+                        <div className="flex gap-1.5">
+                          <Link to={`/demandas/${service.id}`} className="inline-flex items-center h-8 px-2 rounded border border-slate-200 text-[11px] text-slate-700 hover:bg-slate-50">Abrir</Link>
+                          <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => setRequestsTarget({ id: service.id, clientName: service.clients?.full_name })}>
+                            <MessageSquare className="size-3 mr-1" /> Solicitar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>}
+          </>
+        )}
+
+        {activeKey === "documentos" && (
+          <>
+            <PanelHero role="parceiro" eyebrow="Arquivos" title="Documentos dos clientes" subtitle={`${documents.length} documento(s) e solicitação(ões) da sua carteira.`} stats={[
+              { label: "Pendentes", value: kpis.pendingDocs },
+              { label: "Em análise", value: (documents as any[]).filter((d) => ["enviado", "em_analise"].includes(d.status)).length },
+              { label: "Aprovados", value: (documents as any[]).filter((d) => d.status === "aprovado").length },
+              { label: "Clientes", value: clients.length },
+            ]} />
+            <ClientDocumentsTab
+              clientId={partner?.id || "partner"}
+              requests={documents as any[]}
+              products={(services as any[]).map((service) => ({ id: service.product_id || service.id, name: service.products?.name || service.custom_product_name || "Serviço" }))}
+              getUploadFolder={(req) => req.client_product_id || req.client_id || partner?.id}
+              invalidateKeys={[["partner-docs", partner?.id, clientIds.join(","), serviceIds.join(",")]]}
+            />
           </>
         )}
 
@@ -849,6 +1024,15 @@ export default function PartnerPanel() {
           </>
         )}
       </PanelContainer>
+
+      <Dialog open={!!requestsTarget} onOpenChange={(open) => !open && setRequestsTarget(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Solicitações · {requestsTarget?.clientName ?? ""}</DialogTitle>
+          </DialogHeader>
+          {requestsTarget && <DemandRequestsPanel clientProductId={requestsTarget.id} currentRole="parceiro" />}
+        </DialogContent>
+      </Dialog>
     </PanelShell>
   );
 }
