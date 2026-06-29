@@ -1802,7 +1802,7 @@ function ByClient({ payments, canManage }: { payments: any[]; canManage: boolean
   const { data: clients = [] } = useQuery({
     queryKey: ["fin-clients-min"],
     queryFn: async () =>
-      (await supabase.from("clients").select("id, full_name, company").order("full_name")).data ?? [],
+      (await supabase.from("clients").select("id, full_name, company").order("full_name").limit(300)).data ?? [],
   });
 
   const { data: clientProducts = [] } = useQuery({
