@@ -21,10 +21,12 @@ import {
 
 type DocRequest = {
   id: string;
-  source?: "documents" | "document_requests";
+  source?: "documents" | "client_document_requests" | "document_requests";
   client_id: string;
   product_id: string | null;
   client_product_id: string | null;
+  product_name?: string | null;
+  client_name?: string | null;
   name: string;
   description: string | null;
   status: string;
@@ -70,10 +72,14 @@ export function ClientDocumentsTab({
   clientId,
   requests,
   products,
+  getUploadFolder,
+  invalidateKeys,
 }: {
   clientId: string;
   requests: DocRequest[];
   products: Product[];
+  getUploadFolder?: (request: DocRequest) => string | null | undefined;
+  invalidateKeys?: unknown[][];
 }) {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -84,7 +90,7 @@ export function ClientDocumentsTab({
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
     for (const r of requests) {
       const key = r.client_product_id ?? r.product_id ?? "__sem_produto__";
-      const product = products.find((p) => p.id === r.product_id) ?? null;
+      const product = products.find((p) => p.id === r.product_id) ?? (r.product_name ? { id: r.product_id ?? key, name: r.product_name } : null);
       if (!map.has(key)) map.set(key, { product, items: [] });
       map.get(key)!.items.push(r);
     }
@@ -109,19 +115,25 @@ export function ClientDocumentsTab({
       setUploadingId(req.id);
       assertUploadFile(file);
       const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${clientId}/${req.id}/${Date.now()}.${ext}`;
+      const folder = getUploadFolder?.(req) || clientId;
+      const path = `${folder}/${req.id}/${Date.now()}.${ext}`;
 
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
       if (upErr) throw upErr;
 
       const now = new Date().toISOString();
-      const { error: updErr } = req.source === "document_requests"
+      const { error: updErr } = req.source === "client_document_requests"
         ? await supabase.from("client_document_requests").update({ file_url: path, status: "enviado", updated_at: now }).eq("id", req.id)
+        : req.source === "document_requests"
+          ? await supabase.from("document_requests").update({ file_url: path, status: "enviado", updated_at: now, submission_date: now }).eq("id", req.id)
         : await supabase.from("documents").update({ file_path: path, status: "enviado", uploaded_at: now, rejection_reason: null, file_size: file.size, mime_type: file.type }).eq("id", req.id);
       if (updErr) throw updErr;
 
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
+      qc.invalidateQueries({ queryKey: ["client-docs"] });
+      qc.invalidateQueries({ queryKey: ["provider-docs"] });
+      invalidateKeys?.forEach((queryKey) => qc.invalidateQueries({ queryKey }));
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
     } finally {
@@ -229,7 +241,7 @@ export function ClientDocumentsTab({
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    {req.file_path && (
+                    {(req.file_path || req.file_url) && (
                       <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleDownload(req)}>
                         <Download className="size-4 mr-1.5" /> Ver
                       </Button>

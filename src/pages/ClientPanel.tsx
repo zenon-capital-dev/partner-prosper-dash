@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useSystemSettings, buildMailtoLink, buildWhatsAppLink } from "@/hooks/useSystemSettings";
+import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -105,7 +106,7 @@ export default function ClientPanel() {
     enabled: !!clientId,
     queryFn: async () => {
       const { data } = await supabase.from("client_products")
-        .select("id, status, value, deadline, sla_due_date, created_at, custom_product_name, products(name, description)")
+        .select("id, product_id, status, value, deadline, sla_due_date, created_at, custom_product_name, products(id, name, description)")
         .eq("client_id", clientId!).order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -120,24 +121,55 @@ export default function ClientPanel() {
       // used by the admin "Solicitar Documento" flow.
       const [{ data: cdr }, { data: docsTable }] = await Promise.all([
         supabase.from("client_document_requests")
-          .select("id, title, description, status, due_date, file_url, created_at, updated_at, reviewed_at")
+          .select("id, title, description, status, due_date, file_url, created_at, updated_at, reviewed_at, client_product_id, priority")
           .eq("client_id", clientId!),
         supabase.from("documents")
-          .select("id, name, description, status, due_date, file_path, created_at, updated_at, reviewed_at")
+          .select("id, name, description, status, due_date, file_path, created_at, updated_at, reviewed_at, product_id, client_product_id, priority, uploaded_at, rejection_reason")
           .eq("client_id", clientId!),
       ]);
       const normalized = [
-        ...((cdr ?? []) as any[]).map((d) => ({ ...d, _source: "cdr" })),
+        ...((cdr ?? []) as any[]).map((d) => ({
+          id: d.id,
+          client_id: clientId!,
+          product_id: (demandas as any[]).find((cp) => cp.id === d.client_product_id)?.product_id ?? null,
+          client_product_id: d.client_product_id,
+          product_name: (demandas as any[]).find((cp) => cp.id === d.client_product_id)?.products?.name ?? null,
+          name: d.title,
+          title: d.title,
+          description: d.description,
+          status: d.status,
+          due_date: d.due_date,
+          file_path: null,
+          file_url: d.file_url,
+          created_at: d.created_at,
+          updated_at: d.updated_at,
+          reviewed_at: d.reviewed_at,
+          uploaded_at: d.updated_at,
+          rejection_reason: null,
+          priority: d.priority,
+          source: "client_document_requests",
+          _source: "client_document_requests",
+        })),
         ...((docsTable ?? []) as any[]).map((d: any) => ({
           id: d.id,
+          client_id: clientId!,
+          product_id: d.product_id,
+          client_product_id: d.client_product_id,
+          product_name: (demandas as any[]).find((cp) => cp.id === d.client_product_id)?.products?.name ?? null,
+          name: d.name,
           title: d.name,
           description: d.description,
           status: d.status,
           due_date: d.due_date,
+          file_path: d.file_path,
           file_url: d.file_path,
           created_at: d.created_at,
           updated_at: d.updated_at,
           reviewed_at: d.reviewed_at,
+          uploaded_at: d.uploaded_at,
+          rejection_reason: d.rejection_reason,
+          priority: d.priority,
+          source: "documents",
           _source: "documents",
         })),
       ];
@@ -270,28 +302,12 @@ export default function ClientPanel() {
         {activeKey === "documentos" && (
           <>
             <PanelHero role="cliente" eyebrow="Documentos" title="Meus documentos" subtitle={`${docs.length} documento(s) · ${kpis.docsPend} pendente(s)`} />
-            <SectionCard title="">
-              {docs.length === 0 ? <EmptyState icon={FileText} title="Sem documentos solicitados" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
-                  {(docs as any[]).map((d) => (
-                    <li key={d.id} className="px-3 py-3">
-                      <div className="flex items-center justify-between gap-3 mb-1">
-                        <p className="text-[13.5px] font-medium text-slate-900 truncate">{d.title}</p>
-                        <Badge variant="outline" className={cn("text-[10px] border capitalize", DOC_TONE[d.status] || "bg-slate-100")}>{d.status}</Badge>
-                      </div>
-                      {d.description && <p className="text-[12px] text-slate-500 line-clamp-2">{d.description}</p>}
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-[11px] text-slate-400">{d.due_date ? `Vence em ${formatDate(d.due_date)}` : "Sem prazo"}</p>
-                        {(d.status === "solicitado" || d.status === "reprovado") && (
-                          <Button size="sm" className="bg-sky-600 hover:bg-sky-700 h-8 text-[11px]" onClick={() => onNavigate("documentos")}>
-                            {d.status === "reprovado" ? "Reenviar" : "Enviar"}
-                          </Button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>}
-            </SectionCard>
+            <ClientDocumentsTab
+              clientId={clientId}
+              requests={docs as any[]}
+              products={(demandas as any[]).map((d) => ({ id: d.product_id || d.id, name: d.products?.name || d.custom_product_name || "Serviço" }))}
+              invalidateKeys={[["client-docs", clientId], ["client-demandas", clientId]]}
+            />
           </>
         )}
 

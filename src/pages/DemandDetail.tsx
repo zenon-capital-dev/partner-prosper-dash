@@ -58,8 +58,10 @@ export default function DemandDetail() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
-  const { user, isAdmin, isAdminSecondary, isColaborador } = useAuth();
-  const canManage = isAdmin || isAdminSecondary || isColaborador;
+  const { user, isAdmin, isAdminSecondary, isColaborador, isVendedor, isPrestador, isCliente, isParceiro } = useAuth();
+  const canManage = isAdmin || isAdminSecondary || isColaborador || isVendedor;
+  const canAdminActions = canManage;
+  const currentRole = isCliente ? "cliente" : isPrestador ? "prestador" : isParceiro ? "parceiro" : isColaborador ? "colaborador" : "admin";
   const [taskOpen, setTaskOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [deliveryOpen, setDeliveryOpen] = useState(false);
@@ -320,7 +322,7 @@ export default function DemandDetail() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        {canAdminActions && <div className="flex flex-wrap items-center gap-2">
             <Button 
               variant="outline" 
               className="h-11 rounded-xl gap-2 border-indigo-100 text-indigo-700 hover:bg-indigo-50"
@@ -388,7 +390,7 @@ export default function DemandDetail() {
                </DropdownMenuItem>
              </DropdownMenuContent>
            </DropdownMenu>
-        </div>
+         </div>}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -448,9 +450,9 @@ export default function DemandDetail() {
                     <h3 className="text-base font-bold text-foreground">{nextAction.label}</h3>
                   </div>
                 </div>
-                <Button onClick={completeNextStep} className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+                {canManage && <Button onClick={completeNextStep} className="rounded-xl h-11 px-8 gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
                   Concluir Etapa <CheckCircle2 className="size-4" />
-                </Button>
+                </Button>}
               </div>
             )}
 
@@ -487,7 +489,7 @@ export default function DemandDetail() {
 
                <TabsContent value="solicitacoes" className="animate-fade-up">
                   <div className="vx-card p-6 bg-card">
-                    <DemandRequestsPanel clientProductId={demand.id} currentRole="admin" />
+                    <DemandRequestsPanel clientProductId={demand.id} currentRole={currentRole as any} />
                   </div>
                </TabsContent>
 
@@ -510,9 +512,9 @@ export default function DemandDetail() {
                         <h3 className="text-base font-bold text-foreground">Documentação</h3>
                         <p className="text-xs text-muted-foreground">Solicite e acompanhe os arquivos desta demanda.</p>
                      </div>
-                     <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
+                      {canManage && <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
                         <FilePlus className="size-4" /> Solicitar Documento
-                     </Button>
+                      </Button>}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {!demand.documents || demand.documents.length === 0 ? (
@@ -612,9 +614,9 @@ export default function DemandDetail() {
                   <div className="vx-card p-8 bg-card">
                     <div className="flex items-center justify-between mb-6">
                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Tarefas Internas</h3>
-                       <Button size="sm" className="h-8 gap-2" onClick={() => setTaskOpen(true)}>
+                        {canManage && <Button size="sm" className="h-8 gap-2" onClick={() => setTaskOpen(true)}>
                           <Plus className="size-3.5" /> Adicionar Tarefa
-                       </Button>
+                        </Button>}
                     </div>
                     {demandTasks.length === 0 ? (
                       <p className="text-sm text-center text-muted-foreground py-10">Nenhuma tarefa vinculada a esta demanda.</p>
@@ -641,9 +643,9 @@ export default function DemandDetail() {
                   <div className="vx-card p-8 bg-card">
                     <div className="flex items-center justify-between mb-6">
                        <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Entregas de Valor</h3>
-                       <Button size="sm" className="h-8 gap-2" onClick={() => setDeliveryOpen(true)}>
+                        {canManage && <Button size="sm" className="h-8 gap-2" onClick={() => setDeliveryOpen(true)}>
                           <Plus className="size-3.5" /> Registrar Entrega
-                       </Button>
+                        </Button>}
                     </div>
                     {(!demand.deliveries || demand.deliveries.length === 0) ? (
                        <div className="text-center py-12 text-muted-foreground/60">
@@ -673,7 +675,7 @@ export default function DemandDetail() {
 
                <TabsContent value="comments" className="animate-fade-up">
                   <div className="vx-card p-6 bg-card border-slate-100">
-                     <DemandComments clientProductId={demand.id} role={canManage ? "admin" : "provider"} />
+                     <DemandComments clientProductId={demand.id} role={canManage ? "admin" : currentRole === "cliente" ? "client" : "provider"} />
                   </div>
                </TabsContent>
                
@@ -743,21 +745,21 @@ export default function DemandDetail() {
                     <h3 className="font-bold truncate text-foreground">{(demand.service_providers as any)?.name || "Não Delegado"}</h3>
                  </div>
               </div>
-              {demand.service_providers ? (
+               {demand.service_providers ? (
                 <div className="space-y-4">
                    <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground font-medium">Especialidade</span>
                       <span className="font-bold text-foreground">{(demand.service_providers as any).specialty || "—"}</span>
                    </div>
-                   <Button onClick={() => setDelegateOpen(true)} variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>
+                    {canManage && <Button onClick={() => setDelegateOpen(true)} variant="outline" className="w-full h-10 rounded-xl text-[11px] font-bold uppercase tracking-wider">Alterar Responsável</Button>}
                 </div>
               ) : (
-                <Button onClick={() => setDelegateOpen(true)} className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-none text-[11px] font-bold uppercase tracking-wider">Delegar Prestador</Button>
+                 canManage ? <Button onClick={() => setDelegateOpen(true)} className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 border-none text-[11px] font-bold uppercase tracking-wider">Delegar Prestador</Button> : null
               )}
            </div>
 
-           {/* Internal Notes */}
-           <div className="vx-card p-6 bg-card space-y-4 border-amber-500/20 bg-amber-500/5">
+            {/* Internal Notes */}
+            {canManage && <div className="vx-card p-6 bg-card space-y-4 border-amber-500/20 bg-amber-500/5">
               <div className="flex items-center gap-2">
                  <MessageSquare className="size-4 text-amber-500" />
                  <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600">Observações Internas</h3>
@@ -766,7 +768,7 @@ export default function DemandDetail() {
                  {demand.internal_notes || "Nenhuma observação interna para esta demanda."}
               </p>
               <Button onClick={openNotesEditor} variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
-           </div>
+            </div>}
         </div>
       </div>
 
