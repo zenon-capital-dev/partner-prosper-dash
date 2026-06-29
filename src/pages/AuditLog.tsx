@@ -54,15 +54,26 @@ export default function AuditLog() {
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["audit-logs"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("audit_logs")
-        .select(`
-          *,
-          profiles(full_name, email)
-        `)
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(300);
-      return data ?? [];
+      if (error) {
+        console.error("[audit_logs]", error);
+        return [];
+      }
+      const rows = data ?? [];
+      const userIds = Array.from(new Set(rows.map((r: any) => r.user_id).filter(Boolean)));
+      let profilesMap: Record<string, any> = {};
+      if (userIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", userIds as string[]);
+        profilesMap = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      }
+      return rows.map((r: any) => ({ ...r, profiles: profilesMap[r.user_id] ?? null }));
     },
   });
 
