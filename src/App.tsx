@@ -67,6 +67,29 @@ function RouteFallback() {
   return <div className="min-h-dvh bg-background" />;
 }
 
+// Pré-carrega os chunks das rotas mais usadas no idle do browser
+// (não muda nada visual, só evita o "tela branca" ao trocar de aba).
+if (typeof window !== "undefined") {
+  const warm = () => {
+    const preload = [
+      () => import("./pages/DashboardAdmin"),
+      () => import("./pages/Clients"),
+      () => import("./pages/ClientDetail"),
+      () => import("./pages/Demands"),
+      () => import("./pages/DemandDetail"),
+      () => import("./pages/FinanceCenter"),
+      () => import("./pages/Sales"),
+      () => import("./pages/Agenda"),
+      () => import("./pages/Leads"),
+      () => import("./pages/ClientJourney"),
+    ];
+    preload.forEach((load, i) => setTimeout(() => { void load().catch(() => {}); }, i * 150));
+  };
+  const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, opts?: { timeout: number }) => number);
+  if (ric) ric(warm, { timeout: 3000 });
+  else setTimeout(warm, 2000);
+}
+
 function GlobalEffects() {
   useBodyScrollCleanup();
   return null;
