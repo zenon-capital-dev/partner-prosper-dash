@@ -284,7 +284,7 @@ export default function Documents() {
       merged.sort((a: any, b: any) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
       return merged;
     },
-    staleTime: 2 * 60_000,
+    
   });
 
   const userIds = useMemo(() => {
