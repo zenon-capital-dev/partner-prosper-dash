@@ -225,7 +225,7 @@ export default function FinanceCenter() {
   const { data: expenses = [] } = useQuery({
     queryKey: ["fin-expenses"],
     queryFn: async () =>
-      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(5000)).data ?? [],
+      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(1000)).data ?? [],
   });
 
   const today = todayIsoStr();

@@ -142,8 +142,17 @@ export default function Demands() {
           service_providers:service_provider_id(id, name),
           documents:documents(id, status)
         `)
-        .order("created_at", { ascending: false });
-      const { data: reports = [] } = await supabase.from("client_product_status_reports").select("id, client_product_id, notes, created_at").order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      const demandIds = (data ?? []).map((d: any) => d.id);
+      const { data: reports = [] } = demandIds.length
+        ? await supabase
+          .from("client_product_status_reports")
+          .select("id, client_product_id, notes, created_at")
+          .in("client_product_id", demandIds)
+          .order("created_at", { ascending: false })
+          .limit(1000)
+        : { data: [] } as any;
       if (error) throw error;
       
       // Post-process to get last report
@@ -221,7 +230,7 @@ export default function Demands() {
       }
       return true;
     });
-  }, [demands, search, statusFilter, priorityFilter, productFilter, providerFilter, partnerFilter, deadlineFilter, rangeKey]);
+  }, [demands, debouncedSearch, statusFilter, priorityFilter, productFilter, providerFilter, partnerFilter, deadlineFilter, rangeKey]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const paginated = useMemo(() => {
@@ -811,6 +820,15 @@ export default function Demands() {
 
              );
           })}
+          <div className="md:col-span-2 xl:col-span-3">
+            <PaginationControl
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </div>
         </div>
       )}
 

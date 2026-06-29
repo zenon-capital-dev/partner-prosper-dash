@@ -98,7 +98,7 @@ export default function Commissions() {
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [rulesSearch, setRulesSearch] = useState("");
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
   // sort
   const [sort, setSort] = useState<{k: string; d: SortDir}>({k: "created_at", d: "desc"});

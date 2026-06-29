@@ -40,7 +40,7 @@ export default function ResourcePools() {
   const { data: pools = [] } = useQuery({
     queryKey: ["resource_pools"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("resource_pools").select("*").order("created_at", { ascending: false });
+      const { data, error } = await (supabase as any).from("resource_pools").select("*").order("created_at", { ascending: false }).limit(200);
       if (error) throw error;
       return data ?? [];
     },
@@ -53,7 +53,7 @@ export default function ResourcePools() {
     queryFn: async () => {
       if (!openHist) return [];
       const { data, error } = await (supabase as any).from("resource_pool_movements")
-        .select("*").eq("pool_id", openHist).order("occurred_at", { ascending: false }).limit(100);
+        .select("*").eq("pool_id", openHist).order("occurred_at", { ascending: false }).limit(10);
       if (error) throw error;
       return data ?? [];
     },

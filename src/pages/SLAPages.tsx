@@ -1,5 +1,5 @@
 import { formatBR as format, nowBR, toBR, isTodayBR } from "@/lib/datetime";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,8 +18,10 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type Bucket = "todos" | "atrasado" | "vence_hoje" | "atencao" | "no_prazo" | "pausado" | "sem_prazo";
+const PAGE_SIZE = 10;
 
 const BUCKETS: { key: Bucket; label: string; icon: any; tone: string }[] = [
   { key: "todos", label: "Todas", icon: ListFilter, tone: "text-slate-600" },
@@ -40,6 +42,7 @@ export default function SLAPages() {
   const [bucket, setBucket] = useState<Bucket>("todos");
   const [search, setSearch] = useState("");
   const [providerFilter, setProviderFilter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: demands = [], isLoading } = useQuery({
     queryKey: ["admin-sla-demands"],
@@ -53,7 +56,8 @@ export default function SLAPages() {
           service_providers:service_provider_id(name)
         `)
         .neq("status", "concluido")
-        .order("sla_due_date", { ascending: true });
+        .order("sla_due_date", { ascending: true })
+        .limit(1000);
 
       if (error) throw error;
 
@@ -127,6 +131,17 @@ export default function SLAPages() {
     });
     return Object.entries(map).sort(([, a], [, b]) => (b as number) - (a as number)).slice(0, 5);
   }, [demands]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [bucket, search, providerFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage]
+  );
 
   const clearFilters = () => {
     setBucket("todos");
@@ -270,7 +285,7 @@ export default function SLAPages() {
             </div>
           ) : (
             <div className="grid gap-3">
-              {filtered.map((d: any) => {
+              {pageRows.map((d: any) => {
                 const isLate = d.sla?.status === "atrasado";
                 const isToday = d.sla?.status === "vence_hoje";
                 const isPaused = d.status === "pausado";
@@ -391,6 +406,7 @@ export default function SLAPages() {
               })}
             </div>
           )}
+          <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
         </div>
 
         {/* Sidebar — ranking + dicas */}
