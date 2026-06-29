@@ -148,6 +148,8 @@ export default function Documents() {
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["docs-all"],
+    staleTime: 15 * 60_000,
+    gcTime: 30 * 60_000,
     queryFn: async () => {
       const [docsRes, reqRes, delivRes] = await Promise.all([
         supabase
