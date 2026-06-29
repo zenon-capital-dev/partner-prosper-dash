@@ -35,9 +35,13 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaginationControl } from "@/components/ui/PaginationControl";
+
+const PAGE_SIZE = 10;
+const ALERT_FETCH_LIMIT = 10;
 
 interface CockpitItem {
   id: string;
@@ -56,6 +60,11 @@ export default function OperationalCockpit() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [severityFilter, setSeverityFilter] = useState<"all" | "critical" | "high" | "ok">("all");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, activeTab, severityFilter]);
 
   // --- Data Fetching ---
   
@@ -75,7 +84,7 @@ export default function OperationalCockpit() {
         .not("status", "in", '("concluido", "cancelado")')
         .or(`deadline.lte.${in30},sla_due_date.lte.${in30},end_date.lte.${in30}`)
         .order("deadline", { ascending: true, nullsFirst: false })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -109,7 +118,7 @@ export default function OperationalCockpit() {
         .lt("updated_at", sevenDaysAgo)
         .eq("status", "ativo")
         .order("updated_at", { ascending: true })
-        .limit(100);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -139,7 +148,7 @@ export default function OperationalCockpit() {
         .in("status", ["solicitado", "enviado", "em_analise", "reprovado", "pendente_correcao", "vencido"])
         .not("client_id", "is", null)
         .order("created_at", { ascending: false })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -169,7 +178,7 @@ export default function OperationalCockpit() {
         .neq("status", "pago")
         .lte("due_date", new Date().toISOString())
         .order("due_date", { ascending: true })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -200,7 +209,7 @@ export default function OperationalCockpit() {
         `)
         .in("workflow_status", ["aguardando_confirmacao", "pendente", "liberada", "em_pagamento"])
         .order("created_at", { ascending: false })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -230,7 +239,7 @@ export default function OperationalCockpit() {
         .in("status", ["rascunho", "criado", "enviado", "aguardando_assinatura", "pendente_correcao"])
         .not("client_id", "is", null)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -260,7 +269,7 @@ export default function OperationalCockpit() {
         .not("due_date", "is", null)
         .lte("due_date", in3days)
         .order("due_date", { ascending: true })
-        .limit(150);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -296,7 +305,7 @@ export default function OperationalCockpit() {
         .in("status", ["pendente", "enviado", "em_analise"])
         .not("client_id", "is", null)
         .order("requested_at", { ascending: false })
-        .limit(100);
+        .limit(ALERT_FETCH_LIMIT);
       
       if (error) throw error;
       
@@ -329,7 +338,7 @@ export default function OperationalCockpit() {
           `)
           .eq("status", "em_andamento")
           .not("service_provider_id", "is", null)
-          .limit(150),
+          .limit(ALERT_FETCH_LIMIT),
         supabase
           .from("client_product_status_reports")
           .select("client_product_id")
