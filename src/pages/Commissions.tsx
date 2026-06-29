@@ -110,6 +110,19 @@ export default function Commissions() {
   }, [debouncedSearch, statusFilter, partnerFilter, rangeKey, dateFrom, dateTo]);
 
   // dialogs
+  const [createOpen, setCreateOpen] = useState(false);
+  const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [payOpen, setPayOpen] = useState(false);
+  const [payTarget, setPayTarget] = useState<any>(null);
+  const [payForm, setPayForm] = useState({
+    paid_at: new Date().toISOString().slice(0, 10),
+    payment_method: "pix",
+    notes: "",
+  });
+
   const { data: collaborators = [] } = useQuery({
     queryKey: ["collaborators-simple"],
     enabled: createOpen,
@@ -126,20 +139,6 @@ export default function Commissions() {
     queryKey: ["providers-simple"],
     enabled: createOpen,
     queryFn: async () => (await supabase.from("service_providers").select("id,name").order("name").limit(300)).data ?? [],
-  });
-
-
-  const [createOpen, setCreateOpen] = useState(false);
-  const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editing, setEditing] = useState<any>(null);
-  const [editForm, setEditForm] = useState<any>({});
-  const [payOpen, setPayOpen] = useState(false);
-  const [payTarget, setPayTarget] = useState<any>(null);
-  const [payForm, setPayForm] = useState({
-    paid_at: new Date().toISOString().slice(0, 10),
-    payment_method: "pix",
-    notes: "",
   });
   const [createForm, setCreateForm] = useState<any>({
     beneficiary_id: "", beneficiary_type: "partner", sale_id: "", amount: 0, percent: 10,
