@@ -758,17 +758,17 @@ export default function DemandDetail() {
               )}
            </div>
 
-           {/* Internal Notes */}
+            {/* Internal Notes */}
             {canManage && <div className="vx-card p-6 bg-card space-y-4 border-amber-500/20 bg-amber-500/5">
               <div className="flex items-center gap-2">
                  <MessageSquare className="size-4 text-amber-500" />
                  <h3 className="text-xs font-bold uppercase tracking-widest text-amber-600">Observações Internas</h3>
-            </div>}
+              </div>
               <p className="text-xs text-muted-foreground leading-relaxed italic whitespace-pre-wrap">
                  {demand.internal_notes || "Nenhuma observação interna para esta demanda."}
               </p>
               <Button onClick={openNotesEditor} variant="ghost" size="sm" className="h-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100 text-[10px] font-bold uppercase px-0">Editar Notas</Button>
-           </div>
+            </div>}
         </div>
       </div>
 
