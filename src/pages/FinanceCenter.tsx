@@ -151,8 +151,23 @@ export default function FinanceCenter() {
       ).data ?? [],
   });
 
+  const loadCommissionDetails = ["fluxo", "comissoes", "relatorios"].includes(tab);
+
+  const { data: commissionSummary = [] } = useQuery({
+    queryKey: ["fin-commission-summary"],
+    queryFn: async () =>
+      (
+        await supabase
+          .from("commission_splits")
+          .select("id, amount, status, beneficiary_type")
+          .order("created_at", { ascending: false })
+          .limit(300)
+      ).data ?? [],
+  });
+
   const { data: commissions = [], isLoading: loadingCom } = useQuery({
     queryKey: ["fin-commissions"],
+    enabled: loadCommissionDetails,
     queryFn: async () => {
       const [splitsRes, salesRes, partnersRes, profilesRes, referrersRes, providersRes, clientsRes, productsRes] = await Promise.all([
         supabase
@@ -225,7 +240,7 @@ export default function FinanceCenter() {
   const { data: expenses = [] } = useQuery({
     queryKey: ["fin-expenses"],
     queryFn: async () =>
-      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(1000)).data ?? [],
+      (await supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(300)).data ?? [],
   });
 
   const today = todayIsoStr();
@@ -240,14 +255,15 @@ export default function FinanceCenter() {
     const totalOverdue = payments
       .filter((p: any) => isOpen(p.status) && p.due_date && p.due_date < today)
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
-    const commissionsPending = commissions
+    const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
+    const commissionsPending = commissionRows
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const commissionsPaid = commissions
+    const commissionsPaid = commissionRows
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     // Breakdown of paid commissions: indicadores (referrer) vs. demais (parceiro/colaborador/prestador)
-    const indicatorsPaid = commissions
+    const indicatorsPaid = commissionRows
       .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer")
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
@@ -277,7 +293,7 @@ export default function FinanceCenter() {
       providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissions, expenses, salesCosts, today]);
+  }, [payments, commissions, commissionSummary, expenses, salesCosts, today, loadCommissionDetails]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
@@ -287,7 +303,8 @@ export default function FinanceCenter() {
         ["vencido", "atrasado"].includes(p.status) ||
         (isOpen(p.status) && p.due_date && p.due_date < today)
     ).length;
-    const comissoesPend = commissions.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status)).length;
+    const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
+    const comissoesPend = commissionRows.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status)).length;
     return {
       fluxo: 0,
       receitas: payments.length,
@@ -298,7 +315,7 @@ export default function FinanceCenter() {
       por_cliente: 0,
       relatorios: 0,
     };
-  }, [payments, commissions, today]);
+  }, [payments, commissions, commissionSummary, today, loadCommissionDetails]);
 
   const processAlerts = async () => {
     const { data, error } = await supabase.functions.invoke("process-alerts");
