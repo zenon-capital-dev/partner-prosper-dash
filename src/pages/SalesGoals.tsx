@@ -68,7 +68,7 @@ export default function SalesGoals() {
         (supabase as any).from("proposals").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("sales").select("amount")
-          .gte("sale_date", start).lt("sale_date", end),
+          .gte("sale_date", start).lt("sale_date", end).limit(1000),
       ]);
       const salesRows = (salesR.data ?? []) as { amount: number }[];
       return {
