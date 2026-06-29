@@ -83,7 +83,8 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         .from("sales")
         .select("id, amount, sale_date, products(name)")
         .eq("client_id", selectedRecipientId)
-        .order("sale_date", { ascending: false });
+        .order("sale_date", { ascending: false })
+        .limit(50);
       return data ?? [];
     },
     enabled: open && !!selectedRecipientId && recipientType === "client",
@@ -92,7 +93,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: clients } = useQuery({
     queryKey: ["clients-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name");
+      const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name").limit(300);
       return data ?? [];
     },
     enabled: open,
@@ -101,7 +102,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: collaborators } = useQuery({
     queryKey: ["collaborators-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email").eq("active", true).order("full_name");
+      const { data } = await supabase.from("profiles").select("id, full_name, email").eq("active", true).order("full_name").limit(300);
       return data ?? [];
     },
     enabled: open,
@@ -110,7 +111,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: providers } = useQuery({
     queryKey: ["providers-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").order("name");
+      const { data } = await supabase.from("service_providers").select("id, name").order("name").limit(300);
       return data ?? [];
     },
     enabled: open,
