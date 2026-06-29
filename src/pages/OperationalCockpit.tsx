@@ -765,7 +765,7 @@ export default function OperationalCockpit() {
           totalPages={totalPages}
           onPageChange={setPage}
           totalItems={filteredItems.length}
-          pageSize={PAGE_SIZE}
+          itemsPerPage={PAGE_SIZE}
         />
       )}
 
