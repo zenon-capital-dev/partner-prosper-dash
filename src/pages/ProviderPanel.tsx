@@ -17,6 +17,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
+import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -134,27 +135,31 @@ export default function ProviderPanel() {
       const [docsRes, reqRes] = await Promise.all([
         supabase
           .from("documents")
-          .select("id, name, status, created_at, client_product_id, due_date, description, clients(full_name)")
+          .select("id, client_id, product_id, name, status, created_at, updated_at, client_product_id, due_date, description, file_path, uploaded_at, rejection_reason, priority, clients(full_name), products(name)")
           .or(filters.join(","))
           .order("created_at", { ascending: false })
           .limit(200),
         supabase
           .from("document_requests")
-          .select("id, request_title, status, requested_at, client_product_id, deadline, description, clients(full_name)")
+          .select("id, client_id, product_id, request_title, status, file_url, requested_at, updated_at, client_product_id, deadline, description, rejection_reason, submission_date, priority, clients(full_name), products(name)")
           .or(filters.join(","))
           .order("requested_at", { ascending: false })
           .limit(200),
       ]);
 
       const docs = (docsRes.data ?? []).map((d: any) => ({
-        id: d.id, name: d.name, status: d.status, created_at: d.created_at,
-        client_product_id: d.client_product_id, due_date: d.due_date,
-        description: d.description, clients: d.clients, source: "doc",
+        id: d.id, client_id: d.client_id, product_id: d.product_id, name: d.name, status: d.status, created_at: d.created_at,
+        updated_at: d.updated_at, client_product_id: d.client_product_id, due_date: d.due_date,
+        description: d.description, file_path: d.file_path, file_url: d.file_path, uploaded_at: d.uploaded_at,
+        rejection_reason: d.rejection_reason, priority: d.priority, clients: d.clients, client_name: d.clients?.full_name,
+        product_name: d.products?.name, source: "documents",
       }));
       const reqs = (reqRes.data ?? []).map((r: any) => ({
-        id: r.id, name: r.request_title, status: r.status, created_at: r.requested_at,
-        client_product_id: r.client_product_id, due_date: r.deadline,
-        description: r.description, clients: r.clients, source: "request",
+        id: r.id, client_id: r.client_id, product_id: r.product_id, name: r.request_title, status: r.status, created_at: r.requested_at,
+        updated_at: r.updated_at, client_product_id: r.client_product_id, due_date: r.deadline,
+        description: r.description, file_path: null, file_url: r.file_url, uploaded_at: r.submission_date,
+        rejection_reason: r.rejection_reason, priority: r.priority, clients: r.clients, client_name: r.clients?.full_name,
+        product_name: r.products?.name, source: "document_requests",
       }));
       return [...reqs, ...docs];
     },
@@ -302,21 +307,13 @@ export default function ProviderPanel() {
         {activeKey === "documentos" && (
           <>
             <PanelHero role="prestador" eyebrow="Arquivos" title="Documentos das demandas" subtitle={`${documents.length} documento(s)`} />
-            <SectionCard title="">
-              {documents.length === 0 ? <EmptyState icon={FileText} title="Sem documentos" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
-                  {(documents as any[]).map((d) => (
-                    <li key={d.id} className="flex items-center gap-3 px-3 py-3">
-                      <div className="size-9 rounded-md bg-slate-50 border border-slate-200/70 flex items-center justify-center text-slate-400 shrink-0"><FileText className="size-4" /></div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium text-slate-900 truncate">{d.name}</p>
-                        <p className="text-[11.5px] text-slate-500 truncate">{d.clients?.full_name || ""} · {formatDate(d.created_at)}</p>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] capitalize border-slate-200 shrink-0">{d.status}</Badge>
-                    </li>
-                  ))}
-                </ul>}
-            </SectionCard>
+            <ClientDocumentsTab
+              clientId={providerId!}
+              requests={documents as any[]}
+              products={(clientProducts as any[]).map((cp) => ({ id: cp.product_id || cp.id, name: cp.products?.name || "Demanda" }))}
+              getUploadFolder={(req) => req.client_product_id || providerId}
+              invalidateKeys={[["provider-docs", providerId, cpIds.join(",")]]}
+            />
           </>
         )}
 
