@@ -444,7 +444,6 @@ export default function PartnerPanel() {
                 { label: "Comissões pagas", value: formatBRL(kpis.totalPaid) },
                 { label: "A receber", value: formatBRL(kpis.totalPending) },
                 { label: "Clientes ativos", value: kpis.activeClients },
-                { label: "Serviços", value: kpis.services },
               ]}
             />
             <div className="grid lg:grid-cols-3 gap-5">
