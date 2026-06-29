@@ -148,6 +148,8 @@ export default function Documents() {
 
   const { data: docs = [], isLoading } = useQuery({
     queryKey: ["docs-all"],
+    staleTime: 15 * 60_000,
+    gcTime: 30 * 60_000,
     queryFn: async () => {
       const [docsRes, reqRes, delivRes] = await Promise.all([
         supabase
@@ -282,7 +284,7 @@ export default function Documents() {
       merged.sort((a: any, b: any) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
       return merged;
     },
-    staleTime: 2 * 60_000,
+    
   });
 
   const userIds = useMemo(() => {
