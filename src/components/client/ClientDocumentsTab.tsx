@@ -122,11 +122,26 @@ export function ClientDocumentsTab({
       if (upErr) throw upErr;
 
       const now = new Date().toISOString();
-      const { error: updErr } = req.source === "client_document_requests"
-        ? await supabase.from("client_document_requests").update({ file_url: path, status: "enviado", updated_at: now }).eq("id", req.id)
-        : req.source === "document_requests"
-          ? await supabase.from("document_requests").update({ file_url: path, status: "enviado", updated_at: now, submission_date: now }).eq("id", req.id)
-        : await supabase.from("documents").update({ file_path: path, status: "enviado", uploaded_at: now, rejection_reason: null, file_size: file.size, mime_type: file.type }).eq("id", req.id);
+      let updErr: any = null;
+      if (req.source === "client_document_requests") {
+        const { error } = await supabase
+          .from("client_document_requests")
+          .update({ file_url: path, status: "enviado", updated_at: now })
+          .eq("id", req.id);
+        updErr = error;
+      } else if (req.source === "document_requests") {
+        const { error } = await supabase
+          .from("document_requests")
+          .update({ file_url: path, status: "submitted", updated_at: now, submission_date: now } as any)
+          .eq("id", req.id);
+        updErr = error;
+      } else {
+        const { error } = await supabase
+          .from("documents")
+          .update({ file_path: path, status: "enviado", uploaded_at: now, rejection_reason: null, file_size: file.size, mime_type: file.type })
+          .eq("id", req.id);
+        updErr = error;
+      }
       if (updErr) throw updErr;
 
       toast.success("Documento enviado para análise");
