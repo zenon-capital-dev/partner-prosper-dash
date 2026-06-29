@@ -170,7 +170,7 @@ export default function Documents() {
             )
           `)
           .order("created_at", { ascending: false })
-          .limit(500),
+          .limit(120),
         supabase
           .from("document_requests")
           .select(`
@@ -186,7 +186,7 @@ export default function Documents() {
             )
           `)
           .order("requested_at", { ascending: false })
-          .limit(500),
+          .limit(120),
         supabase
           .from("demand_deliveries")
           .select(`
@@ -202,7 +202,7 @@ export default function Documents() {
             )
           `)
           .order("created_at", { ascending: false })
-          .limit(500),
+          .limit(120),
       ]);
       if (docsRes.error) throw docsRes.error;
 

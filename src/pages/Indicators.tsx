@@ -66,7 +66,7 @@ export default function Indicators() {
   const { data: referrers = [], isLoading: loadingR } = useQuery({
     queryKey: ["referrers-rich"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("referrers").select("*").order("created_at", { ascending: false }).limit(500);
+      const { data, error } = await supabase.from("referrers").select("*").order("created_at", { ascending: false }).limit(300);
       if (error) throw error;
       return data ?? [];
     },
@@ -80,7 +80,7 @@ export default function Indicators() {
         .from("commission_splits")
         .select("beneficiary_id, amount, status")
         .eq("beneficiary_type", "referrer")
-        .limit(1000);
+        .limit(300);
       return (data ?? []).map((s: any) => ({ ...s, referrer_id: s.beneficiary_id }));
     },
     staleTime: 60_000,
@@ -88,7 +88,7 @@ export default function Indicators() {
 
   const { data: clientsByReferrer = [] } = useQuery({
     queryKey: ["clients-by-referrer"],
-    queryFn: async () => (await supabase.from("clients").select("id, referrer_id").not("referrer_id", "is", null).limit(1000)).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id, referrer_id").not("referrer_id", "is", null).limit(300)).data ?? [],
     staleTime: 60_000,
   });
 

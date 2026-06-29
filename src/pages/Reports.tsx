@@ -30,7 +30,7 @@ type ReportType =
   | "pending_docs"
   | "avg_completion_time";
 
-const REPORT_QUERY_LIMIT = 1000;
+const REPORT_QUERY_LIMIT = 300;
 const DETAIL_PAGE_SIZE = 10;
 
 const REPORT_LABELS: Record<ReportType, string> = {

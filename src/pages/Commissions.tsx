@@ -110,22 +110,6 @@ export default function Commissions() {
   }, [debouncedSearch, statusFilter, partnerFilter, rangeKey, dateFrom, dateTo]);
 
   // dialogs
-  const { data: collaborators = [] } = useQuery({
-    queryKey: ["collaborators-simple"],
-    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name")).data ?? [],
-  });
-
-  const { data: referrers = [] } = useQuery({
-    queryKey: ["referrers-simple"],
-    queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name")).data ?? [],
-  });
-
-  const { data: providers = [] } = useQuery({
-    queryKey: ["providers-simple"],
-    queryFn: async () => (await supabase.from("service_providers").select("id,name").order("name")).data ?? [],
-  });
-
-
   const [createOpen, setCreateOpen] = useState(false);
   const [ruleCreateOpen, setRuleCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -137,6 +121,24 @@ export default function Commissions() {
     paid_at: new Date().toISOString().slice(0, 10),
     payment_method: "pix",
     notes: "",
+  });
+
+  const { data: collaborators = [] } = useQuery({
+    queryKey: ["collaborators-simple"],
+    enabled: createOpen,
+    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name").limit(300)).data ?? [],
+  });
+
+  const { data: referrers = [] } = useQuery({
+    queryKey: ["referrers-simple"],
+    enabled: createOpen,
+    queryFn: async () => (await supabase.from("referrers").select("id,full_name").order("full_name").limit(300)).data ?? [],
+  });
+
+  const { data: providers = [] } = useQuery({
+    queryKey: ["providers-simple"],
+    enabled: createOpen,
+    queryFn: async () => (await supabase.from("service_providers").select("id,name").order("name").limit(300)).data ?? [],
   });
   const [createForm, setCreateForm] = useState<any>({
     beneficiary_id: "", beneficiary_type: "partner", sale_id: "", amount: 0, percent: 10,
@@ -155,15 +157,15 @@ export default function Commissions() {
         supabase
           .from("commissions")
           .select("*, partners(id,full_name,email,pix_key), referrers(id,full_name), profiles:profiles!commissions_collaborator_id_fkey(id,full_name), sales(amount, sale_date, clients(id,full_name), products(id,name))")
-          .order("created_at", { ascending: false }),
-        supabase.from("commission_splits").select("*").order("created_at", { ascending: false }),
-        supabase.from("partners").select("id,full_name,email,pix_key"),
-        supabase.from("profiles").select("id,full_name"),
-        supabase.from("referrers").select("id,full_name"),
-        supabase.from("service_providers").select("id,name"),
-        supabase.from("sales").select("id, amount, sale_date, client_id, product_id"),
-        supabase.from("clients").select("id, full_name"),
-        supabase.from("products").select("id, name"),
+          .order("created_at", { ascending: false }).limit(300),
+        supabase.from("commission_splits").select("*").order("created_at", { ascending: false }).limit(300),
+        supabase.from("partners").select("id,full_name,email,pix_key").limit(300),
+        supabase.from("profiles").select("id,full_name").limit(300),
+        supabase.from("referrers").select("id,full_name").limit(300),
+        supabase.from("service_providers").select("id,name").limit(300),
+        supabase.from("sales").select("id, amount, sale_date, client_id, product_id").order("sale_date", { ascending: false }).limit(300),
+        supabase.from("clients").select("id, full_name").limit(300),
+        supabase.from("products").select("id, name").limit(300),
       ]);
       const partnersMap = new Map((partnersRes.data ?? []).map((p: any) => [p.id, p]));
       const profilesMap = new Map((profilesRes.data ?? []).map((p: any) => [p.id, p]));
@@ -230,19 +232,22 @@ export default function Commissions() {
       const { data } = await supabase
         .from("commission_rules")
         .select("*, partners(full_name), products(name)")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(300);
       return data ?? [];
     },
   });
 
   const { data: partners = [] } = useQuery({
     queryKey: ["partners-simple"],
-    queryFn: async () => (await supabase.from("partners").select("id,full_name,pix_key").order("full_name")).data ?? [],
+    enabled: createOpen || ruleCreateOpen,
+    queryFn: async () => (await supabase.from("partners").select("id,full_name,pix_key").order("full_name").limit(300)).data ?? [],
   });
 
   const { data: products = [] } = useQuery({
     queryKey: ["products-simple"],
-    queryFn: async () => (await supabase.from("products").select("id,name").order("name")).data ?? [],
+    enabled: ruleCreateOpen,
+    queryFn: async () => (await supabase.from("products").select("id,name").order("name").limit(300)).data ?? [],
   });
 
   const { data: sales = [] } = useQuery({

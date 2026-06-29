@@ -52,19 +52,19 @@ export default function ProviderPerformance() {
 
   const loadData = async () => {
     setLoading(true);
-    const { data: provs } = await supabase.from("service_providers").select("*").order("name").limit(500);
+    const { data: provs } = await supabase.from("service_providers").select("*").order("name").limit(300);
     const list = (provs || []) as Provider[];
     setProviders(list);
 
     const { data: cps } = await supabase
       .from("client_products")
-      .select("id, status, service_provider_id, responsible_provider_id, created_at, end_date, deadline").limit(1000);
+      .select("id, status, service_provider_id, responsible_provider_id, created_at, end_date, deadline").limit(300);
     const { data: reports } = await supabase
       .from("client_product_status_reports")
-      .select("service_provider_id, reported_by, created_at").limit(1000);
+      .select("service_provider_id, reported_by, created_at").limit(300);
     const { data: docs } = await supabase
       .from("documents")
-      .select("approved_by, reviewed_at, status").limit(1000);
+      .select("approved_by, reviewed_at, status").limit(300);
 
     const map: Record<string, Metrics> = {};
     list.forEach((p) => {

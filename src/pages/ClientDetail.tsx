@@ -142,8 +142,10 @@ export default function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_products")
-        .select("id, value, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name), steps:client_product_steps(id, client_product_id, label, completed)")
-        .eq("client_id", id!);
+        .select("id, value, status, deadline, sla_due_date, end_date, client_id, product_id, products(id, name)")
+        .eq("client_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(50);
       if (error) throw error;
       return data ?? [];
     },
@@ -159,7 +161,8 @@ export default function ClientDetail() {
         .from("payments")
         .select("id, amount, amount_paid, status, due_date, client_id")
         .eq("client_id", id!)
-        .order("due_date", { ascending: false });
+        .order("due_date", { ascending: false })
+        .limit(50);
       if (error) throw error;
       return data ?? [];
     },
@@ -174,7 +177,8 @@ export default function ClientDetail() {
       const { data, error } = await supabase
         .from("documents")
         .select("id, status, client_id")
-        .eq("client_id", id!);
+        .eq("client_id", id!)
+        .limit(50);
       if (error) throw error;
       return data ?? [];
     },
@@ -190,10 +194,12 @@ export default function ClientDetail() {
         .from("companies")
         .select("*")
         .eq("client_id", id!)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(30);
       return data ?? [];
     },
-    enabled: !!id,
+    enabled: !!id && activeTab === "empresas",
+    staleTime: 60_000,
   });
 
   const { data: interactions = [] } = useQuery({
@@ -207,7 +213,8 @@ export default function ClientDetail() {
         .limit(10);
       return data ?? [];
     },
-    enabled: !!id,
+    enabled: !!id && activeTab === "relacionamento",
+    staleTime: 60_000,
   });
 
   const suspendClient = async () => {
@@ -231,9 +238,8 @@ export default function ClientDetail() {
     const pendingPayments = payments.filter(p => p.status === 'pendente').length;
     const overduePayments = payments.filter(p => p.status !== 'pago' && p.due_date && new Date(p.due_date) < new Date()).length;
     
-    // Find delayed demands (steps with SLA expired)
     const delayedDemands = clientProducts.filter(p => 
-      p.steps?.some((s: any) => !s.completed && s.sla_due_date && new Date(s.sla_due_date) < new Date())
+      p.status !== "concluido" && ((p.sla_due_date && new Date(p.sla_due_date) < new Date()) || (p.deadline && new Date(p.deadline) < new Date()))
     ).length;
 
     const lastUpdate = client.updated_at ? formatDate(client.updated_at) : formatDate(client.created_at);
@@ -241,14 +247,14 @@ export default function ClientDetail() {
     // Next recommended action
     let nextAction = { title: "Nenhuma ação pendente", desc: "Tudo em dia com este cliente." };
     
-    const unfinishedStep = clientProducts
-      .flatMap(p => p.steps || [])
-      .find((s: any) => !s.completed);
+    const delayedProduct = clientProducts.find(p =>
+      p.status !== "concluido" && ((p.sla_due_date && new Date(p.sla_due_date) < new Date()) || (p.deadline && new Date(p.deadline) < new Date()))
+    );
 
-    if (unfinishedStep) {
+    if (delayedProduct) {
       nextAction = { 
-        title: (unfinishedStep as any).label || "Próxima Etapa", 
-        desc: `Pendente em: ${clientProducts.find(p => p.id === unfinishedStep.client_product_id)?.products?.name || "Demanda"}`
+        title: "Demanda com prazo vencido", 
+        desc: `Pendente em: ${(delayedProduct as any).products?.name || "Demanda"}`
       };
     } else if (pendingDocs > 0) {
       nextAction = { title: "Solicitar Documentos", desc: "Existem documentos pendentes de envio ou assinatura." };

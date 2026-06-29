@@ -35,24 +35,28 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
 
   const { data: partners } = useQuery({
     queryKey: ["partners-select"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+    enabled: open,
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name").limit(300)).data ?? [],
   });
 
   const { data: indicators } = useQuery({
     queryKey: ["indicators-select"],
+    enabled: open,
     queryFn: async () => {
-      const { data } = await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name");
+      const { data } = await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name").limit(300);
       return data ?? [];
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-select"],
-    queryFn: async () => (await supabase.from("products").select("id, name").eq("active", true).order("name")).data ?? [],
+    enabled: open,
+    queryFn: async () => (await supabase.from("products").select("id, name").eq("active", true).order("name").limit(300)).data ?? [],
   });
 
   const { data: collaborators } = useQuery({
     queryKey: ["collaborators-select-leads"],
+    enabled: open,
     queryFn: async () => {
       const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "colaborador");
       const ids = (roles ?? []).map((r) => r.user_id);

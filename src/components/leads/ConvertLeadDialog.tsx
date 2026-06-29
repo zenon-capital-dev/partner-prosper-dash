@@ -28,7 +28,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead, onConverted }: Pro
 
   const { data: products } = useQuery({
     queryKey: ["products-convert"],
-    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name").limit(300)).data ?? [],
     enabled: open,
   });
 

@@ -96,20 +96,20 @@ export default function DashboardAdmin() {
     queryKey: ["dash-clients"],
     staleTime: STALE,
     enabled: false,
-    queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("clients").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: clientProducts = [], isLoading: isLoadingDemands } = useQuery({
     queryKey: ["dash-demands"],
     staleTime: STALE,
     enabled: false,
-    queryFn: async () => (await supabase.from("client_products").select("id, status, client_id, custom_product_name, deadline, sla_due_date, end_date, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("client_products").select("id, status, client_id, custom_product_name, deadline, sla_due_date, end_date, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: sales = [], isLoading: isLoadingSales } = useQuery({
     queryKey: ["dash-sales", rangeKey],
     staleTime: STALE,
     enabled: false,
     queryFn: async () => {
-      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").order("sale_date", { ascending: false }).limit(2000);
+      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").order("sale_date", { ascending: false }).limit(300);
 
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
@@ -131,7 +131,7 @@ export default function DashboardAdmin() {
     queryKey: ["dash-leads"],
     staleTime: STALE,
     enabled: false,
-    queryFn: async () => (await supabase.from("leads").select("id, status, estimated_value, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("leads").select("id, status, estimated_value, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: commissions = [], isLoading: isLoadingCommissions } = useQuery({
     queryKey: ["dash-commissions"],
@@ -139,8 +139,8 @@ export default function DashboardAdmin() {
     enabled: false,
     queryFn: async () => {
       const [splits, comms] = await Promise.all([
-        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(2000),
-        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at").order("created_at", { ascending: false }).limit(2000),
+        supabase.from("commission_splits").select("id, sale_id, beneficiary_type, beneficiary_id, percent, amount, status, paid_at, created_at").order("created_at", { ascending: false }).limit(300),
+        supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at").order("created_at", { ascending: false }).limit(300),
       ]);
       const splitsData = (splits.data ?? []).map((s: any) => ({
         id: s.id, sale_id: s.sale_id, partner_id: s.beneficiary_type === "parceiro" ? s.beneficiary_id : null,
@@ -155,13 +155,13 @@ export default function DashboardAdmin() {
     queryKey: ["dash-tasks"],
     staleTime: STALE,
     enabled: false,
-    queryFn: async () => (await supabase.from("tasks").select("id, title, status, status_new, due_date, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("tasks").select("id, title, status, status_new, due_date, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: contracts = [], isLoading: isLoadingContracts } = useQuery({
     queryKey: ["dash-contracts"],
     staleTime: STALE,
     enabled: false,
-    queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at").order("created_at", { ascending: false }).limit(2000)).data ?? []
+    queryFn: async () => (await supabase.from("contracts").select("id, status, name, created_at").order("created_at", { ascending: false }).limit(300)).data ?? []
   });
   const { data: docRequests = [], isLoading: isLoadingDocs } = useQuery({
     queryKey: ["dash-doc-requests"],

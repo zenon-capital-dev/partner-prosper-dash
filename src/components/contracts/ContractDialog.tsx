@@ -67,7 +67,8 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
         .from("sales")
         .select("id, amount, sale_date, products(name)")
         .eq("client_id", clientId)
-        .order("sale_date", { ascending: false });
+        .order("sale_date", { ascending: false })
+        .limit(50);
       return data ?? [];
     },
     enabled: open && !!clientId,
@@ -76,7 +77,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: clients } = useQuery({
     queryKey: ["clients-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name");
+      const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name").limit(300);
       return data ?? [];
     },
     enabled: open && !propClientId && !editContract,
@@ -85,7 +86,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: products } = useQuery({
     queryKey: ["products-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, name").eq("active", true).order("name");
+      const { data } = await supabase.from("products").select("id, name").eq("active", true).order("name").limit(300);
       return data ?? [];
     },
     enabled: open,
@@ -94,7 +95,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: partners } = useQuery({
     queryKey: ["partners-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name");
+      const { data } = await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name").limit(300);
       return data ?? [];
     },
     enabled: open,
@@ -103,7 +104,7 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const { data: providers } = useQuery({
     queryKey: ["providers-list-simple"],
     queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name");
+      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name").limit(300);
       return data ?? [];
     },
     enabled: open,

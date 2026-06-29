@@ -25,7 +25,7 @@ export function ProviderAssignDialog({ open, onOpenChange, providerId, providerN
   const { data: clients = [] } = useQuery({
     queryKey: ["assign-clients"],
     enabled: open,
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name")).data ?? [],
+    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(300)).data ?? [],
   });
 
   const { data: clientProducts = [] } = useQuery({

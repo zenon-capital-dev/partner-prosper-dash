@@ -88,14 +88,17 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   const { data: partners } = useQuery({
     queryKey: ["partners-select"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+    enabled: open,
+    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name").limit(300)).data ?? [],
   });
   const { data: referrers } = useQuery({
     queryKey: ["referrers-select"],
-    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name")).data ?? [],
+    enabled: open,
+    queryFn: async () => (await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name").limit(300)).data ?? [],
   });
   const { data: collaborators } = useQuery({
     queryKey: ["collaborators-select"],
+    enabled: open,
     queryFn: async () => {
       const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "colaborador");
       const ids = (roles ?? []).map((r) => r.user_id);
@@ -107,17 +110,20 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
 
   const { data: providers } = useQuery({
     queryKey: ["providers-select-active"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").eq("active", true).order("name")).data ?? [],
+    enabled: open,
+    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").eq("active", true).order("name").limit(300)).data ?? [],
   });
 
   const { data: productsList } = useQuery({
     queryKey: ["products-select-active"],
-    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name")).data ?? [],
+    enabled: open,
+    queryFn: async () => (await supabase.from("products").select("id, name, base_price").eq("active", true).order("name").limit(300)).data ?? [],
   });
 
 
   const { data: docTemplates } = useQuery({
     queryKey: ["doc-templates-setting"],
+    enabled: open,
     queryFn: async () => {
       const { data } = await supabase.from("system_settings").select("value").eq("key", "doc_templates").maybeSingle();
       const raw = (data?.value as any);
