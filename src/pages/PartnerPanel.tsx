@@ -127,7 +127,7 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, product_id, client_id, status, value, deadline, sla_due_date, created_at, updated_at, custom_product_name, notes, clients(id, full_name, email, phone), products(id, name, description)")
+        .select("id, product_id, client_id, status, value, deadline, sla_due_date, created_at, updated_at, custom_product_name, notes, service_provider_id, responsible_provider_id, clients(id, full_name, email, phone), products(id, name, description), service_providers:service_provider_id(id, name, specialty), responsible_provider:responsible_provider_id(id, name, specialty)")
         .in("client_id", clientIds)
         .order("created_at", { ascending: false })
         .limit(300);
@@ -529,6 +529,7 @@ export default function PartnerPanel() {
                       </div>
                       <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{service.clients?.full_name || "—"}</p>
                       <p className="text-[12px] text-slate-500 mt-0.5 truncate">{productName}</p>
+                      <p className="text-[11.5px] text-slate-500 mt-1 truncate">Prestador: {service.service_providers?.name || service.responsible_provider?.name || "Não definido"}</p>
                       {service.notes && <p className="text-[11.5px] text-slate-500 mt-2 line-clamp-2">{service.notes}</p>}
                       <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
                         <span>Início: {formatDate(service.created_at)}{service.sla_due_date || service.deadline ? ` · prazo ${formatDate(service.sla_due_date || service.deadline)}` : ""}</span>
