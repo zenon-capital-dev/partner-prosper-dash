@@ -17,12 +17,26 @@ export function ClientHistory({ clientId }: { clientId: string }) {
   const { data: activityHistory, isLoading: isLoadingActivity } = useQuery({
     queryKey: ["client-history", clientId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("activity_logs")
-        .select(`*, profiles(full_name)`)
+        .select("*")
         .eq("entity_id", clientId)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      if (error) {
+        console.error("[activity_logs]", error);
+        return [];
+      }
+      const rows = data ?? [];
+      const userIds = Array.from(new Set(rows.map((r: any) => r.user_id).filter(Boolean)));
+      let map: Record<string, any> = {};
+      if (userIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds as string[]);
+        map = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      }
+      return rows.map((r: any) => ({ ...r, profiles: map[r.user_id] ?? null }));
     },
   });
 
