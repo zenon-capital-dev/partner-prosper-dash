@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const [form, setForm] = useState<any>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
+  // Multi-doc items (only used when creating, not editing)
+  type DocItem = { name: string; file: File | null };
+  const [items, setItems] = useState<DocItem[]>([{ name: "", file: null }]);
+  const itemFileRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     if (open) {
@@ -78,6 +82,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         });
         setRecipientType("client");
         setSelectedRecipientId(propClientId || "");
+        setItems([{ name: "", file: null }]);
       }
     }
   }, [open, editDoc, propClientId, defaultProductId, propClientProductId]);
@@ -141,14 +146,19 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
   const submit = async () => {
     if (!selectedRecipientId) { toast.error("Selecione um destinatário"); return; }
-    if (!form.name) { toast.error("Nome do documento é obrigatório"); return; }
+
+    // Build list of doc names to create (when not editing). When editing, just use form.name.
+    const docNames: { name: string; file: File | null }[] = editDoc
+      ? [{ name: form.name, file: fileRef.current?.files?.[0] || null }]
+      : items.filter(i => (i.name || "").trim()).map(i => ({ name: i.name.trim(), file: i.file }));
+
+    if (docNames.length === 0) { toast.error("Informe ao menos um nome de documento"); return; }
 
     if (recipientType === "client" && (!form.client_product_id || form.client_product_id === "none")) {
       toast.error("Selecione a demanda/produto vinculado (obrigatório para clientes)");
       return;
     }
 
-    // Validation: ensure recipient ID is consistent with selected type (avoids cross-binding)
     if (recipientType === "partner") {
       const exists = (partners ?? []).some((p: any) => p.id === selectedRecipientId);
       if (!exists) { toast.error("Parceiro selecionado é inválido."); return; }
@@ -162,131 +172,140 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     setSubmitting(true);
 
-    let file_path = editDoc?.file_path || null;
-    let file_size = editDoc?.file_size || null;
-    let mime_type = editDoc?.mime_type || null;
-    let status = editDoc?.status || "solicitado";
-    let uploaded_at = editDoc?.uploaded_at || null;
+    let successCount = 0;
+    let failMsg: string | null = null;
 
-    const file = fileRef.current?.files?.[0];
-    if (file) {
-      try { assertUploadFile(file); } catch (e: any) { toast.error(uploadErrorMessage(e)); setSubmitting(false); return; }
-      const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
-      const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      try {
-        await uploadStorageFileFast("documents", path, file);
-      } catch (upErr: any) {
-        toast.error(uploadErrorMessage(upErr));
-        setSubmitting(false);
-        return;
+    for (const item of docNames) {
+      let file_path = editDoc?.file_path || null;
+      let file_size = editDoc?.file_size || null;
+      let mime_type = editDoc?.mime_type || null;
+      let status = editDoc?.status || "solicitado";
+      let uploaded_at = editDoc?.uploaded_at || null;
+
+      const file = item.file;
+      if (file) {
+        try { assertUploadFile(file); } catch (e: any) { failMsg = uploadErrorMessage(e); break; }
+        const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
+        const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+        try {
+          await uploadStorageFileFast("documents", path, file);
+        } catch (upErr: any) {
+          failMsg = uploadErrorMessage(upErr);
+          break;
+        }
+
+        if (editDoc?.id && editDoc.file_path) {
+          const { count } = await supabase
+            .from("document_versions")
+            .select("id", { count: "exact", head: true })
+            .eq("document_id", editDoc.id);
+          await supabase.from("document_versions").insert({
+            document_id: editDoc.id,
+            version_number: (count ?? 0) + 1,
+            file_path: editDoc.file_path,
+            file_size: editDoc.file_size,
+            mime_type: editDoc.mime_type,
+            uploaded_by: editDoc.uploaded_by,
+            note: "Versão substituída por novo upload",
+          });
+        }
+
+        file_path = path;
+        file_size = file.size;
+        mime_type = file.type;
+        status = "enviado";
+        uploaded_at = nowBR().toISOString();
       }
 
-      if (editDoc?.id && editDoc.file_path) {
-        const { count } = await supabase
-          .from("document_versions")
-          .select("id", { count: "exact", head: true })
-          .eq("document_id", editDoc.id);
-        await supabase.from("document_versions").insert({
-          document_id: editDoc.id,
-          version_number: (count ?? 0) + 1,
-          file_path: editDoc.file_path,
-          file_size: editDoc.file_size,
-          mime_type: editDoc.mime_type,
-          uploaded_by: editDoc.uploaded_by,
-          note: "Versão substituída por novo upload",
-        });
-      }
+      const payload: any = {
+        name: item.name,
+        description: form.description || null,
+        product_id: form.product_id === "none" ? null : form.product_id,
+        client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
+        sale_id: form.sale_id === "none" ? null : form.sale_id,
+        due_date: form.due_date || null,
+        is_required: form.is_required ?? true,
+        priority: form.priority || "media",
+        status,
+        file_path,
+        file_size,
+        mime_type,
+        requested_by: editDoc ? editDoc.requested_by : user?.id,
+        uploaded_by: file ? user?.id : (editDoc?.uploaded_by || null),
+        uploaded_at,
+      };
 
-      file_path = path;
-      file_size = file.size;
-      mime_type = file.type;
-      status = "enviado";
-      uploaded_at = nowBR().toISOString();
+      payload.client_id = recipientType === "client" ? selectedRecipientId : null;
+      payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
+      payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
+      payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
+
+      const { error } = editDoc
+        ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
+        : await supabase.from("documents").insert(payload);
+
+      if (error) { failMsg = error.message; break; }
+      successCount++;
+
+      // Notify recipient (best-effort) — only for new
+      if (!editDoc) {
+        try {
+          if (recipientType === "client" && selectedRecipientId) {
+            const { data: c } = await supabase.from("clients").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+            if (c?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: c.user_id,
+                title: file ? "Novo documento disponível" : "Novo documento solicitado",
+                message: file ? `${item.name} foi enviado pela equipe.` : `Envie o documento "${item.name}" pelo seu portal.`,
+                type: file ? "document_uploaded" : "document_requested",
+                link: "/portal-cliente/documentos",
+              });
+            }
+          } else if (recipientType === "provider" && selectedRecipientId) {
+            const { data: sp } = await supabase.from("service_providers").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+            if (sp?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: sp.user_id, title: "Novo documento solicitado",
+                message: `Envie o documento "${item.name}" pelo seu painel.`,
+                type: "document_requested", link: "/prestador",
+              });
+            }
+          } else if (recipientType === "collaborator" && selectedRecipientId) {
+            await supabase.from("notifications").insert({
+              user_id: selectedRecipientId, title: "Novo documento solicitado",
+              message: `Envie o documento "${item.name}" pelo seu painel.`,
+              type: "document_requested", link: "/colaborador",
+            });
+          } else if (recipientType === "partner" && selectedRecipientId) {
+            const { data: p } = await supabase.from("partners").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+            if (p?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: p.user_id, title: "Novo documento solicitado",
+                message: `Envie o documento "${item.name}" pelo seu painel.`,
+                type: "document_requested", link: "/parceiro/documentos",
+              });
+            }
+          }
+        } catch (_) {}
+      }
     }
 
-    const payload: any = {
-      name: form.name,
-      description: form.description || null,
-      product_id: form.product_id === "none" ? null : form.product_id,
-      client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
-      sale_id: form.sale_id === "none" ? null : form.sale_id,
-      due_date: form.due_date || null,
-      is_required: form.is_required ?? true,
-      priority: form.priority || "media",
-      status,
-      file_path,
-      file_size,
-      mime_type,
-      requested_by: editDoc ? editDoc.requested_by : user?.id,
-      uploaded_by: file ? user?.id : (editDoc?.uploaded_by || null),
-      uploaded_at,
-    };
-
-    // Set the correct recipient FK and clear the others to keep the binding consistent
-    payload.client_id = recipientType === "client" ? selectedRecipientId : null;
-    payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
-    payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
-    payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
-
-    const { error } = editDoc
-      ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
-      : await supabase.from("documents").insert(payload);
-
     setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
-
-    // Notify recipient (best-effort)
-    try {
-      if (!editDoc && recipientType === "client" && selectedRecipientId) {
-        const { data: c } = await supabase.from("clients").select("user_id").eq("id", selectedRecipientId).maybeSingle();
-        if (c?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: c.user_id,
-            title: file ? "Novo documento disponível" : "Novo documento solicitado",
-            message: file ? `${form.name} foi enviado pela equipe.` : `Envie o documento "${form.name}" pelo seu portal.`,
-            type: file ? "document_uploaded" : "document_requested",
-            link: "/portal-cliente/documentos",
-          });
-        }
-      } else if (!editDoc && recipientType === "provider" && selectedRecipientId) {
-        const { data: sp } = await supabase.from("service_providers").select("user_id").eq("id", selectedRecipientId).maybeSingle();
-        if (sp?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: sp.user_id,
-            title: "Novo documento solicitado",
-            message: `Envie o documento "${form.name}" pelo seu painel.`,
-            type: "document_requested",
-            link: "/prestador",
-          });
-        }
-      } else if (!editDoc && recipientType === "collaborator" && selectedRecipientId) {
-        await supabase.from("notifications").insert({
-          user_id: selectedRecipientId,
-          title: "Novo documento solicitado",
-          message: `Envie o documento "${form.name}" pelo seu painel.`,
-          type: "document_requested",
-          link: "/colaborador",
-        });
-      } else if (!editDoc && recipientType === "partner" && selectedRecipientId) {
-        const { data: p } = await supabase.from("partners").select("user_id").eq("id", selectedRecipientId).maybeSingle();
-        if (p?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: p.user_id,
-            title: "Novo documento solicitado",
-            message: `Envie o documento "${form.name}" pelo seu painel.`,
-            type: "document_requested",
-            link: "/parceiro/documentos",
-          });
-        }
-      }
-    } catch (_) { /* best-effort */ }
+    if (failMsg) { toast.error(failMsg); return; }
 
     const recipientLabel = recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : recipientType === 'provider' ? 'prestador' : 'parceiro';
-    toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : `Documento solicitado ao ${recipientLabel}`));
+    toast.success(
+      editDoc
+        ? "Documento atualizado"
+        : successCount > 1
+          ? `${successCount} documentos solicitados ao ${recipientLabel}`
+          : `Documento solicitado ao ${recipientLabel}`
+    );
     onSuccess?.();
     onOpenChange(false);
     setForm({});
     setSelectedFileName("");
+    setItems([{ name: "", file: null }]);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -350,14 +369,114 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>Nome do documento *</Label>
-            <Input
-              placeholder="Ex: RG, Contrato Social, IRPF..."
-              value={form.name ?? ""}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
+          {editDoc ? (
+            <div className="space-y-2">
+              <Label>Nome do documento *</Label>
+              <Input
+                placeholder="Ex: RG, Contrato Social, IRPF..."
+                value={form.name ?? ""}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  Documentos solicitados *
+                </Label>
+                <span className="text-[11px] text-slate-500">
+                  {items.filter(i => i.name.trim()).length} item(ns)
+                </span>
+              </div>
+              <div className="space-y-2">
+                {items.map((item, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 bg-white p-3 hover:border-slate-300 transition-colors">
+                    <div className="flex items-start gap-2">
+                      <div className="size-8 rounded-md bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText className="size-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <Input
+                          placeholder={`Documento ${idx + 1} — ex: RG, Contrato Social, IRPF...`}
+                          value={item.name}
+                          onChange={(e) => {
+                            const next = [...items];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            setItems(next);
+                          }}
+                          className="h-9"
+                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            ref={(el) => { itemFileRefs.current[idx] = el; }}
+                            type="file"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0] || null;
+                              const next = [...items];
+                              next[idx] = { ...next[idx], file: f };
+                              setItems(next);
+                            }}
+                          />
+                          {item.file ? (
+                            <div className="flex items-center gap-2 flex-1 min-w-0 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-1">
+                              <Paperclip className="size-3.5 text-emerald-700 shrink-0" />
+                              <span className="text-[11px] text-emerald-900 truncate flex-1">{item.file.name}</span>
+                              <button
+                                type="button"
+                                className="text-emerald-700 hover:text-emerald-900"
+                                onClick={() => {
+                                  const next = [...items];
+                                  next[idx] = { ...next[idx], file: null };
+                                  setItems(next);
+                                  if (itemFileRefs.current[idx]) itemFileRefs.current[idx]!.value = "";
+                                }}
+                              >
+                                <X className="size-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-[11px] gap-1.5"
+                              onClick={() => itemFileRefs.current[idx]?.click()}
+                            >
+                              <Upload className="size-3" /> Anexar arquivo (opcional)
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {items.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="size-8 p-0 text-slate-400 hover:text-rose-600 shrink-0"
+                          onClick={() => setItems(items.filter((_, i) => i !== idx))}
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full gap-1.5 border-dashed"
+                onClick={() => setItems([...items, { name: "", file: null }])}
+              >
+                <Plus className="size-3.5" /> Adicionar outro documento
+              </Button>
+              <p className="text-[11px] text-slate-500">
+                Cada item gera uma solicitação separada com o mesmo destinatário, prazo e prioridade.
+              </p>
+            </div>
+          )}
 
 
           <div className="grid grid-cols-2 gap-4">
@@ -460,7 +579,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             />
           </div>
 
-          {!editDoc && (
+          {editDoc && (
             <div className="space-y-2">
               <Label>Já possui o arquivo? (opcional)</Label>
               {selectedFileName ? (
