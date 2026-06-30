@@ -94,9 +94,38 @@ export default function PartnerDetail() {
   };
 
   const downloadContractFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir"); return; }
-    openDownloadUrl(data.signedUrl);
+    const filename = path.split("/").pop() || "contrato";
+    const { data, error } = await supabase.storage
+      .from("partner-contracts")
+      .createSignedUrl(path, 300, { download: filename });
+    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir"); return; }
+    openDownloadUrl(data.signedUrl, filename);
+  };
+
+  const deleteContractFile = async (slot: "contract_template" | "nda_template" | "contract_signed" | "nda_signed") => {
+    if (!partnerContract) return;
+    if (!confirm("Excluir este arquivo? Essa ação não pode ser desfeita.")) return;
+    try {
+      const pathKey = slot === "contract_template" ? "contract_template_path"
+        : slot === "nda_template" ? "nda_template_path"
+        : slot === "contract_signed" ? "contract_signed_path" : "nda_signed_path";
+      const dateKey = slot === "contract_template" ? "contract_template_uploaded_at"
+        : slot === "nda_template" ? "nda_template_uploaded_at"
+        : slot === "contract_signed" ? "contract_uploaded_at" : "nda_uploaded_at";
+      const path = (partnerContract as any)[pathKey];
+      if (path) {
+        await supabase.storage.from("partner-contracts").remove([path]);
+      }
+      const { error } = await (supabase as any)
+        .from("partner_contracts")
+        .update({ [pathKey]: null, [dateKey]: null })
+        .eq("id", partnerContract.id);
+      if (error) throw error;
+      toast.success("Arquivo removido");
+      await reload();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao excluir");
+    }
   };
 
   const replyTicket = async (ticket: any, status: string) => {
