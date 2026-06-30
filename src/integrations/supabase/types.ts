@@ -3607,6 +3607,13 @@ export type Database = {
       partners: {
         Row: {
           active: boolean
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip_code: string | null
           bank_account: string | null
           bank_agency: string | null
           bank_name: string | null
@@ -3633,6 +3640,13 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           bank_account?: string | null
           bank_agency?: string | null
           bank_name?: string | null
@@ -3659,6 +3673,13 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip_code?: string | null
           bank_account?: string | null
           bank_agency?: string | null
           bank_name?: string | null
