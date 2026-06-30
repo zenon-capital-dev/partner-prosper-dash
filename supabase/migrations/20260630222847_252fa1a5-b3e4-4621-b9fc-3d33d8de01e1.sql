@@ -1,0 +1,1 @@
+ALTER TABLE public.partner_support_tickets ADD COLUMN IF NOT EXISTS admin_notes TEXT;
