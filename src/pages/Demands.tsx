@@ -163,20 +163,9 @@ export default function Demands() {
     },
   });
 
-  const { data: productsList = [] } = useQuery({
-    queryKey: ["products-list"],
-    queryFn: async () => (await supabase.from("products").select("id, name")).data ?? [],
-  });
-
-  const { data: providersList = [] } = useQuery({
-    queryKey: ["providers-list"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name")).data ?? [],
-  });
-
-  const { data: partnersList = [] } = useQuery({
-    queryKey: ["partners-list"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name")).data ?? [],
-  });
+  const { data: productsList = [] } = useProductsRef();
+  const { data: providersList = [] } = useProvidersRef();
+  const { data: partnersList = [] } = usePartnersRef();
 
   const filtered = useMemo(() => {
     const today = startOfToday();

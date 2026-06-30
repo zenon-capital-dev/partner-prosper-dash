@@ -122,20 +122,9 @@ export default function Sales() {
     staleTime: 90_000,
   });
 
-  const { data: partnersList = [] } = useQuery({
-    queryKey: ["partners-filter-sales"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(300)).data ?? [],
-  });
-
-  const { data: productsList = [] } = useQuery({
-    queryKey: ["products-filter-sales"],
-    queryFn: async () => (await supabase.from("products").select("id, name").order("name").limit(300)).data ?? [],
-  });
-
-  const { data: clientsList = [] } = useQuery({
-    queryKey: ["clients-filter-sales"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name, company").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: partnersList = [] } = usePartnersRef();
+  const { data: productsList = [] } = useProductsRef();
+  const { data: clientsList = [] } = useClientsRef();
 
   const { data: allSplits = [] } = useQuery({
     queryKey: ["sales-commission-splits"],

@@ -89,42 +89,15 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
   }, [open, clientId, sale]);
 
 
-  const { data: clients } = useQuery({
-    queryKey: ["clients-select"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(300)).data ?? [],
-  });
-  const { data: products } = useQuery({
-    queryKey: ["products-select"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("products").select("id, name, base_price, default_commission_percent").eq("active", true).order("name").limit(300)).data ?? [],
-  });
-  const { data: partners } = useQuery({
-    queryKey: ["partners-select"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("partners").select("id, full_name, commission_percent").eq("active", true).order("full_name").limit(300)).data ?? [],
-  });
-  const { data: referrers } = useQuery({
-    queryKey: ["referrers-select"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("referrers").select("id, full_name, commission_percent").eq("active", true).order("full_name").limit(300)).data ?? [],
-  });
-  const { data: collaborators } = useQuery({
-    queryKey: ["collaborators-select"],
-    enabled: open,
-    queryFn: async () => {
-      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "colaborador");
-      const ids = (roles ?? []).map((r) => r.user_id);
-      if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
-      return data ?? [];
-    },
-  });
-  const { data: providers } = useQuery({
-    queryKey: ["providers-select-sales"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("service_providers").select("id, name, specialty").order("name").limit(300)).data ?? [],
-  });
+  const { data: clients } = useClientsRef(open);
+  const { data: productsAll } = useProductsRef(open);
+  const products = useMemo(() => (productsAll ?? []).filter((p: any) => p.active !== false), [productsAll]);
+  const { data: partnersAll } = usePartnersRef(open);
+  const partners = useMemo(() => (partnersAll ?? []).filter((p: any) => p.active !== false), [partnersAll]);
+  const { data: referrersAll } = useReferrersRef(open);
+  const referrers = useMemo(() => (referrersAll ?? []).filter((r: any) => r.active !== false), [referrersAll]);
+  const { data: collaborators } = useCollaboratorsRef(open);
+  const { data: providers } = useProvidersRef(open);
 
 
   // Auto-fill from selected client

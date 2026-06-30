@@ -74,41 +74,14 @@ export function ContractDialog({ open, onOpenChange, onSuccess, clientId: propCl
     enabled: open && !!clientId,
   });
 
-  const { data: clients } = useQuery({
-    queryKey: ["clients-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name").limit(300);
-      return data ?? [];
-    },
-    enabled: open && !propClientId && !editContract,
-  });
-
-  const { data: products } = useQuery({
-    queryKey: ["products-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, name").eq("active", true).order("name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
-
-  const { data: partners } = useQuery({
-    queryKey: ["partners-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
-
-  const { data: providers } = useQuery({
-    queryKey: ["providers-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true).order("name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
+  const { data: clientsAll } = useClientsRef(open && !propClientId && !editContract);
+  const clients = useMemo(() => (clientsAll ?? []).filter((c: any) => c.status === "ativo"), [clientsAll]);
+  const { data: productsAll } = useProductsRef(open);
+  const products = useMemo(() => (productsAll ?? []).filter((p: any) => p.active !== false), [productsAll]);
+  const { data: partnersAll } = usePartnersRef(open);
+  const partners = useMemo(() => (partnersAll ?? []).filter((p: any) => p.active !== false), [partnersAll]);
+  const { data: providersAll } = useProvidersRef(open);
+  const providers = useMemo(() => (providersAll ?? []).filter((p: any) => p.active !== false), [providersAll]);
 
   const submit = async () => {
     if (!form.name) { toast.error("Nome do contrato é obrigatório"); return; }
