@@ -79,9 +79,9 @@ export default function PartnerSupportAdmin() {
           <p className="text-sm text-slate-500 mt-1">Chamados abertos pelos seus parceiros — responda direto por aqui.</p>
         </div>
         <div className="flex gap-2">
-          {(["aberto", "respondido", "fechado", "all"] as const).map((s) => (
+          {(["aberto", "em_andamento", "fechado", "all"] as const).map((s) => (
             <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)} className={cn(filter === s && "bg-indigo-600 hover:bg-indigo-700")}>
-              {s === "all" ? "Todos" : s}
+              {s === "all" ? "Todos" : s.replace("_"," ")}
             </Button>
           ))}
         </div>
