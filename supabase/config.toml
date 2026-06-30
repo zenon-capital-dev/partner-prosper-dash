@@ -1,10 +1,13 @@
 project_id = "iptzhxbffiheclntoqlz"
 
-[functions.invite-user]
+[functions.ai-assistant]
 verify_jwt = false
+
+[functions.invite-user]
+verify_jwt = true
 
 [functions.process-alerts]
 verify_jwt = false
 
-[functions.calc-commission]
-verify_jwt = true
+[functions.seed-test-logins]
+verify_jwt = false
