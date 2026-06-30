@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +15,7 @@ import {
   Plus, Search, Pencil, Handshake, Users2, Wallet, TrendingUp, Clock3,
   Award, Crown, LayoutGrid, List, Download, X, Power, PowerOff, Mail,
   Copy, KeyRound, Eye, EyeOff, Sparkles, ArrowUpRight, ArrowUp, ArrowDown,
-  Inbox, ShieldCheck, Filter, Trash2,
+  Inbox, ShieldCheck, Filter, Trash2, FileSignature,
 } from "lucide-react";
 import { formatBRL, formatPercent, initials, formatPhone } from "@/lib/format";
 import { toast } from "sonner";
@@ -749,6 +750,9 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
                     <button onClick={() => onDetail(p.id)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Ver detalhe">
                       <ArrowUpRight className="size-3.5" />
                     </button>
+                    <Link to={`/parceiros/${p.id}?tab=contrato`} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Enviar contrato / NDA">
+                      <FileSignature className="size-3.5" />
+                    </Link>
                     {canManage && (
                       <>
                         <button onClick={() => onEdit(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Editar">
@@ -808,6 +812,9 @@ function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
                     </button>
                   </>
                 )}
+                <Link to={`/parceiros/${p.id}?tab=contrato`} className="size-8 rounded-md hover:bg-indigo-50 text-slate-500 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Enviar contrato / NDA">
+                  <FileSignature className="size-4" />
+                </Link>
                 <button onClick={() => onDetail(p.id)} className="size-8 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Ver detalhe">
                   <ArrowUpRight className="size-4" />
                 </button>

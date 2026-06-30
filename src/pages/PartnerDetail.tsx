@@ -1,5 +1,5 @@
 import { formatBR as format } from "@/lib/datetime";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,8 @@ import { formatBRL } from "@/lib/format";
 export default function PartnerDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "dados";
   const [partner, setPartner] = useState<any>(null);
   const [clients, setClients] = useState<any[]>([]);
   const [commissions, setCommissions] = useState<any[]>([]);
@@ -129,7 +131,7 @@ export default function PartnerDetail() {
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">% Padrão</p><p className="text-2xl font-bold">{partner.commission_percent ?? 0}%</p></CardContent></Card>
       </div>
 
-      <Tabs defaultValue="dados">
+      <Tabs value={initialTab} onValueChange={(v) => { const next = new URLSearchParams(searchParams); next.set("tab", v); setSearchParams(next, { replace: true }); }}>
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="dados"><User className="h-3 w-3 mr-1" />Dados</TabsTrigger>
           <TabsTrigger value="clientes"><Users className="h-3 w-3 mr-1" />Clientes</TabsTrigger>
