@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ export function ClientContractsTab({
     if (!contract.file_path) return;
     const { data, error } = await supabase.storage.from("contracts").createSignedUrl(contract.file_path, 3600);
     if (error || !data) return toast.error("Não foi possível acessar o contrato");
-    window.open(data.signedUrl, "_blank");
+    openDownloadUrl(data.signedUrl);
   }
 
   if (contracts.length === 0) {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -105,7 +106,7 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
 
   async function downloadDelivery(path: string) {
     const { data } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
-    if (data) window.open(data.signedUrl, "_blank");
+    if (data) openDownloadUrl(data.signedUrl);
   }
 
   return (

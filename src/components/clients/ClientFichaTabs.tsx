@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -159,7 +160,7 @@ export function ContractsTab({ clientId }: { clientId: string }) {
                   {c.file_path && (
                     <Button variant="ghost" size="sm" onClick={async () => {
                       const { data: signed } = await supabase.storage.from("contracts").createSignedUrl(c.file_path, 60);
-                      if (signed?.signedUrl) window.open(signed.signedUrl, "_blank");
+                      if (signed?.signedUrl) openDownloadUrl(signed.signedUrl);
                     }}>Abrir</Button>
                   )}
                 </td>
