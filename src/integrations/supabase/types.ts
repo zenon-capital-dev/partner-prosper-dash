@@ -3551,6 +3551,41 @@ export type Database = {
           },
         ]
       }
+      partner_support_ticket_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_role: string
+          sender_user_id: string | null
+          ticket_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_role: string
+          sender_user_id?: string | null
+          ticket_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_role?: string
+          sender_user_id?: string | null
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "partner_support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_support_tickets: {
         Row: {
           admin_notes: string | null
