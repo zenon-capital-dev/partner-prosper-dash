@@ -250,7 +250,9 @@ export default function Providers() {
     const { error } = await supabase.from("service_providers").delete().eq("id", p.id);
     if (error) { toast.error(error.message || "Não foi possível excluir."); return; }
     toast.success("Prestador excluído");
-    qc.invalidateQueries();
+    qc.invalidateQueries({ queryKey: ["providers-rich"] });
+    qc.invalidateQueries({ queryKey: ["service-providers-active"] });
+    qc.invalidateQueries({ queryKey: ["ref:providers"] });
   };
 
   const refresh = () => {

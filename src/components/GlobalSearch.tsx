@@ -142,7 +142,7 @@ export function GlobalSearch({ open, onOpenChange, navItems = [], showTrigger = 
 
       setHits(results);
       setLoading(false);
-    }, 250);
+    }, 350);
 
     return () => {
       cancelled = true;
