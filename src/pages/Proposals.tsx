@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useClientsRef, useProductsRef } from "@/hooks/useReferenceData";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";

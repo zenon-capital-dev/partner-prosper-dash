@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useClientsRef, usePartnersRef, useProductsRef } from "@/hooks/useReferenceData";
 import { subDays, startOfMonth, startOfToday, endOfDay, parseISO } from "date-fns";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

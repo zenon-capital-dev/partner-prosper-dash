@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useProductsRef, useProvidersRef, usePartnersRef } from "@/hooks/useReferenceData";
 import { format, subDays, startOfMonth, startOfToday, endOfDay, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
