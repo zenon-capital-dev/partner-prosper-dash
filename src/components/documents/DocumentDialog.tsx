@@ -12,7 +12,7 @@ import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCir
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 import { useClientsRef, useProvidersRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
 
