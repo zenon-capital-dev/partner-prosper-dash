@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
@@ -160,31 +160,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setRoles([]);
-  };
+  }, []);
+
+  const value = useMemo<AuthContextValue>(() => ({
+    user,
+    session,
+    roles,
+    loading,
+    isSuperAdmin: roles.includes("super_admin"),
+    isAdmin: roles.includes("admin") || roles.includes("super_admin"),
+    isAdminSecondary: roles.includes("admin_secondary"),
+    isColaborador: roles.includes("colaborador"),
+    isVendedor: roles.includes("vendedor"),
+    isParceiro: roles.includes("parceiro"),
+    isPrestador: roles.includes("prestador"),
+    isCliente: roles.includes("cliente"),
+    isLead: roles.includes("lead"),
+    isIndicador: roles.includes("indicador"),
+    signOut,
+  }), [user, session, roles, loading, signOut]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        roles,
-        loading,
-        isSuperAdmin: roles.includes("super_admin"),
-        isAdmin: roles.includes("admin") || roles.includes("super_admin"),
-        isAdminSecondary: roles.includes("admin_secondary"),
-        isColaborador: roles.includes("colaborador"),
-        isVendedor: roles.includes("vendedor"),
-        isParceiro: roles.includes("parceiro"),
-        isPrestador: roles.includes("prestador"),
-        isCliente: roles.includes("cliente"),
-        isLead: roles.includes("lead"),
-        isIndicador: roles.includes("indicador"),
-        signOut,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
