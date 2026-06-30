@@ -271,8 +271,8 @@ export function ClientDocumentsTab({
 
                   <div className="flex items-center gap-2 shrink-0">
                     {(req.file_path || req.file_url) && (
-                      <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleDownload(req)}>
-                        <Download className="size-4 mr-1.5" /> Ver
+                      <Button variant="outline" size="sm" className="rounded-xl" disabled={viewingId === req.id} onClick={() => handleDownload(req)}>
+                        {viewingId === req.id ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Download className="size-4 mr-1.5" />} Ver
                       </Button>
                     )}
 
