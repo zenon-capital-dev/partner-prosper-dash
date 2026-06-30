@@ -11,6 +11,7 @@ import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyR
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { toast } from "sonner";
 import { openDownloadUrl } from "@/lib/download";
+import { confirmAction } from "@/lib/confirm";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { formatBRL } from "@/lib/format";
 
@@ -103,8 +104,14 @@ export default function PartnerDetail() {
   };
 
   const deleteContractFile = async (slot: "contract_template" | "nda_template" | "contract_signed" | "nda_signed") => {
-    if (!partnerContract) return;
-    if (!confirm("Excluir este arquivo? Essa ação não pode ser desfeita.")) return;
+    if (!partnerContract) { toast.error("Registro de contrato não encontrado"); return; }
+    const ok = await confirmAction({
+      title: "Excluir arquivo?",
+      description: "Essa ação não pode ser desfeita.",
+      destructive: true,
+      confirmText: "Excluir",
+    });
+    if (!ok) return;
     try {
       const pathKey = slot === "contract_template" ? "contract_template_path"
         : slot === "nda_template" ? "nda_template_path"
@@ -114,7 +121,8 @@ export default function PartnerDetail() {
         : slot === "contract_signed" ? "contract_uploaded_at" : "nda_uploaded_at";
       const path = (partnerContract as any)[pathKey];
       if (path) {
-        await supabase.storage.from("partner-contracts").remove([path]);
+        const { error: rmErr } = await supabase.storage.from("partner-contracts").remove([path]);
+        if (rmErr) console.warn("Falha ao remover do storage:", rmErr.message);
       }
       const { error } = await (supabase as any)
         .from("partner_contracts")
@@ -124,7 +132,8 @@ export default function PartnerDetail() {
       toast.success("Arquivo removido");
       await reload();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao excluir");
+      console.error("deleteContractFile error:", e);
+      toast.error(e?.message || "Erro ao excluir");
     }
   };
 
