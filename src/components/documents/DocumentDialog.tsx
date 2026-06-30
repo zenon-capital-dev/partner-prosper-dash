@@ -36,6 +36,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>("");
   const [form, setForm] = useState<any>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
 
   useEffect(() => {
     if (open) {
