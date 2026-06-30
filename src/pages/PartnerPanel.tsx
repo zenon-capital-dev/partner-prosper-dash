@@ -793,18 +793,14 @@ export default function PartnerPanel() {
                           const f = e.target.files?.[0]; e.target.value = "";
                           if (!f || !contract?.id || !partner?.id) return;
                           try {
-                            const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
-                            assertUploadFile(f);
                             const path = `${partner.id}/${doc.key}_signed-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
-                            const { error: upErr } = await supabase.storage.from("partner-contracts").upload(path, f, { upsert: false });
-                            if (upErr) throw upErr;
+                            await uploadStorageFileFast("partner-contracts", path, f, false);
                             const patch: any = { [doc.dbField]: path, [doc.dbAt]: new Date().toISOString() };
                             const { error } = await (supabase as any).from("partner_contracts").update(patch).eq("id", contract.id);
                             if (error) throw error;
                             toast.success("Arquivo assinado enviado");
                             qc.invalidateQueries({ queryKey: ["partner-contract", partner.id] });
                           } catch (err: any) {
-                            const { uploadErrorMessage } = await import("@/lib/uploads");
                             toast.error(uploadErrorMessage(err) || err.message || "Erro no upload");
                           }
                         }} />
