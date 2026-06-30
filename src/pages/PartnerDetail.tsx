@@ -14,6 +14,7 @@ import { openDownloadUrl } from "@/lib/download";
 import { confirmAction } from "@/lib/confirm";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { formatBRL } from "@/lib/format";
+import { SupportThread } from "@/components/partner-support/SupportThread";
 
 export default function PartnerDetail() {
   const { id } = useParams();
