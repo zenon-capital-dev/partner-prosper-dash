@@ -278,11 +278,12 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200/70 bg-gradient-to-b from-slate-50/70 to-white">
+          <DialogTitle className="font-display text-xl text-slate-900">
             {editDoc ? "Editar solicitação" : "Nova solicitação de documento"}
           </DialogTitle>
+          <p className="text-xs text-slate-500 mt-1">Defina o destinatário, vincule a uma demanda e (opcionalmente) já anexe o arquivo.</p>
         </DialogHeader>
         
         <div className="space-y-4 py-2">
