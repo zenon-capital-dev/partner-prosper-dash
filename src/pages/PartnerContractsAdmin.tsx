@@ -205,9 +205,21 @@ export default function PartnerContractsAdmin() {
                   </div>
                 )}
 
-                <div className="border-t pt-4 grid sm:grid-cols-2 gap-4">
-                  <UploadSlot label="Contrato de Parceria assinado" path={selected.contract_signed_path} onPick={(f) => uploadSigned(selected, "contract", f)} onDownload={downloadFile} />
-                  <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onPick={(f) => uploadSigned(selected, "nda", f)} onDownload={downloadFile} />
+                <div className="border-t pt-4 space-y-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📤 Enviar originais para o parceiro assinar</p>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <UploadSlot label="Contrato (original p/ assinar)" path={selected.contract_template_path} onPick={(f) => uploadFile(selected, "contract_template", f)} onDownload={downloadFile} />
+                      <UploadSlot label="NDA (original p/ assinar)" path={selected.nda_template_path} onPick={(f) => uploadFile(selected, "nda_template", f)} onDownload={downloadFile} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📥 Arquivos assinados pelo parceiro</p>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <UploadSlot label="Contrato assinado" path={selected.contract_signed_path} onPick={(f) => uploadFile(selected, "contract_signed", f)} onDownload={downloadFile} />
+                      <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onPick={(f) => uploadFile(selected, "nda_signed", f)} onDownload={downloadFile} />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="border-t pt-4 space-y-3">
