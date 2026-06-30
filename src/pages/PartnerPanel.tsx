@@ -27,6 +27,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
+import { openDownloadUrl } from "@/lib/download";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
