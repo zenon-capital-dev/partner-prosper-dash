@@ -9,14 +9,21 @@
  *
  * Cada hook retorna o SUPERSET dos campos usados pelos consumidores antigos.
  * Filtros tipo `active=true` agora ficam client-side via useMemo no caller.
+ *
+ * staleTime de 5 min evita refetch ao trocar de página; gcTime de 30 min mantém
+ * o cache vivo entre navegações longas. Mutations explicitamente invalidam
+ * `["ref:<tabela>"]` quando precisarem.
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
+const REF_OPTS = { staleTime: 5 * 60_000, gcTime: 30 * 60_000 } as const;
 
 export function useClientsRef(enabled = true) {
   return useQuery({
     queryKey: ["ref:clients"],
     enabled,
+    ...REF_OPTS,
     queryFn: async () =>
       (
         await supabase
@@ -34,6 +41,7 @@ export function usePartnersRef(enabled = true) {
   return useQuery({
     queryKey: ["ref:partners"],
     enabled,
+    ...REF_OPTS,
     queryFn: async () =>
       (
         await supabase
@@ -49,6 +57,7 @@ export function useProductsRef(enabled = true) {
   return useQuery({
     queryKey: ["ref:products"],
     enabled,
+    ...REF_OPTS,
     queryFn: async () =>
       (
         await supabase
@@ -64,6 +73,7 @@ export function useProvidersRef(enabled = true) {
   return useQuery({
     queryKey: ["ref:providers"],
     enabled,
+    ...REF_OPTS,
     queryFn: async () =>
       (
         await supabase
@@ -79,6 +89,7 @@ export function useReferrersRef(enabled = true) {
   return useQuery({
     queryKey: ["ref:referrers"],
     enabled,
+    ...REF_OPTS,
     queryFn: async () =>
       (
         await supabase
@@ -94,6 +105,7 @@ export function useCollaboratorsRef(enabled = true) {
   return useQuery({
     queryKey: ["ref:collaborators"],
     enabled,
+    ...REF_OPTS,
     queryFn: async () => {
       const { data: roles } = await supabase
         .from("user_roles")
