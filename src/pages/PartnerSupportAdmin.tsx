@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { LifeBuoy, MessageSquare, CheckCircle2 } from "lucide-react";
+import { LifeBuoy, MessageSquare, UserCheck, Hand } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
@@ -26,13 +26,13 @@ type Ticket = {
   created_at: string;
 };
 
-type StatusFilter = "pendentes" | "aberto" | "respondido" | "em_andamento" | "fechado" | "all";
+type QueueFilter = "fila" | "meus" | "pendentes" | "em_andamento" | "fechado" | "all";
 
 export default function PartnerSupportAdmin() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [active, setActive] = useState<Ticket | null>(null);
-  const [response, setResponse] = useState("");
-  const [filter, setFilter] = useState<StatusFilter>("pendentes");
+  const [filter, setFilter] = useState<QueueFilter>("fila");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => { setCurrentPage(1); }, [filter]);
@@ -47,16 +47,36 @@ export default function PartnerSupportAdmin() {
     },
   });
 
-  const isPending = (s: string) => s !== "fechado" && s !== "resolvido";
+  // Fetch admin display names for assignees
+  const assigneeIds = useMemo(
+    () => Array.from(new Set((tickets as any[]).map((t) => t.assigned_to).filter(Boolean))) as string[],
+    [tickets]
+  );
+  const { data: assignees = {} } = useQuery({
+    queryKey: ["pst-assignees", assigneeIds],
+    enabled: assigneeIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("profiles").select("id, full_name, email").in("id", assigneeIds);
+      const map: Record<string, { name: string; email: string }> = {};
+      (data || []).forEach((p: any) => { map[p.id] = { name: p.full_name || p.email, email: p.email }; });
+      return map;
+    },
+  });
+
+  const isOpen = (s: string) => s !== "fechado" && s !== "resolvido";
   const filtered = (tickets as any[]).filter((t) => {
     if (filter === "all") return true;
-    if (filter === "pendentes") return isPending(t.status);
-    return t.status === filter;
+    if (filter === "fila") return isOpen(t.status) && !t.assigned_to;
+    if (filter === "meus") return isOpen(t.status) && t.assigned_to === user?.id;
+    if (filter === "pendentes") return isOpen(t.status);
+    if (filter === "em_andamento") return t.status === "em_andamento";
+    if (filter === "fechado") return t.status === "fechado" || t.status === "resolvido";
+    return true;
   });
   const counts = {
-    pendentes: (tickets as any[]).filter((t) => isPending(t.status)).length,
-    aberto: (tickets as any[]).filter((t) => t.status === "aberto").length,
-    respondido: (tickets as any[]).filter((t) => t.status === "respondido").length,
+    fila: (tickets as any[]).filter((t) => isOpen(t.status) && !t.assigned_to).length,
+    meus: (tickets as any[]).filter((t) => isOpen(t.status) && t.assigned_to === user?.id).length,
+    pendentes: (tickets as any[]).filter((t) => isOpen(t.status)).length,
     em_andamento: (tickets as any[]).filter((t) => t.status === "em_andamento").length,
     fechado: (tickets as any[]).filter((t) => t.status === "fechado" || t.status === "resolvido").length,
     all: (tickets as any[]).length,
@@ -64,30 +84,27 @@ export default function PartnerSupportAdmin() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const respond = useMutation({
-    mutationFn: async (close: boolean) => {
-      if (!active) return;
-      if (!response.trim()) throw new Error("Escreva uma resposta");
+  const claim = useMutation({
+    mutationFn: async (ticket: any) => {
+      if (!user?.id) throw new Error("Não autenticado");
       const { error } = await (supabase as any).from("partner_support_tickets").update({
-        admin_response: response.trim(),
-        responded_at: new Date().toISOString(),
-        status: close ? "fechado" : "respondido",
-      }).eq("id", active.id);
+        assigned_to: user.id,
+        assigned_at: new Date().toISOString(),
+        status: ticket.status === "aberto" ? "em_andamento" : ticket.status,
+      }).eq("id", ticket.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Resposta enviada");
+      toast.success("Chamado assumido");
       qc.invalidateQueries({ queryKey: ["partner-support-admin"] });
-      setActive(null);
-      setResponse("");
     },
-    onError: (e: any) => toast.error(e.message || "Erro"),
+    onError: (e: any) => toast.error(e.message || "Erro ao assumir"),
   });
 
-  const tabs: { key: StatusFilter; label: string; tone?: string }[] = [
-    { key: "pendentes", label: "Pendentes", tone: "amber" },
-    { key: "aberto", label: "Aberto" },
-    { key: "respondido", label: "Respondido" },
+  const tabs: { key: QueueFilter; label: string; tone?: string }[] = [
+    { key: "fila", label: "Fila", tone: "amber" },
+    { key: "meus", label: "Meus", tone: "indigo" },
+    { key: "pendentes", label: "Todos pendentes" },
     { key: "em_andamento", label: "Em andamento" },
     { key: "fechado", label: "Fechado", tone: "emerald" },
     { key: "all", label: "Todos" },
@@ -147,18 +164,42 @@ export default function PartnerSupportAdmin() {
                     ? "bg-violet-50 text-violet-700 border-violet-200"
                     : "bg-amber-50 text-amber-700 border-amber-200";
               return (
-                <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => { setActive(t); setResponse(t.admin_response || ""); }}>
+                <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => setActive(t)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <p className="font-semibold text-slate-900">{t.subject}</p>
                         <Badge variant="outline" className={cn("text-[10px] capitalize", t.priority === "alta" && "border-red-200 text-red-700 bg-red-50")}>{t.priority}</Badge>
+                        {t.assigned_to ? (
+                          <Badge variant="outline" className={cn(
+                            "text-[10px] gap-1",
+                            t.assigned_to === user?.id ? "bg-indigo-50 text-indigo-700 border-indigo-200" : "bg-slate-50 text-slate-600 border-slate-200"
+                          )}>
+                            <UserCheck className="size-3" />
+                            {t.assigned_to === user?.id ? "Você" : ((assignees as any)[t.assigned_to]?.name || "Atribuído")}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">Sem responsável</Badge>
+                        )}
                       </div>
                       <p className="text-[12px] text-slate-500">{t.partners?.full_name} · {t.partners?.email}</p>
                       <p className="text-[12.5px] text-slate-600 mt-1 line-clamp-2">{t.message}</p>
                       <p className="text-[10.5px] text-slate-400 mt-1">{formatDate(t.created_at)}</p>
                     </div>
-                    <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", statusTone)}>{(t.status || "aberto").replace("_"," ")}</Badge>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <Badge variant="outline" className={cn("text-[10px] capitalize", statusTone)}>{(t.status || "aberto").replace("_"," ")}</Badge>
+                      {!t.assigned_to && t.status !== "fechado" && t.status !== "resolvido" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => { e.stopPropagation(); claim.mutate(t); }}
+                          disabled={claim.isPending}
+                          className="gap-1.5 h-7 text-[11.5px] text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                        >
+                          <Hand className="size-3" /> Assumir
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </li>
               );
@@ -168,7 +209,7 @@ export default function PartnerSupportAdmin() {
         <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
-      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>
+      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

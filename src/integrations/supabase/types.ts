@@ -3553,6 +3553,10 @@ export type Database = {
       }
       partner_support_ticket_messages: {
         Row: {
+          attachment_mime: string | null
+          attachment_name: string | null
+          attachment_path: string | null
+          attachment_size: number | null
           body: string
           created_at: string
           id: string
@@ -3561,6 +3565,10 @@ export type Database = {
           ticket_id: string
         }
         Insert: {
+          attachment_mime?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_size?: number | null
           body: string
           created_at?: string
           id?: string
@@ -3569,6 +3577,10 @@ export type Database = {
           ticket_id: string
         }
         Update: {
+          attachment_mime?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attachment_size?: number | null
           body?: string
           created_at?: string
           id?: string
@@ -3589,7 +3601,10 @@ export type Database = {
       partner_support_tickets: {
         Row: {
           admin_notes: string | null
+          admin_responded_at: string | null
           admin_response: string | null
+          assigned_at: string | null
+          assigned_to: string | null
           created_at: string
           id: string
           message: string
@@ -3603,7 +3618,10 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          admin_responded_at?: string | null
           admin_response?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
           created_at?: string
           id?: string
           message: string
@@ -3617,7 +3635,10 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          admin_responded_at?: string | null
           admin_response?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
           created_at?: string
           id?: string
           message?: string
