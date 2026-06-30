@@ -37,6 +37,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const [form, setForm] = useState<any>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
+  // Multi-doc items (only used when creating, not editing)
+  type DocItem = { name: string; file: File | null };
+  const [items, setItems] = useState<DocItem[]>([{ name: "", file: null }]);
+  const itemFileRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     if (open) {
