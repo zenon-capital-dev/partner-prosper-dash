@@ -90,7 +90,12 @@ export function DemandNotes({
   return (
     <div className={compact ? "" : "p-5"}>
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 -ml-1 px-1 py-0.5 rounded hover:bg-slate-100 transition"
+        >
+          {open ? <ChevronDown className="size-3.5 text-slate-500" /> : <ChevronRight className="size-3.5 text-slate-500" />}
           <StickyNote className="size-3.5 text-amber-600" />
           <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
             Histórico / Notas desta demanda
@@ -100,8 +105,8 @@ export function DemandNotes({
               {notes.length}
             </Badge>
           )}
-        </div>
-        {!adding && (
+        </button>
+        {open && !adding && (
           <Button
             variant="ghost" size="sm"
             className="h-7 px-2 text-[11px] text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
@@ -111,6 +116,13 @@ export function DemandNotes({
           </Button>
         )}
       </div>
+
+      {open && (<>
+      {error && (
+        <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 p-2 text-[11px] text-rose-700">
+          Não foi possível carregar as notas: {(error as any)?.message || "erro desconhecido"}
+        </div>
+      )}
 
       {adding && (
         <div className="mb-3 space-y-2 rounded-lg border border-amber-200/70 bg-amber-50/40 p-3">
