@@ -131,7 +131,7 @@ export default function PartnerDetail() {
         <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">% Padrão</p><p className="text-2xl font-bold">{partner.commission_percent ?? 0}%</p></CardContent></Card>
       </div>
 
-      <Tabs defaultValue="dados">
+      <Tabs value={initialTab} onValueChange={(v) => { const next = new URLSearchParams(searchParams); next.set("tab", v); setSearchParams(next, { replace: true }); }}>
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="dados"><User className="h-3 w-3 mr-1" />Dados</TabsTrigger>
           <TabsTrigger value="clientes"><Users className="h-3 w-3 mr-1" />Clientes</TabsTrigger>
