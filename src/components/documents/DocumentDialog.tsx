@@ -12,7 +12,7 @@ import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCir
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
+import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 import { useClientsRef, useProvidersRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
 
@@ -36,6 +36,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>("");
   const [form, setForm] = useState<any>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
 
   useEffect(() => {
     if (open) {
@@ -160,8 +161,13 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       try { assertUploadFile(file); } catch (e: any) { toast.error(uploadErrorMessage(e)); setSubmitting(false); return; }
       const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
       const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-      if (upErr) { toast.error(uploadErrorMessage(upErr)); setSubmitting(false); return; }
+      try {
+        await uploadStorageFileFast("documents", path, file);
+      } catch (upErr: any) {
+        toast.error(uploadErrorMessage(upErr));
+        setSubmitting(false);
+        return;
+      }
 
       if (editDoc?.id && editDoc.file_path) {
         const { count } = await supabase
@@ -267,22 +273,24 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     onSuccess?.();
     onOpenChange(false);
     setForm({});
+    setSelectedFileName("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-200/70 bg-gradient-to-b from-slate-50/70 to-white">
+          <DialogTitle className="font-display text-xl text-slate-900">
             {editDoc ? "Editar solicitação" : "Nova solicitação de documento"}
           </DialogTitle>
+          <p className="text-xs text-slate-500 mt-1">Defina o destinatário, vincule a uma demanda e (opcionalmente) já anexe o arquivo.</p>
         </DialogHeader>
         
-        <div className="space-y-4 py-2">
+        <div className="space-y-5 px-6 py-5">
           {!editDoc && (
-            <div className="space-y-3">
-              <Label>Destinatário</Label>
+            <div className="space-y-3 rounded-xl border border-slate-200/70 bg-slate-50/40 p-4">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">Destinatário</Label>
               <div className="grid grid-cols-4 gap-1.5">
                 {([
                   { key: "client", label: "Cliente", icon: Users },
@@ -442,20 +450,48 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           {!editDoc && (
             <div className="space-y-2">
               <Label>Já possui o arquivo? (opcional)</Label>
-              <div 
-                className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer group" 
-                onClick={() => fileRef.current?.click()}
-              >
-                <Upload className="size-8 mx-auto text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
-                <p className="text-sm font-medium">Clique para selecionar</p>
-                <p className="text-[11px] text-muted-foreground mt-1">PDF, PNG, JPG, JPEG, DOCX, XLSX</p>
-                <input ref={fileRef} type="file" className="hidden" />
-              </div>
+              {selectedFileName ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-4 py-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-9 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
+                      <Upload className="size-4 text-emerald-700" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-emerald-900 truncate">{selectedFileName}</p>
+                      <p className="text-[11px] text-emerald-700/80">Arquivo selecionado — será enviado ao salvar.</p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-emerald-700 hover:text-emerald-900"
+                    onClick={() => { if (fileRef.current) fileRef.current.value = ""; setSelectedFileName(""); }}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-primary/60 hover:bg-primary/5 transition-colors cursor-pointer group"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Upload className="size-8 mx-auto text-slate-400 mb-2 group-hover:text-primary transition-colors" />
+                  <p className="text-sm font-medium text-slate-700">Clique para selecionar</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">PDF, PNG, JPG, JPEG, DOCX, XLSX (até 20MB)</p>
+                </div>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => setSelectedFileName(e.target.files?.[0]?.name || "")}
+              />
             </div>
           )}
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 sm:gap-0 px-6 py-4 border-t border-slate-200/70 bg-slate-50/40">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={submit} disabled={submitting} className="bg-gradient-primary">
             {submitting ? "Salvando..." : editDoc ? "Salvar Alterações" : "Criar Solicitação"}
