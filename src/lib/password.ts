@@ -1,5 +1,23 @@
-// Validação de senha — política unificada: mínimo 8 caracteres, 1 letra e 1 número.
+// Validação de senha — política unificada para evitar rejeição do backend por senha fraca/vazada.
 export const PASSWORD_MIN_LENGTH = 8;
+
+const COMMON_PASSWORDS = new Set([
+  "12345678",
+  "123456789",
+  "1234567890",
+  "password",
+  "password1",
+  "senha123",
+  "senha1234",
+  "teste123",
+  "teste1234",
+  "teste@123",
+  "teste@1234",
+  "admin123",
+  "admin1234",
+  "qwerty123",
+  "abc12345",
+]);
 
 export interface PasswordCheck {
   ok: boolean;
@@ -9,11 +27,17 @@ export interface PasswordCheck {
 
 export function validatePassword(pw: string): PasswordCheck {
   const errors: string[] = [];
+  const normalized = pw.trim().toLowerCase();
   if (!pw || pw.length < PASSWORD_MIN_LENGTH) {
     errors.push(`Mínimo de ${PASSWORD_MIN_LENGTH} caracteres`);
   }
-  if (!/[A-Za-z]/.test(pw)) errors.push("Pelo menos 1 letra");
+  if (!/[a-z]/.test(pw)) errors.push("Pelo menos 1 letra minúscula");
+  if (!/[A-Z]/.test(pw)) errors.push("Pelo menos 1 letra maiúscula");
   if (!/\d/.test(pw)) errors.push("Pelo menos 1 número");
+  if (!/[^A-Za-z0-9]/.test(pw)) errors.push("Pelo menos 1 símbolo");
+  if (COMMON_PASSWORDS.has(normalized) || /(.)\1{4,}/.test(pw) || /123456|abcdef|qwerty/i.test(pw)) {
+    errors.push("Senha muito comum/fraca. Use a opção Gerar senha forte");
+  }
 
   let score = 0;
   if (pw.length >= PASSWORD_MIN_LENGTH) score++;
