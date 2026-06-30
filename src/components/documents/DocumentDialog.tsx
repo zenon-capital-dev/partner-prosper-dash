@@ -286,10 +286,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           <p className="text-xs text-slate-500 mt-1">Defina o destinatário, vincule a uma demanda e (opcionalmente) já anexe o arquivo.</p>
         </DialogHeader>
         
-        <div className="space-y-4 py-2">
+        <div className="space-y-5 px-6 py-5">
           {!editDoc && (
-            <div className="space-y-3">
-              <Label>Destinatário</Label>
+            <div className="space-y-3 rounded-xl border border-slate-200/70 bg-slate-50/40 p-4">
+              <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">Destinatário</Label>
               <div className="grid grid-cols-4 gap-1.5">
                 {([
                   { key: "client", label: "Cliente", icon: Users },
