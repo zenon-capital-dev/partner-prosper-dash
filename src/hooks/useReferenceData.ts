@@ -79,10 +79,11 @@ export function useProvidersRef(enabled = true) {
       (
         await supabase
           .from("service_providers")
-          .select("id, name, company_name, specialty, active")
+          .select("id, name, specialty, active")
           .order("name")
           .limit(500)
       ).data ?? [],
+
 
   });
 }
