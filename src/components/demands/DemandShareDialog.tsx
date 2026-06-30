@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Share2, Trash2, Eye, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useProvidersRef } from "@/hooks/useReferenceData";
+
 
 interface Props {
   open: boolean;
