@@ -71,8 +71,9 @@ Deno.serve(async (req) => {
     const { data: callerRoles } = await admin.from("user_roles").select("role").eq("user_id", userData.user.id);
     const callerRoleSet = new Set((callerRoles ?? []).map((r: any) => r.role));
     const isAdmin = callerRoleSet.has("admin");
+    const isSuperAdmin = callerRoleSet.has("super_admin");
     const isAdminSecondary = callerRoleSet.has("admin_secondary");
-    const canManage = isAdmin || isAdminSecondary;
+    const canManage = isAdmin || isSuperAdmin || isAdminSecondary;
     if (!canManage) return json({ error: "Apenas administradores podem gerenciar usuários" }, 403);
 
     const body = (await req.json().catch(() => ({}))) as Body;
