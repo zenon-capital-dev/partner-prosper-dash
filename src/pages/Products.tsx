@@ -197,6 +197,7 @@ export default function Products() {
     else {
       toast.success(p.active ? "Serviço desativado" : "Serviço ativado");
       qc.invalidateQueries({ queryKey: ["products-list"] });
+      qc.invalidateQueries({ queryKey: ["ref:products"] });
     }
   };
 

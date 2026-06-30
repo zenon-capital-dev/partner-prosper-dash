@@ -227,6 +227,7 @@ export default function Collaborators() {
     onSuccess: () => {
       toast.success("Colaborador atualizado");
       qc.invalidateQueries({ queryKey: ["collaborators-list"] });
+      qc.invalidateQueries({ queryKey: ["ref:collaborators"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       setEditing(null);
     },

@@ -263,6 +263,7 @@ export default function Partners() {
         setSubmitting(false);
         toast.warning("Parceiro criado, mas o acesso falhou: " + invErr.message);
         qc.invalidateQueries({ queryKey: ["partners-rich"] });
+        qc.invalidateQueries({ queryKey: ["ref:partners"] });
         return;
       }
       try { await navigator.clipboard.writeText(`Email: ${form.email}\nSenha: ${accessPwd}`); } catch {}
@@ -278,6 +279,7 @@ export default function Partners() {
     setOpen(false);
     setEditing(null);
     qc.invalidateQueries({ queryKey: ["partners-rich"] });
+    qc.invalidateQueries({ queryKey: ["ref:partners"] });
     qc.invalidateQueries({ queryKey: ["commissions"] });
   };
 

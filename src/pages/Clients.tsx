@@ -903,7 +903,7 @@ export default function Clients() {
           open={open}
           onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}
           client={editing}
-          onCreated={() => qc.invalidateQueries({ queryKey: ["clients-admin-list"] })}
+          onCreated={() => { qc.invalidateQueries({ queryKey: ["clients-admin-list"] }); qc.invalidateQueries({ queryKey: ["ref:clients"] }); }}
         />
 
       </div>
