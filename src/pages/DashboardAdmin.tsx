@@ -50,7 +50,11 @@ const formatBrasiliaTime = (value: string) => {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
+  const [rangeKeyImmediate, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
+  // Debounce: queries só refazem após o React assentar — evita refetch em
+  // cliques rápidos consecutivos entre os botões de range.
+  const rangeKey = useDeferredValue(rangeKeyImmediate);
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
