@@ -569,7 +569,7 @@ export default function Collaborators() {
       <CreateCollaboratorDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={() => qc.invalidateQueries({ queryKey: ["collaborators-list"] })}
+        onCreated={() => { qc.invalidateQueries({ queryKey: ["collaborators-list"] }); qc.invalidateQueries({ queryKey: ["ref:collaborators"] }); }}
       />
 
       {editing && (
