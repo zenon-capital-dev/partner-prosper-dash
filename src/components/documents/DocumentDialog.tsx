@@ -161,8 +161,13 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       try { assertUploadFile(file); } catch (e: any) { toast.error(uploadErrorMessage(e)); setSubmitting(false); return; }
       const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
       const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-      if (upErr) { toast.error(uploadErrorMessage(upErr)); setSubmitting(false); return; }
+      try {
+        await uploadStorageFileFast("documents", path, file);
+      } catch (upErr: any) {
+        toast.error(uploadErrorMessage(upErr));
+        setSubmitting(false);
+        return;
+      }
 
       if (editDoc?.id && editDoc.file_path) {
         const { count } = await supabase
