@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useProvidersRef } from "@/hooks/useReferenceData";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -30,17 +32,9 @@ export function DelegateProviderDialog({
   const [role, setRole] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
-  const { data: providers = [] } = useQuery({
-    queryKey: ["service-providers-active"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("service_providers")
-        .select("id, name, specialty")
-        .eq("active", true)
-        .order("name");
-      return data ?? [];
-    },
-  });
+  const { data: providersAll = [] } = useProvidersRef(open);
+  const providers = useMemo(() => providersAll.filter((p: any) => p.active !== false), [providersAll]);
+
 
   const { data: assigned = [], refetch } = useQuery({
     queryKey: ["client-product-providers", clientProductId],

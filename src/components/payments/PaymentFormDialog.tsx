@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useClientsRef, useProductsRef } from "@/hooks/useReferenceData";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,18 +54,7 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
     }
   }, [open]);
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients-for-payment-picker"],
-    enabled: open && !lockedClientId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("id, full_name, email")
-        .order("full_name", { ascending: true })
-        .limit(500);
-      return data ?? [];
-    },
-  });
+  const { data: clients = [] } = useClientsRef(open && !lockedClientId);
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["client-products-for-payment", clientId],
@@ -79,18 +69,7 @@ export function PaymentFormDialog({ open, onOpenChange, clientId: lockedClientId
     },
   });
 
-  const { data: catalogProducts = [] } = useQuery({
-    queryKey: ["catalog-products-for-payment"],
-    enabled: open,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("id, name")
-        .order("name", { ascending: true })
-        .limit(500);
-      return data ?? [];
-    },
-  });
+  const { data: catalogProducts = [] } = useProductsRef(open);
 
   const totalNum = Number(amount.replace(",", ".")) || 0;
   const perInstallment = installments > 0 ? totalNum / installments : 0;

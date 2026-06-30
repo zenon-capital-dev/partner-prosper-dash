@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useClientsRef } from "@/hooks/useReferenceData";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -22,11 +23,7 @@ export function ProviderAssignDialog({ open, onOpenChange, providerId, providerN
   const [clientProductId, setClientProductId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["assign-clients"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: clients = [] } = useClientsRef(open);
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["assign-client-products", clientId],
