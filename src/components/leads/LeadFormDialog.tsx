@@ -40,8 +40,7 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
   const { data: productsAll } = useProductsRef(open);
   const products = useMemo(() => (productsAll ?? []).filter((p: any) => p.active !== false), [productsAll]);
   const { data: collaborators } = useCollaboratorsRef(open);
-    },
-  });
+
 
   const submit = async () => {
     const fullName = (form.full_name ?? "").trim();
