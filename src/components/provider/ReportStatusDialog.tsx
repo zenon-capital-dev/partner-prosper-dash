@@ -61,6 +61,10 @@ export function ReportStatusDialog({
       toast.error("Selecione um status");
       return;
     }
+    if (!notes.trim() && !pending.trim() && !nextSteps.trim()) {
+      toast.error("Descreva o andamento, pendências ou próximos passos antes de reportar.");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("client_product_status_reports").insert({
       client_product_id: clientProductId,
