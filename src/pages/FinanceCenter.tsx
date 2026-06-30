@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useClientsRef } from "@/hooks/useReferenceData";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHero } from "@/components/PageHero";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -1804,11 +1805,7 @@ function ByClient({ payments, canManage }: { payments: any[]; canManage: boolean
   const [clientId, setClientId] = useState<string>("");
   const [clientSearch, setClientSearch] = useState("");
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["fin-clients-min"],
-    queryFn: async () =>
-      (await supabase.from("clients").select("id, full_name, company").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: clients = [] } = useClientsRef();
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["fin-client-products", clientId],

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useProductsRef, usePartnersRef, useProvidersRef } from "@/hooks/useReferenceData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -163,29 +164,13 @@ export default function Clients() {
 
   const isLoading = isLoadingClients;
 
-  const { data: products = [] } = useQuery({
-    queryKey: ["products-minimal"],
-    queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, name").eq("active", true);
-      return data ?? [];
-    },
-  });
-
-  const { data: partners = [] } = useQuery({
-    queryKey: ["partners-minimal"],
-    queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id, full_name");
-      return data ?? [];
-    },
-  });
-
-  const { data: providers = [] } = useQuery({
-    queryKey: ["providers-minimal"],
-    queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").eq("active", true);
-      return data ?? [];
-    },
-  });
+  const { data: productsAll = [] } = useProductsRef();
+  const { data: partnersAll = [] } = usePartnersRef();
+  const { data: providersAll = [] } = useProvidersRef();
+  // active-only filtering moved client-side (server filter was equivalent)
+  const products = useMemo(() => (productsAll as any[]).filter((p) => p.active !== false), [productsAll]);
+  const partners = useMemo(() => partnersAll as any[], [partnersAll]);
+  const providers = useMemo(() => (providersAll as any[]).filter((p) => p.active !== false), [providersAll]);
 
   const cities = useMemo(() => {
     const set = new Set(clients.map((c) => c.city).filter(Boolean));
