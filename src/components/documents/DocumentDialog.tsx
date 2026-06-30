@@ -369,14 +369,114 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>Nome do documento *</Label>
-            <Input
-              placeholder="Ex: RG, Contrato Social, IRPF..."
-              value={form.name ?? ""}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-          </div>
+          {editDoc ? (
+            <div className="space-y-2">
+              <Label>Nome do documento *</Label>
+              <Input
+                placeholder="Ex: RG, Contrato Social, IRPF..."
+                value={form.name ?? ""}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  Documentos solicitados *
+                </Label>
+                <span className="text-[11px] text-slate-500">
+                  {items.filter(i => i.name.trim()).length} item(ns)
+                </span>
+              </div>
+              <div className="space-y-2">
+                {items.map((item, idx) => (
+                  <div key={idx} className="rounded-lg border border-slate-200 bg-white p-3 hover:border-slate-300 transition-colors">
+                    <div className="flex items-start gap-2">
+                      <div className="size-8 rounded-md bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText className="size-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <Input
+                          placeholder={`Documento ${idx + 1} — ex: RG, Contrato Social, IRPF...`}
+                          value={item.name}
+                          onChange={(e) => {
+                            const next = [...items];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            setItems(next);
+                          }}
+                          className="h-9"
+                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            ref={(el) => { itemFileRefs.current[idx] = el; }}
+                            type="file"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0] || null;
+                              const next = [...items];
+                              next[idx] = { ...next[idx], file: f };
+                              setItems(next);
+                            }}
+                          />
+                          {item.file ? (
+                            <div className="flex items-center gap-2 flex-1 min-w-0 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-1">
+                              <Paperclip className="size-3.5 text-emerald-700 shrink-0" />
+                              <span className="text-[11px] text-emerald-900 truncate flex-1">{item.file.name}</span>
+                              <button
+                                type="button"
+                                className="text-emerald-700 hover:text-emerald-900"
+                                onClick={() => {
+                                  const next = [...items];
+                                  next[idx] = { ...next[idx], file: null };
+                                  setItems(next);
+                                  if (itemFileRefs.current[idx]) itemFileRefs.current[idx]!.value = "";
+                                }}
+                              >
+                                <X className="size-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-[11px] gap-1.5"
+                              onClick={() => itemFileRefs.current[idx]?.click()}
+                            >
+                              <Upload className="size-3" /> Anexar arquivo (opcional)
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {items.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="size-8 p-0 text-slate-400 hover:text-rose-600 shrink-0"
+                          onClick={() => setItems(items.filter((_, i) => i !== idx))}
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full gap-1.5 border-dashed"
+                onClick={() => setItems([...items, { name: "", file: null }])}
+              >
+                <Plus className="size-3.5" /> Adicionar outro documento
+              </Button>
+              <p className="text-[11px] text-slate-500">
+                Cada item gera uma solicitação separada com o mesmo destinatário, prazo e prioridade.
+              </p>
+            </div>
+          )}
 
 
           <div className="grid grid-cols-2 gap-4">
