@@ -25,6 +25,8 @@ export function useOnboardingGuard() {
       return { profile, client };
     },
     enabled: !!user?.id && isClient,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   const isLoading = authLoading || (isClient && profileLoading);
