@@ -750,6 +750,9 @@ function ListView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
                     <button onClick={() => onDetail(p.id)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Ver detalhe">
                       <ArrowUpRight className="size-3.5" />
                     </button>
+                    <Link to={`/parceiros/${p.id}?tab=contrato`} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Enviar contrato / NDA">
+                      <FileSignature className="size-3.5" />
+                    </Link>
                     {canManage && (
                       <>
                         <button onClick={() => onEdit(p)} className="size-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Editar">
