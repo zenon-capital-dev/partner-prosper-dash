@@ -118,28 +118,24 @@ export default function PartnerSupportAdmin() {
         <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
-      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); } }}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader><DialogTitle>{active?.subject}</DialogTitle></DialogHeader>
+      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {active?.subject}
+              <Badge variant="outline" className="text-[10px] capitalize">{((active as any)?.status || "aberto").replace("_"," ")}</Badge>
+            </DialogTitle>
+            {active && (
+              <p className="text-[12px] text-slate-500">{(active as any).partners?.full_name} · {(active as any).partners?.email}</p>
+            )}
+          </DialogHeader>
           {active && (
-            <div className="space-y-4">
-              <div className="bg-slate-50 border border-slate-200 rounded p-3">
-                <p className="text-[11px] uppercase tracking-wider font-bold text-slate-500 mb-1">{(active as any).partners?.full_name} · {(active as any).partners?.email}</p>
-                <p className="text-[13px] text-slate-800 whitespace-pre-wrap">{active.message}</p>
-                <p className="text-[10.5px] text-slate-400 mt-2">{formatDate(active.created_at)}</p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">Sua resposta</p>
-                <Textarea rows={6} value={response} onChange={(e) => setResponse(e.target.value)} maxLength={2000} />
-              </div>
-            </div>
+            <SupportThread
+              ticket={active}
+              viewerRole="admin"
+              onChanged={() => qc.invalidateQueries({ queryKey: ["partner-support-admin"] })}
+            />
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => respond.mutate(false)} disabled={respond.isPending}>Salvar resposta</Button>
-            <Button onClick={() => respond.mutate(true)} disabled={respond.isPending} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
-              <CheckCircle2 className="size-4" /> Responder e fechar
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
