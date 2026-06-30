@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound, LifeBuoy, Upload, Download, FileCheck2, Send } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { toast } from "sonner";
-import { openDownloadUrl } from "@/lib/download";
+import { openDownloadUrl, downloadStorageFile } from "@/lib/download";
 import { confirmAction } from "@/lib/confirm";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { formatBRL } from "@/lib/format";
