@@ -160,17 +160,33 @@ export function ClientDocumentsTab({
     }
   }
 
+  const [viewingId, setViewingId] = useState<string | null>(null);
   async function handleDownload(req: DocRequest) {
     const path = req.file_path || req.file_url;
     if (!path) return;
     if (path.startsWith("http")) return openDownloadUrl(path);
-    const ext = path.split(".").pop() || "bin";
-    const docName = req.name.replace(/\s+/g, "_");
-    const filename = `${docName}.${ext}`;
+    setViewingId(req.id);
+    const newTab = window.open("", "_blank");
     try {
-      await downloadStorageFile("documents", path, filename);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Sessão expirada");
+      const baseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+      const anonKey = (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const res = await fetch(`${baseUrl}/storage/v1/object/authenticated/documents/${path}`, {
+        headers: { apikey: anonKey, authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      if (newTab) newTab.location.href = url;
+      else window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (_) {
-      toast.error("Não foi possível acessar o arquivo");
+      newTab?.close();
+      toast.error("Não foi possível abrir o arquivo");
+    } finally {
+      setViewingId(null);
     }
   }
 
@@ -255,8 +271,8 @@ export function ClientDocumentsTab({
 
                   <div className="flex items-center gap-2 shrink-0">
                     {(req.file_path || req.file_url) && (
-                      <Button variant="outline" size="sm" className="rounded-xl" onClick={() => handleDownload(req)}>
-                        <Download className="size-4 mr-1.5" /> Ver
+                      <Button variant="outline" size="sm" className="rounded-xl" disabled={viewingId === req.id} onClick={() => handleDownload(req)}>
+                        {viewingId === req.id ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Download className="size-4 mr-1.5" />} Ver
                       </Button>
                     )}
 
