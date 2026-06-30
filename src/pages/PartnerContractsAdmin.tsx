@@ -56,19 +56,24 @@ export default function PartnerContractsAdmin() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const uploadSigned = async (row: any, kind: "contract" | "nda", file: File) => {
+  const uploadFile = async (row: any, slot: "contract_template" | "nda_template" | "contract_signed" | "nda_signed", file: File) => {
     try {
       assertUploadFile(file);
-      const path = `${row.partner_id}/${kind}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      const path = `${row.partner_id}/${slot}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("partner-contracts").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
-      const patch: any = kind === "contract"
-        ? { contract_signed_path: path, contract_uploaded_at: new Date().toISOString() }
-        : { nda_signed_path: path, nda_uploaded_at: new Date().toISOString() };
+      const now = new Date().toISOString();
+      const patch: any = {
+        contract_template: { contract_template_path: path, contract_template_uploaded_at: now },
+        nda_template: { nda_template_path: path, nda_template_uploaded_at: now },
+        contract_signed: { contract_signed_path: path, contract_uploaded_at: now },
+        nda_signed: { nda_signed_path: path, nda_uploaded_at: now },
+      }[slot];
       const { error } = await (supabase as any).from("partner_contracts").update(patch).eq("id", row.id);
       if (error) throw error;
       toast.success("Arquivo enviado");
       qc.invalidateQueries({ queryKey: ["admin-partner-contracts"] });
+      setSelected((s: any) => s ? { ...s, ...patch } : s);
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) || "Erro no upload");
     }
