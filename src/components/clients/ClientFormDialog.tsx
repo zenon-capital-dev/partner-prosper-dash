@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePartnersRef, useReferrersRef, useCollaboratorsRef, useProvidersRef, useProductsRef } from "@/hooks/useReferenceData";
+import { useMemo } from "react";
 import { KeyRound, Eye, EyeOff, Sparkles, Copy, FileText, Plus, X, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MaskedInput } from "@/components/ui/masked-input";
