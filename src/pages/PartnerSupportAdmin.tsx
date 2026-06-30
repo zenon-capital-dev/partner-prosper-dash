@@ -164,18 +164,42 @@ export default function PartnerSupportAdmin() {
                     ? "bg-violet-50 text-violet-700 border-violet-200"
                     : "bg-amber-50 text-amber-700 border-amber-200";
               return (
-                <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => { setActive(t); setResponse(t.admin_response || ""); }}>
+                <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => setActive(t)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <p className="font-semibold text-slate-900">{t.subject}</p>
                         <Badge variant="outline" className={cn("text-[10px] capitalize", t.priority === "alta" && "border-red-200 text-red-700 bg-red-50")}>{t.priority}</Badge>
+                        {t.assigned_to ? (
+                          <Badge variant="outline" className={cn(
+                            "text-[10px] gap-1",
+                            t.assigned_to === user?.id ? "bg-indigo-50 text-indigo-700 border-indigo-200" : "bg-slate-50 text-slate-600 border-slate-200"
+                          )}>
+                            <UserCheck className="size-3" />
+                            {t.assigned_to === user?.id ? "Você" : ((assignees as any)[t.assigned_to]?.name || "Atribuído")}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">Sem responsável</Badge>
+                        )}
                       </div>
                       <p className="text-[12px] text-slate-500">{t.partners?.full_name} · {t.partners?.email}</p>
                       <p className="text-[12.5px] text-slate-600 mt-1 line-clamp-2">{t.message}</p>
                       <p className="text-[10.5px] text-slate-400 mt-1">{formatDate(t.created_at)}</p>
                     </div>
-                    <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", statusTone)}>{(t.status || "aberto").replace("_"," ")}</Badge>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <Badge variant="outline" className={cn("text-[10px] capitalize", statusTone)}>{(t.status || "aberto").replace("_"," ")}</Badge>
+                      {!t.assigned_to && t.status !== "fechado" && t.status !== "resolvido" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => { e.stopPropagation(); claim.mutate(t); }}
+                          disabled={claim.isPending}
+                          className="gap-1.5 h-7 text-[11.5px] text-indigo-700 border-indigo-200 hover:bg-indigo-50"
+                        >
+                          <Hand className="size-3" /> Assumir
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </li>
               );
@@ -185,7 +209,7 @@ export default function PartnerSupportAdmin() {
         <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
-      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>
+      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
