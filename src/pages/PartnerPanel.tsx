@@ -29,6 +29,7 @@ import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
 import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
+import { SupportThread } from "@/components/partner-support/SupportThread";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
