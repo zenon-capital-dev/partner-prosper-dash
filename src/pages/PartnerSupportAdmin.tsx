@@ -109,7 +109,7 @@ export default function PartnerSupportAdmin() {
                     <p className="text-[12.5px] text-slate-600 mt-1 line-clamp-2">{t.message}</p>
                     <p className="text-[10.5px] text-slate-400 mt-1">{formatDate(t.created_at)}</p>
                   </div>
-                  <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : t.status === "respondido" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-emerald-50 text-emerald-700 border-emerald-200")}>{t.status}</Badge>
+                  <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : (t.status === "fechado" || t.status === "resolvido") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200")}>{(t.status || "aberto").replace("_"," ")}</Badge>
                 </div>
               </li>
             ))}
