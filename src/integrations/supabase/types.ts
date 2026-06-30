@@ -5511,6 +5511,10 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: boolean
       }
+      client_submit_payment_receipt: {
+        Args: { _payment_id: string; _receipt_path: string }
+        Returns: undefined
+      }
       complete_client_onboarding: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
