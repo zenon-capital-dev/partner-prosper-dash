@@ -134,16 +134,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     },
   });
 
-  const { data: collaborators = [] } = useQuery({
-    queryKey: ["all-collaborators-select"],
-    queryFn: async () => {
-      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "colaborador");
-      const ids = (roles ?? []).map((r) => r.user_id);
-      if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
-      return data ?? [];
-    },
-  });
+  const { data: collaborators = [] } = useCollaboratorsRef(true);
 
   const { data: companies = [] } = useQuery({
     queryKey: ["client-companies", clientId],
@@ -154,41 +145,16 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     enabled: !!clientId
   });
 
-  const { data: products = [] } = useQuery({
-    queryKey: ["all-products"],
-    enabled: open,
-    queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, name, base_price").order("name").limit(300);
-      return data ?? [];
-    },
-  });
+  const { data: products = [] } = useProductsRef(open);
 
-  const { data: partners = [] } = useQuery({
-    queryKey: ["all-partners"],
-    enabled: open,
-    queryFn: async () => {
-      const { data } = await supabase.from("partners").select("id, full_name, commission_percent").eq("active", true).order("full_name").limit(300);
-      return data ?? [];
-    },
-  });
+  const { data: partnersAll = [] } = usePartnersRef(open);
+  const partners = useMemo(() => partnersAll.filter((p: any) => p.active !== false), [partnersAll]);
 
-  const { data: referrers = [] } = useQuery({
-    queryKey: ["all-referrers"],
-    enabled: open,
-    queryFn: async () => {
-      const { data } = await supabase.from("referrers").select("id, full_name, commission_percent").eq("active", true).order("full_name").limit(300);
-      return data ?? [];
-    },
-  });
+  const { data: referrersAll = [] } = useReferrersRef(open);
+  const referrers = useMemo(() => referrersAll.filter((r: any) => r.active !== false), [referrersAll]);
 
-  const { data: providers = [] } = useQuery({
-    queryKey: ["all-providers"],
-    enabled: open,
-    queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name, specialty").order("name").limit(300);
-      return data ?? [];
-    },
-  });
+  const { data: providers = [] } = useProvidersRef(open);
+
 
   const handleProductChange = (productId: string) => {
     const p = products.find((x: any) => x.id === productId);
