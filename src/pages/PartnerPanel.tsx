@@ -223,23 +223,83 @@ export default function PartnerPanel() {
   });
 
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
-  const uploadPartnerDoc = async (docId: string, file: File) => {
+  const [openHistoryId, setOpenHistoryId] = useState<string | null>(null);
+
+  const uploadPartnerDoc = async (docId: string, file: File, currentDoc?: any) => {
     if (!partner?.id) return;
+    if (currentDoc?.status === "aprovado") {
+      toast.error("Este documento já foi aprovado e não pode ser substituído.");
+      return;
+    }
+    if (currentDoc?.file_path) {
+      const ok = window.confirm("Substituir o arquivo enviado? O arquivo anterior ficará no histórico.");
+      if (!ok) return;
+    }
     setUploadingDocId(docId);
     try {
       const path = `partners/${partner.id}/${docId}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       await uploadStorageFileFast("documents", path, file, false);
+
+      // Save previous file in history before replacing
+      if (currentDoc?.file_path) {
+        const { count } = await supabase
+          .from("document_versions")
+          .select("id", { count: "exact", head: true })
+          .eq("document_id", docId);
+        await supabase.from("document_versions").insert({
+          document_id: docId,
+          version_number: (count ?? 0) + 1,
+          file_path: currentDoc.file_path,
+          file_size: currentDoc.file_size ?? null,
+          mime_type: currentDoc.mime_type ?? null,
+          uploaded_by: user?.id ?? null,
+          note: "Substituído pelo parceiro",
+        });
+      }
+
       const { error: updErr } = await supabase
         .from("documents")
-        .update({ file_path: path, status: "enviado", uploaded_at: new Date().toISOString() })
+        .update({ file_path: path, file_size: file.size, mime_type: file.type, status: "enviado", uploaded_at: new Date().toISOString(), uploaded_by: user?.id ?? null, rejection_reason: null })
         .eq("id", docId);
       if (updErr) throw updErr;
       toast.success("Documento enviado");
       qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
+      qc.invalidateQueries({ queryKey: ["partner-doc-versions", docId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) || "Falha ao enviar");
     } finally {
       setUploadingDocId(null);
+    }
+  };
+
+  const removePartnerDoc = async (doc: any) => {
+    if (!partner?.id || !doc?.file_path) return;
+    if (doc.status === "aprovado") { toast.error("Documento já aprovado — não pode ser removido."); return; }
+    if (!window.confirm("Remover o arquivo enviado? Será mantido no histórico.")) return;
+    try {
+      const { count } = await supabase
+        .from("document_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("document_id", doc.id);
+      await supabase.from("document_versions").insert({
+        document_id: doc.id,
+        version_number: (count ?? 0) + 1,
+        file_path: doc.file_path,
+        file_size: doc.file_size ?? null,
+        mime_type: doc.mime_type ?? null,
+        uploaded_by: user?.id ?? null,
+        note: "Removido pelo parceiro",
+      });
+      const { error } = await supabase
+        .from("documents")
+        .update({ file_path: null, file_size: null, mime_type: null, status: "solicitado", uploaded_at: null })
+        .eq("id", doc.id);
+      if (error) throw error;
+      toast.success("Arquivo removido");
+      qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
+      qc.invalidateQueries({ queryKey: ["partner-doc-versions", doc.id] });
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao remover");
     }
   };
 
@@ -252,6 +312,7 @@ export default function PartnerPanel() {
       toast.error(e?.message || "Falha ao baixar");
     }
   };
+
 
 
   const { data: commissions = [] } = useQuery({
