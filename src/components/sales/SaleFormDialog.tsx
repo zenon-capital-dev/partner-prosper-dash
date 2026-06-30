@@ -638,88 +638,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             {/* Sidebar de Informações Adicionais */}
             <div className="lg:col-span-5 space-y-6">
 
-              {(
-                <Section icon={Calendar} title="Tipo de Receita — escolha primeiro" hint="Define como o faturamento entra no cronograma (MRR x Pontual)">
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, revenue_type: "avulso" })}
-                      className={cn(
-                        "rounded-xl border-2 p-3 text-left transition",
-                        form.revenue_type !== "recorrente"
-                          ? "border-slate-400 bg-slate-50 ring-2 ring-slate-200"
-                          : "border-slate-200 bg-white hover:border-slate-300"
-                      )}
-                    >
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-0.5">Pontual</p>
-                      <p className="text-[12.5px] font-bold text-slate-900">Avulso / Na cabeça</p>
-                      <p className="text-[10.5px] text-slate-500 mt-0.5">Receita única — parcelável.</p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, revenue_type: "recorrente" })}
-                      className={cn(
-                        "rounded-xl border-2 p-3 text-left transition",
-                        form.revenue_type === "recorrente"
-                          ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-100"
-                          : "border-slate-200 bg-white hover:border-slate-300"
-                      )}
-                    >
-                      <p className="text-[10px] font-black uppercase tracking-wider text-indigo-600 mb-0.5">MRR</p>
-                      <p className="text-[12.5px] font-bold text-slate-900">Recorrência mensal</p>
-                      <p className="text-[10.5px] text-slate-500 mt-0.5">Mensalidade fixa por N meses.</p>
-                    </button>
-                  </div>
 
-                  {form.revenue_type === "recorrente" ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label="Período de vigência (meses)">
-                        <Input
-                          type="number"
-                          min={1}
-                          max={120}
-                          className="h-11 bg-white border-indigo-300 shadow-sm rounded-xl font-mono"
-                          value={form.recurrence_months ?? 12}
-                          onChange={(e) => setForm({ ...form, recurrence_months: e.target.value })}
-                        />
-                      </Field>
-                      <Field label="Início da cobrança">
-                        <Input
-                          type="date"
-                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
-                          value={form.first_due_date ?? form.sale_date}
-                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                        />
-                      </Field>
-                      <p className="col-span-2 text-[11px] text-indigo-700 bg-indigo-50/60 rounded-lg px-2.5 py-2 border border-indigo-100">
-                        <strong>Vigência:</strong> o cliente será cobrado automaticamente por <strong>{form.recurrence_months ?? 12} meses</strong>. O valor informado é a <strong>mensalidade</strong>; uma fatura por mês é criada no cronograma.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label="Nº de parcelas">
-                        <Input
-                          type="number"
-                          min={1}
-                          max={60}
-                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl font-mono"
-                          value={form.installments_count ?? 1}
-                          onChange={(e) => setForm({ ...form, installments_count: e.target.value })}
-                        />
-                      </Field>
-                      <Field label="1º vencimento">
-                        <Input
-                          type="date"
-                          className="h-11 bg-white border-slate-200 shadow-sm rounded-xl"
-                          value={form.first_due_date ?? form.sale_date}
-                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                        />
-                      </Field>
-                      <p className="col-span-2 text-[11px] text-slate-500">As demais parcelas vencem mensalmente a partir do 1º vencimento. O cliente verá as faturas no portal.</p>
-                    </div>
-                  )}
-                </Section>
-              )}
+
 
               <Section icon={Calendar} title="Agendamento & Status">
                 <div className="space-y-5">
