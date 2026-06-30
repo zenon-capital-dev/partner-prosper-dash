@@ -22,11 +22,7 @@ export function ProviderAssignDialog({ open, onOpenChange, providerId, providerN
   const [clientProductId, setClientProductId] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["assign-clients"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: clients = [] } = useClientsRef(open);
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["assign-client-products", clientId],
