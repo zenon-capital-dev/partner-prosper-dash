@@ -8,8 +8,13 @@ const corsHeaders = {
 
 function validateServerPassword(pw: string): string | null {
   if (!pw || pw.length < 8) return "Senha precisa ter ao menos 8 caracteres";
-  if (!/[A-Za-z]/.test(pw)) return "Senha precisa conter ao menos 1 letra";
+  if (!/[a-z]/.test(pw)) return "Senha precisa conter ao menos 1 letra minúscula";
+  if (!/[A-Z]/.test(pw)) return "Senha precisa conter ao menos 1 letra maiúscula";
   if (!/\d/.test(pw)) return "Senha precisa conter ao menos 1 número";
+  if (!/[^A-Za-z0-9]/.test(pw)) return "Senha precisa conter ao menos 1 símbolo";
+  const normalized = pw.trim().toLowerCase();
+  const common = new Set(["12345678", "123456789", "1234567890", "password", "password1", "senha123", "senha1234", "teste123", "teste1234", "teste@123", "teste@1234", "admin123", "admin1234", "qwerty123", "abc12345"]);
+  if (common.has(normalized) || /(.)\1{4,}/.test(pw) || /123456|abcdef|qwerty/i.test(pw)) return "Senha muito comum/fraca. Use uma senha forte gerada pelo sistema";
   return null;
 }
 
@@ -119,7 +124,12 @@ Deno.serve(async (req) => {
         password: body.password,
         email_confirm: true,
       });
-      if (error) return json({ error: error.message }, 400);
+      if (error) {
+        const message = /weak|guess|password/i.test(error.message)
+          ? "Senha fraca ou muito fácil de adivinhar. Gere uma senha forte e tente novamente."
+          : error.message;
+        return json({ error: message }, 400);
+      }
       return json({ ok: true });
     }
 
@@ -208,7 +218,13 @@ Deno.serve(async (req) => {
     if (existing) {
       userId = existing.id;
       if (body.password) {
-        await admin.auth.admin.updateUserById(userId, { password: body.password, email_confirm: true });
+        const { error: updateErr } = await admin.auth.admin.updateUserById(userId, { password: body.password, email_confirm: true });
+        if (updateErr) {
+          const message = /weak|guess|password/i.test(updateErr.message)
+            ? "Senha fraca ou muito fácil de adivinhar. Gere uma senha forte e tente novamente."
+            : updateErr.message;
+          return json({ error: message }, 400);
+        }
         tempPassword = body.password;
       }
     } else if (body.password) {

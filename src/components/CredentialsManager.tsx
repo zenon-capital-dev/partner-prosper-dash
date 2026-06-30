@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { KeyRound, Mail, Eye, EyeOff, AlertCircle, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { validatePassword } from "@/lib/password";
+import { generateSecurePassword, validatePassword } from "@/lib/password";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
 type EntityType = "cliente" | "parceiro" | "prestador" | "indicador" | "colaborador";
@@ -69,7 +69,20 @@ export function CredentialsManager({
         if (txt) return txt;
       }
     } catch { /* */ }
-    return error?.message || "Erro desconhecido";
+    const message = error?.message || "Erro desconhecido";
+    if (/weak|guess|password/i.test(message)) {
+      return "Senha fraca ou muito fácil de adivinhar. Clique em Gerar senha forte e tente novamente.";
+    }
+    return message;
+  };
+
+  const fillStrongPassword = () => {
+    const generated = generateSecurePassword(14);
+    setPassword(generated);
+    setConfirm(generated);
+    setShow(true);
+    try { navigator.clipboard.writeText(generated); } catch {}
+    toast.success("Senha forte gerada", { description: "A senha também foi copiada para a área de transferência." });
   };
 
   const saveEmail = async () => {
@@ -181,9 +194,12 @@ export function CredentialsManager({
             <button type="button" onClick={() => setShow((s) => !s)} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
               {show ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />} {show ? "Ocultar" : "Mostrar"} senha
             </button>
-            <Button onClick={createAccess} disabled={creating || !email || !password || !confirm}>
-              {creating ? "Criando..." : "Criar acesso"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" onClick={fillStrongPassword}>Gerar senha forte</Button>
+              <Button onClick={createAccess} disabled={creating || !email || !password || !confirm}>
+                {creating ? "Criando..." : "Criar acesso"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -243,17 +259,22 @@ export function CredentialsManager({
             disabled={!hasUser}
           />
         </div>
-        <Button
-          onClick={savePassword}
-          disabled={!hasUser || savingPw || !password || !confirm}
-          className="w-full sm:w-auto"
-        >
-          {savingPw ? "Atualizando..." : "Definir nova senha"}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button type="button" variant="outline" onClick={fillStrongPassword} disabled={!hasUser || savingPw} className="w-full sm:w-auto">
+            Gerar senha forte
+          </Button>
+          <Button
+            onClick={savePassword}
+            disabled={!hasUser || savingPw || !password || !confirm}
+            className="w-full sm:w-auto"
+          >
+            {savingPw ? "Atualizando..." : "Definir nova senha"}
+          </Button>
+        </div>
         <Alert>
           <AlertCircle className="size-4" />
           <AlertDescription className="text-xs">
-            A nova senha é aplicada imediatamente. Compartilhe com o {entityLabel} por um canal seguro.
+            A nova senha precisa ter maiúscula, minúscula, número e símbolo. Use Gerar senha forte para evitar bloqueio por senha fraca.
           </AlertDescription>
         </Alert>
       </div>
