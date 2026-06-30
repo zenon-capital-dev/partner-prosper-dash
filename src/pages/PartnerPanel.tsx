@@ -27,7 +27,8 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
-import { openDownloadUrl } from "@/lib/download";
+import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
+import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -225,10 +226,8 @@ export default function PartnerPanel() {
     if (!partner?.id) return;
     setUploadingDocId(docId);
     try {
-      const ext = file.name.split(".").pop() || "bin";
-      const path = `partners/${partner.id}/${docId}-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
-      if (upErr) throw upErr;
+      const path = `partners/${partner.id}/${docId}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      await uploadStorageFileFast("documents", path, file, true);
       const { error: updErr } = await supabase
         .from("documents")
         .update({ file_path: path, status: "enviado", uploaded_at: new Date().toISOString() })
@@ -237,7 +236,7 @@ export default function PartnerPanel() {
       toast.success("Documento enviado");
       qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
     } catch (e: any) {
-      toast.error(e.message || "Falha ao enviar");
+      toast.error(uploadErrorMessage(e) || "Falha ao enviar");
     } finally {
       setUploadingDocId(null);
     }
@@ -246,9 +245,11 @@ export default function PartnerPanel() {
   const downloadPartnerDoc = async (d: any) => {
     if (!d.file_path) return;
     const filename = d.name || (d.file_path as string).split("/").pop() || "documento";
-    const { data, error } = await supabase.storage.from("documents").createSignedUrl(d.file_path, 300, { download: filename });
-    if (error || !data?.signedUrl) { toast.error(error?.message || "Falha ao baixar"); return; }
-    openDownloadUrl(data.signedUrl, filename);
+    try {
+      await downloadStorageFile("documents", d.file_path, filename);
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao baixar");
+    }
   };
 
 
@@ -352,9 +353,11 @@ export default function PartnerPanel() {
     if (m.external_url) { openDownloadUrl(m.external_url); return; }
     if (!m.file_path) { toast.error("Material sem arquivo anexado"); return; }
     const filename = (m.file_path as string).split("/").pop() || "material";
-    const { data, error } = await supabase.storage.from("partner-materials").createSignedUrl(m.file_path, 300, { download: filename });
-    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir o arquivo"); return; }
-    openDownloadUrl(data.signedUrl, filename);
+    try {
+      await downloadStorageFile("partner-materials", m.file_path, filename);
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível baixar o arquivo");
+    }
   };
 
   // ----- Support tickets -----
@@ -478,11 +481,11 @@ export default function PartnerPanel() {
 
   const downloadContractFile = async (path: string) => {
     const filename = path.split("/").pop() || "contrato";
-    const { data, error } = await supabase.storage
-      .from("partner-contracts")
-      .createSignedUrl(path, 300, { download: filename });
-    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir o arquivo"); return; }
-    openDownloadUrl(data.signedUrl, filename);
+    try {
+      await downloadStorageFile("partner-contracts", path, filename);
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível baixar o arquivo");
+    }
   };
 
   const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");
@@ -665,6 +668,7 @@ export default function PartnerPanel() {
               products={(services as any[]).map((service) => ({ id: service.product_id || service.id, name: service.products?.name || service.custom_product_name || "Serviço" }))}
               getUploadFolder={(req) => req.client_product_id || req.client_id || partner?.id}
               invalidateKeys={[["partner-docs", partner?.id, clientIds.join(","), serviceIds.join(",")]]}
+              hideEmptyState
             />
           </>
         )}
@@ -790,18 +794,14 @@ export default function PartnerPanel() {
                           const f = e.target.files?.[0]; e.target.value = "";
                           if (!f || !contract?.id || !partner?.id) return;
                           try {
-                            const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
-                            assertUploadFile(f);
                             const path = `${partner.id}/${doc.key}_signed-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
-                            const { error: upErr } = await supabase.storage.from("partner-contracts").upload(path, f, { upsert: false });
-                            if (upErr) throw upErr;
+                            await uploadStorageFileFast("partner-contracts", path, f, false);
                             const patch: any = { [doc.dbField]: path, [doc.dbAt]: new Date().toISOString() };
                             const { error } = await (supabase as any).from("partner_contracts").update(patch).eq("id", contract.id);
                             if (error) throw error;
                             toast.success("Arquivo assinado enviado");
                             qc.invalidateQueries({ queryKey: ["partner-contract", partner.id] });
                           } catch (err: any) {
-                            const { uploadErrorMessage } = await import("@/lib/uploads");
                             toast.error(uploadErrorMessage(err) || err.message || "Erro no upload");
                           }
                         }} />

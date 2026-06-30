@@ -7,7 +7,8 @@ import { FileText, Upload, CheckCircle2, Clock, AlertCircle, Download, Loader2, 
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { assertUploadFile, uploadErrorMessage } from "@/lib/uploads";
+import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
+import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,12 +75,14 @@ export function ClientDocumentsTab({
   products,
   getUploadFolder,
   invalidateKeys,
+  hideEmptyState = false,
 }: {
   clientId: string;
   requests: DocRequest[];
   products: Product[];
   getUploadFolder?: (request: DocRequest) => string | null | undefined;
   invalidateKeys?: unknown[][];
+  hideEmptyState?: boolean;
 }) {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -113,13 +116,10 @@ export function ClientDocumentsTab({
   async function handleUpload(req: DocRequest, file: File) {
     try {
       setUploadingId(req.id);
-      assertUploadFile(file);
-      const ext = file.name.split(".").pop() ?? "bin";
       const folder = getUploadFolder?.(req) || clientId;
-      const path = `${folder}/${req.id}/${Date.now()}.${ext}`;
+      const path = `${folder}/${req.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
 
-      const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-      if (upErr) throw upErr;
+      await uploadStorageFileFast("documents", path, file);
 
       const now = new Date().toISOString();
       let updErr: any = null;
@@ -160,29 +160,24 @@ export function ClientDocumentsTab({
   async function handleDownload(req: DocRequest) {
     const path = req.file_path || req.file_url;
     if (!path) return;
-    if (path.startsWith("http")) return window.open(path, "_blank");
-    
-    const { data, error } = await supabase.storage.from("documents").download(path);
-    if (error || !data) return toast.error("Não foi possível acessar o arquivo");
-    
+    if (path.startsWith("http")) return openDownloadUrl(path);
     const ext = path.split(".").pop() || "bin";
     const docName = req.name.replace(/\s+/g, "_");
     const filename = `${docName}.${ext}`;
-    
-    const url = URL.createObjectURL(data);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      await downloadStorageFile("documents", path, filename);
+    } catch (_) {
+      toast.error("Não foi possível acessar o arquivo");
+    }
   }
 
   if (requests.length === 0) {
+    if (hideEmptyState) return null;
     return (
-      <div className="vx-card bg-white rounded-[24px] p-12 text-center border-slate-100">
-        <CheckCircle2 className="size-12 text-emerald-500/30 mx-auto mb-4" />
-        <h3 className="font-editorial text-2xl font-bold text-slate-900">Você está em dia!</h3>
-        <p className="text-muted-foreground mt-2 text-sm">Nenhum documento pendente de envio no momento.</p>
+      <div className="vx-card bg-white rounded-2xl px-6 py-7 text-center border-slate-100">
+        <CheckCircle2 className="size-9 text-emerald-500/30 mx-auto mb-3" />
+        <h3 className="font-editorial text-xl font-bold text-slate-900">Você está em dia!</h3>
+        <p className="text-muted-foreground mt-1 text-sm">Nenhum documento pendente de envio no momento.</p>
       </div>
     );
   }
@@ -194,7 +189,7 @@ export function ClientDocumentsTab({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryCard tone="warning" label="Pendentes" value={totals.pending} icon={Clock} />
         <SummaryCard tone="info" label="Em análise" value={totals.review} icon={Loader2} />
@@ -202,9 +197,9 @@ export function ClientDocumentsTab({
       </div>
 
       {grouped.map(([key, { product, items }]) => (
-        <div key={key} className="vx-card bg-white rounded-[24px] overflow-hidden border-slate-100">
-          <div className="px-6 py-5 border-b border-slate-50 bg-slate-50/30 flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+        <div key={key} className="vx-card bg-white rounded-2xl overflow-hidden border-slate-100">
+          <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/30 flex items-center gap-3">
+            <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               <Package className="size-5" />
             </div>
             <div>
@@ -221,7 +216,7 @@ export function ClientDocumentsTab({
               const isUploading = uploadingId === req.id;
               
               return (
-                <div key={req.id} className="p-6 flex flex-col md:flex-row md:items-center gap-4 hover:bg-slate-50/40 transition-colors">
+                <div key={req.id} className="p-4 flex flex-col md:flex-row md:items-center gap-3 hover:bg-slate-50/40 transition-colors">
                   <div className={cn("size-12 rounded-xl flex items-center justify-center shrink-0", meta.tone, "border")}>
                     <Icon className={cn("size-5", req.status === "enviado" || req.status === "em_analise" ? "animate-spin" : "")} />
                   </div>
@@ -314,13 +309,13 @@ function SummaryCard({ tone, label, value, icon: Icon }: { tone: string; label: 
   };
 
   return (
-    <div className={cn("vx-card p-6 flex items-center gap-4 border transition-all hover:scale-[1.02]", tones[tone])}>
-      <div className="size-10 rounded-xl bg-white/50 flex items-center justify-center shrink-0">
+    <div className={cn("vx-card p-4 flex items-center gap-3 border transition-all hover:scale-[1.01]", tones[tone])}>
+      <div className="size-9 rounded-xl bg-white/50 flex items-center justify-center shrink-0">
         <Icon className="size-5" />
       </div>
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">{label}</p>
-        <p className="text-2xl font-bold font-editorial">{value}</p>
+        <p className="text-xl font-bold font-editorial leading-none mt-1">{value}</p>
       </div>
     </div>
   );
