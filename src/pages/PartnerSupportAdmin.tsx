@@ -10,6 +10,7 @@ import { LifeBuoy, MessageSquare, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { SupportThread } from "@/components/partner-support/SupportThread";
 
 const PAGE_SIZE = 10;
 
