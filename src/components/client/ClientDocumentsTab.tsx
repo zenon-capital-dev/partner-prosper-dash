@@ -88,6 +88,7 @@ export function ClientDocumentsTab({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [confirmReq, setConfirmReq] = useState<DocRequest | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const grouped = useMemo(() => {
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
@@ -154,6 +155,8 @@ export function ClientDocumentsTab({
     } finally {
       setUploadingId(null);
       setConfirmReq(null);
+      setPendingFile(null);
+      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
@@ -263,7 +266,7 @@ export function ClientDocumentsTab({
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file && confirmReq) handleUpload(confirmReq, file);
+                        if (file) setPendingFile(file);
                       }}
                     />
 
@@ -271,7 +274,7 @@ export function ClientDocumentsTab({
                       size="sm"
                       className="rounded-xl bg-slate-900"
                       disabled={isUploading}
-                      onClick={() => setConfirmReq(req)}
+                      onClick={() => { setPendingFile(null); setConfirmReq(req); }}
                     >
                       {isUploading ? <Loader2 className="size-4 animate-spin" /> : req.file_path ? "Atualizar" : "Enviar"}
                     </Button>
@@ -283,17 +286,41 @@ export function ClientDocumentsTab({
         </div>
       ))}
 
-      <AlertDialog open={!!confirmReq} onOpenChange={(o) => !o && setConfirmReq(null)}>
+      <AlertDialog open={!!confirmReq} onOpenChange={(o) => { if (!o) { setConfirmReq(null); setPendingFile(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Enviar Documento</AlertDialogTitle>
             <AlertDialogDescription>
-              Selecione o arquivo para o documento <strong>{confirmReq?.name}</strong>.
+              {pendingFile
+                ? <>Confirme o envio do arquivo para o documento <strong>{confirmReq?.name}</strong>.</>
+                : <>Selecione o arquivo para o documento <strong>{confirmReq?.name}</strong>.</>}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {pendingFile && (
+            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <FileText className="size-5 text-slate-500 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-slate-900 truncate">{pendingFile.name}</p>
+                <p className="text-xs text-slate-500">{(pendingFile.size / 1024).toFixed(0)} KB</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>Trocar</Button>
+            </div>
+          )}
+
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setConfirmReq(null)}>Cancelar</Button>
-            <Button onClick={() => fileRef.current?.click()}>Selecionar Arquivo</Button>
+            <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFile(null); }}>Cancelar</Button>
+            {!pendingFile ? (
+              <Button onClick={() => fileRef.current?.click()}>Selecionar Arquivo</Button>
+            ) : (
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700"
+                disabled={!!uploadingId}
+                onClick={() => { if (confirmReq && pendingFile) handleUpload(confirmReq, pendingFile); }}
+              >
+                {uploadingId ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Enviando...</> : <><Upload className="size-4 mr-1.5" /> Enviar</>}
+              </Button>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
