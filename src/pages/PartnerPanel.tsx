@@ -901,7 +901,7 @@ export default function PartnerPanel() {
             </SectionCard>
 
             <SectionCard title="Observações (opcional)">
-              <Textarea value={contractForm.notes} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} disabled={contractLocked} rows={3} placeholder="Algo que devemos saber ao gerar os contratos?" />
+              <Textarea value={contractForm.notes ?? ""} onChange={(e) => setContractForm({ ...contractForm, notes: e.target.value })} disabled={contractLocked} rows={3} placeholder="Algo que devemos saber ao gerar os contratos?" />
             </SectionCard>
 
             {!contractLocked && (
