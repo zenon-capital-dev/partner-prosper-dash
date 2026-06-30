@@ -1254,3 +1254,51 @@ function Cf({ label, value, onChange, locked, type = "text" }: { label: string; 
     </div>
   );
 }
+
+function PartnerDocHistory({ docId, currentDoc, onDownload }: { docId: string; currentDoc: any; onDownload: (d: any) => void }) {
+  const { data: versions = [], isLoading } = useQuery({
+    queryKey: ["partner-doc-versions", docId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("document_versions")
+        .select("id, version_number, file_path, mime_type, file_size, note, created_at")
+        .eq("document_id", docId)
+        .order("version_number", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  const items: any[] = [];
+  if (currentDoc?.file_path) {
+    items.push({ id: "current", label: "Atual", file_path: currentDoc.file_path, name: currentDoc.name, created_at: currentDoc.uploaded_at, note: null });
+  }
+  for (const v of versions as any[]) {
+    items.push({ id: v.id, label: `v${v.version_number}`, file_path: v.file_path, name: currentDoc.name, created_at: v.created_at, note: v.note });
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-100">
+      <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">Histórico de arquivos</p>
+      {isLoading ? (
+        <p className="text-xs text-slate-400">Carregando…</p>
+      ) : items.length === 0 ? (
+        <p className="text-xs text-slate-400">Nenhum arquivo enviado ainda.</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map((it) => (
+            <li key={it.id} className="flex items-center justify-between gap-2 text-xs">
+              <div className="min-w-0 flex items-center gap-2">
+                <span className="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600">{it.label}</span>
+                <span className="text-slate-500 truncate">{it.created_at ? formatDate(it.created_at) : "—"}{it.note ? ` · ${it.note}` : ""}</span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => onDownload(it)}>
+                <Download className="size-3 mr-1" /> Baixar
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
