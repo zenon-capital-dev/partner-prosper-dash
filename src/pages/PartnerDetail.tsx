@@ -239,16 +239,16 @@ export default function PartnerDetail() {
               <div className="border-t pt-4">
                 <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📤 Enviar originais para o parceiro assinar</p>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <ContractSlot label="Contrato (original)" path={partnerContract?.contract_template_path} uploadedAt={partnerContract?.contract_template_uploaded_at} onPick={(f) => uploadContractFile("contract_template", f)} onDownload={downloadContractFile} />
-                  <ContractSlot label="NDA (original)" path={partnerContract?.nda_template_path} uploadedAt={partnerContract?.nda_template_uploaded_at} onPick={(f) => uploadContractFile("nda_template", f)} onDownload={downloadContractFile} />
+                  <ContractSlot label="Contrato (original)" path={partnerContract?.contract_template_path} uploadedAt={partnerContract?.contract_template_uploaded_at} onPick={(f) => uploadContractFile("contract_template", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("contract_template")} />
+                  <ContractSlot label="NDA (original)" path={partnerContract?.nda_template_path} uploadedAt={partnerContract?.nda_template_uploaded_at} onPick={(f) => uploadContractFile("nda_template", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("nda_template")} />
                 </div>
               </div>
 
               <div className="border-t pt-4">
                 <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📥 Devolução assinada pelo parceiro</p>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <ContractSlot label="Contrato assinado" path={partnerContract?.contract_signed_path} uploadedAt={partnerContract?.contract_uploaded_at} onPick={(f) => uploadContractFile("contract_signed", f)} onDownload={downloadContractFile} signed />
-                  <ContractSlot label="NDA assinado" path={partnerContract?.nda_signed_path} uploadedAt={partnerContract?.nda_uploaded_at} onPick={(f) => uploadContractFile("nda_signed", f)} onDownload={downloadContractFile} signed />
+                  <ContractSlot label="Contrato assinado" path={partnerContract?.contract_signed_path} uploadedAt={partnerContract?.contract_uploaded_at} onPick={(f) => uploadContractFile("contract_signed", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("contract_signed")} signed />
+                  <ContractSlot label="NDA assinado" path={partnerContract?.nda_signed_path} uploadedAt={partnerContract?.nda_uploaded_at} onPick={(f) => uploadContractFile("nda_signed", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("nda_signed")} signed />
                 </div>
               </div>
 
