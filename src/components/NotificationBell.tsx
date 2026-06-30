@@ -34,7 +34,7 @@ export function NotificationBell() {
 
     const connect = () => {
       if (channel || document.hidden) return;
-      const channelName = `notifications-rt-${user.id}-${Date.now()}`;
+      const channelName = `notifications-rt-${user.id}`;
       channel = supabase
         .channel(channelName)
         .on(
