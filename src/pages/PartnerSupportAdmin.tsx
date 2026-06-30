@@ -26,11 +26,13 @@ type Ticket = {
   created_at: string;
 };
 
+type StatusFilter = "pendentes" | "aberto" | "respondido" | "em_andamento" | "fechado" | "all";
+
 export default function PartnerSupportAdmin() {
   const qc = useQueryClient();
   const [active, setActive] = useState<Ticket | null>(null);
   const [response, setResponse] = useState("");
-  const [filter, setFilter] = useState<"all" | "aberto" | "em_andamento" | "fechado">("aberto");
+  const [filter, setFilter] = useState<StatusFilter>("pendentes");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => { setCurrentPage(1); }, [filter]);
@@ -45,7 +47,20 @@ export default function PartnerSupportAdmin() {
     },
   });
 
-  const filtered = (tickets as any[]).filter((t) => filter === "all" || t.status === filter);
+  const isPending = (s: string) => s !== "fechado" && s !== "resolvido";
+  const filtered = (tickets as any[]).filter((t) => {
+    if (filter === "all") return true;
+    if (filter === "pendentes") return isPending(t.status);
+    return t.status === filter;
+  });
+  const counts = {
+    pendentes: (tickets as any[]).filter((t) => isPending(t.status)).length,
+    aberto: (tickets as any[]).filter((t) => t.status === "aberto").length,
+    respondido: (tickets as any[]).filter((t) => t.status === "respondido").length,
+    em_andamento: (tickets as any[]).filter((t) => t.status === "em_andamento").length,
+    fechado: (tickets as any[]).filter((t) => t.status === "fechado" || t.status === "resolvido").length,
+    all: (tickets as any[]).length,
+  };
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
@@ -69,22 +84,48 @@ export default function PartnerSupportAdmin() {
     onError: (e: any) => toast.error(e.message || "Erro"),
   });
 
+  const tabs: { key: StatusFilter; label: string; tone?: string }[] = [
+    { key: "pendentes", label: "Pendentes", tone: "amber" },
+    { key: "aberto", label: "Aberto" },
+    { key: "respondido", label: "Respondido" },
+    { key: "em_andamento", label: "Em andamento" },
+    { key: "fechado", label: "Fechado", tone: "emerald" },
+    { key: "all", label: "Todos" },
+  ];
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <LifeBuoy className="size-6 text-indigo-600" /> Suporte de parceiros
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">Chamados abertos pelos seus parceiros — responda direto por aqui.</p>
-        </div>
-        <div className="flex gap-2">
-          {(["aberto", "em_andamento", "fechado", "all"] as const).map((s) => (
-            <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)} className={cn(filter === s && "bg-indigo-600 hover:bg-indigo-700")}>
-              {s === "all" ? "Todos" : s.replace("_"," ")}
-            </Button>
-          ))}
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <LifeBuoy className="size-6 text-indigo-600" /> Suporte de parceiros
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">Chamados abertos pelos seus parceiros — responda direto por aqui e mantenha a conversa rolando até concluir.</p>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-1.5 border border-slate-200/70 bg-white rounded-lg p-1 shadow-sm w-fit">
+        {tabs.map((t) => {
+          const isActive = filter === t.key;
+          const count = (counts as any)[t.key] ?? 0;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setFilter(t.key)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[12.5px] font-medium transition flex items-center gap-2",
+                isActive ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
+              )}
+            >
+              {t.label}
+              <span className={cn(
+                "text-[10.5px] px-1.5 py-0.5 rounded-full font-semibold",
+                isActive ? "bg-white/20 text-white" :
+                  t.tone === "amber" ? "bg-amber-100 text-amber-700" :
+                  t.tone === "emerald" ? "bg-emerald-100 text-emerald-700" :
+                  "bg-slate-100 text-slate-600"
+              )}>{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm">
@@ -97,22 +138,31 @@ export default function PartnerSupportAdmin() {
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {paginated.map((t: any) => (
-              <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => { setActive(t); setResponse(t.admin_response || ""); }}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-slate-900">{t.subject}</p>
-                      <Badge variant="outline" className={cn("text-[10px] capitalize", t.priority === "alta" && "border-red-200 text-red-700 bg-red-50")}>{t.priority}</Badge>
+            {paginated.map((t: any) => {
+              const statusTone = t.status === "fechado" || t.status === "resolvido"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : t.status === "respondido"
+                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                  : t.status === "em_andamento"
+                    ? "bg-violet-50 text-violet-700 border-violet-200"
+                    : "bg-amber-50 text-amber-700 border-amber-200";
+              return (
+                <li key={t.id} className="p-4 hover:bg-slate-50/40 cursor-pointer" onClick={() => { setActive(t); setResponse(t.admin_response || ""); }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-slate-900">{t.subject}</p>
+                        <Badge variant="outline" className={cn("text-[10px] capitalize", t.priority === "alta" && "border-red-200 text-red-700 bg-red-50")}>{t.priority}</Badge>
+                      </div>
+                      <p className="text-[12px] text-slate-500">{t.partners?.full_name} · {t.partners?.email}</p>
+                      <p className="text-[12.5px] text-slate-600 mt-1 line-clamp-2">{t.message}</p>
+                      <p className="text-[10.5px] text-slate-400 mt-1">{formatDate(t.created_at)}</p>
                     </div>
-                    <p className="text-[12px] text-slate-500">{t.partners?.full_name} · {t.partners?.email}</p>
-                    <p className="text-[12.5px] text-slate-600 mt-1 line-clamp-2">{t.message}</p>
-                    <p className="text-[10.5px] text-slate-400 mt-1">{formatDate(t.created_at)}</p>
+                    <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", statusTone)}>{(t.status || "aberto").replace("_"," ")}</Badge>
                   </div>
-                  <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : (t.status === "fechado" || t.status === "resolvido") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200")}>{(t.status || "aberto").replace("_"," ")}</Badge>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
         <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
