@@ -11,6 +11,7 @@ import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyR
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { toast } from "sonner";
 import { openDownloadUrl } from "@/lib/download";
+import { confirmAction } from "@/lib/confirm";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { formatBRL } from "@/lib/format";
 
