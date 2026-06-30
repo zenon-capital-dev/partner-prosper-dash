@@ -214,7 +214,7 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("documents")
-        .select("id, name, status, description, due_date, file_path, uploaded_at, created_at, rejection_reason")
+        .select("id, name, status, description, due_date, file_path, file_size, mime_type, uploaded_at, created_at, rejection_reason")
         .eq("partner_id", partner!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
