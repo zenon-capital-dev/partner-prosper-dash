@@ -1,77 +1,38 @@
-## Auditoria + finalização dos 15 pontos
+## Auditoria dos 9 pontos do painel parceiro + ajustes globais
 
-A maior parte (1–5, 7, 9–15) já foi entregue em sprints anteriores. Este plano: (a) audita o que está vivo, (b) fecha os 3 gaps reais que sobraram, (c) faz checagem 100% antes de devolver.
+### 1. Materiais — botão Baixar não baixa (print 1)
+`src/pages/PartnerPanel.tsx` (aba Materiais) — botão chama `window.open` direto da URL do storage. Trocar pelo `downloadFile()` de `src/lib/download.ts` (mesmo helper já usado nos contratos) para forçar `Content-Disposition: attachment`. Aplicar também em qualquer outro botão "Baixar" do painel parceiro (extratos, comissões, contratos, documentos do cliente).
 
-### Status atual de cada ponto
+### 2. Contratos parceiro — área para assinar (prints 2 e 5)
+`src/pages/PartnerPanel.tsx` aba Contratos hoje só mostra "Aguardando envio pela nossa equipe". Vou ler `partner_contracts` (campos `signed_contract_url`, `signed_nda_url`, `contract_file_url`, `nda_file_url`) e renderizar:
+- Quando admin enviou o original → botão **Baixar original** + bloco **Enviar assinado** (upload p/ bucket `partner-contracts`, grava `signed_*_url`).
+- Quando parceiro já enviou assinado → status "Enviado para análise" + botão baixar a versão assinada + permitir reenvio.
+- Status sincronizado com print 5 (já existe parcialmente, mas falta o input de upload).
 
-| # | Tema | Estado | Ação |
-|---|------|--------|------|
-| 01 | Painel de metas comercial | ✅ Pronto (`/sales-goals` + `GoalsPanel` no Dashboard) | Verificar |
-| 02 | Caixinhas Zenon/Escritório/Funcionários | ✅ Pronto (`/caixinhas` + presets) | Verificar |
-| 03 | Upload de doc no acesso do cliente (Email/WhatsApp) | ✅ Pronto (`source` em `ClientDocuments`) | Verificar |
-| 04 | Compartilhar demanda anônima com prestadores | ✅ Pronto (`demand_shares` + `DemandShareDialog`) | Verificar |
-| 05 | Acesso só-meu (super admin) | ✅ Pronto (role `super_admin` + guard em `/usuarios`) | Verificar |
-| **06** | **Notificações por e-mail** | ❌ **GAP — só notifica in-app hoje** | **Implementar** |
-| 07 | Agenda no parceiro comercial | ✅ Pronto (`PartnerPanel` aba Agenda) | Verificar |
-| **08** | **Acessos não se conversam (prestador/parceiro/cliente)** | ⚠️ **Parcial — falta hub unificado de demanda** | **Implementar** |
-| 09 | Prestador solicita doc/info ao cliente sem aprovação | ✅ Pronto (`RequestDocumentDialog` + `demand_requests`) | Verificar |
-| 10 | Esteira de atendimento | ✅ Pronto (`/esteira` Kanban + conversão lead→cliente) | Verificar |
-| 11 | Receita mensal vs na cabeça + vigência | ✅ Pronto (`revenue_type`, parcelas MRR, mapa empilhado) | Verificar |
-| 12 | Ações à esquerda do status em Vendas | ✅ Pronto | Verificar |
-| 13 | Painel de metas no Dash + status "Fechado" | ✅ Pronto (`GoalsPanel` + `is_closed` automático) | Verificar |
-| 14 | Venda só conta quando finalizada | ✅ Pronto (`closed_at` + trigger) | Verificar |
-| 15 | Caixinha de projetos com valor arrecadado | ✅ Pronto (`project_id` em vendas + trigger de crédito) | Verificar |
+### 3. Abrir chamado de suporte erro "Parceiro não encontrado" (print 3)
+`src/pages/PartnerPanel.tsx` linha 319/396 lança esse erro quando o `partner` da query inicial não foi carregado ainda (ou quando o registro em `partners` não está ligado ao `auth.uid()`). Corrigir:
+- Resolver o `partner_id` via `partners.user_id = auth.uid()` antes do submit (await direto, não depender de cache).
+- Se realmente não houver registro, criar fallback claro (ticket fica com `partner_id = null` + `created_by_user_id`) ou exibir erro amigável com instruções, não toast genérico.
 
-### Gaps a fechar nesta entrega
+### 4. Rota da solicitação Zenon → Parceiro (print 4 e 6)
+Hoje o dialog "Nova solicitação de documento" só tem destinatários Cliente/Colab/Prestador. Falta **Parceiro**. Em `DocumentDialog` (Central de Documentos):
+- Adicionar 4ª aba "Parceiro" no seletor de destinatário, com combo de parceiros.
+- Gravar `document_requests` com `partner_id` (criar coluna se não existir; verificar schema).
+- Parceiro vê em `PartnerPanel` aba Documentos — adicionar listagem + upload.
+- Corrigir também por que a solicitação para Cliente não chegou (print 6): provavelmente filtragem por `client_id` ↔ `clients.user_id` no portal do cliente está quebrada. Auditar query do `ClientPanel` aba documentos e RLS de `document_requests` para `auth.uid() = clients.user_id`.
 
-**Gap 1 — Ponto 06: notificações por e-mail**
-- Recomendar **Lovable Emails** (built-in) ou usar conector **Resend** (workspace já pode estar conectado).
-- Criar edge function `send-email-notification` que dispara quando uma `notifications` é inserida (trigger `pg_net` → função).
-- Tabela `email_preferences` por usuário com toggle por tipo (demand_request, document, contract, sale, lead, commission, task).
-- Tela em **Configurações → Notificações** para o usuário ligar/desligar canais.
-- Template HTML base com logo/título/CTA → link interno.
+### 5. Parceiro Documentos — sem onde anexar (print 5/parceiro)
+Em `PartnerPanel.tsx` aba "Documentos dos clientes" hoje só lista. Adicionar:
+- Bloco "Meus documentos solicitados" (lista de `document_requests` direcionadas a este parceiro) com botão **Enviar arquivo** (upload para `documents` bucket + atualiza request para `enviado`).
 
-**Gap 2 — Ponto 08: hub unificado de demanda**
-- Criar componente `DemandHub` reutilizável que aparece em 3 painéis (cliente, parceiro, prestador) mostrando **a mesma timeline** da demanda: comentários (`demand_comments`), pedidos (`demand_requests`), docs (`documents`), status reports.
-- No painel do cliente: aba "Minhas Demandas" → ao abrir, ver tudo num feed só, com identidade dos participantes mascarada conforme `demand_shares` (prestadores anônimos entre si).
-- Reaproveita as tabelas que já existem; é um agregador de UI, não schema novo.
+### 6. Aba Zenon (admin Central Documentos) — layout + opção Parceiro + erro upload do cliente (prints 7 e 8)
+- `DocumentDialog`: redesenhar o seletor de destinatário (4 cards limpos: Cliente, Colab, Prestador, Parceiro com ícone + descrição) e melhorar densidade do form (grid 2-col, espaçamento, cards agrupados "Destinatário / Documento / Prazo / Arquivo").
+- Corrigir erro de upload na aba Clientes (print 8): provavelmente path do storage usa `client.id` mas RLS espera `clients.user_id`. Verificar `client_document_requests` upload em `ClientDocumentsTab` e ajustar path/policy.
 
-**Gap 3 — Verificação 100%**
-- Rodar `supabase--linter` para erros de segurança/schema.
-- Smoke test via Playwright headless: login admin, abrir `/dashboard`, `/esteira`, `/caixinhas`, `/sales-goals`, `/financeiro` (Mapa), `/vendas` com filtro MRR, criar uma venda recorrente com projeto vinculado, e capturar screenshots.
-- Checar TS via `tsgo` automático no build.
-- Listar warnings residuais conhecidos (Supabase: HIBP/OTP) que dependem de toggle do usuário.
+### 7. Editar Venda — receita mensal não aparece + layout (print 9)
+`src/components/sales/SaleFormDialog.tsx`:
+- O toggle Avulso/Recorrente existe (linha 562/576) mas só aparece em modo criação; verificar condição e habilitar também na edição (`if (sale) form.revenue_type` é carregado mas o bloco visual pode estar oculto por flag). Garantir que aparece sempre.
+- Refinar o layout do form: cabeçalho com Bruto/Líquido fica desalinhado, grid de campos com colunas desbalanceadas. Alinhar com `grid-cols-2` consistente, padding uniforme, separar seções com `Card` + título único, mover campo "Meses de recorrência" para logo abaixo do toggle.
 
-### Detalhes técnicos (Gap 1 — e-mail)
-
-```text
-notifications INSERT
-   └─ trigger pg_net → POST edge fn /send-email-notification
-                              ├─ checa email_preferences[user_id][type]
-                              ├─ busca auth.users.email
-                              └─ Resend gateway: from=Zenon <no-reply@…>, html template
-```
-
-Tabelas:
-- `email_preferences(user_id PK, demand_request bool, document bool, contract bool, sale bool, lead bool, commission bool, task bool, marketing bool default false)` — defaults `true` exceto marketing.
-
-Edge function: `supabase/functions/send-email-notification/index.ts` usando o conector Resend (gateway Lovable).
-
-### Detalhes técnicos (Gap 2 — hub)
-
-- `src/components/demands/DemandHub.tsx`: props `{ clientProductId, viewerRole }`.
-- Tabs internas: **Conversa** (comments+requests intercalados por data), **Documentos**, **Status**, **Participantes** (mascarado se viewerRole=prestador e share anônimo).
-- Embutir em: `ClientPanel` (já tem demandas), `PartnerPanel`, `ProviderPanel` aba "Atuação", `ClientDetail` (admin vê tudo cru).
-
-### Saída esperada
-
-- 2 migrações novas (email_preferences + trigger pg_net opcional).
-- 1 edge function nova.
-- 1 componente novo + 4 integrações.
-- Screenshots de smoke test anexados na resposta.
-- Lista final do que ficou 100% e do que depende de ação do usuário (ex: conectar Resend, ativar HIBP).
-
-### Confirmações necessárias antes de implementar
-
-1. **E-mail (ponto 06):** posso usar **Resend** via conector Lovable? (alternativa: Lovable Emails built-in). Se sim, o domínio `from` será `onboarding@resend.dev` até você verificar domínio próprio.
-2. **Hub de demanda (ponto 08):** ok manter as 3 abas existentes e só adicionar o `DemandHub` como aba "Visão unificada", ou prefere substituir as abas atuais pelo hub?
+### Entrega
+Implementação direta após aprovação, em um único passe, sem migrações arriscadas (apenas verificar/ajustar RLS de `document_requests` se necessário e potencialmente adicionar coluna `partner_id` em `document_requests` se ainda não existir).

@@ -86,10 +86,19 @@ export default function PartnerPanel() {
       if (!data && user?.email) {
         const { data: be } = await supabase.from("partners").select("*").ilike("email", user.email).maybeSingle();
         data = be;
+        // best-effort self-link so future queries hit by user_id
+        if (data && !data.user_id) {
+          try {
+            await supabase.from("partners").update({ user_id: user!.id }).eq("id", data.id);
+            data.user_id = user!.id;
+          } catch (_) { /* ignore */ }
+        }
       }
       return data;
     },
+    staleTime: 60_000,
   });
+
 
   const showProductName: boolean = !!(partner as any)?.show_product_name;
 
@@ -195,6 +204,53 @@ export default function PartnerPanel() {
     },
     staleTime: 2 * 60_000,
   });
+
+  // Documents addressed TO this partner (by admin)
+  const { data: myDocs = [] } = useQuery({
+    queryKey: ["partner-mydocs", partner?.id],
+    enabled: !!partner?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("documents")
+        .select("id, name, status, description, due_date, file_path, uploaded_at, created_at, rejection_reason")
+        .eq("partner_id", partner!.id)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
+  const uploadPartnerDoc = async (docId: string, file: File) => {
+    if (!partner?.id) return;
+    setUploadingDocId(docId);
+    try {
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `partners/${partner.id}/${docId}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { error: updErr } = await supabase
+        .from("documents")
+        .update({ file_path: path, status: "enviado", uploaded_at: new Date().toISOString() })
+        .eq("id", docId);
+      if (updErr) throw updErr;
+      toast.success("Documento enviado");
+      qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
+    } catch (e: any) {
+      toast.error(e.message || "Falha ao enviar");
+    } finally {
+      setUploadingDocId(null);
+    }
+  };
+
+  const downloadPartnerDoc = async (d: any) => {
+    if (!d.file_path) return;
+    const filename = d.name || (d.file_path as string).split("/").pop() || "documento";
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(d.file_path, 300, { download: filename });
+    if (error || !data?.signedUrl) { toast.error(error?.message || "Falha ao baixar"); return; }
+    openDownloadUrl(data.signedUrl, filename);
+  };
+
 
   const { data: commissions = [] } = useQuery({
     queryKey: ["partner-commissions", partner?.id],
@@ -560,6 +616,49 @@ export default function PartnerPanel() {
               { label: "Aprovados", value: (documents as any[]).filter((d) => d.status === "aprovado").length },
               { label: "Clientes", value: clients.length },
             ]} />
+
+            <SectionCard title="Meus documentos solicitados" subtitle="Documentos que a equipe pediu para você enviar.">
+              {(myDocs as any[]).length === 0 ? (
+                <EmptyState icon={FileText} title="Nenhum documento pendente" description="Quando a equipe solicitar um documento, ele aparecerá aqui." />
+              ) : (
+                <div className="space-y-2">
+                  {(myDocs as any[]).map((d) => {
+                    const sent = !!d.file_path;
+                    const statusTone = d.status === "aprovado" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : d.status === "reprovado" ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : sent ? "bg-sky-50 text-sky-700 border-sky-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200";
+                    return (
+                      <div key={d.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-sm truncate">{d.name}</p>
+                            <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", statusTone)}>{d.status}</span>
+                          </div>
+                          {d.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{d.description}</p>}
+                          {d.due_date && <p className="text-[11px] text-slate-400 mt-0.5">Prazo: {formatDate(d.due_date)}</p>}
+                          {d.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">Motivo: {d.rejection_reason}</p>}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {sent && (
+                            <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => downloadPartnerDoc(d)}>
+                              <Download className="size-3 mr-1" /> Baixar
+                            </Button>
+                          )}
+                          <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
+                            <Upload className="size-3 mr-1" />
+                            {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir" : "Enviar"}
+                            <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f); e.target.value = ""; }} />
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </SectionCard>
+
+
             <ClientDocumentsTab
               clientId={partner?.id || "partner"}
               requests={documents as any[]}

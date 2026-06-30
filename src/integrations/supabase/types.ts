@@ -2570,6 +2570,7 @@ export type Database = {
           is_required: boolean
           mime_type: string | null
           name: string
+          partner_id: string | null
           priority: string | null
           product_id: string | null
           provider_id: string | null
@@ -2600,6 +2601,7 @@ export type Database = {
           is_required?: boolean
           mime_type?: string | null
           name: string
+          partner_id?: string | null
           priority?: string | null
           product_id?: string | null
           provider_id?: string | null
@@ -2630,6 +2632,7 @@ export type Database = {
           is_required?: boolean
           mime_type?: string | null
           name?: string
+          partner_id?: string | null
           priority?: string | null
           product_id?: string | null
           provider_id?: string | null
@@ -2671,6 +2674,13 @@ export type Database = {
             columns: ["collaborator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
           {

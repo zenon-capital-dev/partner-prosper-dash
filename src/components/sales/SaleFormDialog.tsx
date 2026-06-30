@@ -554,7 +554,7 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
             {/* Sidebar de Informações Adicionais */}
             <div className="lg:col-span-5 space-y-6">
 
-              {!form.id && (
+              {(
                 <Section icon={Calendar} title="Tipo de Receita — escolha primeiro" hint="Define como o faturamento entra no cronograma (MRR x Pontual)">
                   <div className="grid grid-cols-2 gap-2">
                     <button
