@@ -667,30 +667,55 @@ export default function PartnerPanel() {
               </div>
             )}
 
-            <SectionCard title="Documentos assinados" icon={FileCheck2}>
+            <SectionCard title="📥 Contratos enviados pela equipe" icon={Download}>
+              <p className="text-[12px] text-slate-500 mb-3">Baixe, assine e devolva os arquivos abaixo. Após enviar o assinado, nossa equipe confirma.</p>
               <div className="grid sm:grid-cols-2 gap-3">
-                <div className="border border-slate-200 rounded-lg p-4 bg-white">
-                  <p className="text-[12px] font-bold text-slate-800 mb-2">Contrato de Parceria</p>
-                  {contract?.contract_signed_path ? (
-                    <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadContractFile(contract.contract_signed_path)}>
-                      <Download className="size-3.5" /> Baixar contrato assinado
-                    </Button>
-                  ) : <p className="text-[12px] text-slate-500">Aguardando envio pela nossa equipe.</p>}
-                  {contract?.contract_uploaded_at && (
-                    <p className="text-[10.5px] text-slate-400 mt-2">Disponível desde {formatDate(contract.contract_uploaded_at)}</p>
-                  )}
-                </div>
-                <div className="border border-slate-200 rounded-lg p-4 bg-white">
-                  <p className="text-[12px] font-bold text-slate-800 mb-2">NDA — Confidencialidade</p>
-                  {contract?.nda_signed_path ? (
-                    <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadContractFile(contract.nda_signed_path)}>
-                      <Download className="size-3.5" /> Baixar NDA assinado
-                    </Button>
-                  ) : <p className="text-[12px] text-slate-500">Aguardando envio pela nossa equipe.</p>}
-                  {contract?.nda_uploaded_at && (
-                    <p className="text-[10.5px] text-slate-400 mt-2">Disponível desde {formatDate(contract.nda_uploaded_at)}</p>
-                  )}
-                </div>
+                {[
+                  { key: "contract", label: "Contrato de Parceria", tplPath: contract?.contract_template_path, tplAt: contract?.contract_template_uploaded_at, signedPath: contract?.contract_signed_path, signedAt: contract?.contract_uploaded_at, dbField: "contract_signed_path", dbAt: "contract_uploaded_at" },
+                  { key: "nda", label: "NDA — Confidencialidade", tplPath: contract?.nda_template_path, tplAt: contract?.nda_template_uploaded_at, signedPath: contract?.nda_signed_path, signedAt: contract?.nda_uploaded_at, dbField: "nda_signed_path", dbAt: "nda_uploaded_at" },
+                ].map((doc) => (
+                  <div key={doc.key} className="border border-slate-200 rounded-lg p-4 bg-white space-y-2">
+                    <p className="text-[12px] font-bold text-slate-800">{doc.label}</p>
+                    {doc.tplPath ? (
+                      <Button size="sm" variant="outline" className="gap-2 w-full" onClick={() => downloadContractFile(doc.tplPath)}>
+                        <Download className="size-3.5" /> Baixar original p/ assinar
+                      </Button>
+                    ) : <p className="text-[11.5px] text-slate-500">Aguardando envio do original pela nossa equipe.</p>}
+                    {doc.tplPath && (
+                      <label className="cursor-pointer inline-flex items-center justify-center gap-2 w-full h-9 rounded border border-dashed border-indigo-300 text-[12px] text-indigo-700 hover:bg-indigo-50">
+                        <Upload className="size-3.5" /> {doc.signedPath ? "Substituir assinado" : "Enviar assinado"}
+                        <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={async (e) => {
+                          const f = e.target.files?.[0]; e.target.value = "";
+                          if (!f || !contract?.id || !partner?.id) return;
+                          try {
+                            const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
+                            assertUploadFile(f);
+                            const path = `${partner.id}/${doc.key}_signed-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
+                            const { error: upErr } = await supabase.storage.from("partner-contracts").upload(path, f, { upsert: false });
+                            if (upErr) throw upErr;
+                            const patch: any = { [doc.dbField]: path, [doc.dbAt]: new Date().toISOString() };
+                            const { error } = await (supabase as any).from("partner_contracts").update(patch).eq("id", contract.id);
+                            if (error) throw error;
+                            toast.success("Arquivo assinado enviado");
+                            qc.invalidateQueries({ queryKey: ["partner-contract", partner.id] });
+                          } catch (err: any) {
+                            const { uploadErrorMessage } = await import("@/lib/uploads");
+                            toast.error(uploadErrorMessage(err) || err.message || "Erro no upload");
+                          }
+                        }} />
+                      </label>
+                    )}
+                    {doc.signedPath && (
+                      <div className="pt-2 border-t border-slate-100 space-y-1">
+                        <p className="text-[10.5px] uppercase tracking-wider font-semibold text-emerald-700">✓ Você enviou assinado</p>
+                        <Button size="sm" variant="ghost" className="gap-2 w-full text-[11.5px]" onClick={() => downloadContractFile(doc.signedPath)}>
+                          <Download className="size-3.5" /> Baixar seu envio
+                        </Button>
+                        {doc.signedAt && <p className="text-[10.5px] text-slate-400">Enviado em {formatDate(doc.signedAt)}</p>}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </SectionCard>
 

@@ -3307,6 +3307,8 @@ export type Database = {
           company_cnpj: string | null
           company_name: string | null
           contract_signed_path: string | null
+          contract_template_path: string | null
+          contract_template_uploaded_at: string | null
           contract_uploaded_at: string | null
           cpf: string | null
           created_at: string
@@ -3320,6 +3322,8 @@ export type Database = {
           marital_status: string | null
           nationality: string | null
           nda_signed_path: string | null
+          nda_template_path: string | null
+          nda_template_uploaded_at: string | null
           nda_uploaded_at: string | null
           notes: string | null
           partner_id: string
@@ -3351,6 +3355,8 @@ export type Database = {
           company_cnpj?: string | null
           company_name?: string | null
           contract_signed_path?: string | null
+          contract_template_path?: string | null
+          contract_template_uploaded_at?: string | null
           contract_uploaded_at?: string | null
           cpf?: string | null
           created_at?: string
@@ -3364,6 +3370,8 @@ export type Database = {
           marital_status?: string | null
           nationality?: string | null
           nda_signed_path?: string | null
+          nda_template_path?: string | null
+          nda_template_uploaded_at?: string | null
           nda_uploaded_at?: string | null
           notes?: string | null
           partner_id: string
@@ -3395,6 +3403,8 @@ export type Database = {
           company_cnpj?: string | null
           company_name?: string | null
           contract_signed_path?: string | null
+          contract_template_path?: string | null
+          contract_template_uploaded_at?: string | null
           contract_uploaded_at?: string | null
           cpf?: string | null
           created_at?: string
@@ -3408,6 +3418,8 @@ export type Database = {
           marital_status?: string | null
           nationality?: string | null
           nda_signed_path?: string | null
+          nda_template_path?: string | null
+          nda_template_uploaded_at?: string | null
           nda_uploaded_at?: string | null
           notes?: string | null
           partner_id?: string
@@ -3526,6 +3538,56 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_performance_by_product"
             referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      partner_support_tickets: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          id: string
+          message: string
+          partner_id: string
+          priority: string
+          responded_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          partner_id: string
+          priority?: string
+          responded_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          partner_id?: string
+          priority?: string
+          responded_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_support_tickets_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
           },
         ]
       }

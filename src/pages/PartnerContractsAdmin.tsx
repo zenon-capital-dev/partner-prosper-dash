@@ -56,19 +56,24 @@ export default function PartnerContractsAdmin() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const uploadSigned = async (row: any, kind: "contract" | "nda", file: File) => {
+  const uploadFile = async (row: any, slot: "contract_template" | "nda_template" | "contract_signed" | "nda_signed", file: File) => {
     try {
       assertUploadFile(file);
-      const path = `${row.partner_id}/${kind}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      const path = `${row.partner_id}/${slot}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("partner-contracts").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
-      const patch: any = kind === "contract"
-        ? { contract_signed_path: path, contract_uploaded_at: new Date().toISOString() }
-        : { nda_signed_path: path, nda_uploaded_at: new Date().toISOString() };
+      const now = new Date().toISOString();
+      const patch: any = {
+        contract_template: { contract_template_path: path, contract_template_uploaded_at: now },
+        nda_template: { nda_template_path: path, nda_template_uploaded_at: now },
+        contract_signed: { contract_signed_path: path, contract_uploaded_at: now },
+        nda_signed: { nda_signed_path: path, nda_uploaded_at: now },
+      }[slot];
       const { error } = await (supabase as any).from("partner_contracts").update(patch).eq("id", row.id);
       if (error) throw error;
       toast.success("Arquivo enviado");
       qc.invalidateQueries({ queryKey: ["admin-partner-contracts"] });
+      setSelected((s: any) => s ? { ...s, ...patch } : s);
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) || "Erro no upload");
     }
@@ -200,9 +205,21 @@ export default function PartnerContractsAdmin() {
                   </div>
                 )}
 
-                <div className="border-t pt-4 grid sm:grid-cols-2 gap-4">
-                  <UploadSlot label="Contrato de Parceria assinado" path={selected.contract_signed_path} onPick={(f) => uploadSigned(selected, "contract", f)} onDownload={downloadFile} />
-                  <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onPick={(f) => uploadSigned(selected, "nda", f)} onDownload={downloadFile} />
+                <div className="border-t pt-4 space-y-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📤 Enviar originais para o parceiro assinar</p>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <UploadSlot label="Contrato (original p/ assinar)" path={selected.contract_template_path} onPick={(f) => uploadFile(selected, "contract_template", f)} onDownload={downloadFile} />
+                      <UploadSlot label="NDA (original p/ assinar)" path={selected.nda_template_path} onPick={(f) => uploadFile(selected, "nda_template", f)} onDownload={downloadFile} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📥 Arquivos assinados pelo parceiro</p>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <UploadSlot label="Contrato assinado" path={selected.contract_signed_path} onPick={(f) => uploadFile(selected, "contract_signed", f)} onDownload={downloadFile} />
+                      <UploadSlot label="NDA assinado" path={selected.nda_signed_path} onPick={(f) => uploadFile(selected, "nda_signed", f)} onDownload={downloadFile} />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="border-t pt-4 space-y-3">
