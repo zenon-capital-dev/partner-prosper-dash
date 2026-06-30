@@ -693,29 +693,45 @@ export default function PartnerPanel() {
                       : d.status === "reprovado" ? "bg-rose-50 text-rose-700 border-rose-200"
                       : sent ? "bg-sky-50 text-sky-700 border-sky-200"
                       : "bg-amber-50 text-amber-700 border-amber-200";
+                    const approved = d.status === "aprovado";
+                    const isHistoryOpen = openHistoryId === d.id;
                     return (
-                      <div key={d.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-sm truncate">{d.name}</p>
-                            <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", statusTone)}>{d.status}</span>
+                      <div key={d.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm truncate">{d.name}</p>
+                              <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", statusTone)}>{d.status}</span>
+                            </div>
+                            {d.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{d.description}</p>}
+                            {d.due_date && <p className="text-[11px] text-slate-400 mt-0.5">Prazo: {formatDate(d.due_date)}</p>}
+                            {d.uploaded_at && <p className="text-[11px] text-slate-400 mt-0.5">Último envio: {formatDate(d.uploaded_at)}</p>}
+                            {d.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">Motivo: {d.rejection_reason}</p>}
                           </div>
-                          {d.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{d.description}</p>}
-                          {d.due_date && <p className="text-[11px] text-slate-400 mt-0.5">Prazo: {formatDate(d.due_date)}</p>}
-                          {d.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">Motivo: {d.rejection_reason}</p>}
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {sent && (
-                            <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => downloadPartnerDoc(d)}>
-                              <Download className="size-3 mr-1" /> Baixar
+                          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                            {sent && (
+                              <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => downloadPartnerDoc(d)}>
+                                <Download className="size-3 mr-1" /> Baixar último
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" className="h-8 text-[11px]" onClick={() => setOpenHistoryId(isHistoryOpen ? null : d.id)}>
+                              <Clock className="size-3 mr-1" /> Histórico
                             </Button>
-                          )}
-                          <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
-                            <Upload className="size-3 mr-1" />
-                            {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir" : "Enviar"}
-                            <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f); e.target.value = ""; }} />
-                          </label>
+                            {sent && !approved && (
+                              <Button size="sm" variant="outline" className="h-8 text-[11px] text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => removePartnerDoc(d)}>
+                                Remover
+                              </Button>
+                            )}
+                            {!approved && (
+                              <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
+                                <Upload className="size-3 mr-1" />
+                                {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir" : "Enviar"}
+                                <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f, d); e.target.value = ""; }} />
+                              </label>
+                            )}
+                          </div>
                         </div>
+                        {isHistoryOpen && <PartnerDocHistory docId={d.id} currentDoc={d} onDownload={downloadPartnerDoc} />}
                       </div>
                     );
                   })}
