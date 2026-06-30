@@ -30,16 +30,8 @@ export function DemandShareDialog({ open, onOpenChange, clientProductId }: Props
   const [message, setMessage] = useState("");
   const [canDownload, setCanDownload] = useState(true);
 
-  const { data: providers = [] } = useQuery({
-    queryKey: ["share_providers"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).from("service_providers")
-        .select("id, name, company_name, specialty").order("name");
-      if (error) throw error;
-      return data ?? [];
-    },
-    enabled: open,
-  });
+  const { data: providers = [] } = useProvidersRef(open);
+
 
   const { data: shares = [] } = useQuery({
     queryKey: ["demand_shares", clientProductId],
