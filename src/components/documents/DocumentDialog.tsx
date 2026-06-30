@@ -222,10 +222,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       uploaded_at,
     };
 
-    if (recipientType === "client") payload.client_id = selectedRecipientId;
-    else if (recipientType === "collaborator") payload.collaborator_id = selectedRecipientId;
-    else if (recipientType === "provider") payload.provider_id = selectedRecipientId;
-    else if (recipientType === "partner") payload.partner_id = selectedRecipientId;
+    // Set the correct recipient FK and clear the others to keep the binding consistent
+    payload.client_id = recipientType === "client" ? selectedRecipientId : null;
+    payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
+    payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
+    payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
 
     const { error } = editDoc
       ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
