@@ -361,20 +361,25 @@ function Field({ label, value }: { label: string; value: any }) {
   );
 }
 
-function ContractSlot({ label, path, uploadedAt, onPick, onDownload, signed }: { label: string; path?: string | null; uploadedAt?: string | null; onPick: (f: File) => void; onDownload: (p: string) => void; signed?: boolean }) {
+function ContractSlot({ label, path, uploadedAt, onPick, onDownload, onDelete, signed }: { label: string; path?: string | null; uploadedAt?: string | null; onPick: (f: File) => void; onDownload: (p: string) => void; onDelete?: () => void; signed?: boolean }) {
   return (
     <div className={`border rounded-lg p-3 ${path ? (signed ? "bg-emerald-50/40 border-emerald-200" : "bg-indigo-50/40 border-indigo-200") : "bg-slate-50/40 border-slate-200"}`}>
       <p className="text-[12px] font-bold text-slate-800 mb-2">{label}</p>
       {path ? (
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <button onClick={() => onDownload(path)} className="inline-flex items-center gap-1.5 text-emerald-700 text-[12.5px] hover:underline font-medium">
               <Download className="size-3.5" /> Baixar
             </button>
-            <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
-              Substituir
-              <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
-            </label>
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
+                Substituir
+                <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
+              </label>
+              {onDelete && (
+                <button onClick={onDelete} className="text-[11.5px] text-rose-600 hover:underline">Excluir</button>
+              )}
+            </div>
           </div>
           {uploadedAt && <p className="text-[10.5px] text-slate-500">Enviado em {format(new Date(uploadedAt), "dd/MM/yyyy HH:mm")}</p>}
         </div>
