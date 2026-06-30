@@ -215,7 +215,45 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
         if (error) throw error;
-        toast.success("Venda atualizada com sucesso");
+
+        // Regenerar parcelas pendentes se o usuário pediu
+        if (form.regenerate_payments) {
+          const addMonths = (iso: string, m: number) => {
+            const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
+            const dt = new Date(Date.UTC(y, mo - 1 + m, d));
+            return dt.toISOString().slice(0, 10);
+          };
+          // Apaga apenas as parcelas ainda pendentes desta venda
+          await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
+          let rows: any[] = [];
+          if (isRecurring) {
+            const months = payload.recurrence_months as number;
+            const monthly = Number(form.amount);
+            rows = Array.from({ length: months }, (_, i) => ({
+              sale_id: form.id, client_id: form.client_id, product_id: form.product_id,
+              amount: monthly, due_date: addMonths(recurrenceStart, i), status: "pendente" as any,
+              installments_count: months, installment_number: i + 1,
+              description: `Mensalidade ${i + 1}/${months}`,
+            }));
+          } else {
+            const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
+            const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
+            const totalCents = Math.round(Number(form.amount) * 100);
+            const baseCents = Math.floor(totalCents / n);
+            const remainder = totalCents - baseCents * n;
+            rows = Array.from({ length: n }, (_, i) => ({
+              sale_id: form.id, client_id: form.client_id, product_id: form.product_id,
+              amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
+              due_date: addMonths(baseDate, i), status: "pendente" as any,
+              installments_count: n, installment_number: i + 1,
+              description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
+            }));
+          }
+          if (rows.length) await supabase.from("payments").insert(rows);
+          toast.success(`Venda atualizada — ${rows.length} parcela(s) regenerada(s)`);
+        } else {
+          toast.success("Venda atualizada com sucesso");
+        }
       } else {
         const { data: newSale, error } = await supabase.from("sales").insert({
           ...payload,
