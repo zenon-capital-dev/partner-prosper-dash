@@ -362,7 +362,91 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         {/* Body com Scroll Suave */}
         <div className="px-6 sm:px-8 py-6 flex-1 overflow-y-auto bg-slate-50/60 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
 
-          
+          {/* Tipo de Receita — destaque no topo, sempre visível (criar e editar) */}
+          <div className="rounded-2xl border-2 border-indigo-100 bg-gradient-to-br from-indigo-50/70 via-white to-white p-4 sm:p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="size-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                <Calendar className="size-4" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.15em] text-indigo-700">Tipo de receita</p>
+                <p className="text-[11px] text-slate-500 leading-tight">Defina como o faturamento entra no cronograma</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, revenue_type: "avulso" })}
+                className={cn(
+                  "rounded-xl border-2 p-3 text-left transition",
+                  form.revenue_type !== "recorrente"
+                    ? "border-slate-500 bg-slate-50 ring-2 ring-slate-200"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                )}
+              >
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-0.5">Pontual</p>
+                <p className="text-[13px] font-bold text-slate-900">Avulso / Na cabeça</p>
+                <p className="text-[10.5px] text-slate-500 mt-0.5">Receita única — parcelável.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, revenue_type: "recorrente" })}
+                className={cn(
+                  "rounded-xl border-2 p-3 text-left transition",
+                  form.revenue_type === "recorrente"
+                    ? "border-indigo-600 bg-indigo-50 ring-2 ring-indigo-100"
+                    : "border-slate-200 bg-white hover:border-indigo-300"
+                )}
+              >
+                <p className="text-[10px] font-black uppercase tracking-wider text-indigo-600 mb-0.5">MRR</p>
+                <p className="text-[13px] font-bold text-slate-900">Recorrência mensal</p>
+                <p className="text-[10.5px] text-slate-500 mt-0.5">Mensalidade fixa por N meses.</p>
+              </button>
+            </div>
+            {form.revenue_type === "recorrente" ? (
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <Field label="Período de vigência (meses)">
+                  <Input type="number" min={1} max={120}
+                    className="h-10 bg-white border-indigo-300 shadow-sm rounded-lg font-mono"
+                    value={form.recurrence_months ?? 12}
+                    onChange={(e) => setForm({ ...form, recurrence_months: e.target.value })} />
+                </Field>
+                <Field label="Início da cobrança">
+                  <Input type="date"
+                    className="h-10 bg-white border-slate-200 shadow-sm rounded-lg"
+                    value={form.first_due_date ?? form.sale_date}
+                    onChange={(e) => setForm({ ...form, first_due_date: e.target.value })} />
+                </Field>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <Field label="Nº de parcelas">
+                  <Input type="number" min={1} max={60}
+                    className="h-10 bg-white border-slate-200 shadow-sm rounded-lg font-mono"
+                    value={form.installments_count ?? 1}
+                    onChange={(e) => setForm({ ...form, installments_count: e.target.value })} />
+                </Field>
+                <Field label="1º vencimento">
+                  <Input type="date"
+                    className="h-10 bg-white border-slate-200 shadow-sm rounded-lg"
+                    value={form.first_due_date ?? form.sale_date}
+                    onChange={(e) => setForm({ ...form, first_due_date: e.target.value })} />
+                </Field>
+              </div>
+            )}
+            {form.id && (
+              <label className="mt-3 flex items-start gap-2 text-[11.5px] text-slate-600 cursor-pointer bg-amber-50/60 border border-amber-200 rounded-lg p-2">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={!!form.regenerate_payments}
+                  onChange={(e) => setForm({ ...form, regenerate_payments: e.target.checked })}
+                />
+                <span><strong>Regenerar parcelas</strong> com base nas novas configurações (substitui as faturas pendentes desta venda).</span>
+              </label>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Coluna Principal */}
             <div className="lg:col-span-7 space-y-6">
