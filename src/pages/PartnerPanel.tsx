@@ -227,7 +227,7 @@ export default function PartnerPanel() {
     setUploadingDocId(docId);
     try {
       const path = `partners/${partner.id}/${docId}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      await uploadStorageFileFast("documents", path, file, true);
+      await uploadStorageFileFast("documents", path, file, false);
       const { error: updErr } = await supabase
         .from("documents")
         .update({ file_path: path, status: "enviado", uploaded_at: new Date().toISOString() })
