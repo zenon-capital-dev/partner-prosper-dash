@@ -563,6 +563,7 @@ export default function Products() {
           setEditing(null);
           qc.invalidateQueries({ queryKey: ["products-list"] });
           qc.invalidateQueries({ queryKey: ["product-usage"] });
+          qc.invalidateQueries({ queryKey: ["ref:products"] });
           if (id && !editing) navigate(`/produtos/${id}`);
         }}
       />
@@ -576,6 +577,7 @@ export default function Products() {
           setDeleteTarget(null);
           qc.invalidateQueries({ queryKey: ["products-list"] });
           qc.invalidateQueries({ queryKey: ["product-usage"] });
+          qc.invalidateQueries({ queryKey: ["ref:products"] });
         }}
       />
     </div>
