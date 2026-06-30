@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useClientsRef, useProductsRef } from "@/hooks/useReferenceData";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
@@ -588,21 +589,13 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [saving, setSaving] = useState(false);
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients-min"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name, email, company, document").order("full_name").limit(300)).data ?? [],
-    enabled: open,
-  });
+  const { data: clients = [] } = useClientsRef(open);
   const { data: leads = [] } = useQuery({
-    queryKey: ["leads-min"],
+    queryKey: ["ref:leads"],
     queryFn: async () => (await supabase.from("leads").select("id, name, email, company").order("name").limit(300)).data ?? [],
     enabled: open,
   });
-  const { data: products = [] } = useQuery({
-    queryKey: ["products-min"],
-    queryFn: async () => (await supabase.from("products").select("id, name, base_price").order("name").limit(300)).data ?? [],
-    enabled: open,
-  });
+  const { data: products = [] } = useProductsRef(open);
 
   useEffect(() => {
     if (!open) return;

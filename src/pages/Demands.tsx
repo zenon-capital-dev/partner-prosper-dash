@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useProductsRef, useProvidersRef, usePartnersRef } from "@/hooks/useReferenceData";
 import { format, subDays, startOfMonth, startOfToday, endOfDay, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
@@ -163,20 +164,9 @@ export default function Demands() {
     },
   });
 
-  const { data: productsList = [] } = useQuery({
-    queryKey: ["products-list"],
-    queryFn: async () => (await supabase.from("products").select("id, name")).data ?? [],
-  });
-
-  const { data: providersList = [] } = useQuery({
-    queryKey: ["providers-list"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name")).data ?? [],
-  });
-
-  const { data: partnersList = [] } = useQuery({
-    queryKey: ["partners-list"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name")).data ?? [],
-  });
+  const { data: productsList = [] } = useProductsRef();
+  const { data: providersList = [] } = useProvidersRef();
+  const { data: partnersList = [] } = usePartnersRef();
 
   const filtered = useMemo(() => {
     const today = startOfToday();

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { usePartnersRef, useReferrersRef, useProductsRef, useCollaboratorsRef } from "@/hooks/useReferenceData";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,38 +34,14 @@ export function LeadFormDialog({ open, onOpenChange, onCreated, lead }: Props) {
     else setForm({ status: "Novo", source: "Instagram", close_probability: 50 });
   }, [lead, open]);
 
-  const { data: partners } = useQuery({
-    queryKey: ["partners-select"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").eq("active", true).order("full_name").limit(300)).data ?? [],
-  });
+  const { data: partnersAll } = usePartnersRef(open);
+  const partners = useMemo(() => (partnersAll ?? []).filter((p: any) => p.active !== false), [partnersAll]);
+  const { data: indicatorsAll } = useReferrersRef(open);
+  const indicators = useMemo(() => (indicatorsAll ?? []).filter((r: any) => r.active !== false), [indicatorsAll]);
+  const { data: productsAll } = useProductsRef(open);
+  const products = useMemo(() => (productsAll ?? []).filter((p: any) => p.active !== false), [productsAll]);
+  const { data: collaborators } = useCollaboratorsRef(open);
 
-  const { data: indicators } = useQuery({
-    queryKey: ["indicators-select"],
-    enabled: open,
-    queryFn: async () => {
-      const { data } = await supabase.from("referrers").select("id, full_name").eq("active", true).order("full_name").limit(300);
-      return data ?? [];
-    },
-  });
-
-  const { data: products } = useQuery({
-    queryKey: ["products-select"],
-    enabled: open,
-    queryFn: async () => (await supabase.from("products").select("id, name").eq("active", true).order("name").limit(300)).data ?? [],
-  });
-
-  const { data: collaborators } = useQuery({
-    queryKey: ["collaborators-select-leads"],
-    enabled: open,
-    queryFn: async () => {
-      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "colaborador");
-      const ids = (roles ?? []).map((r) => r.user_id);
-      if (!ids.length) return [];
-      const { data } = await supabase.from("profiles").select("id, full_name, email").in("id", ids).order("full_name");
-      return data ?? [];
-    },
-  });
 
   const submit = async () => {
     const fullName = (form.full_name ?? "").trim();
