@@ -13,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
+import { useClientsRef, useProvidersRef } from "@/hooks/useReferenceData";
+import { useMemo } from "react";
+
 
 interface Props {
   open: boolean;
