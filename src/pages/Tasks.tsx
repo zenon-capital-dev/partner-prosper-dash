@@ -4,6 +4,7 @@ import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useClientsRef, useProvidersRef, usePartnersRef } from "@/hooks/useReferenceData";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,30 +155,15 @@ export default function Tasks() {
     gcTime: 10 * 60_000,
   });
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["tasks-clients"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(200)).data ?? [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
-  });
+  const { data: clients = [] } = useClientsRef();
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["tasks-client-products"],
     queryFn: async () => (await supabase.from("client_products").select("id, custom_product_name, products(name), clients(full_name)").limit(200)).data ?? [],
     staleTime: 5 * 60_000,
     gcTime: 10 * 60_000,
   });
-  const { data: serviceProviders = [] } = useQuery({
-    queryKey: ["tasks-providers"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name").order("name").limit(200)).data ?? [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
-  });
-  const { data: partners = [] } = useQuery({
-    queryKey: ["tasks-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(200)).data ?? [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
-  });
+  const { data: serviceProviders = [] } = useProvidersRef();
+  const { data: partners = [] } = usePartnersRef();
   const { data: payments = [] } = useQuery({
     queryKey: ["tasks-payments"],
     queryFn: async () => (await supabase.from("payments").select("id, amount, status").limit(200)).data ?? [],

@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useProductsRef, useProvidersRef, usePartnersRef, useClientsRef } from "@/hooks/useReferenceData";
 import { nowBR, formatBR, toBR, isTodayBR } from "@/lib/datetime";
 import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
@@ -76,23 +77,11 @@ export default function Reports() {
   const needsDocs = reportType === "pending_docs";
   const needsPayments = reportType === "delinquency";
 
-  // Reference data for filters
-  const { data: products = [] } = useQuery({
-    queryKey: ["reports-filter-products"],
-    queryFn: async () => (await supabase.from("products").select("id, name").order("name").limit(500)).data ?? [],
-  });
-  const { data: providers = [] } = useQuery({
-    queryKey: ["reports-filter-providers"],
-    queryFn: async () => (await supabase.from("service_providers").select("id, name").order("name").limit(500)).data ?? [],
-  });
-  const { data: partners = [] } = useQuery({
-    queryKey: ["reports-filter-partners"],
-    queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(500)).data ?? [],
-  });
-  const { data: clientsList = [] } = useQuery({
-    queryKey: ["reports-filter-clients"],
-    queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(500)).data ?? [],
-  });
+  // Reference data for filters (shared cache via ref hooks)
+  const { data: products = [] } = useProductsRef();
+  const { data: providers = [] } = useProvidersRef();
+  const { data: partners = [] } = usePartnersRef();
+  const { data: clientsList = [] } = useClientsRef();
 
   // Base Data Fetching
   const { data: sales = [] } = useQuery({

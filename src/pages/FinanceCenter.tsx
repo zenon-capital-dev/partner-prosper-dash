@@ -1804,11 +1804,7 @@ function ByClient({ payments, canManage }: { payments: any[]; canManage: boolean
   const [clientId, setClientId] = useState<string>("");
   const [clientSearch, setClientSearch] = useState("");
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["fin-clients-min"],
-    queryFn: async () =>
-      (await supabase.from("clients").select("id, full_name, company").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: clients = [] } = useClientsRef();
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["fin-client-products", clientId],
