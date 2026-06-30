@@ -788,26 +788,31 @@ export default function PartnerPanel() {
                         <Download className="size-3.5" /> Baixar original p/ assinar
                       </Button>
                     ) : <p className="text-[11.5px] text-slate-500">Aguardando envio do original pela nossa equipe.</p>}
-                    {doc.tplPath && (
-                      <label className="cursor-pointer inline-flex items-center justify-center gap-2 w-full h-9 rounded border border-dashed border-indigo-300 text-[12px] text-indigo-700 hover:bg-indigo-50">
-                        <Upload className="size-3.5" /> {doc.signedPath ? "Substituir assinado" : "Enviar assinado"}
-                        <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={async (e) => {
-                          const f = e.target.files?.[0]; e.target.value = "";
-                          if (!f || !contract?.id || !partner?.id) return;
-                          try {
-                            const path = `${partner.id}/${doc.key}_signed-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
-                            await uploadStorageFileFast("partner-contracts", path, f, false);
-                            const patch: any = { [doc.dbField]: path, [doc.dbAt]: new Date().toISOString() };
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 w-full h-9 rounded border border-dashed border-indigo-300 text-[12px] text-indigo-700 hover:bg-indigo-50">
+                      <Upload className="size-3.5" /> {doc.signedPath ? "Substituir assinado" : "Enviar assinado"}
+                      <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={async (e) => {
+                        const f = e.target.files?.[0]; e.target.value = "";
+                        if (!f || !partner?.id) return;
+                        try {
+                          const path = `${partner.id}/${doc.key}_signed-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
+                          await uploadStorageFileFast("partner-contracts", path, f, false);
+                          const patch: any = { [doc.dbField]: path, [doc.dbAt]: new Date().toISOString() };
+                          let upsertError: any = null;
+                          if (contract?.id) {
                             const { error } = await (supabase as any).from("partner_contracts").update(patch).eq("id", contract.id);
-                            if (error) throw error;
-                            toast.success("Arquivo assinado enviado");
-                            qc.invalidateQueries({ queryKey: ["partner-contract", partner.id] });
-                          } catch (err: any) {
-                            toast.error(uploadErrorMessage(err) || err.message || "Erro no upload");
+                            upsertError = error;
+                          } else {
+                            const { error } = await (supabase as any).from("partner_contracts").insert({ partner_id: partner.id, ...patch });
+                            upsertError = error;
                           }
-                        }} />
-                      </label>
-                    )}
+                          if (upsertError) throw upsertError;
+                          toast.success("Arquivo assinado enviado");
+                          qc.invalidateQueries({ queryKey: ["partner-contract", partner.id] });
+                        } catch (err: any) {
+                          toast.error(uploadErrorMessage(err) || err.message || "Erro no upload");
+                        }
+                      }} />
+                    </label>
                     {doc.signedPath && (
                       <div className="pt-2 border-t border-slate-100 space-y-1">
                         <p className="text-[10.5px] uppercase tracking-wider font-semibold text-emerald-700">✓ Você enviou assinado</p>
