@@ -1,0 +1,1 @@
+ALTER TABLE public.sales_goals ADD CONSTRAINT sales_goals_period_type_resp_uniq UNIQUE (period_month, goal_type, responsible_id);
