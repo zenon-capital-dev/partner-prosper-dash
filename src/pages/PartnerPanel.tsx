@@ -295,9 +295,9 @@ export default function PartnerPanel() {
   const downloadMaterial = async (m: any) => {
     if (m.external_url) { openDownloadUrl(m.external_url); return; }
     if (!m.file_path) { toast.error("Material sem arquivo anexado"); return; }
-    const { data, error } = await supabase.storage.from("partner-materials").createSignedUrl(m.file_path, 300);
+    const filename = (m.file_path as string).split("/").pop() || "material";
+    const { data, error } = await supabase.storage.from("partner-materials").createSignedUrl(m.file_path, 300, { download: filename });
     if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir o arquivo"); return; }
-    const filename = (m.file_path as string).split("/").pop();
     openDownloadUrl(data.signedUrl, filename);
   };
 
