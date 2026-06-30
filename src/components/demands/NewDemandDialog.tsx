@@ -17,18 +17,8 @@ export function NewDemandDialog({ open, onOpenChange }: Props) {
   const [q, setQ] = useState("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
-  const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["new-demand-clients"],
-    enabled: open && !selectedClientId,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("id, full_name, company")
-        .order("full_name", { ascending: true })
-        .limit(500);
-      return data ?? [];
-    },
-  });
+  const { data: clients = [], isLoading } = useClientsRef(open && !selectedClientId);
+
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
