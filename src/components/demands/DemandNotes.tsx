@@ -26,6 +26,7 @@ export function DemandNotes({
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ["demand-notes", clientProductId],
