@@ -46,10 +46,10 @@ export function ProviderAssignDialog({ open, onOpenChange, providerId, providerN
       const [{ data: prods, error: prodsError }, { data: provs, error: provsError }] = await Promise.all([
         productIds.length
           ? supabase.from("products").select("id, name").in("id", productIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as any[], error: null }),
         providerIds.length
           ? supabase.from("service_providers").select("id, name").in("id", providerIds)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as any[], error: null }),
       ]);
 
       if (prodsError) {
