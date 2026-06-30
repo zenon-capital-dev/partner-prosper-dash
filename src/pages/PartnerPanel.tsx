@@ -29,6 +29,7 @@ import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
 import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
 import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
+import { SupportThread } from "@/components/partner-support/SupportThread";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -958,27 +959,24 @@ export default function PartnerPanel() {
               {tickets.length === 0 ? (
                 <EmptyState icon={LifeBuoy} title="Nenhum chamado aberto" description="Clique em 'Novo chamado' para falar com nossa equipe." />
               ) : (
-                <ul className="divide-y divide-slate-100 -mx-1">
+                <ul className="space-y-3 -mx-1">
                   {(tickets as any[]).map((t) => (
-                    <li key={t.id} className="px-3 py-3">
-                      <div className="flex items-start justify-between gap-3">
+                    <li key={t.id} className="px-3 py-3 rounded-lg border border-slate-200/70 bg-white">
+                      <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <p className="text-[13.5px] font-semibold text-slate-900">{t.subject}</p>
                             <Badge variant="outline" className={cn("text-[10px] capitalize", t.priority === "alta" && "border-red-200 text-red-700 bg-red-50")}>{t.priority}</Badge>
                           </div>
-                          <p className="text-[12px] text-slate-600 whitespace-pre-wrap">{t.message}</p>
-                          {t.admin_response && (
-                            <div className="mt-2 p-3 bg-indigo-50/60 border border-indigo-100 rounded">
-                              <p className="text-[10px] uppercase tracking-wider font-bold text-indigo-700 mb-1">Resposta da equipe</p>
-                              <p className="text-[12.5px] text-slate-700 whitespace-pre-wrap">{t.admin_response}</p>
-                              {t.responded_at && <p className="text-[10px] text-slate-500 mt-1">{formatDate(t.responded_at)}</p>}
-                            </div>
-                          )}
-                          <p className="text-[10.5px] text-slate-400 mt-1.5">Aberto em {formatDate(t.created_at)}</p>
+                          <p className="text-[10.5px] text-slate-400">Aberto em {formatDate(t.created_at)}</p>
                         </div>
-                        <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : t.status === "respondido" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-emerald-50 text-emerald-700 border-emerald-200")}>{t.status}</Badge>
+                        <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : t.status === "fechado" || t.status === "resolvido" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200")}>{(t.status || "aberto").replace("_"," ")}</Badge>
                       </div>
+                      <SupportThread
+                        ticket={t}
+                        viewerRole="partner"
+                        onChanged={() => qc.invalidateQueries({ queryKey: ["partner-tickets", partner?.id] })}
+                      />
                     </li>
                   ))}
                 </ul>

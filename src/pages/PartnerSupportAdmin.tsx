@@ -10,6 +10,7 @@ import { LifeBuoy, MessageSquare, CheckCircle2 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { SupportThread } from "@/components/partner-support/SupportThread";
 
 const PAGE_SIZE = 10;
 
@@ -29,7 +30,7 @@ export default function PartnerSupportAdmin() {
   const qc = useQueryClient();
   const [active, setActive] = useState<Ticket | null>(null);
   const [response, setResponse] = useState("");
-  const [filter, setFilter] = useState<"all" | "aberto" | "respondido" | "fechado">("aberto");
+  const [filter, setFilter] = useState<"all" | "aberto" | "em_andamento" | "fechado">("aberto");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => { setCurrentPage(1); }, [filter]);
@@ -78,9 +79,9 @@ export default function PartnerSupportAdmin() {
           <p className="text-sm text-slate-500 mt-1">Chamados abertos pelos seus parceiros — responda direto por aqui.</p>
         </div>
         <div className="flex gap-2">
-          {(["aberto", "respondido", "fechado", "all"] as const).map((s) => (
+          {(["aberto", "em_andamento", "fechado", "all"] as const).map((s) => (
             <Button key={s} size="sm" variant={filter === s ? "default" : "outline"} onClick={() => setFilter(s)} className={cn(filter === s && "bg-indigo-600 hover:bg-indigo-700")}>
-              {s === "all" ? "Todos" : s}
+              {s === "all" ? "Todos" : s.replace("_"," ")}
             </Button>
           ))}
         </div>
@@ -108,7 +109,7 @@ export default function PartnerSupportAdmin() {
                     <p className="text-[12.5px] text-slate-600 mt-1 line-clamp-2">{t.message}</p>
                     <p className="text-[10.5px] text-slate-400 mt-1">{formatDate(t.created_at)}</p>
                   </div>
-                  <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : t.status === "respondido" ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-emerald-50 text-emerald-700 border-emerald-200")}>{t.status}</Badge>
+                  <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", t.status === "aberto" ? "bg-amber-50 text-amber-700 border-amber-200" : (t.status === "fechado" || t.status === "resolvido") ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200")}>{(t.status || "aberto").replace("_"," ")}</Badge>
                 </div>
               </li>
             ))}
@@ -117,28 +118,24 @@ export default function PartnerSupportAdmin() {
         <PaginationControl currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} totalItems={filtered.length} itemsPerPage={PAGE_SIZE} />
       </div>
 
-      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); } }}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader><DialogTitle>{active?.subject}</DialogTitle></DialogHeader>
+      <Dialog open={!!active} onOpenChange={(v) => { if (!v) { setActive(null); setResponse(""); qc.invalidateQueries({ queryKey: ["partner-support-admin"] }); } }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {active?.subject}
+              <Badge variant="outline" className="text-[10px] capitalize">{((active as any)?.status || "aberto").replace("_"," ")}</Badge>
+            </DialogTitle>
+            {active && (
+              <p className="text-[12px] text-slate-500">{(active as any).partners?.full_name} · {(active as any).partners?.email}</p>
+            )}
+          </DialogHeader>
           {active && (
-            <div className="space-y-4">
-              <div className="bg-slate-50 border border-slate-200 rounded p-3">
-                <p className="text-[11px] uppercase tracking-wider font-bold text-slate-500 mb-1">{(active as any).partners?.full_name} · {(active as any).partners?.email}</p>
-                <p className="text-[13px] text-slate-800 whitespace-pre-wrap">{active.message}</p>
-                <p className="text-[10.5px] text-slate-400 mt-2">{formatDate(active.created_at)}</p>
-              </div>
-              <div>
-                <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-1">Sua resposta</p>
-                <Textarea rows={6} value={response} onChange={(e) => setResponse(e.target.value)} maxLength={2000} />
-              </div>
-            </div>
+            <SupportThread
+              ticket={active}
+              viewerRole="admin"
+              onChanged={() => qc.invalidateQueries({ queryKey: ["partner-support-admin"] })}
+            />
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => respond.mutate(false)} disabled={respond.isPending}>Salvar resposta</Button>
-            <Button onClick={() => respond.mutate(true)} disabled={respond.isPending} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
-              <CheckCircle2 className="size-4" /> Responder e fechar
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
