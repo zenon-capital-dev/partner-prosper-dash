@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Route, ArrowRight } from "lucide-react";
+import { useClientsRef } from "@/hooks/useReferenceData";
 
 export function JourneyMiniWidget() {
   const { data: stages = [] } = useQuery({
@@ -16,15 +17,8 @@ export function JourneyMiniWidget() {
     },
   });
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["journey-mini-clients"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("clients")
-        .select("id, journey_stage_id" as any);
-      return (data as any[]) ?? [];
-    },
-  });
+  const { data: clients = [] } = useClientsRef();
+
 
   const counts = new Map<string, number>();
   stages.forEach((s: any) => counts.set(s.id, 0));
