@@ -29,12 +29,30 @@ export function ProviderAssignDialog({ open, onOpenChange, providerId, providerN
     queryKey: ["assign-client-products", clientId],
     enabled: open && !!clientId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data: cps, error } = await supabase
         .from("client_products")
-        .select("id, custom_product_name, status, service_provider_id, products(name), service_providers(name)")
+        .select("id, custom_product_name, status, service_provider_id, product_id")
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      if (error) { toast.error(error.message); return []; }
+      const list = cps ?? [];
+      const productIds = Array.from(new Set(list.map((c: any) => c.product_id).filter(Boolean)));
+      const providerIds = Array.from(new Set(list.map((c: any) => c.service_provider_id).filter(Boolean)));
+      const [{ data: prods }, { data: provs }] = await Promise.all([
+        productIds.length
+          ? supabase.from("products").select("id, name").in("id", productIds)
+          : Promise.resolve({ data: [] as any[] }),
+        providerIds.length
+          ? supabase.from("service_providers").select("id, name").in("id", providerIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+      const pMap = new Map((prods ?? []).map((p: any) => [p.id, p.name]));
+      const sMap = new Map((provs ?? []).map((p: any) => [p.id, p.name]));
+      return list.map((c: any) => ({
+        ...c,
+        products: c.product_id ? { name: pMap.get(c.product_id) } : null,
+        service_providers: c.service_provider_id ? { name: sMap.get(c.service_provider_id) } : null,
+      }));
     },
   });
 
