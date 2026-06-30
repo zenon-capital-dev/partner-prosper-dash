@@ -30,7 +30,7 @@ export default function PartnerSupportAdmin() {
   const qc = useQueryClient();
   const [active, setActive] = useState<Ticket | null>(null);
   const [response, setResponse] = useState("");
-  const [filter, setFilter] = useState<"all" | "aberto" | "respondido" | "fechado">("aberto");
+  const [filter, setFilter] = useState<"all" | "aberto" | "em_andamento" | "fechado">("aberto");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => { setCurrentPage(1); }, [filter]);
