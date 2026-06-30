@@ -82,6 +82,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         });
         setRecipientType("client");
         setSelectedRecipientId(propClientId || "");
+        setItems([{ name: "", file: null }]);
       }
     }
   }, [open, editDoc, propClientId, defaultProductId, propClientProductId]);
