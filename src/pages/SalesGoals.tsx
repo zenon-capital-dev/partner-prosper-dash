@@ -112,6 +112,8 @@ export default function SalesGoals() {
 
   if (!isAdmin) return <div className="p-8 text-sm text-slate-600">Acesso restrito.</div>;
 
+  if (!isAdmin) return <div className="p-8 text-sm text-slate-600">Acesso restrito.</div>;
+
   return (
     <div className="space-y-6 p-4 md:p-6">
       <PageHero

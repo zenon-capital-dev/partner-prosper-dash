@@ -236,27 +236,19 @@ const referrerSections: NavSection[] = [
     label: "Indicações",
     items: [
       { title: "Meus Indicados", url: "/indicador/indicacoes", icon: Users },
-      { title: "Nova Indicação", url: "/indicador/nova", icon: Sparkles },
     ],
   },
   {
     label: "Financeiro",
     items: [
-      { title: "Extrato", url: "/indicador/extrato", icon: Wallet },
-      { title: "Comissões", url: "/indicador/comissoes", icon: CircleDollarSign },
-    ],
-  },
-  {
-    label: "Recursos",
-    items: [
-      { title: "Materiais", url: "/indicador/materiais", icon: FolderArchive },
-      { title: "Suporte", url: "/indicador/suporte", icon: LifeBuoy },
+      { title: "Ganhos", url: "/indicador/ganhos", icon: TrendingUp },
+      { title: "Histórico", url: "/indicador/historico", icon: History },
     ],
   },
   {
     label: "Conta",
     items: [
-      { title: "Meu Perfil", url: "/perfil", icon: UserCog },
+      { title: "Meu Perfil", url: "/indicador/perfil", icon: UserCog },
     ],
   },
 ];
