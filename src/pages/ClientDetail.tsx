@@ -135,6 +135,8 @@ export default function ClientDetail() {
       return data;
     },
     enabled: !!id,
+    staleTime: 2 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   const { data: clientProducts = [] } = useQuery({
@@ -151,7 +153,8 @@ export default function ClientDetail() {
     },
     enabled: !!id,
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
   });
 
   const { data: payments = [] } = useQuery({
@@ -168,7 +171,8 @@ export default function ClientDetail() {
     },
     enabled: !!id,
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
   });
 
   const { data: documents = [] } = useQuery({
@@ -184,8 +188,10 @@ export default function ClientDetail() {
     },
     enabled: !!id,
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
   });
+
 
   const { data: companies = [] } = useQuery({
     queryKey: ["client-companies", id],

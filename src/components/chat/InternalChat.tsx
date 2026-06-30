@@ -47,7 +47,7 @@ export function InternalChat() {
   useEffect(() => {
     if (!user || !open) return;
     const ch = supabase
-      .channel(`chat-general-rt-${user.id}-${Date.now()}`)
+      .channel(`chat-general-rt-${user.id}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages", filter: "recipient_id=is.null" },

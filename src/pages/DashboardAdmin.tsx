@@ -18,7 +18,7 @@ const toLocalISO = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 import { formatBRL } from "@/lib/format";
-import { useMemo, useState, useEffect, ReactNode } from "react";
+import { useMemo, useState, useEffect, useDeferredValue, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -50,7 +50,11 @@ const formatBrasiliaTime = (value: string) => {
 
 export default function DashboardAdmin() {
   const { user } = useAuth();
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
+  const [rangeKeyImmediate, setRangeKey] = useState<"HOJE" | "7D" | "30D" | "MÊS">("HOJE");
+  // Debounce: queries só refazem após o React assentar — evita refetch em
+  // cliques rápidos consecutivos entre os botões de range.
+  const rangeKey = useDeferredValue(rangeKeyImmediate);
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -473,7 +477,7 @@ export default function DashboardAdmin() {
                   onClick={() => setRangeKey(k)}
                   className={cn(
                     "px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-[11.5px] font-bold transition-all tracking-wide shrink-0",
-                    rangeKey === k
+                    rangeKeyImmediate === k
                       ? "bg-slate-900 text-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.3)]"
                       : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                   )}
