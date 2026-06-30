@@ -3553,6 +3553,7 @@ export type Database = {
       }
       partner_support_tickets: {
         Row: {
+          admin_notes: string | null
           admin_response: string | null
           created_at: string
           id: string
@@ -3566,6 +3567,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          admin_notes?: string | null
           admin_response?: string | null
           created_at?: string
           id?: string
@@ -3579,6 +3581,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          admin_notes?: string | null
           admin_response?: string | null
           created_at?: string
           id?: string
