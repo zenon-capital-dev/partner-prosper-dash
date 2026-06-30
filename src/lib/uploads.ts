@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
 export function sanitizeStorageFileName(fileName: string) {
@@ -26,4 +28,44 @@ export function uploadErrorMessage(error: unknown) {
   if (/payload too large|too large|maximum/i.test(msg)) return "Arquivo muito grande. Envie um arquivo de até 20MB.";
   if (/row-level security|permission|not authorized|unauthorized/i.test(msg)) return "Sem permissão para enviar este arquivo. Verifique o vínculo do usuário com este cliente/demanda.";
   return msg || "Falha ao enviar arquivo";
+}
+
+export async function uploadStorageFileFast(bucket: string, path: string, file: File, upsert = false) {
+  assertUploadFile(file);
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error("Sessão expirada. Faça login novamente.");
+
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 25_000);
+
+  try {
+    const response = await fetch(`${baseUrl}/storage/v1/object/${bucket}/${path}`, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        authorization: `Bearer ${token}`,
+        "content-type": file.type || "application/octet-stream",
+        "x-upsert": upsert ? "true" : "false",
+      },
+      body: file,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new Error(text || `Upload falhou (${response.status})`);
+    }
+
+    return response.json().catch(() => ({}));
+  } catch (error: any) {
+    if (error?.name === "AbortError") {
+      throw new Error("Upload demorou demais e foi cancelado. Tente novamente com um arquivo menor.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
