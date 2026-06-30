@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { openDownloadUrl } from "@/lib/download";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { FileSignature, Plus, Download, Eye } from "lucide-react";
@@ -13,7 +14,7 @@ export function ClientContracts({ clientId }: { clientId: string }) {
     if (!filePath) return toast.error("Contrato sem arquivo anexado");
     const { data, error } = await supabase.storage.from("contracts").createSignedUrl(filePath, 60);
     if (error || !data?.signedUrl) return toast.error("Erro ao gerar link de download");
-    window.open(data.signedUrl, "_blank");
+    openDownloadUrl(data.signedUrl);
   };
   const { data: contracts, isLoading } = useQuery({
     queryKey: ["client-contracts", clientId],

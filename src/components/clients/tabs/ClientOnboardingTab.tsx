@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { openDownloadUrl } from "@/lib/download";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +152,7 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
                         if (error) {
                           toast.error("Erro ao gerar link do documento: " + error.message);
                         } else if (data) {
-                          window.open(data.signedUrl, '_blank');
+                          openDownloadUrl(data.signedUrl);
                         }
                       });
                     }}>

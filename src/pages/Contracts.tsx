@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { endOfDay, startOfMonth, startOfToday, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -224,7 +225,7 @@ export default function Contracts() {
     if (!path) return toast.error("Este contrato ainda não possui arquivo.");
     const { data, error } = await supabase.storage.from("contracts").createSignedUrl(path, 3600);
     if (error) return toast.error(error.message);
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    openDownloadUrl(data.signedUrl);
   };
 
   const downloadFile = async (path?: string | null, name = "contrato") => {

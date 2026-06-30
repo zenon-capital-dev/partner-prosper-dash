@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -107,7 +108,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
   const viewFile = async (path: string) => {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 3600);
     if (error) return toast.error(error.message);
-    window.open(data.signedUrl, "_blank");
+    openDownloadUrl(data.signedUrl);
   };
 
   const deleteDoc = async (id: string) => {

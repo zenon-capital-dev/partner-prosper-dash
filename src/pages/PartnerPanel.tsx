@@ -27,6 +27,7 @@ import { formatBRL, formatDate, initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { DemandRequestsPanel } from "@/components/demands/DemandRequestsPanel";
+import { openDownloadUrl } from "@/lib/download";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -292,11 +293,12 @@ export default function PartnerPanel() {
   });
 
   const downloadMaterial = async (m: any) => {
-    if (m.external_url) { window.open(m.external_url, "_blank", "noopener"); return; }
-    if (!m.file_path) return;
-    const { data, error } = await supabase.storage.from("partner-materials").createSignedUrl(m.file_path, 60);
-    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo"); return; }
-    window.open(data.signedUrl, "_blank", "noopener");
+    if (m.external_url) { openDownloadUrl(m.external_url); return; }
+    if (!m.file_path) { toast.error("Material sem arquivo anexado"); return; }
+    const { data, error } = await supabase.storage.from("partner-materials").createSignedUrl(m.file_path, 300);
+    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir o arquivo"); return; }
+    const filename = (m.file_path as string).split("/").pop();
+    openDownloadUrl(data.signedUrl, filename);
   };
 
   // ----- Support tickets -----
@@ -419,9 +421,9 @@ export default function PartnerPanel() {
   });
 
   const downloadContractFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir o arquivo"); return; }
-    window.open(data.signedUrl, "_blank", "noopener");
+    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 300);
+    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir o arquivo"); return; }
+    openDownloadUrl(data.signedUrl, path.split("/").pop());
   };
 
   const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");

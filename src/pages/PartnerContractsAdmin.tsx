@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,7 +77,7 @@ export default function PartnerContractsAdmin() {
   const downloadFile = async (path: string) => {
     const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
     if (error || !data?.signedUrl) { toast.error("Não foi possível abrir"); return; }
-    window.open(data.signedUrl, "_blank", "noopener");
+    openDownloadUrl(data.signedUrl);
   };
 
   return (

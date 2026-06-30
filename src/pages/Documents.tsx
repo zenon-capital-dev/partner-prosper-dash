@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo, useState } from "react";
+import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { endOfDay, startOfMonth, startOfToday, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -353,16 +354,16 @@ export default function Documents() {
 
   const viewFile = async (doc: any) => {
     if (!doc.file_path) return toast.error("Arquivo ainda não enviado.");
-    if (/^https?:\/\//.test(doc.file_path)) return window.open(doc.file_path, "_blank", "noopener,noreferrer");
+    if (/^https?:\/\//.test(doc.file_path)) return openDownloadUrl(doc.file_path);
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
     if (error) return toast.error(error.message);
     logAudit("DOCUMENT_VIEW", doc.__source ?? "documents", doc.id, { name: doc.name });
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    openDownloadUrl(data.signedUrl);
   };
 
   const downloadFile = async (doc: any) => {
     if (!doc.file_path) return toast.error("Arquivo ainda não enviado.");
-    if (/^https?:\/\//.test(doc.file_path)) return window.open(doc.file_path, "_blank", "noopener,noreferrer");
+    if (/^https?:\/\//.test(doc.file_path)) return openDownloadUrl(doc.file_path);
     
     const { data, error } = await supabase.storage.from("documents").download(doc.file_path);
     if (error) return toast.error(error.message);

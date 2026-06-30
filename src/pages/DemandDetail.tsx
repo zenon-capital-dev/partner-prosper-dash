@@ -1,4 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { openDownloadUrl } from "@/lib/download";
 import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -559,7 +560,7 @@ export default function DemandDetail() {
                                   onClick={async () => {
                                     const { data, error } = await supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600);
                                     if (error) return toast.error(error.message);
-                                    window.open(data.signedUrl, "_blank");
+                                    openDownloadUrl(data.signedUrl);
                                   }}
                                >
                                   <Download className="size-3.5" /> Ver arquivo
