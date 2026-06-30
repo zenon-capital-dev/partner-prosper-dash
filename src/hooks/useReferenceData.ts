@@ -29,11 +29,12 @@ export function useClientsRef(enabled = true) {
         await supabase
           .from("clients")
           .select(
-            "id, full_name, email, company, document, status, partner_id, referrer_id, collaborator_id"
+            "id, full_name, email, company, document, status, partner_id, referrer_id, collaborator_id, journey_stage_id"
           )
           .order("full_name")
           .limit(500)
       ).data ?? [],
+
   });
 }
 
