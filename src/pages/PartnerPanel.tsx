@@ -205,6 +205,53 @@ export default function PartnerPanel() {
     staleTime: 2 * 60_000,
   });
 
+  // Documents addressed TO this partner (by admin)
+  const { data: myDocs = [] } = useQuery({
+    queryKey: ["partner-mydocs", partner?.id],
+    enabled: !!partner?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("documents")
+        .select("id, name, status, description, due_date, file_path, uploaded_at, created_at, rejection_reason")
+        .eq("partner_id", partner!.id)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
+  const uploadPartnerDoc = async (docId: string, file: File) => {
+    if (!partner?.id) return;
+    setUploadingDocId(docId);
+    try {
+      const ext = file.name.split(".").pop() || "bin";
+      const path = `partners/${partner.id}/${docId}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { error: updErr } = await supabase
+        .from("documents")
+        .update({ file_path: path, status: "enviado", uploaded_at: new Date().toISOString() })
+        .eq("id", docId);
+      if (updErr) throw updErr;
+      toast.success("Documento enviado");
+      qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
+    } catch (e: any) {
+      toast.error(e.message || "Falha ao enviar");
+    } finally {
+      setUploadingDocId(null);
+    }
+  };
+
+  const downloadPartnerDoc = async (d: any) => {
+    if (!d.file_path) return;
+    const filename = d.name || (d.file_path as string).split("/").pop() || "documento";
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(d.file_path, 300, { download: filename });
+    if (error || !data?.signedUrl) { toast.error(error?.message || "Falha ao baixar"); return; }
+    openDownloadUrl(data.signedUrl, filename);
+  };
+
+
   const { data: commissions = [] } = useQuery({
     queryKey: ["partner-commissions", partner?.id],
     enabled: !!partner?.id,
