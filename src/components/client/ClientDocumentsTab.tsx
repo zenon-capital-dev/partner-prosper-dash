@@ -155,6 +155,8 @@ export function ClientDocumentsTab({
     } finally {
       setUploadingId(null);
       setConfirmReq(null);
+      setPendingFile(null);
+      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
