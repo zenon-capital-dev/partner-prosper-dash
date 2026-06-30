@@ -8,10 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { useClientsRef, useProvidersRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
@@ -27,7 +27,7 @@ interface Props {
   clientProductId?: string | null;
 }
 
-type RecipientType = "client" | "collaborator" | "provider";
+type RecipientType = "client" | "collaborator" | "provider" | "partner";
 
 export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId }: Props) {
   const { user } = useAuth();
@@ -57,6 +57,9 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         } else if (editDoc.provider_id) {
           setRecipientType("provider");
           setSelectedRecipientId(editDoc.provider_id);
+        } else if (editDoc.partner_id) {
+          setRecipientType("partner");
+          setSelectedRecipientId(editDoc.partner_id);
         } else {
           setRecipientType("client");
           setSelectedRecipientId(editDoc.client_id || "");
@@ -109,6 +112,17 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   });
 
   const { data: providers } = useProvidersRef(open);
+
+  const { data: partners } = useQuery({
+    queryKey: ["partners-list-simple"],
+    queryFn: async () => {
+      const { data } = await supabase.from("partners").select("id, full_name, email").order("full_name").limit(500);
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
+
 
 
   const { data: clientProducts } = useQuery({
@@ -193,6 +207,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     if (recipientType === "client") payload.client_id = selectedRecipientId;
     else if (recipientType === "collaborator") payload.collaborator_id = selectedRecipientId;
     else if (recipientType === "provider") payload.provider_id = selectedRecipientId;
+    else if (recipientType === "partner") payload.partner_id = selectedRecipientId;
 
     const { error } = editDoc
       ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
@@ -233,10 +248,22 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           type: "document_requested",
           link: "/colaborador",
         });
+      } else if (!editDoc && recipientType === "partner" && selectedRecipientId) {
+        const { data: p } = await supabase.from("partners").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+        if (p?.user_id) {
+          await supabase.from("notifications").insert({
+            user_id: p.user_id,
+            title: "Novo documento solicitado",
+            message: `Envie o documento "${form.name}" pelo seu painel.`,
+            type: "document_requested",
+            link: "/parceiro/documentos",
+          });
+        }
       }
     } catch (_) { /* best-effort */ }
 
-    toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : `Documento solicitado ao ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : 'prestador'}`));
+    const recipientLabel = recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : recipientType === 'provider' ? 'prestador' : 'parceiro';
+    toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : `Documento solicitado ao ${recipientLabel}`));
     onSuccess?.();
     onOpenChange(false);
     setForm({});
@@ -256,17 +283,33 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           {!editDoc && (
             <div className="space-y-3">
               <Label>Destinatário</Label>
-              <Tabs value={recipientType} onValueChange={(v) => { setRecipientType(v as RecipientType); setSelectedRecipientId(""); }} className="w-full">
-                <TabsList className="grid grid-cols-3 w-full">
-                  <TabsTrigger value="client" className="text-xs gap-1.5"><Users className="size-3.5" /> Cliente</TabsTrigger>
-                  <TabsTrigger value="collaborator" className="text-xs gap-1.5"><UserCircle className="size-3.5" /> Colab.</TabsTrigger>
-                  <TabsTrigger value="provider" className="text-xs gap-1.5"><Building2 className="size-3.5" /> Prest.</TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="grid grid-cols-4 gap-1.5">
+                {([
+                  { key: "client", label: "Cliente", icon: Users },
+                  { key: "collaborator", label: "Colab.", icon: UserCircle },
+                  { key: "provider", label: "Prest.", icon: Building2 },
+                  { key: "partner", label: "Parceiro", icon: Handshake },
+                ] as { key: RecipientType; label: string; icon: any }[]).map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => { setRecipientType(key); setSelectedRecipientId(""); }}
+                    className={cn(
+                      "flex flex-col items-center gap-1 rounded-lg border px-2 py-2.5 text-[11px] font-medium transition",
+                      recipientType === key
+                        ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/30"
+                        : "border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
 
               <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={`Selecione o ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : 'prestador'}`} />
+                  <SelectValue placeholder={`Selecione o ${recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : recipientType === 'provider' ? 'prestador' : 'parceiro'}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {recipientType === "client" && clients?.map((c) => (
@@ -278,6 +321,9 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                   {recipientType === "provider" && providers?.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
+                  {recipientType === "partner" && partners?.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -285,12 +331,13 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
           <div className="space-y-2">
             <Label>Nome do documento *</Label>
-            <Input 
-              placeholder="Ex: RG, Contrato Social, IRPF..." 
-              value={form.name ?? ""} 
-              onChange={(e) => setForm({ ...form, name: e.target.value })} 
+            <Input
+              placeholder="Ex: RG, Contrato Social, IRPF..."
+              value={form.name ?? ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
+
 
           <div className="grid grid-cols-2 gap-4">
             {recipientType === "client" && (
