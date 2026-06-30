@@ -302,17 +302,12 @@ export default function PartnerDetail() {
                       <p className="text-[11.5px] text-slate-500">{format(new Date(t.created_at), "dd/MM/yyyy HH:mm")} {t.category ? `· ${t.category}` : ""}</p>
                     </div>
                     <Badge variant="outline" className={
-                      t.status === "resolvido" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                      (t.status === "resolvido" || t.status === "fechado") ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
                       t.status === "em_andamento" ? "bg-blue-50 text-blue-700 border-blue-200" :
                       "bg-amber-50 text-amber-700 border-amber-200"
                     }>{(t.status || "aberto").replace("_"," ")}</Badge>
                   </div>
-                  {t.message && <p className="text-[13px] text-slate-700 whitespace-pre-wrap p-3 bg-slate-50 rounded">{t.message}</p>}
-                  <textarea id={`ticket-notes-${t.id}`} defaultValue={t.admin_notes || ""} rows={2} placeholder="Resposta interna / notas..." className="w-full text-[13px] rounded border border-slate-200 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
-                  <div className="flex gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={() => replyTicket(t, "em_andamento")} className="gap-1.5"><Send className="size-3.5" />Em andamento</Button>
-                    <Button size="sm" onClick={() => replyTicket(t, "resolvido")} className="gap-1.5"><FileCheck2 className="size-3.5" />Resolver</Button>
-                  </div>
+                  <SupportThread ticket={t} viewerRole="admin" onChanged={reload} />
                 </div>
               ))}
             </CardContent>
