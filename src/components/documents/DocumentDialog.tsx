@@ -579,7 +579,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
             />
           </div>
 
-          {!editDoc && (
+          {editDoc && (
             <div className="space-y-2">
               <Label>Já possui o arquivo? (opcional)</Label>
               {selectedFileName ? (
