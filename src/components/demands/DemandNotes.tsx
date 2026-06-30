@@ -161,7 +161,7 @@ export function DemandNotes({
               <p className="text-[13px] text-slate-800 whitespace-pre-wrap leading-relaxed">{n.content}</p>
               <div className="mt-2 flex items-center justify-between text-[10.5px] text-slate-500">
                 <span className="font-mono">
-                  {formatDate(n.created_at)} {n.profiles?.full_name ? `· ${n.profiles.full_name}` : ""}
+                  {formatDate(n.created_at)} {n.author_name ? `· ${n.author_name}` : ""}
                 </span>
                 <button
                   className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-700 transition"
@@ -175,6 +175,7 @@ export function DemandNotes({
           ))}
         </ul>
       )}
+      </>)}
     </div>
   );
 }
