@@ -668,6 +668,7 @@ export default function PartnerPanel() {
               products={(services as any[]).map((service) => ({ id: service.product_id || service.id, name: service.products?.name || service.custom_product_name || "Serviço" }))}
               getUploadFolder={(req) => req.client_product_id || req.client_id || partner?.id}
               invalidateKeys={[["partner-docs", partner?.id, clientIds.join(","), serviceIds.join(",")]]}
+              hideEmptyState
             />
           </>
         )}
