@@ -17,6 +17,8 @@ import { formatBRL } from "@/lib/format";
 export default function PartnerDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "dados";
   const [partner, setPartner] = useState<any>(null);
   const [clients, setClients] = useState<any[]>([]);
   const [commissions, setCommissions] = useState<any[]>([]);
