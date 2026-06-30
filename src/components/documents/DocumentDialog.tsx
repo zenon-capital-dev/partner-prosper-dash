@@ -142,10 +142,22 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const submit = async () => {
     if (!selectedRecipientId) { toast.error("Selecione um destinatário"); return; }
     if (!form.name) { toast.error("Nome do documento é obrigatório"); return; }
-    
+
     if (recipientType === "client" && (!form.client_product_id || form.client_product_id === "none")) {
       toast.error("Selecione a demanda/produto vinculado (obrigatório para clientes)");
       return;
+    }
+
+    // Validation: ensure recipient ID is consistent with selected type (avoids cross-binding)
+    if (recipientType === "partner") {
+      const exists = (partners ?? []).some((p: any) => p.id === selectedRecipientId);
+      if (!exists) { toast.error("Parceiro selecionado é inválido."); return; }
+    } else if (recipientType === "provider") {
+      const exists = (providers ?? []).some((p: any) => p.id === selectedRecipientId);
+      if (!exists) { toast.error("Prestador selecionado é inválido."); return; }
+    } else if (recipientType === "collaborator") {
+      const exists = (collaborators ?? []).some((p: any) => p.id === selectedRecipientId);
+      if (!exists) { toast.error("Colaborador selecionado é inválido."); return; }
     }
 
     setSubmitting(true);
@@ -210,10 +222,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       uploaded_at,
     };
 
-    if (recipientType === "client") payload.client_id = selectedRecipientId;
-    else if (recipientType === "collaborator") payload.collaborator_id = selectedRecipientId;
-    else if (recipientType === "provider") payload.provider_id = selectedRecipientId;
-    else if (recipientType === "partner") payload.partner_id = selectedRecipientId;
+    // Set the correct recipient FK and clear the others to keep the binding consistent
+    payload.client_id = recipientType === "client" ? selectedRecipientId : null;
+    payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
+    payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
+    payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
 
     const { error } = editDoc
       ? await supabase.from("documents").update(payload).eq("id", editDoc.id)

@@ -214,7 +214,7 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("documents")
-        .select("id, name, status, description, due_date, file_path, uploaded_at, created_at, rejection_reason")
+        .select("id, name, status, description, due_date, file_path, file_size, mime_type, uploaded_at, created_at, rejection_reason")
         .eq("partner_id", partner!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -223,23 +223,83 @@ export default function PartnerPanel() {
   });
 
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
-  const uploadPartnerDoc = async (docId: string, file: File) => {
+  const [openHistoryId, setOpenHistoryId] = useState<string | null>(null);
+
+  const uploadPartnerDoc = async (docId: string, file: File, currentDoc?: any) => {
     if (!partner?.id) return;
+    if (currentDoc?.status === "aprovado") {
+      toast.error("Este documento já foi aprovado e não pode ser substituído.");
+      return;
+    }
+    if (currentDoc?.file_path) {
+      const ok = window.confirm("Substituir o arquivo enviado? O arquivo anterior ficará no histórico.");
+      if (!ok) return;
+    }
     setUploadingDocId(docId);
     try {
       const path = `partners/${partner.id}/${docId}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       await uploadStorageFileFast("documents", path, file, false);
+
+      // Save previous file in history before replacing
+      if (currentDoc?.file_path) {
+        const { count } = await supabase
+          .from("document_versions")
+          .select("id", { count: "exact", head: true })
+          .eq("document_id", docId);
+        await supabase.from("document_versions").insert({
+          document_id: docId,
+          version_number: (count ?? 0) + 1,
+          file_path: currentDoc.file_path,
+          file_size: currentDoc.file_size ?? null,
+          mime_type: currentDoc.mime_type ?? null,
+          uploaded_by: user?.id ?? null,
+          note: "Substituído pelo parceiro",
+        });
+      }
+
       const { error: updErr } = await supabase
         .from("documents")
-        .update({ file_path: path, status: "enviado", uploaded_at: new Date().toISOString() })
+        .update({ file_path: path, file_size: file.size, mime_type: file.type, status: "enviado", uploaded_at: new Date().toISOString(), uploaded_by: user?.id ?? null, rejection_reason: null })
         .eq("id", docId);
       if (updErr) throw updErr;
       toast.success("Documento enviado");
       qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
+      qc.invalidateQueries({ queryKey: ["partner-doc-versions", docId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) || "Falha ao enviar");
     } finally {
       setUploadingDocId(null);
+    }
+  };
+
+  const removePartnerDoc = async (doc: any) => {
+    if (!partner?.id || !doc?.file_path) return;
+    if (doc.status === "aprovado") { toast.error("Documento já aprovado — não pode ser removido."); return; }
+    if (!window.confirm("Remover o arquivo enviado? Será mantido no histórico.")) return;
+    try {
+      const { count } = await supabase
+        .from("document_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("document_id", doc.id);
+      await supabase.from("document_versions").insert({
+        document_id: doc.id,
+        version_number: (count ?? 0) + 1,
+        file_path: doc.file_path,
+        file_size: doc.file_size ?? null,
+        mime_type: doc.mime_type ?? null,
+        uploaded_by: user?.id ?? null,
+        note: "Removido pelo parceiro",
+      });
+      const { error } = await supabase
+        .from("documents")
+        .update({ file_path: null, file_size: null, mime_type: null, status: "solicitado", uploaded_at: null })
+        .eq("id", doc.id);
+      if (error) throw error;
+      toast.success("Arquivo removido");
+      qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
+      qc.invalidateQueries({ queryKey: ["partner-doc-versions", doc.id] });
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao remover");
     }
   };
 
@@ -252,6 +312,7 @@ export default function PartnerPanel() {
       toast.error(e?.message || "Falha ao baixar");
     }
   };
+
 
 
   const { data: commissions = [] } = useQuery({
@@ -632,29 +693,45 @@ export default function PartnerPanel() {
                       : d.status === "reprovado" ? "bg-rose-50 text-rose-700 border-rose-200"
                       : sent ? "bg-sky-50 text-sky-700 border-sky-200"
                       : "bg-amber-50 text-amber-700 border-amber-200";
+                    const approved = d.status === "aprovado";
+                    const isHistoryOpen = openHistoryId === d.id;
                     return (
-                      <div key={d.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-sm truncate">{d.name}</p>
-                            <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", statusTone)}>{d.status}</span>
+                      <div key={d.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm truncate">{d.name}</p>
+                              <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", statusTone)}>{d.status}</span>
+                            </div>
+                            {d.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{d.description}</p>}
+                            {d.due_date && <p className="text-[11px] text-slate-400 mt-0.5">Prazo: {formatDate(d.due_date)}</p>}
+                            {d.uploaded_at && <p className="text-[11px] text-slate-400 mt-0.5">Último envio: {formatDate(d.uploaded_at)}</p>}
+                            {d.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">Motivo: {d.rejection_reason}</p>}
                           </div>
-                          {d.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{d.description}</p>}
-                          {d.due_date && <p className="text-[11px] text-slate-400 mt-0.5">Prazo: {formatDate(d.due_date)}</p>}
-                          {d.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">Motivo: {d.rejection_reason}</p>}
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {sent && (
-                            <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => downloadPartnerDoc(d)}>
-                              <Download className="size-3 mr-1" /> Baixar
+                          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                            {sent && (
+                              <Button size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => downloadPartnerDoc(d)}>
+                                <Download className="size-3 mr-1" /> Baixar último
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" className="h-8 text-[11px]" onClick={() => setOpenHistoryId(isHistoryOpen ? null : d.id)}>
+                              <Clock className="size-3 mr-1" /> Histórico
                             </Button>
-                          )}
-                          <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
-                            <Upload className="size-3 mr-1" />
-                            {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir" : "Enviar"}
-                            <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f); e.target.value = ""; }} />
-                          </label>
+                            {sent && !approved && (
+                              <Button size="sm" variant="outline" className="h-8 text-[11px] text-rose-600 border-rose-200 hover:bg-rose-50" onClick={() => removePartnerDoc(d)}>
+                                Remover
+                              </Button>
+                            )}
+                            {!approved && (
+                              <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
+                                <Upload className="size-3 mr-1" />
+                                {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir" : "Enviar"}
+                                <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f, d); e.target.value = ""; }} />
+                              </label>
+                            )}
+                          </div>
                         </div>
+                        {isHistoryOpen && <PartnerDocHistory docId={d.id} currentDoc={d} onDownload={downloadPartnerDoc} />}
                       </div>
                     );
                   })}
@@ -1174,6 +1251,54 @@ function Cf({ label, value, onChange, locked, type = "text" }: { label: string; 
     <div>
       <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">{label}</Label>
       <Input type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} disabled={locked} className="mt-1" />
+    </div>
+  );
+}
+
+function PartnerDocHistory({ docId, currentDoc, onDownload }: { docId: string; currentDoc: any; onDownload: (d: any) => void }) {
+  const { data: versions = [], isLoading } = useQuery({
+    queryKey: ["partner-doc-versions", docId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("document_versions")
+        .select("id, version_number, file_path, mime_type, file_size, note, created_at")
+        .eq("document_id", docId)
+        .order("version_number", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  const items: any[] = [];
+  if (currentDoc?.file_path) {
+    items.push({ id: "current", label: "Atual", file_path: currentDoc.file_path, name: currentDoc.name, created_at: currentDoc.uploaded_at, note: null });
+  }
+  for (const v of versions as any[]) {
+    items.push({ id: v.id, label: `v${v.version_number}`, file_path: v.file_path, name: currentDoc.name, created_at: v.created_at, note: v.note });
+  }
+
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-100">
+      <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 mb-2">Histórico de arquivos</p>
+      {isLoading ? (
+        <p className="text-xs text-slate-400">Carregando…</p>
+      ) : items.length === 0 ? (
+        <p className="text-xs text-slate-400">Nenhum arquivo enviado ainda.</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map((it) => (
+            <li key={it.id} className="flex items-center justify-between gap-2 text-xs">
+              <div className="min-w-0 flex items-center gap-2">
+                <span className="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-600">{it.label}</span>
+                <span className="text-slate-500 truncate">{it.created_at ? formatDate(it.created_at) : "—"}{it.note ? ` · ${it.note}` : ""}</span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => onDownload(it)}>
+                <Download className="size-3 mr-1" /> Baixar
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
