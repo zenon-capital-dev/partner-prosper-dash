@@ -146,14 +146,19 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
   const submit = async () => {
     if (!selectedRecipientId) { toast.error("Selecione um destinatário"); return; }
-    if (!form.name) { toast.error("Nome do documento é obrigatório"); return; }
+
+    // Build list of doc names to create (when not editing). When editing, just use form.name.
+    const docNames: { name: string; file: File | null }[] = editDoc
+      ? [{ name: form.name, file: fileRef.current?.files?.[0] || null }]
+      : items.filter(i => (i.name || "").trim()).map(i => ({ name: i.name.trim(), file: i.file }));
+
+    if (docNames.length === 0) { toast.error("Informe ao menos um nome de documento"); return; }
 
     if (recipientType === "client" && (!form.client_product_id || form.client_product_id === "none")) {
       toast.error("Selecione a demanda/produto vinculado (obrigatório para clientes)");
       return;
     }
 
-    // Validation: ensure recipient ID is consistent with selected type (avoids cross-binding)
     if (recipientType === "partner") {
       const exists = (partners ?? []).some((p: any) => p.id === selectedRecipientId);
       if (!exists) { toast.error("Parceiro selecionado é inválido."); return; }
@@ -167,131 +172,140 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
 
     setSubmitting(true);
 
-    let file_path = editDoc?.file_path || null;
-    let file_size = editDoc?.file_size || null;
-    let mime_type = editDoc?.mime_type || null;
-    let status = editDoc?.status || "solicitado";
-    let uploaded_at = editDoc?.uploaded_at || null;
+    let successCount = 0;
+    let failMsg: string | null = null;
 
-    const file = fileRef.current?.files?.[0];
-    if (file) {
-      try { assertUploadFile(file); } catch (e: any) { toast.error(uploadErrorMessage(e)); setSubmitting(false); return; }
-      const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
-      const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      try {
-        await uploadStorageFileFast("documents", path, file);
-      } catch (upErr: any) {
-        toast.error(uploadErrorMessage(upErr));
-        setSubmitting(false);
-        return;
+    for (const item of docNames) {
+      let file_path = editDoc?.file_path || null;
+      let file_size = editDoc?.file_size || null;
+      let mime_type = editDoc?.mime_type || null;
+      let status = editDoc?.status || "solicitado";
+      let uploaded_at = editDoc?.uploaded_at || null;
+
+      const file = item.file;
+      if (file) {
+        try { assertUploadFile(file); } catch (e: any) { failMsg = uploadErrorMessage(e); break; }
+        const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
+        const path = `${folder}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+        try {
+          await uploadStorageFileFast("documents", path, file);
+        } catch (upErr: any) {
+          failMsg = uploadErrorMessage(upErr);
+          break;
+        }
+
+        if (editDoc?.id && editDoc.file_path) {
+          const { count } = await supabase
+            .from("document_versions")
+            .select("id", { count: "exact", head: true })
+            .eq("document_id", editDoc.id);
+          await supabase.from("document_versions").insert({
+            document_id: editDoc.id,
+            version_number: (count ?? 0) + 1,
+            file_path: editDoc.file_path,
+            file_size: editDoc.file_size,
+            mime_type: editDoc.mime_type,
+            uploaded_by: editDoc.uploaded_by,
+            note: "Versão substituída por novo upload",
+          });
+        }
+
+        file_path = path;
+        file_size = file.size;
+        mime_type = file.type;
+        status = "enviado";
+        uploaded_at = nowBR().toISOString();
       }
 
-      if (editDoc?.id && editDoc.file_path) {
-        const { count } = await supabase
-          .from("document_versions")
-          .select("id", { count: "exact", head: true })
-          .eq("document_id", editDoc.id);
-        await supabase.from("document_versions").insert({
-          document_id: editDoc.id,
-          version_number: (count ?? 0) + 1,
-          file_path: editDoc.file_path,
-          file_size: editDoc.file_size,
-          mime_type: editDoc.mime_type,
-          uploaded_by: editDoc.uploaded_by,
-          note: "Versão substituída por novo upload",
-        });
-      }
+      const payload: any = {
+        name: item.name,
+        description: form.description || null,
+        product_id: form.product_id === "none" ? null : form.product_id,
+        client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
+        sale_id: form.sale_id === "none" ? null : form.sale_id,
+        due_date: form.due_date || null,
+        is_required: form.is_required ?? true,
+        priority: form.priority || "media",
+        status,
+        file_path,
+        file_size,
+        mime_type,
+        requested_by: editDoc ? editDoc.requested_by : user?.id,
+        uploaded_by: file ? user?.id : (editDoc?.uploaded_by || null),
+        uploaded_at,
+      };
 
-      file_path = path;
-      file_size = file.size;
-      mime_type = file.type;
-      status = "enviado";
-      uploaded_at = nowBR().toISOString();
+      payload.client_id = recipientType === "client" ? selectedRecipientId : null;
+      payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
+      payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
+      payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
+
+      const { error } = editDoc
+        ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
+        : await supabase.from("documents").insert(payload);
+
+      if (error) { failMsg = error.message; break; }
+      successCount++;
+
+      // Notify recipient (best-effort) — only for new
+      if (!editDoc) {
+        try {
+          if (recipientType === "client" && selectedRecipientId) {
+            const { data: c } = await supabase.from("clients").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+            if (c?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: c.user_id,
+                title: file ? "Novo documento disponível" : "Novo documento solicitado",
+                message: file ? `${item.name} foi enviado pela equipe.` : `Envie o documento "${item.name}" pelo seu portal.`,
+                type: file ? "document_uploaded" : "document_requested",
+                link: "/portal-cliente/documentos",
+              });
+            }
+          } else if (recipientType === "provider" && selectedRecipientId) {
+            const { data: sp } = await supabase.from("service_providers").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+            if (sp?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: sp.user_id, title: "Novo documento solicitado",
+                message: `Envie o documento "${item.name}" pelo seu painel.`,
+                type: "document_requested", link: "/prestador",
+              });
+            }
+          } else if (recipientType === "collaborator" && selectedRecipientId) {
+            await supabase.from("notifications").insert({
+              user_id: selectedRecipientId, title: "Novo documento solicitado",
+              message: `Envie o documento "${item.name}" pelo seu painel.`,
+              type: "document_requested", link: "/colaborador",
+            });
+          } else if (recipientType === "partner" && selectedRecipientId) {
+            const { data: p } = await supabase.from("partners").select("user_id").eq("id", selectedRecipientId).maybeSingle();
+            if (p?.user_id) {
+              await supabase.from("notifications").insert({
+                user_id: p.user_id, title: "Novo documento solicitado",
+                message: `Envie o documento "${item.name}" pelo seu painel.`,
+                type: "document_requested", link: "/parceiro/documentos",
+              });
+            }
+          }
+        } catch (_) {}
+      }
     }
 
-    const payload: any = {
-      name: form.name,
-      description: form.description || null,
-      product_id: form.product_id === "none" ? null : form.product_id,
-      client_product_id: form.client_product_id === "none" ? null : form.client_product_id,
-      sale_id: form.sale_id === "none" ? null : form.sale_id,
-      due_date: form.due_date || null,
-      is_required: form.is_required ?? true,
-      priority: form.priority || "media",
-      status,
-      file_path,
-      file_size,
-      mime_type,
-      requested_by: editDoc ? editDoc.requested_by : user?.id,
-      uploaded_by: file ? user?.id : (editDoc?.uploaded_by || null),
-      uploaded_at,
-    };
-
-    // Set the correct recipient FK and clear the others to keep the binding consistent
-    payload.client_id = recipientType === "client" ? selectedRecipientId : null;
-    payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
-    payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
-    payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
-
-    const { error } = editDoc
-      ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
-      : await supabase.from("documents").insert(payload);
-
     setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
-
-    // Notify recipient (best-effort)
-    try {
-      if (!editDoc && recipientType === "client" && selectedRecipientId) {
-        const { data: c } = await supabase.from("clients").select("user_id").eq("id", selectedRecipientId).maybeSingle();
-        if (c?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: c.user_id,
-            title: file ? "Novo documento disponível" : "Novo documento solicitado",
-            message: file ? `${form.name} foi enviado pela equipe.` : `Envie o documento "${form.name}" pelo seu portal.`,
-            type: file ? "document_uploaded" : "document_requested",
-            link: "/portal-cliente/documentos",
-          });
-        }
-      } else if (!editDoc && recipientType === "provider" && selectedRecipientId) {
-        const { data: sp } = await supabase.from("service_providers").select("user_id").eq("id", selectedRecipientId).maybeSingle();
-        if (sp?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: sp.user_id,
-            title: "Novo documento solicitado",
-            message: `Envie o documento "${form.name}" pelo seu painel.`,
-            type: "document_requested",
-            link: "/prestador",
-          });
-        }
-      } else if (!editDoc && recipientType === "collaborator" && selectedRecipientId) {
-        await supabase.from("notifications").insert({
-          user_id: selectedRecipientId,
-          title: "Novo documento solicitado",
-          message: `Envie o documento "${form.name}" pelo seu painel.`,
-          type: "document_requested",
-          link: "/colaborador",
-        });
-      } else if (!editDoc && recipientType === "partner" && selectedRecipientId) {
-        const { data: p } = await supabase.from("partners").select("user_id").eq("id", selectedRecipientId).maybeSingle();
-        if (p?.user_id) {
-          await supabase.from("notifications").insert({
-            user_id: p.user_id,
-            title: "Novo documento solicitado",
-            message: `Envie o documento "${form.name}" pelo seu painel.`,
-            type: "document_requested",
-            link: "/parceiro/documentos",
-          });
-        }
-      }
-    } catch (_) { /* best-effort */ }
+    if (failMsg) { toast.error(failMsg); return; }
 
     const recipientLabel = recipientType === 'client' ? 'cliente' : recipientType === 'collaborator' ? 'colaborador' : recipientType === 'provider' ? 'prestador' : 'parceiro';
-    toast.success(editDoc ? "Documento atualizado" : (file ? "Documento enviado" : `Documento solicitado ao ${recipientLabel}`));
+    toast.success(
+      editDoc
+        ? "Documento atualizado"
+        : successCount > 1
+          ? `${successCount} documentos solicitados ao ${recipientLabel}`
+          : `Documento solicitado ao ${recipientLabel}`
+    );
     onSuccess?.();
     onOpenChange(false);
     setForm({});
     setSelectedFileName("");
+    setItems([{ name: "", file: null }]);
     if (fileRef.current) fileRef.current.value = "";
   };
 
