@@ -309,13 +309,13 @@ function SummaryCard({ tone, label, value, icon: Icon }: { tone: string; label: 
   };
 
   return (
-    <div className={cn("vx-card p-6 flex items-center gap-4 border transition-all hover:scale-[1.02]", tones[tone])}>
-      <div className="size-10 rounded-xl bg-white/50 flex items-center justify-center shrink-0">
+    <div className={cn("vx-card p-4 flex items-center gap-3 border transition-all hover:scale-[1.01]", tones[tone])}>
+      <div className="size-9 rounded-xl bg-white/50 flex items-center justify-center shrink-0">
         <Icon className="size-5" />
       </div>
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-60">{label}</p>
-        <p className="text-2xl font-bold font-editorial">{value}</p>
+        <p className="text-xl font-bold font-editorial leading-none mt-1">{value}</p>
       </div>
     </div>
   );
