@@ -94,9 +94,38 @@ export default function PartnerDetail() {
   };
 
   const downloadContractFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir"); return; }
-    openDownloadUrl(data.signedUrl);
+    const filename = path.split("/").pop() || "contrato";
+    const { data, error } = await supabase.storage
+      .from("partner-contracts")
+      .createSignedUrl(path, 300, { download: filename });
+    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir"); return; }
+    openDownloadUrl(data.signedUrl, filename);
+  };
+
+  const deleteContractFile = async (slot: "contract_template" | "nda_template" | "contract_signed" | "nda_signed") => {
+    if (!partnerContract) return;
+    if (!confirm("Excluir este arquivo? Essa ação não pode ser desfeita.")) return;
+    try {
+      const pathKey = slot === "contract_template" ? "contract_template_path"
+        : slot === "nda_template" ? "nda_template_path"
+        : slot === "contract_signed" ? "contract_signed_path" : "nda_signed_path";
+      const dateKey = slot === "contract_template" ? "contract_template_uploaded_at"
+        : slot === "nda_template" ? "nda_template_uploaded_at"
+        : slot === "contract_signed" ? "contract_uploaded_at" : "nda_uploaded_at";
+      const path = (partnerContract as any)[pathKey];
+      if (path) {
+        await supabase.storage.from("partner-contracts").remove([path]);
+      }
+      const { error } = await (supabase as any)
+        .from("partner_contracts")
+        .update({ [pathKey]: null, [dateKey]: null })
+        .eq("id", partnerContract.id);
+      if (error) throw error;
+      toast.success("Arquivo removido");
+      await reload();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao excluir");
+    }
   };
 
   const replyTicket = async (ticket: any, status: string) => {
@@ -210,16 +239,16 @@ export default function PartnerDetail() {
               <div className="border-t pt-4">
                 <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📤 Enviar originais para o parceiro assinar</p>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <ContractSlot label="Contrato (original)" path={partnerContract?.contract_template_path} uploadedAt={partnerContract?.contract_template_uploaded_at} onPick={(f) => uploadContractFile("contract_template", f)} onDownload={downloadContractFile} />
-                  <ContractSlot label="NDA (original)" path={partnerContract?.nda_template_path} uploadedAt={partnerContract?.nda_template_uploaded_at} onPick={(f) => uploadContractFile("nda_template", f)} onDownload={downloadContractFile} />
+                  <ContractSlot label="Contrato (original)" path={partnerContract?.contract_template_path} uploadedAt={partnerContract?.contract_template_uploaded_at} onPick={(f) => uploadContractFile("contract_template", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("contract_template")} />
+                  <ContractSlot label="NDA (original)" path={partnerContract?.nda_template_path} uploadedAt={partnerContract?.nda_template_uploaded_at} onPick={(f) => uploadContractFile("nda_template", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("nda_template")} />
                 </div>
               </div>
 
               <div className="border-t pt-4">
                 <p className="text-[11px] uppercase tracking-wider font-bold text-slate-600 mb-2">📥 Devolução assinada pelo parceiro</p>
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <ContractSlot label="Contrato assinado" path={partnerContract?.contract_signed_path} uploadedAt={partnerContract?.contract_uploaded_at} onPick={(f) => uploadContractFile("contract_signed", f)} onDownload={downloadContractFile} signed />
-                  <ContractSlot label="NDA assinado" path={partnerContract?.nda_signed_path} uploadedAt={partnerContract?.nda_uploaded_at} onPick={(f) => uploadContractFile("nda_signed", f)} onDownload={downloadContractFile} signed />
+                  <ContractSlot label="Contrato assinado" path={partnerContract?.contract_signed_path} uploadedAt={partnerContract?.contract_uploaded_at} onPick={(f) => uploadContractFile("contract_signed", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("contract_signed")} signed />
+                  <ContractSlot label="NDA assinado" path={partnerContract?.nda_signed_path} uploadedAt={partnerContract?.nda_uploaded_at} onPick={(f) => uploadContractFile("nda_signed", f)} onDownload={downloadContractFile} onDelete={() => deleteContractFile("nda_signed")} signed />
                 </div>
               </div>
 
@@ -332,20 +361,25 @@ function Field({ label, value }: { label: string; value: any }) {
   );
 }
 
-function ContractSlot({ label, path, uploadedAt, onPick, onDownload, signed }: { label: string; path?: string | null; uploadedAt?: string | null; onPick: (f: File) => void; onDownload: (p: string) => void; signed?: boolean }) {
+function ContractSlot({ label, path, uploadedAt, onPick, onDownload, onDelete, signed }: { label: string; path?: string | null; uploadedAt?: string | null; onPick: (f: File) => void; onDownload: (p: string) => void; onDelete?: () => void; signed?: boolean }) {
   return (
     <div className={`border rounded-lg p-3 ${path ? (signed ? "bg-emerald-50/40 border-emerald-200" : "bg-indigo-50/40 border-indigo-200") : "bg-slate-50/40 border-slate-200"}`}>
       <p className="text-[12px] font-bold text-slate-800 mb-2">{label}</p>
       {path ? (
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <button onClick={() => onDownload(path)} className="inline-flex items-center gap-1.5 text-emerald-700 text-[12.5px] hover:underline font-medium">
               <Download className="size-3.5" /> Baixar
             </button>
-            <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
-              Substituir
-              <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
-            </label>
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer text-[11.5px] text-indigo-700 hover:underline">
+                Substituir
+                <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = ""; }} />
+              </label>
+              {onDelete && (
+                <button onClick={onDelete} className="text-[11.5px] text-rose-600 hover:underline">Excluir</button>
+              )}
+            </div>
           </div>
           {uploadedAt && <p className="text-[10.5px] text-slate-500">Enviado em {format(new Date(uploadedAt), "dd/MM/yyyy HH:mm")}</p>}
         </div>
