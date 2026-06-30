@@ -93,14 +93,11 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     enabled: open && !!selectedRecipientId && recipientType === "client",
   });
 
-  const { data: clients } = useQuery({
-    queryKey: ["clients-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, full_name").eq("status", "ativo").order("full_name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
+  const { data: allClients } = useClientsRef(open);
+  const clients = useMemo(
+    () => (allClients ?? []).filter((c: any) => c.status === "ativo"),
+    [allClients],
+  );
 
   const { data: collaborators } = useQuery({
     queryKey: ["collaborators-list-simple"],
@@ -111,14 +108,8 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     enabled: open,
   });
 
-  const { data: providers } = useQuery({
-    queryKey: ["providers-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("service_providers").select("id, name").order("name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
+  const { data: providers } = useProvidersRef(open);
+
 
   const { data: clientProducts } = useQuery({
     queryKey: ["client-products-list", selectedRecipientId],
