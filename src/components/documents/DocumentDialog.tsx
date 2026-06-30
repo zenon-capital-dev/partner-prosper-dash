@@ -273,6 +273,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     onSuccess?.();
     onOpenChange(false);
     setForm({});
+    setSelectedFileName("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
