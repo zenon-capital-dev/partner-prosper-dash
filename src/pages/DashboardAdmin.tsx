@@ -477,7 +477,7 @@ export default function DashboardAdmin() {
                   onClick={() => setRangeKey(k)}
                   className={cn(
                     "px-3 sm:px-4 py-1.5 rounded-lg text-[11px] sm:text-[11.5px] font-bold transition-all tracking-wide shrink-0",
-                    rangeKey === k
+                    rangeKeyImmediate === k
                       ? "bg-slate-900 text-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.3)]"
                       : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                   )}
