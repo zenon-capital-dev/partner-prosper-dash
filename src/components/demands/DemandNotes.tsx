@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/format";
-import { StickyNote, Plus, Trash2, Loader2 } from "lucide-react";
+import { StickyNote, Plus, Trash2, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 
@@ -26,18 +26,26 @@ export function DemandNotes({
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
   const [adding, setAdding] = useState(false);
+  const [open, setOpen] = useState(true);
 
-  const { data: notes = [], isLoading } = useQuery({
+  const { data: notes = [], isLoading, error } = useQuery({
     queryKey: ["demand-notes", clientProductId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notes")
-        .select("id, content, created_at, created_by, profiles:created_by(full_name)")
+        .select("id, content, created_at, created_by")
         .eq("client_product_id", clientProductId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const ids = Array.from(new Set((data ?? []).map((n: any) => n.created_by).filter(Boolean)));
+      let map: Record<string, string> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        map = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name]));
+      }
+      return (data ?? []).map((n: any) => ({ ...n, author_name: map[n.created_by] ?? null }));
     },
+    enabled: !!clientProductId,
   });
 
   const add = useMutation({
@@ -82,7 +90,12 @@ export function DemandNotes({
   return (
     <div className={compact ? "" : "p-5"}>
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-2 -ml-1 px-1 py-0.5 rounded hover:bg-slate-100 transition"
+        >
+          {open ? <ChevronDown className="size-3.5 text-slate-500" /> : <ChevronRight className="size-3.5 text-slate-500" />}
           <StickyNote className="size-3.5 text-amber-600" />
           <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
             Histórico / Notas desta demanda
@@ -92,8 +105,8 @@ export function DemandNotes({
               {notes.length}
             </Badge>
           )}
-        </div>
-        {!adding && (
+        </button>
+        {open && !adding && (
           <Button
             variant="ghost" size="sm"
             className="h-7 px-2 text-[11px] text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
@@ -103,6 +116,13 @@ export function DemandNotes({
           </Button>
         )}
       </div>
+
+      {open && (<>
+      {error && (
+        <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 p-2 text-[11px] text-rose-700">
+          Não foi possível carregar as notas: {(error as any)?.message || "erro desconhecido"}
+        </div>
+      )}
 
       {adding && (
         <div className="mb-3 space-y-2 rounded-lg border border-amber-200/70 bg-amber-50/40 p-3">
@@ -141,7 +161,7 @@ export function DemandNotes({
               <p className="text-[13px] text-slate-800 whitespace-pre-wrap leading-relaxed">{n.content}</p>
               <div className="mt-2 flex items-center justify-between text-[10.5px] text-slate-500">
                 <span className="font-mono">
-                  {formatDate(n.created_at)} {n.profiles?.full_name ? `· ${n.profiles.full_name}` : ""}
+                  {formatDate(n.created_at)} {n.author_name ? `· ${n.author_name}` : ""}
                 </span>
                 <button
                   className="opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-700 transition"
@@ -155,6 +175,7 @@ export function DemandNotes({
           ))}
         </ul>
       )}
+      </>)}
     </div>
   );
 }
