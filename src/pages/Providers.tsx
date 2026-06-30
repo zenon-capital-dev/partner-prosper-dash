@@ -256,6 +256,7 @@ export default function Providers() {
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["providers-rich"] });
     qc.invalidateQueries({ queryKey: ["service-providers-active"] });
+    qc.invalidateQueries({ queryKey: ["ref:providers"] });
   };
 
   const clearFilters = () => {

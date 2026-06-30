@@ -466,9 +466,7 @@ export default function Leads() {
           lead={convertLead}
           onConverted={() => {
             qc.invalidateQueries({ queryKey: ["leads"] });
-            qc.invalidateQueries({ queryKey: ["clients-min"] });
-            qc.invalidateQueries({ queryKey: ["clients-select"] });
-            qc.invalidateQueries({ queryKey: ["clients-list"] });
+            qc.invalidateQueries({ queryKey: ["ref:clients"] });
             qc.invalidateQueries({ queryKey: ["admin-dashboard-snapshot"] });
           }}
         />

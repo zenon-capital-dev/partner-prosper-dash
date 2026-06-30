@@ -227,6 +227,7 @@ export default function Collaborators() {
     onSuccess: () => {
       toast.success("Colaborador atualizado");
       qc.invalidateQueries({ queryKey: ["collaborators-list"] });
+      qc.invalidateQueries({ queryKey: ["ref:collaborators"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       setEditing(null);
     },
@@ -247,6 +248,7 @@ export default function Collaborators() {
     if (error) return toast.error(error.message);
     toast.success(r.active ? "Colaborador desativado" : "Colaborador ativado");
     qc.invalidateQueries({ queryKey: ["collaborators-list"] });
+    qc.invalidateQueries({ queryKey: ["ref:collaborators"] });
   };
 
   const toggleAccess = async (r: CollabRow) => {
@@ -263,6 +265,7 @@ export default function Collaborators() {
     if (error) return toast.error(error.message);
     toast.success(r.has_system_access ? "Acesso removido" : "Acesso habilitado");
     qc.invalidateQueries({ queryKey: ["collaborators-list"] });
+    qc.invalidateQueries({ queryKey: ["ref:collaborators"] });
   };
 
   const removeCollab = async (r: CollabRow) => {
@@ -566,7 +569,7 @@ export default function Collaborators() {
       <CreateCollaboratorDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={() => qc.invalidateQueries({ queryKey: ["collaborators-list"] })}
+        onCreated={() => { qc.invalidateQueries({ queryKey: ["collaborators-list"] }); qc.invalidateQueries({ queryKey: ["ref:collaborators"] }); }}
       />
 
       {editing && (

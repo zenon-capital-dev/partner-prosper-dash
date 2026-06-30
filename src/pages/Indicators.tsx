@@ -219,6 +219,7 @@ export default function Indicators() {
     qc.invalidateQueries({ queryKey: ["referrer-splits-all"] });
     qc.invalidateQueries({ queryKey: ["clients-by-referrer"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
+    qc.invalidateQueries({ queryKey: ["ref:referrers"] });
   };
 
   const remove = async (r: any) => {
