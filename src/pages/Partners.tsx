@@ -812,6 +812,9 @@ function GridView({ partners, topIds, onDetail, onEdit, onToggle, onDelete, onCr
                     </button>
                   </>
                 )}
+                <Link to={`/parceiros/${p.id}?tab=contrato`} className="size-8 rounded-md hover:bg-indigo-50 text-slate-500 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Enviar contrato / NDA">
+                  <FileSignature className="size-4" />
+                </Link>
                 <button onClick={() => onDetail(p.id)} className="size-8 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 flex items-center justify-center transition-colors" title="Ver detalhe">
                   <ArrowUpRight className="size-4" />
                 </button>
