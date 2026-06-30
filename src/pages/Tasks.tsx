@@ -143,36 +143,52 @@ export default function Tasks() {
       }
       return data ?? [];
     },
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["tasks-profiles"],
     queryFn: async () => (await supabase.from("profiles").select("id, full_name").order("full_name").limit(200)).data ?? [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   const { data: clients = [] } = useQuery({
     queryKey: ["tasks-clients"],
     queryFn: async () => (await supabase.from("clients").select("id, full_name").order("full_name").limit(200)).data ?? [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["tasks-client-products"],
     queryFn: async () => (await supabase.from("client_products").select("id, custom_product_name, products(name), clients(full_name)").limit(200)).data ?? [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
   const { data: serviceProviders = [] } = useQuery({
     queryKey: ["tasks-providers"],
     queryFn: async () => (await supabase.from("service_providers").select("id, name").order("name").limit(200)).data ?? [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
   const { data: partners = [] } = useQuery({
     queryKey: ["tasks-partners"],
     queryFn: async () => (await supabase.from("partners").select("id, full_name").order("full_name").limit(200)).data ?? [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
   const { data: payments = [] } = useQuery({
     queryKey: ["tasks-payments"],
     queryFn: async () => (await supabase.from("payments").select("id, amount, status").limit(200)).data ?? [],
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   });
   const { data: contracts = [] } = useQuery({
     queryKey: ["tasks-contracts"],
     queryFn: async () => (await supabase.from("contracts").select("id, name").limit(200)).data ?? [],
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
 

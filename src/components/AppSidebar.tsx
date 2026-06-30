@@ -282,6 +282,8 @@ export function AppSidebar() {
       return { profile, client };
     },
     enabled: !!user?.id && isClientRole,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   const onboardingReleased = !!access?.profile?.onboarding_completed || ["completo", "concluido"].includes(access?.client?.onboarding_status || "") || access?.client?.status === "ativo";
