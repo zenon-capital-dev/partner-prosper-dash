@@ -28,17 +28,24 @@ export function DemandNotes({
   const [adding, setAdding] = useState(false);
   const [open, setOpen] = useState(true);
 
-  const { data: notes = [], isLoading } = useQuery({
+  const { data: notes = [], isLoading, error } = useQuery({
     queryKey: ["demand-notes", clientProductId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notes")
-        .select("id, content, created_at, created_by, profiles:created_by(full_name)")
+        .select("id, content, created_at, created_by")
         .eq("client_product_id", clientProductId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const ids = Array.from(new Set((data ?? []).map((n: any) => n.created_by).filter(Boolean)));
+      let map: Record<string, string> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        map = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name]));
+      }
+      return (data ?? []).map((n: any) => ({ ...n, author_name: map[n.created_by] ?? null }));
     },
+    enabled: !!clientProductId,
   });
 
   const add = useMutation({
