@@ -26,13 +26,13 @@ type Ticket = {
   created_at: string;
 };
 
-type StatusFilter = "pendentes" | "aberto" | "respondido" | "em_andamento" | "fechado" | "all";
+type QueueFilter = "fila" | "meus" | "pendentes" | "em_andamento" | "fechado" | "all";
 
 export default function PartnerSupportAdmin() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [active, setActive] = useState<Ticket | null>(null);
-  const [response, setResponse] = useState("");
-  const [filter, setFilter] = useState<StatusFilter>("pendentes");
+  const [filter, setFilter] = useState<QueueFilter>("fila");
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => { setCurrentPage(1); }, [filter]);
@@ -47,16 +47,36 @@ export default function PartnerSupportAdmin() {
     },
   });
 
-  const isPending = (s: string) => s !== "fechado" && s !== "resolvido";
+  // Fetch admin display names for assignees
+  const assigneeIds = useMemo(
+    () => Array.from(new Set((tickets as any[]).map((t) => t.assigned_to).filter(Boolean))) as string[],
+    [tickets]
+  );
+  const { data: assignees = {} } = useQuery({
+    queryKey: ["pst-assignees", assigneeIds],
+    enabled: assigneeIds.length > 0,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("profiles").select("id, full_name, email").in("id", assigneeIds);
+      const map: Record<string, { name: string; email: string }> = {};
+      (data || []).forEach((p: any) => { map[p.id] = { name: p.full_name || p.email, email: p.email }; });
+      return map;
+    },
+  });
+
+  const isOpen = (s: string) => s !== "fechado" && s !== "resolvido";
   const filtered = (tickets as any[]).filter((t) => {
     if (filter === "all") return true;
-    if (filter === "pendentes") return isPending(t.status);
-    return t.status === filter;
+    if (filter === "fila") return isOpen(t.status) && !t.assigned_to;
+    if (filter === "meus") return isOpen(t.status) && t.assigned_to === user?.id;
+    if (filter === "pendentes") return isOpen(t.status);
+    if (filter === "em_andamento") return t.status === "em_andamento";
+    if (filter === "fechado") return t.status === "fechado" || t.status === "resolvido";
+    return true;
   });
   const counts = {
-    pendentes: (tickets as any[]).filter((t) => isPending(t.status)).length,
-    aberto: (tickets as any[]).filter((t) => t.status === "aberto").length,
-    respondido: (tickets as any[]).filter((t) => t.status === "respondido").length,
+    fila: (tickets as any[]).filter((t) => isOpen(t.status) && !t.assigned_to).length,
+    meus: (tickets as any[]).filter((t) => isOpen(t.status) && t.assigned_to === user?.id).length,
+    pendentes: (tickets as any[]).filter((t) => isOpen(t.status)).length,
     em_andamento: (tickets as any[]).filter((t) => t.status === "em_andamento").length,
     fechado: (tickets as any[]).filter((t) => t.status === "fechado" || t.status === "resolvido").length,
     all: (tickets as any[]).length,
@@ -64,30 +84,27 @@ export default function PartnerSupportAdmin() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  const respond = useMutation({
-    mutationFn: async (close: boolean) => {
-      if (!active) return;
-      if (!response.trim()) throw new Error("Escreva uma resposta");
+  const claim = useMutation({
+    mutationFn: async (ticket: any) => {
+      if (!user?.id) throw new Error("Não autenticado");
       const { error } = await (supabase as any).from("partner_support_tickets").update({
-        admin_response: response.trim(),
-        responded_at: new Date().toISOString(),
-        status: close ? "fechado" : "respondido",
-      }).eq("id", active.id);
+        assigned_to: user.id,
+        assigned_at: new Date().toISOString(),
+        status: ticket.status === "aberto" ? "em_andamento" : ticket.status,
+      }).eq("id", ticket.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Resposta enviada");
+      toast.success("Chamado assumido");
       qc.invalidateQueries({ queryKey: ["partner-support-admin"] });
-      setActive(null);
-      setResponse("");
     },
-    onError: (e: any) => toast.error(e.message || "Erro"),
+    onError: (e: any) => toast.error(e.message || "Erro ao assumir"),
   });
 
-  const tabs: { key: StatusFilter; label: string; tone?: string }[] = [
-    { key: "pendentes", label: "Pendentes", tone: "amber" },
-    { key: "aberto", label: "Aberto" },
-    { key: "respondido", label: "Respondido" },
+  const tabs: { key: QueueFilter; label: string; tone?: string }[] = [
+    { key: "fila", label: "Fila", tone: "amber" },
+    { key: "meus", label: "Meus", tone: "indigo" },
+    { key: "pendentes", label: "Todos pendentes" },
     { key: "em_andamento", label: "Em andamento" },
     { key: "fechado", label: "Fechado", tone: "emerald" },
     { key: "all", label: "Todos" },
