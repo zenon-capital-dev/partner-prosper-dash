@@ -86,10 +86,19 @@ export default function PartnerPanel() {
       if (!data && user?.email) {
         const { data: be } = await supabase.from("partners").select("*").ilike("email", user.email).maybeSingle();
         data = be;
+        // best-effort self-link so future queries hit by user_id
+        if (data && !data.user_id) {
+          try {
+            await supabase.from("partners").update({ user_id: user!.id }).eq("id", data.id);
+            data.user_id = user!.id;
+          } catch (_) { /* ignore */ }
+        }
       }
       return data;
     },
+    staleTime: 60_000,
   });
+
 
   const showProductName: boolean = !!(partner as any)?.show_product_name;
 
