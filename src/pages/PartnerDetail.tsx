@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, User, Users, Wallet, FileSignature, Building2, History, KeyRound, LifeBuoy, Upload, Download, FileCheck2, Send } from "lucide-react";
 import { CredentialsManager } from "@/components/CredentialsManager";
 import { toast } from "sonner";
-import { openDownloadUrl } from "@/lib/download";
+import { openDownloadUrl, downloadStorageFile } from "@/lib/download";
 import { confirmAction } from "@/lib/confirm";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { formatBRL } from "@/lib/format";
@@ -97,11 +97,11 @@ export default function PartnerDetail() {
 
   const downloadContractFile = async (path: string) => {
     const filename = path.split("/").pop() || "contrato";
-    const { data, error } = await supabase.storage
-      .from("partner-contracts")
-      .createSignedUrl(path, 300, { download: filename });
-    if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir"); return; }
-    openDownloadUrl(data.signedUrl, filename);
+    try {
+      await downloadStorageFile("partner-contracts", path, filename);
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível abrir");
+    }
   };
 
   const deleteContractFile = async (slot: "contract_template" | "nda_template" | "contract_signed" | "nda_signed") => {

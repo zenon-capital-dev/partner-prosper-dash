@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { openDownloadUrl } from "@/lib/download";
+import { openDownloadUrl, downloadStorageFile } from "@/lib/download";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,9 +82,11 @@ export default function PartnerContractsAdmin() {
   };
 
   const downloadFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) { toast.error("Não foi possível abrir"); return; }
-    openDownloadUrl(data.signedUrl);
+    try {
+      await downloadStorageFile("partner-contracts", path);
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível abrir");
+    }
   };
 
   return (
