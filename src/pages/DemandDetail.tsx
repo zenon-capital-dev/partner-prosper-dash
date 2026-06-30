@@ -134,7 +134,14 @@ export default function DemandDetail() {
         .select("*")
         .eq("client_product_id", id!)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      const rows = data ?? [];
+      const userIds = Array.from(new Set(rows.map((r: any) => r.reported_by).filter(Boolean)));
+      if (userIds.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
+        const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+        return rows.map((r: any) => ({ ...r, _author: map.get(r.reported_by) }));
+      }
+      return rows;
     },
     enabled: !!id,
   });
@@ -162,7 +169,14 @@ export default function DemandDetail() {
         .eq("entity_id", id!)
         .order("created_at", { ascending: false })
         .limit(100);
-      return data ?? [];
+      const rows = data ?? [];
+      const userIds = Array.from(new Set(rows.map((r: any) => r.user_id).filter(Boolean)));
+      if (userIds.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
+        const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+        return rows.map((r: any) => ({ ...r, _author: map.get(r.user_id) }));
+      }
+      return rows;
     },
     enabled: !!id,
   });
@@ -595,21 +609,46 @@ export default function DemandDetail() {
                   </div>
                </TabsContent>
                
-               <TabsContent value="reportes" className="animate-fade-up">
-                  <div className="vx-card p-6 bg-card border-slate-100 space-y-6">
-                    {reports.length === 0 ? (
-                       <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
-                    ) : reports.map((r: any) => (
-                      <div key={r.id} className="p-4 rounded-xl bg-muted/40 border border-border">
-                         <div className="flex items-center justify-between mb-2">
-                           <Badge variant="outline">{r.status}</Badge>
-                           <span className="text-xs font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
-                         </div>
-                         <p className="text-sm">{r.notes}</p>
-                      </div>
-                    ))}
-                  </div>
-               </TabsContent>
+                <TabsContent value="reportes" className="animate-fade-up">
+                   <div className="vx-card p-6 bg-card border-slate-100 space-y-4">
+                     {reports.length === 0 ? (
+                        <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
+                     ) : reports.map((r: any) => (
+                       <div key={r.id} className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="capitalize">{String(r.status || "").replace(/_/g, " ")}</Badge>
+                              {r._author?.full_name && (
+                                <span className="text-[11px] text-muted-foreground">por <span className="font-semibold text-foreground">{r._author.full_name}</span></span>
+                              )}
+                            </div>
+                            <span className="text-xs font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
+                          </div>
+                          {r.notes ? (
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Andamento</p>
+                              <p className="text-sm whitespace-pre-wrap">{r.notes}</p>
+                            </div>
+                          ) : null}
+                          {r.pending ? (
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Pendências</p>
+                              <p className="text-sm whitespace-pre-wrap">{r.pending}</p>
+                            </div>
+                          ) : null}
+                          {r.next_steps ? (
+                            <div>
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">Próximos passos</p>
+                              <p className="text-sm whitespace-pre-wrap">{r.next_steps}</p>
+                            </div>
+                          ) : null}
+                          {!r.notes && !r.pending && !r.next_steps && (
+                            <p className="text-xs italic text-muted-foreground/70">Reporte sem descrição — apenas mudança de status.</p>
+                          )}
+                       </div>
+                     ))}
+                   </div>
+                </TabsContent>
 
                <TabsContent value="tarefas" className="animate-fade-up">
                   <div className="vx-card p-8 bg-card">
@@ -696,7 +735,10 @@ export default function DemandDetail() {
                               {h.new_data?.description && (
                                 <p className="text-[11px] text-muted-foreground mt-0.5">{h.new_data.description}</p>
                               )}
-                              <p className="text-[10px] text-muted-foreground/60 font-mono mt-1">{formatDate(h.created_at)}</p>
+                              <p className="text-[10px] text-muted-foreground/60 font-mono mt-1">
+                                {formatDate(h.created_at)}
+                                {h._author?.full_name && <> · por <span className="font-semibold">{h._author.full_name}</span></>}
+                              </p>
                             </div>
                           </div>
                         ))}
