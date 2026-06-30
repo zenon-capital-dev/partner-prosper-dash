@@ -421,9 +421,12 @@ export default function PartnerPanel() {
   });
 
   const downloadContractFile = async (path: string) => {
-    const { data, error } = await supabase.storage.from("partner-contracts").createSignedUrl(path, 300);
+    const filename = path.split("/").pop() || "contrato";
+    const { data, error } = await supabase.storage
+      .from("partner-contracts")
+      .createSignedUrl(path, 300, { download: filename });
     if (error || !data?.signedUrl) { toast.error(error?.message || "Não foi possível abrir o arquivo"); return; }
-    openDownloadUrl(data.signedUrl, path.split("/").pop());
+    openDownloadUrl(data.signedUrl, filename);
   };
 
   const productLabel = (c: any) => (showProductName ? (c.products?.name || "") : "Produto contratado");
