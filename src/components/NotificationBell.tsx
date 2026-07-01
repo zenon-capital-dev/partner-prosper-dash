@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { timeAgo } from "@/lib/format";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
 
 export function NotificationBell() {
   const { user } = useAuth();
@@ -28,6 +30,7 @@ export function NotificationBell() {
     staleTime: 60_000,
   });
 
+  const firstConnect = useRef(true);
   useEffect(() => {
     if (!user?.id) return;
     let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -40,9 +43,19 @@ export function NotificationBell() {
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-          () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+          (payload: any) => {
+            qc.invalidateQueries({ queryKey: ["notifications"] });
+            qc.invalidateQueries({ queryKey: ["notifications-center"] });
+            const n = payload?.new;
+            if (n && !firstConnect.current) {
+              toast(n.title || "Nova notificação", {
+                description: n.message,
+                action: n.link ? { label: "Abrir", onClick: () => navigate(n.link) } : undefined,
+              });
+            }
+          },
         )
-        .subscribe();
+        .subscribe(() => { firstConnect.current = false; });
     };
     const disconnect = () => {
       if (channel) { supabase.removeChannel(channel); channel = null; }
@@ -58,7 +71,8 @@ export function NotificationBell() {
       document.removeEventListener("visibilitychange", onVisibility);
       disconnect();
     };
-  }, [user?.id, qc]);
+  }, [user?.id, qc, navigate]);
+
 
 
   const unread = (notes ?? []).filter((n: any) => !n.read).length;
@@ -119,6 +133,12 @@ export function NotificationBell() {
             ))
           )}
         </div>
+        <button
+          onClick={() => { setOpen(false); navigate("/notificacoes"); }}
+          className="w-full text-center text-xs text-primary hover:underline py-2 border-t border-border bg-muted/30"
+        >
+          Ver todas as notificações
+        </button>
       </PopoverContent>
     </Popover>
   );

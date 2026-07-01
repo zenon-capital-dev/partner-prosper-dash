@@ -64,6 +64,7 @@ const ResourcePools = lazy(() => import("./pages/ResourcePools"));
 const SalesGoals = lazy(() => import("./pages/SalesGoals"));
 const ClientJourney = lazy(() => import("./pages/ClientJourney"));
 const Agenda = lazy(() => import("./pages/Agenda"));
+const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
 
 function RouteFallback() {
   return <div className="min-h-dvh bg-background" />;
@@ -176,6 +177,9 @@ const App = () => (
               <Route path="/templates" element={<MessageTemplates />} />
               <Route path="/solicitacoes" element={<RequestsInbox />} />
             </Route>
+
+
+
             {/* RoleHome roda fora de qualquer layout para não dar flash da sidebar admin
                 em quem é cliente/parceiro/etc. antes de o redirect levar pro painel certo. */}
             <Route path="/" element={<RouteGuard><RoleHome /></RouteGuard>} />
@@ -186,6 +190,8 @@ const App = () => (
 
             <Route path="/demandas/:id" element={<RouteGuard><DemandDetail /></RouteGuard>} />
             <Route path="/minhas-solicitacoes" element={<RouteGuard><RequestsInbox /></RouteGuard>} />
+            <Route path="/notificacoes" element={<RouteGuard><NotificationsCenter /></RouteGuard>} />
+
 
             <Route element={<PanelLayout />}>
               <Route path="/parceiro" element={<PartnerPanel />} />
