@@ -44,7 +44,12 @@ export function ClientContracts({ clientId }: { clientId: string }) {
         </Button>
       </div>
 
+      <div className="cp-panel p-4">
+        <ContractFolders clientId={clientId} viewerRole="admin" />
+      </div>
+
       <div className="grid grid-cols-1 gap-4">
+
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">Carregando...</div>
         ) : contracts?.length === 0 ? (
