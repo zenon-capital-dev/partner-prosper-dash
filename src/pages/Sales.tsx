@@ -610,15 +610,16 @@ export default function Sales() {
           </div>
         }
         kpis={[
-          { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" /> },
-          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: "Entradas confirmadas neste mês" },
-          { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined },
-          { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined },
-          { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined },
-          { label: "Comissões", value: formatBRL(kpis.comissao), tone: "info", icon: <Handshake className="size-4" /> },
-          { label: "Total Registros", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" /> },
+          { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" />, onClick: () => setKpiDetail("bruto") },
+          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: "Entradas confirmadas neste mês", onClick: () => setKpiDetail("recebido_mes") },
+          { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined, onClick: () => setKpiDetail("a_receber") },
+          { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined, onClick: () => setKpiDetail("liquido") },
+          { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined, onClick: () => setKpiDetail("custos") },
+          { label: "Comissões", value: formatBRL(kpis.comissao), tone: "info", icon: <Handshake className="size-4" />, onClick: () => setKpiDetail("comissoes") },
+          { label: "Total Registros", value: String(kpis.count), tone: "primary", icon: <TrendingUp className="size-4" />, onClick: () => setKpiDetail("count") },
         ]}
       />
+
 
       {/* INSIGHTS */}
       <section className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 px-5 lg:px-8 mt-4">
