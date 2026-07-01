@@ -47,6 +47,11 @@ export function DemandComments({ clientProductId, role }: Props) {
   const [filter, setFilter] = useState<"all" | Visibility>("all");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (availableVisibilities.includes(visibility)) return;
+    setVisibility(role === "admin" ? "internal" : "client");
+  }, [role, visibility]);
+
   // Available visibility options based on role
   const availableVisibilities: Visibility[] = role === "admin"
     ? ["internal", "admin", "provider", "client"]
@@ -65,6 +70,26 @@ export function DemandComments({ clientProductId, role }: Props) {
       return data ?? [];
     },
   });
+
+  useEffect(() => {
+    if (!clientProductId) return;
+    const channel = supabase
+      .channel(`demand-comments:${clientProductId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "demand_comments",
+          filter: `client_product_id=eq.${clientProductId}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["demand-comments", clientProductId] })
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [clientProductId, qc]);
 
   // Resolve author profiles
   const authorIds = useMemo(() => Array.from(new Set(comments.map((c: any) => c.author_id).filter(Boolean))), [comments]);
@@ -105,7 +130,7 @@ export function DemandComments({ clientProductId, role }: Props) {
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
-    toast.success("Comentário publicado");
+    toast.success(visibility === "client" ? "Comentário publicado e visível para o cliente" : "Comentário publicado");
     setContent("");
     qc.invalidateQueries({ queryKey: ["demand-comments", clientProductId] });
   };

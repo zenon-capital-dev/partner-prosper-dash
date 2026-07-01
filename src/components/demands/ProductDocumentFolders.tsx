@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Folder, FolderPlus, Upload, FileText, Download, Trash2, Lock, Users, Loader2 } from "lucide-react";
+import { Folder, FolderPlus, Upload, FileText, Download, Trash2, Lock, Users, Loader2, Eye, ShieldCheck } from "lucide-react";
 import { openDownloadUrl } from "@/lib/download";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,8 @@ interface FileRow {
   file_size: number | null;
   uploaded_by: string;
   created_at: string;
+  mime_type?: string | null;
+  _uploader?: { id: string; full_name?: string | null; email?: string | null } | null;
 }
 
 interface Props {
@@ -45,14 +47,31 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newScope, setNewScope] = useState<Scope>(role === "provider" ? "client" : "client");
+  const scopeKey = `product-doc-folder-scope:${clientProductId}:${role}`;
+  const [newScope, setNewScope] = useState<Scope>(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(scopeKey) as Scope | null;
+      if (stored === "client" || stored === "internal") return stored;
+    }
+    return "client";
+  });
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [me, setMe] = useState<string | null>(null);
   const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
+    let mounted = true;
+    (async () => {
+      const { getCurrentUserId } = await import("@/lib/current-user");
+      const userId = await getCurrentUserId();
+      if (mounted) setMe(userId);
+    })();
+    return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    try { window.localStorage.setItem(scopeKey, newScope); } catch {}
+  }, [newScope, scopeKey]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,13 +87,25 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     }
     setFolders((fData as FolderRow[]) || []);
     if (fData && fData.length) {
-      const { data: files } = await supabase
+      const { data: rawFiles, error: fileError } = await supabase
         .from("product_document_files")
         .select("*")
         .in("folder_id", fData.map((f: any) => f.id))
         .order("created_at", { ascending: false });
+      if (fileError) toast.error("Erro ao carregar arquivos: " + fileError.message);
+      const files = (rawFiles as FileRow[] | null) ?? [];
+      const uploaderIds = Array.from(new Set(files.map((f) => f.uploaded_by).filter(Boolean)));
+      const uploaderMap = new Map<string, any>();
+      if (uploaderIds.length) {
+        const { data: uploaders } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", uploaderIds);
+        (uploaders ?? []).forEach((u: any) => uploaderMap.set(u.id, u));
+      }
       const grouped: Record<string, FileRow[]> = {};
-      (files as FileRow[] | null)?.forEach((f) => {
+      files.forEach((f) => {
+        f._uploader = uploaderMap.get(f.uploaded_by) ?? null;
         grouped[f.folder_id] = grouped[f.folder_id] || [];
         grouped[f.folder_id].push(f);
       });
@@ -89,6 +120,30 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!clientProductId) return;
+    const foldersChannel = supabase
+      .channel(`product-document-folders:${clientProductId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "product_document_folders", filter: `client_product_id=eq.${clientProductId}` },
+        () => load()
+      )
+      .subscribe();
+    const filesChannel = supabase
+      .channel(`product-document-files:${clientProductId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "product_document_files" },
+        () => load()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(foldersChannel);
+      supabase.removeChannel(filesChannel);
+    };
+  }, [clientProductId, load]);
+
   // Client sempre cria pasta "client". Admin sempre "client". Provider escolhe.
   const effectiveScope: Scope = role === "provider" ? newScope : "client";
 
@@ -101,6 +156,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
       created_by: me,
     };
     if (effectiveScope === "internal") payload.owner_provider_user_id = me;
+    if (role === "provider" && effectiveScope === "client") payload.owner_provider_user_id = me;
     const { error } = await supabase.from("product_document_folders").insert(payload);
     if (error) return toast.error("Erro ao criar pasta: " + error.message);
     toast.success("Pasta criada");
@@ -137,7 +193,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
         uploaded_by: me,
       });
       if (insErr) throw insErr;
-      toast.success("Arquivo enviado");
+      toast.success(folder.scope === "client" ? "Arquivo enviado e disponível para o cliente" : "Arquivo enviado na pasta interna");
       load();
     } catch (e: any) {
       toast.error("Erro no upload: " + (e.message || e));
@@ -168,9 +224,9 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
         <div>
           <h4 className="text-sm font-bold text-foreground">Pastas de documentos</h4>
           <p className="text-xs text-muted-foreground">
-            {role === "client" && "Organize seus documentos por pasta. A equipe Zenon visualiza tudo."}
-            {role === "provider" && "Suas pastas internas — apenas você e a Zenon têm acesso."}
-            {role === "admin" && "Pastas do cliente e pastas internas de cada prestador."}
+            {role === "client" && "Pastas liberadas para o cliente visualizar, baixar e enviar arquivos."}
+            {role === "provider" && "Escolha entre compartilhar com o cliente ou manter interno com a Zenon."}
+            {role === "admin" && "Gerencie pastas do cliente, pastas internas de prestador e revise todos os arquivos enviados."}
           </p>
         </div>
         <Button size="sm" variant="outline" className="gap-2" onClick={() => setNewFolderOpen(true)}>
@@ -212,7 +268,12 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-[10px] gap-1 border-blue-200 bg-blue-50 text-blue-700 shrink-0">
-                        <Users className="size-2.5" /> Cliente
+                        <Eye className="size-2.5" /> Cliente
+                      </Badge>
+                    )}
+                    {role === "admin" && f.owner_provider_user_id && (
+                      <Badge variant="outline" className="text-[10px] gap-1 shrink-0">
+                        <ShieldCheck className="size-2.5" /> Prestador
                       </Badge>
                     )}
                   </div>
@@ -258,7 +319,14 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
                           <li key={file.id} className="flex items-center justify-between gap-2 bg-white border rounded-md px-2 py-1.5">
                             <div className="flex items-center gap-2 min-w-0">
                               <FileText className="size-3.5 text-muted-foreground shrink-0" />
-                              <span className="text-xs truncate">{file.file_name}</span>
+                              <div className="min-w-0">
+                                <span className="text-xs truncate block">{file.file_name}</span>
+                                {role === "admin" && (
+                                  <span className="text-[10px] text-muted-foreground truncate block">
+                                    Enviado por {file._uploader?.full_name || file._uploader?.email || "usuário"} · {new Date(file.created_at).toLocaleDateString("pt-BR")}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => download(file)}>
