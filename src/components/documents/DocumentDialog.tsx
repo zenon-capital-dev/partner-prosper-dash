@@ -39,9 +39,14 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const fileRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
   // Multi-doc items (only used when creating, not editing)
-  type DocItem = { name: string; file: File | null };
-  const [items, setItems] = useState<DocItem[]>([{ name: "", file: null }]);
+  type DocItem = { name: string; file: File | null; requires_signature: boolean };
+  const [items, setItems] = useState<DocItem[]>([{ name: "", file: null, requires_signature: false }]);
   const itemFileRefs = useRef<Array<HTMLInputElement | null>>([]);
+  // Edit-mode signature workflow refs/state
+  const signedFileRef = useRef<HTMLInputElement>(null);
+  const completedFileRef = useRef<HTMLInputElement>(null);
+  const [signedFileName, setSignedFileName] = useState<string>("");
+  const [completedFileName, setCompletedFileName] = useState<string>("");
 
   useEffect(() => {
     if (open) {
