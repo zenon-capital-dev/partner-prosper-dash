@@ -39,6 +39,7 @@ const PartnerPanel = lazy(() => import("./pages/PartnerPanel"));
 const PartnerMaterialsAdmin = lazy(() => import("./pages/PartnerMaterialsAdmin"));
 const PartnerContractsAdmin = lazy(() => import("./pages/PartnerContractsAdmin"));
 const PartnerSupportAdmin = lazy(() => import("./pages/PartnerSupportAdmin"));
+const ClientSupportAdmin = lazy(() => import("./pages/ClientSupportAdmin"));
 const ClientPanel = lazy(() => import("./pages/ClientPanel"));
 const ClientOnboarding = lazy(() => import("./pages/ClientOnboarding"));
 const Collaborators = lazy(() => import("./pages/Collaborators"));
@@ -140,6 +141,7 @@ const App = () => (
               <Route path="/parceiros/:id" element={<PartnerDetail />} />
               <Route path="/parceiros-materiais" element={<PartnerMaterialsAdmin />} />
               <Route path="/parceiros-suporte" element={<PartnerSupportAdmin />} />
+              <Route path="/clientes-suporte" element={<ClientSupportAdmin />} />
               <Route path="/parceiros-contratos" element={<PartnerContractsAdmin />} />
               <Route path="/produtos" element={<Products />} />
               <Route path="/produtos/:id" element={<ProductDetail />} />

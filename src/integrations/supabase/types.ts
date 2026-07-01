@@ -1163,6 +1163,123 @@ export type Database = {
           },
         ]
       }
+      client_support_ticket_messages: {
+        Row: {
+          attachment_name: string | null
+          attachment_type: string | null
+          attachment_url: string | null
+          body: string | null
+          created_at: string
+          id: string
+          sender_id: string | null
+          sender_role: string
+          ticket_id: string
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role: string
+          ticket_id: string
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_type?: string | null
+          attachment_url?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "client_support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_support_tickets: {
+        Row: {
+          admin_notes: string | null
+          assigned_to: string | null
+          category: string | null
+          client_id: string
+          client_product_id: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          last_message_at: string | null
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          category?: string | null
+          client_id: string
+          client_product_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string | null
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          assigned_to?: string | null
+          category?: string | null
+          client_id?: string
+          client_product_id?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string | null
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_support_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_support_tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "client_support_tickets_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_timeline: {
         Row: {
           client_id: string

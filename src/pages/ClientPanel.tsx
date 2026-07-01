@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useSystemSettings, buildMailtoLink, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { PaymentReceiptDialog } from "@/components/client/PaymentReceiptDialog";
+import { ClientSupportTab } from "@/components/client/ClientSupportTab";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -489,7 +490,10 @@ export default function ClientPanel() {
               )}
             />
 
+            {clientId && <ClientSupportTab clientId={clientId} demandas={demandas as any[]} />}
+
             <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-5">
+
               <SectionCard title="Canais de atendimento" subtitle="Escolha como quer falar conosco" icon={HelpCircle}>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <a
