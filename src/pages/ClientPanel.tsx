@@ -402,45 +402,176 @@ export default function ClientPanel() {
               role="cliente"
               eyebrow="Ação necessária"
               title="Minhas pendências"
-              subtitle={pendencias.length === 0 ? "Você está em dia — nada pendente no momento." : `${pendencias.length} item(ns) aguardando sua ação. Clique para resolver.`}
+              subtitle={pendencias.length === 0 && openTickets.length === 0
+                ? "Você está em dia — nada pendente no momento."
+                : `${pendencias.length + openTickets.length} item(ns) aguardando sua ação.`}
               stats={[
-                { label: "Total", value: pendencias.length },
                 { label: "Documentos", value: pendingDocs.length },
-                { label: "Pagamentos", value: pendingPayments.length },
+                { label: "Financeiras", value: pendingPayments.length },
+                { label: "Dúvidas", value: openTickets.length },
                 { label: "Vencidos", value: pendencias.filter((p) => p.status === "vencido" || p.status === "reprovado").length },
               ]}
             />
-            <SectionCard title="" padding="none">
-              {pendencias.length === 0 ?
-                <EmptyState icon={CheckCircle2} title="Tudo em dia" description="Nenhum documento ou pagamento pendente." /> :
-                <ul className="divide-y divide-slate-100">
-                  {pendencias.map((p) => (
-                    <li key={p.key}>
-                      <button
-                        type="button"
-                        onClick={() => onNavigate(p.type === "doc" ? "documentos" : "pagamentos")}
-                        className="w-full text-left px-4 sm:px-5 py-4 hover:bg-slate-50 transition flex items-start gap-3"
-                      >
-                        <div className={cn("size-10 rounded-lg border flex items-center justify-center shrink-0", p.type === "doc" ? "bg-amber-50 text-amber-700 border-amber-100" : "bg-sky-50 text-sky-700 border-sky-100")}>
-                          {p.type === "doc" ? <Upload className="size-5" /> : <Receipt className="size-5" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-[14px] font-semibold text-slate-900">{p.title}</p>
-                            <Badge variant="outline" className={cn("text-[10px] border capitalize", p.status === "vencido" || p.status === "reprovado" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{p.status}</Badge>
+
+            <input
+              ref={uploadInputRef}
+              type="file"
+              className="hidden"
+              onChange={(e) => onFilePicked(e.target.files?.[0] ?? null)}
+            />
+
+            <Tabs defaultValue="documentos" className="w-full">
+              <TabsList className="grid grid-cols-3 w-full max-w-lg mb-4">
+                <TabsTrigger value="documentos" className="gap-2">
+                  <Upload className="size-3.5" /> Documentos
+                  {pendingDocs.length > 0 && <Badge variant="outline" className="ml-1 h-4 px-1.5 text-[10px] bg-amber-50 border-amber-200 text-amber-700">{pendingDocs.length}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="financeiras" className="gap-2">
+                  <Receipt className="size-3.5" /> Financeiras
+                  {pendingPayments.length > 0 && <Badge variant="outline" className="ml-1 h-4 px-1.5 text-[10px] bg-sky-50 border-sky-200 text-sky-700">{pendingPayments.length}</Badge>}
+                </TabsTrigger>
+                <TabsTrigger value="duvidas" className="gap-2">
+                  <MessageSquare className="size-3.5" /> Dúvidas
+                  {openTickets.length > 0 && <Badge variant="outline" className="ml-1 h-4 px-1.5 text-[10px] bg-indigo-50 border-indigo-200 text-indigo-700">{openTickets.length}</Badge>}
+                </TabsTrigger>
+              </TabsList>
+
+              {/* DOCUMENTOS */}
+              <TabsContent value="documentos" className="mt-0">
+                <SectionCard title="" padding="none">
+                  {pendingDocs.length === 0 ? (
+                    <EmptyState icon={CheckCircle2} title="Nenhum documento pendente" description="Assim que solicitarem novos documentos, aparecerão aqui." />
+                  ) : (
+                    <ul className="divide-y divide-slate-100">
+                      {pendingDocs.map((d: any) => (
+                        <li key={d.id} className="px-4 sm:px-5 py-4 flex items-start gap-3 hover:bg-slate-50/60 transition">
+                          <div className="size-10 rounded-lg border bg-amber-50 text-amber-700 border-amber-100 flex items-center justify-center shrink-0">
+                            <Upload className="size-5" />
                           </div>
-                          <p className="text-[12px] text-slate-500 mt-1 truncate">{p.subtitle}</p>
-                          <div className="flex items-center gap-3 mt-2 text-[11.5px] text-slate-500">
-                            <span><Calendar className="size-3 inline mr-1" />{p.due ? formatDate(p.due) : "sem prazo"}</span>
-                            {p.type === "payment" && "amount" in p && <span className="font-mono tabular-nums text-slate-900">{formatBRL((p as any).amount)}</span>}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[14px] font-semibold text-slate-900">{d.title || d.name}</p>
+                              <Badge variant="outline" className={cn("text-[10px] border capitalize", d.status === "reprovado" ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
+                                {d.status === "reprovado" ? "Reenviar" : "Pendente"}
+                              </Badge>
+                            </div>
+                            {d.product_name && <p className="text-[12px] text-slate-500 mt-1 truncate">Vinculado a: <span className="font-medium text-slate-700">{d.product_name}</span></p>}
+                            {d.description && <p className="text-[12px] text-slate-500 mt-1 line-clamp-2">{d.description}</p>}
+                            <div className="flex items-center gap-3 mt-2 text-[11.5px] text-slate-500">
+                              <span><Calendar className="size-3 inline mr-1" />{d.due_date ? `Prazo: ${formatDate(d.due_date)}` : "sem prazo"}</span>
+                            </div>
+                            <div className="mt-3 flex items-center gap-2 flex-wrap">
+                              <Button
+                                size="sm"
+                                className="h-8 gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                onClick={() => pickFileFor(d)}
+                                disabled={uploadingId === d.id}
+                              >
+                                {uploadingId === d.id ? <><Loader2 className="size-3.5 animate-spin" /> Enviando…</> : <><Upload className="size-3.5" /> Enviar arquivo</>}
+                              </Button>
+                              <Button size="sm" variant="outline" className="h-8" onClick={() => onNavigate("documentos")}>
+                                Abrir na aba Documentos →
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-indigo-600 text-[12px] font-medium shrink-0 self-center">Resolver →</div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>}
-            </SectionCard>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </SectionCard>
+              </TabsContent>
+
+              {/* FINANCEIRAS */}
+              <TabsContent value="financeiras" className="mt-0">
+                <SectionCard title="" padding="none">
+                  {pendingPayments.length === 0 ? (
+                    <EmptyState icon={CheckCircle2} title="Sem pendências financeiras" description="Você está em dia com todos os pagamentos." />
+                  ) : (
+                    <ul className="divide-y divide-slate-100">
+                      {pendingPayments.map((p: any) => {
+                        const desc = splitPaymentDescription(p.description);
+                        const productName = p.client_product?.products?.name || p.client_product?.custom_product_name || p.product?.name || "Pendência avulsa";
+                        const overdue = isPaymentOverdue(p);
+                        const amount = Math.max(Number(p.amount || 0) - Number(p.amount_paid || 0), 0) || Number(p.amount || 0);
+                        return (
+                          <li key={p.id} className="px-4 sm:px-5 py-4 flex items-start gap-3 hover:bg-slate-50/60 transition">
+                            <div className={cn("size-10 rounded-lg border flex items-center justify-center shrink-0", overdue ? "bg-rose-50 text-rose-700 border-rose-100" : "bg-sky-50 text-sky-700 border-sky-100")}>
+                              <Receipt className="size-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-[14px] font-semibold text-slate-900">{desc.title}</p>
+                                <Badge variant="outline" className={cn("text-[10px] border capitalize", overdue ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
+                                  {overdue ? "Vencido" : p.status}
+                                </Badge>
+                              </div>
+                              <p className="text-[12px] text-slate-500 mt-1 truncate">{productName}</p>
+                              <div className="flex items-center gap-3 mt-2 text-[11.5px] text-slate-500">
+                                <span><Calendar className="size-3 inline mr-1" />{p.due_date ? formatDate(p.due_date) : "sem prazo"}</span>
+                                <span className="font-mono tabular-nums text-slate-900 font-semibold">{formatBRL(amount)}</span>
+                              </div>
+                              <div className="mt-3">
+                                <Button size="sm" className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onNavigate("pagamentos")}>
+                                  Ver pagamento →
+                                </Button>
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </SectionCard>
+              </TabsContent>
+
+              {/* DÚVIDAS */}
+              <TabsContent value="duvidas" className="mt-0">
+                <SectionCard
+                  title=""
+                  padding="none"
+                  action={<Button size="sm" onClick={() => onNavigate("suporte")}>Nova dúvida</Button>}
+                >
+                  {openTickets.length === 0 ? (
+                    <EmptyState
+                      icon={MessageSquare}
+                      title="Sem dúvidas em aberto"
+                      description="Ficou com alguma dúvida? Abra um chamado que nosso time responde por aqui."
+                    />
+                  ) : (
+                    <ul className="divide-y divide-slate-100">
+                      {openTickets.map((t: any) => {
+                        const dem = (demandas as any[]).find((d) => d.id === t.client_product_id);
+                        const prodName = dem?.products?.name || dem?.custom_product_name || null;
+                        return (
+                          <li key={t.id} className="px-4 sm:px-5 py-4 flex items-start gap-3 hover:bg-slate-50/60 transition">
+                            <div className="size-10 rounded-lg border bg-indigo-50 text-indigo-700 border-indigo-100 flex items-center justify-center shrink-0">
+                              <MessageSquare className="size-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-[14px] font-semibold text-slate-900 truncate">{t.subject}</p>
+                                <Badge variant="outline" className="text-[10px] capitalize bg-indigo-50 text-indigo-700 border-indigo-200">
+                                  {String(t.status || "aberto").replace(/_/g, " ")}
+                                </Badge>
+                              </div>
+                              {prodName && <p className="text-[12px] text-slate-500 mt-1 truncate">Sobre: <span className="font-medium text-slate-700">{prodName}</span></p>}
+                              <div className="flex items-center gap-3 mt-2 text-[11.5px] text-slate-500">
+                                <span><Clock className="size-3 inline mr-1" />Última atualização: {formatDate(t.last_message_at || t.created_at)}</span>
+                              </div>
+                              <div className="mt-3">
+                                <Button size="sm" variant="outline" className="h-8" onClick={() => onNavigate("suporte")}>
+                                  Abrir conversa →
+                                </Button>
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </SectionCard>
+              </TabsContent>
+            </Tabs>
           </>
         )}
 
