@@ -528,9 +528,16 @@ export default function FinanceCenter() {
               <h3 className="font-display text-base font-semibold text-slate-900">Saldo líquido — Zenon</h3>
               <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos custos de venda (Zenon + Prestador), comissões pagas a indicadores/parceiros e despesas variáveis.</p>
             </div>
-            <div className="text-left sm:text-right shrink-0">
-              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
-              <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
+            <div className="text-left sm:text-right shrink-0 flex items-start gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
+                <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
+              </div>
+              {canManage && (
+                <Button size="sm" variant="outline" className="gap-1.5 mt-1" onClick={() => setAllocOpen(true)}>
+                  <Wallet className="size-3.5" /> Destinar p/ caixinha
+                </Button>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
