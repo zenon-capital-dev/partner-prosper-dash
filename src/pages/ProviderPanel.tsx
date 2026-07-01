@@ -114,8 +114,9 @@ export default function ProviderPanel() {
 
       const { data: explicit } = await supabase
         .from("client_products")
-        .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id,
-                 clients(id, full_name, email, phone), products(name, description)`)
+        .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id, sale_id,
+                 clients(id, full_name, email, phone), products(name, description),
+                 sales(id, amount, revenue_type, recurrence_months, recurrence_start, paid_at, status)`)
         .or(orParts.join(","))
         .order("created_at", { ascending: false });
 
@@ -123,8 +124,9 @@ export default function ProviderPanel() {
       if (linkedClientIds.length > 0) {
         const { data } = await supabase
           .from("client_products")
-          .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id,
-                   clients(id, full_name, email, phone), products(name, description)`)
+          .select(`id, status, value, deadline, created_at, notes, priority, sla_due_date, client_id, service_provider_id, sale_id,
+                   clients(id, full_name, email, phone), products(name, description),
+                   sales(id, amount, revenue_type, recurrence_months, recurrence_start, paid_at, status)`)
           .in("client_id", linkedClientIds)
           .is("service_provider_id", null)
           .order("created_at", { ascending: false });
