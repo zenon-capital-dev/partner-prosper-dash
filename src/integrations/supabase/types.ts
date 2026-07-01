@@ -6000,6 +6000,10 @@ export type Database = {
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
+      is_assigned_provider: {
+        Args: { _cp_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_delegated_provider: {
         Args: { _client_product_id: string; _user_id: string }
         Returns: boolean
