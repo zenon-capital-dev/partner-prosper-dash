@@ -108,14 +108,8 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     [allClients],
   );
 
-  const { data: collaborators } = useQuery({
-    queryKey: ["collaborators-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email").eq("active", true).order("full_name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
+  const { data: collaborators } = useInternalTeamRef(open);
+
 
   const { data: providers } = useProvidersRef(open);
 
