@@ -195,9 +195,18 @@ export default function PartnerPanel() {
         rejection_reason: null, reviewed_at: d.reviewed_at, priority: d.priority,
         client_name: clientNameFor(d), product_name: productNameFor(d), source: "client_document_requests",
       }));
+      // document_requests usa status em inglês (pending/submitted/approved/rejected)
+      // Normalizamos para o vocabulário PT-BR usado pelo componente ClientDocumentsTab
+      // (que só reconhece pendente/solicitado/enviado/em_analise/aprovado/reprovado).
+      const REQ_STATUS_MAP: Record<string, string> = {
+        pending: "pendente",
+        submitted: "enviado",
+        approved: "aprovado",
+        rejected: "reprovado",
+      };
       const reqs = (reqRes.data ?? []).map((r: any) => ({
         id: r.id, client_id: r.client_id, product_id: r.product_id || serviceById.get(r.client_product_id)?.product_id || null, name: r.request_title,
-        status: r.status, created_at: r.requested_at, updated_at: r.updated_at, client_product_id: r.client_product_id, due_date: r.deadline,
+        status: REQ_STATUS_MAP[r.status] ?? r.status, created_at: r.requested_at, updated_at: r.updated_at, client_product_id: r.client_product_id, due_date: r.deadline,
         description: r.description, file_path: null, file_url: r.file_url, uploaded_at: r.submission_date,
         rejection_reason: r.rejection_reason, reviewed_at: null, priority: r.priority,
         client_name: clientNameFor(r), product_name: productNameFor(r), source: "document_requests",
