@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.clients_client_self_update_guard() FROM PUBLIC, anon;
