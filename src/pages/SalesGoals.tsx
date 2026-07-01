@@ -89,9 +89,25 @@ export default function SalesGoals() {
         clients_closed: closedR.count ?? 0,
       };
     },
-
     enabled: isAdmin,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
   });
+
+  // Atualiza realizado quando leads/propostas/vendas/pagamentos/timeline mudarem
+  useEffect(() => {
+    if (!isAdmin) return;
+    const invalidate = () => qc.invalidateQueries({ queryKey: ["sales_goals_actual", month] });
+    const ch = supabase
+      .channel("goals-actual-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "proposals" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "client_timeline" }, invalidate)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isAdmin, month, qc]);
 
   const funnel = useMemo(() => {
     if (!actual) return null;
