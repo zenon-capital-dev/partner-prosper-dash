@@ -229,6 +229,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         due_date: form.due_date || null,
         is_required: form.is_required ?? true,
         priority: form.priority || "media",
+        requires_signature: editDoc ? !!form.requires_signature : !!(item as DocItem).requires_signature,
         status,
         file_path,
         file_size,
@@ -237,6 +238,31 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         uploaded_by: file ? user?.id : (editDoc?.uploaded_by || null),
         uploaded_at,
       };
+
+      // Handle signature-workflow uploads in edit mode
+      if (editDoc) {
+        const signedFile = signedFileRef.current?.files?.[0];
+        const completedFile = completedFileRef.current?.files?.[0];
+        for (const [f, prefix, statusOverride] of [
+          [signedFile, "signed", "assinado"] as const,
+          [completedFile, "completed", "concluido"] as const,
+        ]) {
+          if (!f) continue;
+          try { assertUploadFile(f); } catch (e: any) { failMsg = uploadErrorMessage(e); break; }
+          const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
+          const path = `${folder}/${prefix}-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
+          try { await uploadStorageFileFast("documents", path, f); }
+          catch (upErr: any) { failMsg = uploadErrorMessage(upErr); break; }
+          payload[`${prefix}_file_path`] = path;
+          payload[`${prefix}_file_size`] = f.size;
+          payload[`${prefix}_mime_type`] = f.type;
+          payload[`${prefix}_uploaded_at`] = nowBR().toISOString();
+          payload[`${prefix}_uploaded_by`] = user?.id;
+          if (prefix === "completed") payload.status = "aprovado";
+          else if (prefix === "signed" && !completedFile) payload.status = statusOverride;
+        }
+        if (failMsg) break;
+      }
 
       payload.client_id = recipientType === "client" ? selectedRecipientId : null;
       payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
