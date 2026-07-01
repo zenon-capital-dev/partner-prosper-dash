@@ -133,8 +133,13 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
 
       {/* Steps */}
       {steps.length === 0 ? (
-        <div className="border-2 border-dashed border-border rounded-2xl p-10 text-center">
+        <div className="border-2 border-dashed border-border rounded-2xl p-10 text-center space-y-4">
           <p className="text-sm text-muted-foreground">Nenhuma etapa do checklist configurada.</p>
+          {canManage && (
+            <Button onClick={() => addStep.mutate()} disabled={addStep.isPending} size="sm" className="gap-2">
+              <Plus className="size-4" /> Adicionar primeira etapa
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
