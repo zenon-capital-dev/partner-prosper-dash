@@ -23,6 +23,7 @@ const SECTIONS: NavSection[] = [
     { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
     { title: "Alertas", url: "/cockpit", icon: Activity },
     { title: "Demandas", url: "/demandas", icon: ClipboardList },
+    { title: "Solicitações", url: "/solicitacoes", icon: MessageSquare },
     { title: "Agenda", url: "/agenda", icon: CalendarClock },
     { title: "Prazos", url: "/sla", icon: Zap },
   ]},
