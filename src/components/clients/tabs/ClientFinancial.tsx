@@ -20,6 +20,11 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
   const [paymentOpen, setPaymentOpen] = useState(false);
 
 
+  const openReceipt = async (path: string) => {
+    const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 120);
+    if (error || !data) return toast.error("Não foi possível abrir o comprovante");
+    window.open(data.signedUrl, "_blank");
+  };
   const markPaid = async (paymentId: string, amount: number) => {
     const ok = await confirmAction({ title: "Confirmar baixa?", description: `Marcar este pagamento como pago no valor de ${formatBRL(amount)}.`, confirmText: "Dar baixa" });
     if (!ok) return;
