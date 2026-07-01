@@ -30,7 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
-type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status";
+type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
 type SortDir = "asc" | "desc";
 const PAGE_SIZE = 10;
 
@@ -255,6 +255,13 @@ export default function Sales() {
           case "amount": return Number(x.amount || 0);
           case "commission": return (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
           case "status": return String(x.status || "");
+          case "liquido": {
+            const amt = Number(x.amount || 0);
+            const comm = (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
+            const custos = Number(x.zenon_cost || 0) + Number(x.provider_cost || 0);
+            return amt - custos - comm;
+          }
+          case "recebido": return Math.min(receiptsBySale.get(x.id)?.received ?? 0, Number(x.amount || 0));
         }
       };
       const va = v(a), vb = v(b);
@@ -959,8 +966,8 @@ export default function Sales() {
                   {visibleCols.date && <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
                   {visibleCols.amount && <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
                   {visibleCols.commission && <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
-                  {visibleCols.liquido && <Th align="right">Líquido</Th>}
-                  {visibleCols.recebido && <Th align="right">Recebido / Restante</Th>}
+                  {visibleCols.liquido && <SortableTh label="Líquido" k="liquido" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
+                  {visibleCols.recebido && <SortableTh label="Recebido / Restante" k="recebido" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
                 </tr>
               </thead>
 
