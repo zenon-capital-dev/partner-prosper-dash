@@ -405,6 +405,51 @@ export default function ProviderPanel() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!reportView} onOpenChange={(o) => !o && setReportView(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base">Reporte enviado</DialogTitle>
+          </DialogHeader>
+          {reportView && (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-slate-200/70 bg-slate-50/60 p-3">
+                <p className="text-[11px] uppercase tracking-wider text-slate-400">Demanda</p>
+                <p className="text-[13px] font-semibold text-slate-900 mt-0.5">{reportView._clientName} · <span className="font-medium text-slate-600">{reportView._productName}</span></p>
+                <p className="text-[11px] text-slate-400 mt-1">{formatDate(reportView.created_at)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] uppercase tracking-wider text-slate-400">Status</span>
+                <Badge variant="outline" className="capitalize">{String(reportView.status).replace(/_/g, " ")}</Badge>
+              </div>
+              {reportView.notes && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-1">Notas do reporte</p>
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reportView.notes}</p>
+                </div>
+              )}
+              {reportView.pending && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-amber-600 mb-1">Pendências</p>
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reportView.pending}</p>
+                </div>
+              )}
+              {reportView.next_steps && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-blue-600 mb-1">Próximos passos</p>
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reportView.next_steps}</p>
+                </div>
+              )}
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/demanda/${reportView.client_product_id}`}>Abrir demanda</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </PanelShell>
   );
 }
