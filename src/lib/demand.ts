@@ -19,7 +19,7 @@ export const demand = {
         `*,
          client:clients(id, full_name, company, email, phone),
          product:products(id, name, category),
-         provider:service_providers(id, full_name, specialty)`
+         provider:service_providers!client_products_service_provider_id_fkey(id, name, specialty)`
       )
       .eq("id", demandId)
       .maybeSingle();
