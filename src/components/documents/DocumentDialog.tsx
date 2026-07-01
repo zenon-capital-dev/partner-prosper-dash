@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
-import { useClientsRef, useProvidersRef } from "@/hooks/useReferenceData";
+import { useClientsRef, useProvidersRef, useInternalTeamRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
 
 
