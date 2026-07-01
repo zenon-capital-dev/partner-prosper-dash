@@ -162,30 +162,58 @@ export default function FinanceCenter() {
     qc.invalidateQueries({ queryKey: ["resource_pools"] });
     qc.invalidateQueries({ queryKey: ["resource_pool_movements"] });
   };
-  const [kpiRange, setKpiRange] = useState<"week" | "month" | "3m" | "6m" | "year" | "all">(
+  type RangeMode = "week" | "month" | "specific" | "3m" | "6m" | "year" | "all";
+  const nowMonthKey = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const [kpiRange, setKpiRange] = useState<RangeMode>(
     (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
+  );
+  const [specificMonth, setSpecificMonth] = useState<string>(
+    (typeof window !== "undefined" && localStorage.getItem("fin:specificMonth")) || nowMonthKey()
   );
   useEffect(() => {
     try { localStorage.setItem("fin:kpiRange", kpiRange); } catch {}
   }, [kpiRange]);
-  const rangeStartIso = useMemo(() => {
+  useEffect(() => {
+    try { localStorage.setItem("fin:specificMonth", specificMonth); } catch {}
+  }, [specificMonth]);
+  const { rangeStartIso, rangeEndIso } = useMemo(() => {
     const d = new Date();
-    if (kpiRange === "all") return "0000-01-01";
-    if (kpiRange === "week") d.setDate(d.getDate() - 7);
-    else if (kpiRange === "month") { d.setDate(1); }
-    else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
-    else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
-    else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
-    return d.toISOString().slice(0, 10);
-  }, [kpiRange]);
-  const rangeLabel: Record<typeof kpiRange, string> = {
+    let start = "0000-01-01";
+    let end = "9999-12-31";
+    if (kpiRange === "all") { /* both wide */ }
+    else if (kpiRange === "specific") {
+      const [y, m] = specificMonth.split("-").map(Number);
+      const s = new Date(y, m - 1, 1);
+      const e = new Date(y, m, 1);
+      start = s.toISOString().slice(0, 10);
+      end = e.toISOString().slice(0, 10);
+    } else {
+      if (kpiRange === "week") d.setDate(d.getDate() - 7);
+      else if (kpiRange === "month") { d.setDate(1); }
+      else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
+      else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
+      else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
+      start = d.toISOString().slice(0, 10);
+    }
+    return { rangeStartIso: start, rangeEndIso: end };
+  }, [kpiRange, specificMonth]);
+  const specificMonthLabel = useMemo(() => {
+    const [y, m] = specificMonth.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  }, [specificMonth]);
+  const rangeLabel: Record<RangeMode, string> = {
     week: "últimos 7 dias",
     month: "mês atual",
+    specific: specificMonthLabel,
     "3m": "últimos 3 meses",
     "6m": "últimos 6 meses",
     year: "últimos 12 meses",
     all: "todo período",
-  } as any;
+  };
+
 
   const { data: payments = [], isLoading: loadingPay } = useQuery({
     queryKey: ["fin-payments"],
@@ -315,10 +343,12 @@ export default function FinanceCenter() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const from = rangeStartIso;
+    const to = rangeEndIso;
     const paidDate = (p: any) => (p.paid_at || p.payment_date || "") as string;
     const commDate = (c: any) => (c.paid_at || c.created_at || "") as string;
     const expDate = (e: any) => (e.expense_date || e.created_at || "") as string;
-    const inRange = (d: string) => !!d && d >= from;
+    const inRange = (d: string) => !!d && d >= from && d < to;
+
     const totalReceived = payments
       .filter((p: any) => isPaid(p.status) && inRange(paidDate(p)))
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
@@ -391,7 +421,7 @@ export default function FinanceCenter() {
       providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso]);
+  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
@@ -489,18 +519,28 @@ export default function FinanceCenter() {
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
-              <SelectTrigger className="h-9 w-[170px] bg-white border-slate-200">
+              <SelectTrigger className="h-9 w-[190px] bg-white border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Últimos 7 dias</SelectItem>
+                <SelectItem value="specific">📅 Escolher mês…</SelectItem>
                 <SelectItem value="month">Mês atual</SelectItem>
+                <SelectItem value="week">Últimos 7 dias</SelectItem>
                 <SelectItem value="3m">Últimos 3 meses</SelectItem>
                 <SelectItem value="6m">Últimos 6 meses</SelectItem>
                 <SelectItem value="year">Últimos 12 meses</SelectItem>
                 <SelectItem value="all">Todo período</SelectItem>
               </SelectContent>
             </Select>
+            {kpiRange === "specific" && (
+              <input
+                type="month"
+                value={specificMonth}
+                onChange={(e) => setSpecificMonth(e.target.value || nowMonthKey())}
+                className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm capitalize"
+              />
+            )}
+
             {canManage && (
               <>
                 <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
