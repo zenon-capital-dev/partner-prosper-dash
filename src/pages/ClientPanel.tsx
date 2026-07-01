@@ -7,7 +7,9 @@ import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
   Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
   MessageCircle, Mail, Clock, ArrowUpRight, ShieldCheck, AlertTriangle, Upload,
+  FileSignature,
 } from "lucide-react";
+import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
 import { PanelContainer } from "@/components/panels/PanelContainer";
