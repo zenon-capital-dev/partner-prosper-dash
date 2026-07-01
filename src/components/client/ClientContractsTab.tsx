@@ -115,7 +115,11 @@ export function ClientContractsTab({
 
   return (
     <div className="space-y-6">
+      <div className="vx-card bg-white rounded-[24px] p-4 border-slate-100">
+        <ContractFolders clientId={clientId} viewerRole="client" />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         {contracts.map((c) => {
           const meta = STATUS_META[c.status] ?? STATUS_META.criado;
           const Icon = meta.icon;
