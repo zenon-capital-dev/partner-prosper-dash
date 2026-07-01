@@ -32,10 +32,18 @@ export function DemandComments({ clientProductId, role }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [content, setContent] = useState("");
-  // Default: provider posts as "client" (visível pro cliente) para não ficar preso na aba interna
-  const [visibility, setVisibility] = useState<Visibility>(
-    role === "admin" ? "internal" : "client"
-  );
+  const visKey = `demand-comment-vis:${role}:${clientProductId}`;
+  // Persist a última visibilidade escolhida por demanda/role (padrão: "client" para todos exceto admin)
+  const [visibility, setVisibility] = useState<Visibility>(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem(visKey) as Visibility | null;
+      if (stored) return stored;
+    }
+    return role === "admin" ? "internal" : "client";
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem(visKey, visibility); } catch {}
+  }, [visibility, visKey]);
   const [filter, setFilter] = useState<"all" | Visibility>("all");
   const [submitting, setSubmitting] = useState(false);
 
