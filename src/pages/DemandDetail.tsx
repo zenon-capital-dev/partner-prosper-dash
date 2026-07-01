@@ -83,7 +83,7 @@ export default function DemandDetail() {
       const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
       assertUploadFile(file);
       setUploadingDoc(true);
-      const path = `demand-${demand.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      const path = `${demand.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { error: insErr } = await supabase.from("documents").insert({
