@@ -272,6 +272,36 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
         </Button>
       </div>
 
+      {role === "admin" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Buscar pasta por nome..."
+            value={nameQuery}
+            onChange={(e) => setNameQuery(e.target.value)}
+            className="h-8 text-xs max-w-xs"
+          />
+          <div className="flex gap-1 rounded-md border p-0.5 bg-slate-50">
+            {(["all", "client", "internal"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setAdminFilter(k)}
+                className={cn(
+                  "text-[11px] px-2.5 py-1 rounded",
+                  adminFilter === k ? "bg-white shadow-sm font-semibold text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {k === "all" ? "Todas" : k === "client" ? "Cliente" : "Internas"}
+              </button>
+            ))}
+          </div>
+          <span className="text-[11px] text-muted-foreground ml-auto">
+            {visibleFolders.length} pasta(s) · {visibleFolders.reduce((a, f) => a + (files[f.id]?.length || 0), 0)} arquivo(s)
+          </span>
+        </div>
+      )}
+
+
       {loading ? (
         <div className="flex items-center gap-2 text-xs text-muted-foreground p-4">
           <Loader2 className="size-4 animate-spin" /> Carregando...
