@@ -1064,15 +1064,19 @@ function PaymentsTable({
                             </Button>
                           )}
                           {p.receipt_url && (
-                            <a
-                              href={p.receipt_url}
-                              target="_blank"
-                              rel="noreferrer"
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const { data, error } = await supabase.storage.from("documents").createSignedUrl(p.receipt_url, 120);
+                                if (error || !data) { toast.error("Não foi possível abrir o comprovante"); return; }
+                                window.open(data.signedUrl, "_blank");
+                              }}
                               className="text-xs text-indigo-600 underline"
                             >
                               Comprovante
-                            </a>
+                            </button>
                           )}
+
                         </div>
                       </td>
                     </tr>
