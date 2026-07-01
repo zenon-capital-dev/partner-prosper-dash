@@ -439,11 +439,19 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                           <input
                             ref={(el) => { itemFileRefs.current[idx] = el; }}
                             type="file"
+                            multiple
                             className="hidden"
                             onChange={(e) => {
-                              const f = e.target.files?.[0] || null;
+                              const selectedFiles = Array.from(e.target.files ?? []);
                               const next = [...items];
-                              next[idx] = { ...next[idx], file: f };
+                              if (selectedFiles.length <= 1) {
+                                const f = selectedFiles[0] || null;
+                                next[idx] = { ...next[idx], file: f, name: next[idx].name || f?.name || "" };
+                              } else {
+                                const [first, ...rest] = selectedFiles;
+                                next[idx] = { ...next[idx], file: first, name: next[idx].name || first.name };
+                                rest.forEach((file) => next.push({ name: file.name, file, requires_signature: false }));
+                              }
                               setItems(next);
                             }}
                           />
@@ -472,7 +480,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                               className="h-7 text-[11px] gap-1.5"
                               onClick={() => itemFileRefs.current[idx]?.click()}
                             >
-                              <Upload className="size-3" /> Anexar arquivo (opcional)
+                              <Upload className="size-3" /> Anexar arquivo(s) (opcional)
                             </Button>
                           )}
                         </div>
