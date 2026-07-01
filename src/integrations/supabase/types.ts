@@ -1465,6 +1465,7 @@ export type Database = {
           sale_value: number | null
           service_provider_id: string | null
           source: string
+          stage_changed_at: string | null
           state: string | null
           status: Database["public"]["Enums"]["client_status"]
           tags: string[] | null
@@ -1527,6 +1528,7 @@ export type Database = {
           sale_value?: number | null
           service_provider_id?: string | null
           source?: string
+          stage_changed_at?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
@@ -1589,6 +1591,7 @@ export type Database = {
           sale_value?: number | null
           service_provider_id?: string | null
           source?: string
+          stage_changed_at?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tags?: string[] | null
