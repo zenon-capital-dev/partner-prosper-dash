@@ -4,7 +4,7 @@ import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useClientsRef, useProvidersRef, usePartnersRef } from "@/hooks/useReferenceData";
+import { useClientsRef, useProvidersRef, usePartnersRef, useInternalTeamRef } from "@/hooks/useReferenceData";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
