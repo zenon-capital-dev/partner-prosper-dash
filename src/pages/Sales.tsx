@@ -58,6 +58,19 @@ export default function Sales() {
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
+  const [breakdownDim, setBreakdownDim] = useState<"status" | "partner" | "product" | "client" | "partner_product" | "product_client">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("sales-breakdown-dim") as any)) || "status"
+  );
+  const [breakdownMetric, setBreakdownMetric] = useState<"bruto" | "recebido" | "liquido" | "qtd">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("sales-breakdown-metric") as any)) || "bruto"
+  );
+  const changeBreakdown = (dim: typeof breakdownDim, metric: typeof breakdownMetric) => {
+    setBreakdownDim(dim); setBreakdownMetric(metric);
+    try {
+      localStorage.setItem("sales-breakdown-dim", dim);
+      localStorage.setItem("sales-breakdown-metric", metric);
+    } catch {}
+  };
   const [density, setDensity] = useState<"compact" | "normal" | "spacious">(
     () => (typeof window !== "undefined" && (localStorage.getItem("sales-density") as any)) || "normal"
   );
