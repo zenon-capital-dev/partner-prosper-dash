@@ -99,13 +99,19 @@ export function ClientContractsTab({
 
   if (contracts.length === 0) {
     return (
-      <div className="vx-card bg-white rounded-[24px] p-12 text-center border-slate-100">
-        <FileSignature className="size-12 text-primary/30 mx-auto mb-4" />
-        <h3 className="font-editorial text-2xl font-bold text-slate-900">Nenhum contrato ativo</h3>
-        <p className="text-muted-foreground mt-2 text-sm">Seus contratos de serviço aparecerão aqui para assinatura e consulta.</p>
+      <div className="space-y-6">
+        <div className="vx-card bg-white rounded-[24px] p-4 border-slate-100">
+          <ContractFolders clientId={clientId} viewerRole="client" />
+        </div>
+        <div className="vx-card bg-white rounded-[24px] p-12 text-center border-slate-100">
+          <FileSignature className="size-12 text-primary/30 mx-auto mb-4" />
+          <h3 className="font-editorial text-2xl font-bold text-slate-900">Nenhum contrato ativo</h3>
+          <p className="text-muted-foreground mt-2 text-sm">Seus contratos de serviço aparecerão aqui para assinatura e consulta.</p>
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="space-y-6">
