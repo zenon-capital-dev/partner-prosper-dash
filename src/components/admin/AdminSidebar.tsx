@@ -41,7 +41,8 @@ const SECTIONS: NavSection[] = [
   { label: "Rede", items: [
     { title: "Parceiros", url: "/parceiros", icon: Handshake, staffOnly: true },
     { title: "Materiais p/ Parceiros", url: "/parceiros-materiais", icon: BookOpen, staffOnly: true },
-    { title: "Suporte Parceiros", url: "/parceiros-suporte", icon: LifeBuoy, staffOnly: true },
+   { title: "Suporte Parceiros", url: "/parceiros-suporte", icon: LifeBuoy, staffOnly: true },
+   { title: "Suporte Clientes", url: "/clientes-suporte", icon: LifeBuoy, staffOnly: true },
     { title: "Contratos Parceiros", url: "/parceiros-contratos", icon: FileSignature, staffOnly: true },
     { title: "Prestadores", url: "/prestadores", icon: Truck, staffOnly: true },
     { title: "Indicadores", url: "/indicadores", icon: Sparkles, staffOnly: true },
