@@ -179,7 +179,7 @@ export default function Documents() {
           .from("document_requests")
           .select(`
             *,
-            clients(id, full_name),
+            clients:profiles!document_requests_client_id_fkey(id, full_name),
             products(id, name),
             client_products(
               id,

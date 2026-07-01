@@ -477,10 +477,10 @@ export default function Collaborators() {
                               {initials(c.full_name ?? c.email ?? "?")}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-semibold text-slate-800 truncate flex items-center gap-1.5">
-                                {c.full_name ?? "—"}
+                              <div className="font-semibold text-slate-800 truncate flex items-center gap-1.5">
+                                <span className="truncate">{c.full_name ?? "—"}</span>
                                 {c.id === myId && <Badge className="text-[9px] bg-indigo-50 text-indigo-700 border border-indigo-200">você</Badge>}
-                              </p>
+                              </div>
                               {c.internal_notes && <p className="text-[11px] text-slate-500 truncate max-w-[260px]">{c.internal_notes}</p>}
                             </div>
                           </div>
