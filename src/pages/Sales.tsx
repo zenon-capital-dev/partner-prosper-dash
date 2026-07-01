@@ -471,7 +471,10 @@ export default function Sales() {
       await cancelSale(s);
       return;
     }
-    const { error } = await supabase.from("sales").update({ status: next }).eq("id", s.id);
+    const patch: any = { status: next };
+    if (next === "concluida") patch.closed_at = s.closed_at || new Date().toISOString();
+    else patch.closed_at = null;
+    const { error } = await supabase.from("sales").update(patch).eq("id", s.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status atualizado");
     invalidateRelated();
