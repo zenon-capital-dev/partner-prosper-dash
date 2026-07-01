@@ -4,6 +4,7 @@ import { openDownloadUrl } from "@/lib/download";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { endOfDay, startOfMonth, startOfToday, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { nowBR, toBR, isTodayBR } from "@/lib/datetime";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHero } from "@/components/PageHero";
@@ -323,8 +324,7 @@ export default function Documents() {
     if (source === "documents") {
       const updateData: any = { status, reviewed_at: new Date().toISOString(), ...extra };
       if (status === "aprovado") {
-        const { data: { user } } = await supabase.auth.getUser();
-        updateData.approved_by = user?.id ?? null;
+        updateData.approved_by = await getCurrentUserId();
         updateData.rejection_reason = null;
       }
       const { error } = await supabase.from("documents").update(updateData).eq("id", doc.id);

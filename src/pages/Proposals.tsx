@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useClientsRef, useProductsRef } from "@/hooks/useReferenceData";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -523,7 +524,7 @@ async function convertToSale(p: any, qc: any) {
   if (!(await confirmAction("Converter esta proposta em venda e demanda(s)?"))) return;
 
   try {
-    const { data: u } = await supabase.auth.getUser();
+    const uid = await getCurrentUserId();
     const today = todayLocal();
     const firstItem = items[0];
 
@@ -658,7 +659,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
 
     setSaving(true);
     try {
-      const { data: u } = await supabase.auth.getUser();
+      const uid = await getCurrentUserId();
       const payload: any = {
         client_id: recipientType === "client" ? clientId : null,
         lead_id: recipientType === "lead" ? leadId : null,
