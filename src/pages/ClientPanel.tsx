@@ -489,6 +489,25 @@ export default function ClientPanel() {
           </>
         )}
 
+        {activeKey === "contratos" && (
+          <>
+            <PanelHero
+              role="cliente"
+              eyebrow="Contratos"
+              title="Meus contratos"
+              subtitle={`${contracts.length} contrato(s) · ${(contracts as any[]).filter((c) => c.status === "assinado" || c.status === "finalizado").length} assinado(s)`}
+              stats={[
+                { label: "Total", value: contracts.length },
+                { label: "Aguardando", value: (contracts as any[]).filter((c) => c.status === "enviado" || c.status === "aguardando_assinatura").length },
+                { label: "Assinados", value: (contracts as any[]).filter((c) => c.status === "assinado" || c.status === "finalizado").length },
+              ]}
+            />
+            {clientId && <ClientContractsTab clientId={clientId} contracts={contracts as any[]} />}
+          </>
+        )}
+
+
+
 
         {activeKey === "suporte" && (
           <>
