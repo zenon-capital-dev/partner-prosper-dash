@@ -343,10 +343,12 @@ export default function FinanceCenter() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const from = rangeStartIso;
+    const to = rangeEndIso;
     const paidDate = (p: any) => (p.paid_at || p.payment_date || "") as string;
     const commDate = (c: any) => (c.paid_at || c.created_at || "") as string;
     const expDate = (e: any) => (e.expense_date || e.created_at || "") as string;
-    const inRange = (d: string) => !!d && d >= from;
+    const inRange = (d: string) => !!d && d >= from && d < to;
+
     const totalReceived = payments
       .filter((p: any) => isPaid(p.status) && inRange(paidDate(p)))
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
