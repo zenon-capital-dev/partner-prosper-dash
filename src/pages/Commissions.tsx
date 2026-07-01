@@ -123,11 +123,8 @@ export default function Commissions() {
     notes: "",
   });
 
-  const { data: collaborators = [] } = useQuery({
-    queryKey: ["collaborators-simple"],
-    enabled: createOpen,
-    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: collaborators = [] } = useInternalTeamRef(createOpen);
+
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["referrers-simple"],
