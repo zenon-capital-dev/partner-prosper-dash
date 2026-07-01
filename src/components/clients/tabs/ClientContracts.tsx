@@ -7,6 +7,7 @@ import { formatDate, formatBRL } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ContractFolders } from "@/components/contracts/ContractFolders";
 
 export function ClientContracts({ clientId }: { clientId: string }) {
   const navigate = useNavigate();
