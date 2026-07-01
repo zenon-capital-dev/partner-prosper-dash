@@ -125,3 +125,31 @@ export function useCollaboratorsRef(enabled = true) {
     },
   });
 }
+
+/**
+ * Internal team: admin + admin_secondary + colaborador. Use for pickers like
+ * "assignee", "responsável", "colaborador" that must not list clients/parceiros/prestadores.
+ */
+export function useInternalTeamRef(enabled = true) {
+  return useQuery({
+    queryKey: ["ref:internal-team"],
+    enabled,
+    ...REF_OPTS,
+    queryFn: async () => {
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["admin", "admin_secondary", "colaborador", "super_admin"] as any);
+      const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id).filter(Boolean)));
+      if (!ids.length) return [];
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, active")
+        .in("id", ids)
+        .eq("active", true)
+        .order("full_name");
+      return data ?? [];
+    },
+  });
+}
+

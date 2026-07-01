@@ -4,7 +4,7 @@ import { subDays, startOfMonth, startOfToday, endOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useClientsRef, useProvidersRef, usePartnersRef } from "@/hooks/useReferenceData";
+import { useClientsRef, useProvidersRef, usePartnersRef, useInternalTeamRef } from "@/hooks/useReferenceData";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,12 +148,8 @@ export default function Tasks() {
     gcTime: 5 * 60_000,
   });
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["tasks-profiles"],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name").order("full_name").limit(200)).data ?? [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
-  });
+  const { data: profiles = [] } = useInternalTeamRef();
+
 
   const { data: clients = [] } = useClientsRef();
   const { data: clientProducts = [] } = useQuery({

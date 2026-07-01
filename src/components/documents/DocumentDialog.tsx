@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
-import { useClientsRef, useProvidersRef } from "@/hooks/useReferenceData";
+import { useClientsRef, useProvidersRef, useInternalTeamRef } from "@/hooks/useReferenceData";
 import { useMemo } from "react";
 
 
@@ -108,14 +108,8 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     [allClients],
   );
 
-  const { data: collaborators } = useQuery({
-    queryKey: ["collaborators-list-simple"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email").eq("active", true).order("full_name").limit(300);
-      return data ?? [];
-    },
-    enabled: open,
-  });
+  const { data: collaborators } = useInternalTeamRef(open);
+
 
   const { data: providers } = useProvidersRef(open);
 

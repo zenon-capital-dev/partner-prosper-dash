@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useAuth } from "@/hooks/useAuth";
+import { useInternalTeamRef } from "@/hooks/useReferenceData";
+
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,11 +125,8 @@ export default function Commissions() {
     notes: "",
   });
 
-  const { data: collaborators = [] } = useQuery({
-    queryKey: ["collaborators-simple"],
-    enabled: createOpen,
-    queryFn: async () => (await supabase.from("profiles").select("id,full_name").order("full_name").limit(300)).data ?? [],
-  });
+  const { data: collaborators = [] } = useInternalTeamRef(createOpen);
+
 
   const { data: referrers = [] } = useQuery({
     queryKey: ["referrers-simple"],
