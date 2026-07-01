@@ -128,6 +128,40 @@ export default function FinanceCenter() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [newPaymentOpen, setNewPaymentOpen] = useState(false);
+  const [allocOpen, setAllocOpen] = useState(false);
+  const [allocPool, setAllocPool] = useState<string>("");
+  const [allocAmount, setAllocAmount] = useState("");
+  const [allocDesc, setAllocDesc] = useState("");
+  const { data: poolsList = [] } = useQuery({
+    queryKey: ["fin-pools-list"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("resource_pools")
+        .select("id, name, current_balance, color")
+        .eq("active", true)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const submitAllocation = async () => {
+    const amt = parseFloat(allocAmount.replace(",", "."));
+    if (!allocPool) { toast.error("Selecione uma caixinha"); return; }
+    if (!amt || amt <= 0) { toast.error("Valor inválido"); return; }
+    const { error } = await (supabase as any).from("resource_pool_movements").insert({
+      pool_id: allocPool,
+      movement_type: "entrada",
+      amount: amt,
+      description: allocDesc || "Alocação a partir do saldo líquido",
+      reference_type: "finance_allocation",
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Valor destinado à caixinha");
+    setAllocOpen(false); setAllocPool(""); setAllocAmount(""); setAllocDesc("");
+    qc.invalidateQueries({ queryKey: ["fin-pools-list"] });
+    qc.invalidateQueries({ queryKey: ["resource_pools"] });
+    qc.invalidateQueries({ queryKey: ["resource_pool_movements"] });
+  };
   const [kpiRange, setKpiRange] = useState<"week" | "month" | "3m" | "6m" | "year" | "all">(
     (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
   );
@@ -411,6 +445,41 @@ export default function FinanceCenter() {
         onOpenChange={setNewPaymentOpen}
         onCreated={() => qc.invalidateQueries({ queryKey: ["fin-payments"] })}
       />
+      <Dialog open={allocOpen} onOpenChange={setAllocOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Destinar valor para caixinha</DialogTitle>
+            <DialogDescription>Registra uma entrada na caixinha selecionada. O saldo é atualizado automaticamente.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Caixinha</Label>
+              <Select value={allocPool} onValueChange={setAllocPool}>
+                <SelectTrigger><SelectValue placeholder="Selecione uma caixinha" /></SelectTrigger>
+                <SelectContent>
+                  {poolsList.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} · {formatBRL(Number(p.current_balance || 0))}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Valor (R$)</Label>
+              <Input inputMode="decimal" placeholder="0,00" value={allocAmount} onChange={(e) => setAllocAmount(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Descrição (opcional)</Label>
+              <Textarea rows={2} value={allocDesc} onChange={(e) => setAllocDesc(e.target.value)} placeholder="Ex.: Reserva de impostos de junho" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAllocOpen(false)}>Cancelar</Button>
+            <Button onClick={submitAllocation}>Destinar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <PageHero
         eyebrow="Financeiro"
         category="Operações"
@@ -494,9 +563,16 @@ export default function FinanceCenter() {
               <h3 className="font-display text-base font-semibold text-slate-900">Saldo líquido — Zenon</h3>
               <p className="text-xs text-slate-500 mt-0.5">Bruto recebido menos custos de venda (Zenon + Prestador), comissões pagas a indicadores/parceiros e despesas variáveis.</p>
             </div>
-            <div className="text-left sm:text-right shrink-0">
-              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
-              <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
+            <div className="text-left sm:text-right shrink-0 flex items-start gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Saldo líquido</p>
+                <p className={cn("font-mono text-2xl font-bold tabular-nums", kpis.netRevenue >= 0 ? "text-emerald-700" : "text-rose-700")}>{formatBRL(kpis.netRevenue)}</p>
+              </div>
+              {canManage && (
+                <Button size="sm" variant="outline" className="gap-1.5 mt-1" onClick={() => setAllocOpen(true)}>
+                  <Wallet className="size-3.5" /> Destinar p/ caixinha
+                </Button>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
