@@ -120,7 +120,7 @@ export const demand = {
     const { data, error } = await supabase
       .from("activity_logs")
       .select("*")
-      .eq("entity_type", "client_product")
+      .in("entity_type", ["client_product", "client_products"])
       .eq("entity_id", demandId)
       .order("created_at", { ascending: false })
       .limit(200);
