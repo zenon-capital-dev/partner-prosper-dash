@@ -632,31 +632,132 @@ export default function ProviderPanel() {
           </>
         )}
 
-        {activeKey === "comissoes" && (
-          <>
-            <PanelHero role="prestador" eyebrow="Financeiro" title="Suas comissões" subtitle="Histórico de comissões vinculadas às suas demandas." stats={[
-              { label: "Pagas", value: formatBRL(commKpis.pago) },
-              { label: "Pendentes", value: formatBRL(commKpis.pendente) },
-              { label: "Total", value: formatBRL(commKpis.total) },
-              { label: "Lançamentos", value: commKpis.count },
-            ]} />
-            <SectionCard title="">
-              {commissions.length === 0 ? <EmptyState icon={Wallet} title="Sem comissões" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
-                  {(commissions as any[]).map((c) => (
-                    <li key={c.id} className="flex items-center gap-3 px-3 py-3">
-                      <div className="size-9 rounded-md bg-teal-50 text-teal-700 flex items-center justify-center"><Wallet className="size-4" /></div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium text-slate-900">{formatBRL(c.amount)} <span className="text-[11px] text-slate-400 font-normal">· {Number(c.percent || 0)}%</span></p>
-                        <p className="text-[11.5px] text-slate-500 truncate">{c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""} · {c.paid_at ? `pago em ${formatDate(c.paid_at)}` : `criado em ${formatDate(c.created_at)}`}</p>
+        {activeKey === "comissoes" && (() => {
+          const all = commissions as any[];
+          // Group by month (last 6 months)
+          const monthKey = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`; };
+          const monthLabel = (k: string) => { const [y,m] = k.split("-"); return new Date(Number(y), Number(m)-1, 1).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }); };
+          const byMonth = new Map<string, { pago: number; pendente: number }>();
+          all.forEach((c) => {
+            const k = monthKey(c.paid_at || c.created_at);
+            const cur = byMonth.get(k) || { pago: 0, pendente: 0 };
+            if (c.status === "pago") cur.pago += Number(c.amount || 0); else cur.pendente += Number(c.amount || 0);
+            byMonth.set(k, cur);
+          });
+          const months = Array.from(byMonth.entries()).sort((a,b) => a[0].localeCompare(b[0])).slice(-6);
+          const maxMonth = Math.max(1, ...months.map(([,v]) => v.pago + v.pendente));
+          // Top clients
+          const byClient = new Map<string, number>();
+          all.forEach((c) => { const n = c.client_name || "—"; byClient.set(n, (byClient.get(n) || 0) + Number(c.amount || 0)); });
+          const topClients = Array.from(byClient.entries()).sort((a,b) => b[1] - a[1]).slice(0, 5);
+          const maxClient = Math.max(1, ...topClients.map(([,v]) => v));
+          const thisMonthKey = monthKey(new Date().toISOString());
+          const thisMonth = byMonth.get(thisMonthKey) || { pago: 0, pendente: 0 };
+
+          return (
+            <>
+              <div className="relative overflow-hidden rounded-2xl border border-emerald-200/60 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 sm:p-8 mb-5 shadow-sm">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
+                <div className="relative">
+                  <div className="text-[10.5px] uppercase tracking-[0.18em] font-semibold text-emerald-50/90">Financeiro</div>
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-white mt-1 tracking-tight">Suas comissões</h1>
+                  <p className="text-[13px] text-emerald-50/85 mt-1">Acompanhamento completo dos ganhos vinculados às suas demandas.</p>
+                  <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { label: "Pagas", value: formatBRL(commKpis.pago), sub: `${commPct}% do total` },
+                      { label: "Pendentes", value: formatBRL(commKpis.pendente), sub: `${all.filter(c=>c.status==="pendente").length} lanç.` },
+                      { label: "Recebido no mês", value: formatBRL(thisMonth.pago), sub: monthLabel(thisMonthKey) },
+                      { label: "Total histórico", value: formatBRL(commKpis.total), sub: `${commKpis.count} lançamentos` },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm px-3.5 py-3">
+                        <div className="text-[10px] uppercase tracking-[0.12em] font-medium text-emerald-50/80">{s.label}</div>
+                        <div className="text-lg font-semibold text-white tabular-nums mt-0.5">{s.value}</div>
+                        <div className="text-[10.5px] text-emerald-50/75 mt-0.5">{s.sub}</div>
                       </div>
-                      <Badge variant="outline" className={cn("text-[10px] border capitalize", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
-                    </li>
-                  ))}
-                </ul>}
-            </SectionCard>
-          </>
-        )}
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {all.length === 0 ? (
+                <SectionCard title=""><EmptyState icon={Wallet} title="Sem comissões" description="Assim que suas demandas gerarem receita, você verá aqui." /></SectionCard>
+              ) : (
+                <>
+                  <div className="grid lg:grid-cols-3 gap-4 mb-4">
+                    <SectionCard title="Evolução mensal" icon={TrendingUp} className="lg:col-span-2">
+                      {months.length === 0 ? <p className="text-[12px] text-slate-500">Sem dados suficientes.</p> : (
+                        <div className="flex items-end gap-3 h-40 pt-2">
+                          {months.map(([k, v]) => {
+                            const total = v.pago + v.pendente;
+                            const h = Math.round((total / maxMonth) * 100);
+                            const pagoH = total > 0 ? Math.round((v.pago / total) * h) : 0;
+                            return (
+                              <div key={k} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
+                                <div className="text-[10px] text-slate-500 tabular-nums truncate w-full text-center">{formatBRL(total)}</div>
+                                <div className="w-full max-w-[42px] flex-1 flex flex-col justify-end rounded-md overflow-hidden bg-slate-100">
+                                  <div className="bg-amber-400" style={{ height: `${h - pagoH}%` }} />
+                                  <div className="bg-gradient-to-t from-emerald-600 to-teal-500" style={{ height: `${pagoH}%` }} />
+                                </div>
+                                <div className="text-[10.5px] font-medium text-slate-600 capitalize">{monthLabel(k)}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 mt-3 text-[10.5px] text-slate-500">
+                        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-gradient-to-t from-emerald-600 to-teal-500" />Pago</span>
+                        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-amber-400" />Pendente</span>
+                      </div>
+                    </SectionCard>
+                    <SectionCard title="Top clientes" icon={Sparkles}>
+                      {topClients.length === 0 ? <p className="text-[12px] text-slate-500">—</p> : (
+                        <ul className="space-y-2.5">
+                          {topClients.map(([name, v]) => (
+                            <li key={name}>
+                              <div className="flex items-center justify-between text-[12px] mb-1">
+                                <span className="text-slate-700 font-medium truncate">{name}</span>
+                                <span className="text-slate-900 tabular-nums font-semibold">{formatBRL(v)}</span>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${(v / maxClient) * 100}%` }} />
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </SectionCard>
+                  </div>
+
+                  <SectionCard title="Lançamentos" icon={Wallet}>
+                    <ul className="divide-y divide-slate-100 -mx-1">
+                      {all.map((c) => (
+                        <li key={c.id} className="flex items-center gap-3 px-3 py-3 hover:bg-slate-50/60 rounded-md transition-colors">
+                          <div className={cn("size-10 rounded-lg flex items-center justify-center border shrink-0", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
+                            <Wallet className="size-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-[13.5px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)}</p>
+                              <span className="text-[11px] text-slate-400">·</span>
+                              <span className="text-[11px] text-slate-500">{Number(c.percent || 0)}% de comissão</span>
+                            </div>
+                            <p className="text-[11.5px] text-slate-500 truncate mt-0.5">
+                              {c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <Badge variant="outline" className={cn("text-[10px] border capitalize", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
+                            <p className="text-[10.5px] text-slate-400 mt-1">{c.paid_at ? `pago ${formatDate(c.paid_at)}` : formatDate(c.created_at)}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </SectionCard>
+                </>
+              )}
+            </>
+          );
+        })()}
 
 
         {activeKey === "perfil" && (
