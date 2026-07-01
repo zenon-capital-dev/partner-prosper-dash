@@ -4313,6 +4313,88 @@ export type Database = {
           },
         ]
       }
+      product_document_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          folder_id: string
+          id: string
+          mime_type: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          folder_id: string
+          id?: string
+          mime_type?: string | null
+          uploaded_by?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          folder_id?: string
+          id?: string
+          mime_type?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_document_files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "product_document_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_document_folders: {
+        Row: {
+          client_product_id: string
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          owner_provider_user_id: string | null
+          scope: string
+          updated_at: string
+        }
+        Insert: {
+          client_product_id: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name: string
+          owner_provider_user_id?: string | null
+          scope: string
+          updated_at?: string
+        }
+        Update: {
+          client_product_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          owner_provider_user_id?: string | null
+          scope?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_document_folders_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_required_documents: {
         Row: {
           created_at: string | null
@@ -5968,6 +6050,10 @@ export type Database = {
         Args: { day_type: string; days_to_add: number; start_date: string }
         Returns: string
       }
+      can_access_product_folder: {
+        Args: { _folder_id: string; _user_id: string }
+        Returns: boolean
+      }
       check_is_admin: { Args: { _user_id?: string }; Returns: boolean }
       check_overdue_documents: { Args: never; Returns: undefined }
       check_pending_commissions: { Args: never; Returns: undefined }
@@ -6002,6 +6088,10 @@ export type Database = {
         | { Args: { _user_id: string }; Returns: boolean }
       is_assigned_provider: {
         Args: { _cp_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_client_of_product: {
+        Args: { _client_product_id: string; _user_id: string }
         Returns: boolean
       }
       is_delegated_provider: {
