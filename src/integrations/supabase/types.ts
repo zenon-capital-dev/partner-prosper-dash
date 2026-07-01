@@ -278,6 +278,87 @@ export type Database = {
           },
         ]
       }
+      client_document_folder_providers: {
+        Row: {
+          folder_id: string
+          granted_at: string
+          granted_by: string | null
+          provider_id: string
+        }
+        Insert: {
+          folder_id: string
+          granted_at?: string
+          granted_by?: string | null
+          provider_id: string
+        }
+        Update: {
+          folder_id?: string
+          granted_at?: string
+          granted_by?: string | null
+          provider_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_document_folder_providers_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "client_document_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_folder_providers_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_document_folders: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_document_folders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_folders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       client_document_requests: {
         Row: {
           client_id: string
@@ -2797,6 +2878,7 @@ export type Database = {
           due_date: string | null
           file_path: string | null
           file_size: number | null
+          folder_id: string | null
           id: string
           internal_notes: string | null
           is_public: boolean | null
@@ -2828,6 +2910,7 @@ export type Database = {
           due_date?: string | null
           file_path?: string | null
           file_size?: number | null
+          folder_id?: string | null
           id?: string
           internal_notes?: string | null
           is_public?: boolean | null
@@ -2859,6 +2942,7 @@ export type Database = {
           due_date?: string | null
           file_path?: string | null
           file_size?: number | null
+          folder_id?: string | null
           id?: string
           internal_notes?: string | null
           is_public?: boolean | null
@@ -2907,6 +2991,13 @@ export type Database = {
             columns: ["collaborator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "client_document_folders"
             referencedColumns: ["id"]
           },
           {

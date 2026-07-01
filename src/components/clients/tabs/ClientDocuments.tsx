@@ -18,6 +18,7 @@ import { nowBR } from "@/lib/datetime";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
+import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
 import { logTimeline } from "@/lib/timeline";
 import { confirmAction } from "@/lib/confirm";
 import { sanitizeStorageFileName, assertUploadFile, uploadErrorMessage } from "@/lib/uploads";
@@ -451,6 +452,10 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
           ))}
         </div>
       )}
+
+      <div className="pt-2">
+        <ClientDocumentFolders clientId={clientId} viewerRole="admin" />
+      </div>
 
       <DocumentDialog
         open={open}

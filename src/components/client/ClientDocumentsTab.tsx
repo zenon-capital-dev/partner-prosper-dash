@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
+import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -307,6 +308,12 @@ export function ClientDocumentsTab({
         <SummaryCard tone="info" label="Em análise" value={totals.review} icon={Loader2} />
         <SummaryCard tone="success" label="Concluídos" value={totals.done} icon={CheckCircle2} />
       </div>
+
+      <div className="vx-card bg-white rounded-2xl border-slate-100 p-4">
+        <ClientDocumentFolders clientId={clientId} viewerRole="client" />
+      </div>
+
+
 
 
       {grouped.map(([key, { product, items }]) => (
