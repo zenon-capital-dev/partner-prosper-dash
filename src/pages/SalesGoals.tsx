@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -71,11 +71,11 @@ export default function SalesGoals() {
         (supabase as any).from("proposals").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("sales").select("id", { count: "exact", head: true })
-          .gte("sale_date", start).lt("sale_date", end),
+          .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("payments").select("amount")
           .eq("status", "pago").gte("paid_at", start).lt("paid_at", end).limit(1000),
         (supabase as any).from("client_timeline").select("id", { count: "exact", head: true })
-          .eq("event_type", "stage_change").gte("created_at", start).lt("created_at", end),
+          .eq("event_type", "journey_stage_change").gte("created_at", start).lt("created_at", end),
         (supabase as any).from("leads").select("id", { count: "exact", head: true })
           .eq("status", "won").gte("updated_at", start).lt("updated_at", end),
       ]);
@@ -89,9 +89,25 @@ export default function SalesGoals() {
         clients_closed: closedR.count ?? 0,
       };
     },
-
     enabled: isAdmin,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
   });
+
+  // Atualiza realizado quando leads/propostas/vendas/pagamentos/timeline mudarem
+  useEffect(() => {
+    if (!isAdmin) return;
+    const invalidate = () => qc.invalidateQueries({ queryKey: ["sales_goals_actual", month] });
+    const ch = supabase
+      .channel("goals-actual-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "proposals" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sales" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "client_timeline" }, invalidate)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isAdmin, month, qc]);
 
   const funnel = useMemo(() => {
     if (!actual) return null;
