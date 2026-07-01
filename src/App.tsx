@@ -185,6 +185,7 @@ const App = () => (
             </Route>
 
             <Route path="/demandas/:id" element={<RouteGuard><DemandDetail /></RouteGuard>} />
+            <Route path="/solicitacoes" element={<RouteGuard><RequestsInbox /></RouteGuard>} />
 
             <Route element={<PanelLayout />}>
               <Route path="/parceiro" element={<PartnerPanel />} />
