@@ -280,11 +280,16 @@ export default function FinanceCenter() {
   const kpis = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const from = rangeStartIso;
+    const paidDate = (p: any) => (p.paid_at || p.payment_date || "") as string;
+    const commDate = (c: any) => (c.paid_at || c.created_at || "") as string;
+    const expDate = (e: any) => (e.expense_date || e.created_at || "") as string;
+    const inRange = (d: string) => !!d && d >= from;
     const totalReceived = payments
-      .filter((p: any) => isPaid(p.status))
+      .filter((p: any) => isPaid(p.status) && inRange(paidDate(p)))
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
     const receivedThisMonth = payments
-      .filter((p: any) => isPaid(p.status) && (p.paid_at || p.payment_date || "") >= startOfMonth)
+      .filter((p: any) => isPaid(p.status) && paidDate(p) >= startOfMonth)
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
     const totalReceivable = payments
       .filter((p: any) => isOpen(p.status))
@@ -296,23 +301,23 @@ export default function FinanceCenter() {
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsPaid = commissionRows
-      .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
+      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && inRange(commDate(c)))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    // Breakdown of paid commissions: indicadores (referrer) vs. demais (parceiro/colaborador/prestador)
     const indicatorsPaid = commissionRows
-      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer")
+      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer" && inRange(commDate(c)))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
-    const variableExpenses = (expenses as any[]).reduce((a, e) => a + Number(e.amount || 0), 0);
-    // Custos internos de vendas (Zenon + Prestador). Considera apenas vendas não canceladas.
+    const variableExpenses = (expenses as any[])
+      .filter((e) => inRange(expDate(e)))
+      .reduce((a, e) => a + Number(e.amount || 0), 0);
     const salesCostsTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
       .reduce((a, s) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
     const zenonCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
       .reduce((a, s) => a + Number(s.zenon_cost || 0), 0);
     const providerCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
       .reduce((a, s) => a + Number(s.provider_cost || 0), 0);
     const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
     return {
@@ -330,7 +335,7 @@ export default function FinanceCenter() {
       providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today]);
+  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
