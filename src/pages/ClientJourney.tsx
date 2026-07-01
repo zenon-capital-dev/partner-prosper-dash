@@ -217,12 +217,35 @@ export default function ClientJourney() {
               {stages.map((s) => (
                 <li key={s.id} className="flex items-center gap-2 p-2 border border-slate-200 rounded">
                   <GripVertical className="size-4 text-slate-400" />
-                  <span className="size-3 rounded-full" style={{ background: s.color }} />
-                  <span className="flex-1 text-sm">{s.name}</span>
+                  <Input
+                    type="color"
+                    value={s.color}
+                    onChange={async (e) => {
+                      await supabase.from("client_journey_stages").update({ color: e.target.value } as any).eq("id", s.id);
+                      qc.invalidateQueries({ queryKey: ["journey-stages"] });
+                      qc.invalidateQueries({ queryKey: ["journey-stages-mini"] });
+                    }}
+                    className="w-10 h-8 p-0.5"
+                    title="Cor do estágio"
+                  />
+                  <Input
+                    defaultValue={s.name}
+                    onBlur={async (e) => {
+                      const v = e.target.value.trim();
+                      if (!v || v === s.name) return;
+                      const { error } = await supabase.from("client_journey_stages").update({ name: v } as any).eq("id", s.id);
+                      if (error) { toast.error(error.message); return; }
+                      toast.success("Estágio renomeado");
+                      qc.invalidateQueries({ queryKey: ["journey-stages"] });
+                      qc.invalidateQueries({ queryKey: ["journey-stages-mini"] });
+                    }}
+                    className="flex-1 h-8 text-sm"
+                  />
                   <Button size="sm" variant="ghost" onClick={() => deleteStage(s.id)}>Remover</Button>
                 </li>
               ))}
             </ul>
+
             <div className="border-t border-slate-200 pt-3 space-y-2">
               <p className="text-xs font-semibold text-slate-700">Adicionar estágio</p>
               <div className="grid grid-cols-[1fr,80px] gap-2">
