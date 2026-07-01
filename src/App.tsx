@@ -64,6 +64,7 @@ const ResourcePools = lazy(() => import("./pages/ResourcePools"));
 const SalesGoals = lazy(() => import("./pages/SalesGoals"));
 const ClientJourney = lazy(() => import("./pages/ClientJourney"));
 const Agenda = lazy(() => import("./pages/Agenda"));
+const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
 
 function RouteFallback() {
   return <div className="min-h-dvh bg-background" />;
