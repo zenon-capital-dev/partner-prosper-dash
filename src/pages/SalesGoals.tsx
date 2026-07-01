@@ -43,7 +43,7 @@ export default function SalesGoals() {
   const qc = useQueryClient();
   const [month, setMonth] = useState(monthKey());
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ goal_type: "revenue" as GoalType, target_value: "" });
+  const [form, setForm] = useState({ goal_type: "revenue" as GoalType | "custom", custom_name: "", is_currency: false, target_value: "" });
 
   const { data: goals = [] } = useQuery({
     queryKey: ["sales_goals", month],
