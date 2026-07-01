@@ -327,6 +327,19 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           onClose={() => setProvidersFor(null)}
         />
       )}
+
+      {requestingInFolder && (
+        <DocumentDialog
+          open
+          onOpenChange={(v) => !v && setRequestingInFolder(null)}
+          clientId={clientId}
+          folderId={requestingInFolder}
+          onSuccess={() => {
+            setRequestingInFolder(null);
+            qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+          }}
+        />
+      )}
     </div>
   );
 }
