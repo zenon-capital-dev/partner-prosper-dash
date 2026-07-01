@@ -384,7 +384,7 @@ export default function Partners() {
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 space-y-4 pb-10">
+      <div id="partners-list" className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 space-y-4 pb-10 scroll-mt-24">
         {/* Toolbar */}
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[220px]">
