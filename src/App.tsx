@@ -39,6 +39,7 @@ const PartnerPanel = lazy(() => import("./pages/PartnerPanel"));
 const PartnerMaterialsAdmin = lazy(() => import("./pages/PartnerMaterialsAdmin"));
 const PartnerContractsAdmin = lazy(() => import("./pages/PartnerContractsAdmin"));
 const PartnerSupportAdmin = lazy(() => import("./pages/PartnerSupportAdmin"));
+const ClientSupportAdmin = lazy(() => import("./pages/ClientSupportAdmin"));
 const ClientPanel = lazy(() => import("./pages/ClientPanel"));
 const ClientOnboarding = lazy(() => import("./pages/ClientOnboarding"));
 const Collaborators = lazy(() => import("./pages/Collaborators"));
