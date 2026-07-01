@@ -128,6 +128,30 @@ export default function FinanceCenter() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [newPaymentOpen, setNewPaymentOpen] = useState(false);
+  const [kpiRange, setKpiRange] = useState<"week" | "month" | "3m" | "6m" | "year" | "all">(
+    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
+  );
+  useEffect(() => {
+    try { localStorage.setItem("fin:kpiRange", kpiRange); } catch {}
+  }, [kpiRange]);
+  const rangeStartIso = useMemo(() => {
+    const d = new Date();
+    if (kpiRange === "all") return "0000-01-01";
+    if (kpiRange === "week") d.setDate(d.getDate() - 7);
+    else if (kpiRange === "month") { d.setDate(1); }
+    else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
+    else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
+    else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
+    return d.toISOString().slice(0, 10);
+  }, [kpiRange]);
+  const rangeLabel: Record<typeof kpiRange, string> = {
+    week: "últimos 7 dias",
+    month: "mês atual",
+    "3m": "últimos 3 meses",
+    "6m": "últimos 6 meses",
+    year: "últimos 12 meses",
+    all: "todo período",
+  } as any;
 
   const { data: payments = [], isLoading: loadingPay } = useQuery({
     queryKey: ["fin-payments"],
@@ -256,11 +280,16 @@ export default function FinanceCenter() {
   const kpis = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const from = rangeStartIso;
+    const paidDate = (p: any) => (p.paid_at || p.payment_date || "") as string;
+    const commDate = (c: any) => (c.paid_at || c.created_at || "") as string;
+    const expDate = (e: any) => (e.expense_date || e.created_at || "") as string;
+    const inRange = (d: string) => !!d && d >= from;
     const totalReceived = payments
-      .filter((p: any) => isPaid(p.status))
+      .filter((p: any) => isPaid(p.status) && inRange(paidDate(p)))
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
     const receivedThisMonth = payments
-      .filter((p: any) => isPaid(p.status) && (p.paid_at || p.payment_date || "") >= startOfMonth)
+      .filter((p: any) => isPaid(p.status) && paidDate(p) >= startOfMonth)
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
     const totalReceivable = payments
       .filter((p: any) => isOpen(p.status))
@@ -272,23 +301,23 @@ export default function FinanceCenter() {
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsPaid = commissionRows
-      .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
+      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && inRange(commDate(c)))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    // Breakdown of paid commissions: indicadores (referrer) vs. demais (parceiro/colaborador/prestador)
     const indicatorsPaid = commissionRows
-      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer")
+      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer" && inRange(commDate(c)))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
-    const variableExpenses = (expenses as any[]).reduce((a, e) => a + Number(e.amount || 0), 0);
-    // Custos internos de vendas (Zenon + Prestador). Considera apenas vendas não canceladas.
+    const variableExpenses = (expenses as any[])
+      .filter((e) => inRange(expDate(e)))
+      .reduce((a, e) => a + Number(e.amount || 0), 0);
     const salesCostsTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
       .reduce((a, s) => a + Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), 0);
     const zenonCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
       .reduce((a, s) => a + Number(s.zenon_cost || 0), 0);
     const providerCostTotal = (salesCosts as any[])
-      .filter((s) => s.status !== "cancelada")
+      .filter((s) => s.status !== "cancelada" && inRange((s.sale_date || s.created_at || "") as string))
       .reduce((a, s) => a + Number(s.provider_cost || 0), 0);
     const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
     return {
@@ -306,7 +335,7 @@ export default function FinanceCenter() {
       providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today]);
+  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
@@ -367,23 +396,39 @@ export default function FinanceCenter() {
         description="Receitas, contas a receber, comissões, inadimplência e relatórios em um só lugar."
         icon={<Banknote className="h-5 w-5" />}
         actions={
-          canManage && (
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Plus className="h-4 w-4 mr-2" /> Lançar pendência
-              </Button>
-              <Button onClick={processAlerts} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" /> Atualizar alertas
-              </Button>
-            </div>
-          )
+          <div className="flex items-center gap-2 flex-wrap">
+            <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
+              <SelectTrigger className="h-9 w-[170px] bg-white border-slate-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Últimos 7 dias</SelectItem>
+                <SelectItem value="month">Mês atual</SelectItem>
+                <SelectItem value="3m">Últimos 3 meses</SelectItem>
+                <SelectItem value="6m">Últimos 6 meses</SelectItem>
+                <SelectItem value="year">Últimos 12 meses</SelectItem>
+                <SelectItem value="all">Todo período</SelectItem>
+              </SelectContent>
+            </Select>
+            {canManage && (
+              <>
+                <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" /> Lançar pendência
+                </Button>
+                <Button onClick={processAlerts} variant="outline">
+                  <RefreshCw className="h-4 w-4 mr-2" /> Atualizar alertas
+                </Button>
+              </>
+            )}
+          </div>
         }
         kpis={[
           {
-            label: "Recebido (bruto)",
+            label: `Recebido (${rangeLabel[kpiRange]})`,
             value: formatBRL(kpis.totalReceived),
             tone: "success",
             onClick: () => setStatusAndTab("recebidos", "todos"),
+            hint: `Filtro: ${rangeLabel[kpiRange]}`,
           } as any,
           {
             label: "Recebido (mês)",
