@@ -208,9 +208,9 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     setUploadingId(folder.id);
     try {
       const rows: any[] = [];
-      for (const file of files) {
+      for (const [index, file] of files.entries()) {
         const safe = file.name.replace(/[^\w.\-]+/g, "_");
-        const path = `${clientProductId}/${folder.id}/${Date.now()}_${safe}`;
+        const path = `${clientProductId}/${folder.id}/${Date.now()}_${index}_${safe}`;
         const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
           cacheControl: "3600",
           upsert: false,
