@@ -72,6 +72,45 @@ export default function DemandDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [rejectFor, setRejectFor] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const canUploadDoc = isAdmin || isAdminSecondary || isColaborador || isVendedor || isPrestador;
+
+  const handleQuickDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !demand?.id) return;
+    try {
+      const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
+      assertUploadFile(file);
+      setUploadingDoc(true);
+      const path = `demand-${demand.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { error: insErr } = await supabase.from("documents").insert({
+        client_id: (demand as any).client_id,
+        client_product_id: demand.id,
+        product_id: (demand as any).product_id ?? null,
+        name: file.name,
+        description: `Enviado por ${currentRole}`,
+        is_required: false,
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+        uploaded_at: nowBR().toISOString(),
+        uploaded_by: user?.id ?? null,
+        source: currentRole,
+        status: "em_analise",
+      } as any);
+      if (insErr) throw insErr;
+      toast.success("Documento enviado");
+      qc.invalidateQueries({ queryKey: ["demand-detail", id] });
+    } catch (err: any) {
+      const { uploadErrorMessage } = await import("@/lib/uploads");
+      toast.error(uploadErrorMessage(err));
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
 
   useEffect(() => {
     const action = searchParams.get("action");
