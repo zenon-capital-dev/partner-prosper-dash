@@ -209,7 +209,8 @@ export function DemandComments({ clientProductId, role }: Props) {
             const meta = VIS_META[c.visibility as Visibility] ?? VIS_META.client;
             const Icon = meta.icon;
             const author = authorMap.get(c.author_id);
-            const authorName = author?.full_name || author?.email || "Sistema";
+            const authorName = resolveAuthorLabel(author);
+
             const initials = authorName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
             const isMine = c.author_id === user?.id;
 
