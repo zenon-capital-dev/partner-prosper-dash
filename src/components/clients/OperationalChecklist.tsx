@@ -169,16 +169,35 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h4 className={cn(
-                          "text-sm font-bold leading-tight",
-                          status === "concluido" && "line-through text-muted-foreground"
-                        )}>
-                          {step.label}
-                        </h4>
+                        {canManage ? (
+                          <Input
+                            defaultValue={step.label || ""}
+                            placeholder="Nome da etapa (ex: Coletar documentos)"
+                            className={cn(
+                              "h-8 text-sm font-bold border-transparent hover:border-border focus-visible:border-primary bg-transparent px-2 -ml-2",
+                              status === "concluido" && "line-through text-muted-foreground"
+                            )}
+                            onBlur={(e) => {
+                              const v = e.target.value.trim();
+                              if (v !== (step.label || "")) {
+                                updateStep.mutate({ id: step.id, patch: { label: v || "Sem nome" } });
+                              }
+                            }}
+                            onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
+                          />
+                        ) : (
+                          <h4 className={cn(
+                            "text-sm font-bold leading-tight",
+                            status === "concluido" && "line-through text-muted-foreground"
+                          )}>
+                            {step.label || "Sem nome"}
+                          </h4>
+                        )}
                         {step.description && !isExpanded && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{step.description}</p>
                         )}
                       </div>
+
 
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="outline" className={cn("h-6 text-[10px] font-bold uppercase gap-1 border", meta.cls)}>
