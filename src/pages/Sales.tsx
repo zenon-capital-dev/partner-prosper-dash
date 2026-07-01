@@ -699,23 +699,55 @@ export default function Sales() {
 
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
-            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500 mb-3">
-              <Sparkles className="size-3 text-indigo-500" /> Distribuição por Status
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500">
+                <Sparkles className="size-3 text-indigo-500" /> Distribuição
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Select value={breakdownDim} onValueChange={(v) => changeBreakdown(v as any, breakdownMetric)}>
+                  <SelectTrigger className="h-7 w-[150px] text-[11px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="status">Por status</SelectItem>
+                    <SelectItem value="partner">Por parceiro</SelectItem>
+                    <SelectItem value="product">Por produto</SelectItem>
+                    <SelectItem value="client">Por cliente</SelectItem>
+                    <SelectItem value="partner_product">Parceiro · Produto</SelectItem>
+                    <SelectItem value="product_client">Produto · Cliente</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={breakdownMetric} onValueChange={(v) => changeBreakdown(breakdownDim, v as any)}>
+                  <SelectTrigger className="h-7 w-[110px] text-[11px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bruto">Bruto</SelectItem>
+                    <SelectItem value="recebido">Recebido</SelectItem>
+                    <SelectItem value="liquido">Líquido</SelectItem>
+                    <SelectItem value="qtd">Qtd.</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2.5">
-              {statusBreakdown.map((row) => (
-                <div key={row.key}>
-                  <div className="flex items-center justify-between text-[11px] mb-1">
-                    <span className="font-semibold text-slate-700">{row.label}</span>
-                    <span className="font-mono font-bold text-slate-900">{formatBRL(row.value)} <span className="text-slate-400 font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
+            {statusBreakdown.length === 0 ? (
+              <p className="text-[12px] text-slate-400 text-center py-3">Sem dados para o filtro atual.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {statusBreakdown.map((row) => (
+                  <div key={row.key}>
+                    <div className="flex items-center justify-between text-[11px] mb-1 gap-2">
+                      <span className="font-semibold text-slate-700 truncate">{row.label}</span>
+                      <span className="font-mono font-bold text-slate-900 whitespace-nowrap">
+                        {breakdownMetric === "qtd" ? row.value : formatBRL(row.value)}
+                        <span className="text-slate-400 font-medium ml-1">({row.pct.toFixed(0)}%)</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
+
 
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
