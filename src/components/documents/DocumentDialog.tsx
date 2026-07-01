@@ -666,6 +666,117 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
               />
             </div>
           )}
+
+          {editDoc && (
+            <div className="space-y-3 rounded-xl border border-indigo-200/70 bg-indigo-50/30 p-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-indigo-600"
+                  checked={!!form.requires_signature}
+                  onChange={(e) => setForm({ ...form, requires_signature: e.target.checked })}
+                />
+                <PenLine className="size-4 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-800">Este documento requer assinatura</span>
+              </label>
+
+              {form.requires_signature && (
+                <div className="space-y-3 pl-6">
+                  {/* Original */}
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="size-4 text-slate-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">Original para assinar</p>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {editDoc?.file_path ? editDoc.file_path.split("/").pop() : "Anexe o arquivo original no campo acima."}
+                        </p>
+                      </div>
+                    </div>
+                    {editDoc?.file_path && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1"
+                        onClick={() => downloadStorageFile("documents", editDoc.file_path).catch((e) => toast.error(e.message))}
+                      >
+                        <Download className="size-3" /> Baixar
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Signed upload */}
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Arquivo assinado pelo destinatário</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      {editDoc?.signed_file_path && !signedFileName && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[11px] gap-1"
+                          onClick={() => downloadStorageFile("documents", editDoc.signed_file_path).catch((e) => toast.error(e.message))}
+                        >
+                          <Download className="size-3" /> Baixar assinado atual
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1"
+                        onClick={() => signedFileRef.current?.click()}
+                      >
+                        <Upload className="size-3" />
+                        {signedFileName || (editDoc?.signed_file_path ? "Substituir arquivo assinado" : "Enviar arquivo assinado")}
+                      </Button>
+                      <input
+                        ref={signedFileRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => setSignedFileName(e.target.files?.[0]?.name || "")}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Completed upload */}
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Documento concluído (final)</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      {editDoc?.completed_file_path && !completedFileName && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[11px] gap-1"
+                          onClick={() => downloadStorageFile("documents", editDoc.completed_file_path).catch((e) => toast.error(e.message))}
+                        >
+                          <Download className="size-3" /> Baixar concluído atual
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => completedFileRef.current?.click()}
+                      >
+                        <CheckCircle2 className="size-3" />
+                        {completedFileName || (editDoc?.completed_file_path ? "Substituir concluído" : "Enviar documento concluído")}
+                      </Button>
+                      <input
+                        ref={completedFileRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => setCompletedFileName(e.target.files?.[0]?.name || "")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter className="gap-2 sm:gap-0 px-6 py-4 border-t border-slate-200/70 bg-slate-50/40">
