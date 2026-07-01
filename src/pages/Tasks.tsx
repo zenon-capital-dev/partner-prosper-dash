@@ -148,12 +148,8 @@ export default function Tasks() {
     gcTime: 5 * 60_000,
   });
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ["tasks-profiles"],
-    queryFn: async () => (await supabase.from("profiles").select("id, full_name").order("full_name").limit(200)).data ?? [],
-    staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
-  });
+  const { data: profiles = [] } = useInternalTeamRef();
+
 
   const { data: clients = [] } = useClientsRef();
   const { data: clientProducts = [] } = useQuery({
