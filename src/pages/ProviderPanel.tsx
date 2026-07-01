@@ -635,26 +635,48 @@ export default function ProviderPanel() {
         )}
 
         {activeKey === "comissoes" && (() => {
-          const all = commissions as any[];
-          // Group by month (last 6 months)
+          const splits = commissions as any[];
+          const cps = clientProducts as any[];
+          const activeStatus = (s: string) => !["cancelado","cancelada"].includes(s);
+          const doneStatus = (s: string) => ["concluido","concluida"].includes(s);
+
+          // ===== Recebíveis (baseado nas demandas do prestador) =====
+          const recCps = cps.filter((c) => activeStatus(c.status) && Number(c.value || 0) > 0);
+          const recebido = recCps.filter((c) => c.sales?.paid_at || doneStatus(c.status)).reduce((s, c) => s + Number(c.value || 0), 0);
+          const aReceber = recCps.filter((c) => !(c.sales?.paid_at || doneStatus(c.status))).reduce((s, c) => s + Number(c.value || 0), 0);
+          const recorrenteMensal = recCps.reduce((s, c) => {
+            const sale = c.sales;
+            if (sale?.revenue_type === "recorrente" && sale?.recurrence_months && Number(sale.recurrence_months) > 0) {
+              return s + Number(c.value || 0) / Number(sale.recurrence_months);
+            }
+            return s;
+          }, 0);
+          const totalHist = recebido + aReceber;
+
+          // Agrupar por cliente
+          type Row = { clientId: string; clientName: string; items: any[]; total: number; recebido: number; aReceber: number; recorrente: number };
+          const byClient = new Map<string, Row>();
+          recCps.forEach((c) => {
+            const cid = c.clients?.id || c.client_id;
+            const cname = c.clients?.full_name || "—";
+            if (!byClient.has(cid)) byClient.set(cid, { clientId: cid, clientName: cname, items: [], total: 0, recebido: 0, aReceber: 0, recorrente: 0 });
+            const row = byClient.get(cid)!;
+            const val = Number(c.value || 0);
+            row.items.push(c);
+            row.total += val;
+            const isPaid = c.sales?.paid_at || doneStatus(c.status);
+            if (isPaid) row.recebido += val; else row.aReceber += val;
+            if (c.sales?.revenue_type === "recorrente" && c.sales?.recurrence_months) {
+              row.recorrente += val / Number(c.sales.recurrence_months);
+            }
+          });
+          const clientRows = Array.from(byClient.values()).sort((a, b) => b.total - a.total);
+
+          // ===== Comissões (commission_splits) — se houver =====
           const monthKey = (d: string) => { const dt = new Date(d); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`; };
           const monthLabel = (k: string) => { const [y,m] = k.split("-"); return new Date(Number(y), Number(m)-1, 1).toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }); };
-          const byMonth = new Map<string, { pago: number; pendente: number }>();
-          all.forEach((c) => {
-            const k = monthKey(c.paid_at || c.created_at);
-            const cur = byMonth.get(k) || { pago: 0, pendente: 0 };
-            if (c.status === "pago") cur.pago += Number(c.amount || 0); else cur.pendente += Number(c.amount || 0);
-            byMonth.set(k, cur);
-          });
-          const months = Array.from(byMonth.entries()).sort((a,b) => a[0].localeCompare(b[0])).slice(-6);
-          const maxMonth = Math.max(1, ...months.map(([,v]) => v.pago + v.pendente));
-          // Top clients
-          const byClient = new Map<string, number>();
-          all.forEach((c) => { const n = c.client_name || "—"; byClient.set(n, (byClient.get(n) || 0) + Number(c.amount || 0)); });
-          const topClients = Array.from(byClient.entries()).sort((a,b) => b[1] - a[1]).slice(0, 5);
-          const maxClient = Math.max(1, ...topClients.map(([,v]) => v));
           const thisMonthKey = monthKey(new Date().toISOString());
-          const thisMonth = byMonth.get(thisMonthKey) || { pago: 0, pendente: 0 };
+          const paidThisMonth = splits.filter((c) => c.status === "pago" && c.paid_at && monthKey(c.paid_at) === thisMonthKey).reduce((s, c) => s + Number(c.amount || 0), 0);
 
           return (
             <>
@@ -662,14 +684,14 @@ export default function ProviderPanel() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
                 <div className="relative">
                   <div className="text-[10.5px] uppercase tracking-[0.18em] font-semibold text-emerald-50/90">Financeiro</div>
-                  <h1 className="text-2xl sm:text-3xl font-semibold text-white mt-1 tracking-tight">Suas comissões</h1>
-                  <p className="text-[13px] text-emerald-50/85 mt-1">Acompanhamento completo dos ganhos vinculados às suas demandas.</p>
+                  <h1 className="text-2xl sm:text-3xl font-semibold text-white mt-1 tracking-tight">Extrato de recebíveis</h1>
+                  <p className="text-[13px] text-emerald-50/85 mt-1">Panorama financeiro completo — por cliente e geral. Somente visualização.</p>
                   <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                      { label: "Pagas", value: formatBRL(commKpis.pago), sub: `${commPct}% do total` },
-                      { label: "Pendentes", value: formatBRL(commKpis.pendente), sub: `${all.filter(c=>c.status==="pendente").length} lanç.` },
-                      { label: "Recebido no mês", value: formatBRL(thisMonth.pago), sub: monthLabel(thisMonthKey) },
-                      { label: "Total histórico", value: formatBRL(commKpis.total), sub: `${commKpis.count} lançamentos` },
+                      { label: "A receber", value: formatBRL(aReceber), sub: `${recCps.filter((c) => !(c.sales?.paid_at || doneStatus(c.status))).length} demandas em aberto` },
+                      { label: "Recebido", value: formatBRL(recebido), sub: `${recCps.filter((c) => (c.sales?.paid_at || doneStatus(c.status))).length} quitadas` },
+                      { label: "Recorrente/mês", value: formatBRL(recorrenteMensal), sub: `${recCps.filter((c) => c.sales?.revenue_type === "recorrente").length} contratos mensais` },
+                      { label: "Total geral", value: formatBRL(totalHist), sub: `${clientRows.length} cliente(s) ativos` },
                     ].map((s) => (
                       <div key={s.label} className="rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm px-3.5 py-3">
                         <div className="text-[10px] uppercase tracking-[0.12em] font-medium text-emerald-50/80">{s.label}</div>
@@ -681,80 +703,104 @@ export default function ProviderPanel() {
                 </div>
               </div>
 
-              {all.length === 0 ? (
-                <SectionCard title=""><EmptyState icon={Wallet} title="Sem comissões" description="Assim que suas demandas gerarem receita, você verá aqui." /></SectionCard>
+              {clientRows.length === 0 && splits.length === 0 ? (
+                <SectionCard title=""><EmptyState icon={Wallet} title="Sem recebíveis" description="Assim que suas demandas gerarem receita, você verá aqui." /></SectionCard>
               ) : (
                 <>
-                  <div className="grid lg:grid-cols-3 gap-4 mb-4">
-                    <SectionCard title="Evolução mensal" icon={TrendingUp} className="lg:col-span-2">
-                      {months.length === 0 ? <p className="text-[12px] text-slate-500">Sem dados suficientes.</p> : (
-                        <div className="flex items-end gap-3 h-40 pt-2">
-                          {months.map(([k, v]) => {
-                            const total = v.pago + v.pendente;
-                            const h = Math.round((total / maxMonth) * 100);
-                            const pagoH = total > 0 ? Math.round((v.pago / total) * h) : 0;
-                            return (
-                              <div key={k} className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
-                                <div className="text-[10px] text-slate-500 tabular-nums truncate w-full text-center">{formatBRL(total)}</div>
-                                <div className="w-full max-w-[42px] flex-1 flex flex-col justify-end rounded-md overflow-hidden bg-slate-100">
-                                  <div className="bg-amber-400" style={{ height: `${h - pagoH}%` }} />
-                                  <div className="bg-gradient-to-t from-emerald-600 to-teal-500" style={{ height: `${pagoH}%` }} />
+                  {clientRows.length > 0 && (
+                    <SectionCard title="Extrato por cliente" icon={Sparkles}>
+                      <div className="space-y-2">
+                        {clientRows.map((row) => (
+                          <details key={row.clientId} className="group rounded-lg border border-slate-200/70 bg-white overflow-hidden">
+                            <summary className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50/60 list-none">
+                              <div className="size-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-[11px] font-semibold shrink-0">{initials(row.clientName)}</div>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[13px] font-semibold text-slate-900 truncate">{row.clientName}</div>
+                                <div className="text-[11px] text-slate-500 mt-0.5">
+                                  {row.items.length} demanda(s)
+                                  {row.recorrente > 0 && <> · <span className="text-teal-700 font-medium">{formatBRL(row.recorrente)}/mês</span></>}
                                 </div>
-                                <div className="text-[10.5px] font-medium text-slate-600 capitalize">{monthLabel(k)}</div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-4 mt-3 text-[10.5px] text-slate-500">
-                        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-gradient-to-t from-emerald-600 to-teal-500" />Pago</span>
-                        <span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-amber-400" />Pendente</span>
+                              <div className="text-right shrink-0 hidden sm:block">
+                                <div className="text-[10px] uppercase tracking-wider text-slate-400">A receber</div>
+                                <div className="text-[13px] font-semibold text-amber-700 tabular-nums">{formatBRL(row.aReceber)}</div>
+                              </div>
+                              <div className="text-right shrink-0 hidden md:block">
+                                <div className="text-[10px] uppercase tracking-wider text-slate-400">Recebido</div>
+                                <div className="text-[13px] font-semibold text-emerald-700 tabular-nums">{formatBRL(row.recebido)}</div>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <div className="text-[10px] uppercase tracking-wider text-slate-400">Total</div>
+                                <div className="text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(row.total)}</div>
+                              </div>
+                              <ArrowUpRight className="size-4 text-slate-400 group-open:rotate-90 transition-transform ml-1" />
+                            </summary>
+                            <ul className="divide-y divide-slate-100 border-t border-slate-100 bg-slate-50/30">
+                              {row.items.map((it) => {
+                                const isPaid = it.sales?.paid_at || doneStatus(it.status);
+                                const isRec = it.sales?.revenue_type === "recorrente";
+                                return (
+                                  <li key={it.id} className="flex items-center gap-3 px-4 py-2.5">
+                                    <div className={cn("size-2 rounded-full shrink-0", isPaid ? "bg-emerald-500" : "bg-amber-400")} />
+                                    <div className="min-w-0 flex-1">
+                                      <div className="text-[12.5px] font-medium text-slate-900 truncate">{it.products?.name || "Demanda"}</div>
+                                      <div className="text-[10.5px] text-slate-500 mt-0.5">
+                                        {isRec ? <span className="text-teal-700 font-medium">Recorrente {it.sales?.recurrence_months}m</span> : <span>Avulso</span>}
+                                        {it.deadline && <> · vence {formatDate(it.deadline)}</>}
+                                        {it.sales?.paid_at && <> · pago {formatDate(it.sales.paid_at)}</>}
+                                      </div>
+                                    </div>
+                                    <Badge variant="outline" className={cn("text-[10px] border capitalize hidden sm:inline-flex", isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{isPaid ? "recebido" : "a receber"}</Badge>
+                                    <div className="text-right shrink-0 tabular-nums text-[13px] font-semibold text-slate-900 min-w-[90px]">{formatBRL(it.value)}</div>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </details>
+                        ))}
                       </div>
                     </SectionCard>
-                    <SectionCard title="Top clientes" icon={Sparkles}>
-                      {topClients.length === 0 ? <p className="text-[12px] text-slate-500">—</p> : (
-                        <ul className="space-y-2.5">
-                          {topClients.map(([name, v]) => (
-                            <li key={name}>
-                              <div className="flex items-center justify-between text-[12px] mb-1">
-                                <span className="text-slate-700 font-medium truncate">{name}</span>
-                                <span className="text-slate-900 tabular-nums font-semibold">{formatBRL(v)}</span>
-                              </div>
-                              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${(v / maxClient) * 100}%` }} />
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </SectionCard>
-                  </div>
+                  )}
 
-                  <SectionCard title="Lançamentos" icon={Wallet}>
-                    <ul className="divide-y divide-slate-100 -mx-1">
-                      {all.map((c) => (
-                        <li key={c.id} className="flex items-center gap-3 px-3 py-3 hover:bg-slate-50/60 rounded-md transition-colors">
-                          <div className={cn("size-10 rounded-lg flex items-center justify-center border shrink-0", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
-                            <Wallet className="size-4" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-[13.5px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)}</p>
-                              <span className="text-[11px] text-slate-400">·</span>
-                              <span className="text-[11px] text-slate-500">{Number(c.percent || 0)}% de comissão</span>
+                  {splits.length > 0 && (
+                    <SectionCard title="Comissões lançadas" icon={Wallet} className="mt-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                        <div className="rounded-lg border border-emerald-200/60 bg-emerald-50/40 px-3 py-2">
+                          <div className="text-[10px] uppercase tracking-wider text-emerald-700">Pagas</div>
+                          <div className="text-[15px] font-semibold text-emerald-900 tabular-nums">{formatBRL(commKpis.pago)}</div>
+                        </div>
+                        <div className="rounded-lg border border-amber-200/60 bg-amber-50/40 px-3 py-2">
+                          <div className="text-[10px] uppercase tracking-wider text-amber-700">Pendentes</div>
+                          <div className="text-[15px] font-semibold text-amber-900 tabular-nums">{formatBRL(commKpis.pendente)}</div>
+                        </div>
+                        <div className="rounded-lg border border-slate-200/70 bg-white px-3 py-2">
+                          <div className="text-[10px] uppercase tracking-wider text-slate-500">No mês</div>
+                          <div className="text-[15px] font-semibold text-slate-900 tabular-nums">{formatBRL(paidThisMonth)}</div>
+                        </div>
+                        <div className="rounded-lg border border-slate-200/70 bg-white px-3 py-2">
+                          <div className="text-[10px] uppercase tracking-wider text-slate-500">Lançamentos</div>
+                          <div className="text-[15px] font-semibold text-slate-900 tabular-nums">{commKpis.count}</div>
+                        </div>
+                      </div>
+                      <ul className="divide-y divide-slate-100 -mx-1">
+                        {splits.map((c) => (
+                          <li key={c.id} className="flex items-center gap-3 px-3 py-3">
+                            <div className={cn("size-10 rounded-lg flex items-center justify-center border shrink-0", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>
+                              <Wallet className="size-4" />
                             </div>
-                            <p className="text-[11.5px] text-slate-500 truncate mt-0.5">
-                              {c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <Badge variant="outline" className={cn("text-[10px] border capitalize", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
-                            <p className="text-[10.5px] text-slate-400 mt-1">{c.paid_at ? `pago ${formatDate(c.paid_at)}` : formatDate(c.created_at)}</p>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </SectionCard>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(c.amount)} <span className="text-[11px] text-slate-400 font-normal">· {Number(c.percent || 0)}%</span></p>
+                              <p className="text-[11.5px] text-slate-500 truncate mt-0.5">{c.client_name || "—"}{c.product_name ? ` · ${c.product_name}` : ""}</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <Badge variant="outline" className={cn("text-[10px] border capitalize", c.status === "pago" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200")}>{c.status}</Badge>
+                              <p className="text-[10.5px] text-slate-400 mt-1">{c.paid_at ? `pago ${formatDate(c.paid_at)}` : formatDate(c.created_at)}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </SectionCard>
+                  )}
                 </>
               )}
             </>
