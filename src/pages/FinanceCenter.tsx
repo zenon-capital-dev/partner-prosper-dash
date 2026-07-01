@@ -162,30 +162,58 @@ export default function FinanceCenter() {
     qc.invalidateQueries({ queryKey: ["resource_pools"] });
     qc.invalidateQueries({ queryKey: ["resource_pool_movements"] });
   };
-  const [kpiRange, setKpiRange] = useState<"week" | "month" | "3m" | "6m" | "year" | "all">(
+  type RangeMode = "week" | "month" | "specific" | "3m" | "6m" | "year" | "all";
+  const nowMonthKey = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const [kpiRange, setKpiRange] = useState<RangeMode>(
     (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
+  );
+  const [specificMonth, setSpecificMonth] = useState<string>(
+    (typeof window !== "undefined" && localStorage.getItem("fin:specificMonth")) || nowMonthKey()
   );
   useEffect(() => {
     try { localStorage.setItem("fin:kpiRange", kpiRange); } catch {}
   }, [kpiRange]);
-  const rangeStartIso = useMemo(() => {
+  useEffect(() => {
+    try { localStorage.setItem("fin:specificMonth", specificMonth); } catch {}
+  }, [specificMonth]);
+  const { rangeStartIso, rangeEndIso } = useMemo(() => {
     const d = new Date();
-    if (kpiRange === "all") return "0000-01-01";
-    if (kpiRange === "week") d.setDate(d.getDate() - 7);
-    else if (kpiRange === "month") { d.setDate(1); }
-    else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
-    else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
-    else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
-    return d.toISOString().slice(0, 10);
-  }, [kpiRange]);
-  const rangeLabel: Record<typeof kpiRange, string> = {
+    let start = "0000-01-01";
+    let end = "9999-12-31";
+    if (kpiRange === "all") { /* both wide */ }
+    else if (kpiRange === "specific") {
+      const [y, m] = specificMonth.split("-").map(Number);
+      const s = new Date(y, m - 1, 1);
+      const e = new Date(y, m, 1);
+      start = s.toISOString().slice(0, 10);
+      end = e.toISOString().slice(0, 10);
+    } else {
+      if (kpiRange === "week") d.setDate(d.getDate() - 7);
+      else if (kpiRange === "month") { d.setDate(1); }
+      else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
+      else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
+      else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
+      start = d.toISOString().slice(0, 10);
+    }
+    return { rangeStartIso: start, rangeEndIso: end };
+  }, [kpiRange, specificMonth]);
+  const specificMonthLabel = useMemo(() => {
+    const [y, m] = specificMonth.split("-").map(Number);
+    return new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  }, [specificMonth]);
+  const rangeLabel: Record<RangeMode, string> = {
     week: "últimos 7 dias",
     month: "mês atual",
+    specific: specificMonthLabel,
     "3m": "últimos 3 meses",
     "6m": "últimos 6 meses",
     year: "últimos 12 meses",
     all: "todo período",
-  } as any;
+  };
+
 
   const { data: payments = [], isLoading: loadingPay } = useQuery({
     queryKey: ["fin-payments"],
