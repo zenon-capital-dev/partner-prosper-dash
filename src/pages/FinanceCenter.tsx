@@ -421,7 +421,7 @@ export default function FinanceCenter() {
       providerCostTotal,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso]);
+  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
