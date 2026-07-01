@@ -269,6 +269,13 @@ export type Database = {
             referencedRelation: "view_client_financial_summary"
             referencedColumns: ["client_id"]
           },
+          {
+            foreignKeyName: "client_collaborators_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_document_requests: {
@@ -315,6 +322,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cdr_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_document_requests_client_id_fkey"
             columns: ["client_id"]
@@ -1386,6 +1400,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "clients_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_indicator_id_fkey"
+            columns: ["indicator_id"]
+            isOneToOne: false
+            referencedRelation: "referrers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "clients_journey_stage_id_fkey"
             columns: ["journey_stage_id"]
             isOneToOne: false
@@ -1397,6 +1425,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
           {
@@ -1712,6 +1747,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_client_financial_summary"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "commissions_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "commissions_collaborator_id_fkey"
@@ -2040,6 +2082,13 @@ export type Database = {
             referencedColumns: ["client_id"]
           },
           {
+            foreignKeyName: "contracts_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contracts_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
@@ -2128,7 +2177,29 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "daily_actions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_actions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "daily_actions_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       demand_comments: {
         Row: {
@@ -3114,6 +3185,13 @@ export type Database = {
             referencedColumns: ["client_id"]
           },
           {
+            foreignKeyName: "notes_client_product_id_fkey"
+            columns: ["client_product_id"]
+            isOneToOne: false
+            referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notes_contract_id_fkey"
             columns: ["contract_id"]
             isOneToOne: false
@@ -3198,7 +3276,22 @@ export type Database = {
           id?: string
           score?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "nps_responses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nps_responses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+        ]
       }
       onboarding_documents: {
         Row: {
@@ -4110,6 +4203,13 @@ export type Database = {
             referencedRelation: "contract_templates"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "products_recommended_contract_model_id_fkey"
+            columns: ["recommended_contract_model_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -4265,7 +4365,43 @@ export type Database = {
           status?: Database["public"]["Enums"]["project_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "projects_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "view_performance_by_product"
+            referencedColumns: ["product_id"]
+          },
+        ]
       }
       proposal_items: {
         Row: {
@@ -4430,6 +4566,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_client_financial_summary"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "proposals_converted_sale_id_fkey"
+            columns: ["converted_sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "proposals_lead_id_fkey"
@@ -4856,6 +4999,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "view_client_financial_summary"
             referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "sales_collaborator_id_fkey"
+            columns: ["collaborator_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "sales_partner_id_fkey"
