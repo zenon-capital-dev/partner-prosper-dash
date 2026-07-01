@@ -243,18 +243,37 @@ export default function SalesGoals() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {goals.map((g: any) => {
-              const t = TYPES.find((x) => x.value === g.goal_type)!;
-              const realized = (actual as any)?.[g.goal_type] ?? 0;
+              const isCustom = typeof g.goal_type === "string" && g.goal_type.startsWith("custom:");
+              const t = isCustom
+                ? { label: g.goal_type.split(":").slice(2).join(":") || "Personalizado", isCurrency: g.goal_type.startsWith("custom:money:") }
+                : TYPES.find((x) => x.value === g.goal_type) ?? { label: g.goal_type, isCurrency: false };
+              const realized = isCustom ? Number(g.actual_value ?? 0) : ((actual as any)?.[g.goal_type] ?? 0);
               const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               return (
                 <Card key={g.id} className="p-4 bg-white border-slate-200/70">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-bold uppercase text-slate-500">{t.label}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold uppercase text-slate-500 truncate">{t.label}{isCustom && <span className="ml-1 text-[9px] text-indigo-600 font-black">CUSTOM</span>}</div>
                       <div className="text-lg font-black mt-1">
                         {t.isCurrency ? fmtMoney(realized) : realized}
                         <span className="text-slate-400 font-semibold text-sm"> / {t.isCurrency ? fmtMoney(Number(g.target_value)) : Number(g.target_value)}</span>
                       </div>
+                      {isCustom && (
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <Input
+                            type="number" step="any"
+                            defaultValue={g.actual_value ?? 0}
+                            className="h-7 text-xs w-28"
+                            onBlur={async (e) => {
+                              const v = parseFloat(e.target.value.replace(",", ".")) || 0;
+                              const { error } = await (supabase as any).from("sales_goals").update({ actual_value: v }).eq("id", g.id);
+                              if (error) toast.error(error.message);
+                              else { toast.success("Atualizado"); qc.invalidateQueries({ queryKey: ["sales_goals", month] }); }
+                            }}
+                          />
+                          <span className="text-[10px] text-slate-500">realizado</span>
+                        </div>
+                      )}
                     </div>
                     <Button size="icon" variant="ghost" onClick={() => deleteGoal(g.id)}>
                       <Trash2 className="size-4 text-rose-600" />
@@ -265,6 +284,7 @@ export default function SalesGoals() {
                 </Card>
               );
             })}
+
           </div>
         )}
       </div>
