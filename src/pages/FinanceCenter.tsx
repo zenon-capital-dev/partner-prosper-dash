@@ -68,6 +68,11 @@ const monthBounds = (monthKey: string) => {
     end: end.toISOString().slice(0, 10),
   };
 };
+const monthFilterLabel = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return monthKey;
+  return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+};
 
 const effectiveStatus = (p: any, today: string) => {
   if (isOpen(p.status) && p.due_date && p.due_date < today) return "vencido";
@@ -900,8 +905,12 @@ function PaymentsTable({
       label: `Recorrência: ${recurringFilter === "sim" ? "Sim" : "Não"}`,
       clear: () => setRecurringFilter("todos"),
     });
-  if (dateFrom) activeChips.push({ label: `De ${dateFrom}`, clear: () => setDateFrom("") });
-  if (dateTo) activeChips.push({ label: `Até ${dateTo}`, clear: () => setDateTo("") });
+  if (monthFilter) {
+    activeChips.push({ label: `Mês: ${monthFilterLabel(monthFilter)}`, clear: () => { setMonthFilter(""); setDateFrom(""); setDateTo(""); } });
+  } else {
+    if (dateFrom) activeChips.push({ label: `De ${dateFrom}`, clear: () => setDateFrom("") });
+    if (dateTo) activeChips.push({ label: `Até ${dateTo}`, clear: () => setDateTo("") });
+  }
 
   const clearAll = () => {
     setSearch("");
