@@ -172,13 +172,26 @@ function ClientTicketThread({ ticket, clientId }: { ticket: any; clientId: strin
 
   const { data: messages = [] } = useQuery({
     queryKey: ["client-ticket-msg", ticket.id],
-    refetchInterval: 15000,
+    refetchInterval: 30000,
     queryFn: async () => {
       const { data } = await (supabase as any).from("client_support_ticket_messages")
         .select("*").eq("ticket_id", ticket.id).order("created_at", { ascending: true });
       return data || [];
     },
   });
+
+  useEffect(() => {
+    if (!ticket?.id) return;
+    const ch = supabase
+      .channel(`client-ticket-msg:${ticket.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "client_support_ticket_messages", filter: `ticket_id=eq.${ticket.id}` },
+        () => qc.invalidateQueries({ queryKey: ["client-ticket-msg", ticket.id] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [ticket?.id, qc]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages.length]);
 

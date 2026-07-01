@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -271,6 +271,7 @@ function RequestThread({ requestId, canWrite, draft, onDraftChange, onSend, curr
   onSend: () => void;
   currentUserId?: string;
 }) {
+  const qc = useQueryClient();
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["demand-request-messages", requestId],
     queryFn: async () => {
@@ -282,8 +283,21 @@ function RequestThread({ requestId, canWrite, draft, onDraftChange, onSend, curr
       if (error) throw error;
       return (data ?? []) as any[];
     },
-    refetchInterval: 15000,
+    refetchInterval: 30000,
   });
+
+  useEffect(() => {
+    if (!requestId) return;
+    const channel = supabase
+      .channel(`demand-request-messages:${requestId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "demand_request_messages", filter: `request_id=eq.${requestId}` },
+        () => qc.invalidateQueries({ queryKey: ["demand-request-messages", requestId] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [requestId, qc]);
 
   return (
     <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">

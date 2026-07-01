@@ -136,7 +136,8 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
       return;
     }
     setUploading(true);
-    const path = `${clientId}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+    const productSegment = pendingUpload.productId ?? "geral";
+    const path = `${clientId}/${productSegment}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
     const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
     if (upErr) { toast.error(uploadErrorMessage(upErr)); setUploading(false); return; }
 
@@ -151,8 +152,13 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
     };
 
     if (pendingUpload.doc?.id) {
+      const oldPath = pendingUpload.doc.file_path as string | undefined;
       const { error } = await supabase.from("documents").update(baseFields as any).eq("id", pendingUpload.doc.id);
       if (error) { toast.error(error.message); setUploading(false); return; }
+      if (oldPath && oldPath !== path) {
+        // limpa blob órfão; ignora erro (pode não ter permissão de delete)
+        await supabase.storage.from("documents").remove([oldPath]).catch(() => {});
+      }
     } else {
       const { error } = await supabase.from("documents").insert({
         client_id: clientId,

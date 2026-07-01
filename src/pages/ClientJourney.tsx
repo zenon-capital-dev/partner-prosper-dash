@@ -71,14 +71,16 @@ export default function ClientJourney() {
   }, [stages, filtered]);
 
   const moveClient = useCallback(async (clientId: string, stageId: string | null) => {
-    // optimista
+    // snapshot para rollback e otimista
+    const previous = qc.getQueryData<Client[]>(["journey-clients"]);
     qc.setQueryData<Client[]>(["journey-clients"], (old) =>
       old?.map((c) => (c.id === clientId ? { ...c, journey_stage_id: stageId } : c)),
     );
     const { error } = await supabase.from("clients").update({ journey_stage_id: stageId } as any).eq("id", clientId);
     if (error) {
       toast.error(error.message);
-      qc.invalidateQueries({ queryKey: ["journey-clients"] });
+      if (previous) qc.setQueryData(["journey-clients"], previous);
+      else qc.invalidateQueries({ queryKey: ["journey-clients"] });
     } else {
       const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
       toast.success(`Movido para "${stageName}"`);

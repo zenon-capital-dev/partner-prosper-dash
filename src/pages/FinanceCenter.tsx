@@ -254,8 +254,13 @@ export default function FinanceCenter() {
   const commissionRows = loadCommissionDetails && commissions.length ? commissions : commissionSummary;
 
   const kpis = useMemo(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
     const totalReceived = payments
       .filter((p: any) => isPaid(p.status))
+      .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
+    const receivedThisMonth = payments
+      .filter((p: any) => isPaid(p.status) && (p.paid_at || p.payment_date || "") >= startOfMonth)
       .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
     const totalReceivable = payments
       .filter((p: any) => isOpen(p.status))
@@ -288,6 +293,7 @@ export default function FinanceCenter() {
     const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
     return {
       totalReceived,
+      receivedThisMonth,
       totalReceivable,
       totalOverdue,
       commissionsPending,
@@ -378,6 +384,13 @@ export default function FinanceCenter() {
             value: formatBRL(kpis.totalReceived),
             tone: "success",
             onClick: () => setStatusAndTab("recebidos", "todos"),
+          } as any,
+          {
+            label: "Recebido (mês)",
+            value: formatBRL(kpis.receivedThisMonth),
+            tone: "success",
+            onClick: () => setStatusAndTab("recebidos", "todos"),
+            hint: "Somente pagamentos com data no mês corrente",
           } as any,
           {
             label: "Saldo líquido (Zenon)",
