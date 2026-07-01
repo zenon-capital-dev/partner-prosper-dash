@@ -93,6 +93,44 @@ export function ClientDocumentsTab({
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [confirmReq, setConfirmReq] = useState<DocRequest | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [adhocOpen, setAdhocOpen] = useState(false);
+  const [adhocName, setAdhocName] = useState("");
+  const [adhocProductId, setAdhocProductId] = useState<string>("");
+  const [adhocFile, setAdhocFile] = useState<File | null>(null);
+  const [adhocSaving, setAdhocSaving] = useState(false);
+
+  async function submitAdhoc() {
+    if (!adhocName.trim() || !adhocFile) {
+      toast.error("Informe o nome e selecione um arquivo");
+      return;
+    }
+    try {
+      setAdhocSaving(true);
+      const safe = sanitizeStorageFileName(adhocFile.name);
+      const path = `${clientId}/adhoc/${Date.now()}_${safe}`;
+      await uploadStorageFileFast("documents", path, adhocFile);
+      const now = new Date().toISOString();
+      const { error } = await supabase.from("document_requests").insert({
+        client_id: clientId,
+        product_id: adhocProductId || null,
+        name: adhocName.trim(),
+        status: "enviado",
+        file_path: path,
+        uploaded_at: now,
+        file_size: adhocFile.size,
+        mime_type: adhocFile.type,
+      } as any);
+      if (error) throw error;
+      toast.success("Documento enviado");
+      setAdhocOpen(false);
+      setAdhocName(""); setAdhocFile(null); setAdhocProductId("");
+      (invalidateKeys ?? []).forEach((k) => qc.invalidateQueries({ queryKey: k as any }));
+    } catch (e: any) {
+      toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
+    } finally {
+      setAdhocSaving(false);
+    }
+  }
 
   const grouped = useMemo(() => {
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
