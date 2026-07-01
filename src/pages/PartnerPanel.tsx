@@ -330,18 +330,28 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_product_id, clients(full_name), products(name))")
         .eq("beneficiary_type", "partner")
         .eq("beneficiary_id", partner!.id)
         .order("created_at", { ascending: false });
       return (data ?? []).map((c: any) => ({
         ...c,
+        client_product_id: c.sales?.client_product_id ?? null,
         clients: c.sales?.clients,
         products: c.sales?.products,
       }));
     },
     staleTime: 2 * 60_000,
   });
+
+  const commissionByService = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of commissions as any[]) {
+      if (!c.client_product_id) continue;
+      map.set(c.client_product_id, (map.get(c.client_product_id) || 0) + Number(c.amount || 0));
+    }
+    return map;
+  }, [commissions]);
 
   const kpis = useMemo(() => {
     const all = commissions as any[];
@@ -648,23 +658,25 @@ export default function PartnerPanel() {
             <PanelHero role="parceiro" eyebrow="Operação" title="Serviços dos clientes" subtitle={`${services.length} serviço(s) em acompanhamento na sua carteira.`} stats={[
               { label: "Ativos", value: (services as any[]).filter((s) => !["concluido", "concluida", "cancelado", "cancelada"].includes(s.status)).length },
               { label: "Concluídos", value: (services as any[]).filter((s) => ["concluido", "concluida"].includes(s.status)).length },
-              { label: "Valor total", value: formatBRL((services as any[]).reduce((sum, s) => sum + Number(s.value || 0), 0)) },
+              { label: "Minha comissão", value: formatBRL((services as any[]).reduce((sum, s) => sum + (commissionByService.get(s.id) || 0), 0)) },
               { label: "Docs pendentes", value: kpis.pendingDocs },
             ]} />
             {services.length === 0 ? <SectionCard title=""><EmptyState icon={Briefcase} title="Nenhum serviço vinculado" description="Quando seus clientes tiverem serviços/demandas, eles aparecerão aqui." /></SectionCard> :
               <div className="grid sm:grid-cols-2 gap-3">
                 {(services as any[]).map((service) => {
                   const meta = SERVICE_TONE[service.status] || { label: service.status || "—", tone: "bg-slate-100 text-slate-700 border-slate-200" };
-                  const productName = service.products?.name || service.custom_product_name || "Serviço";
+                  const myCommission = commissionByService.get(service.id) || 0;
                   return (
                     <div key={service.id} className="bg-white rounded-xl border border-slate-200/70 p-4 shadow-sm hover:shadow-md hover:border-violet-200 transition">
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <Badge variant="outline" className={cn("text-[10px] border", meta.tone)}>{meta.label}</Badge>
-                        <p className="font-mono text-[13px] font-semibold text-slate-900 tabular-nums">{formatBRL(service.value)}</p>
+                        <div className="text-right">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-400">Sua comissão</p>
+                          <p className="font-mono text-[13px] font-semibold text-violet-700 tabular-nums">{formatBRL(myCommission)}</p>
+                        </div>
                       </div>
                       <p className="text-[14.5px] font-semibold text-slate-900 leading-tight">{service.clients?.full_name || "—"}</p>
-                      <p className="text-[12px] text-slate-500 mt-0.5 truncate">{productName}</p>
-                      <p className="text-[11.5px] text-slate-500 mt-1 truncate">Prestador: {service.service_providers?.name || service.responsible_provider?.name || "Não definido"}</p>
+                      <p className="text-[12px] text-slate-500 mt-0.5">Serviço em andamento</p>
                       {service.notes && <p className="text-[11.5px] text-slate-500 mt-2 line-clamp-2">{service.notes}</p>}
                       <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11.5px] text-slate-500 flex-wrap">
                         <span>Início: {formatDate(service.created_at)}{service.sla_due_date || service.deadline ? ` · prazo ${formatDate(service.sla_due_date || service.deadline)}` : ""}</span>
