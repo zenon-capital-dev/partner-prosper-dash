@@ -48,14 +48,14 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [respondId, setRespondId] = useState<string | null>(null);
+  const [openThreads, setOpenThreads] = useState<Record<string, boolean>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     target_role: (allowedTargets ?? DEFAULT_TARGETS[currentRole])[0] as Role,
     kind: "informacao" as "documento" | "informacao" | "duvida" | "outro",
     title: "",
     description: "",
   });
-  const [responseText, setResponseText] = useState("");
 
   const targets = allowedTargets ?? DEFAULT_TARGETS[currentRole];
 
