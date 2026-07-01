@@ -700,24 +700,8 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                 </div>
               </Section>
 
-              <Section icon={Wallet} title="Caixinha do Recurso" hint="Vincule a venda diretamente ao destino do dinheiro">
-                <Field label="Caixinha / Destino">
-                  <Select value={form.resource_pool_id || "none"} onValueChange={(v) => setForm({ ...form, resource_pool_id: v === "none" ? null : v })}>
-                    <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-xl">
-                      <SelectValue placeholder="Nenhuma caixinha" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem caixinha</SelectItem>
-                      {resourcePools.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <p className="text-[10.5px] text-slate-500 leading-snug">
-                  Cofrinho virtual: ao receber o pagamento, o valor é creditado automaticamente na caixinha escolhida. Gerencie em <strong>Financeiro › Caixinhas &amp; Projetos</strong>.
-                </p>
-              </Section>
+
+
 
 
               <Section icon={FileText} title="Documentação">
