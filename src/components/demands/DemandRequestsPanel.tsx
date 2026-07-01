@@ -153,10 +153,10 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
           {items.map((it: any) => {
             const meta = STATUS_META[it.status] || STATUS_META.aberta;
             const Icon = meta.icon;
-            const canRespond = it.status === "aberta" && it.target_role === currentRole;
+            const isOpen = !!openThreads[it.id];
             return (
               <li key={it.id} className="border border-slate-200 rounded-lg p-3 bg-white">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 flex-wrap">
                   <Badge variant="outline" className={`${meta.tone} text-[10px] gap-1`}>
                     <Icon className="size-3" /> {meta.label}
                   </Badge>
@@ -170,18 +170,12 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
                 </div>
                 <p className="font-medium text-sm text-slate-900 mt-2">{it.title}</p>
                 {it.description && <p className="text-xs text-slate-600 mt-1 whitespace-pre-wrap">{it.description}</p>}
-                {it.response && (
-                  <div className="mt-2 pl-3 border-l-2 border-blue-200 bg-blue-50/40 p-2 rounded">
-                    <p className="text-[11px] font-semibold text-blue-900">Resposta · {formatDate(it.responded_at)}</p>
-                    <p className="text-xs text-slate-700 whitespace-pre-wrap">{it.response}</p>
-                  </div>
-                )}
-                <div className="flex gap-2 mt-2">
-                  {canRespond && (
-                    <Button size="sm" variant="outline" onClick={() => { setRespondId(it.id); setResponseText(""); }}>
-                      Responder
-                    </Button>
-                  )}
+
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  <Button size="sm" variant="outline" onClick={() => toggleThread(it.id)}>
+                    {isOpen ? <ChevronUp className="size-3.5 mr-1" /> : <ChevronDown className="size-3.5 mr-1" />}
+                    {isOpen ? "Fechar chat" : "Abrir chat"}
+                  </Button>
                   {it.status !== "resolvida" && it.status !== "cancelada" && (
                     <>
                       <Button size="sm" variant="ghost" onClick={() => setStatus(it.id, "resolvida")}>
@@ -194,7 +188,23 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
                       )}
                     </>
                   )}
+                  {it.status === "resolvida" && (
+                    <Button size="sm" variant="ghost" onClick={() => setStatus(it.id, "aberta")}>
+                      Reabrir
+                    </Button>
+                  )}
                 </div>
+
+                {isOpen && (
+                  <RequestThread
+                    requestId={it.id}
+                    canWrite={it.status !== "cancelada"}
+                    draft={drafts[it.id] || ""}
+                    onDraftChange={(v) => setDrafts((s) => ({ ...s, [it.id]: v }))}
+                    onSend={() => sendMessage(it.id)}
+                    currentUserId={user?.id}
+                  />
+                )}
               </li>
             );
           })}
