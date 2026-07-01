@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 import { sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
-import { openDownloadUrl } from "@/lib/download";
+import { downloadStorageFile } from "@/lib/download";
 import {
   FolderPlus, Folder, Upload, FileText, Download, Eye, Trash2, Users, Pencil,
   Loader2,
