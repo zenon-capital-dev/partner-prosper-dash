@@ -669,6 +669,48 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                       </Field>
                     </div>
                   </div>
+
+                  {/* Prestador de Serviço (repasse fixo) */}
+                  <div className="bg-slate-100/50 p-4 rounded-2xl space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Field label="Prestador de Serviço" className="md:col-span-2">
+                        <Select
+                          value={form.service_provider_id ?? "none"}
+                          onValueChange={(v) => setForm({ ...form, service_provider_id: v === "none" ? null : v })}
+                        >
+                          <SelectTrigger className="h-11 bg-white border-slate-200 shadow-sm rounded-lg">
+                            <SelectValue placeholder="Nenhum prestador" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            <SelectItem value="none">Nenhum prestador</SelectItem>
+                            {providers?.map((p: any) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.name}{p.specialty ? ` · ${p.specialty}` : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                      <Field label="R$ Repasse">
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            className="h-11 pl-9 bg-white border-slate-200 shadow-sm rounded-lg font-mono text-right tabular-nums"
+                            value={form.provider_cost ?? ""}
+                            onChange={(e) => setForm({ ...form, provider_cost: e.target.value })}
+                            placeholder="0,00"
+                          />
+                        </div>
+                      </Field>
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 leading-snug">
+                      Valor fixo em R$ (não é %). Também aparece em "Custos Internos & Prestador" — os dois campos ficam sincronizados.
+                    </p>
+                  </div>
+
                 </div>
               </Section>
             </div>
