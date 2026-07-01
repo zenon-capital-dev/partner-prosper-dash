@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.notify_admins_on_partner_ticket_message() FROM PUBLIC, anon, authenticated;
