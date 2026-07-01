@@ -1,0 +1,1 @@
+ALTER TABLE public.demand_deliveries ADD COLUMN IF NOT EXISTS files jsonb NOT NULL DEFAULT '[]'::jsonb;
