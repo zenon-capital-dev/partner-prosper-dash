@@ -60,7 +60,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           sale_id: editDoc.sale_id || "none",
           is_required: editDoc.is_required ?? true,
           priority: editDoc.priority || "media",
+          requires_signature: !!editDoc.requires_signature,
         });
+        setSignedFileName("");
+        setCompletedFileName("");
         
         if (editDoc.collaborator_id) {
           setRecipientType("collaborator");
