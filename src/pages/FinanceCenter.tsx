@@ -297,16 +297,38 @@ export default function FinanceCenter() {
     const totalOverdue = payments
       .filter((p: any) => isOpen(p.status) && p.due_date && p.due_date < today)
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
+    // Recebido agregado por venda (dentro do range) — usado para prorratear comissões
+    const receivedBySale = new Map<string, number>();
+    for (const p of payments as any[]) {
+      if (!isPaid(p.status) || !inRange(paidDate(p))) continue;
+      const sid = p.sale_id;
+      if (!sid) continue;
+      receivedBySale.set(sid, (receivedBySale.get(sid) || 0) + Number(p.amount_paid || p.amount || 0));
+    }
+    // Comissão devida = comissão total * (recebido / valor da venda), limitada ao valor da comissão.
+    // Isso reflete a regra: só pagamos comissão sobre o que efetivamente entrou.
+    const accruedCommission = (c: any) => {
+      const full = Number(c.amount || 0);
+      const saleVal = Number(c.sale_value || 0);
+      const sid = c.sale_id;
+      if (!sid || saleVal <= 0) return isPaid(c.status) || isPaid(c.workflow_status) ? full : 0;
+      const rec = receivedBySale.get(sid) || 0;
+      const ratio = Math.max(0, Math.min(1, rec / saleVal));
+      return full * ratio;
+    };
     const commissionsPending = commissionRows
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
     const commissionsPaid = commissionRows
       .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && inRange(commDate(c)))
       .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    // Custo de comissão para o cálculo do saldo líquido: prorrateado pelo recebido no range.
     const indicatorsPaid = commissionRows
-      .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && c.beneficiary_type === "referrer" && inRange(commDate(c)))
-      .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const commissionsOthersPaid = commissionsPaid - indicatorsPaid;
+      .filter((c: any) => c.beneficiary_type === "referrer")
+      .reduce((a: number, c: any) => a + accruedCommission(c), 0);
+    const commissionsOthersPaid = commissionRows
+      .filter((c: any) => c.beneficiary_type !== "referrer")
+      .reduce((a: number, c: any) => a + accruedCommission(c), 0);
     const variableExpenses = (expenses as any[])
       .filter((e) => inRange(expDate(e)))
       .reduce((a, e) => a + Number(e.amount || 0), 0);
