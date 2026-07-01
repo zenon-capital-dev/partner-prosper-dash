@@ -574,7 +574,7 @@ export default function DemandDetail() {
                             const { error } = await supabase.from("client_products").update({ notes: val }).eq("id", demand.id);
                             if (error) { toast.error(error.message); return; }
                             toast.success("Resumo atualizado");
-                            qc.invalidateQueries({ queryKey: ["demand", demand.id] });
+                            qc.invalidateQueries({ queryKey: ["demand-detail", id] });
                           }}
                         >
                           Editar resumo

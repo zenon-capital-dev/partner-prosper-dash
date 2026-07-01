@@ -132,20 +132,28 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
         () => load()
       )
       .subscribe();
-    const ids = folderIdsKey ? folderIdsKey.split(",") : [];
-    const filesChannel = ids.length
-      ? supabase
-          .channel(`product-document-files:${clientProductId}`)
-          .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "product_document_files", filter: `folder_id=in.(${ids.join(",")})` },
-            () => load()
-          )
-          .subscribe()
-      : null;
     return () => {
       supabase.removeChannel(foldersChannel);
-      if (filesChannel) supabase.removeChannel(filesChannel);
+    };
+  }, [clientProductId, load]);
+
+  useEffect(() => {
+    if (!clientProductId) return;
+    const ids = folderIdsKey ? folderIdsKey.split(",").filter(Boolean) : [];
+    if (!ids.length) return;
+    // Realtime PostgREST filter does not support `in.()`; assinamos um canal por pasta.
+    const channels = ids.map((fid) =>
+      supabase
+        .channel(`product-document-files:${fid}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "product_document_files", filter: `folder_id=eq.${fid}` },
+          () => load()
+        )
+        .subscribe()
+    );
+    return () => {
+      channels.forEach((c) => supabase.removeChannel(c));
     };
   }, [clientProductId, load, folderIdsKey]);
 
