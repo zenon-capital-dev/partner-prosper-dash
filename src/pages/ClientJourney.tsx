@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink } from "lucide-react";
+import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter } from "lucide-react";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
 interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
@@ -22,6 +24,26 @@ export default function ClientJourney() {
   const [search, setSearch] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const FKEY = "journey:visible-stages:v1";
+  const [visibleStages, setVisibleStages] = useState<Set<string> | null>(() => {
+    try {
+      const raw = localStorage.getItem(FKEY);
+      if (!raw) return null;
+      const arr = JSON.parse(raw) as string[];
+      return new Set(arr);
+    } catch { return null; }
+  });
+  const [showUnassigned, setShowUnassigned] = useState<boolean>(() => {
+    try { return localStorage.getItem("journey:show-unassigned:v1") !== "0"; } catch { return true; }
+  });
+  useEffect(() => {
+    try {
+      if (visibleStages) localStorage.setItem(FKEY, JSON.stringify(Array.from(visibleStages)));
+      else localStorage.removeItem(FKEY);
+      localStorage.setItem("journey:show-unassigned:v1", showUnassigned ? "1" : "0");
+    } catch {}
+  }, [visibleStages, showUnassigned]);
+
 
   const { data: stages = [] } = useQuery<Stage[]>({
     queryKey: ["journey-stages"],
@@ -131,7 +153,7 @@ export default function ClientJourney() {
         title="Esteira de atendimento"
         description="Arraste o cliente entre as colunas ou clique em ✓ para avançar ao próximo estágio."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="relative w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
               <Input
@@ -141,11 +163,67 @@ export default function ClientJourney() {
                 className="pl-8 h-9 text-sm bg-white"
               />
             </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="relative">
+                  <Filter className="size-4 mr-1" /> Filtrar colunas
+                  {visibleStages && (
+                    <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-semibold h-4 min-w-4 px-1">
+                      {visibleStages.size}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-700">Colunas visíveis</p>
+                  <button
+                    type="button"
+                    onClick={() => { setVisibleStages(null); setShowUnassigned(true); }}
+                    className="text-[11px] text-indigo-600 hover:underline"
+                  >
+                    Mostrar todas
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer p-1 rounded hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      checked={showUnassigned}
+                      onChange={(e) => setShowUnassigned(e.target.checked)}
+                    />
+                    <span className="inline-block size-2.5 rounded-full bg-slate-400" />
+                    Sem estágio
+                  </label>
+                  {stages.map((s) => {
+                    const checked = !visibleStages || visibleStages.has(s.id);
+                    return (
+                      <label key={s.id} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer p-1 rounded hover:bg-slate-50">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            setVisibleStages((prev) => {
+                              const base = prev ? new Set(prev) : new Set(stages.map((x) => x.id));
+                              if (e.target.checked) base.add(s.id); else base.delete(s.id);
+                              return base;
+                            });
+                          }}
+                        />
+                        <span className="inline-block size-2.5 rounded-full" style={{ background: s.color }} />
+                        <span className="truncate">{s.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="outline" size="sm" onClick={() => setEditorOpen(true)}>
               <Settings className="size-4 mr-1" /> Configurar
             </Button>
           </div>
         }
+
       />
 
       <p className="text-xs text-slate-500 mt-2 mb-4">
@@ -153,7 +231,7 @@ export default function ClientJourney() {
       </p>
 
       <div className="flex gap-3 overflow-x-auto pb-4">
-        {byStage.unassigned.length > 0 && (
+        {showUnassigned && byStage.unassigned.length > 0 && (
           <Column
             title="Sem estágio"
             color="#94a3b8"
@@ -176,7 +254,7 @@ export default function ClientJourney() {
             ))}
           </Column>
         )}
-        {stages.map((stage) => {
+        {stages.filter((s) => !visibleStages || visibleStages.has(s.id)).map((stage) => {
           const list = byStage.map.get(stage.id) ?? [];
           return (
             <Column
