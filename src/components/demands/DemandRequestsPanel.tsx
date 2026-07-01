@@ -101,34 +101,32 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
     qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
   };
 
-  const respond = async () => {
-    if (!respondId || !responseText.trim()) {
-      toast.error("Escreva a resposta");
-      return;
-    }
-    const { error } = await supabase
-      .from("demand_requests")
-      .update({
-        response: responseText.trim(),
-        status: "respondida",
-        responded_by: user?.id,
-        responded_at: new Date().toISOString(),
-      } as any)
-      .eq("id", respondId);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Resposta registrada");
-    setRespondId(null);
-    setResponseText("");
-    qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
-  };
-
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("demand_requests").update({ status } as any).eq("id", id);
     if (error) toast.error(error.message);
     else qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
+  };
+
+  const toggleThread = (id: string) => setOpenThreads((s) => ({ ...s, [id]: !s[id] }));
+
+  const sendMessage = async (requestId: string) => {
+    const text = (drafts[requestId] || "").trim();
+    if (!text) return;
+    const { error } = await supabase.from("demand_request_messages" as any).insert({
+      request_id: requestId,
+      author_id: user?.id,
+      author_role: currentRole,
+      message: text,
+    });
+    if (error) { toast.error(error.message); return; }
+    setDrafts((s) => ({ ...s, [requestId]: "" }));
+    // bump status to respondida if currently aberta and author is target
+    const item = items.find((x: any) => x.id === requestId);
+    if (item?.status === "aberta") {
+      await supabase.from("demand_requests").update({ status: "respondida", responded_by: user?.id, responded_at: new Date().toISOString() } as any).eq("id", requestId);
+    }
+    qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
+    qc.invalidateQueries({ queryKey: ["demand-request-messages", requestId] });
   };
 
   return (
