@@ -254,7 +254,7 @@ export default function ClientJourney() {
             ))}
           </Column>
         )}
-        {stages.map((stage) => {
+        {stages.filter((s) => !visibleStages || visibleStages.has(s.id)).map((stage) => {
           const list = byStage.map.get(stage.id) ?? [];
           return (
             <Column
