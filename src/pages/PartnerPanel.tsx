@@ -71,6 +71,22 @@ const SERVICE_TONE: Record<string, { label: string; tone: string }> = {
   cancelada: { label: "Cancelado", tone: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
+const DOC_STATUS_META: Record<string, { label: string; tone: string }> = {
+  pendente: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  solicitado: { label: "Pendente", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  enviado: { label: "Enviado para análise", tone: "bg-sky-50 text-sky-700 border-sky-200" },
+  submitted: { label: "Enviado para análise", tone: "bg-sky-50 text-sky-700 border-sky-200" },
+  em_analise: { label: "Em análise", tone: "bg-blue-50 text-blue-700 border-blue-200" },
+  in_review: { label: "Em análise", tone: "bg-blue-50 text-blue-700 border-blue-200" },
+  aprovado: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  approved: { label: "Aprovado", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  reprovado: { label: "Reprovado", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+  rejected: { label: "Reprovado", tone: "bg-rose-50 text-rose-700 border-rose-200" },
+};
+
+const docStatusMeta = (status?: string | null, hasFile = false) =>
+  DOC_STATUS_META[String(status || "").toLowerCase()] || (hasFile ? DOC_STATUS_META.enviado : DOC_STATUS_META.pendente);
+
 export default function PartnerPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
@@ -271,6 +287,17 @@ export default function PartnerPanel() {
         .update({ file_path: path, file_size: file.size, mime_type: file.type, status: "enviado", uploaded_at: new Date().toISOString(), uploaded_by: user?.id ?? null, rejection_reason: null })
         .eq("id", docId);
       if (updErr) throw updErr;
+      qc.setQueryData(["partner-mydocs", partner.id], (old: any) => Array.isArray(old)
+        ? old.map((doc) => doc.id === docId ? {
+          ...doc,
+          file_path: path,
+          file_size: file.size,
+          mime_type: file.type,
+          status: "enviado",
+          uploaded_at: new Date().toISOString(),
+          rejection_reason: null,
+        } : doc)
+        : old);
       toast.success("Documento enviado");
       qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
       qc.invalidateQueries({ queryKey: ["partner-doc-versions", docId] });
@@ -710,10 +737,7 @@ export default function PartnerPanel() {
                 <div className="space-y-2">
                   {(myDocs as any[]).map((d) => {
                     const sent = !!d.file_path;
-                    const statusTone = d.status === "aprovado" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : d.status === "reprovado" ? "bg-rose-50 text-rose-700 border-rose-200"
-                      : sent ? "bg-sky-50 text-sky-700 border-sky-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200";
+                    const status = docStatusMeta(d.status, sent);
                     const approved = d.status === "aprovado";
                     const isHistoryOpen = openHistoryId === d.id;
                     return (
@@ -722,7 +746,7 @@ export default function PartnerPanel() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-medium text-sm truncate">{d.name}</p>
-                              <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", statusTone)}>{d.status}</span>
+                              <span className={cn("text-[10px] uppercase tracking-wide px-2 py-0.5 rounded border", status.tone)}>{status.label}</span>
                             </div>
                             {d.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{d.description}</p>}
                             {d.due_date && <p className="text-[11px] text-slate-400 mt-0.5">Prazo: {formatDate(d.due_date)}</p>}
@@ -746,7 +770,7 @@ export default function PartnerPanel() {
                             {!approved && (
                               <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
                                 <Upload className="size-3 mr-1" />
-                                {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir" : "Enviar"}
+                                {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir arquivo" : "Enviar arquivo"}
                                 <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f, d); e.target.value = ""; }} />
                               </label>
                             )}

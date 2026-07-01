@@ -61,12 +61,30 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
   vencido: { label: "Vencido", tone: "bg-slate-100 text-slate-500 border-slate-200", icon: Clock },
 };
 
+const STATUS_NORMALIZATION: Record<string, string> = {
+  pending: "pendente",
+  requested: "solicitado",
+  submitted: "enviado",
+  delivered: "enviado",
+  in_review: "em_analise",
+  review: "em_analise",
+  approved: "aprovado",
+  rejected: "reprovado",
+  correction_required: "pendente_correcao",
+};
+
+function normalizeDocStatus(status?: string | null): string {
+  const raw = String(status || "solicitado").toLowerCase();
+  return STATUS_NORMALIZATION[raw] ?? raw;
+}
+
 function getEffectiveStatus(req: { status: string; due_date: string | null }): string {
-  const pending = ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(req.status);
+  const status = normalizeDocStatus(req.status);
+  const pending = ["pendente", "solicitado", "reprovado", "pendente_correcao"].includes(status);
   if (pending && req.due_date && new Date(req.due_date) < new Date(new Date().toDateString())) {
     return "atrasado";
   }
-  return req.status;
+  return status;
 }
 
 const STATUS_ORDER: Record<string, number> = {
@@ -99,6 +117,10 @@ export function ClientDocumentsTab({
   const [adhocProductId, setAdhocProductId] = useState<string>("");
   const [adhocFile, setAdhocFile] = useState<File | null>(null);
   const [adhocSaving, setAdhocSaving] = useState(false);
+  const normalizedRequests = useMemo(
+    () => requests.map((request) => ({ ...request, status: normalizeDocStatus(request.status) })),
+    [requests]
+  );
 
   async function submitAdhoc() {
     if (!adhocName.trim() || !adhocFile) {
@@ -135,7 +157,7 @@ export function ClientDocumentsTab({
 
   const grouped = useMemo(() => {
     const map = new Map<string, { product: Product | null; items: DocRequest[] }>();
-    for (const r of requests) {
+    for (const r of normalizedRequests) {
       const key = r.client_product_id ?? r.product_id ?? "__sem_produto__";
       const product = products.find((p) => p.id === r.product_id) ?? (r.product_name ? { id: r.product_id ?? key, name: r.product_name } : null);
       if (!map.has(key)) map.set(key, { product, items: [] });
@@ -155,7 +177,7 @@ export function ClientDocumentsTab({
       });
     });
     return Array.from(map.entries());
-  }, [requests, products]);
+  }, [normalizedRequests, products]);
 
   async function handleUpload(req: DocRequest, file: File) {
     try {
@@ -187,6 +209,23 @@ export function ClientDocumentsTab({
         updErr = error;
       }
       if (updErr) throw updErr;
+
+      const patchCachedList = (old: unknown) => Array.isArray(old)
+        ? old.map((item: any) => item?.id === req.id ? {
+          ...item,
+          status: "enviado",
+          file_path: req.source === "documents" ? path : item.file_path,
+          file_url: path,
+          uploaded_at: now,
+          submission_date: now,
+          updated_at: now,
+          rejection_reason: null,
+        } : item)
+        : old;
+
+      (qc as any).setQueriesData({ queryKey: ["client-docs"] }, patchCachedList);
+      (qc as any).setQueriesData({ queryKey: ["provider-docs"] }, patchCachedList);
+      (qc as any).setQueriesData({ queryKey: ["partner-docs"] }, patchCachedList);
 
       toast.success("Documento enviado para análise");
       qc.invalidateQueries({ queryKey: ["client-panel"] });
@@ -271,7 +310,7 @@ export function ClientDocumentsTab({
     </Dialog>
   );
 
-  if (requests.length === 0) {
+  if (normalizedRequests.length === 0) {
     if (hideEmptyState) return null;
     return (
       <div className="vx-card bg-white rounded-2xl px-6 py-7 text-center border-slate-100 space-y-4">
@@ -289,13 +328,22 @@ export function ClientDocumentsTab({
   }
 
   const totals = {
-    pending: requests.filter((r) => r.status === "pendente" || r.status === "solicitado" || r.status === "reprovado" || r.status === "pendente_correcao").length,
-    review: requests.filter((r) => r.status === "enviado" || r.status === "em_analise").length,
-    done: requests.filter((r) => r.status === "aprovado").length,
+    pending: normalizedRequests.filter((r) => r.status === "pendente" || r.status === "solicitado" || r.status === "reprovado" || r.status === "pendente_correcao").length,
+    review: normalizedRequests.filter((r) => r.status === "enviado" || r.status === "em_analise").length,
+    done: normalizedRequests.filter((r) => r.status === "aprovado").length,
   };
 
   return (
     <div className="space-y-4">
+      <input
+        type="file"
+        ref={fileRef}
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) setPendingFile(file);
+        }}
+      />
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">Envie arquivos solicitados ou adicione um documento avulso.</p>
         <Button size="sm" onClick={() => setAdhocOpen(true)} className="gap-2">
@@ -334,6 +382,8 @@ export function ClientDocumentsTab({
               const meta = STATUS_META[effective] ?? STATUS_META.solicitado;
               const Icon = meta.icon;
               const isUploading = uploadingId === req.id;
+              const hasFile = Boolean(req.file_path || req.file_url);
+              const waitingReview = ["enviado", "em_analise"].includes(effective);
               
               return (
                 <div key={req.id} className="p-4 flex flex-col md:flex-row md:items-center gap-3 hover:bg-slate-50/40 transition-colors">
@@ -377,23 +427,13 @@ export function ClientDocumentsTab({
                       </Button>
                     )}
 
-                    <input
-                      type="file"
-                      ref={fileRef}
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) setPendingFile(file);
-                      }}
-                    />
-
                     <Button
                       size="sm"
                       className="rounded-xl bg-slate-900"
                       disabled={isUploading}
                       onClick={() => { setPendingFile(null); setConfirmReq(req); }}
                     >
-                      {isUploading ? <Loader2 className="size-4 animate-spin" /> : req.file_path ? "Atualizar" : "Enviar"}
+                      {isUploading ? <Loader2 className="size-4 animate-spin" /> : waitingReview ? "Substituir arquivo" : hasFile ? "Atualizar arquivo" : "Selecionar arquivo"}
                     </Button>
                   </div>
                 </div>
@@ -406,11 +446,11 @@ export function ClientDocumentsTab({
       <AlertDialog open={!!confirmReq} onOpenChange={(o) => { if (!o) { setConfirmReq(null); setPendingFile(null); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Enviar Documento</AlertDialogTitle>
+            <AlertDialogTitle>{pendingFile ? "Confirmar envio" : "Selecionar arquivo"}</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingFile
-                ? <>Confirme o envio do arquivo para o documento <strong>{confirmReq?.name}</strong>.</>
-                : <>Selecione o arquivo para o documento <strong>{confirmReq?.name}</strong>.</>}
+                ? <>O documento <strong>{confirmReq?.name}</strong> ficará com status <strong>Enviado para análise</strong>.</>
+                : <>Escolha o arquivo do documento <strong>{confirmReq?.name}</strong>.</>}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -421,21 +461,21 @@ export function ClientDocumentsTab({
                 <p className="text-sm font-medium text-slate-900 truncate">{pendingFile.name}</p>
                 <p className="text-xs text-slate-500">{(pendingFile.size / 1024).toFixed(0)} KB</p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>Trocar</Button>
+              <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>Trocar arquivo</Button>
             </div>
           )}
 
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFile(null); }}>Cancelar</Button>
             {!pendingFile ? (
-              <Button onClick={() => fileRef.current?.click()}>Selecionar Arquivo</Button>
+              <Button onClick={() => fileRef.current?.click()}>Escolher arquivo</Button>
             ) : (
               <Button
                 className="bg-indigo-600 hover:bg-indigo-700"
                 disabled={!!uploadingId}
                 onClick={() => { if (confirmReq && pendingFile) handleUpload(confirmReq, pendingFile); }}
               >
-                {uploadingId ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Enviando...</> : <><Upload className="size-4 mr-1.5" /> Enviar</>}
+                {uploadingId ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Enviando...</> : <><Upload className="size-4 mr-1.5" /> Confirmar envio</>}
               </Button>
             )}
           </AlertDialogFooter>
