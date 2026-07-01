@@ -204,6 +204,19 @@ export default function ClientPanel() {
     gcTime: 5 * 60_000,
   });
 
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["client-contracts", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await supabase.from("contracts")
+        .select("id, name, status, amount, file_path, signed_at, sent_at, created_at, products(name)")
+        .eq("client_id", clientId!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 2 * 60_000,
+  });
+
 
 
 
