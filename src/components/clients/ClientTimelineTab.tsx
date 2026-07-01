@@ -55,6 +55,75 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
     },
   });
 
+  // Unified cross-portal action feed (support tickets, demand requests, document requests)
+  const { data: actions = [], isLoading: loadingActions } = useQuery({
+    queryKey: ["client-actions-feed", clientId],
+    enabled: mode === "acoes",
+    queryFn: async () => {
+      const [tickets, requests, docs] = await Promise.all([
+        supabase
+          .from("client_support_tickets")
+          .select("id, subject, category, status, priority, created_by, created_at, last_message_at, client_product_id")
+          .eq("client_id", clientId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("demand_requests")
+          .select("id, title, description, kind, status, requested_by, requested_role, target_role, created_at, client_product_id")
+          .eq("client_id", clientId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("document_requests")
+          .select("id, request_title, description, status, priority, requested_at, deadline, client_product_id")
+          .eq("client_id", clientId)
+          .order("requested_at", { ascending: false })
+          .limit(100),
+      ]);
+
+      const merged: any[] = [];
+      for (const t of tickets.data || []) {
+        merged.push({
+          _type: "ticket",
+          id: t.id,
+          when: t.last_message_at || t.created_at,
+          title: t.subject,
+          subtitle: t.category ? `Categoria: ${t.category}` : null,
+          status: t.status,
+          from: "cliente",
+          to: "admin",
+          link: `/admin/atendimento-cliente?ticket=${t.id}`,
+        });
+      }
+      for (const r of requests.data || []) {
+        merged.push({
+          _type: "request",
+          id: r.id,
+          when: r.created_at,
+          title: r.title,
+          subtitle: r.description,
+          status: r.status,
+          from: r.requested_role,
+          to: r.target_role,
+          link: r.client_product_id ? `/demandas/${r.client_product_id}?tab=requests` : `/solicitacoes`,
+        });
+      }
+      for (const d of docs.data || []) {
+        merged.push({
+          _type: "doc",
+          id: d.id,
+          when: d.requested_at,
+          title: d.request_title,
+          subtitle: d.description,
+          status: d.status,
+          from: "admin",
+          to: "cliente",
+          link: `/clientes/${clientId}?tab=documentos`,
+        });
+      }
+      return merged.sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
+    },
+  });
 
   const filtered = useMemo(() => {
     if (filter === "pendentes") return items.filter((i: any) => i.status_new !== "concluida" && i.status_new !== "cancelada");
@@ -70,31 +139,57 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
         <div>
           <h3 className="text-base font-bold text-slate-900">Atividades & pendências</h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            {pendentes} pendente{pendentes !== 1 ? "s" : ""} · {items.length} no total
+            {mode === "tarefas"
+              ? <>{pendentes} pendente{pendentes !== 1 ? "s" : ""} · {items.length} no total</>
+              : <>{actions.length} ação{actions.length !== 1 ? "ões" : ""} registrada{actions.length !== 1 ? "s" : ""} entre portais</>}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
-            {(["all", "pendentes", "concluidas"] as const).map((f) => (
+            {(["tarefas", "acoes"] as const).map((m) => (
               <button
-                key={f}
-                onClick={() => setFilter(f)}
+                key={m}
+                onClick={() => setMode(m)}
                 className={cn(
                   "px-3 h-7 text-[11px] font-bold rounded-md transition-all",
-                  filter === f ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900",
+                  mode === m ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900",
                 )}
               >
-                {f === "all" ? "Tudo" : f === "pendentes" ? "Pendentes" : "Concluídas"}
+                {m === "tarefas" ? "Tarefas" : "Histórico de ações"}
               </button>
             ))}
           </div>
-          <Link to={`/agenda?new=1&client=${clientId}`}>
-            <Button size="sm" className="gap-1.5 h-8">
-              <Plus className="size-3.5" /> Nova
-            </Button>
-          </Link>
+          {mode === "tarefas" && (
+            <>
+              <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+                {(["all", "pendentes", "concluidas"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={cn(
+                      "px-3 h-7 text-[11px] font-bold rounded-md transition-all",
+                      filter === f ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900",
+                    )}
+                  >
+                    {f === "all" ? "Tudo" : f === "pendentes" ? "Pendentes" : "Concluídas"}
+                  </button>
+                ))}
+              </div>
+              <Link to={`/agenda?new=1&client=${clientId}`}>
+                <Button size="sm" className="gap-1.5 h-8">
+                  <Plus className="size-3.5" /> Nova
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
+
+      {mode === "acoes" && (
+        <ActionsFeed items={actions} loading={loadingActions} />
+      )}
+      {mode === "tarefas" && (
+
 
       {isLoading ? (
         <div className="text-center py-12 text-sm text-slate-500">Carregando...</div>
