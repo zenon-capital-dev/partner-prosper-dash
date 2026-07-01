@@ -128,6 +128,30 @@ export default function FinanceCenter() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [newPaymentOpen, setNewPaymentOpen] = useState(false);
+  const [kpiRange, setKpiRange] = useState<"week" | "month" | "3m" | "6m" | "year" | "all">(
+    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
+  );
+  useEffect(() => {
+    try { localStorage.setItem("fin:kpiRange", kpiRange); } catch {}
+  }, [kpiRange]);
+  const rangeStartIso = useMemo(() => {
+    const d = new Date();
+    if (kpiRange === "all") return "0000-01-01";
+    if (kpiRange === "week") d.setDate(d.getDate() - 7);
+    else if (kpiRange === "month") { d.setDate(1); }
+    else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
+    else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
+    else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
+    return d.toISOString().slice(0, 10);
+  }, [kpiRange]);
+  const rangeLabel: Record<typeof kpiRange, string> = {
+    week: "últimos 7 dias",
+    month: "mês atual",
+    "3m": "últimos 3 meses",
+    "6m": "últimos 6 meses",
+    year: "últimos 12 meses",
+    all: "todo período",
+  } as any;
 
   const { data: payments = [], isLoading: loadingPay } = useQuery({
     queryKey: ["fin-payments"],
