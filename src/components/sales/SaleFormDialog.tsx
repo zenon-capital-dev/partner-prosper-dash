@@ -704,17 +704,6 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
 
 
 
-              <Section icon={FileText} title="Documentação">
-                <Field label="Notas e Observações Internas">
-                  <Textarea 
-                    rows={4} 
-                    className="bg-white border-slate-200 shadow-sm rounded-xl resize-none focus:ring-indigo-500" 
-                    value={form.notes ?? ""} 
-                    onChange={(e) => setForm({ ...form, notes: e.target.value })} 
-                    placeholder="Condições especiais, prazos, observações do cliente..." 
-                  />
-                </Field>
-              </Section>
 
 
               {/* Resumo Dinâmico Flutuante */}
