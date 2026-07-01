@@ -534,7 +534,7 @@ async function convertToSale(p: any, qc: any) {
       amount: Number(p.total ?? 0),
       sale_date: today,
       status: "pendente",
-      created_by: u.user?.id,
+      created_by: uid,
       notes: `Convertida da proposta ${p.proposal_number ?? p.id.slice(0, 8)}`,
     }).select().single();
     if (sErr) throw sErr;
@@ -680,7 +680,7 @@ function ProposalFormDialog({ open, onOpenChange, proposal, onSaved }: {
         const { error } = await supabase.from("proposals").update(payload).eq("id", proposal.id);
         if (error) throw error;
       } else {
-        payload.created_by = u.user?.id;
+        payload.created_by = uid;
         payload.proposal_number = `PROP-${Date.now().toString().slice(-6)}`;
         const { data, error } = await supabase.from("proposals").insert(payload).select().single();
         if (error) throw error;

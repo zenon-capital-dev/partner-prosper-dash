@@ -59,7 +59,7 @@ export function LeadFollowUpDialog({ open, onOpenChange, lead, onSaved }: Props)
         related_to_type: "lead",
         related_to_id: lead.id,
         assigned_to: uid ?? lead.responsible_id ?? null,
-        created_by: u.user?.id ?? null,
+        created_by: uid,
       });
       if (tErr) throw tErr;
 
