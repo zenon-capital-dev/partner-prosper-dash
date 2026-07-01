@@ -613,7 +613,13 @@ export default function DemandDetail() {
                            <FilePlus className="size-4" /> Solicitar Documento
                          </Button>}
                        </div>
-                  </div>
+                   </div>
+                   <div className="vx-card p-6 bg-card border-slate-100">
+                     <ProductDocumentFolders
+                       clientProductId={demand.id}
+                       role={canManage ? "admin" : isCliente ? "client" : "provider"}
+                     />
+                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {!demand.documents || demand.documents.length === 0 ? (
                        <div className="col-span-2 p-12 text-center border-dashed border-2 rounded-2xl">
