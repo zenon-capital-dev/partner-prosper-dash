@@ -30,6 +30,7 @@ export function NotificationBell() {
     staleTime: 60_000,
   });
 
+  const firstConnect = useRef(true);
   useEffect(() => {
     if (!user?.id) return;
     let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -42,9 +43,19 @@ export function NotificationBell() {
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-          () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+          (payload: any) => {
+            qc.invalidateQueries({ queryKey: ["notifications"] });
+            qc.invalidateQueries({ queryKey: ["notifications-center"] });
+            const n = payload?.new;
+            if (n && !firstConnect.current) {
+              toast(n.title || "Nova notificação", {
+                description: n.message,
+                action: n.link ? { label: "Abrir", onClick: () => navigate(n.link) } : undefined,
+              });
+            }
+          },
         )
-        .subscribe();
+        .subscribe(() => { firstConnect.current = false; });
     };
     const disconnect = () => {
       if (channel) { supabase.removeChannel(channel); channel = null; }
@@ -60,7 +71,8 @@ export function NotificationBell() {
       document.removeEventListener("visibilitychange", onVisibility);
       disconnect();
     };
-  }, [user?.id, qc]);
+  }, [user?.id, qc, navigate]);
+
 
 
   const unread = (notes ?? []).filter((n: any) => !n.read).length;
