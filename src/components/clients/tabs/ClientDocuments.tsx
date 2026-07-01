@@ -453,6 +453,10 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
         </div>
       )}
 
+      <div className="pt-2">
+        <ClientDocumentFolders clientId={clientId} viewerRole="admin" />
+      </div>
+
       <DocumentDialog
         open={open}
         onOpenChange={setOpen}
