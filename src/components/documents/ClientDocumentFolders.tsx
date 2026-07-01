@@ -225,6 +225,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                 <div className="flex items-center gap-2 flex-wrap">
                   {isAdmin && (
                     <>
+                      <Button size="sm" variant="default" onClick={() => setRequestingInFolder(currentFolderId)}>
+                        <FilePlus2 className="size-3.5 mr-1" /> Solicitar ao cliente
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => setProvidersFor(currentFolderId)}>
                         <Users className="size-3.5 mr-1" /> Autorizar prestador
                       </Button>
