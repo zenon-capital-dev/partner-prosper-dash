@@ -78,22 +78,25 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
 
   const addStep = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("client_product_steps").insert({
+      const { data, error } = await supabase.from("client_product_steps").insert({
         client_product_id: clientProductId,
-        label: "Nova etapa",
+        label: "",
         position: steps.length,
         status: "pendente",
         is_visible_to_client: true,
         default_responsible: "provider",
-      });
+      }).select("id").single();
       if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       qc.invalidateQueries({ queryKey: ["op-checklist", clientProductId] });
-      toast.success("Etapa adicionada");
+      if (data?.id) setExpanded((p) => ({ ...p, [data.id]: true }));
+      toast.success("Etapa adicionada — digite o nome da etapa");
     },
     onError: (e: any) => toast.error(e.message),
   });
+
 
   const removeStep = useMutation({
     mutationFn: async (id: string) => {
@@ -169,16 +172,35 @@ export function OperationalChecklist({ clientProductId, canEdit = true, canManag
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h4 className={cn(
-                          "text-sm font-bold leading-tight",
-                          status === "concluido" && "line-through text-muted-foreground"
-                        )}>
-                          {step.label}
-                        </h4>
+                        {canManage ? (
+                          <Input
+                            defaultValue={step.label || ""}
+                            placeholder="Nome da etapa (ex: Coletar documentos)"
+                            className={cn(
+                              "h-8 text-sm font-bold border-transparent hover:border-border focus-visible:border-primary bg-transparent px-2 -ml-2",
+                              status === "concluido" && "line-through text-muted-foreground"
+                            )}
+                            onBlur={(e) => {
+                              const v = e.target.value.trim();
+                              if (v !== (step.label || "")) {
+                                updateStep.mutate({ id: step.id, patch: { label: v || "Sem nome" } });
+                              }
+                            }}
+                            onKeyDown={(e) => { if (e.key === "Enter") (e.currentTarget as HTMLInputElement).blur(); }}
+                          />
+                        ) : (
+                          <h4 className={cn(
+                            "text-sm font-bold leading-tight",
+                            status === "concluido" && "line-through text-muted-foreground"
+                          )}>
+                            {step.label || "Sem nome"}
+                          </h4>
+                        )}
                         {step.description && !isExpanded && (
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{step.description}</p>
                         )}
                       </div>
+
 
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="outline" className={cn("h-6 text-[10px] font-bold uppercase gap-1 border", meta.cls)}>
