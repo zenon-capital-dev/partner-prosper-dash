@@ -274,6 +274,7 @@ export default function PartnerPanel() {
 
       const primary = uploaded[0];
       const extraUploads = uploaded.slice(1);
+      if (!primary) throw new Error("Nenhum arquivo selecionado");
 
       // Save previous file in history before replacing
       if (currentDoc?.file_path) {
