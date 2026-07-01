@@ -58,6 +58,19 @@ export default function Sales() {
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
+  const [breakdownDim, setBreakdownDim] = useState<"status" | "partner" | "product" | "client" | "partner_product" | "product_client">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("sales-breakdown-dim") as any)) || "status"
+  );
+  const [breakdownMetric, setBreakdownMetric] = useState<"bruto" | "recebido" | "liquido" | "qtd">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("sales-breakdown-metric") as any)) || "bruto"
+  );
+  const changeBreakdown = (dim: typeof breakdownDim, metric: typeof breakdownMetric) => {
+    setBreakdownDim(dim); setBreakdownMetric(metric);
+    try {
+      localStorage.setItem("sales-breakdown-dim", dim);
+      localStorage.setItem("sales-breakdown-metric", metric);
+    } catch {}
+  };
   const [density, setDensity] = useState<"compact" | "normal" | "spacious">(
     () => (typeof window !== "undefined" && (localStorage.getItem("sales-density") as any)) || "normal"
   );
@@ -390,14 +403,42 @@ export default function Sales() {
   }, [filtered]);
 
   const statusBreakdown = useMemo(() => {
-    const total = kpis.total || 1;
-    return [
-      { key: "concluida", label: "Concluídas", value: kpis.concluida, pct: (kpis.concluida / total) * 100, color: "bg-emerald-500" },
-      { key: "em_andamento", label: "Em andamento", value: kpis.em_andamento, pct: (kpis.em_andamento / total) * 100, color: "bg-sky-500" },
-      { key: "pendente", label: "Pendentes", value: kpis.pendente, pct: (kpis.pendente / total) * 100, color: "bg-amber-500" },
-      { key: "cancelada", label: "Canceladas", value: kpis.cancelada, pct: (kpis.cancelada / total) * 100, color: "bg-rose-500" },
-    ];
-  }, [kpis]);
+    const palette = ["bg-indigo-500", "bg-emerald-500", "bg-sky-500", "bg-amber-500", "bg-rose-500", "bg-violet-500", "bg-teal-500", "bg-fuchsia-500", "bg-cyan-500", "bg-lime-500"];
+    const statusLabel: Record<string, string> = { concluida: "Concluídas", em_andamento: "Em andamento", pendente: "Pendentes", cancelada: "Canceladas" };
+    const keyOf = (s: any): { key: string; label: string } => {
+      switch (breakdownDim) {
+        case "status": return { key: s.status || "—", label: statusLabel[s.status] || s.status || "—" };
+        case "partner": return { key: s.partner_id || "sem", label: s.partners?.full_name || "Sem parceiro" };
+        case "product": return { key: s.product_id || "sem", label: s.products?.name || "Sem produto" };
+        case "client": return { key: s.client_id || "sem", label: s.clients?.full_name || s.clients?.company || "Sem cliente" };
+        case "partner_product": return { key: `${s.partner_id || "sem"}::${s.product_id || "sem"}`, label: `${s.partners?.full_name || "Sem parceiro"} · ${s.products?.name || "Sem produto"}` };
+        case "product_client": return { key: `${s.product_id || "sem"}::${s.client_id || "sem"}`, label: `${s.products?.name || "Sem produto"} · ${s.clients?.full_name || s.clients?.company || "Sem cliente"}` };
+      }
+    };
+    const valueOf = (s: any): number => {
+      const v = Number(s.amount || 0);
+      switch (breakdownMetric) {
+        case "bruto": return v;
+        case "recebido": return Math.min(receiptsBySale.get(s.id)?.received ?? 0, v);
+        case "liquido": {
+          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+          return v - Number(s.zenon_cost || 0) - Number(s.provider_cost || 0) - comm;
+        }
+        case "qtd": return 1;
+      }
+    };
+    const m = new Map<string, { key: string; label: string; value: number }>();
+    filtered.forEach((s: any) => {
+      const { key, label } = keyOf(s);
+      const cur = m.get(key) ?? { key, label, value: 0 };
+      cur.value += valueOf(s);
+      m.set(key, cur);
+    });
+    const rows = Array.from(m.values()).sort((a, b) => b.value - a.value).slice(0, 10);
+    const total = rows.reduce((s, r) => s + r.value, 0) || 1;
+    return rows.map((r, i) => ({ ...r, pct: (r.value / total) * 100, color: palette[i % palette.length] }));
+  }, [filtered, breakdownDim, breakdownMetric, receiptsBySale, splitsBySale]);
+
 
   const invalidateRelated = async () => {
     qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
@@ -658,23 +699,55 @@ export default function Sales() {
 
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
-            <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500 mb-3">
-              <Sparkles className="size-3 text-indigo-500" /> Distribuição por Status
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2 text-[9.5px] uppercase tracking-[0.22em] font-bold text-slate-500">
+                <Sparkles className="size-3 text-indigo-500" /> Distribuição
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Select value={breakdownDim} onValueChange={(v) => changeBreakdown(v as any, breakdownMetric)}>
+                  <SelectTrigger className="h-7 w-[150px] text-[11px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="status">Por status</SelectItem>
+                    <SelectItem value="partner">Por parceiro</SelectItem>
+                    <SelectItem value="product">Por produto</SelectItem>
+                    <SelectItem value="client">Por cliente</SelectItem>
+                    <SelectItem value="partner_product">Parceiro · Produto</SelectItem>
+                    <SelectItem value="product_client">Produto · Cliente</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={breakdownMetric} onValueChange={(v) => changeBreakdown(breakdownDim, v as any)}>
+                  <SelectTrigger className="h-7 w-[110px] text-[11px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bruto">Bruto</SelectItem>
+                    <SelectItem value="recebido">Recebido</SelectItem>
+                    <SelectItem value="liquido">Líquido</SelectItem>
+                    <SelectItem value="qtd">Qtd.</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2.5">
-              {statusBreakdown.map((row) => (
-                <div key={row.key}>
-                  <div className="flex items-center justify-between text-[11px] mb-1">
-                    <span className="font-semibold text-slate-700">{row.label}</span>
-                    <span className="font-mono font-bold text-slate-900">{formatBRL(row.value)} <span className="text-slate-400 font-medium ml-1">({row.pct.toFixed(0)}%)</span></span>
+            {statusBreakdown.length === 0 ? (
+              <p className="text-[12px] text-slate-400 text-center py-3">Sem dados para o filtro atual.</p>
+            ) : (
+              <div className="space-y-2.5">
+                {statusBreakdown.map((row) => (
+                  <div key={row.key}>
+                    <div className="flex items-center justify-between text-[11px] mb-1 gap-2">
+                      <span className="font-semibold text-slate-700 truncate">{row.label}</span>
+                      <span className="font-mono font-bold text-slate-900 whitespace-nowrap">
+                        {breakdownMetric === "qtd" ? row.value : formatBRL(row.value)}
+                        <span className="text-slate-400 font-medium ml-1">({row.pct.toFixed(0)}%)</span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${Math.min(100, row.pct)}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
+
 
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
