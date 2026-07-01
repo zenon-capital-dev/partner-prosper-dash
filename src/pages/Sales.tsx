@@ -481,6 +481,15 @@ export default function Sales() {
     invalidateRelated();
   };
 
+  const updateClosedAt = async (s: any, dateStr: string) => {
+    if (!canManage) return;
+    const iso = dateStr ? new Date(dateStr + "T12:00:00").toISOString() : null;
+    const { error } = await supabase.from("sales").update({ closed_at: iso }).eq("id", s.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Data de conclusão atualizada");
+    invalidateRelated();
+  };
+
   const cancelSale = async (s: any, opts?: { skipConfirm?: boolean }) => {
     if (!canManage) return;
     const message = s.status === "concluida"
