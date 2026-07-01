@@ -28,6 +28,7 @@ import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YA
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
@@ -471,9 +472,21 @@ export default function Sales() {
       await cancelSale(s);
       return;
     }
-    const { error } = await supabase.from("sales").update({ status: next }).eq("id", s.id);
+    const patch: any = { status: next };
+    if (next === "concluida") patch.closed_at = s.closed_at || new Date().toISOString();
+    else patch.closed_at = null;
+    const { error } = await supabase.from("sales").update(patch).eq("id", s.id);
     if (error) { toast.error(error.message); return; }
     toast.success("Status atualizado");
+    invalidateRelated();
+  };
+
+  const updateClosedAt = async (s: any, dateStr: string) => {
+    if (!canManage) return;
+    const iso = dateStr ? new Date(dateStr + "T12:00:00").toISOString() : null;
+    const { error } = await supabase.from("sales").update({ closed_at: iso }).eq("id", s.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Data de conclusão atualizada");
     invalidateRelated();
   };
 
@@ -1062,7 +1075,36 @@ export default function Sales() {
                           )
                         )}
                       </Td>
-                      {visibleCols.status && <Td><StatusPill status={s.status} /></Td>}
+                      {visibleCols.status && (
+                        <Td>
+                          <div className="flex flex-col gap-1">
+                            <StatusPill status={s.status} />
+                            {s.status === "concluida" && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    type="button"
+                                    disabled={!canManage}
+                                    className="text-[10px] font-medium text-slate-500 hover:text-indigo-700 text-left disabled:cursor-not-allowed"
+                                    title="Editar data de conclusão"
+                                  >
+                                    {s.closed_at ? `✓ ${formatBRDate(s.closed_at)}` : "definir data"}
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent align="start" className="w-auto p-3">
+                                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Data de conclusão</label>
+                                  <Input
+                                    type="date"
+                                    defaultValue={s.closed_at ? new Date(s.closed_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)}
+                                    onBlur={(e) => updateClosedAt(s, e.target.value)}
+                                    className="h-8 text-xs"
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                        </Td>
+                      )}
                       {visibleCols.client && (
                         <Td>
                           <div className="min-w-0">
