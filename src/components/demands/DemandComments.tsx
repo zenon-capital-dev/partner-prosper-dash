@@ -80,11 +80,16 @@ export function DemandComments({ clientProductId, role }: Props) {
 
   const submit = async () => {
     if (!content.trim()) return toast.error("Escreva um comentário");
-    if (!user) return toast.error("Usuário não autenticado");
+    let authorId = user?.id;
+    if (!authorId) {
+      const { getCurrentUserId } = await import("@/lib/current-user");
+      authorId = (await getCurrentUserId()) ?? undefined;
+    }
+    if (!authorId) return toast.error("Sua sessão expirou. Faça login novamente.");
     setSubmitting(true);
     const { error } = await supabase.from("demand_comments").insert({
       client_product_id: clientProductId,
-      author_id: user.id,
+      author_id: authorId,
       content: content.trim(),
       visibility,
       created_at: nowBR().toISOString(),
