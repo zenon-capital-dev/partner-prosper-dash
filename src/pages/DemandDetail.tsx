@@ -611,9 +611,20 @@ export default function DemandDetail() {
                   </div>
                </TabsContent>
                
-                <TabsContent value="reportes" className="animate-fade-up">
-                   <div className="vx-card p-6 bg-card border-slate-100 space-y-4">
-                     {reports.length === 0 ? (
+                 <TabsContent value="reportes" className="animate-fade-up">
+                    <div className="vx-card p-6 bg-card border-slate-100 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-foreground">Reportes de status</h3>
+                          <p className="text-xs text-muted-foreground">Histórico de andamentos, pendências e próximos passos.</p>
+                        </div>
+                        {canManage && (
+                          <Button size="sm" className="gap-2" onClick={() => setReportOpen(true)}>
+                            <Plus className="size-4" /> Novo reporte
+                          </Button>
+                        )}
+                      </div>
+                      {reports.length === 0 ? (
                         <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
                      ) : reports.map((r: any) => (
                        <div key={r.id} className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
