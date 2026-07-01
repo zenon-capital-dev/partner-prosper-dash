@@ -148,7 +148,8 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   const effectiveScope: Scope = role === "provider" ? newScope : "client";
 
   const createFolder = async () => {
-    if (!newName.trim() || !me) return;
+    if (!newName.trim()) return toast.error("Informe o nome da pasta");
+    if (!me) return toast.error("Sua sessão expirou. Faça login novamente.");
     const payload: any = {
       client_product_id: clientProductId,
       name: newName.trim(),
@@ -174,7 +175,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   };
 
   const upload = async (folder: FolderRow, file: File) => {
-    if (!me) return;
+    if (!me) return toast.error("Sua sessão expirou. Faça login novamente.");
     setUploadingId(folder.id);
     try {
       const safe = file.name.replace(/[^\w.\-]+/g, "_");

@@ -48,11 +48,11 @@ export function DemandComments({ clientProductId, role }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   // Available visibility options based on role
-  const availableVisibilities: Visibility[] = role === "admin"
+  const availableVisibilities: Visibility[] = useMemo(() => role === "admin"
     ? ["internal", "admin", "provider", "client"]
     : role === "provider"
       ? ["provider", "client"]
-      : ["client"];
+      : ["client"], [role]);
 
   useEffect(() => {
     if (availableVisibilities.includes(visibility)) return;
