@@ -89,17 +89,18 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     load();
   }, [load]);
 
-  const scopeForRole: Scope = role === "provider" ? "internal" : "client";
+  // Client sempre cria pasta "client". Admin sempre "client". Provider escolhe.
+  const effectiveScope: Scope = role === "provider" ? newScope : "client";
 
   const createFolder = async () => {
     if (!newName.trim() || !me) return;
     const payload: any = {
       client_product_id: clientProductId,
       name: newName.trim(),
-      scope: scopeForRole,
+      scope: effectiveScope,
       created_by: me,
     };
-    if (scopeForRole === "internal") payload.owner_provider_user_id = me;
+    if (effectiveScope === "internal") payload.owner_provider_user_id = me;
     const { error } = await supabase.from("product_document_folders").insert(payload);
     if (error) return toast.error("Erro ao criar pasta: " + error.message);
     toast.success("Pasta criada");
