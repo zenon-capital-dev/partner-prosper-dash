@@ -176,8 +176,8 @@ const App = () => (
               <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
               <Route path="/solicitacoes" element={<RequestsInbox />} />
-              <Route path="/notificacoes" element={<NotificationsCenter />} />
             </Route>
+
 
 
             {/* RoleHome roda fora de qualquer layout para não dar flash da sidebar admin
