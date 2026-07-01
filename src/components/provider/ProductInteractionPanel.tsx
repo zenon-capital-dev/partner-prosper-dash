@@ -80,27 +80,32 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
     qc.invalidateQueries({ queryKey: ["demand-comments", clientProductId] });
   }
 
-  async function uploadDelivery(file: File) {
+  async function uploadDelivery(files: File[]) {
+    if (files.length === 0) return;
     setUploading(true);
-    try { assertUploadFile(file); } catch (e: any) { setUploading(false); return toast.error(uploadErrorMessage(e)); }
-    const path = `${clientProductId}/${Date.now()}_${sanitizeStorageFileName(file.name)}`;
-    const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
-    if (upErr) {
-      setUploading(false);
-      return toast.error("Falha no upload", { description: uploadErrorMessage(upErr) });
+    try { files.forEach(assertUploadFile); } catch (e: any) { setUploading(false); return toast.error(uploadErrorMessage(e)); }
+    const rows: any[] = [];
+    for (const [index, file] of files.entries()) {
+      const path = `${clientProductId}/${Date.now()}_${index + 1}_${sanitizeStorageFileName(file.name)}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+      if (upErr) {
+        setUploading(false);
+        return toast.error("Falha no upload", { description: uploadErrorMessage(upErr) });
+      }
+      rows.push({
+        client_product_id: clientProductId,
+        title: files.length === 1 ? (delivTitle || file.name) : `${delivTitle || "Entregável"} · ${file.name}`,
+        description: delivDesc || null,
+        file_url: path,
+        status: "delivered",
+      });
     }
-    const { error } = await supabase.from("demand_deliveries").insert({
-      client_product_id: clientProductId,
-      title: delivTitle || file.name,
-      description: delivDesc || null,
-      file_url: path,
-      status: "delivered",
-    } as any);
+    const { error } = await supabase.from("demand_deliveries").insert(rows as any);
     setUploading(false);
     if (error) return toast.error("Erro ao registrar entregável", { description: error.message });
     setDelivTitle("");
     setDelivDesc("");
-    toast.success("Entregável publicado");
+    toast.success(`${files.length} entregável(is) publicado(s)`);
     qc.invalidateQueries({ queryKey: ["demand-deliveries", clientProductId] });
   }
 
@@ -169,7 +174,7 @@ export function ProductInteractionPanel({ clientProductId }: Props) {
           <label className="flex items-center justify-center gap-3 p-6 rounded-2xl border-2 border-dashed border-slate-200 hover:border-primary hover:bg-primary/5 cursor-pointer transition-all">
             <Upload className="size-5 text-primary" />
             <span className="text-sm font-bold">{uploading ? "Enviando..." : "Selecionar arquivo para enviar"}</span>
-            <input type="file" hidden disabled={uploading} onChange={(e) => e.target.files?.[0] && uploadDelivery(e.target.files[0])} />
+            <input type="file" multiple hidden disabled={uploading} onChange={(e) => { uploadDelivery(Array.from(e.target.files ?? [])); e.currentTarget.value = ""; }} />
           </label>
           <div className="space-y-2 pt-2">
             {deliveries.length === 0 ? (

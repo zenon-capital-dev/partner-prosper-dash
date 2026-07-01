@@ -66,7 +66,7 @@ export default function Sales() {
   const [editingSale, setEditingSale] = useState<any>(null);
   const [receivingSale, setReceivingSale] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("MÊS");
   const [selectedMonth, setSelectedMonth] = useState(currentMonthKey());
   const [status, setStatus] = useState<StatusKey>("todos");
   const [revenueFilter, setRevenueFilter] = useState<"todos" | "avulso" | "recorrente">("todos");
@@ -597,7 +597,7 @@ export default function Sales() {
     URL.revokeObjectURL(url);
   };
 
-  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setProductFilter("todos"); setClientFilter("todos"); setDateFrom(""); setDateTo(""); setRangeKey("30 DIAS"); };
+  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setProductFilter("todos"); setClientFilter("todos"); setDateFrom(""); setDateTo(""); setSelectedMonth(currentMonthKey()); setRangeKey("MÊS"); };
   const activeChips: { label: string; clear: () => void }[] = [];
   if (search) activeChips.push({ label: `Busca: ${search}`, clear: () => setSearch("") });
   if (status !== "todos") activeChips.push({ label: `Status: ${status}`, clear: () => setStatus("todos") });
@@ -667,7 +667,7 @@ export default function Sales() {
         }
         kpis={[
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" />, onClick: () => setKpiDetail("bruto") },
-          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: "Entradas confirmadas neste mês", onClick: () => setKpiDetail("recebido_mes") },
+          { label: !usingManualRange && rangeKey === "MÊS" ? `Recebido (${monthLabel(selectedMonth)})` : "Recebido (mês atual)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: !usingManualRange && rangeKey === "MÊS" ? "Entradas confirmadas no mês selecionado" : "Entradas confirmadas no mês atual", onClick: () => setKpiDetail("recebido_mes") },
           { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined, onClick: () => setKpiDetail("a_receber") },
           { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined, onClick: () => setKpiDetail("liquido") },
           { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined, onClick: () => setKpiDetail("custos") },

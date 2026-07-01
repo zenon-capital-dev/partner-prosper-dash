@@ -23,7 +23,7 @@ export function SupportThread({ ticket, viewerRole, onChanged }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [body, setBody] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isClosed = ticket.status === "fechado" || ticket.status === "resolvido";
@@ -50,32 +50,33 @@ export function SupportThread({ ticket, viewerRole, onChanged }: Props) {
   const send = useMutation({
     mutationFn: async () => {
       const text = body.trim();
-      if (!text && !file) throw new Error("Escreva uma mensagem ou anexe um arquivo");
-      let attachment_path: string | null = null;
-      let attachment_name: string | null = null;
-      let attachment_mime: string | null = null;
-      let attachment_size: number | null = null;
-      if (file) {
-        if (file.size > MAX_FILE_MB * 1024 * 1024) throw new Error(`Arquivo acima de ${MAX_FILE_MB}MB`);
-        const partnerId = ticket.partner_id;
-        const safe = file.name.replace(/[^\w.\-]+/g, "_");
-        const path = `${partnerId}/${ticket.id}/${Date.now()}_${safe}`;
-        await uploadStorageFileFast("support-attachments", path, file);
-        attachment_path = path;
-        attachment_name = file.name;
-        attachment_mime = file.type || null;
-        attachment_size = file.size;
+      if (!text && files.length === 0) throw new Error("Escreva uma mensagem ou anexe um arquivo");
+      const oversized = files.find((f) => f.size > MAX_FILE_MB * 1024 * 1024);
+      if (oversized) throw new Error(`${oversized.name} está acima de ${MAX_FILE_MB}MB`);
+
+      const partnerId = ticket.partner_id;
+      const rows: any[] = [];
+      if (files.length === 0) {
+        rows.push({ ticket_id: ticket.id, sender_role: viewerRole, sender_user_id: user?.id, body: text });
+      } else {
+        for (const [index, currentFile] of files.entries()) {
+          const safe = currentFile.name.replace(/[^\w.\-]+/g, "_");
+          const path = `${partnerId}/${ticket.id}/${Date.now()}_${index + 1}_${safe}`;
+          await uploadStorageFileFast("support-attachments", path, currentFile);
+          rows.push({
+            ticket_id: ticket.id,
+            sender_role: viewerRole,
+            sender_user_id: user?.id,
+            body: index === 0 ? (text || `📎 ${currentFile.name}`) : `📎 ${currentFile.name}`,
+            attachment_path: path,
+            attachment_name: currentFile.name,
+            attachment_mime: currentFile.type || null,
+            attachment_size: currentFile.size,
+          });
+        }
       }
-      const { error } = await (supabase as any).from("partner_support_ticket_messages").insert({
-        ticket_id: ticket.id,
-        sender_role: viewerRole,
-        sender_user_id: user?.id,
-        body: text || (attachment_name ? `📎 ${attachment_name}` : ""),
-        attachment_path,
-        attachment_name,
-        attachment_mime,
-        attachment_size,
-      });
+
+      const { error } = await (supabase as any).from("partner_support_ticket_messages").insert(rows);
       if (error) throw error;
       // Update ticket status + auto-assign admin on first reply
       if (viewerRole === "admin") {
@@ -91,7 +92,7 @@ export function SupportThread({ ticket, viewerRole, onChanged }: Props) {
     },
     onSuccess: () => {
       setBody("");
-      setFile(null);
+      setFiles([]);
       if (fileInputRef.current) fileInputRef.current.value = "";
       qc.invalidateQueries({ queryKey: messagesKey });
       onChanged?.();
@@ -162,14 +163,24 @@ export function SupportThread({ ticket, viewerRole, onChanged }: Props) {
               : "Escreva sua mensagem…"}
             className="text-[13px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
-          {file && (
-            <div className="mx-1 mb-1 flex items-center gap-2 text-[12px] bg-slate-50 border border-slate-200 rounded px-2 py-1">
-              <Paperclip className="size-3.5 text-slate-500" />
-              <span className="truncate flex-1 text-slate-700">{file.name}</span>
-              <span className="text-slate-400">{(file.size / 1024).toFixed(0)} KB</span>
-              <button onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="text-slate-400 hover:text-rose-600">
-                <X className="size-3.5" />
-              </button>
+          {files.length > 0 && (
+            <div className="mx-1 mb-1 space-y-1 rounded border border-slate-200 bg-slate-50 p-2">
+              {files.map((file, index) => (
+                <div key={`${file.name}-${file.size}-${index}`} className="flex items-center gap-2 text-[12px]">
+                  <Paperclip className="size-3.5 text-slate-500" />
+                  <span className="truncate flex-1 text-slate-700">{file.name}</span>
+                  <span className="text-slate-400">{(file.size / 1024).toFixed(0)} KB</span>
+                  <button
+                    onClick={() => {
+                      setFiles((prev) => prev.filter((_, i) => i !== index));
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="text-slate-400 hover:text-rose-600"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
           <div className="flex items-center justify-between gap-2 px-1 pt-1">
@@ -177,8 +188,9 @@ export function SupportThread({ ticket, viewerRole, onChanged }: Props) {
               <input
                 ref={fileInputRef}
                 type="file"
+                multiple
                 className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
               />
               <Button
                 type="button"
@@ -228,7 +240,7 @@ export function SupportThread({ ticket, viewerRole, onChanged }: Props) {
               <Button
                 size="sm"
                 onClick={() => send.mutate()}
-                disabled={send.isPending || (!body.trim() && !file)}
+                disabled={send.isPending || (!body.trim() && files.length === 0)}
                 className="gap-1.5 bg-indigo-600 hover:bg-indigo-700"
               >
                 {send.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}

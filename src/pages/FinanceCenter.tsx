@@ -68,6 +68,18 @@ const monthBounds = (monthKey: string) => {
     end: `${safeYear}-${pad(safeMonth)}-${pad(lastDay)}`,
   };
 };
+const monthExclusiveBounds = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
+  const safeMonth = Number.isFinite(month) ? month : new Date().getMonth() + 1;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const nextMonth = safeMonth === 12 ? 1 : safeMonth + 1;
+  const nextYear = safeMonth === 12 ? safeYear + 1 : safeYear;
+  return {
+    start: `${safeYear}-${pad(safeMonth)}-01`,
+    end: `${nextYear}-${pad(nextMonth)}-01`,
+  };
+};
 const monthFilterLabel = (monthKey: string) => {
   const [year, month] = monthKey.split("-").map(Number);
   if (!Number.isFinite(year) || !Number.isFinite(month)) return monthKey;
@@ -184,7 +196,7 @@ export default function FinanceCenter() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
   const [kpiRange, setKpiRange] = useState<RangeMode>(
-    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
+    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "specific"
   );
   const [specificMonth, setSpecificMonth] = useState<string>(
     (typeof window !== "undefined" && localStorage.getItem("fin:specificMonth")) || nowMonthKey()
@@ -201,14 +213,17 @@ export default function FinanceCenter() {
     let end = "9999-12-31";
     if (kpiRange === "all") { /* both wide */ }
     else if (kpiRange === "specific") {
-      const [y, m] = specificMonth.split("-").map(Number);
-      const s = new Date(y, m - 1, 1);
-      const e = new Date(y, m, 1);
-      start = s.toISOString().slice(0, 10);
-      end = e.toISOString().slice(0, 10);
+      const range = monthExclusiveBounds(specificMonth);
+      start = range.start;
+      end = range.end;
     } else {
       if (kpiRange === "week") d.setDate(d.getDate() - 7);
-      else if (kpiRange === "month") { d.setDate(1); }
+      else if (kpiRange === "month") {
+        const range = monthExclusiveBounds(nowMonthKey());
+        start = range.start;
+        end = range.end;
+        return { rangeStartIso: start, rangeEndIso: end };
+      }
       else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
       else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
       else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
@@ -217,8 +232,7 @@ export default function FinanceCenter() {
     return { rangeStartIso: start, rangeEndIso: end };
   }, [kpiRange, specificMonth]);
   const specificMonthLabel = useMemo(() => {
-    const [y, m] = specificMonth.split("-").map(Number);
-    return new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    return monthFilterLabel(specificMonth);
   }, [specificMonth]);
   const rangeLabel: Record<RangeMode, string> = {
     week: "últimos 7 dias",
