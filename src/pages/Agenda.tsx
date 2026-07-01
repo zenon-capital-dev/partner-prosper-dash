@@ -151,14 +151,9 @@ export default function Agenda() {
     },
   });
 
-  // Lista de responsáveis (admin+colaboradores)
-  const { data: assignees = [] } = useQuery({
-    queryKey: ["agenda-assignees"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email, active").eq("active", true).order("full_name").limit(200);
-      return data ?? [];
-    },
-  });
+  // Lista de responsáveis (admin+colaboradores) — apenas time interno
+  const { data: assignees = [] } = useInternalTeamRef();
+
 
   // Tasks (Agenda items)
   const { data: items = [], isLoading } = useQuery({
