@@ -26,8 +26,9 @@ export function QualityApprovalDialog({ open, onOpenChange, demandId }: QualityA
 
   const approvalMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const { getCurrentUser } = await import("@/lib/current-user");
+      const user = await getCurrentUser();
+      if (!user) throw new Error("Sua sessão expirou. Faça login novamente.");
 
       const status = mode === 'approve' ? 'aprovado' : 'ajuste_solicitado';
       const demandStatus = mode === 'approve' ? 'concluido' : 'ajuste_solicitado';
