@@ -216,17 +216,32 @@ export function ClientFinancial({ clientId }: { clientId: string }) {
                   )}
                 </td>
                 <td className="px-6 py-4">
-                  <StatusPill status={payment.status} />
+                  <div className="flex flex-col gap-1">
+                    <StatusPill status={payment.status} />
+                    {payment.receipt_url && payment.status !== "pago" && (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-indigo-600">
+                        <Receipt className="size-2.5" /> Comprovante recebido
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  {payment.status === "pago" ? (
-                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Quitado</span>
-                  ) : (
-                    <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-emerald-500/10 hover:text-emerald-600" disabled={marking === payment.id} onClick={() => markPaid(payment.id, Number(payment.amount || 0))}>
-                      {marking === payment.id ? "..." : "Dar baixa"} <ArrowUpRight className="size-3 ml-1" />
-                    </Button>
-                  )}
+                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                    {payment.receipt_url && (
+                      <Button variant="outline" size="sm" className="text-xs h-7 border-indigo-200 text-indigo-700 hover:bg-indigo-50" onClick={() => openReceipt(payment.receipt_url)}>
+                        <Receipt className="size-3 mr-1" /> Ver comprovante
+                      </Button>
+                    )}
+                    {payment.status === "pago" ? (
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Quitado</span>
+                    ) : (
+                      <Button variant="ghost" size="sm" className="text-xs font-bold hover:bg-emerald-500/10 hover:text-emerald-600" disabled={marking === payment.id} onClick={() => markPaid(payment.id, Number(payment.amount || 0))}>
+                        {marking === payment.id ? "..." : "Dar baixa"} <ArrowUpRight className="size-3 ml-1" />
+                      </Button>
+                    )}
+                  </div>
                 </td>
+
               </tr>
               );
             })}
