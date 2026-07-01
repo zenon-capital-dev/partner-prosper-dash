@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,8 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
-import { ArrowUpRight, Inbox, Clock, CheckCircle2, MessageSquare, X } from "lucide-react";
+import { ArrowUpRight, Inbox, Clock, CheckCircle2, MessageSquare, X, Plus } from "lucide-react";
+
+type Role = "admin" | "parceiro" | "prestador" | "cliente" | "colaborador";
 
 const KIND: Record<string, string> = {
   documento: "Documento",
@@ -25,11 +33,19 @@ const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = 
 };
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "Admin", parceiro: "Parceiro", prestador: "Prestador",
+  admin: "Zenon (Admin)", parceiro: "Parceiro", prestador: "Prestador",
   cliente: "Cliente", colaborador: "Colaborador",
 };
 
-function roleForInbox(roles: string[]): "admin" | "parceiro" | "prestador" | "cliente" | "colaborador" {
+const TARGETS_BY_ROLE: Record<Role, Role[]> = {
+  admin: ["cliente", "prestador", "parceiro", "colaborador"],
+  parceiro: ["cliente", "admin", "prestador"],
+  prestador: ["cliente", "admin", "parceiro"],
+  cliente: ["admin", "prestador", "parceiro"],
+  colaborador: ["cliente", "admin", "prestador", "parceiro"],
+};
+
+function roleForInbox(roles: string[]): Role {
   if (roles.includes("super_admin") || roles.includes("admin") || roles.includes("admin_secondary")) return "admin";
   if (roles.includes("parceiro")) return "parceiro";
   if (roles.includes("prestador")) return "prestador";
@@ -46,21 +62,49 @@ function demandLinkFor(role: string, clientProductId: string): string {
 }
 
 export default function RequestsInbox() {
-  const { roles } = useAuth();
+  const { roles, user } = useAuth();
+  const qc = useQueryClient();
   const myRole = useMemo(() => roleForInbox(roles as any), [roles]);
-  const [tab, setTab] = useState<"pendentes" | "todas">("pendentes");
+  const [tab, setTab] = useState<"pendentes" | "todas" | "enviadas">("pendentes");
+  const [newOpen, setNewOpen] = useState(false);
+  const targets = TARGETS_BY_ROLE[myRole];
+  const [form, setForm] = useState({
+    client_product_id: "",
+    target_role: targets[0],
+    kind: "informacao" as "documento" | "informacao" | "duvida" | "outro",
+    title: "",
+    description: "",
+  });
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ["requests-inbox", myRole],
+    queryKey: ["requests-inbox", myRole, user?.id],
     queryFn: async () => {
       let q = supabase
         .from("demand_requests")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(500);
-      // For non-admin, filter to items targeted to their role.
-      if (myRole !== "admin") q = q.eq("target_role", myRole);
+      if (myRole !== "admin") {
+        // Show items either targeted to me OR sent by me
+        q = q.or(`target_role.eq.${myRole},requested_by.eq.${user?.id}`);
+      }
       const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Demands the current user can create requests on (RLS scopes automatically)
+  const { data: demands = [] } = useQuery({
+    queryKey: ["requests-inbox-demands", user?.id],
+    enabled: !!user?.id && newOpen,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_products")
+        .select("id, clients!client_products_client_id_fkey(full_name), products!client_products_product_id_fkey(name)")
+        .order("created_at", { ascending: false })
+        .limit(500);
       if (error) throw error;
       return data ?? [];
     },
@@ -77,7 +121,7 @@ export default function RequestsInbox() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, client_id, product_id, clients(full_name), products(name)")
+        .select("id, client_id, product_id, clients!client_products_client_id_fkey(full_name), products!client_products_product_id_fkey(name)")
         .in("id", productIds as string[]);
       const map: Record<string, { client: string; product: string }> = {};
       (data ?? []).forEach((cp: any) => {
@@ -92,13 +136,44 @@ export default function RequestsInbox() {
 
   const filtered = useMemo(() => {
     if (tab === "pendentes") return items.filter((i: any) => i.status === "aberta" || i.status === "respondida");
+    if (tab === "enviadas") return items.filter((i: any) => i.requested_by === user?.id);
     return items;
-  }, [items, tab]);
+  }, [items, tab, user?.id]);
 
   const counts = useMemo(() => ({
     pendentes: items.filter((i: any) => i.status === "aberta" || i.status === "respondida").length,
     todas: items.length,
-  }), [items]);
+    enviadas: items.filter((i: any) => i.requested_by === user?.id).length,
+  }), [items, user?.id]);
+
+  const openNew = () => {
+    setForm({
+      client_product_id: "",
+      target_role: targets[0],
+      kind: "informacao",
+      title: "",
+      description: "",
+    });
+    setNewOpen(true);
+  };
+
+  const submitNew = async () => {
+    if (!form.client_product_id) { toast.error("Escolha uma demanda"); return; }
+    if (!form.title.trim()) { toast.error("Informe um título"); return; }
+    const { error } = await supabase.from("demand_requests").insert({
+      client_product_id: form.client_product_id,
+      requested_by: user?.id,
+      requested_role: myRole,
+      target_role: form.target_role,
+      kind: form.kind,
+      title: form.title.trim(),
+      description: form.description.trim() || null,
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Solicitação enviada");
+    setNewOpen(false);
+    qc.invalidateQueries({ queryKey: ["requests-inbox"] });
+  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-4">
@@ -106,17 +181,21 @@ export default function RequestsInbox() {
         <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
           <Inbox className="w-5 h-5" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-semibold text-slate-900">Caixa de solicitações</h1>
           <p className="text-sm text-slate-500">
             Pedidos entre {ROLE_LABEL[myRole]} e demais envolvidos nas demandas.
           </p>
         </div>
+        <Button onClick={openNew} size="sm">
+          <Plus className="w-4 h-4 mr-1" /> Nova solicitação
+        </Button>
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
         <TabsList>
           <TabsTrigger value="pendentes">Pendentes ({counts.pendentes})</TabsTrigger>
+          <TabsTrigger value="enviadas">Enviadas ({counts.enviadas})</TabsTrigger>
           <TabsTrigger value="todas">Todas ({counts.todas})</TabsTrigger>
         </TabsList>
       </Tabs>
@@ -125,7 +204,7 @@ export default function RequestsInbox() {
         <Card><CardContent className="p-8 text-sm text-slate-500">Carregando...</CardContent></Card>
       ) : filtered.length === 0 ? (
         <Card><CardContent className="p-10 text-center text-sm text-slate-500">
-          Nenhuma solicitação {tab === "pendentes" ? "pendente" : ""}.
+          Nenhuma solicitação {tab === "pendentes" ? "pendente" : tab === "enviadas" ? "enviada" : ""}.
         </CardContent></Card>
       ) : (
         <div className="space-y-2">
@@ -174,6 +253,86 @@ export default function RequestsInbox() {
           })}
         </div>
       )}
+
+      <Dialog open={newOpen} onOpenChange={setNewOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Nova solicitação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Demanda</Label>
+              <Select
+                value={form.client_product_id}
+                onValueChange={(v) => setForm({ ...form, client_product_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Escolha a demanda" /></SelectTrigger>
+                <SelectContent>
+                  {demands.length === 0 ? (
+                    <div className="p-3 text-xs text-slate-500">Nenhuma demanda disponível</div>
+                  ) : demands.map((d: any) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {(d.clients?.full_name ?? "Cliente")} · {(d.products?.name ?? "Serviço")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Enviar para</Label>
+                <Select
+                  value={form.target_role}
+                  onValueChange={(v) => setForm({ ...form, target_role: v as Role })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {targets.map((r) => (
+                      <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Tipo</Label>
+                <Select
+                  value={form.kind}
+                  onValueChange={(v) => setForm({ ...form, kind: v as any })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="informacao">Informação</SelectItem>
+                    <SelectItem value="documento">Documento</SelectItem>
+                    <SelectItem value="duvida">Dúvida</SelectItem>
+                    <SelectItem value="outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Título</Label>
+              <Input
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="Ex: Enviar comprovante de pagamento"
+              />
+            </div>
+            <div>
+              <Label>Descrição (opcional)</Label>
+              <Textarea
+                rows={4}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Detalhe o que você precisa..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewOpen(false)}>Cancelar</Button>
+            <Button onClick={submitNew}>Enviar solicitação</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
