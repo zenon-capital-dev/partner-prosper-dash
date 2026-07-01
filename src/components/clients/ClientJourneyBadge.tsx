@@ -1,7 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, CheckCircle2 } from "lucide-react";
+import { Activity, CheckCircle2, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { formatBR as format } from "@/lib/datetime";
+import { parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Props {
   clientId: string;
@@ -28,7 +31,7 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("clients")
-        .select("is_closed" as any)
+        .select("is_closed, stage_changed_at" as any)
         .eq("id", clientId)
         .maybeSingle();
       return data as any;
@@ -43,11 +46,13 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
     else {
       toast.success("Estágio atualizado");
       qc.invalidateQueries({ queryKey: ["client", clientId] });
+      qc.invalidateQueries({ queryKey: ["client-closed-flag", clientId] });
+      qc.invalidateQueries({ queryKey: ["client-timeline", clientId] });
     }
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 flex-wrap">
       <Activity className="size-4 shrink-0 text-slate-400" />
       <select
         className="text-xs font-medium rounded-md border border-slate-200 bg-white px-2 py-1 cursor-pointer hover:border-indigo-300"
@@ -60,6 +65,15 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}
       </select>
+      {client?.stage_changed_at && (
+        <span
+          className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500"
+          title="Última alteração de estágio"
+        >
+          <Clock className="size-3" />
+          {format(parseISO(client.stage_changed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+        </span>
+      )}
       {client?.is_closed && (
         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5">
           <CheckCircle2 className="size-3" /> Fechado
@@ -68,3 +82,4 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
     </div>
   );
 }
+
