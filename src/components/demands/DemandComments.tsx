@@ -108,19 +108,26 @@ export function DemandComments({ clientProductId, role }: Props) {
     );
   };
 
+  const countBy = (v: string) => comments.filter((c: any) => c.visibility === v).length;
+  const filterLabel = filter === "all" ? "" : (VIS_META[filter as Visibility]?.label ?? filter);
+
   return (
     <div className="space-y-6">
       {/* Filters */}
       {role !== "client" && (
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-          <TabsList className="bg-muted/40">
-            <TabsTrigger value="all" className="text-xs">Todos</TabsTrigger>
+          <TabsList className="bg-muted/40 flex-wrap h-auto">
+            <TabsTrigger value="all" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Todos <span className="ml-1 text-[10px] text-muted-foreground">({comments.length})</span>
+            </TabsTrigger>
             {availableVisibilities.map((v) => (
-              <TabsTrigger key={v} value={v} className="text-xs gap-1.5">
-                {VIS_META[v].label}
+              <TabsTrigger key={v} value={v} className="text-xs gap-1.5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                {VIS_META[v].label} <span className="text-[10px] text-muted-foreground">({countBy(v)})</span>
               </TabsTrigger>
             ))}
-            <TabsTrigger value="system" className="text-xs">Sistema</TabsTrigger>
+            <TabsTrigger value="system" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Sistema <span className="ml-1 text-[10px] text-muted-foreground">({countBy("system")})</span>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       )}
@@ -130,7 +137,11 @@ export function DemandComments({ clientProductId, role }: Props) {
         {filtered.length === 0 ? (
           <div className="vx-card p-12 text-center border-dashed border-2">
             <MessageSquare className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Nenhum comentário ainda. Inicie a conversa abaixo.</p>
+            <p className="text-sm text-muted-foreground">
+              {filter === "all"
+                ? "Nenhum comentário ainda. Inicie a conversa abaixo."
+                : `Nenhum comentário com visibilidade "${filterLabel}". Para publicar um, escolha "${filterLabel}" no seletor de Visibilidade abaixo.`}
+            </p>
           </div>
         ) : (
           filtered.map((c: any) => {
