@@ -131,9 +131,9 @@ export function ClientDocumentsTab({
       setAdhocSaving(true);
       const now = new Date().toISOString();
       const rows: any[] = [];
-      for (const file of adhocFiles) {
+      for (const [index, file] of adhocFiles.entries()) {
         const safe = sanitizeStorageFileName(file.name);
-        const path = `${clientId}/adhoc/${Date.now()}_${safe}`;
+        const path = `${clientId}/adhoc/${Date.now()}_${index}_${safe}`;
         await uploadStorageFileFast("documents", path, file);
         rows.push({
           client_id: clientId,
@@ -221,8 +221,8 @@ export function ClientDocumentsTab({
 
       if (extraFiles.length > 0) {
         const extraRows: any[] = [];
-        for (const extra of extraFiles) {
-          const extraPath = `${folder}/${req.id}/${Date.now()}-${sanitizeStorageFileName(extra.name)}`;
+        for (const [index, extra] of extraFiles.entries()) {
+          const extraPath = `${folder}/${req.id}/${Date.now()}-${index + 1}-${sanitizeStorageFileName(extra.name)}`;
           await uploadStorageFileFast("documents", extraPath, extra);
           extraRows.push({
             client_id: clientId,
