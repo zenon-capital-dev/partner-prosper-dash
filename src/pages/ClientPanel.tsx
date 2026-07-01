@@ -265,8 +265,8 @@ export default function ClientPanel() {
       }
       if (extraFiles.length > 0) {
         const rows: any[] = [];
-        for (const extra of extraFiles) {
-          const extraPath = `${clientId}/${doc.id}/${Date.now()}-${sanitizeStorageFileName(extra.name)}`;
+        for (const [index, extra] of extraFiles.entries()) {
+          const extraPath = `${clientId}/${doc.id}/${Date.now()}-${index + 1}-${sanitizeStorageFileName(extra.name)}`;
           await uploadStorageFileFast("documents", extraPath, extra);
           rows.push({
             client_id: clientId,
