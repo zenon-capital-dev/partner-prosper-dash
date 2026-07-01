@@ -966,8 +966,8 @@ export default function Sales() {
                   {visibleCols.date && <SortableTh label="Data" k="sale_date" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} />}
                   {visibleCols.amount && <SortableTh label="Valor" k="amount" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
                   {visibleCols.commission && <SortableTh label="Comissão" k="commission" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
-                  {visibleCols.liquido && <Th align="right">Líquido</Th>}
-                  {visibleCols.recebido && <Th align="right">Recebido / Restante</Th>}
+                  {visibleCols.liquido && <SortableTh label="Líquido" k="liquido" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
+                  {visibleCols.recebido && <SortableTh label="Recebido / Restante" k="recebido" sortKey={sortKey} sortDir={sortDir} onClick={toggleSort} align="right" />}
                 </tr>
               </thead>
 
