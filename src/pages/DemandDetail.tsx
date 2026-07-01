@@ -165,7 +165,7 @@ export default function DemandDetail() {
       const { data } = await supabase
         .from("activity_logs")
         .select("id, action, new_data, created_at, user_id")
-        .eq("entity_type", "client_product")
+        .in("entity_type", ["client_product", "client_products"])
         .eq("entity_id", id!)
         .order("created_at", { ascending: false })
         .limit(100);

@@ -147,9 +147,11 @@ export default function DashboardAdmin() {
         supabase.from("commissions").select("id, sale_id, partner_id, collaborator_id, referrer_id, amount, percent, status, workflow_status, paid_at, created_at").order("created_at", { ascending: false }).limit(300),
       ]);
       const splitsData = (splits.data ?? []).map((s: any) => ({
-        id: s.id, sale_id: s.sale_id, partner_id: s.beneficiary_type === "parceiro" ? s.beneficiary_id : null,
-        collaborator_id: s.beneficiary_type === "colaborador" ? s.beneficiary_id : null,
-        referrer_id: s.beneficiary_type === "indicador" ? s.beneficiary_id : null,
+        id: s.id, sale_id: s.sale_id,
+        partner_id: s.beneficiary_type === "partner" ? s.beneficiary_id : null,
+        collaborator_id: s.beneficiary_type === "collaborator" ? s.beneficiary_id : null,
+        referrer_id: s.beneficiary_type === "referrer" ? s.beneficiary_id : null,
+        provider_id: s.beneficiary_type === "service_provider" ? s.beneficiary_id : null,
         amount: s.amount, percent: s.percent, status: s.status, workflow_status: s.status, paid_at: s.paid_at, created_at: s.created_at,
       }));
       return [...splitsData, ...(comms.data ?? [])];

@@ -428,7 +428,7 @@ export default function Documents() {
     setHistoryLoading(true);
     const [{ data: versions }, { data: audit }] = await Promise.all([
       supabase.from("document_versions").select("*").eq("document_id", doc.id).order("version_number", { ascending: false }),
-      supabase.from("activity_logs").select("id, action, new_data, old_data, created_at, user_id").eq("entity_type", "documents").eq("entity_id", doc.id).order("created_at", { ascending: false }).limit(50),
+      supabase.from("activity_logs").select("id, action, new_data, old_data, created_at, user_id").in("entity_type", ["documents", "document"]).eq("entity_id", doc.id).order("created_at", { ascending: false }).limit(50),
     ]);
     setHistoryVersions(versions ?? []);
     setHistoryAudit(audit ?? []);
