@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useSystemSettings, buildMailtoLink, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
 import { PaymentReceiptDialog } from "@/components/client/PaymentReceiptDialog";
+import { ClientSupportTab } from "@/components/client/ClientSupportTab";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
