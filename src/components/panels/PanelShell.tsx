@@ -107,6 +107,14 @@ export function PanelShell({ role, nav, activeKey, userName, userSubtitle, child
                 <span className="text-[13px] font-semibold text-slate-800 hidden sm:inline">{theme.label}</span>
               </Link>
               <div className="flex-1" />
+              <Link
+                to="/minhas-solicitacoes"
+                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-[12.5px] font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+                aria-label="Caixa de solicitações"
+              >
+                <MessageSquare className="size-4" />
+                Solicitações
+              </Link>
               <button
                 className="relative h-9 w-9 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition"
                 aria-label="Notificações"
