@@ -396,16 +396,31 @@ export default function FinanceCenter() {
         description="Receitas, contas a receber, comissões, inadimplência e relatórios em um só lugar."
         icon={<Banknote className="h-5 w-5" />}
         actions={
-          canManage && (
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Plus className="h-4 w-4 mr-2" /> Lançar pendência
-              </Button>
-              <Button onClick={processAlerts} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" /> Atualizar alertas
-              </Button>
-            </div>
-          )
+          <div className="flex items-center gap-2 flex-wrap">
+            <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
+              <SelectTrigger className="h-9 w-[170px] bg-white border-slate-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">Últimos 7 dias</SelectItem>
+                <SelectItem value="month">Mês atual</SelectItem>
+                <SelectItem value="3m">Últimos 3 meses</SelectItem>
+                <SelectItem value="6m">Últimos 6 meses</SelectItem>
+                <SelectItem value="year">Últimos 12 meses</SelectItem>
+                <SelectItem value="all">Todo período</SelectItem>
+              </SelectContent>
+            </Select>
+            {canManage && (
+              <>
+                <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="h-4 w-4 mr-2" /> Lançar pendência
+                </Button>
+                <Button onClick={processAlerts} variant="outline">
+                  <RefreshCw className="h-4 w-4 mr-2" /> Atualizar alertas
+                </Button>
+              </>
+            )}
+          </div>
         }
         kpis={[
           {
