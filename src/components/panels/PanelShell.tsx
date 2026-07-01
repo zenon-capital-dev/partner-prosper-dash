@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, LogOut } from "lucide-react";
+import { Menu, Bell, LogOut, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
