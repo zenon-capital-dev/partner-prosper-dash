@@ -93,6 +93,31 @@ export default function ProviderPanel() {
 
   const providerId = provider?.id;
 
+  // ----- Profile edit -----
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: "", specialty: "", phone: "", document_number: "" });
+  useEffect(() => {
+    if (provider) setProfileForm({
+      name: provider.name || "",
+      specialty: (provider as any).specialty || "",
+      phone: (provider as any).phone || "",
+      document_number: (provider as any).document_number || "",
+    });
+  }, [provider]);
+  const saveProfile = useMutation({
+    mutationFn: async () => {
+      if (!providerId) throw new Error("Prestador não encontrado");
+      const { error } = await supabase.from("service_providers").update(profileForm as any).eq("id", providerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Dados atualizados");
+      qc.invalidateQueries({ queryKey: ["provider-self", user?.id] });
+      setEditingProfile(false);
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
+  });
+
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["provider-cp", providerId],
     enabled: !!providerId,
