@@ -26,11 +26,12 @@ interface Props {
   document?: any;
   defaultProductId?: string | null;
   clientProductId?: string | null;
+  folderId?: string | null;
 }
 
 type RecipientType = "client" | "collaborator" | "provider" | "partner";
 
-export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId }: Props) {
+export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId, folderId }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [recipientType, setRecipientType] = useState<RecipientType>("client");
