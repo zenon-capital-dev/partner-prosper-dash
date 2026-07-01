@@ -90,12 +90,11 @@ export function DemandNotes({
 
   return (
     <div className={compact ? "" : "p-5"}>
-      <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-2 -ml-1 px-1 py-0.5 rounded hover:bg-slate-100 transition"
-        >
+      <div
+        className="flex items-center justify-between mb-3 cursor-pointer select-none rounded hover:bg-slate-50 -mx-1 px-1 py-1 transition"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+      >
+        <div className="flex items-center gap-2">
           {open ? <ChevronDown className="size-3.5 text-slate-500" /> : <ChevronRight className="size-3.5 text-slate-500" />}
           <StickyNote className="size-3.5 text-amber-600" />
           <h5 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
@@ -106,17 +105,19 @@ export function DemandNotes({
               {notes.length}
             </Badge>
           )}
-        </button>
+        </div>
         {open && !adding && (
           <Button
+            type="button"
             variant="ghost" size="sm"
             className="h-7 px-2 text-[11px] text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
-            onClick={() => setAdding(true)}
+            onClick={(e) => { e.stopPropagation(); setAdding(true); }}
           >
             <Plus className="size-3.5 mr-1" /> Nova nota
           </Button>
         )}
       </div>
+
 
       {open && (<>
       {error && (
