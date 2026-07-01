@@ -39,6 +39,31 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   cancelado:         { label: "Cancelada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
+function KpiTile({ icon: Icon, label, value, hint, accent, progress }: {
+  icon: any; label: string; value: React.ReactNode; hint?: string; accent?: string; progress?: number;
+}) {
+  return (
+    <div className="group relative rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:border-slate-300/70 transition-all overflow-hidden">
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <div className="text-[10.5px] uppercase tracking-[0.12em] font-medium text-slate-500">{label}</div>
+          <div className="mt-1.5 text-2xl font-semibold text-slate-900 tracking-tight tabular-nums">{value}</div>
+          {hint && <div className="text-[11px] text-slate-500 mt-0.5 truncate">{hint}</div>}
+        </div>
+        <div className={cn("size-9 rounded-lg border flex items-center justify-center shrink-0", accent || "text-slate-500 bg-slate-50 border-slate-200")}>
+          <Icon className="size-4" />
+        </div>
+      </div>
+      {typeof progress === "number" && (
+        <div className="mt-3 h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function ProviderPanel() {
   const { user, signOut } = useAuth() as any;
   const navigate = useNavigate();
