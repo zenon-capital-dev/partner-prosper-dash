@@ -380,7 +380,7 @@ export default function Providers() {
         </div>
       )}
 
-      <div className="px-5 lg:px-8 pb-10">
+      <div id="providers-list" className="px-5 lg:px-8 pb-10 scroll-mt-24">
         {isLoading ? (
           view === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
