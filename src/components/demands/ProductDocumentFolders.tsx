@@ -47,6 +47,9 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [adminFilter, setAdminFilter] = useState<"all" | "client" | "internal">("all");
+  const [nameQuery, setNameQuery] = useState("");
+  const [owners, setOwners] = useState<Map<string, { full_name?: string | null; email?: string | null }>>(new Map());
   const scopeKey = `product-doc-folder-scope:${clientProductId}:${role}`;
   const [newScope, setNewScope] = useState<Scope>(() => {
     if (typeof window !== "undefined") {
