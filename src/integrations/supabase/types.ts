@@ -2940,6 +2940,11 @@ export type Database = {
           client_id: string | null
           client_product_id: string | null
           collaborator_id: string | null
+          completed_file_path: string | null
+          completed_file_size: number | null
+          completed_mime_type: string | null
+          completed_uploaded_at: string | null
+          completed_uploaded_by: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -2959,8 +2964,14 @@ export type Database = {
           rejection_reason: string | null
           requested_at: string | null
           requested_by: string | null
+          requires_signature: boolean
           reviewed_at: string | null
           sale_id: string | null
+          signed_file_path: string | null
+          signed_file_size: number | null
+          signed_mime_type: string | null
+          signed_uploaded_at: string | null
+          signed_uploaded_by: string | null
           source: string
           status: Database["public"]["Enums"]["document_status_new"]
           updated_at: string
@@ -2972,6 +2983,11 @@ export type Database = {
           client_id?: string | null
           client_product_id?: string | null
           collaborator_id?: string | null
+          completed_file_path?: string | null
+          completed_file_size?: number | null
+          completed_mime_type?: string | null
+          completed_uploaded_at?: string | null
+          completed_uploaded_by?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -2991,8 +3007,14 @@ export type Database = {
           rejection_reason?: string | null
           requested_at?: string | null
           requested_by?: string | null
+          requires_signature?: boolean
           reviewed_at?: string | null
           sale_id?: string | null
+          signed_file_path?: string | null
+          signed_file_size?: number | null
+          signed_mime_type?: string | null
+          signed_uploaded_at?: string | null
+          signed_uploaded_by?: string | null
           source?: string
           status?: Database["public"]["Enums"]["document_status_new"]
           updated_at?: string
@@ -3004,6 +3026,11 @@ export type Database = {
           client_id?: string | null
           client_product_id?: string | null
           collaborator_id?: string | null
+          completed_file_path?: string | null
+          completed_file_size?: number | null
+          completed_mime_type?: string | null
+          completed_uploaded_at?: string | null
+          completed_uploaded_by?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -3023,8 +3050,14 @@ export type Database = {
           rejection_reason?: string | null
           requested_at?: string | null
           requested_by?: string | null
+          requires_signature?: boolean
           reviewed_at?: string | null
           sale_id?: string | null
+          signed_file_path?: string | null
+          signed_file_size?: number | null
+          signed_mime_type?: string | null
+          signed_uploaded_at?: string | null
+          signed_uploaded_by?: string | null
           source?: string
           status?: Database["public"]["Enums"]["document_status_new"]
           updated_at?: string
