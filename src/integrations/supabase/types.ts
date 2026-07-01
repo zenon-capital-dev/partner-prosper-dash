@@ -2133,6 +2133,51 @@ export type Database = {
           },
         ]
       }
+      contract_folders: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_folders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_folders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "view_client_financial_summary"
+            referencedColumns: ["client_id"]
+          },
+        ]
+      }
       contract_history: {
         Row: {
           action_by: string | null
@@ -2218,6 +2263,7 @@ export type Database = {
           expires_at: string | null
           file_path: string | null
           finished_at: string | null
+          folder_id: string | null
           id: string
           internal_notes: string | null
           name: string
@@ -2227,6 +2273,8 @@ export type Database = {
           sale_id: string | null
           sent_at: string | null
           signed_at: string | null
+          signed_file_path: string | null
+          signed_uploaded_at: string | null
           status: Database["public"]["Enums"]["contract_status"]
           updated_at: string | null
         }
@@ -2240,6 +2288,7 @@ export type Database = {
           expires_at?: string | null
           file_path?: string | null
           finished_at?: string | null
+          folder_id?: string | null
           id?: string
           internal_notes?: string | null
           name: string
@@ -2249,6 +2298,8 @@ export type Database = {
           sale_id?: string | null
           sent_at?: string | null
           signed_at?: string | null
+          signed_file_path?: string | null
+          signed_uploaded_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
           updated_at?: string | null
         }
@@ -2262,6 +2313,7 @@ export type Database = {
           expires_at?: string | null
           file_path?: string | null
           finished_at?: string | null
+          folder_id?: string | null
           id?: string
           internal_notes?: string | null
           name?: string
@@ -2271,6 +2323,8 @@ export type Database = {
           sale_id?: string | null
           sent_at?: string | null
           signed_at?: string | null
+          signed_file_path?: string | null
+          signed_uploaded_at?: string | null
           status?: Database["public"]["Enums"]["contract_status"]
           updated_at?: string | null
         }
@@ -2294,6 +2348,13 @@ export type Database = {
             columns: ["client_product_id"]
             isOneToOne: false
             referencedRelation: "client_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "contract_folders"
             referencedColumns: ["id"]
           },
           {
