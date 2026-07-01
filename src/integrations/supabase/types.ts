@@ -1652,6 +1652,7 @@ export type Database = {
           rule_value: number | null
           sale_id: string | null
           sale_value: number | null
+          service_provider_id: string | null
           status: string
           updated_at: string
           workflow_status:
@@ -1686,6 +1687,7 @@ export type Database = {
           rule_value?: number | null
           sale_id?: string | null
           sale_value?: number | null
+          service_provider_id?: string | null
           status?: string
           updated_at?: string
           workflow_status?:
@@ -1720,6 +1722,7 @@ export type Database = {
           rule_value?: number | null
           sale_id?: string | null
           sale_value?: number | null
+          service_provider_id?: string | null
           status?: string
           updated_at?: string
           workflow_status?:
@@ -1795,6 +1798,13 @@ export type Database = {
             columns: ["sale_id"]
             isOneToOne: false
             referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
