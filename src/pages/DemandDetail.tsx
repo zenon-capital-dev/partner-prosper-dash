@@ -702,64 +702,96 @@ export default function DemandDetail() {
                   </div>
                </TabsContent>
                
-                 <TabsContent value="reportes" className="animate-fade-up">
-                    <div className="vx-card p-6 bg-card border-slate-100 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-base font-bold text-foreground">Reportes de status</h3>
-                          <p className="text-xs text-muted-foreground">Histórico de andamentos, pendências e próximos passos.</p>
+                  <TabsContent value="reportes" className="animate-fade-up">
+                    <div className="vx-card bg-card border-slate-100 flex flex-col overflow-hidden" style={{ minHeight: 480 }}>
+                      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-transparent">
+                        <div className="flex items-center gap-3">
+                          <div className="size-9 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                            <FileCheck className="size-4" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-foreground leading-tight">Reportes de status</h3>
+                            <p className="text-[11px] text-muted-foreground">Histórico em formato de conversa — andamentos, pendências e próximos passos.</p>
+                          </div>
                         </div>
                         {canManage && (
-                          <Button size="sm" className="gap-2" onClick={() => setReportOpen(true)}>
-                            <Plus className="size-4" /> Novo reporte
+                          <Button size="sm" className="gap-2 h-8" onClick={() => setReportOpen(true)}>
+                            <Plus className="size-3.5" /> Novo reporte
                           </Button>
                         )}
                       </div>
-                      {reports.length === 0 ? (
-                        <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
-                     ) : reports.map((r: any) => {
-                       const hasBody = r.notes || r.pending || r.next_steps;
-                       return (
-                        <div key={r.id} className="p-4 rounded-xl bg-white border border-slate-200 space-y-3 shadow-sm">
-                           <div className="flex items-center justify-between flex-wrap gap-2">
-                             <div className="flex items-center gap-2">
-                               <Badge variant="outline" className="capitalize bg-indigo-50 text-indigo-700 border-indigo-200">
-                                 Status: {String(r.status || "").replace(/_/g, " ")}
-                               </Badge>
-                               {r._author?.full_name && (
-                                 <span className="text-[11px] text-muted-foreground">por <span className="font-semibold text-foreground">{r._author.full_name}</span></span>
-                               )}
-                             </div>
-                             <span className="text-xs font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
-                           </div>
-                           {r.notes ? (
-                             <div>
-                               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Andamento</p>
-                               <p className="text-sm whitespace-pre-wrap">{r.notes}</p>
-                             </div>
-                           ) : null}
-                           {r.pending ? (
-                             <div>
-                               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Pendências</p>
-                               <p className="text-sm whitespace-pre-wrap">{r.pending}</p>
-                             </div>
-                           ) : null}
-                           {r.next_steps ? (
-                             <div>
-                               <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">Próximos passos</p>
-                               <p className="text-sm whitespace-pre-wrap">{r.next_steps}</p>
-                             </div>
-                           ) : null}
-                           {!hasBody && (
-                             <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-                               Este reporte foi registrado <b>apenas como mudança de status</b>, sem andamento, pendências ou próximos passos. {canManage && "Clique em \"Novo reporte\" acima para registrar detalhes."}
-                             </div>
-                           )}
+
+                      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-5 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.04),transparent_60%)]">
+                        {reports.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center text-center py-16 text-muted-foreground">
+                            <div className="size-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                              <FileCheck className="size-5 text-slate-400" />
+                            </div>
+                            <p className="text-sm font-medium text-foreground">Nenhum reporte ainda</p>
+                            <p className="text-xs mt-1">Registre o primeiro andamento para iniciar o histórico.</p>
+                          </div>
+                        ) : reports.map((r: any) => {
+                          const hasBody = r.notes || r.pending || r.next_steps;
+                          const isMe = r.reported_by && user?.id && r.reported_by === user.id;
+                          const author = r._author?.full_name || "Usuário";
+                          const initials = author.split(" ").map((s: string) => s[0]).slice(0, 2).join("").toUpperCase();
+                          return (
+                            <div key={r.id} className={`flex gap-3 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
+                              <div className={`size-9 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 shadow-sm ${isMe ? "bg-indigo-600 text-white" : "bg-white border border-slate-200 text-slate-700"}`}>
+                                {initials}
+                              </div>
+                              <div className={`max-w-[78%] ${isMe ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                                <div className={`flex items-center gap-2 text-[11px] ${isMe ? "flex-row-reverse" : ""}`}>
+                                  <span className="font-semibold text-foreground">{isMe ? "Você" : author}</span>
+                                  <span className="text-muted-foreground font-mono">{formatDate(r.created_at)}</span>
+                                </div>
+                                <div className={`rounded-2xl px-4 py-3 shadow-sm border ${isMe ? "bg-indigo-600 text-white border-indigo-600 rounded-tr-sm" : "bg-white text-foreground border-slate-200 rounded-tl-sm"}`}>
+                                  <div className="mb-2">
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${isMe ? "bg-white/20 text-white" : "bg-indigo-50 text-indigo-700 border border-indigo-100"}`}>
+                                      {String(r.status || "").replace(/_/g, " ")}
+                                    </span>
+                                  </div>
+                                  {r.notes ? (
+                                    <div className="mb-2 last:mb-0">
+                                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isMe ? "text-white/70" : "text-muted-foreground"}`}>Andamento</p>
+                                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{r.notes}</p>
+                                    </div>
+                                  ) : null}
+                                  {r.pending ? (
+                                    <div className={`mb-2 last:mb-0 rounded-lg px-3 py-2 ${isMe ? "bg-white/10" : "bg-amber-50 border border-amber-100"}`}>
+                                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isMe ? "text-amber-100" : "text-amber-700"}`}>Pendências</p>
+                                      <p className={`text-sm whitespace-pre-wrap leading-relaxed ${isMe ? "text-white" : "text-amber-900"}`}>{r.pending}</p>
+                                    </div>
+                                  ) : null}
+                                  {r.next_steps ? (
+                                    <div className={`mb-0 rounded-lg px-3 py-2 ${isMe ? "bg-white/10" : "bg-slate-50 border border-slate-100"}`}>
+                                      <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isMe ? "text-indigo-100" : "text-indigo-700"}`}>Próximos passos</p>
+                                      <p className={`text-sm whitespace-pre-wrap leading-relaxed ${isMe ? "text-white" : "text-foreground"}`}>{r.next_steps}</p>
+                                    </div>
+                                  ) : null}
+                                  {!hasBody && (
+                                    <p className={`text-xs italic ${isMe ? "text-white/80" : "text-muted-foreground"}`}>
+                                      Apenas mudança de status registrada.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {canManage && reports.length > 0 && (
+                        <div className="border-t border-slate-100 px-6 py-3 bg-slate-50/60 flex items-center justify-between">
+                          <p className="text-[11px] text-muted-foreground">{reports.length} reporte{reports.length > 1 ? "s" : ""} no histórico</p>
+                          <Button size="sm" variant="outline" className="h-7 gap-2 text-xs" onClick={() => setReportOpen(true)}>
+                            <Plus className="size-3" /> Adicionar reporte
+                          </Button>
                         </div>
-                       );
-                      })}
-                   </div>
-                </TabsContent>
+                      )}
+                    </div>
+                  </TabsContent>
+
 
                <TabsContent value="tarefas" className="animate-fade-up">
                   <div className="vx-card p-8 bg-card">
