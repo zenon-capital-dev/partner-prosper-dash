@@ -232,13 +232,57 @@ export function ClientDocumentsTab({
     }
   }
 
+  const adhocDialog = (
+    <Dialog open={adhocOpen} onOpenChange={setAdhocOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Enviar novo documento</DialogTitle>
+          <DialogDescription>Envie um arquivo avulso para a equipe analisar.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>Nome do documento</Label>
+            <Input value={adhocName} onChange={(e) => setAdhocName(e.target.value)} placeholder="Ex.: Comprovante de residência" />
+          </div>
+          {products.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Vincular a um serviço (opcional)</Label>
+              <Select value={adhocProductId} onValueChange={setAdhocProductId}>
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  {products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label>Arquivo</Label>
+            <Input type="file" onChange={(e) => setAdhocFile(e.target.files?.[0] ?? null)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setAdhocOpen(false)}>Cancelar</Button>
+          <Button onClick={submitAdhoc} disabled={adhocSaving}>
+            {adhocSaving ? <><Loader2 className="size-4 mr-1.5 animate-spin" /> Enviando…</> : <><Upload className="size-4 mr-1.5" /> Enviar</>}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (requests.length === 0) {
     if (hideEmptyState) return null;
     return (
-      <div className="vx-card bg-white rounded-2xl px-6 py-7 text-center border-slate-100">
-        <CheckCircle2 className="size-9 text-emerald-500/30 mx-auto mb-3" />
-        <h3 className="font-editorial text-xl font-bold text-slate-900">Você está em dia!</h3>
-        <p className="text-muted-foreground mt-1 text-sm">Nenhum documento pendente de envio no momento.</p>
+      <div className="vx-card bg-white rounded-2xl px-6 py-7 text-center border-slate-100 space-y-4">
+        <CheckCircle2 className="size-9 text-emerald-500/30 mx-auto" />
+        <div>
+          <h3 className="font-editorial text-xl font-bold text-slate-900">Você está em dia!</h3>
+          <p className="text-muted-foreground mt-1 text-sm">Nenhum documento pendente de envio no momento.</p>
+        </div>
+        <Button size="sm" onClick={() => setAdhocOpen(true)} className="gap-2">
+          <Plus className="size-4" /> Enviar novo documento
+        </Button>
+        {adhocDialog}
       </div>
     );
   }
@@ -251,11 +295,19 @@ export function ClientDocumentsTab({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">Envie arquivos solicitados ou adicione um documento avulso.</p>
+        <Button size="sm" onClick={() => setAdhocOpen(true)} className="gap-2">
+          <Plus className="size-4" /> Enviar novo documento
+        </Button>
+      </div>
+      {adhocDialog}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryCard tone="warning" label="Pendentes" value={totals.pending} icon={Clock} />
         <SummaryCard tone="info" label="Em análise" value={totals.review} icon={Loader2} />
         <SummaryCard tone="success" label="Concluídos" value={totals.done} icon={CheckCircle2} />
       </div>
+
 
       {grouped.map(([key, { product, items }]) => (
         <div key={key} className="vx-card bg-white rounded-2xl overflow-hidden border-slate-100">
