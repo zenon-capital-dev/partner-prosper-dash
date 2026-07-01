@@ -1268,9 +1268,140 @@ export default function Sales() {
         sale={receivingSale}
         onSaved={invalidateRelated}
       />
+
+      <KpiDetailDialog
+        kind={kpiDetail}
+        onClose={() => setKpiDetail(null)}
+        filtered={filtered}
+        allReceipts={allReceipts}
+        splitsBySale={splitsBySale}
+        receiptsBySale={receiptsBySale}
+      />
     </div>
   );
 }
+
+function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, receiptsBySale }: {
+  kind: null | "bruto" | "recebido_mes" | "a_receber" | "liquido" | "custos" | "comissoes" | "count";
+  onClose: () => void;
+  filtered: any[]; allReceipts: any[];
+  splitsBySale: Map<string, any[]>; receiptsBySale: Map<string, any>;
+}) {
+  const config = useMemo(() => {
+    if (!kind) return null;
+    const rowFor = (s: any, contribution: number, extra?: string) => ({ s, contribution, extra });
+    switch (kind) {
+      case "bruto": {
+        const rows = filtered.filter(s => s.status !== "cancelada").map(s => rowFor(s, Number(s.amount || 0)));
+        return { title: "Volume Bruto — detalhamento", subtitle: "Soma do valor de todas as vendas ativas do período.", rows, isMoney: true };
+      }
+      case "recebido_mes": {
+        const now = new Date();
+        const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const bySale = new Map<string, number>();
+        allReceipts.forEach((r: any) => {
+          if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
+          const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
+          const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+          if (val <= 0 || !r.sale_id) return;
+          bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);
+        });
+        const rows = Array.from(bySale.entries()).map(([id, v]) => {
+          const s = filtered.find((x) => x.id === id) || { id, clients: null, products: null, partners: null, amount: 0, sale_date: null };
+          return rowFor(s, v);
+        });
+        return { title: "Recebido no mês — detalhamento", subtitle: "Pagamentos confirmados dentro do mês atual, por venda.", rows, isMoney: true };
+      }
+      case "a_receber": {
+        const rows = filtered.filter(s => s.status !== "cancelada").map(s => {
+          const rec = receiptsBySale.get(s.id)?.received ?? 0;
+          const saldo = Math.max(Number(s.amount || 0) - rec, 0);
+          return rowFor(s, saldo, saldo > 0 ? `Já recebido ${formatBRL(rec)}` : "Quitada");
+        }).filter(r => r.contribution > 0);
+        return { title: "A Receber — detalhamento", subtitle: "Saldo em aberto por venda (valor − já recebido).", rows, isMoney: true };
+      }
+      case "liquido": {
+        const rows = filtered.map(s => {
+          const v = Number(s.amount || 0);
+          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+          const liq = v - Number(s.zenon_cost || 0) - Number(s.provider_cost || 0) - comm;
+          return rowFor(s, liq, `Comissão ${formatBRL(comm)} · Custos ${formatBRL(Number(s.zenon_cost||0)+Number(s.provider_cost||0))}`);
+        });
+        return { title: "Líquido — detalhamento", subtitle: "Valor − custos (Zenon + prestador) − comissões, por venda.", rows, isMoney: true };
+      }
+      case "custos": {
+        const rows = filtered.map(s => rowFor(s, Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), `Zenon ${formatBRL(Number(s.zenon_cost||0))} · Prestador ${formatBRL(Number(s.provider_cost||0))}`)).filter(r => r.contribution > 0);
+        return { title: "Custos — detalhamento", subtitle: "Custos operacionais Zenon + Prestador.", rows, isMoney: true };
+      }
+      case "comissoes": {
+        const rows = filtered.map(s => {
+          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+          return rowFor(s, comm);
+        }).filter(r => r.contribution > 0);
+        return { title: "Comissões — detalhamento", subtitle: "Soma das comissões (splits) por venda.", rows, isMoney: true };
+      }
+      case "count": {
+        const rows = filtered.map(s => rowFor(s, 1));
+        return { title: "Total de registros — detalhamento", subtitle: "Todas as vendas do período filtrado.", rows, isMoney: false };
+      }
+    }
+  }, [kind, filtered, allReceipts, splitsBySale, receiptsBySale]);
+
+  const sorted = useMemo(() => (config?.rows ?? []).slice().sort((a, b) => b.contribution - a.contribution), [config]);
+  const total = useMemo(() => sorted.reduce((s, r) => s + r.contribution, 0), [sorted]);
+
+  return (
+    <Dialog open={!!kind} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{config?.title}</DialogTitle>
+          <p className="text-[12px] text-slate-500">{config?.subtitle}</p>
+        </DialogHeader>
+        <div className="flex items-center justify-between text-[12px] px-1">
+          <span className="text-slate-500">{sorted.length} {sorted.length === 1 ? "venda" : "vendas"}</span>
+          <span className="font-mono font-bold text-slate-900">Total: {config?.isMoney ? formatBRL(total) : total}</span>
+        </div>
+        <div className="overflow-y-auto border border-slate-200/70 rounded-md">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-slate-50 text-[10.5px] uppercase tracking-wider text-slate-500 sticky top-0">
+              <tr>
+                <th className="text-left px-3 py-2 font-bold">Data</th>
+                <th className="text-left px-3 py-2 font-bold">Cliente</th>
+                <th className="text-left px-3 py-2 font-bold">Produto</th>
+                <th className="text-left px-3 py-2 font-bold">Parceiro</th>
+                <th className="text-right px-3 py-2 font-bold">Contribuição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.length === 0 && (
+                <tr><td colSpan={5} className="text-center text-slate-400 py-6">Nenhum registro contribui para este número.</td></tr>
+              )}
+              {sorted.map((r, i) => (
+                <tr key={r.s.id || i} className="border-t border-slate-100 hover:bg-slate-50">
+                  <td className="px-3 py-2 whitespace-nowrap text-slate-600">{r.s.sale_date ? formatBRDate(r.s.sale_date) : "—"}</td>
+                  <td className="px-3 py-2">
+                    {r.s.client_id ? (
+                      <Link to={`/admin/clientes/${r.s.client_id}`} className="text-indigo-700 hover:underline font-medium">
+                        {r.s.clients?.full_name || r.s.clients?.company || "—"}
+                      </Link>
+                    ) : "—"}
+                  </td>
+                  <td className="px-3 py-2 text-slate-700">{r.s.products?.name || "—"}</td>
+                  <td className="px-3 py-2 text-slate-700">{r.s.partners?.full_name || "—"}</td>
+                  <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                    {config?.isMoney ? formatBRL(r.contribution) : r.contribution}
+                    {r.extra && <div className="text-[10.5px] text-slate-400 font-normal font-sans">{r.extra}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
