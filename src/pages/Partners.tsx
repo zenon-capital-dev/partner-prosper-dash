@@ -375,16 +375,16 @@ export default function Partners() {
           </div>
         }
         kpis={[
-          { label: "Total Rede", value: String(kpis.total), tone: "primary", icon: <Users2 className="size-4" /> },
-          { label: "Ativos", value: String(kpis.active), tone: "success", icon: <Power className="size-4" /> },
-          { label: "Indicações", value: String(kpis.totalClients), tone: "info", icon: <TrendingUp className="size-4" /> },
-          { label: "Total Comissões", value: formatBRL(kpis.totalComms), tone: "primary", icon: <Wallet className="size-4" /> },
-          { label: "A Pagar", value: formatBRL(kpis.totalPending), tone: "warning", icon: <Clock3 className="size-4" /> },
-          { label: "Médio / Ativo", value: formatBRL(avgPerActive), tone: "info", icon: <Award className="size-4" /> },
+          { label: "Total Rede", value: String(kpis.total), tone: "primary", icon: <Users2 className="size-4" />, onClick: () => { setStatusFilter("todos"); document.getElementById("partners-list")?.scrollIntoView({ behavior: "smooth", block: "start" }); } } as any,
+          { label: "Ativos", value: String(kpis.active), tone: "success", icon: <Power className="size-4" />, onClick: () => setStatusFilter(statusFilter === "ativos" ? "todos" : "ativos") } as any,
+          { label: "Indicações", value: String(kpis.totalClients), tone: "info", icon: <TrendingUp className="size-4" />, onClick: () => { setSortBy("clients" as any); document.getElementById("partners-list")?.scrollIntoView({ behavior: "smooth", block: "start" }); } } as any,
+          { label: "Total Comissões", value: formatBRL(kpis.totalComms), tone: "primary", icon: <Wallet className="size-4" />, onClick: () => { setSortBy("commissions"); document.getElementById("partners-list")?.scrollIntoView({ behavior: "smooth", block: "start" }); } } as any,
+          { label: "A Pagar", value: formatBRL(kpis.totalPending), tone: "warning", icon: <Clock3 className="size-4" />, onClick: () => { setSortBy("pending" as any); document.getElementById("partners-list")?.scrollIntoView({ behavior: "smooth", block: "start" }); } } as any,
+          { label: "Médio / Ativo", value: formatBRL(avgPerActive), tone: "info", icon: <Award className="size-4" />, onClick: () => document.getElementById("partners-list")?.scrollIntoView({ behavior: "smooth", block: "start" }) } as any,
         ]}
       />
 
-      <div className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 space-y-4 pb-10">
+      <div id="partners-list" className="max-w-[1600px] mx-auto px-5 lg:px-8 mt-4 space-y-4 pb-10 scroll-mt-24">
         {/* Toolbar */}
         <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-3 flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[220px]">

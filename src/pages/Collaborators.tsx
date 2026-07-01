@@ -329,10 +329,10 @@ export default function Collaborators() {
           )
         }
         kpis={[
-          { label: "Total", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" /> },
+          { label: "Total", value: kpis.total, tone: "primary", icon: <Users2 className="size-4" />, onClick: () => { setStatusFilter("todos"); setAccessFilter("todos"); document.getElementById("collaborators-list")?.scrollIntoView({ behavior: "smooth", block: "start" }); } } as any,
           { label: "Ativos", value: kpis.active, tone: "success", icon: <UserCircle className="size-4" />, onClick: () => setStatusFilter(statusFilter === "ativos" ? "todos" : "ativos") },
           { label: "Com acesso", value: kpis.withAccess, tone: "info", icon: <KeyRound className="size-4" />, onClick: () => setAccessFilter(accessFilter === "com" ? "todos" : "com") },
-          { label: "Comissões (total)", value: formatBRL(kpis.commTotal), tone: "violet", icon: <ShieldCheck className="size-4" />, hint: `Pago ${formatBRL(kpis.commPago)} · Pendente ${formatBRL(kpis.commPendente)}` } as any,
+          { label: "Comissões (total)", value: formatBRL(kpis.commTotal), tone: "violet", icon: <ShieldCheck className="size-4" />, hint: `Pago ${formatBRL(kpis.commPago)} · Pendente ${formatBRL(kpis.commPendente)}`, onClick: () => document.getElementById("collaborators-list")?.scrollIntoView({ behavior: "smooth", block: "start" }) } as any,
         ]}
       />
 
@@ -393,7 +393,7 @@ export default function Collaborators() {
         </div>
       )}
 
-      <div className="px-5 lg:px-8 pb-10">
+      <div id="collaborators-list" className="px-5 lg:px-8 pb-10 scroll-mt-24">
         {isLoading ? (
           view === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">

@@ -433,29 +433,29 @@ export default function FinanceCenter() {
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-            <div className="rounded-md border border-slate-200/70 bg-slate-50 p-3">
+            <button type="button" onClick={() => setStatusAndTab("recebidos", "todos")} className="text-left rounded-md border border-slate-200/70 bg-slate-50 p-3 hover:border-slate-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Bruto recebido</p>
               <p className="font-mono text-base font-semibold text-slate-900 mt-1 tabular-nums">{formatBRL(kpis.totalReceived)}</p>
-            </div>
-            <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
+            </button>
+            <button type="button" onClick={() => setTab("relatorios")} className="text-left rounded-md border border-amber-200/70 bg-amber-50/60 p-3 hover:border-amber-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Custos venda</p>
               <p className="font-mono text-base font-semibold text-amber-800 mt-1 tabular-nums">{formatBRL(kpis.salesCostsTotal)}</p>
               <p className="text-[10px] text-amber-600/80 mt-0.5">Zenon {formatBRL(kpis.zenonCostTotal)} · Prestador {formatBRL(kpis.providerCostTotal)}</p>
-            </div>
-            <div className="rounded-md border border-amber-200/70 bg-amber-50/60 p-3">
+            </button>
+            <button type="button" onClick={() => setStatusAndTab("comissoes", "todos")} className="text-left rounded-md border border-amber-200/70 bg-amber-50/60 p-3 hover:border-amber-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-amber-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-amber-700">− Indicadores</p>
               <p className="font-mono text-base font-semibold text-amber-800 mt-1 tabular-nums">{formatBRL(kpis.indicatorsPaid)}</p>
-            </div>
-            <div className="rounded-md border border-indigo-200/70 bg-indigo-50/60 p-3">
+            </button>
+            <button type="button" onClick={() => setStatusAndTab("comissoes", "todos")} className="text-left rounded-md border border-indigo-200/70 bg-indigo-50/60 p-3 hover:border-indigo-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-indigo-700">− Comissões</p>
               <p className="font-mono text-base font-semibold text-indigo-800 mt-1 tabular-nums">{formatBRL(kpis.commissionsOthersPaid)}</p>
               <p className="text-[10px] text-indigo-600/80 mt-0.5">Parceiros, colaboradores e prestadores</p>
-            </div>
-            <div className="rounded-md border border-rose-200/70 bg-rose-50/60 p-3">
+            </button>
+            <button type="button" onClick={() => setTab("relatorios")} className="text-left rounded-md border border-rose-200/70 bg-rose-50/60 p-3 hover:border-rose-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-rose-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-700">− Variáveis</p>
               <p className="font-mono text-base font-semibold text-rose-800 mt-1 tabular-nums">{formatBRL(kpis.variableExpenses)}</p>
               <p className="text-[10px] text-rose-600/80 mt-0.5">Despesas operacionais</p>
-            </div>
+            </button>
           </div>
         </div>
 
