@@ -122,6 +122,8 @@ export default function ClientDetail() {
     setInteractionOpen(false);
     qc.invalidateQueries({ queryKey: ["client", id] });
     qc.invalidateQueries({ queryKey: ["client-history", id] });
+    qc.invalidateQueries({ queryKey: ["client-interactions", id] });
+    qc.invalidateQueries({ queryKey: ["client-timeline", id] });
   };
 
   const { data: client, isLoading: clientLoading } = useQuery({

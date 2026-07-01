@@ -120,13 +120,18 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
     });
     if (error) { toast.error(error.message); return; }
     setDrafts((s) => ({ ...s, [requestId]: "" }));
-    // bump status to respondida if currently aberta and author is target
+    // Só marca como "respondida" se o autor NÃO for o solicitante (é o alvo respondendo)
     const item = items.find((x: any) => x.id === requestId);
-    if (item?.status === "aberta") {
-      await supabase.from("demand_requests").update({ status: "respondida", responded_by: user?.id, responded_at: new Date().toISOString() } as any).eq("id", requestId);
+    if (item?.status === "aberta" && item?.requested_by !== user?.id) {
+      const { error: upErr } = await supabase
+        .from("demand_requests")
+        .update({ status: "respondida", responded_by: user?.id, responded_at: new Date().toISOString() } as any)
+        .eq("id", requestId);
+      if (upErr) console.warn("Falha ao atualizar status:", upErr.message);
     }
     qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
     qc.invalidateQueries({ queryKey: ["demand-request-messages", requestId] });
+    qc.invalidateQueries({ queryKey: ["requests-inbox"] });
   };
 
   return (

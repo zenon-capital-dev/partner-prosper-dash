@@ -77,12 +77,12 @@ export default function RequestsInbox() {
     queryFn: async () => {
       const { data } = await supabase
         .from("client_products")
-        .select("id, client_id, product_id, clients(name), products(name)")
+        .select("id, client_id, product_id, clients(full_name), products(name)")
         .in("id", productIds as string[]);
       const map: Record<string, { client: string; product: string }> = {};
       (data ?? []).forEach((cp: any) => {
         map[cp.id] = {
-          client: cp.clients?.name ?? "Cliente",
+          client: cp.clients?.full_name ?? "Cliente",
           product: cp.products?.name ?? "Serviço",
         };
       });
