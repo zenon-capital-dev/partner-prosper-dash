@@ -192,17 +192,83 @@ export default function ProviderPanel() {
     return { pago, pendente, total: pago + pendente, count: all.length };
   }, [commissions]);
 
+  const { data: pendingRequests = [] } = useQuery({
+    queryKey: ["provider-pending-requests", user?.id, cpIds.join(",")],
+    enabled: !!user?.id && cpIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("demand_requests")
+        .select("id, title, kind, status, created_at, client_product_id, requested_role")
+        .in("client_product_id", cpIds)
+        .eq("target_role", "prestador")
+        .in("status", ["aberta", "respondida"])
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return data ?? [];
+    },
+  });
+
+  const { data: recentNotifications = [] } = useQuery({
+    queryKey: ["provider-notifs", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("notifications")
+        .select("id, title, message, created_at, read_at, kind")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
   const stats = useMemo(() => {
     const all = clientProducts as any[];
     const active = all.filter((c) => !["concluido","concluida","cancelado","cancelada"].includes(c.status)).length;
+    const done = all.filter((c) => ["concluido","concluida"].includes(c.status)).length;
     const delayed = all.filter((c) => {
       if (["concluido", "concluida", "cancelado", "cancelada"].includes(c.status)) return false;
       const due = c.deadline || c.sla_due_date || c.end_date;
       return due && new Date(due) < new Date();
     }).length;
     const earnings = all.filter((c) => c.status !== "cancelado").reduce((s, c) => s + Number(c.value || 0), 0);
-    return { total: all.length, active, delayed, earnings };
+    return { total: all.length, active, delayed, done, earnings };
   }, [clientProducts]);
+
+  const upcoming = useMemo(() => {
+    const now = new Date();
+    const in14 = new Date(now.getTime() + 14 * 86400000);
+    return (clientProducts as any[])
+      .filter((c) => {
+        if (["concluido","concluida","cancelado","cancelada"].includes(c.status)) return false;
+        const due = c.deadline || c.sla_due_date;
+        if (!due) return false;
+        const d = new Date(due);
+        return d >= now && d <= in14;
+      })
+      .sort((a, b) => new Date(a.deadline || a.sla_due_date).getTime() - new Date(b.deadline || b.sla_due_date).getTime())
+      .slice(0, 5);
+  }, [clientProducts]);
+
+  const delayedList = useMemo(() => (clientProducts as any[])
+    .filter((c) => {
+      if (["concluido","concluida","cancelado","cancelada"].includes(c.status)) return false;
+      const due = c.deadline || c.sla_due_date;
+      return due && new Date(due) < new Date();
+    })
+    .sort((a, b) => new Date(a.deadline || a.sla_due_date).getTime() - new Date(b.deadline || b.sla_due_date).getTime())
+    .slice(0, 5), [clientProducts]);
+
+  const reportsThisMonth = useMemo(() => {
+    const now = new Date();
+    return (reports as any[]).filter((r) => {
+      const d = new Date(r.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [reports]);
+
+  const commPct = commKpis.total > 0 ? Math.round((commKpis.pago / commKpis.total) * 100) : 0;
+
 
   const firstName = (provider?.name || user?.user_metadata?.full_name || "Prestador").split(" ")[0];
 
