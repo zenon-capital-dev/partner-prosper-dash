@@ -516,7 +516,12 @@ export default function DemandDetail() {
               </div>
             )}
 
-             <Tabs defaultValue="resumo" className="space-y-6">
+              <Tabs
+                value={["resumo","checklist","docs","reportes","tarefas","entregas","comments","chat","historico"].includes(searchParams.get("tab") || "") ? (searchParams.get("tab") as string) : "resumo"}
+                onValueChange={(v) => { searchParams.set("tab", v); setSearchParams(searchParams, { replace: true }); }}
+                className="space-y-6"
+              >
+
                <TabsList className="bg-transparent border-b border-border rounded-none h-auto p-0 gap-6">
                   <TabsTrigger value="resumo" className="tab-trigger">
                      <Info className="size-4 mr-2" /> Resumo
