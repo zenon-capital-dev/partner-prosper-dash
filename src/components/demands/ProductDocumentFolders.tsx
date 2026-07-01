@@ -88,7 +88,19 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
       setLoading(false);
       return;
     }
-    setFolders((fData as FolderRow[]) || []);
+    const folderRows = (fData as FolderRow[]) || [];
+    setFolders(folderRows);
+    if (role === "admin") {
+      const ownerIds = Array.from(new Set(folderRows.map((f) => f.owner_provider_user_id).filter(Boolean))) as string[];
+      if (ownerIds.length) {
+        const { data: owns } = await supabase.from("profiles").select("id, full_name, email").in("id", ownerIds);
+        const map = new Map<string, any>();
+        (owns ?? []).forEach((u: any) => map.set(u.id, u));
+        setOwners(map);
+      } else {
+        setOwners(new Map());
+      }
+    }
     if (fData && fData.length) {
       const { data: rawFiles, error: fileError } = await supabase
         .from("product_document_files")
