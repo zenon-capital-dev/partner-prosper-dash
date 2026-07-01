@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, ClipboardCheck, FileText, UserCog, Inbox, Clock, Wallet, MessageSquare,
+  TrendingUp, AlertTriangle, CheckCircle2, CalendarClock, Sparkles, ArrowUpRight, Activity, Bell,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
@@ -37,6 +38,31 @@ const STATUS_META: Record<string, { label: string; tone: string }> = {
   concluida:         { label: "Concluída", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   cancelado:         { label: "Cancelada", tone: "bg-rose-50 text-rose-700 border-rose-200" },
 };
+
+function KpiTile({ icon: Icon, label, value, hint, accent, progress }: {
+  icon: any; label: string; value: React.ReactNode; hint?: string; accent?: string; progress?: number;
+}) {
+  return (
+    <div className="group relative rounded-xl border border-slate-200/70 bg-white p-4 shadow-sm hover:shadow-md hover:border-slate-300/70 transition-all overflow-hidden">
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <div className="text-[10.5px] uppercase tracking-[0.12em] font-medium text-slate-500">{label}</div>
+          <div className="mt-1.5 text-2xl font-semibold text-slate-900 tracking-tight tabular-nums">{value}</div>
+          {hint && <div className="text-[11px] text-slate-500 mt-0.5 truncate">{hint}</div>}
+        </div>
+        <div className={cn("size-9 rounded-lg border flex items-center justify-center shrink-0", accent || "text-slate-500 bg-slate-50 border-slate-200")}>
+          <Icon className="size-4" />
+        </div>
+      </div>
+      {typeof progress === "number" && (
+        <div className="mt-3 h-1 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 export default function ProviderPanel() {
   const { user, signOut } = useAuth() as any;
@@ -191,17 +217,83 @@ export default function ProviderPanel() {
     return { pago, pendente, total: pago + pendente, count: all.length };
   }, [commissions]);
 
+  const { data: pendingRequests = [] } = useQuery({
+    queryKey: ["provider-pending-requests", user?.id, cpIds.join(",")],
+    enabled: !!user?.id && cpIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("demand_requests")
+        .select("id, title, kind, status, created_at, client_product_id, requested_role")
+        .in("client_product_id", cpIds)
+        .eq("target_role", "prestador")
+        .in("status", ["aberta", "respondida"])
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return data ?? [];
+    },
+  });
+
+  const { data: recentNotifications = [] } = useQuery({
+    queryKey: ["provider-notifs", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("notifications")
+        .select("id, title, message, created_at, read_at, kind")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
   const stats = useMemo(() => {
     const all = clientProducts as any[];
     const active = all.filter((c) => !["concluido","concluida","cancelado","cancelada"].includes(c.status)).length;
+    const done = all.filter((c) => ["concluido","concluida"].includes(c.status)).length;
     const delayed = all.filter((c) => {
       if (["concluido", "concluida", "cancelado", "cancelada"].includes(c.status)) return false;
       const due = c.deadline || c.sla_due_date || c.end_date;
       return due && new Date(due) < new Date();
     }).length;
     const earnings = all.filter((c) => c.status !== "cancelado").reduce((s, c) => s + Number(c.value || 0), 0);
-    return { total: all.length, active, delayed, earnings };
+    return { total: all.length, active, delayed, done, earnings };
   }, [clientProducts]);
+
+  const upcoming = useMemo(() => {
+    const now = new Date();
+    const in14 = new Date(now.getTime() + 14 * 86400000);
+    return (clientProducts as any[])
+      .filter((c) => {
+        if (["concluido","concluida","cancelado","cancelada"].includes(c.status)) return false;
+        const due = c.deadline || c.sla_due_date;
+        if (!due) return false;
+        const d = new Date(due);
+        return d >= now && d <= in14;
+      })
+      .sort((a, b) => new Date(a.deadline || a.sla_due_date).getTime() - new Date(b.deadline || b.sla_due_date).getTime())
+      .slice(0, 5);
+  }, [clientProducts]);
+
+  const delayedList = useMemo(() => (clientProducts as any[])
+    .filter((c) => {
+      if (["concluido","concluida","cancelado","cancelada"].includes(c.status)) return false;
+      const due = c.deadline || c.sla_due_date;
+      return due && new Date(due) < new Date();
+    })
+    .sort((a, b) => new Date(a.deadline || a.sla_due_date).getTime() - new Date(b.deadline || b.sla_due_date).getTime())
+    .slice(0, 5), [clientProducts]);
+
+  const reportsThisMonth = useMemo(() => {
+    const now = new Date();
+    return (reports as any[]).filter((r) => {
+      const d = new Date(r.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [reports]);
+
+  const commPct = commKpis.total > 0 ? Math.round((commKpis.pago / commKpis.total) * 100) : 0;
+
 
   const firstName = (provider?.name || user?.user_metadata?.full_name || "Prestador").split(" ")[0];
 
@@ -219,38 +311,237 @@ export default function ProviderPanel() {
     <PanelShell role="prestador" nav={NAV} activeKey={activeKey} onNavigate={onNavigate} userName={provider.name} userSubtitle={provider.specialty || provider.email}>
       <PanelContainer>
         {activeKey === "dashboard" && (
-          <>
-            <PanelHero
-              role="prestador"
-              eyebrow="Painel do prestador"
-              title={<>Olá, {firstName} 👋</>}
-              subtitle={`${provider.specialty || "Prestador especialista"} · ${provider.email}`}
-              stats={[
-                { label: "Demandas ativas", value: stats.active },
-                { label: "Atrasadas", value: stats.delayed },
-                { label: "A receber", value: formatBRL(stats.earnings) },
-                { label: "Total atendidas", value: stats.total },
-              ]}
-            />
-
-            <SectionCard title="Demandas recentes" icon={Briefcase} action={<Button size="sm" variant="outline" onClick={() => onNavigate("demandas")}>Ver todas</Button>}>
-              {clientProducts.length === 0 ? <EmptyState icon={Inbox} title="Nenhuma demanda atribuída" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
-                  {(clientProducts as any[]).slice(0, 6).map((cp) => (
-                    <li key={cp.id} className="flex items-center gap-3 px-3 py-3">
-                      <div className="size-10 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-[11px] font-semibold shrink-0">{initials(cp.clients?.full_name || "?")}</div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13.5px] font-medium text-slate-900 truncate">{cp.clients?.full_name || "—"}</p>
-                        <p className="text-[11.5px] text-slate-500 truncate">{cp.products?.name || ""}</p>
+          <div className="space-y-5">
+            {/* Hero premium */}
+            <div className="relative overflow-hidden rounded-2xl border border-teal-100/60 bg-gradient-to-br from-teal-600 via-emerald-600 to-cyan-600 text-white shadow-[0_10px_40px_-15px_rgba(20,184,166,0.5)]">
+              <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(circle_at_20%_20%,white_0%,transparent_40%),radial-gradient(circle_at_80%_60%,white_0%,transparent_35%)]" />
+              <div className="absolute -right-10 -top-10 size-56 rounded-full bg-white/10 blur-3xl" />
+              <div className="relative p-6 sm:p-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-medium text-white/80 bg-white/10 border border-white/15 rounded-full px-2.5 py-1">
+                    <Sparkles className="w-3 h-3" /> Painel do prestador
+                  </div>
+                  <h1 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight">
+                    Olá, {firstName}
+                  </h1>
+                  <p className="mt-1 text-sm text-white/80">
+                    {provider.specialty || "Prestador especialista"} · {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 lg:min-w-[540px]">
+                  {[
+                    { label: "Ativas",     value: stats.active,    icon: Activity },
+                    { label: "Atrasadas",  value: stats.delayed,   icon: AlertTriangle, tone: stats.delayed > 0 ? "text-rose-100" : "" },
+                    { label: "Concluídas", value: stats.done,      icon: CheckCircle2 },
+                    { label: "A receber",  value: formatBRL(stats.earnings), icon: Wallet, small: true },
+                  ].map((k: any) => (
+                    <div key={k.label} className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 p-3">
+                      <div className="flex items-center justify-between text-white/70">
+                        <k.icon className="w-3.5 h-3.5" />
+                        <span className="text-[10px] uppercase tracking-wider">{k.label}</span>
                       </div>
-                      <Badge variant="outline" className={cn("text-[10px] border", STATUS_META[cp.status]?.tone || "bg-slate-100")}>{STATUS_META[cp.status]?.label || cp.status}</Badge>
-                      <Button size="sm" variant="outline" className="hidden sm:inline-flex" onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}>Reportar</Button>
-                    </li>
+                      <div className={cn("mt-1 font-semibold tracking-tight tabular-nums", k.small ? "text-lg" : "text-2xl", k.tone)}>
+                        {k.value}
+                      </div>
+                    </div>
                   ))}
-                </ul>}
-            </SectionCard>
-          </>
+                </div>
+              </div>
+            </div>
+
+            {/* KPI row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <KpiTile
+                icon={ClipboardCheck}
+                label="Reportes no mês"
+                value={reportsThisMonth}
+                hint={`${reports.length} total`}
+                accent="text-teal-600 bg-teal-50 border-teal-100"
+              />
+              <KpiTile
+                icon={CalendarClock}
+                label="Prazos em 14 dias"
+                value={upcoming.length}
+                hint={upcoming[0] ? `próx: ${formatDate(upcoming[0].deadline || upcoming[0].sla_due_date)}` : "sem prazos"}
+                accent="text-indigo-600 bg-indigo-50 border-indigo-100"
+              />
+              <KpiTile
+                icon={MessageSquare}
+                label="Solicitações abertas"
+                value={pendingRequests.length}
+                hint={pendingRequests.length > 0 ? "requer sua resposta" : "tudo em dia"}
+                accent="text-amber-600 bg-amber-50 border-amber-100"
+              />
+              <KpiTile
+                icon={Wallet}
+                label="Comissões pagas"
+                value={formatBRL(commKpis.pago)}
+                hint={`${commPct}% de ${formatBRL(commKpis.total)}`}
+                accent="text-emerald-600 bg-emerald-50 border-emerald-100"
+                progress={commPct}
+              />
+            </div>
+
+            {/* Two-column grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Próximos prazos */}
+              <SectionCard
+                title="Próximos prazos"
+                icon={CalendarClock}
+                action={<Button size="sm" variant="ghost" className="text-teal-700 hover:text-teal-800" onClick={() => onNavigate("demandas")}>Ver todas <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
+              >
+                {upcoming.length === 0 ? (
+                  <EmptyState icon={CalendarClock} title="Sem prazos próximos" description="Nenhuma demanda vence nos próximos 14 dias." />
+                ) : (
+                  <ul className="divide-y divide-slate-100 -mx-1">
+                    {upcoming.map((cp: any) => {
+                      const due = cp.deadline || cp.sla_due_date;
+                      const days = Math.ceil((new Date(due).getTime() - Date.now()) / 86400000);
+                      return (
+                        <li key={cp.id} className="flex items-center gap-3 px-3 py-2.5">
+                          <div className="size-9 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-[10px] font-semibold shrink-0">{initials(cp.clients?.full_name || "?")}</div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[13px] font-medium text-slate-900 truncate">{cp.clients?.full_name || "—"}</p>
+                            <p className="text-[11px] text-slate-500 truncate">{cp.products?.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[11px] font-medium text-slate-700 tabular-nums">{formatDate(due)}</div>
+                            <div className={cn("text-[10px] tabular-nums", days <= 3 ? "text-rose-600 font-medium" : days <= 7 ? "text-amber-600" : "text-slate-500")}>
+                              {days === 0 ? "hoje" : `em ${days}d`}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </SectionCard>
+
+              {/* Alertas de atraso */}
+              <SectionCard title="Atenção — atrasadas" icon={AlertTriangle}>
+                {delayedList.length === 0 ? (
+                  <EmptyState icon={CheckCircle2} title="Nada atrasado" description="Todas as demandas estão dentro do prazo." />
+                ) : (
+                  <ul className="space-y-2">
+                    {delayedList.map((cp: any) => {
+                      const due = cp.deadline || cp.sla_due_date;
+                      const daysLate = Math.floor((Date.now() - new Date(due).getTime()) / 86400000);
+                      return (
+                        <li key={cp.id} className="rounded-lg border border-rose-100 bg-rose-50/40 p-2.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-medium text-slate-900 truncate">{cp.clients?.full_name}</p>
+                              <p className="text-[11px] text-slate-500 truncate">{cp.products?.name}</p>
+                            </div>
+                            <Badge variant="outline" className="bg-white text-rose-700 border-rose-200 text-[10px]">
+                              {daysLate}d de atraso
+                            </Badge>
+                          </div>
+                          <Button
+                            size="sm" variant="ghost"
+                            className="mt-1 h-7 px-2 text-[11px] text-rose-700 hover:bg-rose-100/50"
+                            onClick={() => setReportTarget({ id: cp.id, productName: cp.products?.name, clientName: cp.clients?.full_name })}
+                          >
+                            Reportar status
+                          </Button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </SectionCard>
+
+              {/* Reportes recentes */}
+              <SectionCard
+                title="Últimos reportes"
+                icon={ClipboardCheck}
+                action={<Button size="sm" variant="ghost" className="text-teal-700 hover:text-teal-800" onClick={() => onNavigate("reportes")}>Ver todos <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
+              >
+                {reports.length === 0 ? (
+                  <EmptyState icon={ClipboardCheck} title="Sem reportes" description="Envie seu primeiro reporte pela aba Demandas." />
+                ) : (
+                  <ul className="space-y-2">
+                    {(reports as any[]).slice(0, 5).map((r) => {
+                      const cp = (clientProducts as any[]).find((c) => c.id === r.client_product_id);
+                      const tone = r.status === "concluido" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : r.status === "atrasado" ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : r.status === "em_analise" ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : "bg-blue-50 text-blue-700 border-blue-200";
+                      return (
+                        <li key={r.id} className="rounded-lg border border-slate-100 hover:border-teal-200 hover:bg-teal-50/30 transition-colors p-2.5 cursor-pointer" onClick={() => setReportView({ ...r, _cp: cp })}>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[12px] font-medium text-slate-900 truncate flex-1">
+                              {cp?.clients?.full_name || "—"} · {cp?.products?.name || ""}
+                            </p>
+                            <Badge variant="outline" className={cn("text-[10px]", tone)}>{r.status}</Badge>
+                          </div>
+                          <p className="text-[10.5px] text-slate-500 mt-0.5 tabular-nums">{formatDate(r.created_at)}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </SectionCard>
+            </div>
+
+            {/* Bottom row: comissões + notificações */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+              <SectionCard
+                title="Comissões"
+                icon={Wallet}
+                className="lg:col-span-3"
+                action={<Button size="sm" variant="ghost" className="text-emerald-700 hover:text-emerald-800" onClick={() => onNavigate("comissoes")}>Detalhes <ArrowUpRight className="w-3 h-3 ml-1" /></Button>}
+              >
+                <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-emerald-700">Pago</div>
+                    <div className="text-lg font-semibold text-emerald-900 tabular-nums mt-1">{formatBRL(commKpis.pago)}</div>
+                  </div>
+                  <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-amber-700">A receber</div>
+                    <div className="text-lg font-semibold text-amber-900 tabular-nums mt-1">{formatBRL(commKpis.pendente)}</div>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-600">Total</div>
+                    <div className="text-lg font-semibold text-slate-900 tabular-nums mt-1">{formatBRL(commKpis.total)}</div>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] text-slate-500">
+                    <span>Progresso de recebimento</span>
+                    <span className="tabular-nums font-medium text-slate-700">{commPct}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all" style={{ width: `${commPct}%` }} />
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Notificações" icon={Bell} className="lg:col-span-2">
+                {recentNotifications.length === 0 ? (
+                  <EmptyState icon={Bell} title="Sem notificações" />
+                ) : (
+                  <ul className="space-y-1.5">
+                    {(recentNotifications as any[]).map((n) => (
+                      <li key={n.id} className={cn("rounded-md p-2 border text-[12px]", n.read_at ? "border-slate-100 bg-white" : "border-teal-100 bg-teal-50/40")}>
+                        <div className="flex items-start gap-2">
+                          <div className={cn("size-1.5 rounded-full mt-1.5 shrink-0", n.read_at ? "bg-slate-300" : "bg-teal-500")} />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-slate-900 truncate">{n.title || n.kind}</p>
+                            {n.message && <p className="text-[11px] text-slate-500 truncate">{n.message}</p>}
+                            <p className="text-[10px] text-slate-400 mt-0.5 tabular-nums">{formatDate(n.created_at)}</p>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </SectionCard>
+            </div>
+          </div>
         )}
+
+
 
         {activeKey === "demandas" && (
           <>
