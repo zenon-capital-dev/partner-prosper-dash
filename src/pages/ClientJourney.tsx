@@ -28,7 +28,7 @@ export default function ClientJourney() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_journey_stages")
-        .select("id, name, position, color, description")
+        .select("id, name, position, color, description, is_terminal, is_captation")
         .eq("active", true)
         .order("position");
       if (error) throw error;
