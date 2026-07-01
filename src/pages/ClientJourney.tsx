@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink } from "lucide-react";
+import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter } from "lucide-react";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
 interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
