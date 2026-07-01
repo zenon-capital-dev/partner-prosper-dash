@@ -626,40 +626,47 @@ export default function DemandDetail() {
                       </div>
                       {reports.length === 0 ? (
                         <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
-                     ) : reports.map((r: any) => (
-                       <div key={r.id} className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="capitalize">{String(r.status || "").replace(/_/g, " ")}</Badge>
-                              {r._author?.full_name && (
-                                <span className="text-[11px] text-muted-foreground">por <span className="font-semibold text-foreground">{r._author.full_name}</span></span>
-                              )}
-                            </div>
-                            <span className="text-xs font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
-                          </div>
-                          {r.notes ? (
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Andamento</p>
-                              <p className="text-sm whitespace-pre-wrap">{r.notes}</p>
-                            </div>
-                          ) : null}
-                          {r.pending ? (
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Pendências</p>
-                              <p className="text-sm whitespace-pre-wrap">{r.pending}</p>
-                            </div>
-                          ) : null}
-                          {r.next_steps ? (
-                            <div>
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">Próximos passos</p>
-                              <p className="text-sm whitespace-pre-wrap">{r.next_steps}</p>
-                            </div>
-                          ) : null}
-                          {!r.notes && !r.pending && !r.next_steps && (
-                            <p className="text-xs italic text-muted-foreground/70">Reporte sem descrição — apenas mudança de status.</p>
-                          )}
-                       </div>
-                     ))}
+                     ) : reports.map((r: any) => {
+                       const hasBody = r.notes || r.pending || r.next_steps;
+                       return (
+                        <div key={r.id} className="p-4 rounded-xl bg-white border border-slate-200 space-y-3 shadow-sm">
+                           <div className="flex items-center justify-between flex-wrap gap-2">
+                             <div className="flex items-center gap-2">
+                               <Badge variant="outline" className="capitalize bg-indigo-50 text-indigo-700 border-indigo-200">
+                                 Status: {String(r.status || "").replace(/_/g, " ")}
+                               </Badge>
+                               {r._author?.full_name && (
+                                 <span className="text-[11px] text-muted-foreground">por <span className="font-semibold text-foreground">{r._author.full_name}</span></span>
+                               )}
+                             </div>
+                             <span className="text-xs font-mono text-muted-foreground">{formatDate(r.created_at)}</span>
+                           </div>
+                           {r.notes ? (
+                             <div>
+                               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Andamento</p>
+                               <p className="text-sm whitespace-pre-wrap">{r.notes}</p>
+                             </div>
+                           ) : null}
+                           {r.pending ? (
+                             <div>
+                               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Pendências</p>
+                               <p className="text-sm whitespace-pre-wrap">{r.pending}</p>
+                             </div>
+                           ) : null}
+                           {r.next_steps ? (
+                             <div>
+                               <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">Próximos passos</p>
+                               <p className="text-sm whitespace-pre-wrap">{r.next_steps}</p>
+                             </div>
+                           ) : null}
+                           {!hasBody && (
+                             <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+                               Este reporte foi registrado <b>apenas como mudança de status</b>, sem andamento, pendências ou próximos passos. {canManage && "Clique em \"Novo reporte\" acima para registrar detalhes."}
+                             </div>
+                           )}
+                        </div>
+                       );
+                      })}
                    </div>
                 </TabsContent>
 
