@@ -164,10 +164,22 @@ export default function PartnerDetail() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Clientes indicados</p><p className="text-2xl font-bold">{clients.length}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Comissões pagas</p><p className="text-2xl font-bold">{formatBRL(totalPaid)}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">A receber</p><p className="text-2xl font-bold">{formatBRL(totalPending)}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">% Padrão</p><p className="text-2xl font-bold">{partner.commission_percent ?? 0}%</p></CardContent></Card>
+        {[
+          { label: "Clientes indicados", value: String(clients.length), tab: "clientes" },
+          { label: "Comissões pagas", value: formatBRL(totalPaid), tab: "comissoes" },
+          { label: "A receber", value: formatBRL(totalPending), tab: "comissoes" },
+          { label: "% Padrão", value: `${partner.commission_percent ?? 0}%`, tab: "dados" },
+        ].map((k) => (
+          <button
+            key={k.label}
+            type="button"
+            onClick={() => { const next = new URLSearchParams(searchParams); next.set("tab", k.tab); setSearchParams(next, { replace: true }); }}
+            className="text-left rounded-lg border border-slate-200/70 bg-white shadow-sm p-4 hover:border-indigo-300 hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            <p className="text-xs text-muted-foreground">{k.label}</p>
+            <p className="text-2xl font-bold">{k.value}</p>
+          </button>
+        ))}
       </div>
 
       <Tabs value={initialTab} onValueChange={(v) => { const next = new URLSearchParams(searchParams); next.set("tab", v); setSearchParams(next, { replace: true }); }}>
