@@ -203,13 +203,47 @@ export default function ClientPanel() {
 
 
 
+  const pendingDocs = useMemo(
+    () => (docs as any[]).filter((d) => d.status === "solicitado" || d.status === "reprovado"),
+    [docs]
+  );
+  const pendingPayments = useMemo(
+    () => (payments as any[]).filter((p) => OPEN_PAYMENT_STATUSES.includes(p.status)),
+    [payments]
+  );
+  const pendencias = useMemo(() => {
+    const docItems = pendingDocs.map((d: any) => ({
+      key: `doc-${d.id}`,
+      type: "doc" as const,
+      title: d.title,
+      subtitle: d.product_name || "Documento solicitado",
+      due: d.due_date,
+      status: d.status,
+      raw: d,
+    }));
+    const payItems = pendingPayments.map((p: any) => {
+      const desc = splitPaymentDescription(p.description);
+      const productName = p.client_product?.products?.name || p.client_product?.custom_product_name || p.product?.name || "Pendência avulsa";
+      return {
+        key: `pay-${p.id}`,
+        type: "payment" as const,
+        title: desc.title,
+        subtitle: productName,
+        due: p.due_date,
+        amount: Math.max(Number(p.amount || 0) - Number(p.amount_paid || 0), 0) || Number(p.amount || 0),
+        status: isPaymentOverdue(p) ? "vencido" : p.status,
+        raw: p,
+      };
+    });
+    return [...docItems, ...payItems].sort((a, b) => (a.due || "").localeCompare(b.due || ""));
+  }, [pendingDocs, pendingPayments]);
+
   const kpis = useMemo(() => {
     const active = (demandas as any[]).filter((d) => !["concluida","concluido","cancelada"].includes(d.status)).length;
-    const docsPend = (docs as any[]).filter((d) => d.status === "solicitado" || d.status === "reprovado").length;
     const totalPaid = (payments as any[]).filter((p) => p.status === "pago").reduce((s, p) => s + Number(p.amount || 0), 0);
     const totalDue = (payments as any[]).filter((p) => p.status !== "pago" && p.status !== "cancelado").reduce((s, p) => s + Number(p.amount || 0), 0);
-    return { active, docsPend, totalPaid, totalDue };
-  }, [demandas, docs, payments]);
+    return { active, docsPend: pendingDocs.length, totalPaid, totalDue, totalPending: pendingDocs.length + pendingPayments.length };
+  }, [demandas, payments, pendingDocs, pendingPayments]);
 
   const firstName = (client?.full_name || user?.user_metadata?.full_name || user?.email || "Cliente").split(" ")[0];
 
