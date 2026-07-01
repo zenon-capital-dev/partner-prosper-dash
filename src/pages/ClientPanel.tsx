@@ -258,7 +258,7 @@ export default function ClientPanel() {
   }
 
   return (
-    <PanelShell role="cliente" nav={NAV} activeKey={activeKey} onNavigate={onNavigate} userName={client.full_name} userSubtitle={client.email} notifCount={kpis.docsPend}>
+    <PanelShell role="cliente" nav={NAV} activeKey={activeKey} onNavigate={onNavigate} userName={client.full_name} userSubtitle={client.email} notifCount={kpis.totalPending}>
       <PanelContainer>
         {activeKey === "dashboard" && (
           <>
