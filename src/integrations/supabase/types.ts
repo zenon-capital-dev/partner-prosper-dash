@@ -493,6 +493,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_captation: boolean
           is_terminal: boolean
           name: string
           position: number
@@ -504,6 +505,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_captation?: boolean
           is_terminal?: boolean
           name: string
           position?: number
@@ -515,6 +517,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_captation?: boolean
           is_terminal?: boolean
           name?: string
           position?: number
@@ -5525,6 +5528,7 @@ export type Database = {
       }
       sales_goals: {
         Row: {
+          actual_value: number
           created_at: string
           created_by: string | null
           goal_type: string
@@ -5536,6 +5540,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          actual_value?: number
           created_at?: string
           created_by?: string | null
           goal_type: string
@@ -5547,6 +5552,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          actual_value?: number
           created_at?: string
           created_by?: string | null
           goal_type?: string
@@ -6209,6 +6215,10 @@ export type Database = {
       provider_has_demand_access: {
         Args: { _client_product_id: string; _user_id: string }
         Returns: boolean
+      }
+      recompute_sales_goals_for_month: {
+        Args: { p_month: string }
+        Returns: undefined
       }
       user_involved_in_demand: {
         Args: { _client_product_id: string; _user_id: string }

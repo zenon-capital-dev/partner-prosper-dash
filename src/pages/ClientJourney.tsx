@@ -28,7 +28,7 @@ export default function ClientJourney() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_journey_stages")
-        .select("id, name, position, color, description")
+        .select("id, name, position, color, description, is_terminal, is_captation")
         .eq("active", true)
         .order("position");
       if (error) throw error;
@@ -241,6 +241,30 @@ export default function ClientJourney() {
                     }}
                     className="flex-1 h-8 text-sm"
                   />
+                  <label className="flex items-center gap-1 text-[10px] font-semibold text-slate-600 whitespace-nowrap" title="Contar clientes que entrarem nesta fase como captação (alimenta a meta)">
+                    <input
+                      type="checkbox"
+                      defaultChecked={(s as any).is_captation ?? false}
+                      onChange={async (e) => {
+                        await supabase.from("client_journey_stages").update({ is_captation: e.target.checked } as any).eq("id", s.id);
+                        qc.invalidateQueries({ queryKey: ["journey-stages"] });
+                        qc.invalidateQueries({ queryKey: ["journey-stages-mini"] });
+                      }}
+                    />
+                    Captação
+                  </label>
+                  <label className="flex items-center gap-1 text-[10px] font-semibold text-slate-600 whitespace-nowrap" title="Contar clientes que entrarem nesta fase como fechados (alimenta a meta)">
+                    <input
+                      type="checkbox"
+                      defaultChecked={(s as any).is_terminal ?? false}
+                      onChange={async (e) => {
+                        await supabase.from("client_journey_stages").update({ is_terminal: e.target.checked } as any).eq("id", s.id);
+                        qc.invalidateQueries({ queryKey: ["journey-stages"] });
+                        qc.invalidateQueries({ queryKey: ["journey-stages-mini"] });
+                      }}
+                    />
+                    Fechado
+                  </label>
                   <Button size="sm" variant="ghost" onClick={() => deleteStage(s.id)}>Remover</Button>
                 </li>
               ))}
