@@ -45,6 +45,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newScope, setNewScope] = useState<Scope>(role === "provider" ? "client" : "client");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [me, setMe] = useState<string | null>(null);
   const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -88,17 +89,18 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     load();
   }, [load]);
 
-  const scopeForRole: Scope = role === "provider" ? "internal" : "client";
+  // Client sempre cria pasta "client". Admin sempre "client". Provider escolhe.
+  const effectiveScope: Scope = role === "provider" ? newScope : "client";
 
   const createFolder = async () => {
     if (!newName.trim() || !me) return;
     const payload: any = {
       client_product_id: clientProductId,
       name: newName.trim(),
-      scope: scopeForRole,
+      scope: effectiveScope,
       created_by: me,
     };
-    if (scopeForRole === "internal") payload.owner_provider_user_id = me;
+    if (effectiveScope === "internal") payload.owner_provider_user_id = me;
     const { error } = await supabase.from("product_document_folders").insert(payload);
     if (error) return toast.error("Erro ao criar pasta: " + error.message);
     toast.success("Pasta criada");
@@ -293,8 +295,34 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createFolder()}
             />
+            {role === "provider" && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewScope("client")}
+                  className={cn(
+                    "flex-1 text-left border rounded-lg p-2 text-xs",
+                    newScope === "client" ? "border-primary bg-primary/5" : "border-slate-200"
+                  )}
+                >
+                  <div className="font-semibold flex items-center gap-1"><Users className="size-3" /> Compartilhar com cliente</div>
+                  <div className="text-[10px] text-muted-foreground">Cliente e Zenon veem os arquivos.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewScope("internal")}
+                  className={cn(
+                    "flex-1 text-left border rounded-lg p-2 text-xs",
+                    newScope === "internal" ? "border-primary bg-primary/5" : "border-slate-200"
+                  )}
+                >
+                  <div className="font-semibold flex items-center gap-1"><Lock className="size-3" /> Interna</div>
+                  <div className="text-[10px] text-muted-foreground">Só você e a Zenon.</div>
+                </button>
+              </div>
+            )}
             <p className="text-[11px] text-muted-foreground">
-              {scopeForRole === "internal"
+              {effectiveScope === "internal"
                 ? "Esta pasta será interna: apenas você e a equipe Zenon terão acesso. O cliente e outros prestadores não vão vê-la."
                 : "Esta pasta será visível para o cliente e para a equipe Zenon."}
             </p>
