@@ -519,18 +519,28 @@ export default function FinanceCenter() {
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             <Select value={kpiRange} onValueChange={(v) => setKpiRange(v as any)}>
-              <SelectTrigger className="h-9 w-[170px] bg-white border-slate-200">
+              <SelectTrigger className="h-9 w-[190px] bg-white border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="week">Últimos 7 dias</SelectItem>
+                <SelectItem value="specific">📅 Escolher mês…</SelectItem>
                 <SelectItem value="month">Mês atual</SelectItem>
+                <SelectItem value="week">Últimos 7 dias</SelectItem>
                 <SelectItem value="3m">Últimos 3 meses</SelectItem>
                 <SelectItem value="6m">Últimos 6 meses</SelectItem>
                 <SelectItem value="year">Últimos 12 meses</SelectItem>
                 <SelectItem value="all">Todo período</SelectItem>
               </SelectContent>
             </Select>
+            {kpiRange === "specific" && (
+              <input
+                type="month"
+                value={specificMonth}
+                onChange={(e) => setSpecificMonth(e.target.value || nowMonthKey())}
+                className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm capitalize"
+              />
+            )}
+
             {canManage && (
               <>
                 <Button onClick={() => setNewPaymentOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
