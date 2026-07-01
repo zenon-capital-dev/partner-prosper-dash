@@ -32,8 +32,9 @@ export function DemandComments({ clientProductId, role }: Props) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [content, setContent] = useState("");
+  // Default: provider posts as "client" (visível pro cliente) para não ficar preso na aba interna
   const [visibility, setVisibility] = useState<Visibility>(
-    role === "admin" ? "internal" : role === "provider" ? "provider" : "client"
+    role === "admin" ? "internal" : "client"
   );
   const [filter, setFilter] = useState<"all" | Visibility>("all");
   const [submitting, setSubmitting] = useState(false);
