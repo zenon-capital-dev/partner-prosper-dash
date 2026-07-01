@@ -226,6 +226,28 @@ export function ClientProducts({ clientId }: { clientId: string }) {
                         <Badge variant="outline" className={cn("text-[9.5px] font-bold tracking-wider uppercase border px-2 py-0", statusCls)}>
                           {statusLabel}
                         </Badge>
+                        {cp.status === "concluido" && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="text-[10px] font-medium text-emerald-700 hover:text-emerald-900 hover:underline"
+                                title="Editar data de conclusão"
+                              >
+                                ✓ {cp.end_date ? new Date(cp.end_date + "T12:00:00").toLocaleDateString("pt-BR") : "definir data"}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent align="start" className="w-auto p-3">
+                              <label className="text-xs font-semibold text-slate-700 block mb-1.5">Data de conclusão</label>
+                              <Input
+                                type="date"
+                                defaultValue={cp.end_date?.slice(0, 10) || new Date().toISOString().slice(0, 10)}
+                                onBlur={(e) => updateProduct.mutate({ id: cp.id, patch: { end_date: e.target.value || null } })}
+                                className="h-8 text-xs"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )}
                       </div>
                       <p className="text-[12.5px] text-slate-500 mt-1 line-clamp-1">
                         {cp.products?.description || "Acompanhamento técnico e gestão estratégica."}
