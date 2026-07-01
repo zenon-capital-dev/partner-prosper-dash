@@ -796,17 +796,73 @@ export default function ClientPanel() {
           <>
             <PanelHero role="cliente" eyebrow="Perfil" title="Sua conta" subtitle={client.email} />
             <SectionCard title="Dados cadastrais" icon={UserCog}>
-              <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</dt><dd className="text-slate-900">{client.full_name}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</dt><dd className="text-slate-900">{client.email}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</dt><dd className="text-slate-900">{client.phone || "—"}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{client.document || "—"}</dd></div>
-              </dl>
-              <Button variant="outline" className="mt-5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
+              <ClientProfileForm client={client} onSaved={() => qc.invalidateQueries({ queryKey: ["client-panel"] })} onSignOut={() => signOut?.()} />
             </SectionCard>
           </>
         )}
       </PanelContainer>
     </PanelShell>
+  );
+}
+
+function ClientProfileForm({ client, onSaved, onSignOut }: { client: any; onSaved: () => void; onSignOut: () => void }) {
+  const [form, setForm] = useState({
+    full_name: client.full_name || "",
+    email: client.email || "",
+    phone: client.phone || "",
+    document: client.document || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const dirty =
+    form.full_name !== (client.full_name || "") ||
+    form.email !== (client.email || "") ||
+    form.phone !== (client.phone || "") ||
+    form.document !== (client.document || "");
+
+  async function save() {
+    if (!form.full_name.trim()) { toast.error("Nome é obrigatório"); return; }
+    setSaving(true);
+    const { error } = await supabase
+      .from("clients")
+      .update({
+        full_name: form.full_name.trim(),
+        email: form.email.trim() || null,
+        phone: form.phone.trim() || null,
+        document: form.document.trim() || null,
+      })
+      .eq("id", client.id);
+    setSaving(false);
+    if (error) { toast.error(error.message || "Falha ao salvar"); return; }
+    toast.success("Dados atualizados");
+    onSaved();
+  }
+
+  const field = (key: keyof typeof form, label: string, placeholder = "") => (
+    <div>
+      <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 block mb-1">{label}</label>
+      <input
+        value={form[key]}
+        onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+        placeholder={placeholder}
+        className="w-full h-9 px-3 rounded-md border border-slate-200 bg-white text-[13px] text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+      />
+    </div>
+  );
+
+  return (
+    <>
+      <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4">
+        {field("full_name", "Nome", "Seu nome completo")}
+        {field("email", "E-mail", "seu@email.com")}
+        {field("phone", "Telefone", "(11) 99999-9999")}
+        {field("document", "Documento", "CPF ou CNPJ")}
+      </div>
+      <div className="flex flex-wrap items-center gap-3 mt-5">
+        <Button onClick={save} disabled={!dirty || saving}>
+          {saving ? "Salvando..." : "Salvar alterações"}
+        </Button>
+        <Button variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50" onClick={onSignOut}>Sair</Button>
+      </div>
+    </>
   );
 }
