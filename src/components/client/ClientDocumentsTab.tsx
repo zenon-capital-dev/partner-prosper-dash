@@ -308,6 +308,12 @@ export function ClientDocumentsTab({
         <SummaryCard tone="success" label="Concluídos" value={totals.done} icon={CheckCircle2} />
       </div>
 
+      <div className="vx-card bg-white rounded-2xl border-slate-100 p-4">
+        <ClientDocumentFolders clientId={clientId} viewerRole="client" />
+      </div>
+
+
+
 
       {grouped.map(([key, { product, items }]) => (
         <div key={key} className="vx-card bg-white rounded-2xl overflow-hidden border-slate-100">
