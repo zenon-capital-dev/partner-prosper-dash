@@ -318,11 +318,11 @@ export default function Providers() {
           )
         }
         kpis={[
-          { label: "Total da Rede", value: kpis.total, tone: "primary", icon: <Briefcase className="size-4" /> },
+          { label: "Total da Rede", value: kpis.total, tone: "primary", icon: <Briefcase className="size-4" />, onClick: () => { setStatusFilter("todos"); document.getElementById("providers-list")?.scrollIntoView({ behavior: "smooth", block: "start" }); } } as any,
           { label: "Ativos", value: kpis.active, tone: "success", icon: <CheckCircle2 className="size-4" />, onClick: () => setStatusFilter(statusFilter === "ativos" ? "todos" : "ativos") },
-          { label: "Demandas em curso", value: kpis.demands, tone: "info", icon: <ClipboardCheck className="size-4" /> },
-          { label: "Clientes atendidos", value: kpis.clients, tone: "primary", icon: <Users2 className="size-4" /> },
-          { label: "Ticket médio", value: formatBRL(kpis.avgTicket), tone: "primary" },
+          { label: "Demandas em curso", value: kpis.demands, tone: "info", icon: <ClipboardCheck className="size-4" />, onClick: () => document.getElementById("providers-list")?.scrollIntoView({ behavior: "smooth", block: "start" }) } as any,
+          { label: "Clientes atendidos", value: kpis.clients, tone: "primary", icon: <Users2 className="size-4" />, onClick: () => document.getElementById("providers-list")?.scrollIntoView({ behavior: "smooth", block: "start" }) } as any,
+          { label: "Ticket médio", value: formatBRL(kpis.avgTicket), tone: "primary", onClick: () => document.getElementById("providers-list")?.scrollIntoView({ behavior: "smooth", block: "start" }) } as any,
         ]}
       />
 
