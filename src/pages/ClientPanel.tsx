@@ -221,6 +221,61 @@ export default function ClientPanel() {
     staleTime: 2 * 60_000,
   });
 
+  const qc = useQueryClient();
+  const { data: openTickets = [] } = useQuery({
+    queryKey: ["client-open-tickets", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("client_support_tickets")
+        .select("id, subject, category, status, priority, client_product_id, created_at, last_message_at")
+        .eq("client_id", clientId!)
+        .not("status", "in", "(closed,resolved,fechado,resolvido)")
+        .order("last_message_at", { ascending: false, nullsFirst: false });
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  // Inline document upload from the "Pendências → Documentos" sub-tab
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [uploadTarget, setUploadTarget] = useState<any | null>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const pickFileFor = (doc: any) => {
+    setUploadTarget(doc);
+    setTimeout(() => uploadInputRef.current?.click(), 0);
+  };
+  const onFilePicked = async (file: File | null) => {
+    const doc = uploadTarget;
+    if (!file || !doc || !clientId) { setUploadTarget(null); return; }
+    try {
+      setUploadingId(doc.id);
+      const path = `${clientId}/${doc.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      await uploadStorageFileFast("documents", path, file);
+      const now = new Date().toISOString();
+      if (doc._source === "client_document_requests") {
+        const { error } = await supabase.from("client_document_requests")
+          .update({ file_url: path, status: "enviado", updated_at: now }).eq("id", doc.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("documents")
+          .update({ file_path: path, status: "enviado", uploaded_at: now, rejection_reason: null, file_size: file.size, mime_type: file.type } as any)
+          .eq("id", doc.id);
+        if (error) throw error;
+      }
+      toast.success("Documento enviado para análise");
+      qc.invalidateQueries({ queryKey: ["client-docs", clientId] });
+    } catch (e: any) {
+      toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
+    } finally {
+      setUploadingId(null);
+      setUploadTarget(null);
+      if (uploadInputRef.current) uploadInputRef.current.value = "";
+    }
+  };
+
+
+
+
 
 
 
