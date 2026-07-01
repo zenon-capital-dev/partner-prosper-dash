@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { sanitizeStorageFileName, uploadErrorMessage, uploadStorageFileFast } from "@/lib/uploads";
 import { downloadStorageFile, openDownloadUrl } from "@/lib/download";
+import { ClientDocumentFolders } from "@/components/documents/ClientDocumentFolders";
 import {
   AlertDialog,
   AlertDialogAction,
