@@ -924,6 +924,14 @@ export default function DemandDetail() {
 
       <EditDemandDialog open={editOpen} onOpenChange={setEditOpen} demand={demand} />
 
+      <ReportStatusDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        clientProductId={demand.id}
+        productName={(demand.products as any)?.name || demand.custom_product_name}
+        clientName={(demand.clients as any)?.name}
+      />
+
       <Dialog open={!!rejectFor} onOpenChange={(v) => { if (!v) setRejectFor(null); }}>
         <DialogContent>
           <DialogHeader><DialogTitle>Rejeitar documento</DialogTitle></DialogHeader>
