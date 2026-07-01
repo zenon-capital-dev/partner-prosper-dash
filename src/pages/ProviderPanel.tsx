@@ -118,7 +118,7 @@ export default function ProviderPanel() {
     queryKey: ["provider-reports", cpIds.join(",")],
     enabled: cpIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from("client_product_status_reports").select("id, status, notes, next_steps, created_at, client_product_id").in("client_product_id", cpIds).order("created_at", { ascending: false }).limit(200);
+      const { data } = await supabase.from("client_product_status_reports").select("id, status, notes, next_steps, pending, attachments, created_at, client_product_id").in("client_product_id", cpIds).order("created_at", { ascending: false }).limit(200);
       return data ?? [];
     },
   });
