@@ -37,6 +37,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [providersFor, setProvidersFor] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
 
   const isAdmin = viewerRole === "admin";
   const canUpload = viewerRole === "admin" || viewerRole === "client";
