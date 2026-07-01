@@ -59,6 +59,8 @@ export default function Sales() {
   const [sortKey, setSortKey] = useState<SortKey>("sale_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
+  type KpiKind = "bruto" | "recebido_mes" | "a_receber" | "liquido" | "custos" | "comissoes" | "count";
+  const [kpiDetail, setKpiDetail] = useState<KpiKind | null>(null);
   const [breakdownDim, setBreakdownDim] = useState<"status" | "partner" | "product" | "client" | "partner_product" | "product_client">(
     () => (typeof window !== "undefined" && (localStorage.getItem("sales-breakdown-dim") as any)) || "status"
   );
