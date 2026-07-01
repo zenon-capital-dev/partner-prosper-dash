@@ -46,6 +46,7 @@ export default function ProviderPanel() {
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/prestador" : `/prestador/${k}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [requestsTarget, setRequestsTarget] = useState<{ id: string; clientName?: string } | null>(null);
+  const [reportView, setReportView] = useState<any | null>(null);
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
@@ -118,7 +119,7 @@ export default function ProviderPanel() {
     queryKey: ["provider-reports", cpIds.join(",")],
     enabled: cpIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from("client_product_status_reports").select("id, status, notes, next_steps, created_at, client_product_id").in("client_product_id", cpIds).order("created_at", { ascending: false }).limit(200);
+      const { data } = await supabase.from("client_product_status_reports").select("id, status, notes, next_steps, pending, attachments, created_at, client_product_id").in("client_product_id", cpIds).order("created_at", { ascending: false }).limit(200);
       return data ?? [];
     },
   });
@@ -285,22 +286,45 @@ export default function ProviderPanel() {
             <PanelHero role="prestador" eyebrow="Atividade" title="Reportes enviados" subtitle={`${reports.length} reporte(s)`} />
             <SectionCard title="">
               {reports.length === 0 ? <EmptyState icon={ClipboardCheck} title="Nenhum reporte enviado" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
+                <ul className="grid gap-2">
                   {(reports as any[]).map((r) => {
                     const cp = (clientProducts as any[]).find((x) => x.id === r.client_product_id);
+                    const clientName = cp?.clients?.full_name || "—";
+                    const productName = cp?.products?.name || cp?.custom_product_name || "";
+                    const statusColor =
+                      r.status === "concluido" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : r.status === "em_andamento" ? "bg-blue-50 text-blue-700 border-blue-200"
+                      : r.status === "atrasado" ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : r.status === "em_analise" ? "bg-amber-50 text-amber-700 border-amber-200"
+                      : "bg-slate-50 text-slate-700 border-slate-200";
                     return (
-                      <li key={r.id} className="px-3 py-3">
-                        <div className="flex items-center justify-between gap-3 mb-1">
-                          <p className="text-[13px] font-medium text-slate-900 truncate">{cp?.clients?.full_name || "—"} · {cp?.products?.name || ""}</p>
-                          <Badge variant="outline" className="text-[10px] border-slate-200 capitalize shrink-0">{r.status}</Badge>
-                        </div>
-                        {r.notes && <p className="text-[12px] text-slate-600 line-clamp-2">{r.notes}</p>}
-                        <p className="text-[11px] text-slate-400 mt-1">{formatDate(r.created_at)}</p>
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onClick={() => setReportView({ ...r, _clientName: clientName, _productName: productName })}
+                          className="w-full text-left group rounded-xl border border-slate-200/70 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-slate-900 truncate">{clientName} · <span className="font-medium text-slate-600">{productName}</span></p>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{formatDate(r.created_at)}</p>
+                            </div>
+                            <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", statusColor)}>{String(r.status).replace(/_/g, " ")}</Badge>
+                          </div>
+                          {r.notes && <p className="text-[12.5px] text-slate-600 line-clamp-2 mt-2">{r.notes}</p>}
+                          <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500">
+                            {r.pending && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-amber-400" /> Pendências</span>}
+                            {r.next_steps && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-blue-400" /> Próximos passos</span>}
+                            {Array.isArray(r.attachments) && r.attachments.length > 0 && <span>{r.attachments.length} anexo(s)</span>}
+                            <span className="ml-auto text-primary/80 opacity-0 group-hover:opacity-100 transition">Ver detalhes →</span>
+                          </div>
+                        </button>
                       </li>
                     );
                   })}
                 </ul>}
             </SectionCard>
+
           </>
         )}
 
@@ -381,6 +405,51 @@ export default function ProviderPanel() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!reportView} onOpenChange={(o) => !o && setReportView(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base">Reporte enviado</DialogTitle>
+          </DialogHeader>
+          {reportView && (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-slate-200/70 bg-slate-50/60 p-3">
+                <p className="text-[11px] uppercase tracking-wider text-slate-400">Demanda</p>
+                <p className="text-[13px] font-semibold text-slate-900 mt-0.5">{reportView._clientName} · <span className="font-medium text-slate-600">{reportView._productName}</span></p>
+                <p className="text-[11px] text-slate-400 mt-1">{formatDate(reportView.created_at)}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] uppercase tracking-wider text-slate-400">Status</span>
+                <Badge variant="outline" className="capitalize">{String(reportView.status).replace(/_/g, " ")}</Badge>
+              </div>
+              {reportView.notes && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-slate-400 mb-1">Notas do reporte</p>
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reportView.notes}</p>
+                </div>
+              )}
+              {reportView.pending && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-amber-600 mb-1">Pendências</p>
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reportView.pending}</p>
+                </div>
+              )}
+              {reportView.next_steps && (
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-blue-600 mb-1">Próximos passos</p>
+                  <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{reportView.next_steps}</p>
+                </div>
+              )}
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/demanda/${reportView.client_product_id}`}>Abrir demanda</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </PanelShell>
   );
 }
