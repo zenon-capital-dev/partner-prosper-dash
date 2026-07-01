@@ -84,7 +84,9 @@ export default function DemandDetail() {
       const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
       assertUploadFile(file);
       setUploadingDoc(true);
-      const path = `${demand.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
+      const clientId = (demand as any).client_id;
+      if (!clientId) throw new Error("Demanda sem cliente vinculado");
+      const path = `${clientId}/${demand.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
       if (upErr) throw upErr;
       const { error: insErr } = await supabase.from("documents").insert({
@@ -158,7 +160,7 @@ export default function DemandDetail() {
           deliveries:demand_deliveries(*)
         `)
         .eq("id", id!)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -306,11 +308,12 @@ export default function DemandDetail() {
       .from("client_products")
       .insert(insertPayload)
       .select("id")
-      .single();
+      .maybeSingle();
     if (error) return toast.error(error.message);
+    if (!data?.id) return toast.error("Não foi possível duplicar a demanda");
     toast.success("Demanda duplicada");
     qc.invalidateQueries({ queryKey: ["admin-demands"] });
-    navigate(`/demandas/${data!.id}`);
+    navigate(`/demandas/${data.id}`);
   };
 
   const deleteDemand = async () => {

@@ -120,6 +120,8 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     load();
   }, [load]);
 
+  const folderIdsKey = useMemo(() => folders.map((f) => f.id).sort().join(","), [folders]);
+
   useEffect(() => {
     if (!clientProductId) return;
     const foldersChannel = supabase
@@ -130,19 +132,22 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
         () => load()
       )
       .subscribe();
-    const filesChannel = supabase
-      .channel(`product-document-files:${clientProductId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "product_document_files" },
-        () => load()
-      )
-      .subscribe();
+    const ids = folderIdsKey ? folderIdsKey.split(",") : [];
+    const filesChannel = ids.length
+      ? supabase
+          .channel(`product-document-files:${clientProductId}`)
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "product_document_files", filter: `folder_id=in.(${ids.join(",")})` },
+            () => load()
+          )
+          .subscribe()
+      : null;
     return () => {
       supabase.removeChannel(foldersChannel);
-      supabase.removeChannel(filesChannel);
+      if (filesChannel) supabase.removeChannel(filesChannel);
     };
-  }, [clientProductId, load]);
+  }, [clientProductId, load, folderIdsKey]);
 
   // Cliente sempre cria pasta compartilhada. Zenon e prestador escolhem entre cliente e interno.
   const effectiveScope: Scope = role === "client" ? "client" : newScope;
@@ -217,7 +222,11 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     load();
   };
 
-  const visibleFolders = useMemo(() => folders, [folders]);
+  // Defesa em profundidade: cliente NUNCA vê pastas internas, mesmo se a RLS falhar
+  const visibleFolders = useMemo(
+    () => (role === "client" ? folders.filter((f) => f.scope === "client") : folders),
+    [folders, role]
+  );
 
   return (
     <div className="space-y-4">
