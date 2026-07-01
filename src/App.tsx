@@ -174,6 +174,7 @@ const App = () => (
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
+              <Route path="/solicitacoes" element={<RequestsInbox />} />
             </Route>
             {/* RoleHome roda fora de qualquer layout para não dar flash da sidebar admin
                 em quem é cliente/parceiro/etc. antes de o redirect levar pro painel certo. */}
