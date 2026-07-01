@@ -16,8 +16,9 @@ import { sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { downloadStorageFile } from "@/lib/download";
 import {
   FolderPlus, Folder, Upload, FileText, Download, Eye, Trash2, Users, Pencil,
-  Loader2,
+  Loader2, FilePlus2,
 } from "lucide-react";
+import { DocumentDialog } from "@/components/documents/DocumentDialog";
 
 type Role = "admin" | "client" | "provider";
 
@@ -36,6 +37,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null);
   const [providersFor, setProvidersFor] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [requestingInFolder, setRequestingInFolder] = useState<string | null>(null);
 
   const isAdmin = viewerRole === "admin";
   const canUpload = viewerRole === "admin" || viewerRole === "client";
@@ -223,6 +225,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                 <div className="flex items-center gap-2 flex-wrap">
                   {isAdmin && (
                     <>
+                      <Button size="sm" variant="default" onClick={() => setRequestingInFolder(currentFolderId)}>
+                        <FilePlus2 className="size-3.5 mr-1" /> Solicitar ao cliente
+                      </Button>
                       <Button size="sm" variant="ghost" onClick={() => setProvidersFor(currentFolderId)}>
                         <Users className="size-3.5 mr-1" /> Autorizar prestador
                       </Button>
@@ -320,6 +325,19 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           folderId={providersFor}
           clientId={clientId}
           onClose={() => setProvidersFor(null)}
+        />
+      )}
+
+      {requestingInFolder && (
+        <DocumentDialog
+          open
+          onOpenChange={(v) => !v && setRequestingInFolder(null)}
+          clientId={clientId}
+          folderId={requestingInFolder}
+          onSuccess={() => {
+            setRequestingInFolder(null);
+            qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+          }}
         />
       )}
     </div>

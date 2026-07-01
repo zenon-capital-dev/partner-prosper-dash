@@ -26,11 +26,12 @@ interface Props {
   document?: any;
   defaultProductId?: string | null;
   clientProductId?: string | null;
+  folderId?: string | null;
 }
 
 type RecipientType = "client" | "collaborator" | "provider" | "partner";
 
-export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId }: Props) {
+export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propClientId, document: editDoc, defaultProductId, clientProductId: propClientProductId, folderId }: Props) {
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [recipientType, setRecipientType] = useState<RecipientType>("client");
@@ -268,6 +269,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
       payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
       payload.provider_id = recipientType === "provider" ? selectedRecipientId : null;
       payload.partner_id = recipientType === "partner" ? selectedRecipientId : null;
+      if (!editDoc && folderId) payload.folder_id = folderId;
 
       const { error } = editDoc
         ? await supabase.from("documents").update(payload).eq("id", editDoc.id)
