@@ -46,6 +46,7 @@ export default function ProviderPanel() {
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/prestador" : `/prestador/${k}`);
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [requestsTarget, setRequestsTarget] = useState<{ id: string; clientName?: string } | null>(null);
+  const [reportView, setReportView] = useState<any | null>(null);
 
   const { data: provider } = useQuery({
     queryKey: ["provider-self", user?.id],
