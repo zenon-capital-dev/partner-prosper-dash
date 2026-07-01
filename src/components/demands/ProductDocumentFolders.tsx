@@ -47,6 +47,9 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [adminFilter, setAdminFilter] = useState<"all" | "client" | "internal">("all");
+  const [nameQuery, setNameQuery] = useState("");
+  const [owners, setOwners] = useState<Map<string, { full_name?: string | null; email?: string | null }>>(new Map());
   const scopeKey = `product-doc-folder-scope:${clientProductId}:${role}`;
   const [newScope, setNewScope] = useState<Scope>(() => {
     if (typeof window !== "undefined") {
@@ -85,7 +88,19 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
       setLoading(false);
       return;
     }
-    setFolders((fData as FolderRow[]) || []);
+    const folderRows = (fData as FolderRow[]) || [];
+    setFolders(folderRows);
+    if (role === "admin") {
+      const ownerIds = Array.from(new Set(folderRows.map((f) => f.owner_provider_user_id).filter(Boolean))) as string[];
+      if (ownerIds.length) {
+        const { data: owns } = await supabase.from("profiles").select("id, full_name, email").in("id", ownerIds);
+        const map = new Map<string, any>();
+        (owns ?? []).forEach((u: any) => map.set(u.id, u));
+        setOwners(map);
+      } else {
+        setOwners(new Map());
+      }
+    }
     if (fData && fData.length) {
       const { data: rawFiles, error: fileError } = await supabase
         .from("product_document_files")
@@ -231,10 +246,15 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   };
 
   // Defesa em profundidade: cliente NUNCA vê pastas internas, mesmo se a RLS falhar
-  const visibleFolders = useMemo(
-    () => (role === "client" ? folders.filter((f) => f.scope === "client") : folders),
-    [folders, role]
-  );
+  const visibleFolders = useMemo(() => {
+    let list = role === "client" ? folders.filter((f) => f.scope === "client") : folders;
+    if (role === "admin" && adminFilter !== "all") list = list.filter((f) => f.scope === adminFilter);
+    if (nameQuery.trim()) {
+      const q = nameQuery.trim().toLowerCase();
+      list = list.filter((f) => f.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [folders, role, adminFilter, nameQuery]);
 
   return (
     <div className="space-y-4">
@@ -251,6 +271,36 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
           <FolderPlus className="size-4" /> Nova pasta
         </Button>
       </div>
+
+      {role === "admin" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Buscar pasta por nome..."
+            value={nameQuery}
+            onChange={(e) => setNameQuery(e.target.value)}
+            className="h-8 text-xs max-w-xs"
+          />
+          <div className="flex gap-1 rounded-md border p-0.5 bg-slate-50">
+            {(["all", "client", "internal"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setAdminFilter(k)}
+                className={cn(
+                  "text-[11px] px-2.5 py-1 rounded",
+                  adminFilter === k ? "bg-white shadow-sm font-semibold text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {k === "all" ? "Todas" : k === "client" ? "Cliente" : "Internas"}
+              </button>
+            ))}
+          </div>
+          <span className="text-[11px] text-muted-foreground ml-auto">
+            {visibleFolders.length} pasta(s) · {visibleFolders.reduce((a, f) => a + (files[f.id]?.length || 0), 0)} arquivo(s)
+          </span>
+        </div>
+      )}
+
 
       {loading ? (
         <div className="flex items-center gap-2 text-xs text-muted-foreground p-4">
@@ -291,7 +341,8 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
                     )}
                     {role === "admin" && f.owner_provider_user_id && (
                       <Badge variant="outline" className="text-[10px] gap-1 shrink-0">
-                        <ShieldCheck className="size-2.5" /> Prestador
+                        <ShieldCheck className="size-2.5" />
+                        {owners.get(f.owner_provider_user_id)?.full_name || owners.get(f.owner_provider_user_id)?.email || "Prestador"}
                       </Badge>
                     )}
                   </div>
