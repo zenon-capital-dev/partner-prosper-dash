@@ -445,6 +445,41 @@ export default function FinanceCenter() {
         onOpenChange={setNewPaymentOpen}
         onCreated={() => qc.invalidateQueries({ queryKey: ["fin-payments"] })}
       />
+      <Dialog open={allocOpen} onOpenChange={setAllocOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Destinar valor para caixinha</DialogTitle>
+            <DialogDescription>Registra uma entrada na caixinha selecionada. O saldo é atualizado automaticamente.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Caixinha</Label>
+              <Select value={allocPool} onValueChange={setAllocPool}>
+                <SelectTrigger><SelectValue placeholder="Selecione uma caixinha" /></SelectTrigger>
+                <SelectContent>
+                  {poolsList.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} · {formatBRL(Number(p.current_balance || 0))}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Valor (R$)</Label>
+              <Input inputMode="decimal" placeholder="0,00" value={allocAmount} onChange={(e) => setAllocAmount(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Descrição (opcional)</Label>
+              <Textarea rows={2} value={allocDesc} onChange={(e) => setAllocDesc(e.target.value)} placeholder="Ex.: Reserva de impostos de junho" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAllocOpen(false)}>Cancelar</Button>
+            <Button onClick={submitAllocation}>Destinar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <PageHero
         eyebrow="Financeiro"
         category="Operações"
