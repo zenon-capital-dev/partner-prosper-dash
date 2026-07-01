@@ -99,7 +99,7 @@ export default function Proposals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("proposals")
-        .select("*, clients(id, full_name, email, company, document), leads(id, name, email, company), proposal_items(*)")
+        .select("*, clients(id, full_name, email, document), leads(id, name:full_name, email, company), proposal_items(*)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
