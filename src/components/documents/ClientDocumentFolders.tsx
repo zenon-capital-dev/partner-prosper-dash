@@ -146,7 +146,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   }
 
   async function downloadFile(path: string, name: string) {
-    try { await openDownloadUrl("documents", path, name); }
+    try { await downloadStorageFile("documents", path, name); }
     catch (e: any) { toast.error(e.message || "Erro ao baixar"); }
   }
 
