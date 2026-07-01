@@ -480,7 +480,7 @@ export function ClientDocumentsTab({
         </div>
       ))}
 
-      <AlertDialog open={!!confirmReq} onOpenChange={(o) => { if (!o) { setConfirmReq(null); setPendingFiles([]); } }}>
+      <AlertDialog open={!!confirmReq} onOpenChange={(o) => { if (!o) { setConfirmReq(null); setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{pendingFiles.length ? "Confirmar envio" : "Selecionar arquivos"}</AlertDialogTitle>
@@ -507,7 +507,7 @@ export function ClientDocumentsTab({
           )}
 
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFiles([]); }}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; }}>Cancelar</Button>
             {pendingFiles.length === 0 ? (
               <Button onClick={() => fileRef.current?.click()}>Escolher arquivos</Button>
             ) : (
