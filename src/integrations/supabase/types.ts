@@ -2430,6 +2430,41 @@ export type Database = {
           },
         ]
       }
+      demand_request_messages: {
+        Row: {
+          author_id: string | null
+          author_role: string
+          created_at: string
+          id: string
+          message: string
+          request_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          author_role: string
+          created_at?: string
+          id?: string
+          message: string
+          request_id: string
+        }
+        Update: {
+          author_id?: string | null
+          author_role?: string
+          created_at?: string
+          id?: string
+          message?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demand_request_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "demand_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demand_requests: {
         Row: {
           client_id: string | null

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
-import { Plus, MessageSquare, FileQuestion, CheckCircle2, Clock, X } from "lucide-react";
+import { Plus, MessageSquare, FileQuestion, CheckCircle2, Clock, X, Send, ChevronDown, ChevronUp } from "lucide-react";
 
 type Role = "admin" | "parceiro" | "prestador" | "cliente" | "colaborador";
 
@@ -48,14 +48,14 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [respondId, setRespondId] = useState<string | null>(null);
+  const [openThreads, setOpenThreads] = useState<Record<string, boolean>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     target_role: (allowedTargets ?? DEFAULT_TARGETS[currentRole])[0] as Role,
     kind: "informacao" as "documento" | "informacao" | "duvida" | "outro",
     title: "",
     description: "",
   });
-  const [responseText, setResponseText] = useState("");
 
   const targets = allowedTargets ?? DEFAULT_TARGETS[currentRole];
 
@@ -101,34 +101,32 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
     qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
   };
 
-  const respond = async () => {
-    if (!respondId || !responseText.trim()) {
-      toast.error("Escreva a resposta");
-      return;
-    }
-    const { error } = await supabase
-      .from("demand_requests")
-      .update({
-        response: responseText.trim(),
-        status: "respondida",
-        responded_by: user?.id,
-        responded_at: new Date().toISOString(),
-      } as any)
-      .eq("id", respondId);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Resposta registrada");
-    setRespondId(null);
-    setResponseText("");
-    qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
-  };
-
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("demand_requests").update({ status } as any).eq("id", id);
     if (error) toast.error(error.message);
     else qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
+  };
+
+  const toggleThread = (id: string) => setOpenThreads((s) => ({ ...s, [id]: !s[id] }));
+
+  const sendMessage = async (requestId: string) => {
+    const text = (drafts[requestId] || "").trim();
+    if (!text) return;
+    const { error } = await supabase.from("demand_request_messages" as any).insert({
+      request_id: requestId,
+      author_id: user?.id,
+      author_role: currentRole,
+      message: text,
+    });
+    if (error) { toast.error(error.message); return; }
+    setDrafts((s) => ({ ...s, [requestId]: "" }));
+    // bump status to respondida if currently aberta and author is target
+    const item = items.find((x: any) => x.id === requestId);
+    if (item?.status === "aberta") {
+      await supabase.from("demand_requests").update({ status: "respondida", responded_by: user?.id, responded_at: new Date().toISOString() } as any).eq("id", requestId);
+    }
+    qc.invalidateQueries({ queryKey: ["demand-requests", clientProductId] });
+    qc.invalidateQueries({ queryKey: ["demand-request-messages", requestId] });
   };
 
   return (
@@ -155,10 +153,10 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
           {items.map((it: any) => {
             const meta = STATUS_META[it.status] || STATUS_META.aberta;
             const Icon = meta.icon;
-            const canRespond = it.status === "aberta" && it.target_role === currentRole;
+            const isOpen = !!openThreads[it.id];
             return (
               <li key={it.id} className="border border-slate-200 rounded-lg p-3 bg-white">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 flex-wrap">
                   <Badge variant="outline" className={`${meta.tone} text-[10px] gap-1`}>
                     <Icon className="size-3" /> {meta.label}
                   </Badge>
@@ -172,18 +170,12 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
                 </div>
                 <p className="font-medium text-sm text-slate-900 mt-2">{it.title}</p>
                 {it.description && <p className="text-xs text-slate-600 mt-1 whitespace-pre-wrap">{it.description}</p>}
-                {it.response && (
-                  <div className="mt-2 pl-3 border-l-2 border-blue-200 bg-blue-50/40 p-2 rounded">
-                    <p className="text-[11px] font-semibold text-blue-900">Resposta · {formatDate(it.responded_at)}</p>
-                    <p className="text-xs text-slate-700 whitespace-pre-wrap">{it.response}</p>
-                  </div>
-                )}
-                <div className="flex gap-2 mt-2">
-                  {canRespond && (
-                    <Button size="sm" variant="outline" onClick={() => { setRespondId(it.id); setResponseText(""); }}>
-                      Responder
-                    </Button>
-                  )}
+
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  <Button size="sm" variant="outline" onClick={() => toggleThread(it.id)}>
+                    {isOpen ? <ChevronUp className="size-3.5 mr-1" /> : <ChevronDown className="size-3.5 mr-1" />}
+                    {isOpen ? "Fechar chat" : "Abrir chat"}
+                  </Button>
                   {it.status !== "resolvida" && it.status !== "cancelada" && (
                     <>
                       <Button size="sm" variant="ghost" onClick={() => setStatus(it.id, "resolvida")}>
@@ -196,7 +188,23 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
                       )}
                     </>
                   )}
+                  {it.status === "resolvida" && (
+                    <Button size="sm" variant="ghost" onClick={() => setStatus(it.id, "aberta")}>
+                      Reabrir
+                    </Button>
+                  )}
                 </div>
+
+                {isOpen && (
+                  <RequestThread
+                    requestId={it.id}
+                    canWrite={it.status !== "cancelada"}
+                    draft={drafts[it.id] || ""}
+                    onDraftChange={(v) => setDrafts((s) => ({ ...s, [it.id]: v }))}
+                    onSend={() => sendMessage(it.id)}
+                    currentUserId={user?.id}
+                  />
+                )}
               </li>
             );
           })}
@@ -246,16 +254,71 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!respondId} onOpenChange={(v) => { if (!v) { setRespondId(null); setResponseText(""); } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Responder solicitação</DialogTitle></DialogHeader>
-          <Textarea rows={5} value={responseText} onChange={(e) => setResponseText(e.target.value)} placeholder="Escreva a resposta..." />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRespondId(null)}>Cancelar</Button>
-            <Button onClick={respond}>Enviar resposta</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    </div>
+  );
+}
+
+function RequestThread({ requestId, canWrite, draft, onDraftChange, onSend, currentUserId }: {
+  requestId: string;
+  canWrite: boolean;
+  draft: string;
+  onDraftChange: (v: string) => void;
+  onSend: () => void;
+  currentUserId?: string;
+}) {
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["demand-request-messages", requestId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("demand_request_messages" as any)
+        .select("*")
+        .eq("request_id", requestId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+    refetchInterval: 15000,
+  });
+
+  return (
+    <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">
+      {isLoading ? (
+        <p className="text-[11px] text-slate-500">Carregando mensagens...</p>
+      ) : messages.length === 0 ? (
+        <p className="text-[11px] text-slate-500">Nenhuma mensagem ainda. Inicie a conversa abaixo.</p>
+      ) : (
+        <ul className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+          {messages.map((m: any) => {
+            const mine = m.author_id === currentUserId;
+            return (
+              <li key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-xs ${mine ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-800"}`}>
+                  <div className={`text-[10px] mb-0.5 capitalize ${mine ? "text-indigo-100" : "text-slate-500"}`}>
+                    {m.author_role} · {formatDate(m.created_at)}
+                  </div>
+                  <div className="whitespace-pre-wrap">{m.message}</div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {canWrite && (
+        <div className="flex gap-2 items-end">
+          <Textarea
+            rows={2}
+            value={draft}
+            onChange={(e) => onDraftChange(e.target.value)}
+            placeholder="Escreva uma mensagem..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSend(); }
+            }}
+          />
+          <Button size="sm" onClick={onSend} disabled={!draft.trim()}>
+            <Send className="size-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
