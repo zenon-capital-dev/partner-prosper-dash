@@ -7,7 +7,9 @@ import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
   Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
   MessageCircle, Mail, Clock, ArrowUpRight, ShieldCheck, AlertTriangle, Upload,
+  FileSignature,
 } from "lucide-react";
+import { ClientContractsTab } from "@/components/client/ClientContractsTab";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
 import { PanelContainer } from "@/components/panels/PanelContainer";
@@ -26,6 +28,7 @@ const NAV = [
   { key: "pendencias", label: "Pendências", icon: AlertTriangle },
   { key: "servicos",   label: "Serviços",   icon: Briefcase },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
+  { key: "contratos",  label: "Contratos",  icon: FileSignature },
   { key: "pagamentos", label: "Pagamentos", icon: Wallet, shortLabel: "Pagar" },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
   { key: "suporte",    label: "Suporte",    icon: HelpCircle },
@@ -199,6 +202,19 @@ export default function ClientPanel() {
     },
     staleTime: 60_000,
     gcTime: 5 * 60_000,
+  });
+
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["client-contracts", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data } = await supabase.from("contracts")
+        .select("id, name, status, amount, file_path, signed_at, sent_at, created_at, products(name)")
+        .eq("client_id", clientId!)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    staleTime: 2 * 60_000,
   });
 
 
@@ -472,6 +488,25 @@ export default function ClientPanel() {
             </SectionCard>
           </>
         )}
+
+        {activeKey === "contratos" && (
+          <>
+            <PanelHero
+              role="cliente"
+              eyebrow="Contratos"
+              title="Meus contratos"
+              subtitle={`${contracts.length} contrato(s) · ${(contracts as any[]).filter((c) => c.status === "assinado" || c.status === "finalizado").length} assinado(s)`}
+              stats={[
+                { label: "Total", value: contracts.length },
+                { label: "Aguardando", value: (contracts as any[]).filter((c) => c.status === "enviado" || c.status === "aguardando_assinatura").length },
+                { label: "Assinados", value: (contracts as any[]).filter((c) => c.status === "assinado" || c.status === "finalizado").length },
+              ]}
+            />
+            {clientId && <ClientContractsTab clientId={clientId} contracts={contracts as any[]} />}
+          </>
+        )}
+
+
 
 
         {activeKey === "suporte" && (
