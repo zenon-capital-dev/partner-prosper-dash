@@ -330,18 +330,28 @@ export default function PartnerPanel() {
     queryFn: async () => {
       const { data } = await supabase
         .from("commission_splits")
-        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(clients(full_name), products(name))")
+        .select("id, amount, percent, status, paid_at, created_at, sale_id, sales(client_product_id, clients(full_name), products(name))")
         .eq("beneficiary_type", "partner")
         .eq("beneficiary_id", partner!.id)
         .order("created_at", { ascending: false });
       return (data ?? []).map((c: any) => ({
         ...c,
+        client_product_id: c.sales?.client_product_id ?? null,
         clients: c.sales?.clients,
         products: c.sales?.products,
       }));
     },
     staleTime: 2 * 60_000,
   });
+
+  const commissionByService = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of commissions as any[]) {
+      if (!c.client_product_id) continue;
+      map.set(c.client_product_id, (map.get(c.client_product_id) || 0) + Number(c.amount || 0));
+    }
+    return map;
+  }, [commissions]);
 
   const kpis = useMemo(() => {
     const all = commissions as any[];
