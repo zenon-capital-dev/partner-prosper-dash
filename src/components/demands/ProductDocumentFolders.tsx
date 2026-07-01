@@ -1,0 +1,312 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { Folder, FolderPlus, Upload, FileText, Download, Trash2, Lock, Users, Loader2 } from "lucide-react";
+import { openDownloadUrl } from "@/lib/download";
+import { cn } from "@/lib/utils";
+
+type Scope = "client" | "internal";
+
+interface FolderRow {
+  id: string;
+  client_product_id: string;
+  name: string;
+  scope: Scope;
+  owner_provider_user_id: string | null;
+  created_by: string;
+  created_at: string;
+}
+interface FileRow {
+  id: string;
+  folder_id: string;
+  file_path: string;
+  file_name: string;
+  file_size: number | null;
+  uploaded_by: string;
+  created_at: string;
+}
+
+interface Props {
+  clientProductId: string;
+  /** Papel do usuário atual nesta demanda */
+  role: "admin" | "client" | "provider";
+}
+
+const BUCKET = "product-documents";
+
+export function ProductDocumentFolders({ clientProductId, role }: Props) {
+  const [folders, setFolders] = useState<FolderRow[]>([]);
+  const [files, setFiles] = useState<Record<string, FileRow[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [openFolderId, setOpenFolderId] = useState<string | null>(null);
+  const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [me, setMe] = useState<string | null>(null);
+  const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
+  }, []);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: fData, error } = await supabase
+      .from("product_document_folders")
+      .select("*")
+      .eq("client_product_id", clientProductId)
+      .order("created_at", { ascending: true });
+    if (error) {
+      toast.error("Erro ao carregar pastas: " + error.message);
+      setLoading(false);
+      return;
+    }
+    setFolders((fData as FolderRow[]) || []);
+    if (fData && fData.length) {
+      const { data: files } = await supabase
+        .from("product_document_files")
+        .select("*")
+        .in("folder_id", fData.map((f: any) => f.id))
+        .order("created_at", { ascending: false });
+      const grouped: Record<string, FileRow[]> = {};
+      (files as FileRow[] | null)?.forEach((f) => {
+        grouped[f.folder_id] = grouped[f.folder_id] || [];
+        grouped[f.folder_id].push(f);
+      });
+      setFiles(grouped);
+    } else {
+      setFiles({});
+    }
+    setLoading(false);
+  }, [clientProductId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const scopeForRole: Scope = role === "provider" ? "internal" : "client";
+
+  const createFolder = async () => {
+    if (!newName.trim() || !me) return;
+    const payload: any = {
+      client_product_id: clientProductId,
+      name: newName.trim(),
+      scope: scopeForRole,
+      created_by: me,
+    };
+    if (scopeForRole === "internal") payload.owner_provider_user_id = me;
+    const { error } = await supabase.from("product_document_folders").insert(payload);
+    if (error) return toast.error("Erro ao criar pasta: " + error.message);
+    toast.success("Pasta criada");
+    setNewName("");
+    setNewFolderOpen(false);
+    load();
+  };
+
+  const deleteFolder = async (id: string) => {
+    if (!confirm("Excluir esta pasta e todos os arquivos dela?")) return;
+    const { error } = await supabase.from("product_document_folders").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Pasta excluída");
+    load();
+  };
+
+  const upload = async (folder: FolderRow, file: File) => {
+    if (!me) return;
+    setUploadingId(folder.id);
+    try {
+      const safe = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${clientProductId}/${folder.id}/${Date.now()}_${safe}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+      if (upErr) throw upErr;
+      const { error: insErr } = await supabase.from("product_document_files").insert({
+        folder_id: folder.id,
+        file_path: path,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type,
+        uploaded_by: me,
+      });
+      if (insErr) throw insErr;
+      toast.success("Arquivo enviado");
+      load();
+    } catch (e: any) {
+      toast.error("Erro no upload: " + (e.message || e));
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
+  const download = async (f: FileRow) => {
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(f.file_path, 3600);
+    if (error) return toast.error(error.message);
+    openDownloadUrl(data.signedUrl, f.file_name);
+  };
+
+  const removeFile = async (f: FileRow) => {
+    if (!confirm(`Remover "${f.file_name}"?`)) return;
+    await supabase.storage.from(BUCKET).remove([f.file_path]);
+    const { error } = await supabase.from("product_document_files").delete().eq("id", f.id);
+    if (error) return toast.error(error.message);
+    load();
+  };
+
+  const visibleFolders = useMemo(() => folders, [folders]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="text-sm font-bold text-foreground">Pastas de documentos</h4>
+          <p className="text-xs text-muted-foreground">
+            {role === "client" && "Organize seus documentos por pasta. A equipe Zenon visualiza tudo."}
+            {role === "provider" && "Suas pastas internas — apenas você e a Zenon têm acesso."}
+            {role === "admin" && "Pastas do cliente e pastas internas de cada prestador."}
+          </p>
+        </div>
+        <Button size="sm" variant="outline" className="gap-2" onClick={() => setNewFolderOpen(true)}>
+          <FolderPlus className="size-4" /> Nova pasta
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground p-4">
+          <Loader2 className="size-4 animate-spin" /> Carregando...
+        </div>
+      ) : visibleFolders.length === 0 ? (
+        <div className="border border-dashed rounded-xl p-8 text-center text-xs text-muted-foreground">
+          Nenhuma pasta criada ainda.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {visibleFolders.map((f) => {
+            const isOpen = openFolderId === f.id;
+            const isOwn = f.created_by === me;
+            const isInternal = f.scope === "internal";
+            const canDelete = role === "admin" || isOwn;
+            const list = files[f.id] || [];
+            return (
+              <div key={f.id} className="border rounded-xl bg-white overflow-hidden">
+                <button
+                  className="w-full flex items-center justify-between gap-3 p-3 hover:bg-slate-50 text-left"
+                  onClick={() => setOpenFolderId(isOpen ? null : f.id)}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Folder className={cn("size-4 shrink-0", isInternal ? "text-amber-600" : "text-primary")} />
+                    <span className="text-sm font-semibold truncate">{f.name}</span>
+                    <Badge variant="outline" className="text-[10px] shrink-0">
+                      {list.length}
+                    </Badge>
+                    {isInternal ? (
+                      <Badge variant="outline" className="text-[10px] gap-1 border-amber-200 bg-amber-50 text-amber-700 shrink-0">
+                        <Lock className="size-2.5" /> Interna
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] gap-1 border-blue-200 bg-blue-50 text-blue-700 shrink-0">
+                        <Users className="size-2.5" /> Cliente
+                      </Badge>
+                    )}
+                  </div>
+                  {canDelete && (
+                    <Trash2
+                      className="size-3.5 text-rose-500 hover:text-rose-700 shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteFolder(f.id);
+                      }}
+                    />
+                  )}
+                </button>
+                {isOpen && (
+                  <div className="border-t p-3 space-y-2 bg-slate-50/40">
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={(el) => (uploadRefs.current[f.id] = el)}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) upload(f, file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2 h-8 text-xs"
+                        disabled={uploadingId === f.id}
+                        onClick={() => uploadRefs.current[f.id]?.click()}
+                      >
+                        {uploadingId === f.id ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+                        Enviar arquivo
+                      </Button>
+                    </div>
+                    {list.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground py-2">Nenhum arquivo.</p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {list.map((file) => (
+                          <li key={file.id} className="flex items-center justify-between gap-2 bg-white border rounded-md px-2 py-1.5">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="size-3.5 text-muted-foreground shrink-0" />
+                              <span className="text-xs truncate">{file.file_name}</span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => download(file)}>
+                                <Download className="size-3.5" />
+                              </Button>
+                              {(role === "admin" || file.uploaded_by === me) && (
+                                <Button size="sm" variant="ghost" className="h-7 px-2 text-rose-600" onClick={() => removeFile(file)}>
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova pasta</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              autoFocus
+              placeholder="Ex.: Faturamento, Fiscal, Contratos..."
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && createFolder()}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              {scopeForRole === "internal"
+                ? "Esta pasta será interna: apenas você e a equipe Zenon terão acesso. O cliente e outros prestadores não vão vê-la."
+                : "Esta pasta será visível para o cliente e para a equipe Zenon."}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewFolderOpen(false)}>Cancelar</Button>
+            <Button onClick={createFolder} disabled={!newName.trim()}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+export default ProductDocumentFolders;
