@@ -65,22 +65,31 @@ export default function SalesGoals() {
       next.setMonth(next.getMonth() + 1);
       const end = next.toISOString().slice(0, 10);
 
-      const [leadsR, propR, salesR] = await Promise.all([
+      const [leadsR, propR, salesR, paymentsR, stageR, closedR] = await Promise.all([
         (supabase as any).from("leads").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("proposals").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("sales").select("amount")
-          .gte("sale_date", start).lt("sale_date", end).limit(300),
+        (supabase as any).from("sales").select("id", { count: "exact", head: true })
+          .gte("sale_date", start).lt("sale_date", end),
+        (supabase as any).from("payments").select("amount")
+          .eq("status", "pago").gte("paid_at", start).lt("paid_at", end).limit(1000),
+        (supabase as any).from("client_timeline").select("id", { count: "exact", head: true })
+          .eq("event_type", "stage_change").gte("created_at", start).lt("created_at", end),
+        (supabase as any).from("leads").select("id", { count: "exact", head: true })
+          .eq("status", "won").gte("updated_at", start).lt("updated_at", end),
       ]);
-      const salesRows = (salesR.data ?? []) as { amount: number }[];
+      const payRows = (paymentsR.data ?? []) as { amount: number }[];
       return {
         leads: leadsR.count ?? 0,
         proposals: propR.count ?? 0,
-        sales_count: salesRows.length,
-        revenue: salesRows.reduce((s, r) => s + Number(r.amount || 0), 0),
+        sales_count: salesR.count ?? 0,
+        revenue: payRows.reduce((s, r) => s + Number(r.amount || 0), 0),
+        stage_movements: stageR.count ?? 0,
+        clients_closed: closedR.count ?? 0,
       };
     },
+
     enabled: isAdmin,
   });
 
