@@ -3535,6 +3535,36 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email: boolean
+          id: string
+          in_app: boolean
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: boolean
+          id?: string
+          in_app?: boolean
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -6123,6 +6153,10 @@ export type Database = {
         Returns: string
       }
       mark_overdue_payments: { Args: never; Returns: undefined }
+      notification_enabled: {
+        Args: { _type: string; _user_id: string }
+        Returns: boolean
+      }
       notify_admins: {
         Args: {
           p_link: string
