@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHero } from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Plus, Search, Download, MoreHorizontal, CheckCircle2, XCircle, PlayCircle,
   Clock3, Trash2, Eye, ShoppingBag, X, CircleDollarSign,
