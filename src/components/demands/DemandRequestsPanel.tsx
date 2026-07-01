@@ -254,16 +254,71 @@ export function DemandRequestsPanel({ clientProductId, currentRole, allowedTarge
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!respondId} onOpenChange={(v) => { if (!v) { setRespondId(null); setResponseText(""); } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Responder solicitação</DialogTitle></DialogHeader>
-          <Textarea rows={5} value={responseText} onChange={(e) => setResponseText(e.target.value)} placeholder="Escreva a resposta..." />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRespondId(null)}>Cancelar</Button>
-            <Button onClick={respond}>Enviar resposta</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    </div>
+  );
+}
+
+function RequestThread({ requestId, canWrite, draft, onDraftChange, onSend, currentUserId }: {
+  requestId: string;
+  canWrite: boolean;
+  draft: string;
+  onDraftChange: (v: string) => void;
+  onSend: () => void;
+  currentUserId?: string;
+}) {
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["demand-request-messages", requestId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("demand_request_messages" as any)
+        .select("*")
+        .eq("request_id", requestId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+    refetchInterval: 15000,
+  });
+
+  return (
+    <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">
+      {isLoading ? (
+        <p className="text-[11px] text-slate-500">Carregando mensagens...</p>
+      ) : messages.length === 0 ? (
+        <p className="text-[11px] text-slate-500">Nenhuma mensagem ainda. Inicie a conversa abaixo.</p>
+      ) : (
+        <ul className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+          {messages.map((m: any) => {
+            const mine = m.author_id === currentUserId;
+            return (
+              <li key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-xs ${mine ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-800"}`}>
+                  <div className={`text-[10px] mb-0.5 capitalize ${mine ? "text-indigo-100" : "text-slate-500"}`}>
+                    {m.author_role} · {formatDate(m.created_at)}
+                  </div>
+                  <div className="whitespace-pre-wrap">{m.message}</div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {canWrite && (
+        <div className="flex gap-2 items-end">
+          <Textarea
+            rows={2}
+            value={draft}
+            onChange={(e) => onDraftChange(e.target.value)}
+            placeholder="Escreva uma mensagem..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); onSend(); }
+            }}
+          />
+          <Button size="sm" onClick={onSend} disabled={!draft.trim()}>
+            <Send className="size-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
