@@ -28,6 +28,7 @@ const NAV = [
   { key: "pendencias", label: "Pendências", icon: AlertTriangle },
   { key: "servicos",   label: "Serviços",   icon: Briefcase },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
+  { key: "contratos",  label: "Contratos",  icon: FileSignature },
   { key: "pagamentos", label: "Pagamentos", icon: Wallet, shortLabel: "Pagar" },
   { key: "perfil",     label: "Perfil",     icon: UserCog },
   { key: "suporte",    label: "Suporte",    icon: HelpCircle },
