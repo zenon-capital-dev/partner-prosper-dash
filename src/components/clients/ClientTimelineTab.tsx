@@ -189,9 +189,7 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
         <ActionsFeed items={actions} loading={loadingActions} />
       )}
       {mode === "tarefas" && (
-
-
-      {isLoading ? (
+        isLoading ? (
         <div className="text-center py-12 text-sm text-slate-500">Carregando...</div>
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">
