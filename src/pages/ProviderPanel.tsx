@@ -286,22 +286,45 @@ export default function ProviderPanel() {
             <PanelHero role="prestador" eyebrow="Atividade" title="Reportes enviados" subtitle={`${reports.length} reporte(s)`} />
             <SectionCard title="">
               {reports.length === 0 ? <EmptyState icon={ClipboardCheck} title="Nenhum reporte enviado" /> :
-                <ul className="divide-y divide-slate-100 -mx-1">
+                <ul className="grid gap-2">
                   {(reports as any[]).map((r) => {
                     const cp = (clientProducts as any[]).find((x) => x.id === r.client_product_id);
+                    const clientName = cp?.clients?.full_name || "—";
+                    const productName = cp?.products?.name || cp?.custom_product_name || "";
+                    const statusColor =
+                      r.status === "concluido" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : r.status === "em_andamento" ? "bg-blue-50 text-blue-700 border-blue-200"
+                      : r.status === "atrasado" ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : r.status === "em_analise" ? "bg-amber-50 text-amber-700 border-amber-200"
+                      : "bg-slate-50 text-slate-700 border-slate-200";
                     return (
-                      <li key={r.id} className="px-3 py-3">
-                        <div className="flex items-center justify-between gap-3 mb-1">
-                          <p className="text-[13px] font-medium text-slate-900 truncate">{cp?.clients?.full_name || "—"} · {cp?.products?.name || ""}</p>
-                          <Badge variant="outline" className="text-[10px] border-slate-200 capitalize shrink-0">{r.status}</Badge>
-                        </div>
-                        {r.notes && <p className="text-[12px] text-slate-600 line-clamp-2">{r.notes}</p>}
-                        <p className="text-[11px] text-slate-400 mt-1">{formatDate(r.created_at)}</p>
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onClick={() => setReportView({ ...r, _clientName: clientName, _productName: productName })}
+                          className="w-full text-left group rounded-xl border border-slate-200/70 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-[13px] font-semibold text-slate-900 truncate">{clientName} · <span className="font-medium text-slate-600">{productName}</span></p>
+                              <p className="text-[11px] text-slate-400 mt-0.5">{formatDate(r.created_at)}</p>
+                            </div>
+                            <Badge variant="outline" className={cn("text-[10px] capitalize shrink-0", statusColor)}>{String(r.status).replace(/_/g, " ")}</Badge>
+                          </div>
+                          {r.notes && <p className="text-[12.5px] text-slate-600 line-clamp-2 mt-2">{r.notes}</p>}
+                          <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500">
+                            {r.pending && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-amber-400" /> Pendências</span>}
+                            {r.next_steps && <span className="inline-flex items-center gap-1"><span className="size-1.5 rounded-full bg-blue-400" /> Próximos passos</span>}
+                            {Array.isArray(r.attachments) && r.attachments.length > 0 && <span>{r.attachments.length} anexo(s)</span>}
+                            <span className="ml-auto text-primary/80 opacity-0 group-hover:opacity-100 transition">Ver detalhes →</span>
+                          </div>
+                        </button>
                       </li>
                     );
                   })}
                 </ul>}
             </SectionCard>
+
           </>
         )}
 
