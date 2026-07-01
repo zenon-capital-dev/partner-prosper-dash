@@ -273,7 +273,72 @@ export function ClientTimelineTab({ clientId }: { clientId: string }) {
             );
           })}
         </div>
+        )
       )}
     </div>
   );
 }
+
+function ActionsFeed({ items, loading }: { items: any[]; loading: boolean }) {
+  if (loading) return <div className="text-center py-12 text-sm text-slate-500">Carregando histórico...</div>;
+  if (!items.length) return (
+    <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">
+      <Inbox className="size-10 text-slate-300 mx-auto mb-3" />
+      <p className="text-sm font-semibold text-slate-700">Sem ações entre portais ainda</p>
+      <p className="text-xs text-slate-500 mt-1">Solicitações e mensagens trocadas entre cliente, prestador, parceiro e Zenon aparecerão aqui.</p>
+    </div>
+  );
+  const TYPE_META: Record<string, { label: string; icon: any; color: string }> = {
+    ticket:  { label: "Suporte",       icon: LifeBuoy,       color: "bg-rose-50 text-rose-700 border-rose-200" },
+    request: { label: "Solicitação",   icon: MessageSquare,  color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+    doc:     { label: "Documento",     icon: FileText,       color: "bg-amber-50 text-amber-700 border-amber-200" },
+  };
+  return (
+    <div className="relative space-y-3 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
+      {items.map((it) => {
+        const meta = TYPE_META[it._type];
+        const Icon = meta.icon;
+        const from = ROLE_META[it.from] || { label: it.from || "—", icon: User, color: "bg-slate-100 text-slate-700 border-slate-200" };
+        const to = ROLE_META[it.to] || { label: it.to || "—", icon: User, color: "bg-slate-100 text-slate-700 border-slate-200" };
+        return (
+          <div key={`${it._type}-${it.id}`} className="relative">
+            <div className="absolute -left-[18px] top-3 size-3 rounded-full ring-2 ring-white border-2 bg-white border-indigo-400" />
+            <Link to={it.link} className="block group">
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md">
+                <div className="flex items-start gap-2.5">
+                  <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10.5px] font-bold uppercase tracking-wider", meta.color)}>
+                    <Icon className="size-3" />
+                    {meta.label}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                      <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9.5px] font-bold uppercase", from.color)}>
+                        <from.icon className="size-2.5" />{from.label}
+                      </span>
+                      <ArrowRight className="size-3 text-slate-400" />
+                      <span className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9.5px] font-bold uppercase", to.color)}>
+                        <to.icon className="size-2.5" />{to.label}
+                      </span>
+                      {it.status && (
+                        <span className="ml-auto text-[9.5px] font-bold uppercase tracking-wider text-slate-500">
+                          {it.status}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[13.5px] font-bold text-slate-900 group-hover:text-indigo-700">{it.title}</p>
+                    {it.subtitle && <p className="text-[12px] text-slate-600 mt-1 line-clamp-2">{it.subtitle}</p>}
+                    <div className="mt-2 flex items-center gap-1 text-[11px] text-slate-500">
+                      <Clock className="size-3" />
+                      {format(parseISO(it.when), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
