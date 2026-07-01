@@ -73,6 +73,7 @@ export default function ProviderPanel() {
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/prestador" : `/prestador/${k}`);
+  const qc = useQueryClient();
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [requestsTarget, setRequestsTarget] = useState<{ id: string; clientName?: string } | null>(null);
   const [reportView, setReportView] = useState<any | null>(null);
