@@ -468,7 +468,7 @@ export function ClientDocumentsTab({
                       size="sm"
                       className="rounded-xl bg-slate-900"
                       disabled={isUploading}
-                       onClick={() => { setPendingFiles([]); setConfirmReq(req); }}
+                       onClick={() => { setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; setConfirmReq(req); }}
                     >
                       {isUploading ? <Loader2 className="size-4 animate-spin" /> : waitingReview ? "Substituir arquivo" : hasFile ? "Atualizar arquivo" : "Selecionar arquivo"}
                     </Button>
@@ -502,14 +502,14 @@ export function ClientDocumentsTab({
                   </div>
                 </div>
               ))}
-              <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>Trocar arquivo</Button>
+              <Button variant="ghost" size="sm" onClick={() => { if (fileRef.current) fileRef.current.value = ""; fileRef.current?.click(); }}>Trocar arquivo</Button>
             </div>
           )}
 
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; }}>Cancelar</Button>
             {pendingFiles.length === 0 ? (
-              <Button onClick={() => fileRef.current?.click()}>Escolher arquivos</Button>
+              <Button onClick={() => { if (fileRef.current) fileRef.current.value = ""; fileRef.current?.click(); }}>Escolher arquivos</Button>
             ) : (
               <Button
                 className="bg-indigo-600 hover:bg-indigo-700"
