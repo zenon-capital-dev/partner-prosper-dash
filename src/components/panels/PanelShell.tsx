@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Bell, LogOut, MessageSquare } from "lucide-react";
+import { Menu, LogOut, MessageSquare } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 import { initials } from "@/lib/format";
 import { useAuth } from "@/hooks/useAuth";
@@ -115,15 +116,8 @@ export function PanelShell({ role, nav, activeKey, userName, userSubtitle, child
                 <MessageSquare className="size-4" />
                 Solicitações
               </Link>
-              <button
-                className="relative h-9 w-9 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition"
-                aria-label="Notificações"
-              >
-                <Bell className="size-[18px]" />
-                {notifCount ? (
-                  <span className={cn("absolute top-1.5 right-1.5 size-2 rounded-full", theme.accentBg)} />
-                ) : null}
-              </button>
+              <NotificationBell />
+
               <Avatar className="size-8">
                 <AvatarFallback className={cn("text-[11px] font-semibold", theme.accentSoft, theme.accentText)}>
                   {initials(displayName)}
