@@ -32,8 +32,9 @@ export function RecordDelayDialog({ open, onOpenChange, demandId }: RecordDelayD
 
   const delayMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const { getCurrentUser } = await import("@/lib/current-user");
+      const user = await getCurrentUser();
+      if (!user) throw new Error("Sua sessão expirou. Faça login novamente.");
 
       const { error } = await supabase
         .from("client_product_delays")
