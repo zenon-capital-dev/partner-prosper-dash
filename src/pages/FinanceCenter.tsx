@@ -61,11 +61,11 @@ const monthBounds = (monthKey: string) => {
   const [year, month] = monthKey.split("-").map(Number);
   const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
   const safeMonth = Number.isFinite(month) ? month : new Date().getMonth() + 1;
-  const start = new Date(safeYear, safeMonth - 1, 1);
-  const end = new Date(safeYear, safeMonth, 0);
+  const lastDay = new Date(safeYear, safeMonth, 0).getDate();
+  const pad = (value: number) => String(value).padStart(2, "0");
   return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
+    start: `${safeYear}-${pad(safeMonth)}-01`,
+    end: `${safeYear}-${pad(safeMonth)}-${pad(lastDay)}`,
   };
 };
 const monthFilterLabel = (monthKey: string) => {
