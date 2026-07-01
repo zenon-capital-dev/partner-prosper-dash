@@ -18,6 +18,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useSystemSettings, buildMailtoLink, buildWhatsAppLink } from "@/hooks/useSystemSettings";
 import { ClientDocumentsTab } from "@/components/client/ClientDocumentsTab";
+import { PaymentReceiptDialog } from "@/components/client/PaymentReceiptDialog";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
@@ -186,7 +187,7 @@ export default function ClientPanel() {
     queryFn: async () => {
       const { data } = await supabase.from("payments")
         .select(`
-          id, amount, amount_paid, status, due_date, paid_at, description, notes,
+          id, amount, amount_paid, status, due_date, paid_at, description, notes, receipt_url,
           installment_number, installments_count, created_at, client_id, client_product_id, product_id,
           client_product:client_products(custom_product_name, products(name)),
           product:products(name)
@@ -356,9 +357,18 @@ export default function ClientPanel() {
                               )}
                             </div>
                           </div>
-                          <div className="lg:text-right shrink-0 lg:min-w-[150px]">
-                            <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Valor da pendência</p>
-                            <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-slate-900">{formatBRL(outstanding || Number(p.amount || 0))}</p>
+                          <div className="lg:text-right shrink-0 lg:min-w-[180px] space-y-2">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Valor da pendência</p>
+                              <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-slate-900">{formatBRL(outstanding || Number(p.amount || 0))}</p>
+                            </div>
+                            {p.status !== "pago" && p.status !== "paga" && p.status !== "cancelado" && clientId && (
+                              <PaymentReceiptDialog
+                                clientId={clientId}
+                                payment={p}
+                                invalidateKey={["client-payments", clientId]}
+                              />
+                            )}
                           </div>
                         </div>
                       </li>
