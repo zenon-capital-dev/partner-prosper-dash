@@ -113,9 +113,9 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     try {
       setUploading(true);
       const rows: any[] = [];
-      for (const file of selectedFiles) {
+      for (const [index, file] of selectedFiles.entries()) {
         const safe = sanitizeStorageFileName(file.name);
-        const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${safe}`;
+        const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${index}_${safe}`;
         const up = await supabase.storage.from("documents").upload(path, file);
         if (up.error) throw up.error;
         rows.push({
