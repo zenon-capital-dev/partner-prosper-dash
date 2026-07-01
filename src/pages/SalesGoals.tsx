@@ -171,18 +171,32 @@ export default function SalesGoals() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label>Tipo</Label>
-                <Select value={form.goal_type} onValueChange={(v) => setForm({ ...form, goal_type: v as GoalType })}>
+                <Select value={form.goal_type} onValueChange={(v) => setForm({ ...form, goal_type: v as any })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    <SelectItem value="custom">✨ Índice personalizado…</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {form.goal_type === "custom" && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Nome do índice</Label>
+                    <Input value={form.custom_name} onChange={(e) => setForm({ ...form, custom_name: e.target.value })} placeholder="ex: NPS, Reuniões agendadas, Ticket médio…" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="is_currency" type="checkbox" checked={form.is_currency} onChange={(e) => setForm({ ...form, is_currency: e.target.checked })} />
+                    <Label htmlFor="is_currency" className="cursor-pointer">Meta em R$ (valor monetário)</Label>
+                  </div>
+                </>
+              )}
               <div className="space-y-1.5">
                 <Label>Valor da meta</Label>
                 <Input value={form.target_value} onChange={(e) => setForm({ ...form, target_value: e.target.value })} placeholder="ex: 50000" />
               </div>
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
               <Button onClick={saveGoal}>Salvar</Button>
