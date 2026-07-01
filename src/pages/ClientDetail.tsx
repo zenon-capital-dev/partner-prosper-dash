@@ -562,7 +562,7 @@ export default function ClientDetail() {
           </TabsContent>
 
           <TabsContent value="entregas" className="m-0">
-            {activeTab === "entregas" && <ClientTasks clientId={id!} />}
+            {activeTab === "entregas" && <ClientDeliveries clientId={id!} />}
           </TabsContent>
 
           <TabsContent value="financeiro" className="m-0">
