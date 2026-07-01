@@ -111,11 +111,11 @@ export function ClientDocumentsTab({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [confirmReq, setConfirmReq] = useState<DocRequest | null>(null);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [adhocOpen, setAdhocOpen] = useState(false);
   const [adhocName, setAdhocName] = useState("");
   const [adhocProductId, setAdhocProductId] = useState<string>("");
-  const [adhocFile, setAdhocFile] = useState<File | null>(null);
+  const [adhocFiles, setAdhocFiles] = useState<File[]>([]);
   const [adhocSaving, setAdhocSaving] = useState(false);
   const normalizedRequests = useMemo(
     () => requests.map((request) => ({ ...request, status: normalizeDocStatus(request.status) })),
@@ -123,30 +123,37 @@ export function ClientDocumentsTab({
   );
 
   async function submitAdhoc() {
-    if (!adhocName.trim() || !adhocFile) {
-      toast.error("Informe o nome e selecione um arquivo");
+    if (adhocFiles.length === 0) {
+      toast.error("Selecione pelo menos um arquivo");
       return;
     }
     try {
       setAdhocSaving(true);
-      const safe = sanitizeStorageFileName(adhocFile.name);
-      const path = `${clientId}/adhoc/${Date.now()}_${safe}`;
-      await uploadStorageFileFast("documents", path, adhocFile);
       const now = new Date().toISOString();
-      const { error } = await supabase.from("document_requests").insert({
-        client_id: clientId,
-        product_id: adhocProductId || null,
-        name: adhocName.trim(),
-        status: "enviado",
-        file_path: path,
-        uploaded_at: now,
-        file_size: adhocFile.size,
-        mime_type: adhocFile.type,
-      } as any);
+      const rows: any[] = [];
+      for (const [index, file] of adhocFiles.entries()) {
+        const safe = sanitizeStorageFileName(file.name);
+        const path = `${clientId}/adhoc/${Date.now()}_${index}_${safe}`;
+        await uploadStorageFileFast("documents", path, file);
+        rows.push({
+          client_id: clientId,
+          product_id: adhocProductId || null,
+          name: adhocName.trim() || file.name,
+          status: "enviado",
+          file_path: path,
+          uploaded_at: now,
+          file_size: file.size,
+          mime_type: file.type,
+          source: "client_upload",
+          is_required: false,
+        });
+      }
+      const { error } = await supabase.from("documents").insert(rows as any);
       if (error) throw error;
-      toast.success("Documento enviado");
+      toast.success(`${adhocFiles.length} arquivo(s) enviado(s)`);
       setAdhocOpen(false);
-      setAdhocName(""); setAdhocFile(null); setAdhocProductId("");
+      setAdhocName(""); setAdhocFiles([]); setAdhocProductId("");
+      qc.invalidateQueries({ queryKey: ["client-docs"] });
       (invalidateKeys ?? []).forEach((k) => qc.invalidateQueries({ queryKey: k as any }));
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
@@ -179,7 +186,9 @@ export function ClientDocumentsTab({
     return Array.from(map.entries());
   }, [normalizedRequests, products]);
 
-  async function handleUpload(req: DocRequest, file: File) {
+  async function handleUpload(req: DocRequest, files: File[]) {
+    const [file, ...extraFiles] = files;
+    if (!file) return;
     try {
       setUploadingId(req.id);
       const folder = getUploadFolder?.(req) || clientId;
@@ -210,6 +219,30 @@ export function ClientDocumentsTab({
       }
       if (updErr) throw updErr;
 
+      if (extraFiles.length > 0) {
+        const extraRows: any[] = [];
+        for (const [index, extra] of extraFiles.entries()) {
+          const extraPath = `${folder}/${req.id}/${Date.now()}-${index + 1}-${sanitizeStorageFileName(extra.name)}`;
+          await uploadStorageFileFast("documents", extraPath, extra);
+          extraRows.push({
+            client_id: clientId,
+            product_id: req.product_id || null,
+            client_product_id: req.client_product_id || null,
+            name: `${req.name} · ${extra.name}`,
+            description: req.description,
+            status: "enviado",
+            file_path: extraPath,
+            uploaded_at: now,
+            file_size: extra.size,
+            mime_type: extra.type,
+            source: "client_upload",
+            is_required: false,
+          });
+        }
+        const { error: extraErr } = await supabase.from("documents").insert(extraRows as any);
+        if (extraErr) throw extraErr;
+      }
+
       const patchCachedList = (old: unknown) => Array.isArray(old)
         ? old.map((item: any) => item?.id === req.id ? {
           ...item,
@@ -227,7 +260,7 @@ export function ClientDocumentsTab({
       (qc as any).setQueriesData({ queryKey: ["provider-docs"] }, patchCachedList);
       (qc as any).setQueriesData({ queryKey: ["partner-docs"] }, patchCachedList);
 
-      toast.success("Documento enviado para análise");
+      toast.success(`${files.length} arquivo(s) enviado(s) para análise`);
       qc.invalidateQueries({ queryKey: ["client-panel"] });
       qc.invalidateQueries({ queryKey: ["client-docs"] });
       qc.invalidateQueries({ queryKey: ["provider-docs"] });
@@ -237,7 +270,7 @@ export function ClientDocumentsTab({
     } finally {
       setUploadingId(null);
       setConfirmReq(null);
-      setPendingFile(null);
+      setPendingFiles([]);
       if (fileRef.current) fileRef.current.value = "";
     }
   }
@@ -281,7 +314,7 @@ export function ClientDocumentsTab({
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Nome do documento</Label>
+            <Label>Nome base (opcional)</Label>
             <Input value={adhocName} onChange={(e) => setAdhocName(e.target.value)} placeholder="Ex.: Comprovante de residência" />
           </div>
           {products.length > 0 && (
@@ -296,8 +329,11 @@ export function ClientDocumentsTab({
             </div>
           )}
           <div className="space-y-1.5">
-            <Label>Arquivo</Label>
-            <Input type="file" onChange={(e) => setAdhocFile(e.target.files?.[0] ?? null)} />
+            <Label>Arquivos</Label>
+            <Input type="file" multiple onChange={(e) => setAdhocFiles(Array.from(e.target.files ?? []))} />
+            {adhocFiles.length > 0 && (
+              <p className="text-xs text-muted-foreground">{adhocFiles.length} arquivo(s) selecionado(s)</p>
+            )}
           </div>
         </div>
         <DialogFooter>
@@ -337,11 +373,12 @@ export function ClientDocumentsTab({
     <div className="space-y-4">
       <input
         type="file"
+        multiple
         ref={fileRef}
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) setPendingFile(file);
+          const files = Array.from(e.target.files ?? []);
+          if (files.length) setPendingFiles(files);
         }}
       />
       <div className="flex items-center justify-between">
@@ -431,7 +468,7 @@ export function ClientDocumentsTab({
                       size="sm"
                       className="rounded-xl bg-slate-900"
                       disabled={isUploading}
-                      onClick={() => { setPendingFile(null); setConfirmReq(req); }}
+                       onClick={() => { setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; setConfirmReq(req); }}
                     >
                       {isUploading ? <Loader2 className="size-4 animate-spin" /> : waitingReview ? "Substituir arquivo" : hasFile ? "Atualizar arquivo" : "Selecionar arquivo"}
                     </Button>
@@ -443,37 +480,41 @@ export function ClientDocumentsTab({
         </div>
       ))}
 
-      <AlertDialog open={!!confirmReq} onOpenChange={(o) => { if (!o) { setConfirmReq(null); setPendingFile(null); } }}>
+      <AlertDialog open={!!confirmReq} onOpenChange={(o) => { if (!o) { setConfirmReq(null); setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{pendingFile ? "Confirmar envio" : "Selecionar arquivo"}</AlertDialogTitle>
+            <AlertDialogTitle>{pendingFiles.length ? "Confirmar envio" : "Selecionar arquivos"}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingFile
-                ? <>O documento <strong>{confirmReq?.name}</strong> ficará com status <strong>Enviado para análise</strong>.</>
-                : <>Escolha o arquivo do documento <strong>{confirmReq?.name}</strong>.</>}
+              {pendingFiles.length
+                ? <>O documento <strong>{confirmReq?.name}</strong> ficará com status <strong>Enviado para análise</strong>. Se houver mais de um arquivo, todos serão anexados.</>
+                : <>Escolha um ou mais arquivos para <strong>{confirmReq?.name}</strong>.</>}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          {pendingFile && (
-            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-              <FileText className="size-5 text-slate-500 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-900 truncate">{pendingFile.name}</p>
-                <p className="text-xs text-slate-500">{(pendingFile.size / 1024).toFixed(0)} KB</p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => fileRef.current?.click()}>Trocar arquivo</Button>
+          {pendingFiles.length > 0 && (
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              {pendingFiles.map((pendingFile, index) => (
+                <div key={`${pendingFile.name}-${pendingFile.size}-${index}`} className="flex items-center gap-3">
+                  <FileText className="size-5 text-slate-500 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-900 truncate">{pendingFile.name}</p>
+                    <p className="text-xs text-slate-500">{(pendingFile.size / 1024).toFixed(0)} KB</p>
+                  </div>
+                </div>
+              ))}
+              <Button variant="ghost" size="sm" onClick={() => { if (fileRef.current) fileRef.current.value = ""; fileRef.current?.click(); }}>Trocar arquivo</Button>
             </div>
           )}
 
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFile(null); }}>Cancelar</Button>
-            {!pendingFile ? (
-              <Button onClick={() => fileRef.current?.click()}>Escolher arquivo</Button>
+            <Button variant="outline" onClick={() => { setConfirmReq(null); setPendingFiles([]); if (fileRef.current) fileRef.current.value = ""; }}>Cancelar</Button>
+            {pendingFiles.length === 0 ? (
+              <Button onClick={() => { if (fileRef.current) fileRef.current.value = ""; fileRef.current?.click(); }}>Escolher arquivos</Button>
             ) : (
               <Button
                 className="bg-indigo-600 hover:bg-indigo-700"
                 disabled={!!uploadingId}
-                onClick={() => { if (confirmReq && pendingFile) handleUpload(confirmReq, pendingFile); }}
+                onClick={() => { if (confirmReq && pendingFiles.length) handleUpload(confirmReq, pendingFiles); }}
               >
                 {uploadingId ? <><Loader2 className="size-4 animate-spin mr-1.5" /> Enviando...</> : <><Upload className="size-4 mr-1.5" /> Confirmar envio</>}
               </Button>

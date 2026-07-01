@@ -34,6 +34,23 @@ type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelad
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
 type SortDir = "asc" | "desc";
 const PAGE_SIZE = 10;
+const currentMonthKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+const monthRange = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
+  const safeMonth = Number.isFinite(month) ? month : new Date().getMonth() + 1;
+  return {
+    start: new Date(safeYear, safeMonth - 1, 1, 0, 0, 0, 0),
+    end: new Date(safeYear, safeMonth, 0, 23, 59, 59, 999),
+  };
+};
+const monthLabel = (monthKey: string) => {
+  const { start } = monthRange(monthKey);
+  return start.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+};
 
 const norm = (s: any) =>
   String(s ?? "")
@@ -49,7 +66,8 @@ export default function Sales() {
   const [editingSale, setEditingSale] = useState<any>(null);
   const [receivingSale, setReceivingSale] = useState<any>(null);
   const [search, setSearch] = useState("");
-  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("30 DIAS");
+  const [rangeKey, setRangeKey] = useState<"HOJE" | "7 DIAS" | "30 DIAS" | "MÊS" | "TUDO">("MÊS");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthKey());
   const [status, setStatus] = useState<StatusKey>("todos");
   const [revenueFilter, setRevenueFilter] = useState<"todos" | "avulso" | "recorrente">("todos");
   const [partnerFilter, setPartnerFilter] = useState("todos");
@@ -212,7 +230,9 @@ export default function Sales() {
     } else if (rangeKey === "30 DIAS") {
       start = subDays(today, 29);
     } else if (rangeKey === "MÊS") {
-      start = startOfMonth(today);
+      const range = monthRange(selectedMonth);
+      start = range.start;
+      end = range.end;
     } else if (rangeKey === "TUDO") {
       start = new Date(0);
       end = new Date(8640000000000000);
@@ -241,7 +261,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, usingManualRange]);
+  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -314,19 +334,21 @@ export default function Sales() {
     return acc;
   }, [filtered, splitsBySale, receiptsBySale]);
 
-  // Recebido somente NO MÊS atual (independente do filtro)
+  // Recebido no mês selecionado quando o filtro mensal estiver ativo.
   const recebidoNoMes = useMemo(() => {
     const today = nowBR();
-    const monthStart = startOfMonth(today);
+    const range = !usingManualRange && rangeKey === "MÊS"
+      ? monthRange(selectedMonth)
+      : { start: startOfMonth(today), end: endOfDay(today) };
     return allReceipts.reduce((sum: number, r: any) => {
       if (!r.paid_at) return sum;
       const d = new Date(r.paid_at);
-      if (d < monthStart || d > endOfDay(today)) return sum;
+      if (d < range.start || d > range.end) return sum;
       const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
       const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
       return sum + (val > 0 ? val : 0);
     }, 0);
-  }, [allReceipts]);
+  }, [allReceipts, rangeKey, selectedMonth, usingManualRange]);
 
   const chartSeries = useMemo(() => {
     const today = nowBR();
@@ -341,7 +363,9 @@ export default function Sales() {
     } else if (rangeKey === "7 DIAS") {
       start = subDays(today, 6);
     } else if (rangeKey === "MÊS") {
-      start = startOfMonth(today);
+      const range = monthRange(selectedMonth);
+      start = range.start;
+      end = range.end;
     } else if (rangeKey === "TUDO") {
       // fallback: últimos 90 dias para o gráfico não ficar gigante
       const earliest = filtered.reduce((acc: Date | null, s: any) => {
@@ -383,7 +407,7 @@ export default function Sales() {
       else if (s.status === "pendente" || s.status === "em_andamento") days[i].pendente += v;
     });
     return days;
-  }, [filtered, rangeKey, usingManualRange, dateFrom, dateTo]);
+  }, [filtered, rangeKey, selectedMonth, usingManualRange, dateFrom, dateTo]);
 
   const chartTotals = useMemo(() => {
     const t = chartSeries.reduce(
@@ -573,7 +597,7 @@ export default function Sales() {
     URL.revokeObjectURL(url);
   };
 
-  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setProductFilter("todos"); setClientFilter("todos"); setDateFrom(""); setDateTo(""); };
+  const clearFilters = () => { setSearch(""); setStatus("todos"); setPartnerFilter("todos"); setProductFilter("todos"); setClientFilter("todos"); setDateFrom(""); setDateTo(""); setSelectedMonth(currentMonthKey()); setRangeKey("MÊS"); };
   const activeChips: { label: string; clear: () => void }[] = [];
   if (search) activeChips.push({ label: `Busca: ${search}`, clear: () => setSearch("") });
   if (status !== "todos") activeChips.push({ label: `Status: ${status}`, clear: () => setStatus("todos") });
@@ -589,6 +613,7 @@ export default function Sales() {
     const c: any = clientsList.find((c: any) => c.id === clientFilter);
     activeChips.push({ label: `Cliente: ${c?.full_name ?? "Cliente"}`, clear: () => setClientFilter("todos") });
   }
+  if (!usingManualRange && rangeKey === "MÊS") activeChips.push({ label: `Mês: ${monthLabel(selectedMonth)}`, clear: () => setRangeKey("30 DIAS") });
   if (dateFrom) activeChips.push({ label: `De: ${dateFrom}`, clear: () => setDateFrom("") });
   if (dateTo) activeChips.push({ label: `Até: ${dateTo}`, clear: () => setDateTo("") });
   const hasActiveFilters = activeChips.length > 0;
@@ -619,6 +644,17 @@ export default function Sales() {
                 </button>
               ))}
             </div>
+            {rangeKey === "MÊS" && !usingManualRange && (
+              <div className="flex items-center gap-2 bg-white border border-slate-200/70 rounded-lg h-10 px-3 shadow-sm">
+                <CalendarRange className="size-3.5 text-slate-400" />
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value || currentMonthKey())}
+                  className="bg-transparent text-xs font-semibold text-slate-700 outline-none w-[132px] capitalize"
+                />
+              </div>
+            )}
             <Button variant="outline" size="sm" onClick={exportCSV} className="h-10 px-4 gap-2 border-slate-200/70 bg-white hover:bg-slate-50">
               <Download className="size-4" /> Exportar
             </Button>
@@ -631,7 +667,7 @@ export default function Sales() {
         }
         kpis={[
           { label: "Volume Bruto", value: formatBRL(kpis.total), tone: "primary", icon: <CircleDollarSign className="size-4" />, onClick: () => setKpiDetail("bruto") },
-          { label: "Recebido (mês)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: "Entradas confirmadas neste mês", onClick: () => setKpiDetail("recebido_mes") },
+          { label: !usingManualRange && rangeKey === "MÊS" ? `Recebido (${monthLabel(selectedMonth)})` : "Recebido (mês atual)", value: formatBRL(recebidoNoMes), tone: "success", icon: <HandCoins className="size-4" />, hint: !usingManualRange && rangeKey === "MÊS" ? "Entradas confirmadas no mês selecionado" : "Entradas confirmadas no mês atual", onClick: () => setKpiDetail("recebido_mes") },
           { label: "A Receber (saldo)", value: formatBRL(kpis.aReceber), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.recebido > 0 ? `Já recebido ${formatBRL(kpis.recebido)}` : undefined, onClick: () => setKpiDetail("a_receber") },
           { label: "Líquido", value: formatBRL(kpis.liquido), tone: "success", icon: <Sparkles className="size-4" />, hint: kpis.total > 0 ? `${((kpis.liquido / kpis.total) * 100).toFixed(1)}% margem` : undefined, onClick: () => setKpiDetail("liquido") },
           { label: "Custos (Zenon + Prestador)", value: formatBRL(kpis.custos), tone: "warning", icon: <Wallet className="size-4" />, hint: kpis.provider > 0 ? `Prestador ${formatBRL(kpis.provider)}` : undefined, onClick: () => setKpiDetail("custos") },
@@ -894,6 +930,17 @@ export default function Sales() {
               setDateTo(e.target.value);
               if (dateFrom && e.target.value && e.target.value < dateFrom) setDateFrom(e.target.value);
             }} className="bg-transparent text-xs text-slate-700 outline-none w-[120px]" />
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-md px-2.5 h-10">
+            <CalendarRange className="size-3.5 text-slate-400" />
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => { setSelectedMonth(e.target.value || currentMonthKey()); setRangeKey("MÊS"); setDateFrom(""); setDateTo(""); }}
+              className="bg-transparent text-xs text-slate-700 outline-none w-[132px] capitalize"
+              title="Filtrar por mês fechado"
+            />
           </div>
 
           {hasActiveFilters && (

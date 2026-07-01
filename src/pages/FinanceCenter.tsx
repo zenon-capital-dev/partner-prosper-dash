@@ -57,6 +57,34 @@ const isOpen = (s: string) => OPEN_STATUSES.includes(s);
 const isPaid = (s: string) => PAID_STATUSES.includes(s);
 
 const todayIsoStr = () => new Date().toISOString().slice(0, 10);
+const monthBounds = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
+  const safeMonth = Number.isFinite(month) ? month : new Date().getMonth() + 1;
+  const lastDay = new Date(safeYear, safeMonth, 0).getDate();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return {
+    start: `${safeYear}-${pad(safeMonth)}-01`,
+    end: `${safeYear}-${pad(safeMonth)}-${pad(lastDay)}`,
+  };
+};
+const monthExclusiveBounds = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
+  const safeMonth = Number.isFinite(month) ? month : new Date().getMonth() + 1;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const nextMonth = safeMonth === 12 ? 1 : safeMonth + 1;
+  const nextYear = safeMonth === 12 ? safeYear + 1 : safeYear;
+  return {
+    start: `${safeYear}-${pad(safeMonth)}-01`,
+    end: `${nextYear}-${pad(nextMonth)}-01`,
+  };
+};
+const monthFilterLabel = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return monthKey;
+  return new Date(year, month - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+};
 
 const effectiveStatus = (p: any, today: string) => {
   if (isOpen(p.status) && p.due_date && p.due_date < today) return "vencido";
@@ -168,7 +196,7 @@ export default function FinanceCenter() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
   const [kpiRange, setKpiRange] = useState<RangeMode>(
-    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
+    (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "specific"
   );
   const [specificMonth, setSpecificMonth] = useState<string>(
     (typeof window !== "undefined" && localStorage.getItem("fin:specificMonth")) || nowMonthKey()
@@ -185,14 +213,17 @@ export default function FinanceCenter() {
     let end = "9999-12-31";
     if (kpiRange === "all") { /* both wide */ }
     else if (kpiRange === "specific") {
-      const [y, m] = specificMonth.split("-").map(Number);
-      const s = new Date(y, m - 1, 1);
-      const e = new Date(y, m, 1);
-      start = s.toISOString().slice(0, 10);
-      end = e.toISOString().slice(0, 10);
+      const range = monthExclusiveBounds(specificMonth);
+      start = range.start;
+      end = range.end;
     } else {
       if (kpiRange === "week") d.setDate(d.getDate() - 7);
-      else if (kpiRange === "month") { d.setDate(1); }
+      else if (kpiRange === "month") {
+        const range = monthExclusiveBounds(nowMonthKey());
+        start = range.start;
+        end = range.end;
+        return { rangeStartIso: start, rangeEndIso: end };
+      }
       else if (kpiRange === "3m") d.setMonth(d.getMonth() - 3);
       else if (kpiRange === "6m") d.setMonth(d.getMonth() - 6);
       else if (kpiRange === "year") d.setMonth(d.getMonth() - 12);
@@ -201,8 +232,7 @@ export default function FinanceCenter() {
     return { rangeStartIso: start, rangeEndIso: end };
   }, [kpiRange, specificMonth]);
   const specificMonthLabel = useMemo(() => {
-    const [y, m] = specificMonth.split("-").map(Number);
-    return new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    return monthFilterLabel(specificMonth);
   }, [specificMonth]);
   const rangeLabel: Record<RangeMode, string> = {
     week: "últimos 7 dias",
@@ -780,6 +810,7 @@ function PaymentsTable({
   const [recurringFilter, setRecurringFilter] = useState("todos");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
   const [sortKey, setSortKey] = useState<string>("due_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
@@ -888,8 +919,12 @@ function PaymentsTable({
       label: `Recorrência: ${recurringFilter === "sim" ? "Sim" : "Não"}`,
       clear: () => setRecurringFilter("todos"),
     });
-  if (dateFrom) activeChips.push({ label: `De ${dateFrom}`, clear: () => setDateFrom("") });
-  if (dateTo) activeChips.push({ label: `Até ${dateTo}`, clear: () => setDateTo("") });
+  if (monthFilter) {
+    activeChips.push({ label: `Mês: ${monthFilterLabel(monthFilter)}`, clear: () => { setMonthFilter(""); setDateFrom(""); setDateTo(""); } });
+  } else {
+    if (dateFrom) activeChips.push({ label: `De ${dateFrom}`, clear: () => setDateFrom("") });
+    if (dateTo) activeChips.push({ label: `Até ${dateTo}`, clear: () => setDateTo("") });
+  }
 
   const clearAll = () => {
     setSearch("");
@@ -898,6 +933,7 @@ function PaymentsTable({
     setRecurringFilter("todos");
     setDateFrom("");
     setDateTo("");
+    setMonthFilter("");
     setPage(1);
   };
 
@@ -1106,17 +1142,36 @@ function PaymentsTable({
             </SelectContent>
           </Select>
           <Input
+            type="month"
+            className="h-9 bg-white border-slate-200"
+            value={monthFilter}
+            onChange={(e) => {
+              const value = e.target.value;
+              setMonthFilter(value);
+              if (value) {
+                const range = monthBounds(value);
+                setDateFrom(range.start);
+                setDateTo(range.end);
+              } else {
+                setDateFrom("");
+                setDateTo("");
+              }
+              setPage(1);
+            }}
+            title="Filtrar mês fechado"
+          />
+          <Input
             type="date"
             className="h-9 bg-white border-slate-200"
             value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
+            onChange={(e) => { setDateFrom(e.target.value); setMonthFilter(""); }}
             placeholder="De"
           />
           <Input
             type="date"
             className="h-9 bg-white border-slate-200"
             value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
+            onChange={(e) => { setDateTo(e.target.value); setMonthFilter(""); }}
             placeholder="Até"
           />
         </div>

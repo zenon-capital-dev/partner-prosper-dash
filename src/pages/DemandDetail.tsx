@@ -77,35 +77,40 @@ export default function DemandDetail() {
   const canUploadDoc = isAdmin || isAdminSecondary || isColaborador || isVendedor || isPrestador;
 
   const handleQuickDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file || !demand?.id) return;
+    if (files.length === 0 || !demand?.id) return;
     try {
       const { assertUploadFile, sanitizeStorageFileName, uploadErrorMessage } = await import("@/lib/uploads");
-      assertUploadFile(file);
+      files.forEach(assertUploadFile);
       setUploadingDoc(true);
       const clientId = (demand as any).client_id;
       if (!clientId) throw new Error("Demanda sem cliente vinculado");
-      const path = `${clientId}/${demand.id}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
-      if (upErr) throw upErr;
-      const { error: insErr } = await supabase.from("documents").insert({
-        client_id: (demand as any).client_id,
-        client_product_id: demand.id,
-        product_id: (demand as any).product_id ?? null,
-        name: file.name,
-        description: `Enviado por ${currentRole}`,
-        is_required: false,
-        file_path: path,
-        file_size: file.size,
-        mime_type: file.type,
-        uploaded_at: nowBR().toISOString(),
-        uploaded_by: user?.id ?? null,
-        source: currentRole,
-        status: "em_analise",
-      } as any);
+      const now = nowBR().toISOString();
+      const rows: any[] = [];
+      for (const [index, file] of files.entries()) {
+        const path = `${clientId}/${demand.id}/${Date.now()}-${index + 1}-${sanitizeStorageFileName(file.name)}`;
+        const { error: upErr } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        rows.push({
+          client_id: (demand as any).client_id,
+          client_product_id: demand.id,
+          product_id: (demand as any).product_id ?? null,
+          name: file.name,
+          description: `Enviado por ${currentRole}`,
+          is_required: false,
+          file_path: path,
+          file_size: file.size,
+          mime_type: file.type,
+          uploaded_at: now,
+          uploaded_by: user?.id ?? null,
+          source: currentRole,
+          status: "em_analise",
+        });
+      }
+      const { error: insErr } = await supabase.from("documents").insert(rows as any);
       if (insErr) throw insErr;
-      toast.success("Documento enviado");
+      toast.success(`${files.length} documento(s) enviado(s)`);
       qc.invalidateQueries({ queryKey: ["demand-detail", id] });
     } catch (err: any) {
       const { uploadErrorMessage } = await import("@/lib/uploads");
@@ -615,7 +620,7 @@ export default function DemandDetail() {
                            <label className={cn("inline-flex items-center gap-2 h-9 px-3 rounded-md border text-xs font-medium cursor-pointer bg-white hover:bg-slate-50", uploadingDoc && "opacity-60 pointer-events-none")}>
                              <Paperclip className="size-4" />
                              {uploadingDoc ? "Enviando..." : "Enviar documento"}
-                             <input type="file" className="hidden" onChange={handleQuickDocUpload} disabled={uploadingDoc} />
+                              <input type="file" multiple className="hidden" onChange={handleQuickDocUpload} disabled={uploadingDoc} />
                            </label>
                          )}
                          {canManage && <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">

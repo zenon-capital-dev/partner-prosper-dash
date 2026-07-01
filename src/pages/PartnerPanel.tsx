@@ -250,8 +250,10 @@ export default function PartnerPanel() {
   const [uploadingDocId, setUploadingDocId] = useState<string | null>(null);
   const [openHistoryId, setOpenHistoryId] = useState<string | null>(null);
 
-  const uploadPartnerDoc = async (docId: string, file: File, currentDoc?: any) => {
+  const uploadPartnerDoc = async (docId: string, filesInput: File | File[], currentDoc?: any) => {
     if (!partner?.id) return;
+    const files = Array.isArray(filesInput) ? filesInput : [filesInput];
+    if (files.length === 0) return;
     if (currentDoc?.status === "aprovado") {
       toast.error("Este documento já foi aprovado e não pode ser substituído.");
       return;
@@ -262,8 +264,17 @@ export default function PartnerPanel() {
     }
     setUploadingDocId(docId);
     try {
-      const path = `partners/${partner.id}/${docId}-${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-      await uploadStorageFileFast("documents", path, file, false);
+      const now = new Date().toISOString();
+      const uploaded = [] as Array<{ file: File; path: string }>;
+      for (const [index, file] of files.entries()) {
+        const path = `partners/${partner.id}/${docId}-${Date.now()}-${index + 1}-${sanitizeStorageFileName(file.name)}`;
+        await uploadStorageFileFast("documents", path, file, false);
+        uploaded.push({ file, path });
+      }
+
+      const primary = uploaded[0];
+      const extraUploads = uploaded.slice(1);
+      if (!primary) throw new Error("Nenhum arquivo selecionado");
 
       // Save previous file in history before replacing
       if (currentDoc?.file_path) {
@@ -284,21 +295,43 @@ export default function PartnerPanel() {
 
       const { error: updErr } = await supabase
         .from("documents")
-        .update({ file_path: path, file_size: file.size, mime_type: file.type, status: "enviado", uploaded_at: new Date().toISOString(), uploaded_by: user?.id ?? null, rejection_reason: null })
+        .update({ file_path: primary.path, file_size: primary.file.size, mime_type: primary.file.type, status: "enviado", uploaded_at: now, uploaded_by: user?.id ?? null, rejection_reason: null })
         .eq("id", docId);
       if (updErr) throw updErr;
-      qc.setQueryData(["partner-mydocs", partner.id], (old: any) => Array.isArray(old)
-        ? old.map((doc) => doc.id === docId ? {
-          ...doc,
+
+      if (extraUploads.length > 0) {
+        const rows = extraUploads.map(({ file, path }) => ({
+          partner_id: partner.id,
+          name: `${currentDoc?.name || "Documento"} · ${file.name}`,
+          description: currentDoc?.description ?? null,
+          due_date: currentDoc?.due_date ?? null,
+          priority: currentDoc?.priority ?? "media",
+          status: "enviado",
           file_path: path,
           file_size: file.size,
           mime_type: file.type,
+          uploaded_at: now,
+          uploaded_by: user?.id ?? null,
+          requested_by: currentDoc?.requested_by ?? null,
+          is_required: false,
+          source: "partner_upload",
+        }));
+        const { error: insertErr } = await supabase.from("documents").insert(rows as any);
+        if (insertErr) throw insertErr;
+      }
+
+      qc.setQueryData(["partner-mydocs", partner.id], (old: any) => Array.isArray(old)
+        ? old.map((doc) => doc.id === docId ? {
+          ...doc,
+          file_path: primary.path,
+          file_size: primary.file.size,
+          mime_type: primary.file.type,
           status: "enviado",
-          uploaded_at: new Date().toISOString(),
+          uploaded_at: now,
           rejection_reason: null,
         } : doc)
         : old);
-      toast.success("Documento enviado");
+      toast.success(`${files.length} arquivo(s) enviado(s)`);
       qc.invalidateQueries({ queryKey: ["partner-mydocs", partner.id] });
       qc.invalidateQueries({ queryKey: ["partner-doc-versions", docId] });
     } catch (e: any) {
@@ -770,8 +803,8 @@ export default function PartnerPanel() {
                             {!approved && (
                               <label className="inline-flex items-center h-8 px-2.5 rounded-md text-[11px] font-medium bg-primary text-white hover:opacity-90 cursor-pointer">
                                 <Upload className="size-3 mr-1" />
-                                {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir arquivo" : "Enviar arquivo"}
-                                <input type="file" className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadPartnerDoc(d.id, f, d); e.target.value = ""; }} />
+                                {uploadingDocId === d.id ? "Enviando..." : sent ? "Substituir arquivo(s)" : "Enviar arquivo(s)"}
+                                <input type="file" multiple className="hidden" disabled={uploadingDocId === d.id} onChange={(e) => { const files = Array.from(e.target.files ?? []); if (files.length) uploadPartnerDoc(d.id, files, d); e.currentTarget.value = ""; }} />
                               </label>
                             )}
                           </div>

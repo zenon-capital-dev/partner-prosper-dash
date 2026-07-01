@@ -107,30 +107,34 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
   }
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const selectedFiles = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file || !currentFolderId) return;
+    if (!selectedFiles.length || !currentFolderId) return;
     try {
       setUploading(true);
-      const safe = sanitizeStorageFileName(file.name);
-      const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${safe}`;
-      const up = await supabase.storage.from("documents").upload(path, file);
-      if (up.error) throw up.error;
-      const { error } = await supabase.from("documents").insert({
-        client_id: clientId,
-        folder_id: currentFolderId,
-        name: file.name,
-        file_path: path,
-        file_size: file.size,
-        mime_type: file.type,
-        status: "aprovado",
-        source: viewerRole === "client" ? "client_upload" : "admin_upload",
-        uploaded_by: user?.id,
-        uploaded_at: new Date().toISOString(),
-        is_required: false,
-      } as any);
+      const rows: any[] = [];
+      for (const [index, file] of selectedFiles.entries()) {
+        const safe = sanitizeStorageFileName(file.name);
+        const path = `${clientId}/folder/${currentFolderId}/${Date.now()}_${index}_${safe}`;
+        const up = await supabase.storage.from("documents").upload(path, file);
+        if (up.error) throw up.error;
+        rows.push({
+          client_id: clientId,
+          folder_id: currentFolderId,
+          name: file.name,
+          file_path: path,
+          file_size: file.size,
+          mime_type: file.type,
+          status: "aprovado",
+          source: viewerRole === "client" ? "client_upload" : "admin_upload",
+          uploaded_by: user?.id,
+          uploaded_at: new Date().toISOString(),
+          is_required: false,
+        });
+      }
+      const { error } = await supabase.from("documents").insert(rows as any);
       if (error) throw error;
-      toast.success("Arquivo enviado");
+      toast.success(`${selectedFiles.length} arquivo(s) enviado(s)`);
       qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e));
@@ -235,10 +239,10 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   )}
                   {canUpload && (
                     <>
-                      <input ref={fileRef} type="file" hidden onChange={onUpload} />
+                      <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
                       <Button size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
                         {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
-                        Enviar arquivo
+                        Enviar arquivos
                       </Button>
                     </>
                   )}

@@ -126,51 +126,61 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
   };
 
   const handleAdminFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file || !pendingUpload) return;
-    try {
-      assertUploadFile(file);
-    } catch (err: any) {
-      toast.error(uploadErrorMessage(err));
-      return;
+    if (!files.length || !pendingUpload) return;
+    for (const file of files) {
+      try {
+        assertUploadFile(file);
+      } catch (err: any) {
+        toast.error(uploadErrorMessage(err));
+        return;
+      }
     }
     setUploading(true);
     const productSegment = pendingUpload.productId ?? "geral";
-    const path = `${clientId}/${productSegment}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
-    const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
-    if (upErr) { toast.error(uploadErrorMessage(upErr)); setUploading(false); return; }
+    const now = nowBR().toISOString();
+    const rows: any[] = [];
 
-    const baseFields = {
-      file_path: path,
-      file_size: file.size,
-      mime_type: file.type,
-      uploaded_at: nowBR().toISOString(),
-      uploaded_by: user?.id ?? null,
-      source: pendingUpload.source,
-      status: "em_analise" as const,
-    };
+    for (const [index, file] of files.entries()) {
+      const path = `${clientId}/${productSegment}/${Date.now()}-${index}-${sanitizeStorageFileName(file.name)}`;
+      const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
+      if (upErr) { toast.error(uploadErrorMessage(upErr)); setUploading(false); return; }
 
-    if (pendingUpload.doc?.id) {
-      const oldPath = pendingUpload.doc.file_path as string | undefined;
-      const { error } = await supabase.from("documents").update(baseFields as any).eq("id", pendingUpload.doc.id);
-      if (error) { toast.error(error.message); setUploading(false); return; }
-      if (oldPath && oldPath !== path) {
-        // limpa blob órfão; ignora erro (pode não ter permissão de delete)
-        await supabase.storage.from("documents").remove([oldPath]).catch(() => {});
+      const baseFields = {
+        file_path: path,
+        file_size: file.size,
+        mime_type: file.type,
+        uploaded_at: now,
+        uploaded_by: user?.id ?? null,
+        source: pendingUpload.source,
+        status: "em_analise" as const,
+      };
+
+      if (pendingUpload.doc?.id && index === 0) {
+        const oldPath = pendingUpload.doc.file_path as string | undefined;
+        const { error } = await supabase.from("documents").update(baseFields as any).eq("id", pendingUpload.doc.id);
+        if (error) { toast.error(error.message); setUploading(false); return; }
+        if (oldPath && oldPath !== path) {
+          // limpa blob órfão; ignora erro (pode não ter permissão de delete)
+          await supabase.storage.from("documents").remove([oldPath]).catch(() => {});
+        }
+      } else {
+        rows.push({
+          client_id: clientId,
+          product_id: pendingUpload.productId ?? null,
+          name: file.name,
+          description: pendingUpload.doc?.id ? `Anexo adicional de ${pendingUpload.doc.name}` : `Anexado pelo admin (${pendingUpload.source})`,
+          is_required: false,
+          ...baseFields,
+        });
       }
-    } else {
-      const { error } = await supabase.from("documents").insert({
-        client_id: clientId,
-        product_id: pendingUpload.productId ?? null,
-        name: file.name,
-        description: `Anexado pelo admin (${pendingUpload.source})`,
-        is_required: false,
-        ...baseFields,
-      } as any);
+    }
+    if (rows.length > 0) {
+      const { error } = await supabase.from("documents").insert(rows as any);
       if (error) { toast.error(error.message); setUploading(false); return; }
     }
-    toast.success("Documento anexado");
+    toast.success(`${files.length} documento(s) anexado(s)`);
     setUploading(false);
     setPendingUpload(null);
     refresh();
@@ -474,6 +484,7 @@ export function ClientDocuments({ clientId }: { clientId: string; user_id?: stri
       <input
         ref={adminFileRef}
         type="file"
+        multiple
         className="hidden"
         onChange={handleAdminFileSelected}
       />
