@@ -28,6 +28,7 @@ import { ComposedChart, Area, Bar, Line, ResponsiveContainer, Tooltip, XAxis, YA
 import { confirmAction } from "@/lib/confirm";
 import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
