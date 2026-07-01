@@ -24,6 +24,26 @@ export default function ClientJourney() {
   const [search, setSearch] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
+  const FKEY = "journey:visible-stages:v1";
+  const [visibleStages, setVisibleStages] = useState<Set<string> | null>(() => {
+    try {
+      const raw = localStorage.getItem(FKEY);
+      if (!raw) return null;
+      const arr = JSON.parse(raw) as string[];
+      return new Set(arr);
+    } catch { return null; }
+  });
+  const [showUnassigned, setShowUnassigned] = useState<boolean>(() => {
+    try { return localStorage.getItem("journey:show-unassigned:v1") !== "0"; } catch { return true; }
+  });
+  useEffect(() => {
+    try {
+      if (visibleStages) localStorage.setItem(FKEY, JSON.stringify(Array.from(visibleStages)));
+      else localStorage.removeItem(FKEY);
+      localStorage.setItem("journey:show-unassigned:v1", showUnassigned ? "1" : "0");
+    } catch {}
+  }, [visibleStages, showUnassigned]);
+
 
   const { data: stages = [] } = useQuery<Stage[]>({
     queryKey: ["journey-stages"],
