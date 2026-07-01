@@ -246,10 +246,15 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   };
 
   // Defesa em profundidade: cliente NUNCA vê pastas internas, mesmo se a RLS falhar
-  const visibleFolders = useMemo(
-    () => (role === "client" ? folders.filter((f) => f.scope === "client") : folders),
-    [folders, role]
-  );
+  const visibleFolders = useMemo(() => {
+    let list = role === "client" ? folders.filter((f) => f.scope === "client") : folders;
+    if (role === "admin" && adminFilter !== "all") list = list.filter((f) => f.scope === adminFilter);
+    if (nameQuery.trim()) {
+      const q = nameQuery.trim().toLowerCase();
+      list = list.filter((f) => f.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [folders, role, adminFilter, nameQuery]);
 
   return (
     <div className="space-y-4">
