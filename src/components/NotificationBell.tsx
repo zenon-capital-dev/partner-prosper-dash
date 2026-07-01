@@ -133,7 +133,16 @@ export function NotificationBell() {
             ))
           )}
         </div>
+        <button
+          onClick={() => { setOpen(false); navigate("/notificacoes"); }}
+          className="w-full text-center text-xs text-primary hover:underline py-2 border-t border-border bg-muted/30"
+        >
+          Ver todas as notificações
+        </button>
       </PopoverContent>
     </Popover>
+  );
+}
+
   );
 }
