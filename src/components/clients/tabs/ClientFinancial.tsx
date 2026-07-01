@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink, Pencil } from "lucide-react";
+import { Wallet, DollarSign, ArrowUpRight, CheckCircle2, AlertCircle, ShoppingBag, Plus, ExternalLink, Pencil, Receipt } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
