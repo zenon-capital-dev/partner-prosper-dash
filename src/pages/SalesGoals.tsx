@@ -122,14 +122,21 @@ export default function SalesGoals() {
   async function saveGoal() {
     const value = parseFloat(form.target_value.replace(",", "."));
     if (!value || value <= 0) { toast.error("Valor da meta inválido"); return; }
+    let goalTypeKey: string = form.goal_type;
+    if (form.goal_type === "custom") {
+      const name = form.custom_name.trim();
+      if (!name) { toast.error("Dê um nome ao índice personalizado"); return; }
+      goalTypeKey = `custom:${form.is_currency ? "money" : "num"}:${name}`;
+    }
     const { error } = await (supabase as any).from("sales_goals").upsert({
-      period_month: month, goal_type: form.goal_type, target_value: value, responsible_id: null,
+      period_month: month, goal_type: goalTypeKey, target_value: value, responsible_id: null,
     }, { onConflict: "period_month,goal_type" });
     if (error) { toast.error(error.message); return; }
     toast.success("Meta salva");
-    setOpen(false); setForm({ goal_type: "revenue", target_value: "" });
+    setOpen(false); setForm({ goal_type: "revenue", custom_name: "", is_currency: false, target_value: "" });
     qc.invalidateQueries({ queryKey: ["sales_goals", month] });
   }
+
 
   async function deleteGoal(id: string) {
     if (!(await confirmAction({ title: "Remover meta?", description: "Esta ação não pode ser desfeita." }))) return;
