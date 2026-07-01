@@ -1,0 +1,11 @@
+REVOKE EXECUTE ON FUNCTION public.check_overdue_documents() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.check_pending_commissions() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.complete_client_onboarding() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.create_notification(uuid, text, text, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.log_action(text, text, uuid, jsonb, jsonb) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.mark_overdue_payments() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.notification_enabled(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.notify_admins(text, text, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.notify_on_contract_change() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.notify_tasks_due_today() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_super_admin(uuid) FROM PUBLIC, anon, authenticated;

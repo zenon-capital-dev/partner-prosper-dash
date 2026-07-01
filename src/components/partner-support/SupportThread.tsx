@@ -254,8 +254,10 @@ function Attachment({ path, name, mime, size }: { path: string; name: string; mi
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
-        const url = `https://iptzhxbffiheclntoqlz.supabase.co/storage/v1/object/authenticated/support-attachments/${path}`;
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const url = `${baseUrl}/storage/v1/object/authenticated/support-attachments/${path}`;
+        const res = await fetch(url, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } });
         if (!res.ok) return;
         const blob = await res.blob();
         objectUrl = URL.createObjectURL(blob);
