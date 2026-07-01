@@ -2518,6 +2518,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           file_url: string | null
+          files: Json
           id: string
           provider_id: string | null
           status: string | null
@@ -2530,6 +2531,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           file_url?: string | null
+          files?: Json
           id?: string
           provider_id?: string | null
           status?: string | null
@@ -2542,6 +2544,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           file_url?: string | null
+          files?: Json
           id?: string
           provider_id?: string | null
           status?: string | null
