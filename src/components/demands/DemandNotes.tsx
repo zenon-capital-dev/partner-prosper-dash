@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -50,12 +51,12 @@ export function DemandNotes({
 
   const add = useMutation({
     mutationFn: async (content: string) => {
-      const { data: u } = await supabase.auth.getUser();
+      const uid = await getCurrentUserId();
       const { error } = await supabase.from("notes").insert({
         content: content.trim(),
         client_product_id: clientProductId,
         client_id: clientId ?? null,
-        created_by: u.user?.id,
+        created_by: uid,
         is_private: false,
       });
       if (error) throw error;

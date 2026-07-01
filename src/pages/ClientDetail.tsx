@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import {
   ArrowLeft, Plus, Pencil, MessageSquare,
   FileText, ShoppingBag, FileSignature, ClipboardList,
@@ -105,10 +106,10 @@ export default function ClientDetail() {
   const saveInteraction = async () => {
     if (!id || !interactionTitle.trim()) return toast.error("Informe um título");
     setSavingInteraction(true);
-    const { data: userData } = await supabase.auth.getUser();
+    const uid = await getCurrentUserId();
     const { error } = await supabase.from("client_timeline").insert({
       client_id: id,
-      user_id: userData.user?.id,
+      user_id: uid,
       event_type: "note_added",
       title: interactionTitle.trim(),
       description: interactionDesc.trim() || null,

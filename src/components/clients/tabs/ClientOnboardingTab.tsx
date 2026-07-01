@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { openDownloadUrl } from "@/lib/download";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -50,7 +51,7 @@ export function ClientOnboardingTab({ clientId }: { clientId: string }) {
           status, 
           rejection_reason: reason || null,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: (await supabase.auth.getUser()).data.user?.id
+          reviewed_by: await getCurrentUserId()
         } as any)
         .eq("id", docId);
       if (error) throw error;

@@ -2,6 +2,7 @@ import { formatBR, nowBR, toBR, isTodayBR, ymdBR } from "@/lib/datetime";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { parseISO, isToday, isPast, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -462,7 +463,7 @@ function ClientInteractionDialog({
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const uid = await getCurrentUserId();
       const payload: any = {
         client_id: client.id,
         channel,
@@ -470,7 +471,7 @@ function ClientInteractionDialog({
         occurred_at: toBR(occurredAt).toISOString(),
         next_action_at: nextActionAt || null,
         next_action_note: nextActionNote || null,
-        created_by: user?.id ?? null,
+        created_by: uid,
       };
       const { error } = await supabase.from("client_interactions" as any).insert(payload);
       if (error) throw error;

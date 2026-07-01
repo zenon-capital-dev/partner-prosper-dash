@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { toast } from "sonner";
 import { CalendarClock } from "lucide-react";
 
@@ -45,7 +46,7 @@ export function LeadFollowUpDialog({ open, onOpenChange, lead, onSaved }: Props)
 
     setSaving(true);
     try {
-      const { data: u } = await supabase.auth.getUser();
+      const uid = await getCurrentUserId();
       const dueIso = new Date(dueDate).toISOString();
 
       const { error: tErr } = await supabase.from("tasks").insert({
@@ -57,8 +58,8 @@ export function LeadFollowUpDialog({ open, onOpenChange, lead, onSaved }: Props)
         priority: "media",
         related_to_type: "lead",
         related_to_id: lead.id,
-        assigned_to: u.user?.id ?? lead.responsible_id ?? null,
-        created_by: u.user?.id ?? null,
+        assigned_to: uid ?? lead.responsible_id ?? null,
+        created_by: uid,
       });
       if (tErr) throw tErr;
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { openDownloadUrl } from "@/lib/download";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentUserId } from "@/lib/current-user";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileSignature, Download, CheckCircle2, Clock, AlertCircle, Loader2, ShieldCheck, History } from "lucide-react";
@@ -74,7 +75,7 @@ export function ClientContractsTab({
       await supabase.from("contract_history").insert({
         contract_id: contract.id,
         status: "assinado",
-        action_by: (await supabase.auth.getUser()).data.user?.id,
+        action_by: await getCurrentUserId(),
         notes: "Contrato assinado pelo cliente via painel."
       });
 
