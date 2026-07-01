@@ -40,6 +40,7 @@ const PartnerMaterialsAdmin = lazy(() => import("./pages/PartnerMaterialsAdmin")
 const PartnerContractsAdmin = lazy(() => import("./pages/PartnerContractsAdmin"));
 const PartnerSupportAdmin = lazy(() => import("./pages/PartnerSupportAdmin"));
 const ClientSupportAdmin = lazy(() => import("./pages/ClientSupportAdmin"));
+const RequestsInbox = lazy(() => import("./pages/RequestsInbox"));
 const ClientPanel = lazy(() => import("./pages/ClientPanel"));
 const ClientOnboarding = lazy(() => import("./pages/ClientOnboarding"));
 const Collaborators = lazy(() => import("./pages/Collaborators"));
@@ -173,6 +174,7 @@ const App = () => (
               <Route path="/usuarios" element={<UsersPage />} />
               <Route path="/suporte" element={<Navigate to="/configuracoes" replace />} />
               <Route path="/templates" element={<MessageTemplates />} />
+              <Route path="/solicitacoes" element={<RequestsInbox />} />
             </Route>
             {/* RoleHome roda fora de qualquer layout para não dar flash da sidebar admin
                 em quem é cliente/parceiro/etc. antes de o redirect levar pro painel certo. */}
@@ -183,6 +185,7 @@ const App = () => (
             </Route>
 
             <Route path="/demandas/:id" element={<RouteGuard><DemandDetail /></RouteGuard>} />
+            <Route path="/minhas-solicitacoes" element={<RouteGuard><RequestsInbox /></RouteGuard>} />
 
             <Route element={<PanelLayout />}>
               <Route path="/parceiro" element={<PartnerPanel />} />
