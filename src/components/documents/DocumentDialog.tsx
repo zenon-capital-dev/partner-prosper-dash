@@ -476,6 +476,22 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                             </Button>
                           )}
                         </div>
+                        <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            className="size-3.5 accent-indigo-600"
+                            checked={item.requires_signature}
+                            onChange={(e) => {
+                              const next = [...items];
+                              next[idx] = { ...next[idx], requires_signature: e.target.checked };
+                              setItems(next);
+                            }}
+                          />
+                          <PenLine className="size-3 text-indigo-600" />
+                          <span className="text-[11px] text-slate-600">
+                            Requer assinatura {item.requires_signature && "— o arquivo anexado será o original a ser assinado"}
+                          </span>
+                        </label>
                       </div>
                       {items.length > 1 && (
                         <Button
