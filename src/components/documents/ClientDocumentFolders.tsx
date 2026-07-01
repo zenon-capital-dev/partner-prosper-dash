@@ -16,8 +16,9 @@ import { sanitizeStorageFileName, uploadErrorMessage } from "@/lib/uploads";
 import { downloadStorageFile } from "@/lib/download";
 import {
   FolderPlus, Folder, Upload, FileText, Download, Eye, Trash2, Users, Pencil,
-  Loader2,
+  Loader2, FilePlus2,
 } from "lucide-react";
+import { DocumentDialog } from "@/components/documents/DocumentDialog";
 
 type Role = "admin" | "client" | "provider";
 
