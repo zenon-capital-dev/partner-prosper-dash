@@ -18,13 +18,16 @@ import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
 
-type GoalType = "leads" | "proposals" | "sales_count" | "revenue";
+type GoalType = "leads" | "proposals" | "sales_count" | "revenue" | "stage_movements" | "clients_closed";
 const TYPES: { value: GoalType; label: string; isCurrency: boolean }[] = [
   { value: "leads", label: "Leads captados", isCurrency: false },
   { value: "proposals", label: "Propostas enviadas", isCurrency: false },
   { value: "sales_count", label: "Qtd. de vendas", isCurrency: false },
-  { value: "revenue", label: "Receita (R$)", isCurrency: true },
+  { value: "revenue", label: "Receita recebida (R$)", isCurrency: true },
+  { value: "stage_movements", label: "Movimentações na esteira", isCurrency: false },
+  { value: "clients_closed", label: "Clientes fechados", isCurrency: false },
 ];
+
 
 function monthKey(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
