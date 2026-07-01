@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
-import { Plus, MessageSquare, FileQuestion, CheckCircle2, Clock, X } from "lucide-react";
+import { Plus, MessageSquare, FileQuestion, CheckCircle2, Clock, X, Send, ChevronDown, ChevronUp } from "lucide-react";
 
 type Role = "admin" | "parceiro" | "prestador" | "cliente" | "colaborador";
 
