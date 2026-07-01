@@ -295,8 +295,34 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createFolder()}
             />
+            {role === "provider" && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewScope("client")}
+                  className={cn(
+                    "flex-1 text-left border rounded-lg p-2 text-xs",
+                    newScope === "client" ? "border-primary bg-primary/5" : "border-slate-200"
+                  )}
+                >
+                  <div className="font-semibold flex items-center gap-1"><Users className="size-3" /> Compartilhar com cliente</div>
+                  <div className="text-[10px] text-muted-foreground">Cliente e Zenon veem os arquivos.</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewScope("internal")}
+                  className={cn(
+                    "flex-1 text-left border rounded-lg p-2 text-xs",
+                    newScope === "internal" ? "border-primary bg-primary/5" : "border-slate-200"
+                  )}
+                >
+                  <div className="font-semibold flex items-center gap-1"><Lock className="size-3" /> Interna</div>
+                  <div className="text-[10px] text-muted-foreground">Só você e a Zenon.</div>
+                </button>
+              </div>
+            )}
             <p className="text-[11px] text-muted-foreground">
-              {scopeForRole === "internal"
+              {effectiveScope === "internal"
                 ? "Esta pasta será interna: apenas você e a equipe Zenon terão acesso. O cliente e outros prestadores não vão vê-la."
                 : "Esta pasta será visível para o cliente e para a equipe Zenon."}
             </p>
