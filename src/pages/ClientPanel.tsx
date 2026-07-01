@@ -357,9 +357,18 @@ export default function ClientPanel() {
                               )}
                             </div>
                           </div>
-                          <div className="lg:text-right shrink-0 lg:min-w-[150px]">
-                            <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Valor da pendência</p>
-                            <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-slate-900">{formatBRL(outstanding || Number(p.amount || 0))}</p>
+                          <div className="lg:text-right shrink-0 lg:min-w-[180px] space-y-2">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Valor da pendência</p>
+                              <p className="mt-1 font-mono text-xl font-semibold tabular-nums text-slate-900">{formatBRL(outstanding || Number(p.amount || 0))}</p>
+                            </div>
+                            {p.status !== "pago" && p.status !== "paga" && p.status !== "cancelado" && clientId && (
+                              <PaymentReceiptDialog
+                                clientId={clientId}
+                                payment={p}
+                                invalidateKey={["client-payments", clientId]}
+                              />
+                            )}
                           </div>
                         </div>
                       </li>
