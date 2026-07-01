@@ -549,10 +549,37 @@ export default function DemandDetail() {
                   </div>
                </TabsContent>
 
-               <TabsContent value="resumo" className="animate-fade-up">
+               <TabsContent value="resumo" className="animate-fade-up space-y-4">
+                  <div className="vx-card p-5 bg-blue-50/40 border-blue-100">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      O <b>Resumo</b> é o briefing desta demanda específica — o que precisa ser feito, escopo, contexto e observações. Ele começa com a descrição padrão do produto (cadastrada em <b>Produtos</b>) e pode ser personalizado aqui para este cliente. {canManage && "Clique em \"Editar resumo\" para ajustar."}
+                    </p>
+                  </div>
                   <div className="vx-card p-8 bg-card">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Sobre a demanda</h3>
-                    <p className="text-sm text-foreground leading-relaxed">{(demand.products as any)?.description || "Nenhuma descrição disponível para este produto."}</p>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Sobre a demanda</h3>
+                      {canManage && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs"
+                          onClick={async () => {
+                            const current = (demand as any).notes || (demand.products as any)?.description || "";
+                            const val = window.prompt("Resumo / briefing desta demanda:", current);
+                            if (val === null) return;
+                            const { error } = await supabase.from("client_products").update({ notes: val }).eq("id", demand.id);
+                            if (error) { toast.error(error.message); return; }
+                            toast.success("Resumo atualizado");
+                            qc.invalidateQueries({ queryKey: ["demand", demand.id] });
+                          }}
+                        >
+                          Editar resumo
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                      {(demand as any).notes || (demand.products as any)?.description || "Nenhum resumo cadastrado ainda. O texto padrão vem da descrição do produto (cadastro em Produtos) e pode ser personalizado aqui para esta demanda."}
+                    </p>
                   </div>
                </TabsContent>
 
