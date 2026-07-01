@@ -45,6 +45,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
   const [openFolderId, setOpenFolderId] = useState<string | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newScope, setNewScope] = useState<Scope>(role === "provider" ? "client" : "client");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [me, setMe] = useState<string | null>(null);
   const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
