@@ -128,6 +128,40 @@ export default function FinanceCenter() {
   const { isAdmin, isAdminSecondary } = useAuth();
   const canManage = isAdmin || isAdminSecondary;
   const [newPaymentOpen, setNewPaymentOpen] = useState(false);
+  const [allocOpen, setAllocOpen] = useState(false);
+  const [allocPool, setAllocPool] = useState<string>("");
+  const [allocAmount, setAllocAmount] = useState("");
+  const [allocDesc, setAllocDesc] = useState("");
+  const { data: poolsList = [] } = useQuery({
+    queryKey: ["fin-pools-list"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("resource_pools")
+        .select("id, name, current_balance, color")
+        .eq("active", true)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const submitAllocation = async () => {
+    const amt = parseFloat(allocAmount.replace(",", "."));
+    if (!allocPool) { toast.error("Selecione uma caixinha"); return; }
+    if (!amt || amt <= 0) { toast.error("Valor inválido"); return; }
+    const { error } = await (supabase as any).from("resource_pool_movements").insert({
+      pool_id: allocPool,
+      movement_type: "entrada",
+      amount: amt,
+      description: allocDesc || "Alocação a partir do saldo líquido",
+      reference_type: "finance_allocation",
+    });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Valor destinado à caixinha");
+    setAllocOpen(false); setAllocPool(""); setAllocAmount(""); setAllocDesc("");
+    qc.invalidateQueries({ queryKey: ["fin-pools-list"] });
+    qc.invalidateQueries({ queryKey: ["resource_pools"] });
+    qc.invalidateQueries({ queryKey: ["resource_pool_movements"] });
+  };
   const [kpiRange, setKpiRange] = useState<"week" | "month" | "3m" | "6m" | "year" | "all">(
     (typeof window !== "undefined" && (localStorage.getItem("fin:kpiRange") as any)) || "month"
   );
