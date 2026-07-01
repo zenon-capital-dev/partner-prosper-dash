@@ -88,7 +88,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         });
         setRecipientType("client");
         setSelectedRecipientId(propClientId || "");
-        setItems([{ name: "", file: null }]);
+        setItems([{ name: "", file: null, requires_signature: false }]);
       }
     }
   }, [open, editDoc, propClientId, defaultProductId, propClientProductId]);
@@ -305,7 +305,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     onOpenChange(false);
     setForm({});
     setSelectedFileName("");
-    setItems([{ name: "", file: null }]);
+    setItems([{ name: "", file: null, requires_signature: false }]);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -468,7 +468,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                 variant="outline"
                 size="sm"
                 className="w-full gap-1.5 border-dashed"
-                onClick={() => setItems([...items, { name: "", file: null }])}
+                onClick={() => setItems([...items, { name: "", file: null, requires_signature: false }])}
               >
                 <Plus className="size-3.5" /> Adicionar outro documento
               </Button>
