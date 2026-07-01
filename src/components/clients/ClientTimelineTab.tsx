@@ -6,6 +6,7 @@ import { parseISO, differenceInCalendarDays, isToday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   CheckCircle2, Video, Phone, FileText, Bell, RotateCcw, Calendar, Plus, Clock, AlertTriangle, MapPin,
+  MessageSquare, LifeBuoy, Inbox, ArrowRight, User, Building2, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +22,18 @@ const KIND_META: Record<string, { label: string; icon: any; color: string }> = {
   follow_up:           { label: "Follow-up",  icon: RotateCcw,    color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
 };
 
+const ROLE_META: Record<string, { label: string; icon: any; color: string }> = {
+  admin:      { label: "Zenon",     icon: Building2, color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  colaborador:{ label: "Zenon",     icon: Building2, color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  cliente:    { label: "Cliente",   icon: User,      color: "bg-sky-50 text-sky-700 border-sky-200" },
+  prestador:  { label: "Prestador", icon: Wrench,    color: "bg-amber-50 text-amber-700 border-amber-200" },
+  parceiro:   { label: "Parceiro",  icon: User,      color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+};
+
 export function ClientTimelineTab({ clientId }: { clientId: string }) {
+  const [mode, setMode] = useState<"tarefas" | "acoes">("tarefas");
   const [filter, setFilter] = useState<"all" | "pendentes" | "concluidas">("all");
+
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["client-timeline", clientId],
