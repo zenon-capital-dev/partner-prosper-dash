@@ -231,7 +231,7 @@ export default function ClientJourney() {
       </p>
 
       <div className="flex gap-3 overflow-x-auto pb-4">
-        {byStage.unassigned.length > 0 && (
+        {showUnassigned && byStage.unassigned.length > 0 && (
           <Column
             title="Sem estágio"
             color="#94a3b8"
