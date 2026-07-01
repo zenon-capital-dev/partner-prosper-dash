@@ -28,6 +28,7 @@ import { ClientOnboardingTab } from "@/components/clients/tabs/ClientOnboardingT
 import { ClientContracts } from "@/components/clients/tabs/ClientContracts";
 import { ClientFinancial } from "@/components/clients/tabs/ClientFinancial";
 import { ClientTasks } from "@/components/clients/tabs/ClientTasks";
+import { ClientDeliveries } from "@/components/clients/tabs/ClientDeliveries";
 import { ClientHistory } from "@/components/clients/tabs/ClientHistory";
 import { ClientTimelineTab } from "@/components/clients/ClientTimelineTab";
 import { IntelligentSummary } from "@/components/clients/IntelligentSummary";
