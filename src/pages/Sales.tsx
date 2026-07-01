@@ -262,6 +262,7 @@ export default function Sales() {
             return amt - custos - comm;
           }
           case "recebido": return Math.min(receiptsBySale.get(x.id)?.received ?? 0, Number(x.amount || 0));
+        }
       };
       const va = v(a), vb = v(b);
       if (va == null && vb == null) return 0;
