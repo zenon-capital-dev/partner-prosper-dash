@@ -568,9 +568,18 @@ export default function DemandDetail() {
                         <h3 className="text-base font-bold text-foreground">Documentação</h3>
                         <p className="text-xs text-muted-foreground">Solicite e acompanhe os arquivos desta demanda.</p>
                      </div>
-                      {canManage && <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
-                        <FilePlus className="size-4" /> Solicitar Documento
-                      </Button>}
+                       <div className="flex gap-2">
+                         {canUploadDoc && (
+                           <label className={cn("inline-flex items-center gap-2 h-9 px-3 rounded-md border text-xs font-medium cursor-pointer bg-white hover:bg-slate-50", uploadingDoc && "opacity-60 pointer-events-none")}>
+                             <Paperclip className="size-4" />
+                             {uploadingDoc ? "Enviando..." : "Enviar documento"}
+                             <input type="file" className="hidden" onChange={handleQuickDocUpload} disabled={uploadingDoc} />
+                           </label>
+                         )}
+                         {canManage && <Button onClick={() => setDocDialogOpen(true)} size="sm" className="gap-2">
+                           <FilePlus className="size-4" /> Solicitar Documento
+                         </Button>}
+                       </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      {!demand.documents || demand.documents.length === 0 ? (
