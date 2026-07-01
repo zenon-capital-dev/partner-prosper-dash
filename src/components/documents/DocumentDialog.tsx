@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip } from "lucide-react";
+import { Upload, X, Calendar as CalendarIcon, Package, Users, Building2, UserCircle, Handshake, Plus, FileText, Paperclip, PenLine, Download, CheckCircle2 } from "lucide-react";
+import { downloadStorageFile } from "@/lib/download";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -38,9 +39,14 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
   const fileRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
   // Multi-doc items (only used when creating, not editing)
-  type DocItem = { name: string; file: File | null };
-  const [items, setItems] = useState<DocItem[]>([{ name: "", file: null }]);
+  type DocItem = { name: string; file: File | null; requires_signature: boolean };
+  const [items, setItems] = useState<DocItem[]>([{ name: "", file: null, requires_signature: false }]);
   const itemFileRefs = useRef<Array<HTMLInputElement | null>>([]);
+  // Edit-mode signature workflow refs/state
+  const signedFileRef = useRef<HTMLInputElement>(null);
+  const completedFileRef = useRef<HTMLInputElement>(null);
+  const [signedFileName, setSignedFileName] = useState<string>("");
+  const [completedFileName, setCompletedFileName] = useState<string>("");
 
   useEffect(() => {
     if (open) {
@@ -54,7 +60,10 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
           sale_id: editDoc.sale_id || "none",
           is_required: editDoc.is_required ?? true,
           priority: editDoc.priority || "media",
+          requires_signature: !!editDoc.requires_signature,
         });
+        setSignedFileName("");
+        setCompletedFileName("");
         
         if (editDoc.collaborator_id) {
           setRecipientType("collaborator");
@@ -82,7 +91,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         });
         setRecipientType("client");
         setSelectedRecipientId(propClientId || "");
-        setItems([{ name: "", file: null }]);
+        setItems([{ name: "", file: null, requires_signature: false }]);
       }
     }
   }, [open, editDoc, propClientId, defaultProductId, propClientProductId]);
@@ -220,6 +229,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         due_date: form.due_date || null,
         is_required: form.is_required ?? true,
         priority: form.priority || "media",
+        requires_signature: editDoc ? !!form.requires_signature : !!(item as DocItem).requires_signature,
         status,
         file_path,
         file_size,
@@ -228,6 +238,31 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
         uploaded_by: file ? user?.id : (editDoc?.uploaded_by || null),
         uploaded_at,
       };
+
+      // Handle signature-workflow uploads in edit mode
+      if (editDoc) {
+        const signedFile = signedFileRef.current?.files?.[0];
+        const completedFile = completedFileRef.current?.files?.[0];
+        for (const [f, prefix, statusOverride] of [
+          [signedFile, "signed", "assinado"] as const,
+          [completedFile, "completed", "concluido"] as const,
+        ]) {
+          if (!f) continue;
+          try { assertUploadFile(f); } catch (e: any) { failMsg = uploadErrorMessage(e); break; }
+          const folder = recipientType === "client" ? selectedRecipientId : `${recipientType}s/${selectedRecipientId}`;
+          const path = `${folder}/${prefix}-${Date.now()}-${sanitizeStorageFileName(f.name)}`;
+          try { await uploadStorageFileFast("documents", path, f); }
+          catch (upErr: any) { failMsg = uploadErrorMessage(upErr); break; }
+          payload[`${prefix}_file_path`] = path;
+          payload[`${prefix}_file_size`] = f.size;
+          payload[`${prefix}_mime_type`] = f.type;
+          payload[`${prefix}_uploaded_at`] = nowBR().toISOString();
+          payload[`${prefix}_uploaded_by`] = user?.id;
+          if (prefix === "completed") payload.status = "aprovado";
+          else if (prefix === "signed" && !completedFile) payload.status = statusOverride;
+        }
+        if (failMsg) break;
+      }
 
       payload.client_id = recipientType === "client" ? selectedRecipientId : null;
       payload.collaborator_id = recipientType === "collaborator" ? selectedRecipientId : null;
@@ -299,7 +334,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
     onOpenChange(false);
     setForm({});
     setSelectedFileName("");
-    setItems([{ name: "", file: null }]);
+    setItems([{ name: "", file: null, requires_signature: false }]);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -441,6 +476,22 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                             </Button>
                           )}
                         </div>
+                        <label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            className="size-3.5 accent-indigo-600"
+                            checked={item.requires_signature}
+                            onChange={(e) => {
+                              const next = [...items];
+                              next[idx] = { ...next[idx], requires_signature: e.target.checked };
+                              setItems(next);
+                            }}
+                          />
+                          <PenLine className="size-3 text-indigo-600" />
+                          <span className="text-[11px] text-slate-600">
+                            Requer assinatura {item.requires_signature && "— o arquivo anexado será o original a ser assinado"}
+                          </span>
+                        </label>
                       </div>
                       {items.length > 1 && (
                         <Button
@@ -462,7 +513,7 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                 variant="outline"
                 size="sm"
                 className="w-full gap-1.5 border-dashed"
-                onClick={() => setItems([...items, { name: "", file: null }])}
+                onClick={() => setItems([...items, { name: "", file: null, requires_signature: false }])}
               >
                 <Plus className="size-3.5" /> Adicionar outro documento
               </Button>
@@ -613,6 +664,117 @@ export function DocumentDialog({ open, onOpenChange, onSuccess, clientId: propCl
                 className="hidden"
                 onChange={(e) => setSelectedFileName(e.target.files?.[0]?.name || "")}
               />
+            </div>
+          )}
+
+          {editDoc && (
+            <div className="space-y-3 rounded-xl border border-indigo-200/70 bg-indigo-50/30 p-4">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-indigo-600"
+                  checked={!!form.requires_signature}
+                  onChange={(e) => setForm({ ...form, requires_signature: e.target.checked })}
+                />
+                <PenLine className="size-4 text-indigo-600" />
+                <span className="text-sm font-medium text-slate-800">Este documento requer assinatura</span>
+              </label>
+
+              {form.requires_signature && (
+                <div className="space-y-3 pl-6">
+                  {/* Original */}
+                  <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="size-4 text-slate-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-700">Original para assinar</p>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {editDoc?.file_path ? editDoc.file_path.split("/").pop() : "Anexe o arquivo original no campo acima."}
+                        </p>
+                      </div>
+                    </div>
+                    {editDoc?.file_path && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1"
+                        onClick={() => downloadStorageFile("documents", editDoc.file_path).catch((e) => toast.error(e.message))}
+                      >
+                        <Download className="size-3" /> Baixar
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Signed upload */}
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Arquivo assinado pelo destinatário</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      {editDoc?.signed_file_path && !signedFileName && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[11px] gap-1"
+                          onClick={() => downloadStorageFile("documents", editDoc.signed_file_path).catch((e) => toast.error(e.message))}
+                        >
+                          <Download className="size-3" /> Baixar assinado atual
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1"
+                        onClick={() => signedFileRef.current?.click()}
+                      >
+                        <Upload className="size-3" />
+                        {signedFileName || (editDoc?.signed_file_path ? "Substituir arquivo assinado" : "Enviar arquivo assinado")}
+                      </Button>
+                      <input
+                        ref={signedFileRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => setSignedFileName(e.target.files?.[0]?.name || "")}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Completed upload */}
+                  <div>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Documento concluído (final)</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      {editDoc?.completed_file_path && !completedFileName && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-[11px] gap-1"
+                          onClick={() => downloadStorageFile("documents", editDoc.completed_file_path).catch((e) => toast.error(e.message))}
+                        >
+                          <Download className="size-3" /> Baixar concluído atual
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[11px] gap-1 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => completedFileRef.current?.click()}
+                      >
+                        <CheckCircle2 className="size-3" />
+                        {completedFileName || (editDoc?.completed_file_path ? "Substituir concluído" : "Enviar documento concluído")}
+                      </Button>
+                      <input
+                        ref={completedFileRef}
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => setCompletedFileName(e.target.files?.[0]?.name || "")}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
