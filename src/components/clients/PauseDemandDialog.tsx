@@ -36,8 +36,9 @@ export function PauseDemandDialog({ open, onOpenChange, demandId, isPaused }: Pa
 
   const pauseMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const { getCurrentUser } = await import("@/lib/current-user");
+      const user = await getCurrentUser();
+      if (!user) throw new Error("Sua sessão expirou. Faça login novamente.");
 
       if (isPaused) {
         // Retomar
