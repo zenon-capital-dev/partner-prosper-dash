@@ -1,5 +1,8 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,6 +73,7 @@ export default function ProviderPanel() {
   const { tab } = useParams<{ tab?: string }>();
   const activeKey = NAV.find((n) => n.key === tab)?.key ?? "dashboard";
   const onNavigate = (k: string) => navigate(k === "dashboard" ? "/prestador" : `/prestador/${k}`);
+  const qc = useQueryClient();
   const [reportTarget, setReportTarget] = useState<{ id: string; productName?: string; clientName?: string } | null>(null);
   const [requestsTarget, setRequestsTarget] = useState<{ id: string; clientName?: string } | null>(null);
   const [reportView, setReportView] = useState<any | null>(null);
@@ -88,6 +92,31 @@ export default function ProviderPanel() {
   });
 
   const providerId = provider?.id;
+
+  // ----- Profile edit -----
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: "", specialty: "", phone: "", document_number: "" });
+  useEffect(() => {
+    if (provider) setProfileForm({
+      name: provider.name || "",
+      specialty: (provider as any).specialty || "",
+      phone: (provider as any).phone || "",
+      document_number: (provider as any).document_number || "",
+    });
+  }, [provider]);
+  const saveProfile = useMutation({
+    mutationFn: async () => {
+      if (!providerId) throw new Error("Prestador não encontrado");
+      const { error } = await supabase.from("service_providers").update(profileForm as any).eq("id", providerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Dados atualizados");
+      qc.invalidateQueries({ queryKey: ["provider-self", user?.id] });
+      setEditingProfile(false);
+    },
+    onError: (e: any) => toast.error(e.message || "Erro ao salvar"),
+  });
 
   const { data: clientProducts = [] } = useQuery({
     queryKey: ["provider-cp", providerId],
@@ -811,14 +840,52 @@ export default function ProviderPanel() {
         {activeKey === "perfil" && (
           <>
             <PanelHero role="prestador" eyebrow="Perfil" title="Sua conta" subtitle={provider.email} />
-            <SectionCard title="Dados" icon={UserCog}>
-              <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</dt><dd className="text-slate-900">{provider.name}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Especialidade</dt><dd className="text-slate-900">{provider.specialty || "—"}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</dt><dd className="text-slate-900">{provider.email}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</dt><dd className="text-slate-900">{provider.phone || "—"}</dd></div>
-                <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{provider.document_number || "—"}</dd></div>
-              </dl>
+            <SectionCard
+              title="Dados"
+              icon={UserCog}
+              action={
+                editingProfile ? (
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="ghost" onClick={() => { setEditingProfile(false); if (provider) setProfileForm({ name: provider.name || "", specialty: (provider as any).specialty || "", phone: (provider as any).phone || "", document_number: (provider as any).document_number || "" }); }}>Cancelar</Button>
+                    <Button size="sm" onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>{saveProfile.isPending ? "Salvando..." : "Salvar"}</Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="outline" onClick={() => setEditingProfile(true)}>Editar</Button>
+                )
+              }
+            >
+              {editingProfile ? (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</Label>
+                    <Input value={profileForm.name} onChange={(e) => setProfileForm((f) => ({ ...f, name: e.target.value }))} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Especialidade</Label>
+                    <Input value={profileForm.specialty} onChange={(e) => setProfileForm((f) => ({ ...f, specialty: e.target.value }))} placeholder="Ex.: Tráfego pago, Design, Consultoria..." />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</Label>
+                    <Input value={provider.email || ""} disabled className="bg-slate-50" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</Label>
+                    <Input value={profileForm.phone} onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))} placeholder="(00) 00000-0000" />
+                  </div>
+                  <div className="space-y-1.5 sm:col-span-2">
+                    <Label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento (CPF / CNPJ)</Label>
+                    <Input value={profileForm.document_number} onChange={(e) => setProfileForm((f) => ({ ...f, document_number: e.target.value }))} />
+                  </div>
+                </div>
+              ) : (
+                <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-[13px]">
+                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Nome</dt><dd className="text-slate-900">{provider.name || "—"}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Especialidade</dt><dd className="text-slate-900">{(provider as any).specialty || "—"}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">E-mail</dt><dd className="text-slate-900">{provider.email}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Telefone</dt><dd className="text-slate-900">{(provider as any).phone || "—"}</dd></div>
+                  <div><dt className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">Documento</dt><dd className="text-slate-900">{(provider as any).document_number || "—"}</dd></div>
+                </dl>
+              )}
               <Button variant="outline" className="mt-5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => signOut?.()}>Sair</Button>
             </SectionCard>
           </>

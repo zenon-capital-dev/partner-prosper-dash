@@ -1,0 +1,1 @@
+CREATE POLICY "Providers update own record" ON public.service_providers FOR UPDATE TO authenticated USING (user_id = (SELECT auth.uid()) OR lower(email) = lower(((SELECT auth.jwt()) ->> 'email'))) WITH CHECK (user_id = (SELECT auth.uid()) OR lower(email) = lower(((SELECT auth.jwt()) ->> 'email')));
