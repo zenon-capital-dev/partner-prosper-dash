@@ -43,7 +43,7 @@ export default function SalesGoals() {
   const qc = useQueryClient();
   const [month, setMonth] = useState(monthKey());
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ goal_type: "revenue" as GoalType, target_value: "" });
+  const [form, setForm] = useState({ goal_type: "revenue" as GoalType | "custom", custom_name: "", is_currency: false, target_value: "" });
 
   const { data: goals = [] } = useQuery({
     queryKey: ["sales_goals", month],
@@ -122,14 +122,21 @@ export default function SalesGoals() {
   async function saveGoal() {
     const value = parseFloat(form.target_value.replace(",", "."));
     if (!value || value <= 0) { toast.error("Valor da meta inválido"); return; }
+    let goalTypeKey: string = form.goal_type;
+    if (form.goal_type === "custom") {
+      const name = form.custom_name.trim();
+      if (!name) { toast.error("Dê um nome ao índice personalizado"); return; }
+      goalTypeKey = `custom:${form.is_currency ? "money" : "num"}:${name}`;
+    }
     const { error } = await (supabase as any).from("sales_goals").upsert({
-      period_month: month, goal_type: form.goal_type, target_value: value, responsible_id: null,
+      period_month: month, goal_type: goalTypeKey, target_value: value, responsible_id: null,
     }, { onConflict: "period_month,goal_type" });
     if (error) { toast.error(error.message); return; }
     toast.success("Meta salva");
-    setOpen(false); setForm({ goal_type: "revenue", target_value: "" });
+    setOpen(false); setForm({ goal_type: "revenue", custom_name: "", is_currency: false, target_value: "" });
     qc.invalidateQueries({ queryKey: ["sales_goals", month] });
   }
+
 
   async function deleteGoal(id: string) {
     if (!(await confirmAction({ title: "Remover meta?", description: "Esta ação não pode ser desfeita." }))) return;
@@ -164,18 +171,32 @@ export default function SalesGoals() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label>Tipo</Label>
-                <Select value={form.goal_type} onValueChange={(v) => setForm({ ...form, goal_type: v as GoalType })}>
+                <Select value={form.goal_type} onValueChange={(v) => setForm({ ...form, goal_type: v as any })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    <SelectItem value="custom">✨ Índice personalizado…</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {form.goal_type === "custom" && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>Nome do índice</Label>
+                    <Input value={form.custom_name} onChange={(e) => setForm({ ...form, custom_name: e.target.value })} placeholder="ex: NPS, Reuniões agendadas, Ticket médio…" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input id="is_currency" type="checkbox" checked={form.is_currency} onChange={(e) => setForm({ ...form, is_currency: e.target.checked })} />
+                    <Label htmlFor="is_currency" className="cursor-pointer">Meta em R$ (valor monetário)</Label>
+                  </div>
+                </>
+              )}
               <div className="space-y-1.5">
                 <Label>Valor da meta</Label>
                 <Input value={form.target_value} onChange={(e) => setForm({ ...form, target_value: e.target.value })} placeholder="ex: 50000" />
               </div>
             </div>
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
               <Button onClick={saveGoal}>Salvar</Button>
@@ -222,18 +243,37 @@ export default function SalesGoals() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {goals.map((g: any) => {
-              const t = TYPES.find((x) => x.value === g.goal_type)!;
-              const realized = (actual as any)?.[g.goal_type] ?? 0;
+              const isCustom = typeof g.goal_type === "string" && g.goal_type.startsWith("custom:");
+              const t = isCustom
+                ? { label: g.goal_type.split(":").slice(2).join(":") || "Personalizado", isCurrency: g.goal_type.startsWith("custom:money:") }
+                : TYPES.find((x) => x.value === g.goal_type) ?? { label: g.goal_type, isCurrency: false };
+              const realized = isCustom ? Number(g.actual_value ?? 0) : ((actual as any)?.[g.goal_type] ?? 0);
               const pct = g.target_value > 0 ? Math.min(100, (realized / g.target_value) * 100) : 0;
               return (
                 <Card key={g.id} className="p-4 bg-white border-slate-200/70">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="text-xs font-bold uppercase text-slate-500">{t.label}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold uppercase text-slate-500 truncate">{t.label}{isCustom && <span className="ml-1 text-[9px] text-indigo-600 font-black">CUSTOM</span>}</div>
                       <div className="text-lg font-black mt-1">
                         {t.isCurrency ? fmtMoney(realized) : realized}
                         <span className="text-slate-400 font-semibold text-sm"> / {t.isCurrency ? fmtMoney(Number(g.target_value)) : Number(g.target_value)}</span>
                       </div>
+                      {isCustom && (
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <Input
+                            type="number" step="any"
+                            defaultValue={g.actual_value ?? 0}
+                            className="h-7 text-xs w-28"
+                            onBlur={async (e) => {
+                              const v = parseFloat(e.target.value.replace(",", ".")) || 0;
+                              const { error } = await (supabase as any).from("sales_goals").update({ actual_value: v }).eq("id", g.id);
+                              if (error) toast.error(error.message);
+                              else { toast.success("Atualizado"); qc.invalidateQueries({ queryKey: ["sales_goals", month] }); }
+                            }}
+                          />
+                          <span className="text-[10px] text-slate-500">realizado</span>
+                        </div>
+                      )}
                     </div>
                     <Button size="icon" variant="ghost" onClick={() => deleteGoal(g.id)}>
                       <Trash2 className="size-4 text-rose-600" />
@@ -244,6 +284,7 @@ export default function SalesGoals() {
                 </Card>
               );
             })}
+
           </div>
         )}
       </div>
