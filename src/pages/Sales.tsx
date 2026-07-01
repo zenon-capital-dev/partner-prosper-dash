@@ -1075,7 +1075,36 @@ export default function Sales() {
                           )
                         )}
                       </Td>
-                      {visibleCols.status && <Td><StatusPill status={s.status} /></Td>}
+                      {visibleCols.status && (
+                        <Td>
+                          <div className="flex flex-col gap-1">
+                            <StatusPill status={s.status} />
+                            {s.status === "concluida" && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    type="button"
+                                    disabled={!canManage}
+                                    className="text-[10px] font-medium text-slate-500 hover:text-indigo-700 text-left disabled:cursor-not-allowed"
+                                    title="Editar data de conclusão"
+                                  >
+                                    {s.closed_at ? `✓ ${formatBRDate(s.closed_at)}` : "definir data"}
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent align="start" className="w-auto p-3">
+                                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Data de conclusão</label>
+                                  <Input
+                                    type="date"
+                                    defaultValue={s.closed_at ? new Date(s.closed_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)}
+                                    onBlur={(e) => updateClosedAt(s, e.target.value)}
+                                    className="h-8 text-xs"
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                        </Td>
+                      )}
                       {visibleCols.client && (
                         <Td>
                           <div className="min-w-0">
