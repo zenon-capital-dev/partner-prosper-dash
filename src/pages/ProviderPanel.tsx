@@ -843,7 +843,7 @@ export default function ProviderPanel() {
             <SectionCard
               title="Dados"
               icon={UserCog}
-              actions={
+              action={
                 editingProfile ? (
                   <div className="flex gap-2">
                     <Button size="sm" variant="ghost" onClick={() => { setEditingProfile(false); if (provider) setProfileForm({ name: provider.name || "", specialty: (provider as any).specialty || "", phone: (provider as any).phone || "", document_number: (provider as any).document_number || "" }); }}>Cancelar</Button>
