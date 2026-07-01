@@ -47,17 +47,17 @@ export function DemandComments({ clientProductId, role }: Props) {
   const [filter, setFilter] = useState<"all" | Visibility>("all");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (availableVisibilities.includes(visibility)) return;
-    setVisibility(role === "admin" ? "internal" : "client");
-  }, [role, visibility]);
-
   // Available visibility options based on role
   const availableVisibilities: Visibility[] = role === "admin"
     ? ["internal", "admin", "provider", "client"]
     : role === "provider"
       ? ["provider", "client"]
       : ["client"];
+
+  useEffect(() => {
+    if (availableVisibilities.includes(visibility)) return;
+    setVisibility(role === "admin" ? "internal" : "client");
+  }, [availableVisibilities, role, visibility]);
 
   const { data: comments = [] } = useQuery({
     queryKey: ["demand-comments", clientProductId],
