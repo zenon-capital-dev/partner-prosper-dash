@@ -194,55 +194,62 @@ export function DemandComments({ clientProductId, role }: Props) {
       )}
 
       {/* Thread */}
-      <div className="space-y-4 max-h-[600px] overflow-y-auto px-1 pr-2 scrollbar-thin">
-        {filtered.length === 0 ? (
-          <div className="vx-card p-12 text-center border-dashed border-2">
-            <MessageSquare className="size-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">
-              {filter === "all"
-                ? "Nenhum comentário ainda. Inicie a conversa abaixo."
-                : `Nenhum comentário com visibilidade "${filterLabel}". Para publicar um, escolha "${filterLabel}" no seletor de Visibilidade abaixo.`}
-            </p>
-          </div>
-        ) : (
-          filtered.map((c: any) => {
-            const meta = VIS_META[c.visibility as Visibility] ?? VIS_META.client;
-            const Icon = meta.icon;
-            const author = authorMap.get(c.author_id);
-            const authorName = resolveAuthorLabel(author);
-
-            const initials = authorName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase();
-            const isMine = c.author_id === user?.id;
-
-            return (
-              <div key={c.id} className={cn("flex gap-3", isMine && "flex-row-reverse")}>
-                <div className={cn(
-                  "size-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0",
-                  isMine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                )}>
-                  {initials}
-                </div>
-                <div className={cn("flex-1 min-w-0 space-y-1.5", isMine && "items-end flex flex-col")}>
-                  <div className={cn("flex items-center gap-2 text-xs", isMine && "flex-row-reverse")}>
-                    <span className="font-bold text-foreground">{authorName}</span>
-                    <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider gap-1 py-0 h-4", meta.tone)}>
-                      <Icon className="size-2.5" /> {meta.label}
-                    </Badge>
-                    <span className="text-muted-foreground">{formatDate(c.created_at)}</span>
-                  </div>
-                  <div className={cn(
-                    "rounded-2xl px-4 py-2.5 text-sm leading-relaxed max-w-[85%] whitespace-pre-wrap break-words",
-                    isMine ? "bg-primary/10 text-foreground rounded-tr-sm" : "bg-muted/40 text-foreground rounded-tl-sm",
-                    c.visibility === "internal" || c.visibility === "admin" ? "border border-dashed border-rose-200/60" : ""
-                  )}>
-                    {renderContent(c.content)}
-                  </div>
-                </div>
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-slate-50/60 to-white shadow-sm overflow-hidden">
+        <div className="max-h-[560px] overflow-y-auto px-4 sm:px-6 py-6 space-y-5 scrollbar-thin">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="size-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                <MessageSquare className="size-5 text-slate-400" />
               </div>
-            );
-          })
-        )}
+              <p className="text-sm font-medium text-foreground">
+                {filter === "all" ? "Nenhum comentário ainda" : `Nenhum comentário em "${filterLabel}"`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Inicie a conversa no campo abaixo.</p>
+            </div>
+          ) : (
+            filtered.map((c: any) => {
+              const meta = VIS_META[c.visibility as Visibility] ?? VIS_META.client;
+              const Icon = meta.icon;
+              const author = authorMap.get(c.author_id);
+              const authorName = resolveAuthorLabel(author);
+              const initials = authorName.split(" ").map((n: string) => n[0]).slice(0, 2).join("").toUpperCase() || "?";
+              const isMine = c.author_id === user?.id;
+              const isRestricted = c.visibility === "internal" || c.visibility === "admin";
+
+              return (
+                <div key={c.id} className={cn("flex gap-2.5 items-end", isMine ? "flex-row-reverse" : "flex-row")}>
+                  <div className={cn(
+                    "size-8 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 shadow-sm border",
+                    isMine ? "bg-primary text-primary-foreground border-primary/20" : "bg-white text-slate-700 border-slate-200"
+                  )}>
+                    {initials}
+                  </div>
+                  <div className={cn("flex flex-col gap-1 min-w-0 max-w-[calc(100%-3rem)] sm:max-w-[75%]", isMine ? "items-end" : "items-start")}>
+                    <div className={cn("flex items-center gap-1.5 text-[11px] px-1 flex-wrap", isMine ? "flex-row-reverse" : "")}>
+                      <span className="font-semibold text-foreground truncate max-w-[160px]">{isMine ? "Você" : authorName}</span>
+                      <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider gap-1 py-0 h-4 font-semibold", meta.tone)}>
+                        <Icon className="size-2.5" /> {meta.label}
+                      </Badge>
+                      <span className="text-muted-foreground font-mono text-[10px]">{formatDate(c.created_at)}</span>
+                    </div>
+                    <div className={cn(
+                      "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm border max-w-full overflow-hidden",
+                      isMine
+                        ? "bg-primary text-primary-foreground border-primary rounded-br-sm"
+                        : "bg-white text-foreground border-slate-200 rounded-bl-sm",
+                      isRestricted && !isMine && "bg-rose-50/70 border-rose-200",
+                      isRestricted && isMine && "bg-rose-600 border-rose-600",
+                    )}>
+                      {renderContent(c.content)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
+
 
       {/* Composer */}
       <div className="vx-card p-4 space-y-3 bg-card/95 backdrop-blur border-primary/10 shadow-lg">
