@@ -57,6 +57,17 @@ const isOpen = (s: string) => OPEN_STATUSES.includes(s);
 const isPaid = (s: string) => PAID_STATUSES.includes(s);
 
 const todayIsoStr = () => new Date().toISOString().slice(0, 10);
+const monthBounds = (monthKey: string) => {
+  const [year, month] = monthKey.split("-").map(Number);
+  const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
+  const safeMonth = Number.isFinite(month) ? month : new Date().getMonth() + 1;
+  const start = new Date(safeYear, safeMonth - 1, 1);
+  const end = new Date(safeYear, safeMonth, 0);
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10),
+  };
+};
 
 const effectiveStatus = (p: any, today: string) => {
   if (isOpen(p.status) && p.due_date && p.due_date < today) return "vencido";
@@ -780,6 +791,7 @@ function PaymentsTable({
   const [recurringFilter, setRecurringFilter] = useState("todos");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
   const [sortKey, setSortKey] = useState<string>("due_date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [page, setPage] = useState(1);
@@ -898,6 +910,7 @@ function PaymentsTable({
     setRecurringFilter("todos");
     setDateFrom("");
     setDateTo("");
+    setMonthFilter("");
     setPage(1);
   };
 
@@ -1106,17 +1119,36 @@ function PaymentsTable({
             </SelectContent>
           </Select>
           <Input
+            type="month"
+            className="h-9 bg-white border-slate-200"
+            value={monthFilter}
+            onChange={(e) => {
+              const value = e.target.value;
+              setMonthFilter(value);
+              if (value) {
+                const range = monthBounds(value);
+                setDateFrom(range.start);
+                setDateTo(range.end);
+              } else {
+                setDateFrom("");
+                setDateTo("");
+              }
+              setPage(1);
+            }}
+            title="Filtrar mês fechado"
+          />
+          <Input
             type="date"
             className="h-9 bg-white border-slate-200"
             value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
+            onChange={(e) => { setDateFrom(e.target.value); setMonthFilter(""); }}
             placeholder="De"
           />
           <Input
             type="date"
             className="h-9 bg-white border-slate-200"
             value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
+            onChange={(e) => { setDateTo(e.target.value); setMonthFilter(""); }}
             placeholder="Até"
           />
         </div>

@@ -202,27 +202,32 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     load();
   };
 
-  const upload = async (folder: FolderRow, file: File) => {
+  const upload = async (folder: FolderRow, files: File[]) => {
     if (!me) return toast.error("Sua sessão expirou. Faça login novamente.");
+    if (!files.length) return;
     setUploadingId(folder.id);
     try {
-      const safe = file.name.replace(/[^\w.\-]+/g, "_");
-      const path = `${clientProductId}/${folder.id}/${Date.now()}_${safe}`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-      if (upErr) throw upErr;
-      const { error: insErr } = await supabase.from("product_document_files").insert({
-        folder_id: folder.id,
-        file_path: path,
-        file_name: file.name,
-        file_size: file.size,
-        mime_type: file.type,
-        uploaded_by: me,
-      });
+      const rows: any[] = [];
+      for (const file of files) {
+        const safe = file.name.replace(/[^\w.\-]+/g, "_");
+        const path = `${clientProductId}/${folder.id}/${Date.now()}_${safe}`;
+        const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (upErr) throw upErr;
+        rows.push({
+          folder_id: folder.id,
+          file_path: path,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          uploaded_by: me,
+        });
+      }
+      const { error: insErr } = await supabase.from("product_document_files").insert(rows);
       if (insErr) throw insErr;
-      toast.success(folder.scope === "client" ? "Arquivo enviado e disponível para o cliente" : "Arquivo enviado na pasta interna");
+      toast.success(folder.scope === "client" ? `${files.length} arquivo(s) enviado(s) e disponível(is) para o cliente` : `${files.length} arquivo(s) enviado(s) na pasta interna`);
       load();
     } catch (e: any) {
       toast.error("Erro no upload: " + (e.message || e));
@@ -362,10 +367,11 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
                       <input
                         ref={(el) => (uploadRefs.current[f.id] = el)}
                         type="file"
+                        multiple
                         className="hidden"
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) upload(f, file);
+                          const files = Array.from(e.target.files ?? []);
+                          if (files.length) upload(f, files);
                           e.target.value = "";
                         }}
                       />
@@ -377,7 +383,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
                         onClick={() => uploadRefs.current[f.id]?.click()}
                       >
                         {uploadingId === f.id ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
-                        Enviar arquivo
+                        Enviar arquivos
                       </Button>
                     </div>
                     {list.length === 0 ? (

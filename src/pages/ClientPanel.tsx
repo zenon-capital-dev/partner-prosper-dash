@@ -244,8 +244,9 @@ export default function ClientPanel() {
     setUploadTarget(doc);
     setTimeout(() => uploadInputRef.current?.click(), 0);
   };
-  const onFilePicked = async (file: File | null) => {
+  const onFilePicked = async (files: File[]) => {
     const doc = uploadTarget;
+    const [file, ...extraFiles] = files;
     if (!file || !doc || !clientId) { setUploadTarget(null); return; }
     try {
       setUploadingId(doc.id);
@@ -262,7 +263,30 @@ export default function ClientPanel() {
           .eq("id", doc.id);
         if (error) throw error;
       }
-      toast.success("Documento enviado para análise");
+      if (extraFiles.length > 0) {
+        const rows: any[] = [];
+        for (const extra of extraFiles) {
+          const extraPath = `${clientId}/${doc.id}/${Date.now()}-${sanitizeStorageFileName(extra.name)}`;
+          await uploadStorageFileFast("documents", extraPath, extra);
+          rows.push({
+            client_id: clientId,
+            product_id: doc.product_id || null,
+            client_product_id: doc.client_product_id || null,
+            name: `${doc.name || doc.title || "Documento"} · ${extra.name}`,
+            description: doc.description || null,
+            status: "enviado",
+            file_path: extraPath,
+            uploaded_at: now,
+            file_size: extra.size,
+            mime_type: extra.type,
+            source: "client_upload",
+            is_required: false,
+          });
+        }
+        const { error } = await supabase.from("documents").insert(rows as any);
+        if (error) throw error;
+      }
+      toast.success(`${files.length} arquivo(s) enviado(s) para análise`);
       qc.invalidateQueries({ queryKey: ["client-docs", clientId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e) ?? "Falha ao enviar documento");
@@ -416,8 +440,9 @@ export default function ClientPanel() {
             <input
               ref={uploadInputRef}
               type="file"
+              multiple
               className="hidden"
-              onChange={(e) => onFilePicked(e.target.files?.[0] ?? null)}
+              onChange={(e) => onFilePicked(Array.from(e.target.files ?? []))}
             />
 
             <Tabs defaultValue="documentos" className="w-full">
