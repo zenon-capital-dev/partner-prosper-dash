@@ -144,8 +144,8 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
     };
   }, [clientProductId, load]);
 
-  // Client sempre cria pasta "client". Admin sempre "client". Provider escolhe.
-  const effectiveScope: Scope = role === "provider" ? newScope : "client";
+  // Cliente sempre cria pasta compartilhada. Zenon e prestador escolhem entre cliente e interno.
+  const effectiveScope: Scope = role === "client" ? "client" : newScope;
 
   const createFolder = async () => {
     if (!newName.trim()) return toast.error("Informe o nome da pasta");
@@ -364,7 +364,7 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createFolder()}
             />
-            {role === "provider" && (
+            {role !== "client" && (
               <div className="flex gap-2">
                 <button
                   type="button"

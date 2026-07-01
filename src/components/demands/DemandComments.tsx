@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 type Visibility = "internal" | "admin" | "provider" | "client" | "system";
 
 const VIS_META: Record<Visibility, { label: string; tone: string; icon: any; description: string }> = {
-  internal: { label: "Interno", tone: "bg-slate-100 text-slate-700 border-slate-200", icon: Lock, description: "Visível para Admin e prestador delegado" },
+  internal: { label: "Interno Zenon", tone: "bg-slate-100 text-slate-700 border-slate-200", icon: Lock, description: "Apenas equipe Zenon" },
   admin: { label: "Admin", tone: "bg-rose-50 text-rose-700 border-rose-200", icon: ShieldAlert, description: "Apenas administradores" },
-  provider: { label: "Prestador", tone: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: Users, description: "Visível para o prestador delegado" },
+  provider: { label: "Prestador", tone: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: Users, description: "Visível para Zenon e prestador" },
   client: { label: "Cliente", tone: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: User, description: "Visível para o cliente" },
   system: { label: "Sistema", tone: "bg-blue-50 text-blue-700 border-blue-200", icon: Sparkles, description: "Eventos automáticos" },
 };
@@ -49,7 +49,7 @@ export function DemandComments({ clientProductId, role }: Props) {
 
   // Available visibility options based on role
   const availableVisibilities: Visibility[] = useMemo(() => role === "admin"
-    ? ["internal", "admin", "provider", "client"]
+    ? ["internal", "provider", "client"]
     : role === "provider"
       ? ["provider", "client"]
       : ["client"], [role]);
