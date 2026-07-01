@@ -30,7 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
-type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status";
+type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
 type SortDir = "asc" | "desc";
 const PAGE_SIZE = 10;
 
