@@ -116,7 +116,7 @@ export function AddProductDialog({ open, onOpenChange, clientId }: Props) {
     queryFn: async () => {
       const { data } = await supabase
         .from("clients")
-        .select("partner_id, referrer_id, collaborator_id, service_provider_id, partners(commission_percent), referrers(commission_percent)")
+        .select("partner_id, referrer_id, collaborator_id, service_provider_id, partners!clients_partner_id_fkey(commission_percent), referrers!clients_referrer_id_fkey(commission_percent)")
         .eq("id", clientId)
         .maybeSingle();
       if (data) {
