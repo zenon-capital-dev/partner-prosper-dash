@@ -25,6 +25,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { OperationalChecklist } from "@/components/clients/OperationalChecklist";
 import { DemandComments } from "@/components/demands/DemandComments";
+import { ProductDocumentFolders } from "@/components/demands/ProductDocumentFolders";
 import { DocumentDialog } from "@/components/documents/DocumentDialog";
 import { toast } from "sonner";
 import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
