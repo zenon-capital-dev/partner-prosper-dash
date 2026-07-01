@@ -556,7 +556,13 @@ export default function DemandDetail() {
                   </div>
                </TabsContent>
 
-               <TabsContent value="checklist" className="animate-fade-up">
+                <TabsContent value="checklist" className="animate-fade-up space-y-4">
+                  <div className="vx-card p-5 bg-blue-50/40 border-blue-100">
+                     <h3 className="text-sm font-bold text-foreground mb-1">O que é o Checklist?</h3>
+                     <p className="text-xs text-muted-foreground leading-relaxed">
+                       O checklist é a lista de <b>etapas operacionais</b> que precisam ser cumpridas para entregar esta demanda (ex: "Coletar documentos", "Enviar proposta", "Aprovação do cliente"). Cada etapa tem status, responsável (Admin / Prestador / Cliente), data prevista e pode ser visível ou não para o cliente. Use os botões abaixo para criar e organizar as etapas.
+                     </p>
+                  </div>
                   <div className="vx-card p-8 bg-card border-slate-100">
                      <OperationalChecklist clientProductId={demand.id} canEdit={canManage} canManage={canManage} />
                   </div>
