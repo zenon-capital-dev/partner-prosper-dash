@@ -97,8 +97,17 @@ export function DemandComments({ clientProductId, role }: Props) {
     queryKey: ["demand-comments-authors", authorIds],
     enabled: authorIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, email, avatar_url").in("id", authorIds);
-      return data ?? [];
+      const [{ data: profs }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, email, avatar_url").in("id", authorIds),
+        supabase.from("user_roles").select("user_id, role").in("user_id", authorIds),
+      ]);
+      const roleMap = new Map<string, string[]>();
+      (roles ?? []).forEach((r: any) => {
+        const arr = roleMap.get(r.user_id) ?? [];
+        arr.push(r.role);
+        roleMap.set(r.user_id, arr);
+      });
+      return (profs ?? []).map((p: any) => ({ ...p, roles: roleMap.get(p.id) ?? [] }));
     },
   });
   const authorMap = useMemo(() => {
@@ -106,6 +115,19 @@ export function DemandComments({ clientProductId, role }: Props) {
     authors.forEach((a: any) => m.set(a.id, a));
     return m;
   }, [authors]);
+
+  const resolveAuthorLabel = (author: any) => {
+    if (author?.full_name && author.full_name.trim()) return author.full_name;
+    const roles: string[] = author?.roles ?? [];
+    if (roles.some((r) => ["admin", "super_admin", "admin_secondary"].includes(r))) return "Zenon · Operacional";
+    if (roles.includes("colaborador")) return "Time Operacional";
+    if (roles.includes("prestador")) return "Prestador";
+    if (roles.includes("parceiro")) return "Parceiro";
+    if (roles.includes("cliente")) return "Cliente";
+    if (author?.email) return author.email.split("@")[0];
+    return "Sistema";
+  };
+
 
   const filtered = useMemo(() => {
     if (filter === "all") return comments;
