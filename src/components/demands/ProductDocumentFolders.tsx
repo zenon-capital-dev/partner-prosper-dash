@@ -341,7 +341,8 @@ export function ProductDocumentFolders({ clientProductId, role }: Props) {
                     )}
                     {role === "admin" && f.owner_provider_user_id && (
                       <Badge variant="outline" className="text-[10px] gap-1 shrink-0">
-                        <ShieldCheck className="size-2.5" /> Prestador
+                        <ShieldCheck className="size-2.5" />
+                        {owners.get(f.owner_provider_user_id)?.full_name || owners.get(f.owner_provider_user_id)?.email || "Prestador"}
                       </Badge>
                     )}
                   </div>
