@@ -424,10 +424,11 @@ export default function FinanceCenter() {
         }
         kpis={[
           {
-            label: "Recebido (bruto)",
+            label: `Recebido (${rangeLabel[kpiRange]})`,
             value: formatBRL(kpis.totalReceived),
             tone: "success",
             onClick: () => setStatusAndTab("recebidos", "todos"),
+            hint: `Filtro: ${rangeLabel[kpiRange]}`,
           } as any,
           {
             label: "Recebido (mês)",
