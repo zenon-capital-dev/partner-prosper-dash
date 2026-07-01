@@ -403,14 +403,42 @@ export default function Sales() {
   }, [filtered]);
 
   const statusBreakdown = useMemo(() => {
-    const total = kpis.total || 1;
-    return [
-      { key: "concluida", label: "Concluídas", value: kpis.concluida, pct: (kpis.concluida / total) * 100, color: "bg-emerald-500" },
-      { key: "em_andamento", label: "Em andamento", value: kpis.em_andamento, pct: (kpis.em_andamento / total) * 100, color: "bg-sky-500" },
-      { key: "pendente", label: "Pendentes", value: kpis.pendente, pct: (kpis.pendente / total) * 100, color: "bg-amber-500" },
-      { key: "cancelada", label: "Canceladas", value: kpis.cancelada, pct: (kpis.cancelada / total) * 100, color: "bg-rose-500" },
-    ];
-  }, [kpis]);
+    const palette = ["bg-indigo-500", "bg-emerald-500", "bg-sky-500", "bg-amber-500", "bg-rose-500", "bg-violet-500", "bg-teal-500", "bg-fuchsia-500", "bg-cyan-500", "bg-lime-500"];
+    const statusLabel: Record<string, string> = { concluida: "Concluídas", em_andamento: "Em andamento", pendente: "Pendentes", cancelada: "Canceladas" };
+    const keyOf = (s: any): { key: string; label: string } => {
+      switch (breakdownDim) {
+        case "status": return { key: s.status || "—", label: statusLabel[s.status] || s.status || "—" };
+        case "partner": return { key: s.partner_id || "sem", label: s.partners?.full_name || "Sem parceiro" };
+        case "product": return { key: s.product_id || "sem", label: s.products?.name || "Sem produto" };
+        case "client": return { key: s.client_id || "sem", label: s.clients?.full_name || s.clients?.company || "Sem cliente" };
+        case "partner_product": return { key: `${s.partner_id || "sem"}::${s.product_id || "sem"}`, label: `${s.partners?.full_name || "Sem parceiro"} · ${s.products?.name || "Sem produto"}` };
+        case "product_client": return { key: `${s.product_id || "sem"}::${s.client_id || "sem"}`, label: `${s.products?.name || "Sem produto"} · ${s.clients?.full_name || s.clients?.company || "Sem cliente"}` };
+      }
+    };
+    const valueOf = (s: any): number => {
+      const v = Number(s.amount || 0);
+      switch (breakdownMetric) {
+        case "bruto": return v;
+        case "recebido": return Math.min(receiptsBySale.get(s.id)?.received ?? 0, v);
+        case "liquido": {
+          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+          return v - Number(s.zenon_cost || 0) - Number(s.provider_cost || 0) - comm;
+        }
+        case "qtd": return 1;
+      }
+    };
+    const m = new Map<string, { key: string; label: string; value: number }>();
+    filtered.forEach((s: any) => {
+      const { key, label } = keyOf(s);
+      const cur = m.get(key) ?? { key, label, value: 0 };
+      cur.value += valueOf(s);
+      m.set(key, cur);
+    });
+    const rows = Array.from(m.values()).sort((a, b) => b.value - a.value).slice(0, 10);
+    const total = rows.reduce((s, r) => s + r.value, 0) || 1;
+    return rows.map((r, i) => ({ ...r, pct: (r.value / total) * 100, color: palette[i % palette.length] }));
+  }, [filtered, breakdownDim, breakdownMetric, receiptsBySale, splitsBySale]);
+
 
   const invalidateRelated = async () => {
     qc.invalidateQueries({ queryKey: ["sales-rich-v2"] });
