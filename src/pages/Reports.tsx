@@ -70,12 +70,15 @@ export default function Reports() {
     setCurrentPage(1);
   }, [from, to, reportType, filterProduct, filterProvider, filterPartner, filterStatus, filterClient]);
 
-  const needsSales = ["revenue_period", "revenue_product", "best_selling", "clients_product"].includes(reportType);
-  const needsDemands = ["demands_status", "delayed_demands", "provider_performance", "avg_completion_time"].includes(reportType);
-  const needsCommissions = reportType === "commissions_partner";
-  const needsClients = ["clients_status", "clients_partner", "clients_product"].includes(reportType);
+  // Painel executivo agrega TUDO → habilitamos todas as fontes sempre,
+  // assim KPIs (Novos Clientes, Conversão, Inadimplência) e o Mix de Demandas
+  // sempre puxam dados, independente do relatório selecionado.
+  const needsSales = true;
+  const needsDemands = true;
+  const needsCommissions = true;
+  const needsClients = true;
   const needsDocs = reportType === "pending_docs";
-  const needsPayments = reportType === "delinquency";
+  const needsPayments = true;
 
   // Reference data for filters (shared cache via ref hooks)
   const { data: products = [] } = useProductsRef();
