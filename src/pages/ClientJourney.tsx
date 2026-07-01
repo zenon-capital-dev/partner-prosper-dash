@@ -153,7 +153,7 @@ export default function ClientJourney() {
         title="Esteira de atendimento"
         description="Arraste o cliente entre as colunas ou clique em ✓ para avançar ao próximo estágio."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="relative w-64">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
               <Input
@@ -163,11 +163,67 @@ export default function ClientJourney() {
                 className="pl-8 h-9 text-sm bg-white"
               />
             </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="relative">
+                  <Filter className="size-4 mr-1" /> Filtrar colunas
+                  {visibleStages && (
+                    <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-indigo-600 text-white text-[10px] font-semibold h-4 min-w-4 px-1">
+                      {visibleStages.size}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-700">Colunas visíveis</p>
+                  <button
+                    type="button"
+                    onClick={() => { setVisibleStages(null); setShowUnassigned(true); }}
+                    className="text-[11px] text-indigo-600 hover:underline"
+                  >
+                    Mostrar todas
+                  </button>
+                </div>
+                <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer p-1 rounded hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      checked={showUnassigned}
+                      onChange={(e) => setShowUnassigned(e.target.checked)}
+                    />
+                    <span className="inline-block size-2.5 rounded-full bg-slate-400" />
+                    Sem estágio
+                  </label>
+                  {stages.map((s) => {
+                    const checked = !visibleStages || visibleStages.has(s.id);
+                    return (
+                      <label key={s.id} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer p-1 rounded hover:bg-slate-50">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            setVisibleStages((prev) => {
+                              const base = prev ? new Set(prev) : new Set(stages.map((x) => x.id));
+                              if (e.target.checked) base.add(s.id); else base.delete(s.id);
+                              return base;
+                            });
+                          }}
+                        />
+                        <span className="inline-block size-2.5 rounded-full" style={{ background: s.color }} />
+                        <span className="truncate">{s.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="outline" size="sm" onClick={() => setEditorOpen(true)}>
               <Settings className="size-4 mr-1" /> Configurar
             </Button>
           </div>
         }
+
       />
 
       <p className="text-xs text-slate-500 mt-2 mb-4">
