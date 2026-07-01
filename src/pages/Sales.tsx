@@ -255,7 +255,13 @@ export default function Sales() {
           case "amount": return Number(x.amount || 0);
           case "commission": return (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
           case "status": return String(x.status || "");
-        }
+          case "liquido": {
+            const amt = Number(x.amount || 0);
+            const comm = (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
+            const custos = Number(x.zenon_cost || 0) + Number(x.provider_cost || 0);
+            return amt - custos - comm;
+          }
+          case "recebido": return Math.min(receiptsBySale.get(x.id)?.received ?? 0, Number(x.amount || 0));
       };
       const va = v(a), vb = v(b);
       if (va == null && vb == null) return 0;
