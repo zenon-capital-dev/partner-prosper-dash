@@ -22,6 +22,7 @@ import { PaymentReceiptDialog } from "@/components/client/PaymentReceiptDialog";
 
 const NAV = [
   { key: "dashboard",  label: "Início",     icon: LayoutDashboard },
+  { key: "pendencias", label: "Pendências", icon: AlertTriangle },
   { key: "servicos",   label: "Serviços",   icon: Briefcase },
   { key: "documentos", label: "Documentos", icon: FileText, shortLabel: "Docs" },
   { key: "pagamentos", label: "Pagamentos", icon: Wallet, shortLabel: "Pagar" },
