@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   LayoutDashboard, Briefcase, FileText, Wallet, UserCog, Inbox, CheckCircle2,
   Calendar, HelpCircle, Receipt, Package, FileText as FileTextIcon,
-  MessageCircle, Mail, Clock, ArrowUpRight, ShieldCheck,
+  MessageCircle, Mail, Clock, ArrowUpRight, ShieldCheck, AlertTriangle, Upload,
 } from "lucide-react";
 import { PanelShell } from "@/components/panels/PanelShell";
 import { PanelHero } from "@/components/panels/PanelHero";
