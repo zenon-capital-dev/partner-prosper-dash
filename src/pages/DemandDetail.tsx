@@ -31,6 +31,7 @@ import { PauseDemandDialog } from "@/components/clients/PauseDemandDialog";
 import { RecordDelayDialog } from "@/components/clients/RecordDelayDialog";
 import { QualityApprovalDialog } from "@/components/clients/QualityApprovalDialog";
 import { DelegateProviderDialog } from "@/components/clients/DelegateProviderDialog";
+import { ReportStatusDialog } from "@/components/provider/ReportStatusDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -55,6 +56,7 @@ export default function DemandDetail() {
   const [qualityDialogOpen, setQualityDialogOpen] = useState(false);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
   const [delegateOpen, setDelegateOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
@@ -609,9 +611,20 @@ export default function DemandDetail() {
                   </div>
                </TabsContent>
                
-                <TabsContent value="reportes" className="animate-fade-up">
-                   <div className="vx-card p-6 bg-card border-slate-100 space-y-4">
-                     {reports.length === 0 ? (
+                 <TabsContent value="reportes" className="animate-fade-up">
+                    <div className="vx-card p-6 bg-card border-slate-100 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-foreground">Reportes de status</h3>
+                          <p className="text-xs text-muted-foreground">Histórico de andamentos, pendências e próximos passos.</p>
+                        </div>
+                        {canManage && (
+                          <Button size="sm" className="gap-2" onClick={() => setReportOpen(true)}>
+                            <Plus className="size-4" /> Novo reporte
+                          </Button>
+                        )}
+                      </div>
+                      {reports.length === 0 ? (
                         <div className="p-8 text-center text-muted-foreground text-sm">Nenhum reporte registrado.</div>
                      ) : reports.map((r: any) => (
                        <div key={r.id} className="p-4 rounded-xl bg-muted/40 border border-border space-y-3">
@@ -910,6 +923,14 @@ export default function DemandDetail() {
       </Dialog>
 
       <EditDemandDialog open={editOpen} onOpenChange={setEditOpen} demand={demand} />
+
+      <ReportStatusDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        clientProductId={demand.id}
+        productName={(demand.products as any)?.name || demand.custom_product_name}
+        clientName={(demand.clients as any)?.name}
+      />
 
       <Dialog open={!!rejectFor} onOpenChange={(v) => { if (!v) setRejectFor(null); }}>
         <DialogContent>
