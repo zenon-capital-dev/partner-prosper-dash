@@ -573,20 +573,55 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                           />
                         </div>
                       </Field>
-                      <Field label="Valor fixo do repasse ao Prestador">
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
-                            value={form.provider_cost ?? ""}
-                            onChange={(e) => setForm({ ...form, provider_cost: e.target.value })}
-                            placeholder="0,00"
-                          />
+                      <Field label="Repasse ao Prestador">
+                        <div className="flex gap-1.5">
+                          <div className="inline-flex rounded-lg border border-amber-200 bg-white p-0.5 shadow-sm">
+                            <button
+                              type="button"
+                              onClick={() => setForm({ ...form, provider_cost_mode: "fixed" })}
+                              className={`px-2.5 h-10 text-xs font-bold rounded-md ${(form.provider_cost_mode ?? "fixed") === "fixed" ? "bg-amber-500 text-white" : "text-amber-700"}`}
+                            >R$</button>
+                            <button
+                              type="button"
+                              onClick={() => setForm({ ...form, provider_cost_mode: "percent" })}
+                              className={`px-2.5 h-10 text-xs font-bold rounded-md ${form.provider_cost_mode === "percent" ? "bg-amber-500 text-white" : "text-amber-700"}`}
+                            >%</button>
+                          </div>
+                          <div className="relative flex-1">
+                            {(form.provider_cost_mode ?? "fixed") === "fixed" ? (
+                              <>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">R$</span>
+                                <Input
+                                  type="number" step="0.01" min="0"
+                                  className="h-11 pl-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
+                                  value={form.provider_cost ?? ""}
+                                  onChange={(e) => setForm({ ...form, provider_cost: e.target.value, provider_cost_percent: null })}
+                                  placeholder="0,00"
+                                />
+                              </>
+                            ) : (
+                              <>
+                                <Input
+                                  type="number" step="0.01" min="0" max="100"
+                                  className="h-11 pr-9 bg-white border-amber-200 shadow-sm focus:ring-amber-500 rounded-lg font-mono text-right tabular-nums"
+                                  value={form.provider_cost_percent ?? ""}
+                                  onChange={(e) => {
+                                    const pct = parseFloat(e.target.value) || 0;
+                                    const calc = ((Number(form.amount) || 0) * pct) / 100;
+                                    setForm({ ...form, provider_cost_percent: e.target.value, provider_cost: calc.toFixed(2) });
+                                  }}
+                                  placeholder="0,00"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold text-xs">%</span>
+                              </>
+                            )}
+                          </div>
                         </div>
+                        {form.provider_cost_mode === "percent" && Number(form.provider_cost) > 0 && (
+                          <p className="text-[10px] text-amber-700 mt-1">Equivale a <strong className="font-mono">{fmt(Number(form.provider_cost))}</strong></p>
+                        )}
                       </Field>
+
                     </div>
                     <p className="text-[10.5px] text-amber-700/90 leading-snug">
                       Ordem de dedução: <strong>Bruto</strong> − custos (<strong className="font-mono">{fmt(totalCosts)}</strong>) − Indicador/Imposto − Parceiro − Colaborador. Cada nível incide sobre o que sobrou do nível anterior.
