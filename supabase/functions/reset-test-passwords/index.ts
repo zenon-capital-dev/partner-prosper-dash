@@ -12,6 +12,7 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
   const targets = [
+    "admin@admin.com",
     "cliente@teste.com",
     "parceiro@teste.com",
     "colaborador@teste.com",
