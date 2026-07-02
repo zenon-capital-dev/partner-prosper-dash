@@ -18,6 +18,7 @@ import { formatBRL, formatDate } from "@/lib/format";
 import { formatBRDate, formatBR, nowBR, toBR } from "@/lib/datetime";
 import { SaleFormDialog } from "@/components/sales/SaleFormDialog";
 import { ReceivePaymentDialog } from "@/components/sales/ReceivePaymentDialog";
+import { FilterPresets } from "@/components/filters/FilterPresets";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
