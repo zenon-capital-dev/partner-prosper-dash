@@ -1908,6 +1908,7 @@ export type Database = {
           paid_at: string | null
           partner_id: string | null
           payment_date: string | null
+          payment_id: string | null
           payment_method: string | null
           percent: number | null
           product_id: string | null
@@ -1943,6 +1944,7 @@ export type Database = {
           paid_at?: string | null
           partner_id?: string | null
           payment_date?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           percent?: number | null
           product_id?: string | null
@@ -1978,6 +1980,7 @@ export type Database = {
           paid_at?: string | null
           partner_id?: string | null
           payment_date?: string | null
+          payment_id?: string | null
           payment_method?: string | null
           percent?: number | null
           product_id?: string | null
@@ -2036,6 +2039,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
           {
@@ -6362,6 +6372,10 @@ export type Database = {
       }
       recompute_sales_goals_for_month: {
         Args: { p_month: string }
+        Returns: undefined
+      }
+      sync_commissions_for_payment: {
+        Args: { p_payment_id: string }
         Returns: undefined
       }
       user_involved_in_demand: {
