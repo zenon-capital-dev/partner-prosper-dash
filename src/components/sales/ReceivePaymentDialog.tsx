@@ -25,6 +25,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
   const [paidAt, setPaidAt] = useState(ymdBR(nowBR()));
+  const [competenceMonth, setCompetenceMonth] = useState(ymdBR(nowBR()).slice(0, 7));
   const [method, setMethod] = useState("pix");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -37,7 +38,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("id, amount, amount_paid, paid_at, due_date, status, payment_method, notes, description")
+        .select("id, amount, amount_paid, paid_at, due_date, status, payment_method, notes, description, competence_month")
         .eq("sale_id", saleId)
         .order("paid_at", { ascending: false, nullsFirst: false });
       if (error) throw error;
@@ -48,11 +49,14 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   useEffect(() => {
     if (open) {
       setAmount("");
-      setPaidAt(ymdBR(nowBR()));
+      const today = ymdBR(nowBR());
+      setPaidAt(today);
+      setCompetenceMonth(today.slice(0, 7));
       setMethod("pix");
       setNotes("");
     }
   }, [open, saleId]);
+
 
   if (!sale) return null;
 
