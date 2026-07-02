@@ -386,12 +386,12 @@ export default function Clients() {
   const resetFilters = () => {
     setStatusFilter("all"); setProductFilter("all"); setPartnerFilter("all");
     setProviderFilter("all"); setCityFilter("all"); setPaymentFilter("all");
-    setRiskFilter("all"); setDateRange(undefined); setSearch("");
+    setRiskFilter("all"); setSalesFilter("all"); setDateRange(undefined); setSearch("");
   };
 
   const activeFiltersCount = [
     statusFilter, productFilter, partnerFilter, providerFilter,
-    cityFilter, paymentFilter, riskFilter,
+    cityFilter, paymentFilter, riskFilter, salesFilter,
   ].filter((v) => v !== "all").length + (dateRange?.from ? 1 : 0);
 
   const productById = useMemo(() => Object.fromEntries(products.map((p: any) => [p.id, p.name])), [products]);
