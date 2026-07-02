@@ -143,7 +143,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       const { error } = await supabase.from("documents").insert(rows as any);
       if (error) throw error;
       toast.success(`${selectedFiles.length} arquivo(s) enviado(s)`);
-      qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+      qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e));
     } finally {
@@ -168,7 +168,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     const { error } = await supabase.from("documents").delete().eq("id", file.id);
     if (error) return toast.error(error.message);
     toast.success("Arquivo excluído");
-    qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
   }
 
   async function onAttachToRequest(e: React.ChangeEvent<HTMLInputElement>) {
@@ -223,7 +223,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         if (error) throw error;
       }
       toast.success(`${files.length} arquivo(s) enviado(s)`);
-      qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+      qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
     } catch (err: any) {
       toast.error(uploadErrorMessage(err));
     } finally {
@@ -418,7 +418,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           folderId={requestingInFolder}
           onSuccess={() => {
             setRequestingInFolder(null);
-            qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+            qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
           }}
         />
       )}
