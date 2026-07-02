@@ -76,8 +76,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     },
   });
 
-    },
-  });
+
 
   async function createFolder() {
     const name = newName.trim();
