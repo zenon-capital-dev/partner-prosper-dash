@@ -392,6 +392,7 @@ export default function ClientJourney() {
               color={stage.color}
               count={list.length}
               kpi={stageKpis.get(stage.id)}
+              showMoneyKpi={stageShowsMoneyKpi(stage)}
               isOver={dragOver === stage.id}
               onDragOver={(e) => { e.preventDefault(); setDragOver(stage.id); }}
               onDragLeave={() => setDragOver(null)}
