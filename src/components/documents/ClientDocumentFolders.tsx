@@ -60,21 +60,23 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     },
   });
 
-  const currentFolderId = activeId ?? folders[0]?.id ?? null;
+  const ALL_ID = "__all__";
+  const currentFolderId = activeId ?? ALL_ID;
+  const isAllView = currentFolderId === ALL_ID;
 
   const { data: files = [] } = useQuery({
-    queryKey: ["cdf-files", currentFolderId],
+    queryKey: ["cdf-files", clientId, currentFolderId],
     enabled: !!currentFolderId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("folder_id", currentFolderId!)
-        .order("created_at", { ascending: false });
+      let q = supabase.from("documents").select("*").eq("client_id", clientId);
+      if (!isAllView) q = q.eq("folder_id", currentFolderId!);
+      const { data, error } = await q.order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
   });
+
+
 
   async function createFolder() {
     const name = newName.trim();
@@ -141,7 +143,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
       const { error } = await supabase.from("documents").insert(rows as any);
       if (error) throw error;
       toast.success(`${selectedFiles.length} arquivo(s) enviado(s)`);
-      qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+      qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
     } catch (e: any) {
       toast.error(uploadErrorMessage(e));
     } finally {
@@ -166,7 +168,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
     const { error } = await supabase.from("documents").delete().eq("id", file.id);
     if (error) return toast.error(error.message);
     toast.success("Arquivo excluído");
-    qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+    qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
   }
 
   async function onAttachToRequest(e: React.ChangeEvent<HTMLInputElement>) {
@@ -221,7 +223,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
         if (error) throw error;
       }
       toast.success(`${files.length} arquivo(s) enviado(s)`);
-      qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+      qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
     } catch (err: any) {
       toast.error(uploadErrorMessage(err));
     } finally {
@@ -255,21 +257,15 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
 
       {isLoading ? (
         <p className="text-xs text-slate-500">Carregando pastas...</p>
-      ) : folders.length === 0 ? (
-        <div className="border border-dashed border-slate-200 rounded-lg p-6 text-center bg-white">
-          <Folder className="size-6 text-slate-400 mx-auto mb-2" />
-          <p className="text-sm text-slate-600">Nenhuma pasta ainda.</p>
-          {isAdmin && (
-            <Button size="sm" variant="outline" className="mt-2" onClick={() => setCreating(true)}>
-              Criar primeira pasta
-            </Button>
-          )}
-        </div>
       ) : (
         <>
           <div className="overflow-x-auto">
-            <Tabs value={currentFolderId ?? ""} onValueChange={setActiveId}>
+            <Tabs value={currentFolderId} onValueChange={setActiveId}>
               <TabsList className="flex-wrap h-auto">
+                <TabsTrigger value={ALL_ID} className="gap-1 font-semibold">
+                  <Folder className="size-3.5" />
+                  Todos os doc
+                </TabsTrigger>
                 {folders.map((f) => (
                   <TabsTrigger key={f.id} value={f.id} className="gap-1">
                     <Folder className="size-3.5" />
@@ -280,6 +276,15 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
             </Tabs>
           </div>
 
+          {folders.length === 0 && isAllView && isAdmin && (
+            <div className="border border-dashed border-slate-200 rounded-lg p-3 text-center bg-white">
+              <p className="text-xs text-slate-500">Ainda não há pastas criadas. Todos os documentos aparecem aqui.</p>
+              <Button size="sm" variant="outline" className="mt-2" onClick={() => setCreating(true)}>
+                Criar primeira pasta
+              </Button>
+            </div>
+          )}
+
           {currentFolderId && (
             <div className="border border-slate-200 rounded-lg bg-white p-3 space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -287,9 +292,12 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   <Badge variant="outline" className="bg-slate-50">
                     {files.length} arquivo(s)
                   </Badge>
+                  {isAllView && (
+                    <span className="text-[11px] text-slate-500">Visão consolidada — apenas leitura</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {isAdmin && (
+                  {isAdmin && !isAllView && (
                     <>
                       <Button size="sm" variant="default" onClick={() => setRequestingInFolder(currentFolderId)}>
                         <FilePlus2 className="size-3.5 mr-1" /> Solicitar ao cliente
@@ -308,7 +316,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                       </Button>
                     </>
                   )}
-                  {canUpload && (
+                  {canUpload && !isAllView && (
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
                       <input ref={attachRef} type="file" multiple hidden onChange={onAttachToRequest} />
@@ -320,6 +328,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   )}
                 </div>
               </div>
+
 
               {files.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-6">Nenhum arquivo nesta pasta.</p>
@@ -348,7 +357,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                             </Button>
                           </>
                         )}
-                        {canUpload && (
+                        {canUpload && !isAllView && (
                           <Button size="sm" variant="outline" disabled={uploading} onClick={() => { setAttachingDoc(f); setTimeout(() => attachRef.current?.click(), 0); }}>
                             {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
                             {isRequest ? "Anexar" : "Adicionar"}
@@ -416,7 +425,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           folderId={requestingInFolder}
           onSuccess={() => {
             setRequestingInFolder(null);
-            qc.invalidateQueries({ queryKey: ["cdf-files", currentFolderId] });
+            qc.invalidateQueries({ queryKey: ["cdf-files", clientId] });
           }}
         />
       )}
