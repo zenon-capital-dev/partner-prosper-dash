@@ -3195,8 +3195,18 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string
+          due_date: string | null
           expense_date: string
           id: string
+          notes: string | null
+          paid: boolean
+          paid_at: string | null
+          payment_method: string | null
+          receipt_url: string | null
+          reference_month: string | null
+          subcategory: string | null
+          updated_at: string
+          vendor: string | null
         }
         Insert: {
           amount: number
@@ -3204,8 +3214,18 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description: string
+          due_date?: string | null
           expense_date?: string
           id?: string
+          notes?: string | null
+          paid?: boolean
+          paid_at?: string | null
+          payment_method?: string | null
+          receipt_url?: string | null
+          reference_month?: string | null
+          subcategory?: string | null
+          updated_at?: string
+          vendor?: string | null
         }
         Update: {
           amount?: number
@@ -3213,8 +3233,18 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string
+          due_date?: string | null
           expense_date?: string
           id?: string
+          notes?: string | null
+          paid?: boolean
+          paid_at?: string | null
+          payment_method?: string | null
+          receipt_url?: string | null
+          reference_month?: string | null
+          subcategory?: string | null
+          updated_at?: string
+          vendor?: string | null
         }
         Relationships: []
       }
