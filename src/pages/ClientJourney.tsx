@@ -480,10 +480,11 @@ export default function ClientJourney() {
 }
 
 function Column({
-  title, color, count, kpi, children, isOver, onDragOver, onDragLeave, onDrop,
+  title, color, count, kpi, showMoneyKpi = true, children, isOver, onDragOver, onDragLeave, onDrop,
 }: {
   title: string; color: string; count: number;
   kpi?: { salesValue: number; salesCount: number; pending: number; pendingCount: number };
+  showMoneyKpi?: boolean;
   children: React.ReactNode;
   isOver: boolean;
   onDragOver: React.DragEventHandler;
@@ -508,8 +509,9 @@ function Column({
         <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{title}</p>
         <Badge variant="outline" className="bg-slate-50 text-slate-700 text-[10px]">{count}</Badge>
       </div>
-      {kpi && (kpi.salesCount > 0 || kpi.pendingCount > 0) && (
+      {showMoneyKpi && kpi && (kpi.salesCount > 0 || kpi.pendingCount > 0) && (
         <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/50 grid grid-cols-3 gap-1.5 text-[10px]">
+
           <div className="flex flex-col items-start" title="Clientes no estágio">
             <span className="flex items-center gap-0.5 text-slate-500 uppercase tracking-wider font-semibold text-[9px]">
               <Users className="size-2.5" /> Clientes
