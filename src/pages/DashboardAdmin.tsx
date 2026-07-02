@@ -294,26 +294,33 @@ export default function DashboardAdmin() {
       receivedBySale.set(p.sale_id, (receivedBySale.get(p.sale_id) || 0) + received);
     });
     const salesById = new Map(sales.map((s: any) => [s.id, s]));
+    // Regra de caixa: só reconhecemos custos/comissões/impostos proporcionalmente ao que efetivamente ENTROU do cliente.
+    // Se não temos informação da venda (não carregada na página) devolvemos 0 para NUNCA deduzir 100% de uma comissão sem base.
     const saleRatio = (saleId: string) => {
       const sale: any = salesById.get(saleId);
+      if (!sale) return 0;
       const amount = Number(sale?.amount || 0);
-      if (!sale || sale.status === "cancelada" || amount <= 0) return sale ? 0 : 1;
+      if (sale.status === "cancelada" || amount <= 0) return 0;
       return Math.max(0, Math.min(1, (receivedBySale.get(saleId) || 0) / amount));
     };
-    const commissionReleased = (c: any) => Number(c.amount || 0) * (c.sale_id ? saleRatio(c.sale_id) : 1);
+    const commissionReleased = (c: any) => (c.sale_id ? Number(c.amount || 0) * saleRatio(c.sale_id) : 0);
     const commissionsToPay = commissions
       .filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status))
       .reduce((a, c: any) => a + commissionReleased(c), 0);
     const commissionsCount = commissions.filter((c: any) => ["pendente", "gerada", "em_analise", "aprovada", "pending"].includes(c.status)).length;
 
-    // Receita Bruta = total vendido no período selecionado
+    // Receita Bruta = total vendido (contratado) no período
     const grossRevenue = rangeRevenue;
-    // Custos internos das vendas do período (Zenon + Prestador), excluindo canceladas
+    // Recebido no período (caixa) referente às vendas do período
+    const periodSaleIds = new Set(filteredSales.map((s: any) => s.id));
+    const periodReceived = payments
+      .filter((p: any) => p.sale_id && periodSaleIds.has(p.sale_id))
+      .reduce((a: number, p: any) => a + paymentReceived(p), 0);
+    // Custos internos (Zenon + Prestador) reconhecidos SÓ na proporção do recebido
     const periodSalesCosts = filteredSales
       .filter((s: any) => s.status !== "cancelada")
       .reduce((a, s: any) => a + (Number(s.zenon_cost || 0) + Number(s.provider_cost || 0)) * saleRatio(s.id), 0);
-    // Comissões geradas para as vendas do período (qualquer status — é despesa real/projetada)
-    const periodSaleIds = new Set(filteredSales.map((s: any) => s.id));
+    // Comissões das vendas do período — também prorateadas pelo recebido
     const periodCommissions = commissions
       .filter((c: any) => c.sale_id && periodSaleIds.has(c.sale_id))
       .reduce((a, c: any) => a + commissionReleased(c), 0);
@@ -321,10 +328,10 @@ export default function DashboardAdmin() {
     const commissionsPaid = commissions
       .filter((c: any) => ["pago", "paga"].includes(c.status) || ["pago", "paga"].includes(c.workflow_status))
       .reduce((a, c: any) => a + commissionReleased(c), 0);
-    // Impostos sobre a receita bruta (configurável em system_settings.tax_rate_percent)
-    const periodTaxes = grossRevenue * (Number(taxRate) || 0) / 100;
-    // Receita Líquida = Bruto - custos venda - comissões do período - impostos
-    const netRevenue = grossRevenue - periodSalesCosts - periodCommissions - periodTaxes;
+    // Impostos incidem sobre o que efetivamente entrou em caixa
+    const periodTaxes = periodReceived * (Number(taxRate) || 0) / 100;
+    // Receita Líquida (caixa) = Recebido no período − custos proporcionais − comissões proporcionais − impostos sobre recebido
+    const netRevenue = periodReceived - periodSalesCosts - periodCommissions - periodTaxes;
     // Estimativa de receita = total a receber (todos os pagamentos em aberto, não apenas 7d)
     const estimatedRevenue = payments
       .filter((p: any) => ["pendente", "em_aberto", "atrasado", "vencido", "parcialmente_pago"].includes(p.status))
