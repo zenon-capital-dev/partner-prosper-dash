@@ -466,9 +466,11 @@ export default function ClientJourney() {
 }
 
 function Column({
-  title, color, count, children, isOver, onDragOver, onDragLeave, onDrop,
+  title, color, count, kpi, children, isOver, onDragOver, onDragLeave, onDrop,
 }: {
-  title: string; color: string; count: number; children: React.ReactNode;
+  title: string; color: string; count: number;
+  kpi?: { salesValue: number; salesCount: number; pending: number; pendingCount: number };
+  children: React.ReactNode;
   isOver: boolean;
   onDragOver: React.DragEventHandler;
   onDragLeave: React.DragEventHandler;
@@ -492,18 +494,45 @@ function Column({
         <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{title}</p>
         <Badge variant="outline" className="bg-slate-50 text-slate-700 text-[10px]">{count}</Badge>
       </div>
+      {kpi && (kpi.salesCount > 0 || kpi.pendingCount > 0) && (
+        <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/50 grid grid-cols-3 gap-1.5 text-[10px]">
+          <div className="flex flex-col items-start" title="Clientes no estágio">
+            <span className="flex items-center gap-0.5 text-slate-500 uppercase tracking-wider font-semibold text-[9px]">
+              <Users className="size-2.5" /> Clientes
+            </span>
+            <span className="font-bold font-mono text-slate-900 tabular-nums">{count}</span>
+          </div>
+          <div className="flex flex-col items-start" title="Soma das vendas finalizadas">
+            <span className="flex items-center gap-0.5 text-emerald-600 uppercase tracking-wider font-semibold text-[9px]">
+              <TrendingUp className="size-2.5" /> Vendas
+            </span>
+            <span className="font-bold font-mono text-emerald-700 tabular-nums truncate w-full" title={formatBRL(kpi.salesValue)}>
+              {formatBRL(kpi.salesValue)}
+            </span>
+          </div>
+          <div className="flex flex-col items-start" title="Saldo pendente a receber">
+            <span className="flex items-center gap-0.5 text-amber-600 uppercase tracking-wider font-semibold text-[9px]">
+              <Wallet className="size-2.5" /> A Receber
+            </span>
+            <span className="font-bold font-mono text-amber-700 tabular-nums truncate w-full" title={formatBRL(kpi.pending)}>
+              {formatBRL(kpi.pending)}
+            </span>
+          </div>
+        </div>
+      )}
       <div className="p-2 space-y-2 max-h-[70vh] overflow-y-auto flex-1">{children}</div>
     </div>
   );
 }
 
 function ClientCard({
-  client, stages, nextStageId, onMove, onDragStart, onDragEnd,
+  client, stages, nextStageId, onMove, onHistory, onDragStart, onDragEnd,
 }: {
   client: Client;
   stages: Stage[];
   nextStageId: string | null;
   onMove: (cid: string, sid: string | null) => void;
+  onHistory: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }) {
@@ -531,6 +560,14 @@ function ClientCard({
           )}
           <StatusPill status={client.status} />
         </div>
+        <button
+          type="button"
+          onClick={onHistory}
+          className="text-slate-400 hover:text-indigo-600 shrink-0"
+          title="Ver histórico de estágios"
+        >
+          <History className="size-3.5" />
+        </button>
         <Link
           to={`/clientes/${client.id}`}
           className="text-slate-400 hover:text-indigo-600 shrink-0"
@@ -565,6 +602,61 @@ function ClientCard({
     </div>
   );
 }
+
+function StageHistoryDialog({ client, onClose }: { client: Client | null; onClose: () => void }) {
+  const { data: history = [], isLoading } = useQuery<StageHistoryRow[]>({
+    queryKey: ["client-stage-history", client?.id],
+    enabled: !!client?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_stage_history")
+        .select("id, from_stage_name, to_stage_name, changed_at, changed_by")
+        .eq("client_id", client!.id)
+        .order("changed_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as StageHistoryRow[];
+    },
+  });
+
+  return (
+    <Dialog open={!!client} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Histórico de estágios · {client?.full_name}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[60vh] overflow-y-auto">
+          {isLoading ? (
+            <p className="text-sm text-slate-400 py-6 text-center">Carregando...</p>
+          ) : history.length === 0 ? (
+            <p className="text-sm text-slate-400 py-6 text-center italic">Nenhuma movimentação registrada ainda.</p>
+          ) : (
+            <ol className="relative border-l-2 border-slate-200 ml-3 space-y-3 pl-4 py-2">
+              {history.map((h) => (
+                <li key={h.id} className="relative">
+                  <span className="absolute -left-[22px] top-1.5 size-2.5 rounded-full bg-indigo-500 ring-2 ring-white" />
+                  <p className="text-[12.5px] text-slate-800">
+                    <span className="font-semibold text-slate-500">{h.from_stage_name || "— sem estágio —"}</span>
+                    {" → "}
+                    <span className="font-bold text-indigo-700">{h.to_stage_name || "— sem estágio —"}</span>
+                  </p>
+                  <p className="text-[10.5px] text-slate-400 mt-0.5">
+                    {new Date(h.changed_at).toLocaleString("pt-BR")}
+                    {h.changed_by ? ` · por ${h.changed_by.slice(0, 8)}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 const STATUS_TONE: Record<string, string> = {
   ativo: "bg-blue-50 text-blue-700 border-blue-200",
