@@ -19,7 +19,19 @@ import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@
 import { paymentReceivedAmount, paymentOutstandingAmount, saleIsFinalized } from "@/lib/financial";
 
 
-interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
+interface Stage { id: string; name: string; position: number; color: string; description?: string | null; is_captation?: boolean; is_terminal?: boolean; }
+
+// Estágios pré-venda (captação/prospecção/diagnóstico/proposta) NÃO devem exibir KPIs financeiros:
+// não há venda fechada, portanto valores agregados nesses clientes seriam enganosos.
+function isPreSaleStageName(name?: string | null) {
+  const s = (name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /(captac|capta|prospecc|prospec|lead|diagnostic|proposta|qualific|apresentac|reuniao|contato inicial|negociac)/.test(s);
+}
+function stageShowsMoneyKpi(stage?: { name?: string | null; is_captation?: boolean } | null) {
+  if (!stage) return true;
+  if (stage.is_captation) return false;
+  return !isPreSaleStageName(stage.name);
+}
 interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
 interface StageHistoryRow { id: string; from_stage_name: string | null; to_stage_name: string | null; changed_at: string; changed_by: string | null; }
 
@@ -351,6 +363,7 @@ export default function ClientJourney() {
             color="#94a3b8"
             count={byStage.unassigned.length}
             kpi={stageKpis.get("__unassigned__")}
+            showMoneyKpi={false}
             isOver={dragOver === "__unassigned__"}
             onDragOver={(e) => { e.preventDefault(); setDragOver("__unassigned__"); }}
             onDragLeave={() => setDragOver(null)}
@@ -379,6 +392,7 @@ export default function ClientJourney() {
               color={stage.color}
               count={list.length}
               kpi={stageKpis.get(stage.id)}
+              showMoneyKpi={stageShowsMoneyKpi(stage)}
               isOver={dragOver === stage.id}
               onDragOver={(e) => { e.preventDefault(); setDragOver(stage.id); }}
               onDragLeave={() => setDragOver(null)}
@@ -466,10 +480,11 @@ export default function ClientJourney() {
 }
 
 function Column({
-  title, color, count, kpi, children, isOver, onDragOver, onDragLeave, onDrop,
+  title, color, count, kpi, showMoneyKpi = true, children, isOver, onDragOver, onDragLeave, onDrop,
 }: {
   title: string; color: string; count: number;
   kpi?: { salesValue: number; salesCount: number; pending: number; pendingCount: number };
+  showMoneyKpi?: boolean;
   children: React.ReactNode;
   isOver: boolean;
   onDragOver: React.DragEventHandler;
@@ -494,8 +509,9 @@ function Column({
         <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{title}</p>
         <Badge variant="outline" className="bg-slate-50 text-slate-700 text-[10px]">{count}</Badge>
       </div>
-      {kpi && (kpi.salesCount > 0 || kpi.pendingCount > 0) && (
+      {showMoneyKpi && kpi && (kpi.salesCount > 0 || kpi.pendingCount > 0) && (
         <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/50 grid grid-cols-3 gap-1.5 text-[10px]">
+
           <div className="flex flex-col items-start" title="Clientes no estágio">
             <span className="flex items-center gap-0.5 text-slate-500 uppercase tracking-wider font-semibold text-[9px]">
               <Users className="size-2.5" /> Clientes
