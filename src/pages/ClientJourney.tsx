@@ -350,6 +350,7 @@ export default function ClientJourney() {
             title="Sem estágio"
             color="#94a3b8"
             count={byStage.unassigned.length}
+            kpi={stageKpis.get("__unassigned__")}
             isOver={dragOver === "__unassigned__"}
             onDragOver={(e) => { e.preventDefault(); setDragOver("__unassigned__"); }}
             onDragLeave={() => setDragOver(null)}
@@ -362,6 +363,7 @@ export default function ClientJourney() {
                 stages={stages}
                 nextStageId={nextStageOf(null)}
                 onMove={moveClient}
+                onHistory={() => setHistoryClient(c)}
                 onDragStart={() => setDragId(c.id)}
                 onDragEnd={() => { setDragId(null); setDragOver(null); }}
               />
@@ -376,6 +378,7 @@ export default function ClientJourney() {
               title={stage.name}
               color={stage.color}
               count={list.length}
+              kpi={stageKpis.get(stage.id)}
               isOver={dragOver === stage.id}
               onDragOver={(e) => { e.preventDefault(); setDragOver(stage.id); }}
               onDragLeave={() => setDragOver(null)}
@@ -391,6 +394,7 @@ export default function ClientJourney() {
                     stages={stages}
                     nextStageId={nextStageOf(stage.id)}
                     onMove={moveClient}
+                    onHistory={() => setHistoryClient(c)}
                     onDragStart={() => setDragId(c.id)}
                     onDragEnd={() => { setDragId(null); setDragOver(null); }}
                   />
@@ -400,6 +404,9 @@ export default function ClientJourney() {
           );
         })}
       </div>
+
+      <StageHistoryDialog client={historyClient} onClose={() => setHistoryClient(null)} />
+
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-w-lg">
