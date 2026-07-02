@@ -68,13 +68,12 @@ export function FinancialAuditPanel() {
                 {money(r.amount)}
               </span>
             )}
-            {kind === "commission" &&
-              (r.old_amount != null || r.new_amount != null) && (
-                <span className="ml-auto tabular-nums font-mono text-[11px] text-muted-foreground">
-                  {r.old_amount != null && `${money(r.old_amount)} → `}
-                  {money(r.new_amount)}
-                </span>
-              )}
+            {kind === "commission" && r.amount != null && (
+              <span className="ml-auto tabular-nums font-mono text-[11px] text-muted-foreground">
+                {money(r.amount)}
+                {r.percent != null && ` · ${Number(r.percent)}%`}
+              </span>
+            )}
           </div>
           <div className="text-[10px] text-muted-foreground text-right shrink-0">
             <div className="truncate max-w-[140px]">{r.actor_email ?? "sistema"}</div>
