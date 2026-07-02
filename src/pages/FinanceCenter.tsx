@@ -905,7 +905,6 @@ function PaymentsTable({
     [payments, today]
   );
 
-  const { matchesClientId } = useStageMatcher();
 
   const filtered = useMemo(() => {
     const q = norm(search);
