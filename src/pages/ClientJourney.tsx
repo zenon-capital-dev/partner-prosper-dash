@@ -363,6 +363,7 @@ export default function ClientJourney() {
             color="#94a3b8"
             count={byStage.unassigned.length}
             kpi={stageKpis.get("__unassigned__")}
+            showMoneyKpi={false}
             isOver={dragOver === "__unassigned__"}
             onDragOver={(e) => { e.preventDefault(); setDragOver("__unassigned__"); }}
             onDragLeave={() => setDragOver(null)}
