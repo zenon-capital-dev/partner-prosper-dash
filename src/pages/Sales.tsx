@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { PaginationControl } from "@/components/ui/PaginationControl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { usePageSize } from "@/hooks/usePageSize";
+import { saleIsFinalized } from "@/lib/financial";
 
 type StatusKey = "todos" | "pendente" | "em_andamento" | "concluida" | "cancelada";
 type SortKey = "sale_date" | "client" | "product" | "partner" | "amount" | "commission" | "status" | "liquido" | "recebido";
@@ -67,7 +68,7 @@ const receivedPaymentAmount = (p: any) => {
 const saleReceived = (saleId: string, receiptsBySale: Map<string, any>) => Number(receiptsBySale.get(saleId)?.received || 0);
 const saleRatio = (s: any, receiptsBySale: Map<string, any>) => {
   const amount = Number(s.amount || 0);
-  if (amount <= 0 || s.status === "cancelada") return 0;
+  if (amount <= 0 || !saleIsFinalized(s)) return 0;
   return Math.max(0, Math.min(1, saleReceived(s.id, receiptsBySale) / amount));
 };
 const saleFullCommission = (s: any, splitsBySale: Map<string, any[]>) =>
@@ -207,12 +208,15 @@ export default function Sales() {
     },
   });
 
+  const finalizedSaleIds = useMemo(() => new Set((sales as any[]).filter(saleIsFinalized).map((s: any) => s.id)), [sales]);
+
   const receiptsBySale = useMemo(() => {
     const m = new Map<string, { received: number; receivedThisMonth: number; lastPaidAt: string | null; count: number }>();
     const now = new Date();
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     allReceipts.forEach((r: any) => {
       if (!r.sale_id) return;
+      if (!finalizedSaleIds.has(r.sale_id)) return;
       const val = receivedPaymentAmount(r);
       if (val <= 0) return;
       const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
@@ -223,7 +227,7 @@ export default function Sales() {
       m.set(r.sale_id, cur);
     });
     return m;
-  }, [allReceipts]);
+  }, [allReceipts, finalizedSaleIds]);
 
   const splitsBySale = useMemo(() => {
     const m = new Map<string, any[]>();
@@ -342,8 +346,10 @@ export default function Sales() {
       acc.comissao += comm;
       acc.liquido += Math.min(rec, v) - z - pc - comm;
       if (s.status !== "cancelada") {
-        acc.recebido += Math.min(rec, v);
-        acc.aReceber += Math.max(v - rec, 0);
+        if (saleIsFinalized(s)) {
+          acc.recebido += Math.min(rec, v);
+          acc.aReceber += Math.max(v - rec, 0);
+        }
       }
       if (s.status === "concluida") acc.concluida += v;
       else if (s.status === "pendente") acc.pendente += v;
@@ -361,12 +367,13 @@ export default function Sales() {
       : { start: startOfMonth(today), end: endOfDay(today) };
     return allReceipts.reduce((sum: number, r: any) => {
       if (!r.paid_at) return sum;
+      if (!r.sale_id || !finalizedSaleIds.has(r.sale_id)) return sum;
       const d = new Date(r.paid_at);
       if (d < range.start || d > range.end) return sum;
       const val = receivedPaymentAmount(r);
       return sum + (val > 0 ? val : 0);
     }, 0);
-  }, [allReceipts, rangeKey, selectedMonth, usingManualRange]);
+  }, [allReceipts, rangeKey, selectedMonth, usingManualRange, finalizedSaleIds]);
 
   const chartSeries = useMemo(() => {
     const today = nowBR();

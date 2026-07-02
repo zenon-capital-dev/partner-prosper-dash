@@ -17,6 +17,7 @@ import { Target, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { confirmAction } from "@/lib/confirm";
 import { PageHero } from "@/components/PageHero";
+import { paymentSaleIsFinalized } from "@/lib/financial";
 
 type GoalType = "leads" | "proposals" | "sales_count" | "revenue" | "stage_movements" | "clients_closed";
 const TYPES: { value: GoalType; label: string; isCurrency: boolean }[] = [
@@ -71,15 +72,15 @@ export default function SalesGoals() {
         (supabase as any).from("proposals").select("id", { count: "exact", head: true })
           .gte("created_at", start).lt("created_at", end),
         (supabase as any).from("sales").select("id", { count: "exact", head: true })
-          .gte("created_at", start).lt("created_at", end),
-        (supabase as any).from("payments").select("amount")
+          .eq("status", "concluida").gte("created_at", start).lt("created_at", end),
+        (supabase as any).from("payments").select("amount, sale_id, sales(id, status)")
           .eq("status", "pago").gte("paid_at", start).lt("paid_at", end).limit(1000),
         (supabase as any).from("client_timeline").select("id", { count: "exact", head: true })
           .eq("event_type", "journey_stage_change").gte("created_at", start).lt("created_at", end),
         (supabase as any).from("leads").select("id", { count: "exact", head: true })
           .eq("status", "won").gte("updated_at", start).lt("updated_at", end),
       ]);
-      const payRows = (paymentsR.data ?? []) as { amount: number }[];
+      const payRows = ((paymentsR.data ?? []) as any[]).filter(paymentSaleIsFinalized);
       return {
         leads: leadsR.count ?? 0,
         proposals: propR.count ?? 0,

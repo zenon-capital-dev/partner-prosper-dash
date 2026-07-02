@@ -22,6 +22,7 @@ import { useMemo, useState, useEffect, useDeferredValue, ReactNode } from "react
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { paymentSaleIsFinalized, saleIsFinalized } from "@/lib/financial";
 ;
 import { ptBR } from "date-fns/locale";
 import {
@@ -113,7 +114,7 @@ export default function DashboardAdmin() {
     staleTime: STALE,
     enabled: false,
     queryFn: async () => {
-      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").order("sale_date", { ascending: false }).limit(300);
+      let query = supabase.from("sales").select("id, sale_date, amount, client_id, status, zenon_cost, provider_cost").eq("status", "concluida").order("sale_date", { ascending: false }).limit(300);
 
       let rangeStart = new Date(brasiliaToday);
       const rangeEnd = new Date(brasiliaToday);
@@ -154,7 +155,11 @@ export default function DashboardAdmin() {
         provider_id: s.beneficiary_type === "service_provider" ? s.beneficiary_id : null,
         amount: s.amount, percent: s.percent, status: s.status, workflow_status: s.status, paid_at: s.paid_at, created_at: s.created_at,
       }));
-      return [...splitsData, ...(comms.data ?? [])];
+      const splitKeys = new Set(splitsData.map((s: any) => `${s.sale_id}|${s.partner_id || s.collaborator_id || s.referrer_id || s.provider_id || ""}`));
+      const manualRows = (comms.data ?? []).filter((c: any) =>
+        !splitKeys.has(`${c.sale_id}|${c.partner_id || c.collaborator_id || c.referrer_id || c.service_provider_id || ""}`)
+      );
+      return [...splitsData, ...manualRows];
     }
   });
   const { data: tasks = [], isLoading: isLoadingTasks } = useQuery({
@@ -191,7 +196,10 @@ export default function DashboardAdmin() {
     queryKey: ["dash-payments"],
     staleTime: STALE,
     enabled: false,
-    queryFn: async () => (await supabase.from("payments").select("id, sale_id, status, amount, amount_paid, due_date, paid_at").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? []
+    queryFn: async () => {
+      const data = (await supabase.from("payments").select("id, sale_id, status, amount, amount_paid, due_date, paid_at, sales(id, status)").in("status", ["pendente", "em_aberto", "parcialmente_pago", "atrasado", "vencido", "pago"]).limit(500)).data ?? [];
+      return (data as any[]).filter(paymentSaleIsFinalized);
+    }
   });
 
   const { data: activityLogs = [], isLoading: isLoadingActivity } = useQuery({
@@ -300,7 +308,7 @@ export default function DashboardAdmin() {
       const sale: any = salesById.get(saleId);
       if (!sale) return 0;
       const amount = Number(sale?.amount || 0);
-      if (sale.status === "cancelada" || amount <= 0) return 0;
+      if (!saleIsFinalized(sale) || amount <= 0) return 0;
       return Math.max(0, Math.min(1, (receivedBySale.get(saleId) || 0) / amount));
     };
     const commissionReleased = (c: any) => (c.sale_id ? Number(c.amount || 0) * saleRatio(c.sale_id) : 0);

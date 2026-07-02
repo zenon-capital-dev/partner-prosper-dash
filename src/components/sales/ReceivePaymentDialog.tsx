@@ -12,6 +12,7 @@ import { formatBRL } from "@/lib/format";
 import { ymdBR, nowBR } from "@/lib/datetime";
 import { Wallet, TrendingUp, Receipt, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { saleIsFinalized } from "@/lib/financial";
 
 interface Props {
   open: boolean;
@@ -56,6 +57,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   if (!sale) return null;
 
   const gross = Number(sale.amount || 0);
+  const canReceive = saleIsFinalized(sale);
   const received = receipts.reduce(
     (s: number, r: any) => s + Number(r.amount_paid ?? (r.status === "pago" ? r.amount : 0) ?? 0),
     0
@@ -64,6 +66,10 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
   const pct = gross > 0 ? Math.min(100, (received / gross) * 100) : 0;
 
   const submit = async () => {
+    if (!canReceive) {
+      toast.error("Finalize a venda antes de registrar recebimentos");
+      return;
+    }
     const v = Number(amount);
     if (!Number.isFinite(v) || v <= 0) {
       toast.error("Informe um valor maior que zero");
@@ -91,10 +97,6 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
         notes: notes || null,
       } as any);
       if (error) throw error;
-
-      if (isFull && sale.status !== "concluida") {
-        await supabase.from("sales").update({ status: "concluida", paid_at: `${paidAt}T12:00:00` }).eq("id", sale.id);
-      }
 
       toast.success(isFull ? "Venda quitada integralmente!" : "Recebimento registrado");
       await Promise.all([
@@ -140,6 +142,12 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
             </div>
           </div>
 
+          {!canReceive && (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] font-medium text-amber-800">
+              Esta venda ainda está em negociação. Marque como finalizada para ativar o cronograma e lançar recebimentos.
+            </div>
+          )}
+
           {/* Progresso */}
           <div className="mt-5 grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-white border border-slate-200/70 px-3 py-2.5">
@@ -175,7 +183,7 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
 
         <div className="px-6 py-5 space-y-5 max-h-[55vh] overflow-y-auto">
           {/* Form novo recebimento */}
-          {remaining > 0 ? (
+          {remaining > 0 && canReceive ? (
             <div className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="size-3.5 text-emerald-600" />
@@ -245,6 +253,14 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                 </div>
               </div>
             </div>
+          ) : remaining > 0 ? (
+            <div className="rounded-xl bg-amber-50/70 border border-amber-200/70 p-4 flex items-start gap-3">
+              <Wallet className="size-5 text-amber-600 mt-0.5" />
+              <div>
+                <p className="text-[13px] font-bold text-amber-900">Recebimento bloqueado até a finalização</p>
+                <p className="text-[11px] text-amber-800/80">O saldo existe como projeção, mas não entra no caixa nem no cronograma enquanto a venda estiver em negociação.</p>
+              </div>
+            </div>
           ) : (
             <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/70 p-4 flex items-center gap-3">
               <CheckCircle2 className="size-5 text-emerald-600" />
@@ -297,10 +313,10 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
 
         <DialogFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Fechar</Button>
-          {remaining > 0 && (
+          {remaining > 0 && canReceive && (
             <Button
               onClick={submit}
-              disabled={saving || !amount}
+              disabled={saving || !amount || !canReceive}
               className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
             >
               <Wallet className="size-4" />

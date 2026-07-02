@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CircleDollarSign, Users, Package, Handshake, Sparkles, UserCircle, Calendar, FileText, Wallet, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBR, nowBR, ymdBR } from "@/lib/datetime";
+import { saleIsFinalized } from "@/lib/financial";
 
 interface Props {
   open: boolean;
@@ -129,6 +130,49 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
     setForm({ ...form, partner_id: partnerId === "none" ? null : partnerId, commission_percent: p?.commission_percent ?? form.commission_percent });
   };
 
+  const addMonths = (iso: string, m: number) => {
+    const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
+    const dt = new Date(Date.UTC(y, mo - 1 + m, d));
+    return dt.toISOString().slice(0, 10);
+  };
+
+  const buildPaymentRows = (saleRow: any, payload: any) => {
+    const isRecurring = payload.revenue_type === "recorrente";
+    const recurrenceStart = form.first_due_date || form.sale_date || ymdBR(nowBR());
+    if (isRecurring) {
+      const months = payload.recurrence_months as number;
+      const monthly = Number(form.amount);
+      return Array.from({ length: months }, (_, i) => ({
+        sale_id: saleRow.id,
+        client_id: saleRow.client_id,
+        product_id: saleRow.product_id,
+        amount: monthly,
+        due_date: addMonths(recurrenceStart, i),
+        status: "pendente" as any,
+        installments_count: months,
+        installment_number: i + 1,
+        description: `Mensalidade ${i + 1}/${months}`,
+      }));
+    }
+
+    const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
+    const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
+    const totalCents = Math.round(Number(form.amount) * 100);
+    const baseCents = Math.floor(totalCents / n);
+    const remainder = totalCents - baseCents * n;
+    return Array.from({ length: n }, (_, i) => ({
+      sale_id: saleRow.id,
+      client_id: saleRow.client_id,
+      product_id: saleRow.product_id,
+      amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
+      due_date: addMonths(baseDate, i),
+      status: "pendente" as any,
+      installments_count: n,
+      installment_number: i + 1,
+      description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
+    }));
+  };
+
   const submit = async () => {
     if (!form.client_id || !form.product_id) {
       toast.error("Cliente e produto são obrigatórios");
@@ -211,46 +255,24 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         resource_pool_id: form.resource_pool_id || null,
       } as any;
 
+      const shouldGenerateFinancialSchedule = saleIsFinalized(payload);
+
 
       if (form.id) {
         const { error } = await supabase.from("sales").update(payload).eq("id", form.id);
         if (error) throw error;
 
-        // Regenerar parcelas pendentes se o usuário pediu
-        if (form.regenerate_payments) {
-          const addMonths = (iso: string, m: number) => {
-            const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
-            const dt = new Date(Date.UTC(y, mo - 1 + m, d));
-            return dt.toISOString().slice(0, 10);
-          };
+        // Regenerar parcelas pendentes somente quando a venda estiver finalizada.
+        const finalizedNow = !saleIsFinalized(sale) && shouldGenerateFinancialSchedule;
+        if (shouldGenerateFinancialSchedule && (form.regenerate_payments || finalizedNow)) {
           // Apaga apenas as parcelas ainda pendentes desta venda
           await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
-          let rows: any[] = [];
-          if (isRecurring) {
-            const months = payload.recurrence_months as number;
-            const monthly = Number(form.amount);
-            rows = Array.from({ length: months }, (_, i) => ({
-              sale_id: form.id, client_id: form.client_id, product_id: form.product_id,
-              amount: monthly, due_date: addMonths(recurrenceStart, i), status: "pendente" as any,
-              installments_count: months, installment_number: i + 1,
-              description: `Mensalidade ${i + 1}/${months}`,
-            }));
-          } else {
-            const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
-            const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
-            const totalCents = Math.round(Number(form.amount) * 100);
-            const baseCents = Math.floor(totalCents / n);
-            const remainder = totalCents - baseCents * n;
-            rows = Array.from({ length: n }, (_, i) => ({
-              sale_id: form.id, client_id: form.client_id, product_id: form.product_id,
-              amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
-              due_date: addMonths(baseDate, i), status: "pendente" as any,
-              installments_count: n, installment_number: i + 1,
-              description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
-            }));
-          }
+          const rows = buildPaymentRows({ id: form.id, client_id: form.client_id, product_id: form.product_id }, payload);
           if (rows.length) await supabase.from("payments").insert(rows);
           toast.success(`Venda atualizada — ${rows.length} parcela(s) regenerada(s)`);
+        } else if (!shouldGenerateFinancialSchedule) {
+          await supabase.from("payments").delete().eq("sale_id", form.id).eq("status", "pendente");
+          toast.success("Venda salva como negociação — sem fluxo financeiro ativo");
         } else {
           toast.success("Venda atualizada com sucesso");
         }
@@ -261,51 +283,18 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
         }).select().single();
         if (error) throw error;
 
-        // Gera as parcelas (faturas) para o cliente acompanhar/pagar
-        const addMonths = (iso: string, m: number) => {
-          const [y, mo, d] = iso.split("-").map((x) => parseInt(x, 10));
-          const dt = new Date(Date.UTC(y, mo - 1 + m, d));
-          return dt.toISOString().slice(0, 10);
-        };
-        let rows: any[] = [];
-        if (isRecurring) {
-          const months = payload.recurrence_months as number;
-          const monthly = Number(form.amount);
-          rows = Array.from({ length: months }, (_, i) => ({
-            sale_id: newSale.id,
-            client_id: newSale.client_id,
-            product_id: newSale.product_id,
-            amount: monthly,
-            due_date: addMonths(recurrenceStart, i),
-            status: "pendente" as any,
-            installments_count: months,
-            installment_number: i + 1,
-            description: `Mensalidade ${i + 1}/${months}`,
-          }));
+        if (shouldGenerateFinancialSchedule) {
+          // Gera as parcelas (faturas) apenas quando a venda estiver finalizada.
+          const rows = buildPaymentRows(newSale, payload);
+          const { error: payErr } = await supabase.from("payments").insert(rows);
+          if (payErr) {
+            console.warn("Falha ao gerar parcelas:", payErr);
+            toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
+          } else {
+            toast.success(`Venda finalizada e ${rows.length} ${rows.length > 1 ? (isRecurring ? "mensalidades geradas" : "parcelas geradas") : "fatura gerada"}`);
+          }
         } else {
-          const n = Math.max(1, Math.min(60, parseInt(form.installments_count || 1, 10) || 1));
-          const baseDate = form.first_due_date || form.sale_date || ymdBR(nowBR());
-          const totalCents = Math.round(Number(form.amount) * 100);
-          const baseCents = Math.floor(totalCents / n);
-          const remainder = totalCents - baseCents * n;
-          rows = Array.from({ length: n }, (_, i) => ({
-            sale_id: newSale.id,
-            client_id: newSale.client_id,
-            product_id: newSale.product_id,
-            amount: ((baseCents + (i === n - 1 ? remainder : 0)) / 100),
-            due_date: addMonths(baseDate, i),
-            status: "pendente" as any,
-            installments_count: n,
-            installment_number: i + 1,
-            description: n > 1 ? `Parcela ${i + 1}/${n}` : "Pagamento único",
-          }));
-        }
-        const { error: payErr } = await supabase.from("payments").insert(rows);
-        if (payErr) {
-          console.warn("Falha ao gerar parcelas:", payErr);
-          toast.warning("Venda criada, mas as parcelas não foram geradas: " + payErr.message);
-        } else {
-          toast.success(`Venda registrada e ${rows.length} ${rows.length > 1 ? (isRecurring ? "mensalidades geradas" : "parcelas geradas") : "fatura gerada"}`);
+          toast.success("Negociação registrada — finalize a venda para ativar o fluxo financeiro");
         }
       }
 
@@ -773,6 +762,11 @@ export function SaleFormDialog({ open, onOpenChange, onCreated, clientId, sale }
                         <SelectItem value="cancelada" className="text-slate-500 font-semibold">Cancelada</SelectItem>
                       </SelectContent>
                     </Select>
+                    {form.status !== "concluida" && (
+                      <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-medium leading-snug text-amber-800">
+                        Enquanto estiver em negociação, esta venda fica fora do fluxo financeiro, comissões, metas de receita e cronograma de cobrança.
+                      </p>
+                    )}
                   </Field>
                 </div>
               </Section>
