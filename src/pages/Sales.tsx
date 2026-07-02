@@ -58,6 +58,26 @@ const norm = (s: any) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 const onlyDigits = (s: any) => String(s ?? "").replace(/\D+/g, "");
+const isPaymentReceived = (status: any) => ["pago", "parcial", "parcialmente_pago"].includes(String(status || ""));
+const receivedPaymentAmount = (p: any) => {
+  const paidAmount = Number(p.amount_paid || 0);
+  if (paidAmount > 0) return paidAmount;
+  return isPaymentReceived(p.status) ? Number(p.amount || 0) : 0;
+};
+const saleReceived = (saleId: string, receiptsBySale: Map<string, any>) => Number(receiptsBySale.get(saleId)?.received || 0);
+const saleRatio = (s: any, receiptsBySale: Map<string, any>) => {
+  const amount = Number(s.amount || 0);
+  if (amount <= 0 || s.status === "cancelada") return 0;
+  return Math.max(0, Math.min(1, saleReceived(s.id, receiptsBySale) / amount));
+};
+const saleFullCommission = (s: any, splitsBySale: Map<string, any[]>) =>
+  (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
+const saleReleasedCommission = (s: any, splitsBySale: Map<string, any[]>, receiptsBySale: Map<string, any>) =>
+  saleFullCommission(s, splitsBySale) * saleRatio(s, receiptsBySale);
+const saleReleasedCosts = (s: any, receiptsBySale: Map<string, any>) =>
+  (Number(s.zenon_cost || 0) + Number(s.provider_cost || 0)) * saleRatio(s, receiptsBySale);
+const saleRealizedLiquid = (s: any, splitsBySale: Map<string, any[]>, receiptsBySale: Map<string, any>) =>
+  saleReceived(s.id, receiptsBySale) - saleReleasedCosts(s, receiptsBySale) - saleReleasedCommission(s, splitsBySale, receiptsBySale);
 
 export default function Sales() {
   const { pageSize: __ps, setPageSize } = usePageSize();
@@ -193,8 +213,7 @@ export default function Sales() {
     const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     allReceipts.forEach((r: any) => {
       if (!r.sale_id) return;
-      const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
-      const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+      const val = receivedPaymentAmount(r);
       if (val <= 0) return;
       const cur = m.get(r.sale_id) ?? { received: 0, receivedThisMonth: 0, lastPaidAt: null, count: 0 };
       cur.received += val;
@@ -276,13 +295,10 @@ export default function Sales() {
           case "product": return norm(x.products?.name);
           case "partner": return norm(x.partners?.full_name);
           case "amount": return Number(x.amount || 0);
-          case "commission": return (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
+          case "commission": return saleReleasedCommission(x, splitsBySale, receiptsBySale);
           case "status": return String(x.status || "");
           case "liquido": {
-            const amt = Number(x.amount || 0);
-            const comm = (splitsBySale.get(x.id) ?? []).reduce((s: number, sp: any) => s + Number(sp.amount || 0), 0);
-            const custos = Number(x.zenon_cost || 0) + Number(x.provider_cost || 0);
-            return amt - custos - comm;
+            return saleRealizedLiquid(x, splitsBySale, receiptsBySale);
           }
           case "recebido": return Math.min(receiptsBySale.get(x.id)?.received ?? 0, Number(x.amount || 0));
         }
@@ -296,7 +312,7 @@ export default function Sales() {
       return 0;
     });
     return arr;
-  }, [filtered, sortKey, sortDir, splitsBySale]);
+  }, [filtered, sortKey, sortDir, splitsBySale, receiptsBySale]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(sortDir === "asc" ? "desc" : "asc");
@@ -314,16 +330,17 @@ export default function Sales() {
     const acc = { total: 0, concluida: 0, pendente: 0, em_andamento: 0, cancelada: 0, count: filtered.length, comissao: 0, zenon: 0, provider: 0, custos: 0, liquido: 0, recebido: 0, aReceber: 0 };
     filtered.forEach((s: any) => {
       const v = Number(s.amount || 0);
-      const z = Number(s.zenon_cost || 0);
-      const pc = Number(s.provider_cost || 0);
-      const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
       const rec = receiptsBySale.get(s.id)?.received ?? 0;
+      const ratio = saleRatio(s, receiptsBySale);
+      const z = Number(s.zenon_cost || 0) * ratio;
+      const pc = Number(s.provider_cost || 0) * ratio;
+      const comm = saleReleasedCommission(s, splitsBySale, receiptsBySale);
       acc.total += v;
       acc.zenon += z;
       acc.provider += pc;
       acc.custos += z + pc;
       acc.comissao += comm;
-      acc.liquido += v - z - pc - comm;
+      acc.liquido += Math.min(rec, v) - z - pc - comm;
       if (s.status !== "cancelada") {
         acc.recebido += Math.min(rec, v);
         acc.aReceber += Math.max(v - rec, 0);
@@ -346,8 +363,7 @@ export default function Sales() {
       if (!r.paid_at) return sum;
       const d = new Date(r.paid_at);
       if (d < range.start || d > range.end) return sum;
-      const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
-      const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+      const val = receivedPaymentAmount(r);
       return sum + (val > 0 ? val : 0);
     }, 0);
   }, [allReceipts, rangeKey, selectedMonth, usingManualRange]);
@@ -458,8 +474,7 @@ export default function Sales() {
         case "bruto": return v;
         case "recebido": return Math.min(receiptsBySale.get(s.id)?.received ?? 0, v);
         case "liquido": {
-          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
-          return v - Number(s.zenon_cost || 0) - Number(s.provider_cost || 0) - comm;
+          return saleRealizedLiquid(s, splitsBySale, receiptsBySale);
         }
         case "qtd": return 1;
       }
@@ -573,9 +588,10 @@ export default function Sales() {
     const headers = ["Data", "Cliente", "Empresa", "Produto", "Parceiro", "Valor", "Comissão %", "Comissão R$", "Status"];
     const rows = sorted.map((s: any) => {
       const splits = splitsBySale.get(s.id) ?? [];
-      const com = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
+      const com = saleReleasedCommission(s, splitsBySale, receiptsBySale);
       const baseAmt = Number(s.amount || 0);
-      const pct = baseAmt > 0 ? (com / baseAmt) * 100 : 0;
+      const received = saleReceived(s.id, receiptsBySale);
+      const pct = received > 0 ? (com / received) * 100 : 0;
       return [
         s.sale_date,
         s.clients?.full_name ?? "",
@@ -1058,17 +1074,19 @@ export default function Sales() {
                   </tr>
                 ) : pageRows.map((s: any) => {
                   const splits = splitsBySale.get(s.id) ?? [];
-                  const commissionVal = splits.reduce((x: number, sp: any) => x + Number(sp.amount || 0), 0);
+                  const fullCommissionVal = saleFullCommission(s, splitsBySale);
+                  const commissionVal = saleReleasedCommission(s, splitsBySale, receiptsBySale);
                   const baseAmt = Number(s.amount || 0);
-                  const zenonCost = Number(s.zenon_cost || 0);
-                  const providerCost = Number(s.provider_cost || 0);
+                  const ratio = saleRatio(s, receiptsBySale);
+                  const zenonCost = Number(s.zenon_cost || 0) * ratio;
+                  const providerCost = Number(s.provider_cost || 0) * ratio;
                   const totalCustos = zenonCost + providerCost;
-                  const liquido = baseAmt - totalCustos - commissionVal;
-                  const liquidoPct = baseAmt > 0 ? (liquido / baseAmt) * 100 : 0;
-                  const commissionPct = baseAmt > 0 ? (commissionVal / baseAmt) * 100 : 0;
                   const paidCount = splits.filter((sp: any) => sp.status === "pago").length;
                   const rec = receiptsBySale.get(s.id);
                   const received = rec?.received ?? 0;
+                  const liquido = received - totalCustos - commissionVal;
+                  const liquidoPct = received > 0 ? (liquido / received) * 100 : 0;
+                  const commissionPct = received > 0 ? (commissionVal / received) * 100 : 0;
                   const remaining = Math.max(baseAmt - received, 0);
                   const receivedPct = baseAmt > 0 ? Math.min(100, (received / baseAmt) * 100) : 0;
                   const fullyReceived = baseAmt > 0 && remaining < 0.01;
@@ -1203,6 +1221,9 @@ export default function Sales() {
                             <span className="font-bold font-mono text-[12.5px] text-emerald-700 tabular-nums leading-none">
                               {formatBRL(commissionVal)}
                             </span>
+                            {fullCommissionVal > commissionVal + 0.01 && (
+                              <span className="text-[10px] text-slate-400 font-mono leading-none">de {formatBRL(fullCommissionVal)}</span>
+                            )}
                             <div className="flex items-center gap-1 mt-1">
                               <span className="inline-flex items-center px-1.5 py-px rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9.5px] font-bold font-mono tabular-nums tracking-tight">
                                 {commissionPct.toFixed(1)}%
@@ -1401,8 +1422,7 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
         const bySale = new Map<string, number>();
         allReceipts.forEach((r: any) => {
           if (!r.paid_at || !String(r.paid_at).startsWith(ym)) return;
-          const isPaid = r.status === "pago" || r.status === "parcialmente_pago" || r.status === "parcial";
-          const val = Number(r.amount_paid ?? (isPaid ? r.amount : 0) ?? 0);
+          const val = receivedPaymentAmount(r);
           if (val <= 0 || !r.sale_id) return;
           bySale.set(r.sale_id, (bySale.get(r.sale_id) || 0) + val);
         });
@@ -1422,23 +1442,31 @@ function KpiDetailDialog({ kind, onClose, filtered, allReceipts, splitsBySale, r
       }
       case "liquido": {
         const rows = filtered.map(s => {
-          const v = Number(s.amount || 0);
-          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
-          const liq = v - Number(s.zenon_cost || 0) - Number(s.provider_cost || 0) - comm;
-          return rowFor(s, liq, `Comissão ${formatBRL(comm)} · Custos ${formatBRL(Number(s.zenon_cost||0)+Number(s.provider_cost||0))}`);
+          const rec = saleReceived(s.id, receiptsBySale);
+          const comm = saleReleasedCommission(s, splitsBySale, receiptsBySale);
+          const costs = saleReleasedCosts(s, receiptsBySale);
+          const liq = rec - costs - comm;
+          return rowFor(s, liq, `Recebido ${formatBRL(rec)} · Comissão ${formatBRL(comm)} · Custos ${formatBRL(costs)}`);
         });
-        return { title: "Líquido — detalhamento", subtitle: "Valor − custos (Zenon + prestador) − comissões, por venda.", rows, isMoney: true };
+        return { title: "Líquido — detalhamento", subtitle: "Recebido do cliente − custos proporcionais − comissões proporcionais.", rows, isMoney: true };
       }
       case "custos": {
-        const rows = filtered.map(s => rowFor(s, Number(s.zenon_cost || 0) + Number(s.provider_cost || 0), `Zenon ${formatBRL(Number(s.zenon_cost||0))} · Prestador ${formatBRL(Number(s.provider_cost||0))}`)).filter(r => r.contribution > 0);
-        return { title: "Custos — detalhamento", subtitle: "Custos operacionais Zenon + Prestador.", rows, isMoney: true };
+        const rows = filtered.map(s => {
+          const ratio = saleRatio(s, receiptsBySale);
+          const zenon = Number(s.zenon_cost || 0) * ratio;
+          const provider = Number(s.provider_cost || 0) * ratio;
+          const full = Number(s.zenon_cost || 0) + Number(s.provider_cost || 0);
+          return rowFor(s, zenon + provider, `Zenon ${formatBRL(zenon)} · Prestador ${formatBRL(provider)} · Total previsto ${formatBRL(full)}`);
+        }).filter(r => r.contribution > 0);
+        return { title: "Custos — detalhamento", subtitle: "Custos Zenon + Prestador proporcionais ao valor recebido do cliente.", rows, isMoney: true };
       }
       case "comissoes": {
         const rows = filtered.map(s => {
-          const comm = (splitsBySale.get(s.id) ?? []).reduce((sum: number, sp: any) => sum + Number(sp.amount || 0), 0);
-          return rowFor(s, comm);
+          const comm = saleReleasedCommission(s, splitsBySale, receiptsBySale);
+          const full = saleFullCommission(s, splitsBySale);
+          return rowFor(s, comm, full > comm + 0.01 ? `Total previsto ${formatBRL(full)}` : undefined);
         }).filter(r => r.contribution > 0);
-        return { title: "Comissões — detalhamento", subtitle: "Soma das comissões (splits) por venda.", rows, isMoney: true };
+        return { title: "Comissões — detalhamento", subtitle: "Comissões liberadas proporcionalmente ao valor recebido do cliente.", rows, isMoney: true };
       }
       case "count": {
         const rows = filtered.map(s => rowFor(s, 1));

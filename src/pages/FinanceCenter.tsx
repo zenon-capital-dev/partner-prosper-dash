@@ -60,6 +60,23 @@ const OPEN_STATUSES = ["em_aberto", "pendente", "parcial", "parcialmente_pago"];
 const PAID_STATUSES = ["pago", "paga"];
 const isOpen = (s: string) => OPEN_STATUSES.includes(s);
 const isPaid = (s: string) => PAID_STATUSES.includes(s);
+const isVoidedPayment = (s: string) => ["cancelado", "cancelada", "reembolsado", "estornado"].includes(s);
+const clampRatio = (value: number) => Math.max(0, Math.min(1, value));
+const paymentReceivedAmount = (p: any) => {
+  if (isVoidedPayment(String(p.status || ""))) return 0;
+  const paidAmount = Number(p.amount_paid || 0);
+  if (paidAmount > 0) return paidAmount;
+  return isPaid(p.status) ? Number(p.amount || 0) : 0;
+};
+const commissionSaleValue = (c: any, salesAmountById?: Map<string, number>) =>
+  Number(c.sale_value || c.sale?.amount || (c.sale_id ? salesAmountById?.get(c.sale_id) : 0) || 0);
+const accruedCommissionAmount = (c: any, receivedBySale: Map<string, number>, salesAmountById?: Map<string, number>) => {
+  const full = Number(c.amount || 0);
+  const saleVal = commissionSaleValue(c, salesAmountById);
+  const sid = c.sale_id;
+  if (!sid || saleVal <= 0) return 0;
+  return full * clampRatio((receivedBySale.get(sid) || 0) / saleVal);
+};
 
 const todayIsoStr = () => new Date().toISOString().slice(0, 10);
 const monthBounds = (monthKey: string) => {
@@ -269,7 +286,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("sales")
-          .select("id, zenon_cost, provider_cost, sale_date, status")
+          .select("id, amount, zenon_cost, provider_cost, sale_date, status")
           .limit(500)
       ).data ?? [],
     staleTime: 60_000,
@@ -283,7 +300,7 @@ export default function FinanceCenter() {
       (
         await supabase
           .from("commission_splits")
-          .select("id, amount, status, beneficiary_type, paid_at, created_at")
+          .select("id, sale_id, amount, status, beneficiary_type, paid_at, created_at")
           .order("created_at", { ascending: false })
           .limit(300)
       ).data ?? [],
@@ -385,11 +402,11 @@ export default function FinanceCenter() {
     const inRange = (d: string) => !!d && d >= from && d < to;
 
     const totalReceived = payments
-      .filter((p: any) => isPaid(p.status) && inRange(paidDate(p)))
-      .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
+      .filter((p: any) => paymentReceivedAmount(p) > 0 && inRange(paidDate(p)))
+      .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
     const receivedThisMonth = payments
-      .filter((p: any) => isPaid(p.status) && paidDate(p) >= startOfMonth)
-      .reduce((a: number, p: any) => a + Number(p.amount_paid || p.amount || 0), 0);
+      .filter((p: any) => paymentReceivedAmount(p) > 0 && paidDate(p) >= startOfMonth)
+      .reduce((a: number, p: any) => a + paymentReceivedAmount(p), 0);
     const totalReceivable = payments
       .filter((p: any) => isOpen(p.status))
       .reduce((a: number, p: any) => a + Number(p.amount || 0) - Number(p.amount_paid || 0), 0);
@@ -399,28 +416,24 @@ export default function FinanceCenter() {
     // Recebido agregado por venda (dentro do range) — usado para prorratear comissões
     const receivedBySale = new Map<string, number>();
     for (const p of payments as any[]) {
-      if (!isPaid(p.status) || !inRange(paidDate(p))) continue;
+      const received = paymentReceivedAmount(p);
+      if (received <= 0 || !inRange(paidDate(p))) continue;
       const sid = p.sale_id;
       if (!sid) continue;
-      receivedBySale.set(sid, (receivedBySale.get(sid) || 0) + Number(p.amount_paid || p.amount || 0));
+      receivedBySale.set(sid, (receivedBySale.get(sid) || 0) + received);
     }
+    const salesAmountById = new Map((salesCosts as any[]).map((s: any) => [s.id, Number(s.amount || 0)]));
     // Comissão devida = comissão total * (recebido / valor da venda), limitada ao valor da comissão.
     // Isso reflete a regra: só pagamos comissão sobre o que efetivamente entrou.
     const accruedCommission = (c: any) => {
-      const full = Number(c.amount || 0);
-      const saleVal = Number(c.sale_value || 0);
-      const sid = c.sale_id;
-      if (!sid || saleVal <= 0) return isPaid(c.status) || isPaid(c.workflow_status) ? full : 0;
-      const rec = receivedBySale.get(sid) || 0;
-      const ratio = Math.max(0, Math.min(1, rec / saleVal));
-      return full * ratio;
+      return accruedCommissionAmount(c, receivedBySale, salesAmountById);
     };
     const commissionsPending = commissionRows
       .filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status))
-      .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+      .reduce((a: number, c: any) => a + accruedCommission(c), 0);
     const commissionsPaid = commissionRows
       .filter((c: any) => (isPaid(c.status) || isPaid(c.workflow_status)) && inRange(commDate(c)))
-      .reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+      .reduce((a: number, c: any) => a + accruedCommission(c), 0);
     // Custo de comissão para o cálculo do saldo líquido: prorrateado pelo recebido no range.
     const indicatorsPaid = commissionRows
       .filter((c: any) => c.beneficiary_type === "referrer")
@@ -437,7 +450,7 @@ export default function FinanceCenter() {
       const val = Number(s.amount || 0);
       if (val <= 0) return 0;
       const rec = receivedBySale.get(s.id) || 0;
-      return Math.max(0, Math.min(1, rec / val));
+      return clampRatio(rec / val);
     };
     const salesCostsTotal = (salesCosts as any[])
       .filter((s) => s.status !== "cancelada")
@@ -737,7 +750,7 @@ export default function FinanceCenter() {
           </div>
 
           <TabsContent value="fluxo" className="mt-6">
-            <CashFlow payments={payments} commissions={commissionRows} />
+            <CashFlow payments={payments} commissions={commissionRows} sales={salesCosts as any[]} />
           </TabsContent>
           <TabsContent value="mapa" className="mt-6">
             <RevenueMap payments={payments} />
@@ -771,7 +784,7 @@ export default function FinanceCenter() {
             />
           </TabsContent>
           <TabsContent value="comissoes" className="mt-6">
-            <CommissionsTable commissions={commissions} loading={loadingCom} canManage={canManage} />
+            <CommissionsTable commissions={commissions} payments={payments as any[]} loading={loadingCom} canManage={canManage} />
           </TabsContent>
           <TabsContent value="inadimplencia" className="mt-6">
             <PaymentsTable
@@ -793,7 +806,7 @@ export default function FinanceCenter() {
             <ByClient payments={payments} canManage={canManage} />
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
-            <Reports payments={payments} commissions={commissionRows} />
+            <Reports payments={payments} commissions={commissionRows} sales={salesCosts as any[]} />
           </TabsContent>
 
         </Tabs>
@@ -1014,6 +1027,13 @@ function PaymentsTable({
         .select("id, amount, percent, status, beneficiary_type, beneficiary_id")
         .eq("sale_id", payment.sale_id);
       if (splits && splits.length > 0) {
+        const { data: saleData } = await supabase
+          .from("sales")
+          .select("id, amount")
+          .eq("id", payment.sale_id)
+          .maybeSingle();
+        const saleAmount = Number((saleData as any)?.amount || payment.amount || 0);
+        const receivedRatio = saleAmount > 0 ? clampRatio(amountPaid / saleAmount) : 0;
         const partnerIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "partner").map((s: any) => s.beneficiary_id)));
         const collabIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "collaborator").map((s: any) => s.beneficiary_id)));
         const refIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "referrer").map((s: any) => s.beneficiary_id)));
@@ -1030,6 +1050,8 @@ function PaymentsTable({
         const spMap = new Map((provsRes.data ?? []).map((x: any) => [x.id, x.name]));
         const enriched = splits.map((s: any) => ({
           ...s,
+          _fullAmount: Number(s.amount || 0),
+          _payableAmount: Number(s.amount || 0) * receivedRatio,
           _beneficiary:
             (s.beneficiary_type === "partner" && `Parceiro · ${pMap.get(s.beneficiary_id) ?? "—"}`) ||
             (s.beneficiary_type === "collaborator" && `Colaborador · ${cMap.get(s.beneficiary_id) ?? "—"}`) ||
@@ -1410,7 +1432,7 @@ function PaymentActionDialog({
   const commissions = isComm ? (state as any).commissions as any[] : [];
   const totalNow = commissions
     .filter((c) => commDecisions[c.id])
-    .reduce((a, c) => a + Number(c.amount || 0), 0);
+    .reduce((a, c) => a + Number(c._payableAmount ?? c.amount ?? 0), 0);
 
   return (
     <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
@@ -1504,7 +1526,10 @@ function PaymentActionDialog({
                     </div>
                   </div>
                   <div className="font-mono text-sm text-slate-700 whitespace-nowrap">
-                    {formatBRL(Number(c.amount || 0))}
+                    {formatBRL(Number(c._payableAmount ?? c.amount ?? 0))}
+                    {Number(c._fullAmount || 0) > Number(c._payableAmount ?? c.amount ?? 0) + 0.01 && (
+                      <div className="text-[10px] text-slate-400 text-right">de {formatBRL(Number(c._fullAmount || 0))}</div>
+                    )}
                   </div>
                 </label>
               ))}
@@ -1592,10 +1617,12 @@ function PaymentActionDialog({
 // -------------------- Commissions to pay --------------------
 function CommissionsTable({
   commissions,
+  payments,
   loading,
   canManage,
 }: {
   commissions: any[];
+  payments: any[];
   loading: boolean;
   canManage: boolean;
 }) {
@@ -1639,15 +1666,28 @@ function CommissionsTable({
     });
   }, [commissions, search, statusFilter, typeFilter, beneficiaryFilter]);
 
+  const receivedBySale = useMemo(() => {
+    const map = new Map<string, number>();
+    payments.forEach((p: any) => {
+      if (!p.sale_id) return;
+      const received = paymentReceivedAmount(p);
+      if (received <= 0) return;
+      map.set(p.sale_id, (map.get(p.sale_id) || 0) + received);
+    });
+    return map;
+  }, [payments]);
+
+  const accruedAmount = (c: any) => accruedCommissionAmount(c, receivedBySale);
+
   const pending = filtered.filter((c: any) => !isPaid(c.status) && !isPaid(c.workflow_status));
   const paid = filtered.filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status));
 
   const totals = useMemo(() => {
-    const totalAll = filtered.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const totalPaid = paid.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
-    const totalPending = pending.reduce((a: number, c: any) => a + Number(c.amount || 0), 0);
+    const totalAll = filtered.reduce((a: number, c: any) => a + accruedAmount(c), 0);
+    const totalPaid = paid.reduce((a: number, c: any) => a + accruedAmount(c), 0);
+    const totalPending = pending.reduce((a: number, c: any) => a + accruedAmount(c), 0);
     return { totalAll, totalPaid, totalPending, count: filtered.length };
-  }, [filtered, paid, pending]);
+  }, [filtered, paid, pending, receivedBySale]);
 
   const byBeneficiary = useMemo(() => {
     const map = new Map<string, { id: string; name: string; type: string; label: string; total: number; pago: number; pendente: number; count: number }>();
@@ -1666,14 +1706,14 @@ function CommissionsTable({
         });
       }
       const row = map.get(key)!;
-      const amt = Number(c.amount || 0);
+      const amt = accruedAmount(c);
       row.total += amt;
       row.count += 1;
       if (isPaid(c.status) || isPaid(c.workflow_status)) row.pago += amt;
       else row.pendente += amt;
     });
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [filtered]);
+  }, [filtered, receivedBySale]);
 
   const hasFilter = statusFilter !== "todos" || typeFilter !== "todos" || beneficiaryFilter !== "todos" || !!search;
   const clearFilters = () => {
@@ -1684,7 +1724,12 @@ function CommissionsTable({
   };
 
   const markPaid = async (c: any) => {
-    if (!(await confirmAction(`Marcar comissão de ${formatBRL(c.amount)} para ${c.beneficiary_name} como paga?`))) return;
+    const amountToPay = accruedAmount(c);
+    if (amountToPay <= 0) {
+      toast.error("Ainda não há valor recebido do cliente para liberar essa comissão.");
+      return;
+    }
+    if (!(await confirmAction(`Marcar comissão liberada de ${formatBRL(amountToPay)} para ${c.beneficiary_name} como paga?`))) return;
     const { error } = await supabase
       .from("commission_splits")
       .update({ status: "pago" as any, paid_at: new Date().toISOString() })
@@ -1707,7 +1752,7 @@ function CommissionsTable({
           {title} <span className="text-slate-500 font-mono text-xs">({rows.length})</span>
         </span>
         <span className="font-mono text-xs text-slate-600 tabular-nums">
-          {formatBRL(rows.reduce((a: number, c: any) => a + Number(c.amount || 0), 0))}
+          {formatBRL(rows.reduce((a: number, c: any) => a + accruedAmount(c), 0))}
         </span>
       </div>
       <div className="overflow-x-auto">
@@ -1739,6 +1784,8 @@ function CommissionsTable({
               </tr>
             ) : (
               rows.map((c: any) => {
+                const released = accruedAmount(c);
+                const fullAmount = Number(c.amount || 0);
                 const typeColor =
                   c.beneficiary_type === "partner" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
                   c.beneficiary_type === "collaborator" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
@@ -1755,7 +1802,12 @@ function CommissionsTable({
                     <td className="px-4 py-2.5 text-slate-700">{c.clients?.full_name ?? "—"}</td>
                     <td className="px-4 py-2.5 text-slate-700">{c.products?.name ?? "—"}</td>
                     <td className="px-4 py-2.5 text-right font-mono tabular-nums text-slate-600">{Number(c.percent || 0).toFixed(2)}%</td>
-                    <td className="px-4 py-2.5 text-right font-semibold font-mono tabular-nums">{formatBRL(c.amount)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold font-mono tabular-nums">
+                      {formatBRL(released)}
+                      {fullAmount > released + 0.01 && (
+                        <div className="text-[10px] font-normal text-slate-400">de {formatBRL(fullAmount)}</div>
+                      )}
+                    </td>
                     <td className="px-4 py-2.5">
                       <Badge variant="outline" className="text-xs">{c.status}</Badge>
                     </td>
@@ -1908,7 +1960,7 @@ function CommissionsTable({
 }
 
 // -------------------- Cash flow --------------------
-function CashFlow({ payments, commissions }: { payments: any[]; commissions: any[] }) {
+function CashFlow({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
   const [days, setDays] = useState(30);
   const data = useMemo(() => {
     const map: Record<string, { label: string; entrada: number; saida: number; saldo: number }> = {};
@@ -1919,23 +1971,34 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
       map[key] = { label: key.slice(5), entrada: 0, saida: 0, saldo: 0 };
     }
     payments
-      .filter((p: any) => isPaid(p.status))
       .forEach((p: any) => {
+        const received = paymentReceivedAmount(p);
+        if (received <= 0) return;
         const key = (p.paid_at || "").slice(0, 10);
-        if (map[key]) map[key].entrada += Number(p.amount_paid || p.amount || 0);
+        if (map[key]) map[key].entrada += received;
       });
+    const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
+    const receivedBySaleByDay: Record<string, Map<string, number>> = {};
+    payments.forEach((p: any) => {
+      const received = paymentReceivedAmount(p);
+      if (received <= 0 || !p.sale_id) return;
+      const key = (p.paid_at || "").slice(0, 10);
+      if (!map[key]) return;
+      if (!receivedBySaleByDay[key]) receivedBySaleByDay[key] = new Map();
+      receivedBySaleByDay[key].set(p.sale_id, (receivedBySaleByDay[key].get(p.sale_id) || 0) + received);
+    });
     commissions
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .forEach((c: any) => {
         const key = (c.paid_at || "").slice(0, 10);
-        if (map[key]) map[key].saida += Number(c.amount || 0);
+        if (map[key]) map[key].saida += accruedCommissionAmount(c, receivedBySaleByDay[key] || new Map(), salesAmountById);
       });
     let acc = 0;
     return Object.values(map).map((d) => {
       acc += d.entrada - d.saida;
       return { ...d, saldo: acc };
     });
-  }, [payments, commissions, days]);
+  }, [payments, commissions, sales, days]);
 
   return (
     <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-6">
@@ -1974,7 +2037,7 @@ function CashFlow({ payments, commissions }: { payments: any[]; commissions: any
 }
 
 // -------------------- Reports --------------------
-function Reports({ payments, commissions }: { payments: any[]; commissions: any[] }) {
+function Reports({ payments, commissions, sales }: { payments: any[]; commissions: any[]; sales: any[] }) {
   const [months, setMonths] = useState(6);
   const monthly = useMemo(() => {
     const map: Record<string, { label: string; receita: number; comissao: number; liquida: number }> = {};
@@ -1985,22 +2048,33 @@ function Reports({ payments, commissions }: { payments: any[]; commissions: any[
       map[key] = { label: key, receita: 0, comissao: 0, liquida: 0 };
     }
     payments
-      .filter((p: any) => isPaid(p.status))
       .forEach((p: any) => {
+        const received = paymentReceivedAmount(p);
+        if (received <= 0) return;
         const key = (p.paid_at || "").slice(0, 7);
-        if (map[key]) map[key].receita += Number(p.amount_paid || p.amount || 0);
+        if (map[key]) map[key].receita += received;
       });
+    const salesAmountById = new Map((sales || []).map((s: any) => [s.id, Number(s.amount || 0)]));
+    const receivedBySaleByMonth: Record<string, Map<string, number>> = {};
+    payments.forEach((p: any) => {
+      const received = paymentReceivedAmount(p);
+      if (received <= 0 || !p.sale_id) return;
+      const key = (p.paid_at || "").slice(0, 7);
+      if (!map[key]) return;
+      if (!receivedBySaleByMonth[key]) receivedBySaleByMonth[key] = new Map();
+      receivedBySaleByMonth[key].set(p.sale_id, (receivedBySaleByMonth[key].get(p.sale_id) || 0) + received);
+    });
     commissions
       .filter((c: any) => isPaid(c.status) || isPaid(c.workflow_status))
       .forEach((c: any) => {
         const key = (c.paid_at || "").slice(0, 7);
-        if (map[key]) map[key].comissao += Number(c.amount || 0);
+        if (map[key]) map[key].comissao += accruedCommissionAmount(c, receivedBySaleByMonth[key] || new Map(), salesAmountById);
       });
     Object.keys(map).forEach((k) => {
       map[k].liquida = map[k].receita - map[k].comissao;
     });
     return Object.values(map);
-  }, [payments, commissions, months]);
+  }, [payments, commissions, sales, months]);
 
   const exportSummary = () => {
     downloadCsv(
