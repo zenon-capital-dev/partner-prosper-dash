@@ -285,6 +285,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   {canUpload && (
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
+                      <input ref={attachRef} type="file" hidden onChange={onAttachToRequest} />
                       <Button size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
                         {uploading ? <Loader2 className="size-3.5 mr-1 animate-spin" /> : <Upload className="size-3.5 mr-1" />}
                         Enviar arquivos
