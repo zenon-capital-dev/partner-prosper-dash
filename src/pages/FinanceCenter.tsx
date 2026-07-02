@@ -784,6 +784,10 @@ export default function FinanceCenter() {
           </div>
         )}
 
+        <ProfitReservesPanel monthKey={kpiRange === "specific" ? specificMonth : nowMonthKey()} canManage={canManage} />
+
+
+
         <Tabs value={tab} onValueChange={setTab}>
           <div className="bg-white border border-slate-200/70 rounded-lg shadow-sm p-1 overflow-x-auto">
             <TabsList className="flex w-max gap-1 bg-transparent h-auto p-0">
