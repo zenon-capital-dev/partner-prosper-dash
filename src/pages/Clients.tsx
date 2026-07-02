@@ -457,6 +457,41 @@ export default function Clients() {
                 className={cn("h-9 px-4 rounded-lg text-xs font-bold transition-all", view === "table" ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-900")}
               >Tabela</button>
             </div>
+            <FilterPresets
+              scope="clients"
+              getState={() => ({
+                statusFilter, productFilter, partnerFilter, providerFilter,
+                cityFilter, paymentFilter, riskFilter, salesFilter,
+                dateRange: dateRange ? { from: dateRange.from, to: dateRange.to } : undefined,
+                search,
+              })}
+              applyState={(s) => {
+                setStatusFilter(s.statusFilter ?? "all");
+                setProductFilter(s.productFilter ?? "all");
+                setPartnerFilter(s.partnerFilter ?? "all");
+                setProviderFilter(s.providerFilter ?? "all");
+                setCityFilter(s.cityFilter ?? "all");
+                setPaymentFilter(s.paymentFilter ?? "all");
+                setRiskFilter(s.riskFilter ?? "all");
+                setSalesFilter(s.salesFilter ?? "all");
+                setSearch(s.search ?? "");
+                if (s.dateRange?.from) {
+                  setDateRange({
+                    from: new Date(s.dateRange.from),
+                    to: s.dateRange.to ? new Date(s.dateRange.to) : undefined,
+                  });
+                } else {
+                  setDateRange(undefined);
+                }
+                setShowFilters(true);
+              }}
+              currentSignature={JSON.stringify({
+                statusFilter, productFilter, partnerFilter, providerFilter,
+                cityFilter, paymentFilter, riskFilter, salesFilter,
+                dateRange: dateRange ? { from: dateRange.from, to: dateRange.to } : undefined,
+                search,
+              })}
+            />
             <Button
               variant="outline"
               onClick={() => setShowFilters((v) => !v)}
