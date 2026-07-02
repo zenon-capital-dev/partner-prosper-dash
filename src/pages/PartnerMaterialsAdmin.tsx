@@ -117,6 +117,7 @@ export default function PartnerMaterialsAdmin({ audience = "partner" }: { audien
         external_url: form.external_url.trim() || null,
         active: form.active,
         file_path,
+        audience,
       };
 
       if (editing) {
@@ -130,7 +131,7 @@ export default function PartnerMaterialsAdmin({ audience = "partner" }: { audien
     },
     onSuccess: () => {
       toast.success(editing ? "Material atualizado" : "Material adicionado");
-      qc.invalidateQueries({ queryKey: ["partner-materials-admin"] });
+      qc.invalidateQueries({ queryKey: ["partner-materials-admin", audience] });
       setOpen(false);
       reset();
     },
