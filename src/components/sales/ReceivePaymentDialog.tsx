@@ -231,13 +231,33 @@ export function ReceivePaymentDialog({ open, onOpenChange, sale, onSaved }: Prop
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Data</Label>
+                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Data do recebimento</Label>
                   <Input
                     type="date"
                     value={paidAt}
-                    onChange={(e) => setPaidAt(e.target.value)}
+                    onChange={(e) => {
+                      setPaidAt(e.target.value);
+                      if (e.target.value) setCompetenceMonth(e.target.value.slice(0, 7));
+                    }}
                     className="h-10 bg-white"
                   />
+                  {paidAt > ymdBR(nowBR()) && (
+                    <p className="text-[10px] font-semibold text-amber-700">
+                      Data futura — registrado como <strong>agendado</strong>. Não entra no caixa até chegar a data.
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Competência (mês de referência)</Label>
+                  <Input
+                    type="month"
+                    value={competenceMonth}
+                    onChange={(e) => setCompetenceMonth(e.target.value)}
+                    className="h-10 bg-white"
+                  />
+                  <p className="text-[10px] text-slate-500">
+                    Mês em que este valor entra no fluxo (mesmo que pago em outro mês).
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider">Forma</Label>
