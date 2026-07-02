@@ -777,12 +777,16 @@ export default function FinanceCenter() {
               canManage={canManage}
             />
           </TabsContent>
+          <TabsContent value="despesas" className="mt-6">
+            <ExpensesTab expenses={expenses as any[]} canManage={canManage} />
+          </TabsContent>
           <TabsContent value="por_cliente" className="mt-6">
             <ByClient payments={payments} canManage={canManage} />
           </TabsContent>
           <TabsContent value="relatorios" className="mt-6">
             <Reports payments={payments} commissions={commissionRows} />
           </TabsContent>
+
         </Tabs>
       </div>
     </div>
