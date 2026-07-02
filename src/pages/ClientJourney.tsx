@@ -79,6 +79,59 @@ export default function ClientJourney() {
     staleTime: 60_000,
   });
 
+  const { data: salesRaw = [] } = useQuery({
+    queryKey: ["journey-sales-agg"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales")
+        .select("id, client_id, amount, status")
+        .limit(2000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: paymentsRaw = [] } = useQuery({
+    queryKey: ["journey-payments-agg"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("id, client_id, amount, amount_paid, status, paid_at, due_date")
+        .limit(3000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  // Agrega por cliente: vendas realizadas + pagamentos pendentes/a receber
+  const clientAgg = useMemo(() => {
+    const m = new Map<string, { salesValue: number; salesCount: number; pending: number; pendingCount: number }>();
+    (salesRaw as any[]).forEach((s) => {
+      if (!s.client_id || !saleIsFinalized(s)) return;
+      const cur = m.get(s.client_id) ?? { salesValue: 0, salesCount: 0, pending: 0, pendingCount: 0 };
+      cur.salesValue += Number(s.amount || 0);
+      cur.salesCount += 1;
+      m.set(s.client_id, cur);
+    });
+    (paymentsRaw as any[]).forEach((p) => {
+      if (!p.client_id) return;
+      const received = paymentReceivedAmount(p);
+      const outstanding = paymentOutstandingAmount(p);
+      const isReallyPending = outstanding > 0 && received < Number(p.amount || 0);
+      if (!isReallyPending) return;
+      const cur = m.get(p.client_id) ?? { salesValue: 0, salesCount: 0, pending: 0, pendingCount: 0 };
+      cur.pending += outstanding;
+      cur.pendingCount += 1;
+      m.set(p.client_id, cur);
+    });
+    return m;
+  }, [salesRaw, paymentsRaw]);
+
+  const [historyClient, setHistoryClient] = useState<Client | null>(null);
+
+
   const { stageIds: sharedStageIds } = useSharedStageFilter();
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
