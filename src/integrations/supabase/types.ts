@@ -4108,6 +4108,7 @@ export type Database = {
       partner_materials: {
         Row: {
           active: boolean
+          audience: string
           category: string
           created_at: string
           created_by: string | null
@@ -4120,6 +4121,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          audience?: string
           category?: string
           created_at?: string
           created_by?: string | null
@@ -4132,6 +4134,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          audience?: string
           category?: string
           created_at?: string
           created_by?: string | null
