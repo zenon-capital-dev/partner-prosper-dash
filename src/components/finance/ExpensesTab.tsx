@@ -15,7 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { formatBRL, formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, RotateCcw, TrendingDown, Wallet, AlertTriangle, Receipt, FileText, Tag, Calendar, CreditCard, Building2, StickyNote, Repeat, Banknote, Zap, Landmark, Coins } from "lucide-react";
 
 const CATEGORIES: { value: string; label: string }[] = [
   { value: "folha", label: "Folha / Salários" },
