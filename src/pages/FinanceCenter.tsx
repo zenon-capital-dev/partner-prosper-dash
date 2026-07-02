@@ -1027,6 +1027,13 @@ function PaymentsTable({
         .select("id, amount, percent, status, beneficiary_type, beneficiary_id")
         .eq("sale_id", payment.sale_id);
       if (splits && splits.length > 0) {
+        const { data: saleData } = await supabase
+          .from("sales")
+          .select("id, amount")
+          .eq("id", payment.sale_id)
+          .maybeSingle();
+        const saleAmount = Number((saleData as any)?.amount || payment.amount || 0);
+        const receivedRatio = saleAmount > 0 ? clampRatio(amountPaid / saleAmount) : 0;
         const partnerIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "partner").map((s: any) => s.beneficiary_id)));
         const collabIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "collaborator").map((s: any) => s.beneficiary_id)));
         const refIds = Array.from(new Set(splits.filter((s: any) => s.beneficiary_type === "referrer").map((s: any) => s.beneficiary_id)));
@@ -1043,6 +1050,8 @@ function PaymentsTable({
         const spMap = new Map((provsRes.data ?? []).map((x: any) => [x.id, x.name]));
         const enriched = splits.map((s: any) => ({
           ...s,
+          _fullAmount: Number(s.amount || 0),
+          _payableAmount: Number(s.amount || 0) * receivedRatio,
           _beneficiary:
             (s.beneficiary_type === "partner" && `Parceiro · ${pMap.get(s.beneficiary_id) ?? "—"}`) ||
             (s.beneficiary_type === "collaborator" && `Colaborador · ${cMap.get(s.beneficiary_id) ?? "—"}`) ||
@@ -1423,7 +1432,7 @@ function PaymentActionDialog({
   const commissions = isComm ? (state as any).commissions as any[] : [];
   const totalNow = commissions
     .filter((c) => commDecisions[c.id])
-    .reduce((a, c) => a + Number(c.amount || 0), 0);
+    .reduce((a, c) => a + Number(c._payableAmount ?? c.amount ?? 0), 0);
 
   return (
     <Dialog open={true} onOpenChange={(o) => !o && onClose()}>
@@ -1517,7 +1526,10 @@ function PaymentActionDialog({
                     </div>
                   </div>
                   <div className="font-mono text-sm text-slate-700 whitespace-nowrap">
-                    {formatBRL(Number(c.amount || 0))}
+                    {formatBRL(Number(c._payableAmount ?? c.amount ?? 0))}
+                    {Number(c._fullAmount || 0) > Number(c._payableAmount ?? c.amount ?? 0) + 0.01 && (
+                      <div className="text-[10px] text-slate-400 text-right">de {formatBRL(Number(c._fullAmount || 0))}</div>
+                    )}
                   </div>
                 </label>
               ))}
