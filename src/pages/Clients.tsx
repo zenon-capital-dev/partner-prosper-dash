@@ -73,6 +73,7 @@ export default function Clients() {
   const [paymentFilter, setPaymentFilter] = useState<string>(saved.paymentFilter ?? "all");
   const [riskFilter, setRiskFilter] = useState<string>(saved.riskFilter ?? "all");
   const [salesFilter, setSalesFilter] = useState<string>(saved.salesFilter ?? "all");
+  const { stageIds } = useSharedStageFilter();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     if (!saved.dateRange) return undefined;
     return {
