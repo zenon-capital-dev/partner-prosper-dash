@@ -181,6 +181,34 @@ export default function ProviderPanel() {
     },
   });
 
+  // Último reporte por demanda + cálculo de urgência (para destaque visual nos cards)
+  const lastReportByCp = useMemo(() => {
+    const m = new Map<string, string>();
+    (reports as any[]).forEach((r) => {
+      if (!m.has(r.client_product_id)) m.set(r.client_product_id, r.created_at);
+    });
+    return m;
+  }, [reports]);
+
+  const getDemandUrgency = (cp: any): { level: "overdue" | "stale" | "ok"; label?: string; border: string; ring?: string } => {
+    const done = ["concluido", "concluida", "cancelado", "cancelada"].includes(cp.status);
+    if (done) return { level: "ok", border: "border-slate-200/70" };
+    const due = cp.deadline || cp.sla_due_date;
+    if (due) {
+      const daysLate = Math.floor((Date.now() - new Date(due).getTime()) / 86400000);
+      if (daysLate > 0) return { level: "overdue", label: `${daysLate}d de atraso`, border: "border-rose-300", ring: "ring-1 ring-rose-200 bg-rose-50/30" };
+    }
+    const last = lastReportByCp.get(cp.id);
+    const daysSince = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : null;
+    if (daysSince === null) {
+      const ageDays = Math.floor((Date.now() - new Date(cp.created_at).getTime()) / 86400000);
+      if (ageDays >= 3) return { level: "stale", label: "Sem reporte", border: "border-amber-300", ring: "bg-amber-50/30" };
+    } else if (daysSince >= 7) {
+      return { level: "stale", label: `Sem reporte há ${daysSince}d`, border: "border-amber-300", ring: "bg-amber-50/30" };
+    }
+    return { level: "ok", border: "border-slate-200/70" };
+  };
+
   const { data: documents = [] } = useQuery({
     queryKey: ["provider-docs", providerId, cpIds.join(",")],
     enabled: !!providerId,
