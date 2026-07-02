@@ -229,11 +229,10 @@ export function ExpensesTab({ expenses, canManage }: Props) {
             icon={Receipt}
             title="Nenhuma despesa encontrada"
             description={expenses.length === 0 ? "Comece lançando sua primeira despesa operacional." : "Ajuste os filtros para ver outros registros."}
-            action={canManage && expenses.length === 0 ? {
-              label: "Lançar despesa",
-              onClick: () => { setEditing(null); setDialogOpen(true); },
-            } : undefined}
+            actionLabel={canManage && expenses.length === 0 ? "Lançar despesa" : undefined}
+            onAction={canManage && expenses.length === 0 ? () => { setEditing(null); setDialogOpen(true); } : undefined}
           />
+
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
