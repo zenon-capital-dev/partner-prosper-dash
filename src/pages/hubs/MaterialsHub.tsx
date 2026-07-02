@@ -3,17 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BookOpen, Handshake, Truck, Users } from "lucide-react";
 
-const PartnerMaterialsAdmin = lazy(() => import("@/pages/PartnerMaterialsAdmin"));
-
-function Placeholder({ label }: { label: string }) {
-  return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-      <BookOpen className="size-8 text-slate-300 mx-auto mb-3" />
-      <p className="text-sm font-bold text-slate-700">Materiais {label}</p>
-      <p className="text-[13px] text-slate-500 mt-1">Espaço reservado para materiais {label.toLowerCase()}. Em breve.</p>
-    </div>
-  );
-}
+const MaterialsAdmin = lazy(() => import("@/pages/PartnerMaterialsAdmin"));
 
 export default function MaterialsHub() {
   const [params, setParams] = useSearchParams();
@@ -35,7 +25,7 @@ export default function MaterialsHub() {
       <Tabs value={tab} onValueChange={set}>
         <TabsList className="bg-white border border-slate-200/70 rounded-lg p-1 shadow-sm">
           <TabsTrigger value="geral" className="gap-1.5 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">
-            <BookOpen className="size-3.5" /> Material
+            <BookOpen className="size-3.5" /> Geral
           </TabsTrigger>
           <TabsTrigger value="parceiro" className="gap-1.5 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700">
             <Handshake className="size-3.5" /> Parceiro
@@ -48,10 +38,10 @@ export default function MaterialsHub() {
           </TabsTrigger>
         </TabsList>
         <Suspense fallback={<div className="p-8 text-center text-slate-500 text-sm">Carregando…</div>}>
-          <TabsContent value="geral" className="mt-4"><Placeholder label="gerais" /></TabsContent>
-          <TabsContent value="parceiro" className="mt-4"><PartnerMaterialsAdmin /></TabsContent>
-          <TabsContent value="prestador" className="mt-4"><Placeholder label="para prestadores" /></TabsContent>
-          <TabsContent value="cliente" className="mt-4"><Placeholder label="para clientes" /></TabsContent>
+          <TabsContent value="geral" className="mt-4"><MaterialsAdmin audience="general" /></TabsContent>
+          <TabsContent value="parceiro" className="mt-4"><MaterialsAdmin audience="partner" /></TabsContent>
+          <TabsContent value="prestador" className="mt-4"><MaterialsAdmin audience="provider" /></TabsContent>
+          <TabsContent value="cliente" className="mt-4"><MaterialsAdmin audience="client" /></TabsContent>
         </Suspense>
       </Tabs>
     </div>
