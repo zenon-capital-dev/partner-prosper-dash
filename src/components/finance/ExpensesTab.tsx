@@ -347,15 +347,19 @@ export function ExpensesTab({ expenses: expensesProp, canManage = true, showKpis
                         )}
                       </td>
                       <td className="px-3 py-2 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" className="h-7" onClick={() => togglePaid(e)} title={e.paid ? "Reverter" : "Marcar como paga"}>
-                          {e.paid ? <RotateCcw className="size-3.5" /> : <CheckCircle2 className="size-3.5 text-emerald-600" />}
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-7" onClick={() => openEdit(e)}>
-                          <Pencil className="size-3.5" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-7 text-rose-600 hover:text-rose-700" onClick={() => remove(e)}>
-                          <Trash2 className="size-3.5" />
-                        </Button>
+                        {canManage && (
+                          <>
+                            <Button size="sm" variant="ghost" className="h-7" onClick={() => togglePaid(e)} title={e.paid ? "Reverter" : "Marcar como paga"}>
+                              {e.paid ? <RotateCcw className="size-3.5" /> : <CheckCircle2 className="size-3.5 text-emerald-600" />}
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7" onClick={() => openEdit(e)}>
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 text-rose-600 hover:text-rose-700" onClick={() => remove(e)}>
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   );
