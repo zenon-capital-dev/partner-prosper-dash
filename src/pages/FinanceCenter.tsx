@@ -292,6 +292,18 @@ export default function FinanceCenter() {
     staleTime: 60_000,
   });
 
+  // Alíquota de imposto configurável (system_settings.tax_rate_percent). Aplicada sobre o RECEBIDO.
+  const { data: taxRate = 0 } = useQuery({
+    queryKey: ["fin-tax-rate"],
+    queryFn: async () => {
+      const { data } = await supabase.from("system_settings").select("value").eq("key", "tax_rate_percent").maybeSingle();
+      const v: any = (data as any)?.value;
+      const n = Number(typeof v === "object" ? v?.value : v);
+      return Number.isFinite(n) ? n : 0;
+    },
+    staleTime: 5 * 60_000,
+  });
+
   const loadCommissionDetails = ["comissoes", "relatorios"].includes(tab);
 
   const { data: commissionSummary = [] } = useQuery({
@@ -461,7 +473,9 @@ export default function FinanceCenter() {
     const providerCostTotal = (salesCosts as any[])
       .filter((s) => s.status !== "cancelada")
       .reduce((a, s) => a + Number(s.provider_cost || 0) * salesCostRatio(s), 0);
-    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal;
+    // Imposto incide APENAS sobre o que efetivamente entrou em caixa no período.
+    const taxesTotal = totalReceived * (Number(taxRate) || 0) / 100;
+    const netRevenue = totalReceived - indicatorsPaid - commissionsOthersPaid - variableExpenses - salesCostsTotal - taxesTotal;
 
     return {
       totalReceived,
@@ -476,9 +490,11 @@ export default function FinanceCenter() {
       salesCostsTotal,
       zenonCostTotal,
       providerCostTotal,
+      taxesTotal,
+      taxRate: Number(taxRate) || 0,
       netRevenue,
     };
-  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso]);
+  }, [payments, commissionRows, expenses, salesCosts, today, rangeStartIso, rangeEndIso, taxRate]);
 
   const counts = useMemo(() => {
     const recebidos = payments.filter((p: any) => isPaid(p.status)).length;
@@ -633,7 +649,7 @@ export default function FinanceCenter() {
             value: formatBRL(kpis.netRevenue),
             tone: "primary",
             onClick: () => setTab("relatorios"),
-            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)}`,
+            hint: `Bruto ${formatBRL(kpis.totalReceived)} − Custos ${formatBRL(kpis.salesCostsTotal)} − Indicadores ${formatBRL(kpis.indicatorsPaid)} − Comissões ${formatBRL(kpis.commissionsOthersPaid)} − Variáveis ${formatBRL(kpis.variableExpenses)} − Impostos ${formatBRL(kpis.taxesTotal)}${kpis.taxRate ? ` (${kpis.taxRate}%)` : ""}`,
           } as any,
           {
             label: "A receber",
@@ -675,7 +691,7 @@ export default function FinanceCenter() {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
             <button type="button" onClick={() => setStatusAndTab("recebidos", "todos")} className="text-left rounded-md border border-slate-200/70 bg-slate-50 p-3 hover:border-slate-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-indigo-200">
               <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Bruto recebido</p>
               <p className="font-mono text-base font-semibold text-slate-900 mt-1 tabular-nums">{formatBRL(kpis.totalReceived)}</p>
@@ -698,6 +714,11 @@ export default function FinanceCenter() {
               <p className="text-[10px] uppercase tracking-wider font-semibold text-rose-700">− Variáveis</p>
               <p className="font-mono text-base font-semibold text-rose-800 mt-1 tabular-nums">{formatBRL(kpis.variableExpenses)}</p>
               <p className="text-[10px] text-rose-600/80 mt-0.5">Despesas operacionais</p>
+            </button>
+            <button type="button" onClick={() => setTab("relatorios")} className="text-left rounded-md border border-slate-200/70 bg-slate-50 p-3 hover:border-slate-300 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-slate-200">
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-slate-600">− Impostos</p>
+              <p className="font-mono text-base font-semibold text-slate-800 mt-1 tabular-nums">{formatBRL(kpis.taxesTotal)}</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">{kpis.taxRate ? `${kpis.taxRate}% sobre recebido` : "Config. em Ajustes"}</p>
             </button>
           </div>
         </div>
