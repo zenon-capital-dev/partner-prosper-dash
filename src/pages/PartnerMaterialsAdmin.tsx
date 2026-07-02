@@ -37,7 +37,17 @@ type Material = {
   created_at: string;
 };
 
-export default function PartnerMaterialsAdmin() {
+type Audience = "partner" | "provider" | "client" | "general";
+
+const AUDIENCE_LABELS: Record<Audience, { titulo: string; subtitulo: string; publico: string }> = {
+  partner:  { titulo: "Materiais para parceiros",  subtitulo: "Institucional, treinamentos, argumentos de vendas e gatilhos para parceiros.", publico: "parceiros" },
+  provider: { titulo: "Materiais para prestadores", subtitulo: "Manuais, padrões de entrega, treinamentos e checklists para prestadores.", publico: "prestadores" },
+  client:   { titulo: "Materiais para clientes",   subtitulo: "Onboarding, tutoriais, guias e conteúdos institucionais para clientes.", publico: "clientes" },
+  general:  { titulo: "Materiais gerais",          subtitulo: "Conteúdos visíveis para todos os públicos da plataforma.", publico: "todos" },
+};
+
+export default function PartnerMaterialsAdmin({ audience = "partner" }: { audience?: Audience } = {}) {
+  const meta = AUDIENCE_LABELS[audience];
   const { pageSize: __ps, setPageSize } = usePageSize();
   const PAGE_SIZE = __ps === -1 ? Number.MAX_SAFE_INTEGER : __ps;
   const { user } = useAuth() as any;
@@ -51,9 +61,14 @@ export default function PartnerMaterialsAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: materials = [], isLoading } = useQuery({
-    queryKey: ["partner-materials-admin"],
+    queryKey: ["partner-materials-admin", audience],
     queryFn: async () => {
-      const { data, error } = await (supabase as any).from("partner_materials").select("*").order("created_at", { ascending: false }).limit(300);
+      const { data, error } = await (supabase as any)
+        .from("partner_materials")
+        .select("*")
+        .eq("audience", audience)
+        .order("created_at", { ascending: false })
+        .limit(300);
       if (error) throw error;
       return (data || []) as Material[];
     },
