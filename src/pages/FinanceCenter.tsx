@@ -22,6 +22,8 @@ import {
   Filter, FileX, CalendarRange,
 } from "lucide-react";
 import { RevenueMap } from "@/components/finance/RevenueMap";
+import { ExpensesTab } from "@/components/finance/ExpensesTab";
+
 import { PaymentFormDialog } from "@/components/payments/PaymentFormDialog";
 import { Plus } from "lucide-react";
 import { formatBRL, formatDate } from "@/lib/format";
