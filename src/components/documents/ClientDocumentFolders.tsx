@@ -257,21 +257,15 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
 
       {isLoading ? (
         <p className="text-xs text-slate-500">Carregando pastas...</p>
-      ) : folders.length === 0 ? (
-        <div className="border border-dashed border-slate-200 rounded-lg p-6 text-center bg-white">
-          <Folder className="size-6 text-slate-400 mx-auto mb-2" />
-          <p className="text-sm text-slate-600">Nenhuma pasta ainda.</p>
-          {isAdmin && (
-            <Button size="sm" variant="outline" className="mt-2" onClick={() => setCreating(true)}>
-              Criar primeira pasta
-            </Button>
-          )}
-        </div>
       ) : (
         <>
           <div className="overflow-x-auto">
-            <Tabs value={currentFolderId ?? ""} onValueChange={setActiveId}>
+            <Tabs value={currentFolderId} onValueChange={setActiveId}>
               <TabsList className="flex-wrap h-auto">
+                <TabsTrigger value={ALL_ID} className="gap-1 font-semibold">
+                  <Folder className="size-3.5" />
+                  Todos os doc
+                </TabsTrigger>
                 {folders.map((f) => (
                   <TabsTrigger key={f.id} value={f.id} className="gap-1">
                     <Folder className="size-3.5" />
@@ -282,6 +276,15 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
             </Tabs>
           </div>
 
+          {folders.length === 0 && isAllView && isAdmin && (
+            <div className="border border-dashed border-slate-200 rounded-lg p-3 text-center bg-white">
+              <p className="text-xs text-slate-500">Ainda não há pastas criadas. Todos os documentos aparecem aqui.</p>
+              <Button size="sm" variant="outline" className="mt-2" onClick={() => setCreating(true)}>
+                Criar primeira pasta
+              </Button>
+            </div>
+          )}
+
           {currentFolderId && (
             <div className="border border-slate-200 rounded-lg bg-white p-3 space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -289,9 +292,12 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   <Badge variant="outline" className="bg-slate-50">
                     {files.length} arquivo(s)
                   </Badge>
+                  {isAllView && (
+                    <span className="text-[11px] text-slate-500">Visão consolidada — apenas leitura</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  {isAdmin && (
+                  {isAdmin && !isAllView && (
                     <>
                       <Button size="sm" variant="default" onClick={() => setRequestingInFolder(currentFolderId)}>
                         <FilePlus2 className="size-3.5 mr-1" /> Solicitar ao cliente
@@ -310,7 +316,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                       </Button>
                     </>
                   )}
-                  {canUpload && (
+                  {canUpload && !isAllView && (
                     <>
                       <input ref={fileRef} type="file" multiple hidden onChange={onUpload} />
                       <input ref={attachRef} type="file" multiple hidden onChange={onAttachToRequest} />
@@ -322,6 +328,7 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
                   )}
                 </div>
               </div>
+
 
               {files.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-6">Nenhum arquivo nesta pasta.</p>
