@@ -526,8 +526,9 @@ export default function FinanceCenter() {
       taxesTotal,
       taxRate: Number(taxRate) || 0,
       netRevenue,
+      reservesInRange,
     };
-  }, [effectivePayments, commissionRows, expenses, effectiveSalesCosts, today, rangeStartIso, rangeEndIso, taxRate]);
+  }, [effectivePayments, commissionRows, expenses, effectiveSalesCosts, today, rangeStartIso, rangeEndIso, taxRate, reservesInRange]);
 
   const counts = useMemo(() => {
     const recebidos = effectivePayments.filter((p: any) => isPaid(p.status)).length;
