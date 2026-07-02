@@ -191,6 +191,10 @@ export default function ClientJourney() {
 
   const moveClient = useCallback(async (clientId: string, stageId: string | null) => {
     const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
+    const currentStageId = qc.getQueryData<Map<string, string | null>>(["client-stage-map"])?.get(clientId) ?? null;
+    if (currentStageId === stageId) return;
+    const clientName = qc.getQueryData<Client[]>(["journey-clients"])?.find((c) => c.id === clientId)?.full_name ?? "este cliente";
+    if (!window.confirm(`Mover "${clientName}" para "${stageName}"?`)) return;
     const derivedStatus = deriveClientStatusFromStageName(stageName);
     // snapshot para rollback e otimista
     const previous = qc.getQueryData<Client[]>(["journey-clients"]);

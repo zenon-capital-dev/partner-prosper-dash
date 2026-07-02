@@ -42,7 +42,11 @@ export function ClientJourneyBadge({ clientId, stageId }: Props) {
   const current = stages.find((s: any) => s.id === stageId);
 
   const onChange = async (newId: string) => {
+    if ((stageId ?? "") === (newId ?? "")) return;
     const nextStage = stages.find((s: any) => s.id === newId);
+    const currentName = current?.name ?? "Sem estágio";
+    const nextName = nextStage?.name ?? "Sem estágio";
+    if (!window.confirm(`Mover cliente de "${currentName}" para "${nextName}"?`)) return;
     const derivedStatus = deriveClientStatusFromStageName(nextStage?.name);
     qc.setQueryData(["client", clientId], (old: any) => old ? { ...old, journey_stage_id: newId || null, status: derivedStatus ?? old.status } : old);
     qc.setQueryData<Map<string, string | null>>(["client-stage-map"], (old) => {
