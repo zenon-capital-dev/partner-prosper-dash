@@ -200,7 +200,7 @@ export default function DashboardAdmin() {
     }
   });
 
-  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({
+  const { data: _rawPayments = [], isLoading: isLoadingPayments } = useQuery({
     queryKey: ["dash-payments"],
     staleTime: STALE,
     enabled: stageActive,
