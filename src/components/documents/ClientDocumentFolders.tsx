@@ -605,6 +605,38 @@ export function ClientDocumentFolders({ clientId, viewerRole }: Props) {
           }}
         />
       )}
+
+      {/* Novo contrato */}
+      <Dialog open={creatingContract} onOpenChange={setCreatingContract}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Novo contrato</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Nome do contrato</Label>
+            <Input value={newContractName} onChange={(e) => setNewContractName(e.target.value)} placeholder="Ex: Contrato de prestação — 2026" autoFocus />
+            <p className="text-[11px] text-slate-500">Depois adicione as fases de assinatura (ex.: Minuta → Assinado pelo cliente → Assinado pela Zenon).</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreatingContract(false)}>Cancelar</Button>
+            <Button onClick={createContract} disabled={!newContractName.trim()}>Criar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Adicionar fase */}
+      <Dialog open={!!addingPhaseTo} onOpenChange={(v) => !v && setAddingPhaseTo(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Adicionar fase</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label className="text-xs">Nome da fase</Label>
+            <Input value={phaseLabel} onChange={(e) => setPhaseLabel(e.target.value)} placeholder="Ex: Minuta / Assinado pelo cliente" autoFocus />
+            <p className="text-[11px] text-slate-500">Ao confirmar, selecione o arquivo dessa fase.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddingPhaseTo(null)}>Cancelar</Button>
+            <Button onClick={confirmAddPhase} disabled={!phaseLabel.trim()}>Escolher arquivo</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
