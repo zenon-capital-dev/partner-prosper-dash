@@ -19,7 +19,19 @@ import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@
 import { paymentReceivedAmount, paymentOutstandingAmount, saleIsFinalized } from "@/lib/financial";
 
 
-interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
+interface Stage { id: string; name: string; position: number; color: string; description?: string | null; is_captation?: boolean; is_terminal?: boolean; }
+
+// Estágios pré-venda (captação/prospecção/diagnóstico/proposta) NÃO devem exibir KPIs financeiros:
+// não há venda fechada, portanto valores agregados nesses clientes seriam enganosos.
+function isPreSaleStageName(name?: string | null) {
+  const s = (name || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return /(captac|capta|prospecc|prospec|lead|diagnostic|proposta|qualific|apresentac|reuniao|contato inicial|negociac)/.test(s);
+}
+function stageShowsMoneyKpi(stage?: { name?: string | null; is_captation?: boolean } | null) {
+  if (!stage) return true;
+  if (stage.is_captation) return false;
+  return !isPreSaleStageName(stage.name);
+}
 interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
 interface StageHistoryRow { id: string; from_stage_name: string | null; to_stage_name: string | null; changed_at: string; changed_by: string | null; }
 
