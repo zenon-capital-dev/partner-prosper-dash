@@ -129,12 +129,12 @@ export default function PartnerPanel() {
       const [{ data: primary }, { data: linked }] = await Promise.all([
         supabase
           .from("clients")
-          .select("id, full_name, email, phone, status, created_at, partner_id")
+          .select("id, full_name, email, phone, status, created_at, partner_id, journey_stage_id")
           .eq("partner_id", partner!.id)
           .order("created_at", { ascending: false }),
         supabase
           .from("client_partners")
-          .select("client_id, clients(id, full_name, email, phone, status, created_at, partner_id)")
+          .select("client_id, clients(id, full_name, email, phone, status, created_at, partner_id, journey_stage_id)")
           .eq("partner_id", partner!.id),
       ]);
 
