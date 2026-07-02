@@ -245,6 +245,8 @@ export default function Sales() {
 
   const usingManualRange = !!dateFrom || !!dateTo;
 
+  const { matchesClientId, stageIds: sharedStageIds } = useStageMatcher();
+
   const filtered = useMemo(() => {
     const today = nowBR();
     let start: Date = startOfToday();
@@ -279,6 +281,7 @@ export default function Sales() {
       if (partnerFilter !== "todos" && partnerFilter !== "sem" && s.partner_id !== partnerFilter) return false;
       if (productFilter !== "todos" && s.product_id !== productFilter) return false;
       if (clientFilter !== "todos" && s.client_id !== clientFilter) return false;
+      if (!matchesClientId(s.client_id)) return false;
       if (q) {
         const hay = norm(
           `${s.id ?? ""} ${s.clients?.full_name ?? ""} ${s.clients?.company ?? ""} ${s.clients?.email ?? ""} ${s.products?.name ?? ""} ${s.partners?.full_name ?? ""}`
@@ -289,7 +292,7 @@ export default function Sales() {
       }
       return true;
     });
-  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange]);
+  }, [sales, status, revenueFilter, partnerFilter, productFilter, clientFilter, dateFrom, dateTo, search, rangeKey, selectedMonth, usingManualRange, matchesClientId, sharedStageIds]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
