@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePartnersRef, useReferrersRef, useCollaboratorsRef, useProvidersRef, useProductsRef } from "@/hooks/useReferenceData";
+import { useJourneyStages } from "@/hooks/useSharedStageFilter";
+import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
 
 import { KeyRound, Eye, EyeOff, Sparkles, Copy, FileText, Plus, X, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -97,6 +99,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
   const providers = useMemo(() => providersAll.filter((p: any) => p.active !== false), [providersAll]);
   const { data: productsListAll = [] } = useProductsRef(open);
   const productsList = useMemo(() => productsListAll.filter((p: any) => p.active !== false), [productsListAll]);
+  const { data: journeyStages = [] } = useJourneyStages();
 
 
 
@@ -195,6 +198,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         city: form.city || null,
         state: form.state || null,
         status: form.status || "novo_cliente",
+        journey_stage_id: form.journey_stage_id || null,
         source: form.source || "cadastro_manual",
         partner_id: form.partner_id || null,
         referrer_id: form.referrer_id || null,
@@ -327,6 +331,7 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
         "referrer-panel", "partner-panel",
         "demands", "demands-list", "tasks", "tasks-list",
       ].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+      invalidateJourneyStageCaches(qc, clientId);
 
       onCreated?.();
       onOpenChange(false);
@@ -453,11 +458,44 @@ export function ClientFormDialog({ open, onOpenChange, onCreated, client }: Prop
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="novo_cliente">Novo cliente</SelectItem>
+                <SelectItem value="prospecto">Cliente em prospecção</SelectItem>
                 <SelectItem value="ativo">Ativo</SelectItem>
+                <SelectItem value="em_andamento">Em andamento</SelectItem>
+                <SelectItem value="pagamento_pendente">Pagamento pendente</SelectItem>
+                <SelectItem value="pagamento_confirmado">Pagamento confirmado</SelectItem>
+                <SelectItem value="finalizado">Cliente finalizado</SelectItem>
                 <SelectItem value="inativo">Inativo</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Estágio na esteira</Label>
+            <Select
+              value={form.journey_stage_id ?? "none"}
+              onValueChange={(v) => {
+                const stageId = v === "none" ? null : v;
+                const stage = journeyStages.find((s: any) => s.id === stageId);
+                const derivedStatus = deriveClientStatusFromStageName(stage?.name);
+                setForm({
+                  ...form,
+                  journey_stage_id: stageId,
+                  ...(derivedStatus ? { status: derivedStatus } : {}),
+                });
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Sem estágio" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem estágio</SelectItem>
+                {journeyStages.map((stage: any) => (
+                  <SelectItem key={stage.id} value={stage.id}>{stage.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">
+              Esse campo é a coluna real da Esteira; ao mudar aqui, o cliente muda na Esteira, nos filtros e nos saldos por estágio.
+            </p>
           </div>
 
           {/* VÍNCULOS */}

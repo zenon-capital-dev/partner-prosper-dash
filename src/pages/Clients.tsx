@@ -1049,9 +1049,15 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
   ativo: { label: "Ativo", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  prospecto: { label: "Prospecto", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  prospecto: { label: "Cliente em prospecção", cls: "bg-amber-50 text-amber-700 border-amber-200" },
   novo_cliente: { label: "Novo cliente", cls: "bg-sky-50 text-sky-700 border-sky-200" },
+  em_andamento: { label: "Em andamento", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  pagamento_pendente: { label: "Pagamento pendente", cls: "bg-orange-50 text-orange-700 border-orange-200" },
+  pagamento_parcial: { label: "Pagamento parcial", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+  pagamento_confirmado: { label: "Pagamento confirmado", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  finalizado: { label: "Cliente finalizado", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   inativo: { label: "Inativo", cls: "bg-slate-100 text-slate-600 border-slate-200" },
+  cancelado: { label: "Cancelado", cls: "bg-red-50 text-red-700 border-red-200" },
 };
 
 function statusLabel(status: string) {
