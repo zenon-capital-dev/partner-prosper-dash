@@ -9,17 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PageHeader } from "@/components/PageHeader";
 import { toast } from "sonner";
-import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter } from "lucide-react";
-import { initials } from "@/lib/format";
+import { Plus, GripVertical, Settings, ChevronRight, Search, ExternalLink, Filter, History, TrendingUp, Wallet, Users } from "lucide-react";
+import { initials, formatBRL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FilterPresets } from "@/components/filters/FilterPresets";
 import { StageFilterBar } from "@/components/filters/StageFilterBar";
 import { useSharedStageFilter } from "@/hooks/useSharedStageFilter";
 import { deriveClientStatusFromStageName, invalidateJourneyStageCaches } from "@/lib/journey-stage-sync";
+import { paymentReceivedAmount, paymentOutstandingAmount, saleIsFinalized } from "@/lib/financial";
 
 
 interface Stage { id: string; name: string; position: number; color: string; description?: string | null; }
 interface Client { id: string; full_name: string; status: string; journey_stage_id: string | null; company?: string | null; }
+interface StageHistoryRow { id: string; from_stage_name: string | null; to_stage_name: string | null; changed_at: string; changed_by: string | null; }
+
 
 export default function ClientJourney() {
   const qc = useQueryClient();
@@ -76,6 +79,59 @@ export default function ClientJourney() {
     staleTime: 60_000,
   });
 
+  const { data: salesRaw = [] } = useQuery({
+    queryKey: ["journey-sales-agg"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("sales")
+        .select("id, client_id, amount, status")
+        .limit(2000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  const { data: paymentsRaw = [] } = useQuery({
+    queryKey: ["journey-payments-agg"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("id, client_id, amount, amount_paid, status, paid_at, due_date")
+        .limit(3000);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+
+  // Agrega por cliente: vendas realizadas + pagamentos pendentes/a receber
+  const clientAgg = useMemo(() => {
+    const m = new Map<string, { salesValue: number; salesCount: number; pending: number; pendingCount: number }>();
+    (salesRaw as any[]).forEach((s) => {
+      if (!s.client_id || !saleIsFinalized(s)) return;
+      const cur = m.get(s.client_id) ?? { salesValue: 0, salesCount: 0, pending: 0, pendingCount: 0 };
+      cur.salesValue += Number(s.amount || 0);
+      cur.salesCount += 1;
+      m.set(s.client_id, cur);
+    });
+    (paymentsRaw as any[]).forEach((p) => {
+      if (!p.client_id) return;
+      const received = paymentReceivedAmount(p);
+      const outstanding = paymentOutstandingAmount(p);
+      const isReallyPending = outstanding > 0 && received < Number(p.amount || 0);
+      if (!isReallyPending) return;
+      const cur = m.get(p.client_id) ?? { salesValue: 0, salesCount: 0, pending: 0, pendingCount: 0 };
+      cur.pending += outstanding;
+      cur.pendingCount += 1;
+      m.set(p.client_id, cur);
+    });
+    return m;
+  }, [salesRaw, paymentsRaw]);
+
+  const [historyClient, setHistoryClient] = useState<Client | null>(null);
+
+
   const { stageIds: sharedStageIds } = useSharedStageFilter();
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -100,6 +156,26 @@ export default function ClientJourney() {
     });
     return { map, unassigned };
   }, [stages, filtered]);
+
+  const stageKpis = useMemo(() => {
+    const kpi = new Map<string, { salesValue: number; salesCount: number; pending: number; pendingCount: number }>();
+    const aggregate = (list: Client[]) => {
+      const acc = { salesValue: 0, salesCount: 0, pending: 0, pendingCount: 0 };
+      list.forEach((c) => {
+        const a = clientAgg.get(c.id);
+        if (!a) return;
+        acc.salesValue += a.salesValue;
+        acc.salesCount += a.salesCount;
+        acc.pending += a.pending;
+        acc.pendingCount += a.pendingCount;
+      });
+      return acc;
+    };
+    stages.forEach((s) => kpi.set(s.id, aggregate(byStage.map.get(s.id) ?? [])));
+    kpi.set("__unassigned__", aggregate(byStage.unassigned));
+    return kpi;
+  }, [stages, byStage, clientAgg]);
+
 
   const moveClient = useCallback(async (clientId: string, stageId: string | null) => {
     const stageName = stages.find((s) => s.id === stageId)?.name ?? "Sem estágio";
@@ -274,6 +350,7 @@ export default function ClientJourney() {
             title="Sem estágio"
             color="#94a3b8"
             count={byStage.unassigned.length}
+            kpi={stageKpis.get("__unassigned__")}
             isOver={dragOver === "__unassigned__"}
             onDragOver={(e) => { e.preventDefault(); setDragOver("__unassigned__"); }}
             onDragLeave={() => setDragOver(null)}
@@ -286,6 +363,7 @@ export default function ClientJourney() {
                 stages={stages}
                 nextStageId={nextStageOf(null)}
                 onMove={moveClient}
+                onHistory={() => setHistoryClient(c)}
                 onDragStart={() => setDragId(c.id)}
                 onDragEnd={() => { setDragId(null); setDragOver(null); }}
               />
@@ -300,6 +378,7 @@ export default function ClientJourney() {
               title={stage.name}
               color={stage.color}
               count={list.length}
+              kpi={stageKpis.get(stage.id)}
               isOver={dragOver === stage.id}
               onDragOver={(e) => { e.preventDefault(); setDragOver(stage.id); }}
               onDragLeave={() => setDragOver(null)}
@@ -315,6 +394,7 @@ export default function ClientJourney() {
                     stages={stages}
                     nextStageId={nextStageOf(stage.id)}
                     onMove={moveClient}
+                    onHistory={() => setHistoryClient(c)}
                     onDragStart={() => setDragId(c.id)}
                     onDragEnd={() => { setDragId(null); setDragOver(null); }}
                   />
@@ -324,6 +404,9 @@ export default function ClientJourney() {
           );
         })}
       </div>
+
+      <StageHistoryDialog client={historyClient} onClose={() => setHistoryClient(null)} />
+
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-w-lg">
@@ -383,9 +466,11 @@ export default function ClientJourney() {
 }
 
 function Column({
-  title, color, count, children, isOver, onDragOver, onDragLeave, onDrop,
+  title, color, count, kpi, children, isOver, onDragOver, onDragLeave, onDrop,
 }: {
-  title: string; color: string; count: number; children: React.ReactNode;
+  title: string; color: string; count: number;
+  kpi?: { salesValue: number; salesCount: number; pending: number; pendingCount: number };
+  children: React.ReactNode;
   isOver: boolean;
   onDragOver: React.DragEventHandler;
   onDragLeave: React.DragEventHandler;
@@ -409,18 +494,45 @@ function Column({
         <p className="text-sm font-semibold text-slate-900 flex-1 truncate">{title}</p>
         <Badge variant="outline" className="bg-slate-50 text-slate-700 text-[10px]">{count}</Badge>
       </div>
+      {kpi && (kpi.salesCount > 0 || kpi.pendingCount > 0) && (
+        <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/50 grid grid-cols-3 gap-1.5 text-[10px]">
+          <div className="flex flex-col items-start" title="Clientes no estágio">
+            <span className="flex items-center gap-0.5 text-slate-500 uppercase tracking-wider font-semibold text-[9px]">
+              <Users className="size-2.5" /> Clientes
+            </span>
+            <span className="font-bold font-mono text-slate-900 tabular-nums">{count}</span>
+          </div>
+          <div className="flex flex-col items-start" title="Soma das vendas finalizadas">
+            <span className="flex items-center gap-0.5 text-emerald-600 uppercase tracking-wider font-semibold text-[9px]">
+              <TrendingUp className="size-2.5" /> Vendas
+            </span>
+            <span className="font-bold font-mono text-emerald-700 tabular-nums truncate w-full" title={formatBRL(kpi.salesValue)}>
+              {formatBRL(kpi.salesValue)}
+            </span>
+          </div>
+          <div className="flex flex-col items-start" title="Saldo pendente a receber">
+            <span className="flex items-center gap-0.5 text-amber-600 uppercase tracking-wider font-semibold text-[9px]">
+              <Wallet className="size-2.5" /> A Receber
+            </span>
+            <span className="font-bold font-mono text-amber-700 tabular-nums truncate w-full" title={formatBRL(kpi.pending)}>
+              {formatBRL(kpi.pending)}
+            </span>
+          </div>
+        </div>
+      )}
       <div className="p-2 space-y-2 max-h-[70vh] overflow-y-auto flex-1">{children}</div>
     </div>
   );
 }
 
 function ClientCard({
-  client, stages, nextStageId, onMove, onDragStart, onDragEnd,
+  client, stages, nextStageId, onMove, onHistory, onDragStart, onDragEnd,
 }: {
   client: Client;
   stages: Stage[];
   nextStageId: string | null;
   onMove: (cid: string, sid: string | null) => void;
+  onHistory: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }) {
@@ -448,6 +560,14 @@ function ClientCard({
           )}
           <StatusPill status={client.status} />
         </div>
+        <button
+          type="button"
+          onClick={onHistory}
+          className="text-slate-400 hover:text-indigo-600 shrink-0"
+          title="Ver histórico de estágios"
+        >
+          <History className="size-3.5" />
+        </button>
         <Link
           to={`/clientes/${client.id}`}
           className="text-slate-400 hover:text-indigo-600 shrink-0"
@@ -482,6 +602,61 @@ function ClientCard({
     </div>
   );
 }
+
+function StageHistoryDialog({ client, onClose }: { client: Client | null; onClose: () => void }) {
+  const { data: history = [], isLoading } = useQuery<StageHistoryRow[]>({
+    queryKey: ["client-stage-history", client?.id],
+    enabled: !!client?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_stage_history")
+        .select("id, from_stage_name, to_stage_name, changed_at, changed_by")
+        .eq("client_id", client!.id)
+        .order("changed_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as StageHistoryRow[];
+    },
+  });
+
+  return (
+    <Dialog open={!!client} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Histórico de estágios · {client?.full_name}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[60vh] overflow-y-auto">
+          {isLoading ? (
+            <p className="text-sm text-slate-400 py-6 text-center">Carregando...</p>
+          ) : history.length === 0 ? (
+            <p className="text-sm text-slate-400 py-6 text-center italic">Nenhuma movimentação registrada ainda.</p>
+          ) : (
+            <ol className="relative border-l-2 border-slate-200 ml-3 space-y-3 pl-4 py-2">
+              {history.map((h) => (
+                <li key={h.id} className="relative">
+                  <span className="absolute -left-[22px] top-1.5 size-2.5 rounded-full bg-indigo-500 ring-2 ring-white" />
+                  <p className="text-[12.5px] text-slate-800">
+                    <span className="font-semibold text-slate-500">{h.from_stage_name || "— sem estágio —"}</span>
+                    {" → "}
+                    <span className="font-bold text-indigo-700">{h.to_stage_name || "— sem estágio —"}</span>
+                  </p>
+                  <p className="text-[10.5px] text-slate-400 mt-0.5">
+                    {new Date(h.changed_at).toLocaleString("pt-BR")}
+                    {h.changed_by ? ` · por ${h.changed_by.slice(0, 8)}` : ""}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 const STATUS_TONE: Record<string, string> = {
   ativo: "bg-blue-50 text-blue-700 border-blue-200",
