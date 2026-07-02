@@ -62,6 +62,7 @@ const Proposals = lazy(() => import("./pages/Proposals"));
 const FinanceCenter = lazy(() => import("./pages/FinanceCenter"));
 const ResourcePools = lazy(() => import("./pages/ResourcePools"));
 const SalesGoals = lazy(() => import("./pages/SalesGoals"));
+const OperationalExpenses = lazy(() => import("./pages/OperationalExpenses"));
 const ClientJourney = lazy(() => import("./pages/ClientJourney"));
 const Agenda = lazy(() => import("./pages/Agenda"));
 const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
